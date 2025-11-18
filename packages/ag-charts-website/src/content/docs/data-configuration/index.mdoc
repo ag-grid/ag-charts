@@ -1,0 +1,176 @@
+---
+title: 'Data Configuration and Update'
+description: 'Learn how to structure and connect data to AG Charts. Covers data binding, per-series data configuration, hierarchy data, and data updates.'
+---
+
+This page describes how to provide data to be visualised by AG Charts, and how to update it.
+
+## Data Structure and Binding
+
+### Data Structure
+
+AG Charts expects data as an array of objects, where each object represents a data point.
+
+```js format="snippet"
+{
+    data: [
+        { year: '2021', sales: 50000, profit: 15000 },
+        { year: '2022', sales: 65000, profit: 22000 },
+        { year: '2023', sales: 78000, profit: 28000 },
+    ],
+}
+```
+
+-   The data can be any array of objects, with properties being mapped to chart elements like axes, size, and color.
+-   [TypeScript Generics](./ts-generics/) support enables compile-time checks and auto-complete for the elements of the `data[]` property.
+-   Hierarchical Series such as [Treemap](./treemap-series/) and [Sunburst](./sunburst-series/) use a `children` array to represent nested levels.
+
+### Binding Data To Series
+
+Every series in a chart has `_Key` properties for connecting the visualisation elements to the data fields.
+
+These properties include `xKey` and `yKey` for cartesian charts, `colorKey` for heatmap and `angleKey` for pie series.
+
+{% chartExampleRunner title="Using Data Example" name="basic-data" type="generated" /%}
+
+```js format="snippet"
+{
+    data: [
+        { year: '2021', women: 25, men: 20 },
+        { year: '2022', women: 28, men: 22 },
+        { year: '2023', women: 32, men: 24 },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'women',
+            yName: 'Women',
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'men',
+            yName: 'Men',
+        },
+    ],
+}
+```
+
+In this example:
+
+-   The `data` array contains the data for all series in the chart.
+-   Series 1 visualizes the `women` field using `yKey: 'women'`.
+-   Series 2 visualizes the `men` field using `yKey: 'men'`.
+-   The `xKey: 'year'` is used by both series, determining the category labels.
+
+The `_Key` properties vary by series type - see the [Series Options](/options/#reference-AgChartOptions-series) for more details.
+
+### Per-Series Data
+
+By default, all series use the root-level `data` option, but each series can declare its own `data`.
+This is useful when different series have different data sources.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            data: [
+                { year: '2021', women: 25 },
+                { year: '2022', women: 28 },
+                { year: '2023', women: 32 },
+            ],
+            xKey: 'year',
+            yKey: 'women',
+            yName: 'Women',
+        },
+        {
+            type: 'bar',
+            data: [
+                { year: '2021', men: 20 },
+                { year: '2022', men: 22 },
+                { year: '2023', men: 24 },
+            ],
+            xKey: 'year',
+            yKey: 'men',
+            yName: 'Men',
+        },
+    ],
+}
+```
+
+When a series specifies its own `data` array, it overrides the root-level data option for that series only.
+Other series continue to use root-level data.
+
+## Field Dot Notation
+
+By default, AG Charts supports dot notation for accessing nested properties in your data.
+
+Use the `suppressFieldDotNotation` option to disable this feature if your field names contain the `.` character.
+
+```js format="snippet" width=80
+{
+    data: [
+        { user: { name: 'Alice', age: 30 } },
+        { user: { name: 'Bob', age: 25 } },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'user.name', // Accesses nested property
+            yKey: 'user.age',
+        },
+    ],
+}
+```
+
+## Updating Data
+
+{% if isFramework("javascript") %}
+After chart creation, you can update the data by calling `AgChartInstance.update()` or `AgChartInstance.updateDelta()` with a new `data` array.
+
+```js
+chart.update({
+    data: newData,
+});
+```
+
+{% /if %}
+
+{% if isNotJavascriptFramework() %}
+After chart creation, you can update the data by mutating the data object.
+{% /if %}
+
+For details on update methods, see the [Create/Update API Reference](./api-create-update/).
+
+### High Frequency Updates
+
+For high-frequency or streaming data, use `applyTransaction()` to update specific items without replacing the entire dataset.
+This is significantly faster for small changes to large datasets.
+
+```js
+chart.applyTransaction({
+    add: [{ date: new Date(), value: 42 }],
+    remove: [oldDataPoint],
+    update: [{ ...updatedDataPoint }],
+});
+```
+
+For details on transaction operations, see [High-Frequency Data](./high-frequency-data/).
+
+## Asynchronous Data
+
+The `dataSource` callback allows fetching data asynchronously as the user zooms and pans.
+
+```js format="snippet"
+{
+    dataSource: {
+        getData: ({ windowStart, windowEnd }) => {
+            return FakeServer.get(windowStart, windowEnd);
+        },
+    },
+}
+```
+
+See [Asynchronous Loading](./zoom/#asynchronous-loading) for more details.
