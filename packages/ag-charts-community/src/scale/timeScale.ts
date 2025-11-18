@@ -81,9 +81,9 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
-        } else if (nice && tickCount === 2) {
+        } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
-        } else if (nice && tickCount === 1) {
+        } else if (nice.every(Boolean) && tickCount === 1) {
             return { ticks: domain.slice(0, 1), count: undefined };
         }
 

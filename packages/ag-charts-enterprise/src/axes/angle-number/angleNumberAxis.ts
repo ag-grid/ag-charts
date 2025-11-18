@@ -26,6 +26,12 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     max?: number;
 
     @Property
+    preferredMin?: number;
+
+    @Property
+    preferredMax?: number;
+
+    @Property
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -38,10 +44,14 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
 
         return { domain: extent, clipped };
+    }
+
+    override getDomainExtentsNice(): [boolean, boolean] {
+        return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
     override updateScale(): void {
@@ -72,7 +82,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
             const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
             const tickParams: ScaleTickParams<number> = {
-                nice,
+                nice: [nice, nice],
                 interval: step,
                 tickCount,
                 minTickCount,

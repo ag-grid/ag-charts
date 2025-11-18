@@ -27,7 +27,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 5,
             minTickCount: 0,
@@ -49,7 +49,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ].reverse();
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 5,
             minTickCount: 0,
@@ -71,7 +71,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -90,7 +90,7 @@ describe('OrdinalTimeScale', () => {
         ];
 
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -274,7 +274,7 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: true,
+                    nice: [true, true],
                     interval,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -508,7 +508,7 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: true,
+                    nice: [true, true],
                     interval,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -722,7 +722,7 @@ describe('OrdinalTimeScale', () => {
             scale.range = [0, 1000];
             expect(
                 scale.ticks({
-                    nice: true,
+                    nice: [true, true],
                     interval: 'month',
                     tickCount: 0,
                     minTickCount: 0,

@@ -77,6 +77,10 @@ export interface AgBaseContinuousAxisOptions<TDatum extends Date | number = numb
     min?: TDatum;
     /** User override for the automatically determined max value (based on series data). */
     max?: TDatum;
+    /** The min value for the axis if outside the series data. */
+    preferredMin?: TDatum;
+    /** The max value for the axis if outside the series data. */
+    preferredMax?: TDatum;
 }
 
 export interface AgContinuousAxisOptions<

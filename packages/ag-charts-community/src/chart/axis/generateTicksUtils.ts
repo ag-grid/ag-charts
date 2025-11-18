@@ -52,7 +52,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     domain: TDatum[];
     range: [number, number];
     visibleRange: [number, number];
-    niceMode: NiceMode;
+    niceMode: NiceMode[];
     reverse: boolean;
     primaryTickCount: AxisPrimaryTickCount | undefined;
     defaultTickMinSpacing: number;

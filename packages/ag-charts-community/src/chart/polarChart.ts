@@ -69,7 +69,7 @@ export class PolarChart extends Chart {
 
         radiusAxis.gridAngles = angleScale
             .ticks({
-                nice: angleAxis.nice,
+                nice: [angleAxis.nice, angleAxis.nice],
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,

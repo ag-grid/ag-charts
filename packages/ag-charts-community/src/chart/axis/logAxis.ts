@@ -9,8 +9,8 @@ export class LogAxis extends NumberAxis {
     static override readonly type = 'log' as const;
 
     override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
 
         if ((extent[0] < 0 && extent[1] > 0) || (d[0] < 0 && d[1] > 0)) {
             Logger.warn(

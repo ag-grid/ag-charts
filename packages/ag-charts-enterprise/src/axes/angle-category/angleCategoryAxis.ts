@@ -32,7 +32,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
         const { scale, gridLength: radius } = this;
         const { values, minSpacing } = this.interval;
         const tickParams: ScaleTickParams<number> = {
-            nice: this.nice,
+            nice: [this.nice, this.nice],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,

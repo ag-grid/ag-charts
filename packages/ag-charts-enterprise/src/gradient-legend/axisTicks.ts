@@ -181,7 +181,7 @@ export class AxisTicks {
         );
 
         const tickData = this.getTicksData({
-            nice: true,
+            nice: [true, true],
             interval: this.interval.step,
             tickCount,
             minTickCount,

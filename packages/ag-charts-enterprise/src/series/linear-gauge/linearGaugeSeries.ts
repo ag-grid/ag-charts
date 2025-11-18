@@ -435,7 +435,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const ticks =
             scaleProps.interval.values ??
             scale.ticks({
-                nice: false,
+                nice: [false, false],
                 interval: scaleProps.interval.step,
                 minTickCount: 0,
                 maxTickCount: 6,
@@ -552,7 +552,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             primaryTickCount: undefined,
             defaultTickMinSpacing: 0,
             visibleRange: [0, 1],
-            niceMode: NiceMode.Off,
+            niceMode: [NiceMode.Off, NiceMode.Off],
             labelOffset: 0,
             axisRotation,
             sideFlag,

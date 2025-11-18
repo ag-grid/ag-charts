@@ -131,7 +131,7 @@ describe('LinearScale', () => {
             scale.domain = domain;
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -146,7 +146,7 @@ describe('LinearScale', () => {
             scale.domain = [0, 100];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: 30,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -165,7 +165,7 @@ describe('LinearScale', () => {
             scale.domain = [0, 100];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: 10,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -181,7 +181,7 @@ describe('LinearScale', () => {
 
     test('scale.tickFormat', () => {
         const tickFormatParams: ScaleTickParams<number> = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,

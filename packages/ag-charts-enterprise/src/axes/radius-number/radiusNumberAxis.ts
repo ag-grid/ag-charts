@@ -23,6 +23,12 @@ export class RadiusNumberAxis extends RadiusAxis {
     @Property
     max?: number;
 
+    @Property
+    preferredMin?: number;
+
+    @Property
+    preferredMax?: number;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new LinearScale());
     }
@@ -48,10 +54,14 @@ export class RadiusNumberAxis extends RadiusAxis {
     }
 
     override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
 
         return { domain: extent, clipped };
+    }
+
+    override getDomainExtentsNice(): [boolean, boolean] {
+        return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
     override tickFormatParams(
