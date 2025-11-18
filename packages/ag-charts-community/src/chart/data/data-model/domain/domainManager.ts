@@ -9,8 +9,6 @@ import { DomainInitializer } from './domainInitializer';
 import { ProcessValueFactory } from './processValueFactory';
 import type { SpecializedProcessValueFn } from './processValueFactory';
 
-export type { SpecializedProcessValueFn } from './processValueFactory';
-
 /**
  * Manages domain computation and processing for the DataModel.
  * Handles both discrete and continuous domains, including banded domain optimization

@@ -21,7 +21,7 @@ import {
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
-import type { SpecializedProcessValueFn } from '../domain/domainManager';
+import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
 import { ReducerManager } from '../reducers/reducerManager';
 import { createArray, toKeyString, uniqueChangeDescriptions } from '../utils/helpers';
 

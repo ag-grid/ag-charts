@@ -150,17 +150,17 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         validation: ((value: any, datum: any, index: number) => boolean) | undefined
     ): SpecializedProcessValueFn | null {
         if (context.def.forceValue != null) {
-            return this.createSpecializedProcessValue_ForceValue(context);
+            return this.createSpecializedProcessValueForceValue(context);
         }
 
         if (context.def.processor) {
-            return this.createSpecializedProcessValue_Processor(context, validation);
+            return this.createSpecializedProcessValueProcessor(context, validation);
         }
 
         if (validation) {
             return context.def.type === 'key'
-                ? this.createSpecializedProcessValue_Key_Validation(context, validation)
-                : this.createSpecializedProcessValue_Value_Validation(context, validation);
+                ? this.createSpecializedProcessValueKeyValidation(context, validation)
+                : this.createSpecializedProcessValueValueValidation(context, validation);
         }
 
         return null;
@@ -182,7 +182,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function optimized for key properties with validation.
      * Eliminates all branching for the most common key property case (~30% of calls).
      */
-    private createSpecializedProcessValue_Key_Validation(
+    private createSpecializedProcessValueKeyValidation(
         context: ProcessValueContext<K>,
         validation: (value: any, datum: any, index: number) => boolean
     ): SpecializedProcessValueFn {
@@ -196,7 +196,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         if (accessor) {
             // Key with accessor (rare case)
             const accessorFn = accessor;
-            return function processValue_Key_Validation_Accessor(
+            return function processValueKeyValidationAccessor(
                 datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
@@ -230,7 +230,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         }
 
         // Key without accessor (most common key case)
-        return function processValue_Key_Validation_Direct(
+        return function processValueKeyValidationDirect(
             datum: unknown,
             idx: number,
             valueScopes: string | string[]
@@ -262,7 +262,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function optimized for value properties with validation.
      * Eliminates branching for the most common value property case (~50% of calls).
      */
-    private createSpecializedProcessValue_Value_Validation(
+    private createSpecializedProcessValueValueValidation(
         context: ProcessValueContext<K>,
         validation: (value: any, datum: any, index: number) => boolean
     ): SpecializedProcessValueFn {
@@ -276,7 +276,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         if (accessor) {
             // Value with accessor
             const accessorFn = accessor;
-            return function processValue_Value_Validation_Accessor(
+            return function processValueValueValidationAccessor(
                 datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
@@ -305,7 +305,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         }
 
         // Value without accessor (most common value case)
-        return function processValue_Value_Validation_Direct(
+        return function processValueValueValidationDirect(
             datum: unknown,
             idx: number,
             valueScopes: string | string[]
@@ -332,14 +332,14 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function for properties with forceValue.
      * Optimized for invisible series (~5-10% of calls).
      */
-    private createSpecializedProcessValue_ForceValue(context: ProcessValueContext<K>): SpecializedProcessValueFn {
+    private createSpecializedProcessValueForceValue(context: ProcessValueContext<K>): SpecializedProcessValueFn {
         const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
         const forceValue = def.forceValue!;
 
         if (accessor) {
             const accessorFn = accessor;
-            return function processValue_ForceValue_Accessor(
+            return function processValueForceValueAccessor(
                 datum: unknown,
                 _idx: number,
                 _valueScopes: string | string[]
@@ -362,7 +362,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             };
         }
 
-        return function processValue_ForceValue_Direct(
+        return function processValueForceValueDirect(
             datum: unknown,
             _idx: number,
             _valueScopes: string | string[]
@@ -384,7 +384,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      * Creates a specialized processValue function for properties with processors.
      * Optimized for data transformations (~5-10% of calls).
      */
-    private createSpecializedProcessValue_Processor(
+    private createSpecializedProcessValueProcessor(
         context: ProcessValueContext<K>,
         validation: ((value: any, datum: any, index: number) => boolean) | undefined
     ): SpecializedProcessValueFn {
@@ -398,7 +398,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
         if (accessor) {
             const accessorFn = accessor;
-            return function processValue_Processor_Accessor(
+            return function processValueProcessorAccessor(
                 datum: unknown,
                 idx: number,
                 valueScopes: string | string[]
@@ -434,7 +434,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             };
         }
 
-        return function processValue_Processor_Direct(
+        return function processValueProcessorDirect(
             datum: unknown,
             idx: number,
             valueScopes: string | string[]
@@ -483,7 +483,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         const reusableResult = context.reusableResult;
         const validationMeta = this.createValidationMeta(context);
 
-        return function processValue_Generic(
+        return function processValueGeneric(
             datum: unknown,
             idx: number,
             valueScopes: string | string[]

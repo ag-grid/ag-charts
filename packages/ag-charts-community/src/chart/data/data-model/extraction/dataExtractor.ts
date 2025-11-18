@@ -5,7 +5,8 @@ import type { InternalDatumPropertyDefinition, ScopeId, UngroupedData } from '..
 import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS, REDUCER_BANDS } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
-import type { DomainManager, SpecializedProcessValueFn } from '../domain/domainManager';
+import type { DomainManager } from '../domain/domainManager';
+import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
 import { createArray } from '../utils/helpers';
 
 /**
