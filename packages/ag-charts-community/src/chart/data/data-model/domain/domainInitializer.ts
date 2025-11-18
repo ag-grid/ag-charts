@@ -56,13 +56,12 @@ export class DomainInitializer<K extends string> {
         if (!(domain instanceof BandedDomain)) return;
 
         const stats = domain.getStats();
-        const shouldReinit = stats.bandCount === 0 || stats.dataSize !== dataSize || stats.needsReinitialization;
+        const shouldReinit = stats.bandCount === 0 || stats.dataSize !== dataSize;
 
         if (this.ctx.debug.check() && shouldReinit && propertyName) {
             this.ctx.debug(
                 `Reinitializing bands for ${propertyName}: bandCount=${stats.bandCount}, ` +
-                    `dataSize=${stats.dataSize}, dataLength=${dataSize}, ` +
-                    `needsReinitialization=${stats.needsReinitialization}`
+                    `dataSize=${stats.dataSize}, dataLength=${dataSize}`
             );
         }
 

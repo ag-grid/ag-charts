@@ -8,11 +8,14 @@ import { DomainManager } from './data-model/domain/domainManager';
 import { DataExtractor } from './data-model/extraction/dataExtractor';
 import { DataGrouper } from './data-model/grouping/dataGrouper';
 import { IncrementalProcessor } from './data-model/incremental/incrementalProcessor';
-import { isScoped } from './data-model/utils/helpers';
+import { BandedReducer } from './data-model/reducers/bandedReducer';
+import { ReducerManager } from './data-model/reducers/reducerManager';
+import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
 import type {
     AggregatePropertyDefinition,
+    BandedReducerStats,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,
@@ -27,11 +30,13 @@ import type {
     PropertyId,
     PropertySelectors,
     PropertyValueProcessorDefinition,
+    ReducerBandKey,
     ReducerOutputPropertyDefinition,
     ScopeId,
     ScopeProvider,
     UngroupedData,
 } from './dataModelTypes';
+import { REDUCER_BANDS } from './dataModelTypes';
 import type { DataChangeDescription, DataSet } from './dataSet';
 import { type SortOrder } from './sortOrder';
 
@@ -89,6 +94,7 @@ export class DataModel<
     private readonly scopeCacheManager!: ScopeCacheManager<K>;
     private readonly domainInitializer!: DomainInitializer<K>;
     private readonly domainManager!: DomainManager<D, K>;
+    private readonly reducerManager!: ReducerManager;
     private readonly dataExtractor!: DataExtractor<D, K>;
     private readonly dataGrouper!: DataGrouper<D, K>;
     private readonly aggregator!: Aggregator<D, K>;
@@ -212,10 +218,11 @@ export class DataModel<
         this.scopeCacheManager = new ScopeCacheManager(ctx);
         this.domainInitializer = new DomainInitializer(ctx);
         this.domainManager = new DomainManager(ctx, this.domainInitializer, this.scopeCacheManager);
+        this.reducerManager = new ReducerManager(this.opts.domainBandingConfig);
         this.dataExtractor = new DataExtractor(ctx, this.domainManager);
         this.dataGrouper = new DataGrouper(ctx);
         this.aggregator = new Aggregator(ctx, this.scopeCacheManager, this.resolvers);
-        this.incrementalProcessor = new IncrementalProcessor(ctx);
+        this.incrementalProcessor = new IncrementalProcessor(ctx, this.reducerManager);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -426,11 +433,11 @@ export class DataModel<
             return this.processData(processedData.dataSources)!;
         }
 
-        const { processValue } = this.initDataDomainProcessor('skip');
+        const { getProcessValue } = this.initDataDomainProcessor('skip');
         return this.incrementalProcessor.reprocessData(
             processedData,
             dataSets,
-            processValue,
+            getProcessValue,
             (pd, sc) => this.reprocessGroupProcessors(pd, sc),
             (pd) => this.recomputeDomains(pd),
             (pd, mode) => this.collectOptimizationMetadata(pd, mode)
@@ -490,11 +497,7 @@ export class DataModel<
         }
 
         // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
-        const processedChangeDescs = new Set<DataChangeDescription>();
-        for (const [, changeDesc] of scopeChanges) {
-            if (processedChangeDescs.has(changeDesc)) continue;
-            processedChangeDescs.add(changeDesc);
-        }
+        const processedChangeDescs = uniqueChangeDescriptions(scopeChanges);
 
         // Process each group processor
         for (const processor of groupProcessors) {
@@ -530,29 +533,73 @@ export class DataModel<
 
     private reduceData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
-        const { dataSources, keys } = processedData;
-
         for (const def of this.reducers) {
-            const reducer = def.reducer();
-            let accValue: any = def.initialValue;
-            if (processedData.type === 'grouped') {
-                for (const group of processedData.groups) {
-                    accValue = reducer(accValue, group.keys);
-                }
+            if (this.shouldUseReducerBanding(def, processedData)) {
+                (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceWithBands(
+                    def,
+                    processedData
+                );
             } else {
-                const onlyScope = isScoped(def) ? def.scopes[0] : first(dataSources.keys());
-                const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
-                const keysParam = keyColumns.map((): unknown => undefined!);
-                const rawData = dataSources.get(onlyScope)?.data ?? [];
-                for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
-                    for (let keyIdx = 0; keyIdx < keysParam.length; keyIdx++) {
-                        keysParam[keyIdx] = keyColumns[keyIdx]?.[datumIndex];
-                    }
-                    accValue = reducer(accValue, keysParam);
-                }
+                (processedData.reduced as Record<string, unknown>)[def.property] = this.reduceStandard(
+                    def,
+                    processedData
+                );
             }
-            processedData.reduced[def.property] = accValue;
         }
+    }
+
+    private shouldUseReducerBanding(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>
+    ): boolean {
+        return (
+            processedData.type === 'ungrouped' &&
+            def.supportsBanding === true &&
+            typeof def.combineResults === 'function'
+        );
+    }
+
+    private reduceWithBands(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>
+    ) {
+        const result = this.reducerManager.evaluate(def, processedData, {
+            reuseCleanBands: false,
+        });
+
+        if (result === undefined) {
+            return this.reduceStandard(def, processedData);
+        }
+
+        return result;
+    }
+
+    private reduceStandard(
+        def: ReducerOutputPropertyDefinition & InternalDefinition<false>,
+        processedData: ProcessedData<D>
+    ) {
+        const reducer = def.reducer();
+        if (processedData.type === 'grouped') {
+            let accValue: any = def.initialValue;
+            for (const group of processedData.groups) {
+                accValue = reducer(accValue, group.keys);
+            }
+            return accValue;
+        }
+
+        // For ungrouped data without banding, create context and evaluate directly
+        const scopeId = isScoped(def) ? def.scopes[0] : first(processedData.scopes);
+        if (scopeId == null) {
+            return def.initialValue;
+        }
+
+        const rawData = processedData.dataSources.get(scopeId)?.data ?? [];
+        const keyColumns = processedData.keys
+            .map((column) => column.get(scopeId))
+            .filter((column): column is unknown[] => column != null);
+        const keysParam = keyColumns.map((): unknown => undefined);
+
+        return ReducerManager.evaluateRange(def, reducer, { rawData, keyColumns, keysParam }, 0, rawData.length);
     }
 
     private postProcessData(processedData: ProcessedData<D>) {
@@ -574,8 +621,17 @@ export class DataModel<
      * Only called when debug mode is enabled.
      */
     private collectOptimizationMetadata(processedData: ProcessedData<D>, pathTaken: 'full-process' | 'reprocess') {
-        // Preserve existing domainBanding metadata if it exists (set by collectDomainBandingMetadata)
+        // Preserve existing domainBanding metadata (set by collectDomainBandingMetadata)
         const existingDomainBanding = processedData.optimizations?.domainBanding;
+
+        // Collect reducer banding metadata if reducers exist
+        const reducerBands = processedData[REDUCER_BANDS];
+        if (this.reducers.length > 0 && reducerBands) {
+            this.collectReducerBandingMetadata(processedData, reducerBands);
+        }
+
+        // Capture reducerBanding metadata after collection
+        const reducerBanding = processedData.optimizations?.reducerBanding;
 
         processedData.optimizations = {
             performance: {
@@ -583,6 +639,7 @@ export class DataModel<
                 pathTaken,
             },
             ...(existingDomainBanding && { domainBanding: existingDomainBanding }),
+            ...(reducerBanding && { reducerBanding }),
         };
 
         // Track reprocessing optimization
@@ -609,10 +666,10 @@ export class DataModel<
             if (this.aggregates.length > 0) {
                 reasons.push('has aggregates');
             }
-            if (this.reducers.length > 0) {
+            if (this.reducers.filter((r) => !r.supportsBanding).length > 0) {
                 reasons.push('has reducers');
             }
-            if (this.processors.length > 0) {
+            if (this.processors.filter((p) => p.incrementalCalculate === undefined).length > 0) {
                 reasons.push('has processors');
             }
             if (this.propertyProcessors.length > 0) {
@@ -644,6 +701,60 @@ export class DataModel<
                 totalGroupCount: processedData.groups.length,
             };
         }
+    }
+
+    /**
+     * Collects reducer banding metadata for debugging purposes.
+     * Tracks which reducers used banding and their performance stats.
+     */
+    private collectReducerBandingMetadata(
+        processedData: ProcessedData<D>,
+        reducerBands: Map<ReducerBandKey, BandedReducer>
+    ) {
+        if (this.reducers.length === 0) return;
+
+        processedData.optimizations ??= {};
+
+        const reducerMetadata: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: BandedReducerStats;
+        }> = [];
+
+        for (const def of this.reducers) {
+            const bandManager = reducerBands.get(def.property as ReducerBandKey);
+            const isBanded = this.shouldUseReducerBanding(def, processedData) && bandManager != null;
+
+            let reason: string | undefined;
+            if (!isBanded) {
+                if (def.supportsBanding !== true) {
+                    reason = 'reducer does not support banding';
+                } else if (processedData.type !== 'ungrouped') {
+                    reason = 'grouped data not supported';
+                } else if (def.combineResults === undefined) {
+                    reason = 'missing combineResults function';
+                } else {
+                    reason = 'banding not applied';
+                }
+            }
+
+            let stats: BandedReducerStats | undefined;
+            if (isBanded && bandManager) {
+                stats = bandManager.getStats();
+            }
+
+            reducerMetadata.push({
+                property: String(def.property),
+                applied: isBanded,
+                reason,
+                stats,
+            });
+        }
+
+        processedData.optimizations.reducerBanding = {
+            reducers: reducerMetadata,
+        };
     }
 
     buildAccessors(defs: Iterable<{ property: string }>) {

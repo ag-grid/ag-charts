@@ -1,3 +1,4 @@
+import type { BandedReducer } from './data-model/reducers/bandedReducer';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
 import type { DataSet } from './dataSet';
 import type { RangeLookup } from './rangeLookup';
@@ -27,6 +28,15 @@ export const KEY_SORT_ORDERS = Symbol('key-sort-orders');
 export const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 export const DOMAIN_RANGES = Symbol('domain-ranges');
 export const DOMAIN_BANDS = Symbol('domain-bands');
+export const REDUCER_BANDS = Symbol('reducer-bands');
+
+export interface BandedReducerStats extends Record<string, number> {
+    totalBands: number;
+    dirtyBands: number;
+    dataSize: number;
+    scanRatio: number;
+    cacheHits: number;
+}
 
 // Memory optimization: Shared frozen array for datumIndices in grouped data
 // when groupsUnique=true. All groups point to same [0] array since each
@@ -105,6 +115,7 @@ export interface CommonMetadata<D> {
     [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
+    [REDUCER_BANDS]?: Map<ReducerBandKey, BandedReducer>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -179,6 +190,16 @@ export interface OptimizationMetadata {
         originalBatchCount: number;
         mergedBatchCount: number;
         mergeRatio: number; // 0-1, higher is better
+    };
+
+    /** Reducer banding optimization */
+    reducerBanding?: {
+        reducers: Array<{
+            property: string;
+            applied: boolean;
+            reason?: string;
+            stats?: BandedReducerStats;
+        }>;
     };
 
     /** Overall performance metrics */
@@ -299,15 +320,23 @@ export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
 
 export type ReducerOutputTypes = NonNullable<UngroupedData<any>['reduced']>;
 export type ReducerOutputKeys = keyof ReducerOutputTypes;
+export type ReducerBandKey = Extract<ReducerOutputKeys, string>;
 export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'reducer';
     property: P;
     initialValue?: ReducerOutputTypes[P];
     reducer: () => (acc: ReducerOutputTypes[P], keys: unknown[]) => ReducerOutputTypes[P];
+    supportsBanding?: boolean;
+    combineResults?: (bandResults: ReducerOutputTypes[P][]) => ReducerOutputTypes[P];
+    needsOverlap?: boolean;
 };
 
 export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'processor';
     property: P;
     calculate: (data: ProcessedData<any>, previousValue: ReducerOutputTypes[P] | undefined) => ReducerOutputTypes[P];
+    incrementalCalculate?: (
+        data: ProcessedData<any>,
+        previousValue: ReducerOutputTypes[P] | undefined
+    ) => ReducerOutputTypes[P];
 };

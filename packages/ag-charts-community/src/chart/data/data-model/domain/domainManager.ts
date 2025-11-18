@@ -1,4 +1,4 @@
-import { Logger, first, isNegative, iterate } from 'ag-charts-core';
+import { first, iterate } from 'ag-charts-core';
 
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition, ProcessedData, ProcessedValue, ProcessorFn } from '../../dataModelTypes';
@@ -6,6 +6,8 @@ import { DOMAIN_BANDS } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 import type { ScopeCacheManager } from '../utils/scopeCache';
 import { DomainInitializer } from './domainInitializer';
+import { ProcessValueFactory } from './processValueFactory';
+import type { SpecializedProcessValueFn } from './processValueFactory';
 
 /**
  * Manages domain computation and processing for the DataModel.
@@ -15,6 +17,7 @@ import { DomainInitializer } from './domainInitializer';
 export class DomainManager<D extends object, K extends keyof D & string> {
     private readonly initializer: DomainInitializer<K>;
     private readonly scopeCacheManager: ScopeCacheManager<K>;
+    private readonly processValueFactory: ProcessValueFactory<D, K>;
 
     constructor(
         private readonly ctx: DataModelContext<D, K>,
@@ -23,6 +26,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
     ) {
         this.initializer = initializer;
         this.scopeCacheManager = scopeCacheManager;
+        this.processValueFactory = new ProcessValueFactory(ctx);
     }
 
     /**
@@ -34,33 +38,29 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         const bandedDomains = processedData[DOMAIN_BANDS];
         let bandStats: { totalBands: number; dirtyBands: number; totalData: number } | undefined;
 
-        const keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
-        const valueDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
-
-        for (const keyDef of this.ctx.keys) {
-            keyDomains.set(keyDef, this.initializer.setupDomainForDefinition(keyDef, bandedDomains));
-        }
-
-        for (const valueDef of this.ctx.values) {
-            valueDomains.set(valueDef, this.initializer.setupDomainForDefinition(valueDef, bandedDomains));
-        }
+        const keyDomains = this.setupDefinitionDomains(this.ctx.keys, bandedDomains);
+        const valueDomains = this.setupDefinitionDomains(this.ctx.values, bandedDomains);
 
         // Initialize bands for key domains first (this determines band structure)
         // Only initialize if bands don't exist yet or if data size has changed significantly
         // During reprocessing, bands are already adjusted by updateBandsForChanges()
-        for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
-            const keysMap = processedData.keys[keyDefIndex];
-            const domain = keyDomains.get(keyDef)!;
-            const maxKeyLength = Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
-            this.initializer.initializeBandedDomain(domain, maxKeyLength, String(keyDef.property));
-        }
+        this.initializeDomainBands(
+            this.ctx.keys,
+            keyDomains,
+            (defIndex) => {
+                const keysMap = processedData.keys[defIndex];
+                return Math.max(...Array.from(keysMap.values()).map((keys) => keys.length));
+            },
+            (def) => String(def.property)
+        );
 
         // Initialize bands for value domains
-        for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
-            const column = processedData.columns[valueDefIndex];
-            const domain = valueDomains.get(valueDef)!;
-            this.initializer.initializeBandedDomain(domain, column.length, String(valueDef.property));
-        }
+        this.initializeDomainBands(
+            this.ctx.values,
+            valueDomains,
+            (defIndex) => processedData.columns[defIndex].length,
+            (def) => String(def.property)
+        );
 
         // Collect pre-scan band statistics (after initialization, before extending domains)
         // This shows how many bands WILL BE scanned, not how many are currently dirty
@@ -87,32 +87,22 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         }
 
         // Extend key domains from keys arrays
-        for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
-            const keysMap = processedData.keys[keyDefIndex];
-            const domain = keyDomains.get(keyDef)!;
-
-            // Extend domain from each scope
-            for (const scope of keyDef.scopes ?? []) {
-                const keys = keysMap.get(scope);
-                if (!keys) continue;
-
-                // Use invalidKeys (not invalidData) to only skip items with invalid keys
-                // This matches processData() behavior where valid keys contribute to domain
-                // even if their corresponding values are invalid
-                const invalidKeys = processedData.invalidKeys?.get(scope);
-                this.initializer.extendDomainFromData(domain, keys, invalidKeys);
-            }
-        }
+        this.extendDomainsFromData(
+            this.ctx.keys,
+            keyDomains,
+            (defIndex, scope) => processedData.keys[defIndex]?.get(scope),
+            (def) => def.scopes ?? [],
+            (scope) => processedData.invalidKeys?.get(scope)
+        );
 
         // Extend value domains from columns arrays
-        for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
-            const column = processedData.columns[valueDefIndex];
-            const domain = valueDomains.get(valueDef)!;
-            const columnScope = first(valueDef.scopes);
-            const invalidData = processedData.invalidData?.get(columnScope);
-
-            this.initializer.extendDomainFromData(domain, column, invalidData);
-        }
+        this.extendDomainsFromData(
+            this.ctx.values,
+            valueDomains,
+            (defIndex, _scope) => processedData.columns[defIndex],
+            (def) => [first(def.scopes)],
+            (scope) => processedData.invalidData?.get(scope)
+        );
 
         processedData.domain.keys = this.ctx.keys.map((keyDef) => {
             const domain = keyDomains.get(keyDef)!;
@@ -162,8 +152,66 @@ export class DomainManager<D extends object, K extends keyof D & string> {
     }
 
     /**
+     * Creates domain instances for the given definitions, reusing banded domains when available.
+     */
+    private setupDefinitionDomains(
+        defs: InternalDatumPropertyDefinition<K>[],
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+    ): Map<InternalDatumPropertyDefinition<K>, IDataDomain> {
+        const domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
+        for (const def of defs) {
+            domains.set(def, this.initializer.setupDomainForDefinition(def, bandedDomains));
+        }
+        return domains;
+    }
+
+    /**
+     * Initializes banded domains for each definition using the provided data length accessor.
+     */
+    private initializeDomainBands(
+        defs: InternalDatumPropertyDefinition<K>[],
+        domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
+        getDataLength: (defIndex: number) => number,
+        getPropertyName: (def: InternalDatumPropertyDefinition<K>) => string
+    ): void {
+        for (const [defIndex, def] of defs.entries()) {
+            const domain = domains.get(def);
+            if (!domain) continue;
+
+            const dataLength = getDataLength(defIndex);
+            this.initializer.initializeBandedDomain(domain, dataLength, getPropertyName(def));
+        }
+    }
+
+    /**
+     * Extends domains from data sources using a shared traversal.
+     */
+    private extendDomainsFromData(
+        defs: InternalDatumPropertyDefinition<K>[],
+        domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
+        getData: (defIndex: number, scope: string) => any[] | undefined,
+        getScopes: (def: InternalDatumPropertyDefinition<K>) => string[],
+        getInvalid: (scope: string) => boolean[] | undefined
+    ): void {
+        for (const [defIndex, def] of defs.entries()) {
+            const domain = domains.get(def);
+            if (!domain) continue;
+
+            for (const scope of getScopes(def)) {
+                if (!scope) continue;
+                const data = getData(defIndex, scope);
+                if (!data) continue;
+
+                const invalid = getInvalid(scope);
+                this.initializer.extendDomainFromData(domain, data, invalid);
+            }
+        }
+    }
+
+    /**
      * Initializes domain processor for value processing during data transformation.
      * Returns domain maps and processing functions used during data extraction.
+     * Uses specialized functions per property definition to eliminate branching in hot paths.
      */
     initDataDomainProcessor(domainMode: 'extend' | 'skip') {
         const { keys: keyDefs, values: valueDefs } = this.ctx;
@@ -194,96 +242,45 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
         const accessors = this.scopeCacheManager.buildAccessors(iterate(keyDefs, valueDefs));
 
-        const reusableResult: ProcessedValue = {
-            value: undefined,
-            missing: false,
-            valid: false,
-        };
-        const processValue = (
+        const processValueFns = new WeakMap<InternalDatumPropertyDefinition<K>, SpecializedProcessValueFn>();
+        for (const def of iterate(keyDefs, valueDefs)) {
+            const accessor = accessors.get(def.property);
+            const domain = dataDomain.get(def)!;
+            const reusableResult: ProcessedValue = {
+                value: undefined,
+                missing: false,
+                valid: false,
+            };
+
+            const processFn = this.processValueFactory.createProcessValueFn(
+                def,
+                accessor,
+                domain,
+                reusableResult,
+                processorFns,
+                domainMode
+            );
+            processValueFns.set(def, processFn);
+        }
+
+        function getProcessValue(def: InternalDatumPropertyDefinition<K>): SpecializedProcessValueFn {
+            const processFn = processValueFns.get(def);
+            if (!processFn) {
+                throw new Error('AG Charts - missing processValue function for definition');
+            }
+            return processFn;
+        }
+
+        function processValue(
             def: InternalDatumPropertyDefinition<K>,
-            datum: Record<string, any>,
+            datum: unknown,
             idx: number,
             valueScopes: string | string[]
-        ): ProcessedValue => {
-            let valueInDatum: boolean;
-            let value;
-            if (accessors.has(def.property)) {
-                try {
-                    value = accessors.get(def.property)!(datum);
-                } catch {
-                    // Swallow errors - these get reported as missing values to the user later.
-                }
-                valueInDatum = value != null;
-            } else {
-                valueInDatum = def.property in datum;
-                value = valueInDatum ? datum[def.property] : def.missingValue;
-            }
+        ): ProcessedValue {
+            return getProcessValue(def)(datum, idx, valueScopes);
+        }
 
-            if (def.forceValue != null) {
-                // Maintain sign of forceValue from actual value, this maybe significant later when
-                // we account for the value falling into positive/negative buckets.
-                const valueNegative = valueInDatum && isNegative(value);
-                value = valueNegative ? -1 * def.forceValue : def.forceValue;
-                valueInDatum = true;
-            }
-            reusableResult.missing = !valueInDatum;
-
-            const missingValueDef = 'missingValue' in def;
-            if (!valueInDatum && !missingValueDef) {
-                if (typeof valueScopes === 'string') {
-                    const missCount = def.missing.get(valueScopes) ?? 0;
-                    def.missing.set(valueScopes, missCount + 1);
-                } else {
-                    for (const scope of valueScopes) {
-                        const missCount = def.missing.get(scope) ?? 0;
-                        def.missing.set(scope, missCount + 1);
-                    }
-                }
-            }
-
-            if (!dataDomain.has(def)) {
-                initDataDomain();
-            }
-
-            // Keys cannot be null/undefined - mark as invalid
-            const isKeyWithNullValue = def.type === 'key' && value == null;
-
-            if ((valueInDatum && def.validation?.(value, datum, idx) === false) || isKeyWithNullValue) {
-                reusableResult.valid = false;
-
-                if ('invalidValue' in def) {
-                    value = def.invalidValue;
-                } else {
-                    if (this.ctx.mode !== 'integrated') {
-                        Logger.warnOnce(
-                            `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
-                            `[${value}]`
-                        );
-                    }
-                    reusableResult.value = undefined;
-                    return reusableResult;
-                }
-            } else {
-                reusableResult.valid = true;
-            }
-
-            if (def.processor) {
-                let processor = processorFns.get(def);
-                if (processor == null) {
-                    processor = def.processor();
-                    processorFns.set(def, processor);
-                }
-                value = processor(value, idx);
-            }
-
-            if (domainMode === 'extend') {
-                dataDomain.get(def)?.extend(value);
-            }
-            reusableResult.value = value;
-            return reusableResult;
-        };
-
-        return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
+        return { dataDomain, processValue, getProcessValue, initDataDomain, scopes, allScopesHaveSameDefs };
     }
 
     /**
@@ -299,91 +296,45 @@ export class DomainManager<D extends object, K extends keyof D & string> {
     ) {
         processedData.optimizations ??= {};
 
-        const keyDefs: Array<{
-            property: string;
-            applied: boolean;
-            reason?: string;
-            stats?: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number };
-        }> = [];
+        const collectDefs = (
+            defs: InternalDatumPropertyDefinition<K>[],
+            domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>
+        ) => {
+            return defs.map((def) => {
+                const domain = domains.get(def);
+                const bandedDomain = bandedDomains.get(def);
+                const isBanded = domain instanceof BandedDomain;
 
-        const valueDefs: Array<{
-            property: string;
-            applied: boolean;
-            reason?: string;
-            stats?: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number };
-        }> = [];
-
-        // Collect stats for key definitions
-        for (const keyDef of this.ctx.keys) {
-            const domain = keyDomains.get(keyDef);
-            const bandedDomain = bandedDomains.get(keyDef);
-            const isBanded = domain instanceof BandedDomain;
-
-            let reason: string | undefined;
-            if (!isBanded) {
-                if (keyDef.valueType === 'category') {
-                    reason = 'discrete domain';
-                } else {
-                    reason = 'not configured';
+                let reason: string | undefined;
+                if (!isBanded) {
+                    reason = def.valueType === 'category' ? 'discrete domain' : 'not configured';
                 }
-            }
 
-            let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
-            if (isBanded && bandedDomain) {
-                // Use pre-scan stats if available (collected before extending domains)
-                const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
-                const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
-                stats = {
-                    totalBands: domainStats.bandCount,
-                    dirtyBands: domainStats.dirtyBandCount,
-                    dataSize: domainStats.dataSize,
-                    scanRatio,
-                };
-            }
-
-            keyDefs.push({
-                property: String(keyDef.property),
-                applied: isBanded,
-                reason,
-                stats,
-            });
-        }
-
-        // Collect stats for value definitions
-        for (const valueDef of this.ctx.values) {
-            const domain = valueDomains.get(valueDef);
-            const bandedDomain = bandedDomains.get(valueDef);
-            const isBanded = domain instanceof BandedDomain;
-
-            let reason: string | undefined;
-            if (!isBanded) {
-                if (valueDef.valueType === 'category') {
-                    reason = 'discrete domain';
-                } else {
-                    reason = 'not configured';
+                let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
+                if (isBanded && bandedDomain) {
+                    // Use pre-scan stats if available (collected before extending domains)
+                    const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
+                    const scanRatio =
+                        domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
+                    stats = {
+                        totalBands: domainStats.bandCount,
+                        dirtyBands: domainStats.dirtyBandCount,
+                        dataSize: domainStats.dataSize,
+                        scanRatio,
+                    };
                 }
-            }
 
-            let stats: { totalBands: number; dirtyBands: number; dataSize: number; scanRatio: number } | undefined;
-            if (isBanded && bandedDomain) {
-                // Use pre-scan stats if available (collected before extending domains)
-                const domainStats = preScanDomainStats.get(bandedDomain) ?? bandedDomain.getStats();
-                const scanRatio = domainStats.bandCount > 0 ? domainStats.dirtyBandCount / domainStats.bandCount : 0;
-                stats = {
-                    totalBands: domainStats.bandCount,
-                    dirtyBands: domainStats.dirtyBandCount,
-                    dataSize: domainStats.dataSize,
-                    scanRatio,
+                return {
+                    property: String(def.property),
+                    applied: isBanded,
+                    reason,
+                    stats,
                 };
-            }
-
-            valueDefs.push({
-                property: String(valueDef.property),
-                applied: isBanded,
-                reason,
-                stats,
             });
-        }
+        };
+
+        const keyDefs = collectDefs(this.ctx.keys, keyDomains);
+        const valueDefs = collectDefs(this.ctx.values, valueDomains);
 
         processedData.optimizations.domainBanding = {
             keyDefs,

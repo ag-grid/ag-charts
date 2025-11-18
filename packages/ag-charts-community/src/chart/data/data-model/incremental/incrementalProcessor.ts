@@ -1,7 +1,6 @@
 import { first } from 'ag-charts-core';
 
 import { hasNoRemovals, isAppendOnly, isPrependOnly } from '../../dataChangeDescription';
-import { BandedDomain } from '../../dataDomain';
 import type {
     DataGroup,
     GroupedData,
@@ -10,7 +9,6 @@ import type {
     InternalDatumPropertyDefinition,
     ProcessedData,
     ProcessedOutputDiff,
-    ProcessedValue,
     ProcessedValueEntry,
     ScopeId,
 } from '../../dataModelTypes';
@@ -23,7 +21,15 @@ import {
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
-import { createArray, toKeyString } from '../utils/helpers';
+import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
+import { ReducerManager } from '../reducers/reducerManager';
+import { createArray, toKeyString, uniqueChangeDescriptions } from '../utils/helpers';
+
+type DefinitionProcessorEntry<K extends string> = {
+    def: InternalDatumPropertyDefinition<K>;
+    index: number;
+    processValue: SpecializedProcessValueFn;
+};
 
 /**
  * Handles incremental reprocessing of data when DataSets change.
@@ -37,7 +43,10 @@ import { createArray, toKeyString } from '../utils/helpers';
  * This can reduce processing time by 90%+ for small updates to large datasets
  */
 export class IncrementalProcessor<D extends object, K extends keyof D & string> {
-    constructor(private readonly ctx: DataModelContext<D, K>) {}
+    constructor(
+        private readonly ctx: DataModelContext<D, K>,
+        private readonly reducerManager: ReducerManager
+    ) {}
 
     /**
      * Checks if incremental reprocessing is supported for the given data configuration.
@@ -62,8 +71,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Don't support these features yet (existing constraints)
         if (this.ctx.aggregates.length > 0) return false;
-        if (this.ctx.reducers.length > 0) return false;
-        if (this.ctx.processors.length > 0) return false;
+        const hasUnsupportedReducers = this.ctx.reducers.some(
+            (reducer) => reducer.supportsBanding !== true || typeof reducer.combineResults !== 'function'
+        );
+        if (hasUnsupportedReducers) return false;
+
+        const hasUnsupportedProcessors = this.ctx.processors.some(
+            (processor) => processor.incrementalCalculate === undefined
+        );
+        if (hasUnsupportedProcessors) return false;
         if (this.ctx.propertyProcessors.length > 0) return false;
 
         // Check if all group processors support reprocessing
@@ -76,12 +92,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     reprocessData(
         processedData: ProcessedData<D>,
         dataSets: Map<DataSet<any>, DataChangeDescription | undefined> | undefined,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue,
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn,
         reprocessGroupProcessorsFn: (
             processedData: GroupedData<D>,
             scopeChanges: Map<ScopeId, DataChangeDescription>
@@ -97,13 +108,18 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
 
         this.commitPendingTransactions(processedData);
-        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, processValue);
-        this.processAllUpdates(processedData, scopeChanges, processValue, insertionCaches);
+        const keyProcessors = this.buildDefinitionProcessors(this.ctx.keys, getProcessValue);
+        const valueProcessors = this.buildDefinitionProcessors(this.ctx.values, getProcessValue);
+
+        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, keyProcessors, valueProcessors);
+        this.processAllUpdates(processedData, scopeChanges, keyProcessors, valueProcessors, insertionCaches);
 
         this.updateBandsForChanges(processedData, scopeChanges);
         const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
         this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
         this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+
+        this.reprocessBandedReducers(processedData, scopeChanges);
 
         // Transform groups array for grouped data (when groupsUnique=true)
         if (processedData.type === 'grouped') {
@@ -116,6 +132,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
 
         recomputeDomainsFn(processedData);
+
+        this.reprocessProcessors(processedData);
 
         if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
             this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
@@ -130,20 +148,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         collectOptimizationMetadataFn(processedData, 'reprocess');
 
         return processedData;
-    }
-
-    /**
-     * Applies an operation to all banded domains in a collection.
-     */
-    private applyOperationToBandedDomains(
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
-        operation: (domain: BandedDomain) => void
-    ): void {
-        for (const domain of bandedDomains.values()) {
-            if (domain instanceof BandedDomain) {
-                operation(domain);
-            }
-        }
     }
 
     /**
@@ -169,42 +173,49 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const bandedDomains = processedData[DOMAIN_BANDS];
         if (bandedDomains.size === 0) return;
 
-        // Deduplicate change descriptions (multiple scopes can share same DataSet/changeDesc)
-        const processedChangeDescs = new Set<DataChangeDescription>();
+        const processedChangeDescs = uniqueChangeDescriptions(scopeChanges);
 
-        for (const [, changeDesc] of scopeChanges) {
-            // Skip if we've already processed this change description
-            if (processedChangeDescs.has(changeDesc)) continue;
-            processedChangeDescs.add(changeDesc);
-
+        for (const changeDesc of processedChangeDescs) {
             const { indexMap } = changeDesc;
-            const { spliceOps, updatedIndices } = indexMap;
 
-            for (const op of spliceOps) {
-                if (op.insertCount > 0) {
-                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
-                        domain.handleInsertion(op.index, op.insertCount)
-                    );
-                }
-
-                if (op.deleteCount > 0) {
-                    this.applyOperationToBandedDomains(bandedDomains, (domain) =>
-                        domain.handleRemoval(op.index, op.deleteCount)
-                    );
-                }
-            }
-
-            // Mark bands containing updated indices as dirty
-            // We use handleInsertion with 0 count to mark the band as dirty without changing structure
-            if (updatedIndices.size > 0) {
-                for (const index of updatedIndices) {
-                    this.applyOperationToBandedDomains(bandedDomains, (domain) => domain.handleInsertion(index, 0));
-                }
+            for (const domain of bandedDomains.values()) {
+                domain.applyIndexMap(indexMap);
             }
 
             // Note: No need for special append-only or prepend-only handling here.
             // handleInsertion() now properly marks the last band dirty when appending,
             // and handleRemoval() marks the first band dirty when removing from start.
+        }
+    }
+
+    private reprocessBandedReducers(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        if (processedData.type !== 'ungrouped') return;
+
+        const bandedReducers = this.ctx.reducers.filter(
+            (reducer) => reducer.supportsBanding && typeof reducer.combineResults === 'function'
+        );
+        if (bandedReducers.length === 0) return;
+
+        processedData.reduced ??= {};
+
+        for (const def of bandedReducers) {
+            const result = this.reducerManager.evaluate(def, processedData, {
+                reuseCleanBands: true,
+                beforeEvaluate: (bandManager, context) => {
+                    if (!context.scopeId) return;
+                    const changeDesc = scopeChanges.get(context.scopeId);
+                    if (changeDesc) {
+                        bandManager.applyIndexMap(changeDesc.indexMap);
+                    }
+                },
+            });
+
+            if (result !== undefined) {
+                (processedData.reduced as Record<string, unknown>)[def.property] = result;
+            }
         }
     }
 
@@ -238,25 +249,32 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         }
     }
 
+    private buildDefinitionProcessors(
+        defs: InternalDatumPropertyDefinition<K>[],
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn
+    ): DefinitionProcessorEntry<K>[] {
+        return defs.map((def, index) => ({
+            def,
+            index,
+            processValue: getProcessValue(def),
+        }));
+    }
+
     /**
      * Pre-processes all insertions once per scope to avoid redundant computation.
      */
     private processAllInsertions(
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
     ): Map<ScopeId, InsertionCache> {
         const insertionCaches = new Map<ScopeId, InsertionCache>();
         for (const [scope, changeDesc] of scopeChanges) {
             const dataSet = processedData.dataSources.get(scope);
             if (!dataSet) continue;
 
-            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, processValue);
+            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, keyProcessors, valueProcessors);
             insertionCaches.set(scope, cache);
         }
         return insertionCaches;
@@ -269,12 +287,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     private processAllUpdates(
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[],
         insertionCaches: Map<ScopeId, InsertionCache>
     ): void {
         for (const [scope, changeDesc] of scopeChanges) {
@@ -297,44 +311,11 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     continue; // Skip invalid indices
                 }
 
-                const datum = dataSet.data[destIndex];
-
-                const keys = new Map<number, ProcessedValueEntry>();
-                const values = new Map<number, ProcessedValueEntry>();
-                let hasInvalidKey = false;
-                let hasInvalidValue = false;
-
-                if (datum == null || typeof datum !== 'object') {
-                    hasInvalidKey = true;
-                    hasInvalidValue = true;
-                } else {
-                    // Process all keys for this scope
-                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
-                        if (!keyDef.scopes?.includes(scope)) continue;
-
-                        const result = processValue(keyDef, datum, destIndex, scope);
-                        keys.set(keyDefIndex, { value: result.value, valid: result.valid });
-
-                        if (!result.valid) {
-                            hasInvalidKey = true;
-                        }
-                    }
-
-                    // Process all values for this scope
-                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
-                        if (!valueDef.scopes?.includes(scope)) continue;
-
-                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
-                        values.set(valueDefIndex, { value: result.value, valid: result.valid });
-
-                        if (!result.valid) {
-                            hasInvalidValue = true;
-                        }
-                    }
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
+                if (processed) {
+                    // Store in cache (overwrites any existing insertion at this index)
+                    cache.set(destIndex, processed);
                 }
-
-                // Store in cache (overwrites any existing insertion at this index)
-                cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
             }
         }
     }
@@ -348,12 +329,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         scope: ScopeId,
         changeDesc: DataChangeDescription,
         dataSet: DataSet<unknown>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
     ): InsertionCache {
         const cache = new Map<number, InsertionCacheValue>();
 
@@ -369,47 +346,62 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     continue; // Skip invalid indices
                 }
 
-                const datum = dataSet.data[destIndex];
-
-                const keys = new Map<number, ProcessedValueEntry>();
-                const values = new Map<number, ProcessedValueEntry>();
-                let hasInvalidKey = false;
-                let hasInvalidValue = false;
-
-                if (datum == null || typeof datum !== 'object') {
-                    hasInvalidKey = true;
-                    hasInvalidValue = true;
-                } else {
-                    // Process all keys for this scope
-                    for (const [keyDefIndex, keyDef] of this.ctx.keys.entries()) {
-                        if (!keyDef.scopes?.includes(scope)) continue;
-
-                        const result = processValue(keyDef, datum, destIndex, scope);
-                        keys.set(keyDefIndex, { value: result.value, valid: result.valid });
-
-                        if (!result.valid) {
-                            hasInvalidKey = true;
-                        }
-                    }
-
-                    // Process all values for this scope
-                    for (const [valueDefIndex, valueDef] of this.ctx.values.entries()) {
-                        if (!valueDef.scopes?.includes(scope)) continue;
-
-                        const result = processValue(valueDef, datum, destIndex, valueDef.scopes);
-                        values.set(valueDefIndex, { value: result.value, valid: result.valid });
-
-                        if (!result.valid) {
-                            hasInvalidValue = true;
-                        }
-                    }
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
+                if (processed) {
+                    cache.set(destIndex, processed);
                 }
-
-                cache.set(destIndex, { keys, values, hasInvalidKey, hasInvalidValue });
             }
         }
 
         return cache;
+    }
+
+    /**
+     * Processes a single datum for the given scope, returning cached key/value results.
+     * Shared between insert and update paths to keep behavior consistent.
+     */
+    private processDatum(
+        dataSet: DataSet<unknown>,
+        destIndex: number,
+        scope: ScopeId,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
+    ): InsertionCacheValue | undefined {
+        const datum = dataSet.data[destIndex];
+
+        const keys = new Map<number, ProcessedValueEntry>();
+        const values = new Map<number, ProcessedValueEntry>();
+        let hasInvalidKey = false;
+        let hasInvalidValue = false;
+
+        if (datum == null || typeof datum !== 'object') {
+            hasInvalidKey = true;
+            hasInvalidValue = true;
+        } else {
+            for (const { index: keyDefIndex, def: keyDef, processValue: processKeyValue } of keyProcessors) {
+                if (!keyDef.scopes?.includes(scope)) continue;
+
+                const result = processKeyValue(datum, destIndex, scope);
+                keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                if (!result.valid) {
+                    hasInvalidKey = true;
+                }
+            }
+
+            for (const { index: valueDefIndex, def: valueDef, processValue: processValueForDef } of valueProcessors) {
+                if (!valueDef.scopes?.includes(scope)) continue;
+
+                const result = processValueForDef(datum, destIndex, valueDef.scopes);
+                values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                if (!result.valid) {
+                    hasInvalidValue = true;
+                }
+            }
+        }
+
+        return { keys, values, hasInvalidKey, hasInvalidValue };
     }
 
     /**
@@ -437,22 +429,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 if (!array) continue;
 
                 const insertionCache = insertionCaches.get(scope);
-
-                changeDesc.applyToArray(array, (destIndex) => {
-                    const cached = insertionCache?.get(destIndex);
-                    return extractValue(cached, def, defIndex);
-                });
-
-                const updatedIndices = changeDesc.getUpdatedIndices();
-                if (updatedIndices.length > 0) {
-                    for (const destIndex of updatedIndices) {
-                        if (destIndex < 0 || destIndex >= array.length) {
-                            continue;
-                        }
-                        const cached = insertionCache?.get(destIndex);
-                        array[destIndex] = extractValue(cached, def, defIndex);
-                    }
-                }
+                this.applyChangeDescWithCache(changeDesc, array, insertionCache, (cached, _destIndex) =>
+                    extractValue(cached, def, defIndex)
+                );
             }
         }
     }
@@ -479,8 +458,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Track which arrays have already been processed to avoid double-processing
         // when multiple scopes share the same array reference.
-        // This method needs special handling to track removed metadata across shared arrays,
-        // which is why it doesn't use a common helper pattern.
         const processedArrays = new WeakSet<unknown[]>();
 
         for (const [defIndex, def] of this.ctx.keys.entries()) {
@@ -509,15 +486,13 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 const removedMetadata = ensureRemovedMetadata(scope);
                 let removalCursor = 0;
 
-                changeDesc.applyToArray(
+                this.applyChangeDescWithCache(
+                    changeDesc,
                     keysArray,
-                    (destIndex) => {
-                        const cached = insertionCache?.get(destIndex);
-                        if (cached) {
-                            const keyResult = cached.keys.get(defIndex);
-                            return keyResult?.valid ? keyResult.value : def.invalidValue;
-                        }
-                        return def.invalidValue;
+                    insertionCache,
+                    (cached) => {
+                        const keyResult = cached?.keys.get(defIndex);
+                        return keyResult?.valid ? keyResult.value : def.invalidValue;
                     },
                     (removedValues) => {
                         for (const value of removedValues) {
@@ -530,23 +505,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                         }
                     }
                 );
-
-                const updatedIndices = changeDesc.getUpdatedIndices();
-                if (updatedIndices.length > 0) {
-                    for (const destIndex of updatedIndices) {
-                        if (destIndex < 0 || destIndex >= keysArray.length) {
-                            continue;
-                        }
-
-                        const cached = insertionCache?.get(destIndex);
-                        if (cached) {
-                            const keyResult = cached.keys.get(defIndex);
-                            keysArray[destIndex] = keyResult?.valid ? keyResult.value : def.invalidValue;
-                        } else {
-                            keysArray[destIndex] = def.invalidValue;
-                        }
-                    }
-                }
             }
         }
 
@@ -621,22 +579,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
             const insertionCache = insertionCaches.get(scope);
 
-            changeDesc.applyToArray(array, (destIndex) => {
-                const cached = insertionCache?.get(destIndex);
-                return extractValue(cached);
-            });
-
-            const updatedIndices = changeDesc.getUpdatedIndices();
-            if (updatedIndices.length > 0) {
-                for (const destIndex of updatedIndices) {
-                    if (destIndex < 0 || destIndex >= array.length) {
-                        continue;
-                    }
-
-                    const cached = insertionCache?.get(destIndex);
-                    array[destIndex] = extractValue(cached);
-                }
-            }
+            this.applyChangeDescWithCache(changeDesc, array, insertionCache, (cached, _destIndex) =>
+                extractValue(cached)
+            );
         }
     }
 
@@ -661,6 +606,38 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             this.transformInvalidityMap(processedData.invalidData, scopeChanges, insertionCaches, (cached) =>
                 cached ? cached.hasInvalidKey || cached.hasInvalidValue : false
             );
+        }
+    }
+
+    /**
+     * Applies a change description to an array using the provided cache-aware extractor.
+     * Shared by array transformation helpers to keep update logic consistent.
+     */
+    private applyChangeDescWithCache<T>(
+        changeDesc: DataChangeDescription,
+        target: T[],
+        insertionCache: InsertionCache | undefined,
+        extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
+        onRemove?: (removedValues: T[]) => void
+    ): void {
+        changeDesc.applyToArray(
+            target,
+            (destIndex) => {
+                const cached = insertionCache?.get(destIndex);
+                return extractValue(cached, destIndex);
+            },
+            onRemove
+        );
+
+        const updatedIndices = changeDesc.getUpdatedIndices();
+        if (updatedIndices.length === 0) return;
+
+        for (const destIndex of updatedIndices) {
+            if (destIndex < 0 || destIndex >= target.length) {
+                continue;
+            }
+            const cached = insertionCache?.get(destIndex);
+            target[destIndex] = extractValue(cached, destIndex);
         }
     }
 
@@ -865,26 +842,48 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         processedData.partialValidDataCount = partialValidDataCount;
 
         // Recompute invalidKeyCount
-        if (processedData.invalidKeyCount) {
-            for (const [scope, invalidKeys] of processedData.invalidKeys ?? new Map()) {
-                const count = invalidKeys.filter(Boolean).length;
-                processedData.invalidKeyCount.set(scope, count);
-            }
-        }
+        this.recountInvalid(processedData.invalidKeys, processedData.invalidKeyCount);
 
         // Recompute invalidDataCount
-        if (processedData.invalidDataCount) {
-            for (const [scope, invalidData] of processedData.invalidData ?? new Map()) {
-                const count = invalidData.filter(Boolean).length;
-                processedData.invalidDataCount.set(scope, count);
-            }
-        }
+        this.recountInvalid(processedData.invalidData, processedData.invalidDataCount);
 
         // Clear cached data that depends on array positions
         processedData[DOMAIN_RANGES].clear();
         processedData[KEY_SORT_ORDERS].clear();
         processedData[COLUMN_SORT_ORDERS].clear();
         // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
+    }
+
+    /**
+     * Recounts invalid entries for the given map into the provided counts map.
+     */
+    private recountInvalid(
+        invalidMap: Map<ScopeId, boolean[]> | undefined,
+        counts: Map<ScopeId, number> | undefined
+    ): void {
+        if (!invalidMap || !counts) return;
+
+        for (const [scope, invalidArray] of invalidMap) {
+            counts.set(scope, invalidArray.filter(Boolean).length);
+        }
+    }
+
+    /**
+     * Recomputes processor outputs using their incrementalCalculate hook when available.
+     * Falls back to calculate to avoid stale reducer outputs if a processor lacks the hook.
+     */
+    private reprocessProcessors(processedData: ProcessedData<D>): void {
+        if (this.ctx.processors.length === 0) return;
+
+        processedData.reduced ??= {};
+
+        for (const def of this.ctx.processors) {
+            const previousValue = (processedData.reduced as Record<string, unknown>)[def.property];
+            const nextValue =
+                def.incrementalCalculate?.(processedData, previousValue as any) ??
+                def.calculate(processedData, previousValue as any);
+            (processedData.reduced as Record<string, unknown>)[def.property] = nextValue as any;
+        }
     }
 
     /**

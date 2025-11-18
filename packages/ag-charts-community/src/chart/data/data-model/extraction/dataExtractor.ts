@@ -1,11 +1,12 @@
 import { Logger, first, iterate } from 'ag-charts-core';
 
 import { ContinuousDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition, ProcessedValue, ScopeId, UngroupedData } from '../../dataModelTypes';
-import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataModelTypes';
+import type { InternalDatumPropertyDefinition, ScopeId, UngroupedData } from '../../dataModelTypes';
+import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS, REDUCER_BANDS } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
+import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
 import { createArray } from '../utils/helpers';
 
 /**
@@ -29,7 +30,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     ) {}
 
     extractData(sources: Map<string, DataSet<unknown>>): UngroupedData<D> {
-        const { dataDomain, processValue, allScopesHaveSameDefs } =
+        const { dataDomain, getProcessValue, allScopesHaveSameDefs } =
             this.domainManager.initDataDomainProcessor('extend');
 
         const { keys: keyDefs, values: valueDefs } = this.ctx;
@@ -37,7 +38,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings } = this.extractKeys(
             keyDefs,
             sources,
-            processValue
+            getProcessValue
         );
 
         const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
@@ -46,7 +47,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             valueDefs,
             sources,
             invalidKeys,
-            processValue
+            getProcessValue
         );
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
@@ -88,18 +89,14 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             [KEY_SORT_ORDERS]: new Map(),
             [COLUMN_SORT_ORDERS]: new Map(),
             [DOMAIN_BANDS]: new Map(),
+            [REDUCER_BANDS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 
     private extractKeys(
         keyDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, DataSet<unknown>>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string
-        ) => ProcessedValue
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn
     ) {
         const invalidKeys = new Map<ScopeId, boolean[]>();
         const invalidData = new Map<ScopeId, boolean[]>();
@@ -109,6 +106,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
         let keyDefKeys: Map<ScopeId, unknown[]>;
         let scopeDataProcessed: Map<unknown[], ScopeId>;
+        const keyProcessors = keyDefs.map((def) => getProcessValue(def));
 
         const cloneScope = (source: unknown[], target: ScopeId) => {
             const sourceScope = scopeDataProcessed.get(source)!;
@@ -120,8 +118,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             }
         };
 
-        for (const keyDef of keyDefs) {
+        for (const [keyDefIndex, keyDef] of keyDefs.entries()) {
             const { invalidValue, scopes: keyScopes } = keyDef;
+            const processKeyValue = keyProcessors[keyDefIndex];
 
             keyDefKeys = new Map<ScopeId, unknown[]>();
             scopeDataProcessed = new Map<unknown[], ScopeId>();
@@ -154,7 +153,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         continue;
                     }
 
-                    const result = processValue(keyDef, data[datumIndex], datumIndex, scope);
+                    const result = processKeyValue(data[datumIndex], datumIndex, scope);
 
                     if (result.valid) {
                         keys.push(result.value);
@@ -208,12 +207,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         valueDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, DataSet<unknown>>,
         scopeInvalidKeys: Map<ScopeId, boolean[]>,
-        processValue: (
-            def: InternalDatumPropertyDefinition<K>,
-            datum: any,
-            idx: number,
-            scopes: string | string[]
-        ) => ProcessedValue
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn
     ) {
         let partialValidDataCount = 0;
 
@@ -221,8 +215,11 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const allColumnScopes: Set<ScopeId>[] = [];
         const columnNeedValueOf: boolean[] = [];
         let maxDataLength = 0;
-        for (const def of valueDefs) {
+        const valueProcessors = valueDefs.map((def) => getProcessValue(def));
+
+        for (const [valueDefIndex, def] of valueDefs.entries()) {
             const { invalidValue } = def;
+            const processValueForDef = valueProcessors[valueDefIndex];
 
             const valueSources = new Set(def.scopes.map((s) => sources.get(s)));
             if (valueSources.size > 1) {
@@ -245,7 +242,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 const valueDatum = columnSource[datumIndex];
                 const invalidKey = invalidKeys == null ? false : invalidKeys[datumIndex];
 
-                const result = processValue(def, valueDatum, datumIndex, def.scopes);
+                const result = processValueForDef(valueDatum, datumIndex, def.scopes);
                 let value = result.value;
 
                 if (invalidKey || !result.valid) {

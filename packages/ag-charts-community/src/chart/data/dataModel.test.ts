@@ -1282,6 +1282,108 @@ describe('DataModel', () => {
             expect(secondReprocess.domain.keys).toEqual([[0, 6]]);
             expect(secondReprocess.domain.values).toEqual([[0, 60]]);
         });
+
+        it('should handle insertion at index 0 (prepend boundary)', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const initialData = [
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+                { x: 4, y: 40 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+            processedData!.reduced = { diff: {} };
+
+            dataSet.addTransaction({
+                add: [{ x: 1, y: 10 }],
+                addIndex: 0,
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
+            expect(reprocessed.columns).toEqual([[10, 20, 30, 40]]);
+        });
+
+        it('should handle insertion at last valid index (append boundary)', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const initialData = [
+                { x: 1, y: 10 },
+                { x: 2, y: 20 },
+                { x: 3, y: 30 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+            processedData!.reduced = { diff: {} };
+
+            dataSet.addTransaction({
+                add: [{ x: 4, y: 40 }],
+                addIndex: 3,
+            });
+
+            const reprocessed = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
+            expect(reprocessed.columns).toEqual([[10, 20, 30, 40]]);
+        });
+
+        it('should handle multiple sequential mid-insertions', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const initialData = [
+                { x: 1, y: 10 },
+                { x: 5, y: 50 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+
+            const processedData = dataModel.processData(sources);
+            processedData!.reduced = { diff: {} };
+
+            // First insertion
+            dataSet.addTransaction({
+                add: [{ x: 3, y: 30 }],
+                addIndex: 1,
+            });
+
+            const reprocessed1 = dataModel.reprocessData(processedData!);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
+
+            // Second insertion
+            dataSet.addTransaction({
+                add: [{ x: 2, y: 20 }],
+                addIndex: 1,
+            });
+
+            const reprocessed2 = dataModel.reprocessData(reprocessed1);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
+
+            // Third insertion
+            dataSet.addTransaction({
+                add: [{ x: 4, y: 40 }],
+                addIndex: 3,
+            });
+
+            const reprocessed3 = dataModel.reprocessData(reprocessed2);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
+
+            expect(reprocessed3.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
+            expect(reprocessed3.columns).toEqual([[10, 20, 30, 40, 50]]);
+        });
     });
 
     describe('columnNeedValueOf optimization', () => {
@@ -1692,6 +1794,190 @@ describe('DataModel', () => {
                 expect(reprocessed.columns).toEqual([[10, 25, 30, 40]]);
             });
         });
+
+        describe('with banded reducers', () => {
+            const runSmallestIntervalScenario = (
+                initialData: any[],
+                transaction: Parameters<DataSet['addTransaction']>[0]
+            ) => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction(transaction);
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                return reprocessed;
+            };
+
+            const expectSmallestInterval = (
+                reprocessed: any,
+                expected?: number,
+                { allowNonFinite = false }: { allowNonFinite?: boolean } = {}
+            ) => {
+                const interval = reprocessed.reduced?.smallestKeyInterval;
+                expect(interval).toBeDefined();
+                if (!allowNonFinite) {
+                    expect(Number.isFinite(interval)).toBe(true);
+                }
+                if (expected !== undefined) {
+                    expect(interval).toBe(expected);
+                }
+            };
+
+            describe('ungrouped data with interval reducers', () => {
+                it('should match full processing after append with smallestKeyInterval', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                    const newData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+
+                it('should match full processing after prepend with smallestKeyInterval', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i + 100, y: i }));
+                    const newData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: i }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { prepend: newData });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+
+                it('should match full processing after mid-insertion with smallestKeyInterval', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({
+                        x: i < 5000 ? i : i + 100,
+                        y: i,
+                    }));
+                    const newData = Array.from({ length: 100 }, (_, i) => ({ x: 5000 + i, y: 5000 + i }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { add: newData, addIndex: 5000 });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+
+                it('should match full processing after removal with smallestKeyInterval', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                    const removeData = initialData.slice(5000, 5100);
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { remove: removeData });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+            });
+
+            describe('cross-band scenarios', () => {
+                it('should detect smallest interval at band boundary', () => {
+                    // Create data with smallest interval at band boundary
+                    // With 10K items and targetBandCount=10, bands are ~1000 items each
+                    const initialData = Array.from({ length: 10000 }, (_, i) => {
+                        if (i < 999) return { x: i * 10, y: i };
+                        if (i < 1001) return { x: 9990 + (i - 999), y: i };
+                        return { x: (i - 2) * 10 + 2, y: i };
+                    });
+                    const newData = [{ x: 99990, y: 10000 }];
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
+
+                    expectSmallestInterval(reprocessed);
+                    // Smallest interval is at boundary: 9991 - 9990 = 1
+                    expectSmallestInterval(reprocessed, 1);
+                });
+
+                it('should handle intervals spanning multiple bands', () => {
+                    // Create sparse data where smallest interval might span bands
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i * 100, y: i }));
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        append: [{ x: 1000000, y: 10000 }],
+                    });
+
+                    expectSmallestInterval(reprocessed, 100);
+                });
+            });
+
+            describe('band splitting during updates', () => {
+                it('should match full processing when append triggers band split', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                    const newData = Array.from({ length: 500 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+            });
+
+            describe('invalid data handling', () => {
+                it('should match full processing with NaN values across bands', () => {
+                    // Mix valid and invalid data across bands
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({
+                        x: i % 10 === 0 ? Number.NaN : i,
+                        y: i,
+                    }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: [{ x: 10000, y: 10000 }] });
+
+                    expectSmallestInterval(reprocessed);
+                });
+
+                it('should return initialValue for all-NaN data', () => {
+                    const dataModel = new DataModel<any, any>({
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    });
+
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: Number.NaN, y: i }));
+                    const dataSet = new DataSet(initialData);
+                    const sources = basicDataSet(initialData).set('test', dataSet);
+
+                    const processedData = dataModel.processData(sources);
+
+                    // Verify initial processing returns Infinity (initialValue) for all-NaN data
+                    expectSmallestInterval(processedData, Infinity, { allowNonFinite: true });
+
+                    dataSet.addTransaction({ append: [{ x: Number.NaN, y: 10000 }] });
+
+                    const reprocessed = dataModel.reprocessData(processedData!);
+
+                    // Verify reprocessing also returns Infinity for all-NaN data
+                    expectSmallestInterval(reprocessed, Infinity, { allowNonFinite: true });
+                });
+
+                it('should handle sparse data with gaps', () => {
+                    // Sparse data with large gaps
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({
+                        x: i * (i % 100 === 0 ? 1000 : 1),
+                        y: i,
+                    }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        append: [{ x: 10000000, y: 10000 }],
+                    });
+
+                    expectSmallestInterval(reprocessed);
+                });
+            });
+
+            describe('rolling window optimization', () => {
+                it('should match full processing for remove-from-start and append-to-end', () => {
+                    const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                    const removeData = initialData.slice(0, 100);
+                    const newData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
+
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        remove: removeData,
+                        append: newData,
+                    });
+
+                    expectSmallestInterval(reprocessed, 1);
+                });
+            });
+        });
     });
 
     describe('optimization metadata', () => {
@@ -1794,6 +2080,124 @@ describe('DataModel', () => {
             expect(processedData?.optimizations).toBeDefined();
             expect(processedData?.optimizations?.performance).toBeDefined();
             expect(processedData?.optimizations?.reprocessing).toBeDefined();
+        });
+
+        describe('banded reducer optimizations', () => {
+            it('should track reducer banding metadata when banding is applied', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                // Create large dataset (above banding threshold)
+                const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify banding metadata exists
+                expect(processedData?.optimizations?.reducerBanding).toBeDefined();
+                const reducerMeta = processedData?.optimizations?.reducerBanding?.reducers?.find(
+                    (r) => r.property === 'smallestKeyInterval'
+                );
+                expect(reducerMeta).toBeDefined();
+                expect(reducerMeta?.applied).toBe(true);
+
+                // Verify stats are reasonable
+                const stats = reducerMeta?.stats;
+                expect(stats).toBeDefined();
+                expect(stats?.totalBands).toBeGreaterThan(1);
+                expect(stats?.dataSize).toBe(10000);
+                expect(stats?.scanRatio).toBe(1); // Full scan on initial processing
+            });
+
+            it('should report correct band statistics after incremental update', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append data (rolling window scenario)
+                const removeData = initialData.slice(0, 100);
+                const appendData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
+                dataSet.addTransaction({ remove: removeData, append: appendData });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify banding was applied during reprocessing
+                expect(reprocessed.optimizations?.reducerBanding).toBeDefined();
+                const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
+                    (r) => r.property === 'smallestKeyInterval'
+                );
+                expect(reducerMeta).toBeDefined();
+                expect(reducerMeta?.applied).toBe(true);
+
+                const stats = reducerMeta?.stats;
+                expect(stats).toBeDefined();
+                expect(stats?.totalBands).toBeGreaterThan(1);
+                expect(stats?.dataSize).toBe(10000);
+                expect(stats?.dirtyBands).toBeGreaterThan(0);
+                expect(stats?.dirtyBands).toBeLessThan(stats?.totalBands ?? 0);
+                expect(stats?.scanRatio).toBeLessThan(1); // Partial scan
+                expect(stats?.scanRatio).toBeGreaterThan(0);
+                expect(stats?.cacheHits).toBeGreaterThan(0);
+            });
+
+            it('should not apply banding for small datasets', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                // Create small dataset (below banding threshold of 1000)
+                const initialData = Array.from({ length: 500 }, (_, i) => ({ x: i, y: i }));
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify banding was not applied (or applied but with single band)
+                const reducerMeta = processedData?.optimizations?.reducerBanding?.reducers?.find(
+                    (r) => r.property === 'smallestKeyInterval'
+                );
+                if (reducerMeta?.stats) {
+                    // If metadata exists, it should indicate single band
+                    expect(reducerMeta.stats.totalBands).toBeLessThanOrEqual(1);
+                }
+            });
+
+            it('should track low scan ratio for rolling window operations', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const processedData = dataModel.processData(sources);
+
+                // Multiple rolling window updates
+                for (let i = 0; i < 5; i++) {
+                    const removeData = [initialData[i * 100]];
+                    const appendData = [{ x: 10000 + i, y: 10000 + i }];
+                    dataSet.addTransaction({ remove: removeData, append: appendData });
+                }
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Verify efficient caching (low scan ratio)
+                const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
+                    (r) => r.property === 'smallestKeyInterval'
+                );
+                const stats = reducerMeta?.stats;
+                expect(stats).toBeDefined();
+                expect(stats?.scanRatio).toBeLessThan(0.5); // Less than 50% re-scanned
+            });
         });
     });
 });
