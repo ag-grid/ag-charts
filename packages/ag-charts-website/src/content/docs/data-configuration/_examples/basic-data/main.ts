@@ -1,5 +1,4 @@
-import AgCharts from 'ag-charts-community';
-import type { AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
