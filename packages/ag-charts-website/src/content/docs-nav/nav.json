@@ -87,7 +87,7 @@
                     "children": [
                         {
                             "type": "item",
-                            "title": "Data Configuration and Update",
+                            "title": "Data Configuration",
                             "path": "data-configuration"
                         },
                         {
@@ -97,7 +97,7 @@
                         },
                         {
                             "type": "item",
-                            "title": "High-Frequency Data",
+                            "title": "High-Frequency Update",
                             "path": "high-frequency-data"
                         }
                     ]
