@@ -313,6 +313,51 @@ describe('Grouped Category Axis Examples', () => {
         });
     });
 
+    test('provides full text for truncated labels', async () => {
+        const longLabel = 'Extremely long grouped-category axis label that forces truncation';
+        const data = Array.from({ length: 6 }, (_, index) => ({
+            grouping: [`${longLabel} ${index}`, `Inner ${index}`],
+            totalWinnings: 500 + index * 10,
+        }));
+
+        const options: AgCartesianChartOptions = {
+            data,
+            axes: {
+                x: {
+                    type: 'grouped-category',
+                    position: 'bottom',
+                    label: {
+                        avoidCollisions: true,
+                    },
+                    depthOptions: [
+                        { label: { truncate: true, wrapping: 'never' } },
+                        { label: { truncate: true, wrapping: 'never' } },
+                    ],
+                },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'grouping',
+                    yKey: 'totalWinnings',
+                    grouped: true,
+                },
+            ],
+        };
+
+        chart = await createChart(options);
+
+        const chartInstance = chart as any;
+        const groupedAxis = chartInstance.axes.find((axis: any) => axis.type === 'grouped-category');
+        expect(groupedAxis).toBeDefined();
+
+        const layout = ((groupedAxis as any)?.computedLayout?.tickLabelLayout ?? []) as Array<{
+            textUntruncated?: string;
+        }>;
+        expect(layout.some((datum) => datum.textUntruncated?.includes(longLabel))).toBe(true);
+    });
+
     test('AG-14639 label boxing', async () => {
         const options = prepareTestOptions({
             data: [

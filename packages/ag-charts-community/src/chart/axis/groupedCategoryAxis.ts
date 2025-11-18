@@ -1,8 +1,8 @@
-import type { ScaleTickParams } from 'ag-charts-core';
 import {
     BaseProperties,
     PropertiesArray,
     Property,
+    type ScaleTickParams,
     type WrapOptions,
     angularPadding,
     createIdsGenerator,
@@ -11,9 +11,11 @@ import {
     inRange,
     isArray,
     isObject,
+    isTruncated,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
     toArray,
+    toPlainText,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
@@ -21,6 +23,7 @@ import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
+import { PointerEvents } from '../../scene/node';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
@@ -183,6 +186,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             node.text = datum.text;
             node.textBaseline = datum.textBaseline;
             node.textAlign = datum.textAlign ?? 'center';
+            node.pointerEvents = datum.textUntruncated == null ? PointerEvents.None : PointerEvents.All;
             node.setFont(datum);
             node.setBoxing(datum);
         });
@@ -219,6 +223,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
+        const truncatedLabelText: Map<number, string> = new Map();
         const tempText = new TransformableText();
 
         const optionsMap = this.getDepthOptionsMap(maxDepth);
@@ -235,7 +240,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (maxWidth < MIN_CATEGORY_SPACING) return false;
 
-            let text = tickFormatter(datum.label, index - 1);
+            const inputText = tickFormatter(datum.label, index - 1);
+            let text = inputText;
             const labelStyles = this.getLabelStyles(
                 { value: datum.index, formattedValue: text, depth },
                 depthOptions[depth]?.label
@@ -257,6 +263,12 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     maxHeight,
                 };
                 text = wrapTextOrSegments(text, wrapOptions) || text;
+            }
+
+            if (text !== inputText && isTruncated(text)) {
+                truncatedLabelText.set(index, toPlainText(inputText));
+            } else {
+                truncatedLabelText.delete(index);
             }
 
             tempText.x = horizontal ? datum.screen : labelSpacing;
@@ -359,6 +371,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             tickLabelLayout.push({
                 text,
+                textUntruncated: truncatedLabelText.get(index),
                 visible: true,
                 tickId: idGenerator(text),
                 range: this.scale.range,
