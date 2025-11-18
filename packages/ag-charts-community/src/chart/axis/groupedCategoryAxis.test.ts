@@ -352,9 +352,7 @@ describe('Grouped Category Axis Examples', () => {
         const groupedAxis = chartInstance.axes.find((axis: any) => axis.type === 'grouped-category');
         expect(groupedAxis).toBeDefined();
 
-        const layout = ((groupedAxis as any)?.computedLayout?.tickLabelLayout ?? []) as Array<{
-            textUntruncated?: string;
-        }>;
+        const layout = (groupedAxis?.computedLayout?.tickLabelLayout ?? []) as { textUntruncated?: string }[];
         expect(layout.some((datum) => datum.textUntruncated?.includes(longLabel))).toBe(true);
     });
 
