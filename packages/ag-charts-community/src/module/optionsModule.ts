@@ -165,6 +165,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         metadata: ChartInternalOptionMetadata,
         deltaOptions?: DeepPartial<T> | null,
         stripSymbols = false,
+        cachePrefix?: string,
         apiStartTime?: number
     ) {
         this.optionMetadata = metadata ?? {};
@@ -219,7 +220,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
-                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+                this.slowSetup(processedOverrides, deltaOptions, stripSymbols, cachePrefix));
         }
 
         this.activeTheme = activeTheme;
@@ -276,7 +277,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+    private slowSetup(
+        processedOverrides: Partial<T>,
+        deltaOptions?: DeepPartial<T> | null,
+        stripSymbols = false,
+        cachePrefix?: string
+    ) {
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
 
         if (deltaOptions) {
@@ -354,7 +360,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processSeriesOptions(options);
         this.processAxesOptions(options, chartType);
 
-        const optionsGraph = createOptionsGraph(activeTheme, options);
+        const optionsGraph = createOptionsGraph(activeTheme, options, cachePrefix);
         const resolvedOptions = optionsGraph.resolve() as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();

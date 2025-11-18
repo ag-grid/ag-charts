@@ -218,6 +218,7 @@ class AgChartsInternal {
             optionsMetadata,
             deltaOptions,
             stripSymbols,
+            chart?.id,
             apiStartTime
         );
 

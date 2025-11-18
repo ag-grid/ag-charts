@@ -43,7 +43,7 @@ import {
 const debug = Debug.create('opts', 'options-graph');
 
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
-export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
+export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject, cachePrefix?: string) {
     return debug.group(
         'OptionsGraph.constructor()',
         () =>
@@ -53,7 +53,8 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
                 theme.params,
                 theme.palette,
                 theme.overrides,
-                theme.getTemplateParameters()
+                theme.getTemplateParameters(),
+                cachePrefix
             )
     );
 }
@@ -134,7 +135,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         params: PlainObject | undefined = undefined,
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
-        private readonly internalParams: Map<unknown, unknown> = new Map()
+        private readonly internalParams: Map<unknown, unknown> = new Map(),
+        private readonly cachePrefix: string = 'shared'
     ) {
         super(PATH_EDGE, OPERATION_EDGE, new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]));
 
@@ -516,12 +518,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     getCachedValue(path: string[], key: string): unknown {
-        const cacheKey = [...path, key].join('.');
+        const cacheKey = [this.cachePrefix, ...path, key].join('.');
         return OptionsGraph.valueCache.get(cacheKey);
     }
 
     setCachedValue(path: string[], key: string, value: unknown): void {
-        const cacheKey = [...path, key].join('.');
+        const cacheKey = [this.cachePrefix, ...path, key].join('.');
         OptionsGraph.valueCache.set(cacheKey, value);
     }
 
