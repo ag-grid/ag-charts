@@ -1796,116 +1796,85 @@ describe('DataModel', () => {
         });
 
         describe('with banded reducers', () => {
+            const runSmallestIntervalScenario = (
+                initialData: any[],
+                transaction: Parameters<DataSet['addTransaction']>[0]
+            ) => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                });
+
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+                const processedData = dataModel.processData(sources);
+
+                dataSet.addTransaction(transaction);
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                return reprocessed;
+            };
+
+            const expectSmallestInterval = (
+                reprocessed: any,
+                expected?: number,
+                { allowNonFinite = false }: { allowNonFinite?: boolean } = {}
+            ) => {
+                const interval = reprocessed.reduced?.smallestKeyInterval;
+                expect(interval).toBeDefined();
+                if (!allowNonFinite) {
+                    expect(Number.isFinite(interval)).toBe(true);
+                }
+                if (expected !== undefined) {
+                    expect(interval).toBe(expected);
+                }
+            };
+
             describe('ungrouped data with interval reducers', () => {
                 it('should match full processing after append with smallestKeyInterval', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
-                    // Create dataset above banding threshold (1000+ items)
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Append data
                     const newData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
-                    dataSet.addTransaction({ append: newData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
 
-                    // Verify full vs. incremental equivalence
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    // Verify reducer result
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(Number.isFinite(reprocessed.reduced?.smallestKeyInterval)).toBe(true);
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
 
                 it('should match full processing after prepend with smallestKeyInterval', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i + 100, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Prepend data
                     const newData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: i }));
-                    dataSet.addTransaction({ prepend: newData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { prepend: newData });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(Number.isFinite(reprocessed.reduced?.smallestKeyInterval)).toBe(true);
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
 
                 it('should match full processing after mid-insertion with smallestKeyInterval', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({
                         x: i < 5000 ? i : i + 100,
                         y: i,
                     }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Insert in middle
                     const newData = Array.from({ length: 100 }, (_, i) => ({ x: 5000 + i, y: 5000 + i }));
-                    dataSet.addTransaction({ add: newData, addIndex: 5000 });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { add: newData, addIndex: 5000 });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(Number.isFinite(reprocessed.reduced?.smallestKeyInterval)).toBe(true);
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
 
                 it('should match full processing after removal with smallestKeyInterval', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Remove from middle - remove needs data objects, not indices
                     const removeData = initialData.slice(5000, 5100);
-                    dataSet.addTransaction({ remove: removeData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { remove: removeData });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(Number.isFinite(reprocessed.reduced?.smallestKeyInterval)).toBe(true);
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
             });
 
             describe('cross-band scenarios', () => {
                 it('should detect smallest interval at band boundary', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     // Create data with smallest interval at band boundary
                     // With 10K items and targetBandCount=10, bands are ~1000 items each
                     const initialData = Array.from({ length: 10000 }, (_, i) => {
@@ -1913,96 +1882,48 @@ describe('DataModel', () => {
                         if (i < 1001) return { x: 9990 + (i - 999), y: i };
                         return { x: (i - 2) * 10 + 2, y: i };
                     });
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Append more data
                     const newData = [{ x: 99990, y: 10000 }];
-                    dataSet.addTransaction({ append: newData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(Number.isFinite(reprocessed.reduced?.smallestKeyInterval)).toBe(true);
+                    expectSmallestInterval(reprocessed);
                     // Smallest interval is at boundary: 9991 - 9990 = 1
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
 
                 it('should handle intervals spanning multiple bands', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     // Create sparse data where smallest interval might span bands
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i * 100, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        append: [{ x: 1000000, y: 10000 }],
+                    });
 
-                    const processedData = dataModel.processData(sources);
-
-                    dataSet.addTransaction({ append: [{ x: 1000000, y: 10000 }] });
-
-                    const reprocessed = dataModel.reprocessData(processedData!);
-
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(100);
+                    expectSmallestInterval(reprocessed, 100);
                 });
             });
 
             describe('band splitting during updates', () => {
                 it('should match full processing when append triggers band split', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Append enough data to trigger band splitting (>1.1x ideal size)
                     const newData = Array.from({ length: 500 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
-                    dataSet.addTransaction({ append: newData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
             });
 
             describe('invalid data handling', () => {
                 it('should match full processing with NaN values across bands', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     // Mix valid and invalid data across bands
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({
                         x: i % 10 === 0 ? Number.NaN : i,
                         y: i,
                     }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
 
-                    const processedData = dataModel.processData(sources);
+                    const reprocessed = runSmallestIntervalScenario(initialData, { append: [{ x: 10000, y: 10000 }] });
 
-                    dataSet.addTransaction({ append: [{ x: 10000, y: 10000 }] });
-
-                    const reprocessed = dataModel.reprocessData(processedData!);
-
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
+                    expectSmallestInterval(reprocessed);
                 });
 
                 it('should return initialValue for all-NaN data', () => {
@@ -2017,64 +1938,43 @@ describe('DataModel', () => {
                     const processedData = dataModel.processData(sources);
 
                     // Verify initial processing returns Infinity (initialValue) for all-NaN data
-                    expect(processedData!.reduced?.smallestKeyInterval).toBe(Infinity);
+                    expectSmallestInterval(processedData, Infinity, { allowNonFinite: true });
 
                     dataSet.addTransaction({ append: [{ x: Number.NaN, y: 10000 }] });
 
                     const reprocessed = dataModel.reprocessData(processedData!);
 
                     // Verify reprocessing also returns Infinity for all-NaN data
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(Infinity);
+                    expectSmallestInterval(reprocessed, Infinity, { allowNonFinite: true });
                 });
 
                 it('should handle sparse data with gaps', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     // Sparse data with large gaps
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({
                         x: i * (i % 100 === 0 ? 1000 : 1),
                         y: i,
                     }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
 
-                    const processedData = dataModel.processData(sources);
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        append: [{ x: 10000000, y: 10000 }],
+                    });
 
-                    dataSet.addTransaction({ append: [{ x: 10000000, y: 10000 }] });
-
-                    const reprocessed = dataModel.reprocessData(processedData!);
-
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
+                    expectSmallestInterval(reprocessed);
                 });
             });
 
             describe('rolling window optimization', () => {
                 it('should match full processing for remove-from-start and append-to-end', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
-
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                    const dataSet = new DataSet(initialData);
-                    const sources = basicDataSet(initialData).set('test', dataSet);
-
-                    const processedData = dataModel.processData(sources);
-
-                    // Rolling window: remove from start, append to end
                     const removeData = initialData.slice(0, 100);
                     const newData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
-                    dataSet.addTransaction({ remove: removeData, append: newData });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = runSmallestIntervalScenario(initialData, {
+                        remove: removeData,
+                        append: newData,
+                    });
 
-                    verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
-
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBeDefined();
-                    expect(reprocessed.reduced?.smallestKeyInterval).toBe(1);
+                    expectSmallestInterval(reprocessed, 1);
                 });
             });
         });
