@@ -1,11 +1,11 @@
 import { type AgChartOptions } from 'ag-charts-community';
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
+import { Background } from './features/background/background';
+import { Foreground } from './features/foreground/foreground';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { AllEnterpriseModule } from './module-bundles/all';
-import { Background } from './features/background/background';
-import { Foreground } from './features/foreground/foreground';
 import styles from './styles.css';
 
 export function setupEnterpriseModules() {

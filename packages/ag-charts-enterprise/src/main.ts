@@ -1,11 +1,11 @@
 import { enterpriseRegistry } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
+import { Background } from './features/background/background';
+import { Foreground } from './features/foreground/foreground';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import styles from './styles.css';
-import { Background } from './features/background/background';
-import { Foreground } from './features/foreground/foreground';
 
 export * from 'ag-charts-types';
 export * from 'ag-charts-community';

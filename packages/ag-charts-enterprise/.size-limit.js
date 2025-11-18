@@ -65,7 +65,7 @@ module.exports = [
     },
     {
         name: 'Mixed modules D',
-        import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, ForegroundModule }',
+        import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
         limit: '267 kB',
         ...defaultConfig,
     },
