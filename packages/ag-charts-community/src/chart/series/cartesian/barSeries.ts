@@ -812,7 +812,13 @@ export class BarSeries extends AbstractBarSeries<
         nodeData: BarNodeDatum[];
         datumSelection: Selection<BarShape, BarNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!animationEnabled) {
+            // Optimised update path, no need to ensure we match up nodes by id.
+            return opts.datumSelection.update(opts.nodeData);
+        }
+        return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));
     }
 
     private makeStylerParams(

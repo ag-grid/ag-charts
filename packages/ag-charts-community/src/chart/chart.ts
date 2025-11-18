@@ -1199,9 +1199,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
         const { seriesRect } = this;
 
-        await Promise.all(
-            seriesToUpdate.map((series) => series.update({ seriesRect })).filter((p): p is Promise<void> => p != null)
-        );
+        function seriesUpdate(series: ISeries<DatumIndexType, unknown, unknown>) {
+            return series.update({ seriesRect });
+        }
+
+        await Promise.all(seriesToUpdate.map(seriesUpdate).filter((p): p is Promise<void> => p != null));
 
         this.ctx.seriesLabelLayoutManager.updateLabels(
             this.series.filter((s) => s.visible && s.usesPlacedLabels),
