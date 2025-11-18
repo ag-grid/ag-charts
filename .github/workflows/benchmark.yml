@@ -17,7 +17,7 @@ on:
                 required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
-        - cron: '0 1 * * *' # Run daily at 01:00 UTC
+        # - cron: '0 1 * * *' # Run daily at 01:00 UTC - DISABLED: b11.3.1 benchmark execution
 
 env:
     NX_NO_CLOUD: true
