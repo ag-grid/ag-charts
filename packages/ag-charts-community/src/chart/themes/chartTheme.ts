@@ -24,7 +24,7 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import type { ChartType } from '../factory/expectedModules';
-import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
+import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -63,7 +63,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from './symbols';
-import { LEGEND_CONTAINER_THEME, getSequentialColors } from './util';
+import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
@@ -369,76 +369,6 @@ export class ChartTheme {
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
-            legend: {
-                ...LEGEND_CONTAINER_THEME,
-                enabled: {
-                    $and: [
-                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                        {
-                            $or: [
-                                { $isChartType: 'cartesian' },
-                                { $isChartType: 'standalone' },
-                                {
-                                    $and: [
-                                        { $isChartType: 'polar' },
-                                        { $not: { $isSeriesType: 'pie' } },
-                                        { $not: { $isSeriesType: 'donut' } },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-                position: CARTESIAN_POSITION.BOTTOM,
-                orientation: {
-                    $if: [
-                        {
-                            $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
-                            ],
-                        },
-                        'vertical',
-                        'horizontal',
-                    ],
-                },
-                spacing: 30,
-                listeners: {},
-                toggleSeries: true,
-                item: {
-                    paddingX: 16,
-                    paddingY: 8,
-                    marker: { size: 15, padding: 8 },
-                    showSeriesStroke: true,
-                    label: {
-                        color: { $ref: 'textColor' },
-                        fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                        fontFamily: { $ref: 'fontFamily' },
-                        fontWeight: { $ref: 'fontWeight' },
-                    },
-                },
-                reverseOrder: false,
-                pagination: {
-                    marker: { size: 12 },
-                    activeStyle: { fill: { $ref: 'foregroundColor' } },
-                    inactiveStyle: { fill: { $ref: 'subtleTextColor' } },
-                    highlightStyle: { fill: { $ref: 'foregroundColor' } },
-                    label: { color: { $ref: 'textColor' } },
-                },
-                fill: {
-                    $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
-                },
-            },
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
@@ -489,18 +419,11 @@ export class ChartTheme {
 
     private static readonly axisDefault = {
         [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
+            { line: { enabled: false } },
             { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
-            {
-                base: 10,
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
+            { base: 10, line: { enabled: false } },
             { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
@@ -508,7 +431,6 @@ export class ChartTheme {
                 groupPaddingInner: 0.1,
                 label: { autoRotate: true, wrapping: 'on-space' },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: false },
             },
             { title: true, time: false }
         ),
@@ -519,15 +441,11 @@ export class ChartTheme {
                 maxThicknessRatio: 0.5,
                 paddingInner: 0.4,
                 groupPaddingInner: 0.2,
-                crosshair: { enabled: false },
             },
             { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
-            {
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
+            { gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } },
             { title: true, time: true }
         ),
         [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
@@ -535,7 +453,6 @@ export class ChartTheme {
                 groupPaddingInner: 0.1,
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
                 parentLevel: { enabled: true },
             },
             { title: true, time: true }
@@ -545,7 +462,6 @@ export class ChartTheme {
                 groupPaddingInner: 0,
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
             },
             { title: true, time: true }
         ),
@@ -779,7 +695,7 @@ function getAxisThemeTemplate(axisType: string) {
     let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (module.axisTypes?.includes(axisType) ?? true) {
-            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
         }
     }
     return themeTemplate;

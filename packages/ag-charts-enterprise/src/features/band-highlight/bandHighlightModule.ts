@@ -12,12 +12,10 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
     version: VERSION,
 
     themeTemplate: {
-        bandHighlight: {
-            enabled: false,
-            strokeWidth: 0,
-            lineDash: [],
-            fill: { $foregroundBackgroundMix: 0.05 },
-        },
+        enabled: false,
+        strokeWidth: 0,
+        lineDash: [],
+        fill: { $foregroundBackgroundMix: 0.05 },
     },
 
     create: (ctx) => new BandHighlight(ctx),

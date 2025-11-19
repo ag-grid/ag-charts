@@ -1,4 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import { deepClone, jsonWalk } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -15,10 +14,6 @@ export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map
     },
     legend: {
         enabled: false,
-    },
-    gradientLegend: {
-        enabled: false,
-        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
 };
 

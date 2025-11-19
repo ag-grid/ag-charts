@@ -11,16 +11,29 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
     version: VERSION,
 
     themeTemplate: {
-        crosshair: {
-            snap: true,
-            stroke: { $ref: 'subtleTextColor' },
-            strokeWidth: 1,
-            strokeOpacity: 1,
-            lineDash: [5, 6],
-            lineDashOffset: 0,
-            label: {
-                enabled: true,
-            },
+        enabled: {
+            $if: [
+                {
+                    $or: [
+                        { $eq: [{ $path: '../type' }, 'number'] },
+                        { $eq: [{ $path: '../type' }, 'log'] },
+                        { $eq: [{ $path: '../type' }, 'time'] },
+                        { $eq: [{ $path: '../type' }, 'unit-time'] },
+                        { $eq: [{ $path: '../type' }, 'ordinal-time'] },
+                    ],
+                },
+                true,
+                false,
+            ],
+        },
+        snap: true,
+        stroke: { $ref: 'subtleTextColor' },
+        strokeWidth: 1,
+        strokeOpacity: 1,
+        lineDash: [5, 6],
+        lineDashOffset: 0,
+        label: {
+            enabled: true,
         },
     },
 

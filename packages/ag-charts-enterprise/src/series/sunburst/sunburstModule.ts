@@ -66,7 +66,6 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
     },
     gradientLegend: {
         enabled: true,
-        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
 };
 
