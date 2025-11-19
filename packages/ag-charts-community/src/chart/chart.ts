@@ -1835,9 +1835,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         source.clearEventListeners();
         if (listeners && typeof listeners === 'object') {
             for (const [property, listener] of entries(listeners)) {
-                if (typeof listener === 'function') {
-                    source.addEventListener(property, listener);
+                // Skip undefined values (explicitly clearing listeners), but validate non-function values
+                if (listener === undefined) {
+                    continue;
                 }
+                // addEventListener will throw TypeError if listener is not a function, preserving validation behavior
+                source.addEventListener(property, listener);
             }
         }
     }
