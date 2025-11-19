@@ -14,7 +14,12 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              LineSeriesModule,\n          ]);"
+          "import {
+              ModuleRegistry,
+              LineSeriesModule,
+          } from 'ag-charts-community';
+
+          ModuleRegistry.registerModules([LineSeriesModule]);"
         `);
     });
 
@@ -49,7 +54,18 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              AllCommunityModule,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModule,\n              ...AllEnterpriseModules,\n          ]);"
+          "import {
+              ModuleRegistry,
+              AllCommunityModule,
+          } from 'ag-charts-community';
+          import {
+              AllEnterpriseModules,
+          } from 'ag-charts-enterprise';
+
+          ModuleRegistry.registerModules([
+              AllCommunityModule,
+              AllEnterpriseModules,
+          ]);"
         `);
     });
 
@@ -67,7 +83,7 @@ describe('getModuleMappingsSnippet', () => {
               AllEnterpriseModule,
           } from 'ag-charts-enterprise';
 
-          ModuleRegistry.registerModules(AllEnterpriseModule);"
+          ModuleRegistry.registerModules([AllEnterpriseModule]);"
         `);
     });
 });
