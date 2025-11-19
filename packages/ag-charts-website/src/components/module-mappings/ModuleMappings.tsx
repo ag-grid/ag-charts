@@ -120,17 +120,19 @@ export function ModuleMappings({
 
     const onRowSelected = useCallback(
         (event: RowSelectedEvent) => {
-            if (bundleOption === ALL_ENTERPRISE_MODULE) return;
-
             const {
                 node,
                 data: { moduleName },
                 api,
             } = event;
-            if (!moduleName && !node.isSelected() && bundleOption === ALL_COMMUNITY_MODULE) {
+            if (!moduleName && !node.isSelected() && bundleOption !== '') {
                 const nodesToReselect: IRowNode[] = [];
                 node.allLeafChildren?.forEach((child) => {
-                    if (!child.isSelected() && !child.data.isEnterprise && !child.group) {
+                    if (
+                        !child.isSelected() &&
+                        !child.group &&
+                        (bundleOption === ALL_ENTERPRISE_MODULE || !child.data.isEnterprise)
+                    ) {
                         nodesToReselect.push(child);
                     }
                 });
@@ -160,7 +162,6 @@ export function ModuleMappings({
                 return false;
             },
             groupSelects: 'descendants',
-            headerCheckbox: bundleOption !== ALL_ENTERPRISE_MODULE,
         };
     }, [bundleOption]);
 

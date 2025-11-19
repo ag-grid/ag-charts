@@ -1,8 +1,18 @@
 import { getModuleMappingsSnippet } from './getModuleMappingsSnippet';
 
 describe('getModuleMappingsSnippet', () => {
-    test('returns undefined when no modules are selected', () => {
-        expect(getModuleMappingsSnippet({ selectedModules: { community: [], enterprise: [] } })).toBeUndefined();
+    test('returns placeholder snippet when no modules are selected', () => {
+        const snippet = getModuleMappingsSnippet({ selectedModules: { community: [], enterprise: [] } });
+
+        expect(snippet).toMatchInlineSnapshot(`
+          "import {
+              ModuleRegistry,
+          } from 'ag-charts-community';
+
+          ModuleRegistry.registerModules([
+              // no modules selected
+          ]);"
+        `);
     });
 
     test('formats community modules', () => {
@@ -40,7 +50,7 @@ describe('getModuleMappingsSnippet', () => {
         `);
     });
 
-    test('spreads bundle helpers', () => {
+    test('registers bundle helpers without spreading', () => {
         const snippet = getModuleMappingsSnippet({
             selectedModules: {
                 community: ['AllCommunityModule'],
@@ -49,7 +59,18 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              AllCommunityModule,\n          } from 'ag-charts-community';\n          import {\n              AllEnterpriseModules,\n          } from 'ag-charts-enterprise';\n\n          ModuleRegistry.registerModules([\n              ...AllCommunityModule,\n              ...AllEnterpriseModules,\n          ]);"
+          "import {
+              ModuleRegistry,
+              AllCommunityModule,
+          } from 'ag-charts-community';
+          import {
+              AllEnterpriseModules,
+          } from 'ag-charts-enterprise';
+
+          ModuleRegistry.registerModules([
+              AllCommunityModule,
+              AllEnterpriseModules,
+          ]);"
         `);
     });
 
@@ -67,7 +88,9 @@ describe('getModuleMappingsSnippet', () => {
               AllEnterpriseModule,
           } from 'ag-charts-enterprise';
 
-          ModuleRegistry.registerModules(AllEnterpriseModule);"
+          ModuleRegistry.registerModules([
+              AllEnterpriseModule,
+          ]);"
         `);
     });
 });
