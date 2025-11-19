@@ -788,6 +788,139 @@ describe('Chart', () => {
         });
     });
 
+    describe('AG-16337 listeners undefined update', () => {
+        it('should handle chart-level listeners set to undefined', async () => {
+            const chartClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                    },
+                ],
+                listeners: {
+                    click: chartClick,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listener is registered
+            expect(chart.hasEventListener('click')).toBe(true);
+
+            // Update with listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                listeners: undefined,
+            });
+            await waitForChartStability(chart);
+
+            // Verify listener is cleared
+            expect(chart.hasEventListener('click')).toBe(false);
+        });
+
+        it('should handle series-level listeners set to undefined', async () => {
+            const seriesNodeClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listener is registered
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+
+            // Update with series listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify listener is cleared
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+        });
+
+        it('should handle both chart and series listeners set to undefined', async () => {
+            const chartClick = jest.fn();
+            const seriesNodeClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+                listeners: {
+                    click: chartClick,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listeners are registered
+            expect(chart.hasEventListener('click')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+
+            // Update with both listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                listeners: undefined,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify listeners are cleared
+            expect(chart.hasEventListener('click')).toBe(false);
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+        });
+    });
+
     describe('Transaction validation', () => {
         let chartProxy: AgChartProxy;
 

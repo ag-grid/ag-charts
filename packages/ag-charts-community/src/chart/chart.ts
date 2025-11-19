@@ -1339,8 +1339,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
-        if (deltaOptions.listeners) {
-            this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener>);
+        if ('listeners' in deltaOptions) {
+            this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener> | undefined);
         }
 
         jsonApply<any, any>(this, deltaOptions, { skip });
@@ -1367,8 +1367,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
             this.data = new DataSet(dataForDataSet);
         }
-        if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
-            Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
+        if ('legend' in deltaOptions && deltaOptions.legend && 'listeners' in deltaOptions.legend && this.modulesManager.isEnabled('legend')) {
+            const legendListeners = deltaOptions.legend.listeners;
+            if (legendListeners) {
+                Object.assign((this as any).legend.listeners, legendListeners);
+            } else {
+                // Clear legend listeners when set to undefined
+                (this as any).legend.listeners.legendItemClick = undefined;
+                (this as any).legend.listeners.legendItemDoubleClick = undefined;
+            }
         }
         if (deltaOptions.locale?.localeText) {
             const localeModule: any = this.modulesManager.getModule('locale');
@@ -1767,8 +1774,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             target.setOptionsData(data == null ? undefined : DataSet.wrap(data));
         }
 
-        if (listeners) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
+        if ('listeners' in options) {
+            this.registerListeners(target, listeners as Record<string, TypedEventListener> | undefined);
         }
 
         if ('seriesGrouping' in options) {
@@ -1817,10 +1824,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
+    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener> | undefined) {
         source.clearEventListeners();
-        for (const [property, listener] of entries(listeners)) {
-            source.addEventListener(property, listener);
+        if (listeners && typeof listeners === 'object' && listeners !== null) {
+            for (const [property, listener] of entries(listeners)) {
+                if (typeof listener === 'function') {
+                    source.addEventListener(property, listener);
+                }
+            }
         }
     }
 
