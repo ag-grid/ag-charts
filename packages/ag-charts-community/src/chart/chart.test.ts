@@ -919,6 +919,59 @@ describe('Chart', () => {
             expect(chart.hasEventListener('click')).toBe(false);
             expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
         });
+
+        it('should preserve internal listeners after clearing user series listeners', async () => {
+            const seriesNodeClick = jest.fn();
+            const seriesVisibilityChange = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+                listeners: {
+                    seriesVisibilityChange: seriesVisibilityChange,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify user listener is registered
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+            // Verify internal listeners are registered
+            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+
+            // Update with series listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify user listener is cleared
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+            // Verify internal listeners are still registered
+            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+        });
     });
 
     describe('Transaction validation', () => {
