@@ -1780,6 +1780,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if ('listeners' in options) {
             this.registerListeners(target, listeners as Record<string, TypedEventListener> | undefined);
+            if (this.series.includes(target)) {
+                this.addSeriesListeners(target);
+            }
         }
 
         if ('seriesGrouping' in options) {
