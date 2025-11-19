@@ -1378,8 +1378,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 Object.assign((this as any).legend.listeners, legendListeners);
             } else {
                 // Clear legend listeners when set to undefined
-                (this as any).legend.listeners.legendItemClick = undefined;
-                (this as any).legend.listeners.legendItemDoubleClick = undefined;
+                (this as any).legend.listeners.clear();
             }
         }
         if (deltaOptions.locale?.localeText) {
@@ -1831,7 +1830,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private registerListeners(source: Observable, listeners: Record<string, TypedEventListener> | undefined) {
         source.clearEventListeners();
-        if (listeners && typeof listeners === 'object' && listeners !== null) {
+        if (listeners && typeof listeners === 'object') {
             for (const [property, listener] of entries(listeners)) {
                 if (typeof listener === 'function') {
                     source.addEventListener(property, listener);
