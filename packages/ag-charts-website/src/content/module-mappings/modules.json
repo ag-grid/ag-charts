@@ -152,36 +152,6 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "MapLineBackgroundSeriesModule",
-                    "name": "Map line background",
-                    "path": "map-lines",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapLineSeriesModule",
-                    "name": "Map line series",
-                    "path": "map-lines",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapMarkerSeriesModule",
-                    "name": "Map marker series",
-                    "path": "map-markers",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapShapeBackgroundSeriesModule",
-                    "name": "Map shape background",
-                    "path": "map-shapes",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "MapShapeSeriesModule",
-                    "name": "Map shape series",
-                    "path": "map-shapes",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "NightingaleSeriesModule",
                     "name": "Nightingale series",
                     "path": "nightingale-series",
@@ -268,13 +238,36 @@
             ]
         },
         {
-            "name": "Features",
+            "name": "Data Elements",
             "children": [
                 {
                     "moduleName": "LegendModule",
                     "name": "Legend",
                     "path": "legend"
                 },
+                {
+                    "moduleName": "AnnotationsModule",
+                    "name": "Annotations",
+                    "path": "annotations",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ErrorBarsModule",
+                    "name": "Error bars",
+                    "path": "error-bars",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "GradientLegendModule",
+                    "name": "Gradient legend",
+                    "path": "legend/#gradient-legend",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "name": "Interactivity",
+            "children": [
                 {
                     "moduleName": "LocaleModule",
                     "name": "Locales",
@@ -287,21 +280,9 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "AnnotationsModule",
-                    "name": "Annotations",
-                    "path": "annotations",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "BandHighlightModule",
                     "name": "Band highlight",
                     "path": "series-highlighting",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "ChartToolbarModule",
-                    "name": "Chart toolbar",
-                    "path": "financial-charts-toolbar",
                     "isEnterprise": true
                 },
                 {
@@ -317,33 +298,9 @@
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "DataSourceModule",
-                    "name": "Data source",
-                    "path": "financial-charts",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "ErrorBarsModule",
-                    "name": "Error bars",
-                    "path": "error-bars",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "GradientLegendModule",
-                    "name": "Gradient legend",
-                    "path": "legend/#gradient-legend",
-                    "isEnterprise": true
-                },
-                {
                     "moduleName": "NavigatorModule",
                     "name": "Navigator",
                     "path": "navigator",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "RangesModule",
-                    "name": "Ranges",
-                    "path": "range-buttons",
                     "isEnterprise": true
                 },
                 {
@@ -354,20 +311,57 @@
                 },
                 {
                     "moduleName": "ZoomModule",
-                    "name": "Zoom & pan",
+                    "name": "Zoom",
                     "path": "zoom",
                     "isEnterprise": true
                 }
             ]
         },
         {
-            "name": "Bundles",
+            "name": "Specialised Charts",
             "children": [
                 {
                     "moduleName": "FinancialChartModule",
                     "name": "Financial chart",
                     "path": "financial-charts",
                     "isEnterprise": true
+                },
+                {
+                    "name": "Maps",
+                    "path": "maps",
+                    "isEnterprise": true,
+                    "children": [
+                        {
+                            "moduleName": "MapLineBackgroundSeriesModule",
+                            "name": "Map line background",
+                            "path": "map-lines",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapLineSeriesModule",
+                            "name": "Map line series",
+                            "path": "map-lines",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapMarkerSeriesModule",
+                            "name": "Map marker series",
+                            "path": "map-markers",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapShapeBackgroundSeriesModule",
+                            "name": "Map shape background",
+                            "path": "map-shapes",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapShapeSeriesModule",
+                            "name": "Map shape series",
+                            "path": "map-shapes",
+                            "isEnterprise": true
+                        }
+                    ]
                 }
             ]
         }

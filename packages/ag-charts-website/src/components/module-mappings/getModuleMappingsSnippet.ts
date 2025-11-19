@@ -8,7 +8,9 @@ function formatImportItem(name: string) {
 }
 
 function formatImports(imports: string[], packageName: string) {
-    return `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
+    return imports.length
+        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
+        : null;
 }
 
 export function getModuleMappingsSnippet({
@@ -17,23 +19,23 @@ export function getModuleMappingsSnippet({
     selectedModules: SelectedModules;
 }): string | undefined {
     const { community, enterprise } = selectedModules;
-    if (!community.length && !enterprise.length) return;
-
-    const communityImports = enterprise.length && !community.length ? community : ['ModuleRegistry'].concat(community);
-    const enterpriseImports = community.length ? enterprise : ['ModuleRegistry'].concat(enterprise);
     const allSelectedModules = community.concat(enterprise);
 
-    const registrationEntry =
-        allSelectedModules.length === 1
-            ? `[${allSelectedModules[0]}]`
-            : `[\n${allSelectedModules.map(formatImportItem).join('\n')}\n]`;
+    let communityImports = community;
+    let enterpriseImports = enterprise;
+    if (enterprise.length && !community.length) {
+        enterpriseImports = ['ModuleRegistry'].concat(enterprise);
+    } else {
+        communityImports = ['ModuleRegistry'].concat(community);
+    }
 
-    const imports = [
-        community.length && formatImports(communityImports, 'community'),
-        enterprise.length && formatImports(enterpriseImports, 'enterprise'),
-    ]
+    const imports = [formatImports(communityImports, 'community'), formatImports(enterpriseImports, 'enterprise')]
         .filter(Boolean)
         .join('\n');
 
-    return `${imports}\n\nModuleRegistry.registerModules(${registrationEntry});`;
+    const moduleList = allSelectedModules.length
+        ? allSelectedModules.map(formatImportItem).join('\n')
+        : '    // no modules selected';
+
+    return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }

@@ -14,8 +14,9 @@ export * as _Widget from './widget/exports';
 export { SparklinePresetModule } from './api/preset/presetModules';
 
 export { CartesianChartModule } from './chart/cartesianChartModule';
-export { LegendModule } from './chart/legend/legendModule';
 export { PolarChartModule } from './chart/polarChartModule';
+
+export { LegendModule } from './chart/legend/legendModule';
 export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
 export { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
