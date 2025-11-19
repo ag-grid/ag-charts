@@ -816,6 +816,9 @@ describe('Chart', () => {
             // Verify listener is registered
             expect(chart.hasEventListener('click')).toBe(true);
 
+            // Reset mock call count before clearing
+            chartClick.mockClear();
+
             // Update with listeners: undefined
             await agChartInstance.update({
                 ...options,
@@ -825,6 +828,11 @@ describe('Chart', () => {
 
             // Verify listener is cleared
             expect(chart.hasEventListener('click')).toBe(false);
+
+            // Trigger a click event and verify the cleared listener is not called
+            await clickAction(100, 100)(agChartInstance);
+            await waitForChartStability(chart);
+            expect(chartClick).not.toHaveBeenCalled();
         });
 
         it('should handle series-level listeners set to undefined', async () => {
@@ -902,6 +910,10 @@ describe('Chart', () => {
             expect(chart.hasEventListener('click')).toBe(true);
             expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
 
+            // Reset mock call counts before clearing
+            chartClick.mockClear();
+            seriesNodeClick.mockClear();
+
             // Update with both listeners: undefined
             await agChartInstance.update({
                 ...options,
@@ -918,6 +930,12 @@ describe('Chart', () => {
             // Verify listeners are cleared
             expect(chart.hasEventListener('click')).toBe(false);
             expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+
+            // Trigger click events and verify cleared listeners are not called
+            await clickAction(200, 200)(agChartInstance);
+            await waitForChartStability(chart);
+            expect(chartClick).not.toHaveBeenCalled();
+            expect(seriesNodeClick).not.toHaveBeenCalled();
         });
 
         it('should preserve internal listeners after clearing user series listeners', async () => {
