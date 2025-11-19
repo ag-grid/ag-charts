@@ -78,9 +78,8 @@ export function ModuleMappings({
 
     const updateSelected = useCallback(() => {
         const api = gridRef.current?.api;
-        if (!api) {
-            return;
-        }
+        if (!api) return;
+
         const selectedCommunity: string[] = [];
         const selectedEnterprise: string[] = [];
         if (bundleOption === ALL_ENTERPRISE_MODULE) {
@@ -128,17 +127,16 @@ export function ModuleMappings({
                 data: { moduleName },
                 api,
             } = event;
-            const isSelected = !!node.isSelected();
-            if (!moduleName && !isSelected && bundleOption === ALL_COMMUNITY_MODULE) {
+            if (!moduleName && !node.isSelected() && bundleOption === ALL_COMMUNITY_MODULE) {
                 const nodesToReselect: IRowNode[] = [];
                 node.allLeafChildren?.forEach((child) => {
                     if (!child.isSelected() && !child.data.isEnterprise && !child.group) {
                         nodesToReselect.push(child);
                     }
-                    api.setNodesSelected({
-                        nodes: nodesToReselect,
-                        newValue: true,
-                    });
+                });
+                api.setNodesSelected({
+                    nodes: nodesToReselect,
+                    newValue: true,
                 });
             }
 
@@ -162,7 +160,7 @@ export function ModuleMappings({
                 return false;
             },
             groupSelects: 'descendants',
-            headerCheckbox: bundleOption === '',
+            headerCheckbox: bundleOption !== ALL_ENTERPRISE_MODULE,
         };
     }, [bundleOption]);
 
