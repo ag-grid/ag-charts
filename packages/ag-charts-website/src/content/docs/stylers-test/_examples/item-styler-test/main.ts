@@ -107,7 +107,6 @@ function createItemStyler(type: string) {
 
         console.log(`[${type} itemStyler]`, {
             highlightState: params.highlightState,
-            highlighted: params.highlighted,
             seriesId: params.seriesId,
             datum: params.datum,
             ...params,

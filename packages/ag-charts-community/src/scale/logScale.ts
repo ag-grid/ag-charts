@@ -66,7 +66,7 @@ export class LogScale extends ContinuousScale<number> {
     private readonly log = (x: number) => log(this.base, this.domain, x);
     private readonly pow = (x: number) => pow(this.base, this.domain, x);
 
-    override niceDomain(_ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+    override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
         if (domain.length < 2) return [];
 
         const { base } = this;
@@ -78,7 +78,7 @@ export class LogScale extends ContinuousScale<number> {
         const n0 = pow(base, domain, roundStart(log(base, domain, d0)));
         const n1 = pow(base, domain, roundStop(log(base, domain, d1)));
 
-        return [n0, n1];
+        return [ticks.nice[0] ? n0 : domain[0], ticks.nice[1] ? n1 : domain[1]];
     }
 
     override ticks(

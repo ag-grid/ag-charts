@@ -521,7 +521,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
         const {
@@ -537,7 +536,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
         let stylerResult: AgRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -559,7 +558,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRangeBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -583,7 +581,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             fill,
             fillOpacity,
             highlightState,
-            highlighted,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -614,7 +611,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -649,7 +646,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             xKey,
             yHighKey,
             yLowKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,
@@ -791,7 +787,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
-            false,
             false,
             HighlightState.None
         );

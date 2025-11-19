@@ -112,7 +112,7 @@ interface TickLayout<D, TickLayoutMeta> {
 interface TickLayoutCache<D, TickLayoutMeta> {
     domain: D[];
     rangeExtent: number;
-    nice: boolean;
+    nice: [boolean, boolean];
     gridLength: number;
     visibleRange: [number, number];
     initialPrimaryTickCount: AxisPrimaryTickCount | undefined;
@@ -126,7 +126,8 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
     return (
         a.domain === b.domain &&
         a.rangeExtent === b.rangeExtent &&
-        a.nice === b.nice &&
+        a.nice[0] === b.nice[0] &&
+        a.nice[1] === b.nice[1] &&
         a.gridLength === b.gridLength &&
         a.visibleRange[0] === b.visibleRange[0] &&
         a.visibleRange[1] === b.visibleRange[1] &&
@@ -523,6 +524,10 @@ export abstract class Axis<
         this.setDomains(...domains);
     }
 
+    getDomainExtentsNice(): [boolean, boolean] {
+        return [this.nice, this.nice];
+    }
+
     protected animatable = true;
     setDomains(...domains: D[][]) {
         let domain: D[];
@@ -552,12 +557,13 @@ export abstract class Axis<
         const {
             dataDomain: { domain },
             range,
-            nice,
             scale,
             gridLength,
         } = this;
         const rangeExtent = findRangeExtent(range);
         const visibleRange = [0, 1] as [number, number];
+
+        const nice = this.getDomainExtentsNice();
 
         this.updateScale();
 
@@ -577,7 +583,7 @@ export abstract class Axis<
             const scaleRange = scale.range;
             this.setScaleRange([0, 1]);
 
-            const niceMode = nice ? NiceMode.TickAndDomain : NiceMode.Off;
+            const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
             unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
 
             scale.range = scaleRange;
@@ -613,9 +619,11 @@ export abstract class Axis<
     } {
         this.chartLayout = chartLayout;
 
-        const { visibleRange, nice } = this;
+        const { visibleRange } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
         const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount);
+
+        const nice = this.getDomainExtentsNice();
 
         let tickLayout: TickLayout<D, TickLayoutMeta>;
         if (unzoomed) {
@@ -623,7 +631,7 @@ export abstract class Axis<
         } else {
             const { range, gridLength } = this;
             const rangeExtent = findRangeExtent(range);
-            const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
+            const niceMode = nice.map((n) => (n ? NiceMode.TicksOnly : NiceMode.Off));
             const { tickLayoutCache } = this;
             if (
                 tickLayoutCache == null ||
@@ -682,7 +690,7 @@ export abstract class Axis<
 
     abstract calculateTickLayout(
         domain: D[],
-        niceMode: NiceMode,
+        niceMode: NiceMode[],
         visibleRange: [number, number],
         primaryTickCount?: AxisPrimaryTickCount
     ): {

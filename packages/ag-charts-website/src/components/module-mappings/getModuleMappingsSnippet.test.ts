@@ -24,7 +24,12 @@ describe('getModuleMappingsSnippet', () => {
         });
 
         expect(snippet).toMatchInlineSnapshot(`
-          "import {\n              ModuleRegistry,\n              LineSeriesModule,\n          } from 'ag-charts-community';\n\n          ModuleRegistry.registerModules([\n              LineSeriesModule,\n          ]);"
+          "import {
+              ModuleRegistry,
+              LineSeriesModule,
+          } from 'ag-charts-community';
+
+          ModuleRegistry.registerModules([LineSeriesModule]);"
         `);
     });
 

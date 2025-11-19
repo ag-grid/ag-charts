@@ -140,7 +140,7 @@ export abstract class RadiusAxis<
 
     override calculateTickLayout(
         domain: D[],
-        niceMode: _ModuleSupport.NiceMode,
+        niceMode: [_ModuleSupport.NiceMode, _ModuleSupport.NiceMode],
         _visibleRange: [number, number]
     ): {
         niceDomain: D[];

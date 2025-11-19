@@ -52,7 +52,6 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
     activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined
 ): AgChartLabelStyleOptions & { fontSize: number } {
     if (series.visible && label.itemStyler) {
-        const highlighted = isHighlight || series.isSeriesHighlighted(activeHighlight);
         const highlightState = series.getHighlightStateString(
             activeHighlight,
             isHighlight ||
@@ -80,7 +79,6 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: label.padding,
-            highlighted,
             highlightState,
         };
         const stylerResult =

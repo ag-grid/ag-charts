@@ -8,7 +8,6 @@ exports[`LineSeries AG-11673 styler init callbacks params 1`] = `
         "name": "sales context",
       },
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -40,7 +39,6 @@ exports[`LineSeries AG-11673 styler init callbacks params 1`] = `
         "name": "expenses context",
       },
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],

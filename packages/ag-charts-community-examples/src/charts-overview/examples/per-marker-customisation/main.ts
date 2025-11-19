@@ -53,7 +53,7 @@ const options: AgChartOptions = {
             fillOpacity: 0.7,
             strokeOpacity: 0.7,
             itemStyler(params) {
-                return { fill: params.highlighted ? params.fill : calculateColour(params.size) };
+                return { fill: params.highlightState === 'highlighted-item' ? params.fill : calculateColour(params.size) };
             },
         },
     ],

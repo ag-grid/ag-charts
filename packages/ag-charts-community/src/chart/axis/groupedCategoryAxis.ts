@@ -458,7 +458,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         let rawTicks: Array<string[]>;
         if (tickScale.step > MIN_CATEGORY_SPACING) {
             const tickParams: ScaleTickParams<number> = {
-                nice: false,
+                nice: [false, false],
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,

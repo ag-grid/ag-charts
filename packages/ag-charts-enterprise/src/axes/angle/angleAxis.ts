@@ -104,7 +104,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         const { nice, scale } = this;
 
         const ticksParams: ScaleTickParams<any> = {
-            nice,
+            nice: [nice, nice],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -249,7 +249,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         } else if (shape === 'polygon') {
             const angles = scale
                 .ticks({
-                    nice: this.nice,
+                    nice: [this.nice, this.nice],
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,

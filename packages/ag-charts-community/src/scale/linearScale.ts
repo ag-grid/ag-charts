@@ -72,6 +72,6 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return [start, stop];
+        return [ticks.nice[0] ? start : domain[0], ticks.nice[1] ? stop : domain[1]];
     }
 }

@@ -104,6 +104,26 @@ EOF
     log_info "yarn@1 installed successfully"
 }
 
+symlink_nx_cache() {
+    if [ -d .nx ]; then
+        return 0
+    fi
+    if [ ! -d ${$ROOT_WORKTREE_PATH:-$PWD}/.nx ]; then
+        log_error "Root worktree .nx directory not found"
+        return 0
+    fi
+    
+    mkdir -p .nx
+    if [ -d ${$ROOT_WORKTREE_PATH}/.nx/cache ]; then
+        log_info "Symlinking nx cache"
+        ln -sf ${$ROOT_WORKTREE_PATH}/.nx/cache .nx/cache
+    fi
+    if [ -d ${$ROOT_WORKTREE_PATH}/.nx/workspace-data ]; then
+        log_info "Symlinking nx workspace data"
+        cp -r ${$ROOT_WORKTREE_PATH}/.nx/workspace-data .nx/workspace-data
+    fi
+}
+
 # Function to install/update dependencies when node_modules exists
 install_dependencies() {
     log_info "Checking dependency integrity"
@@ -151,6 +171,10 @@ main() {
     fi
 
     if ! opt_enable_direnv; then
+        exit 2
+    fi
+
+    if ! symlink_nx_cache; then
         exit 2
     fi
 

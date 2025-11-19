@@ -9,7 +9,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -29,7 +28,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -49,7 +47,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -69,7 +66,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -89,7 +85,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -109,7 +104,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -129,7 +123,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -149,7 +142,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -169,7 +161,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -189,7 +180,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -209,7 +199,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -229,7 +218,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -249,7 +237,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -269,7 +256,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -289,7 +275,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -309,7 +294,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -329,7 +313,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -349,7 +332,6 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -374,7 +356,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -394,7 +375,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -414,7 +394,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -434,7 +413,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -459,7 +437,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -479,7 +456,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -499,7 +475,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -519,7 +494,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -544,7 +518,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -564,7 +537,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single miss 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -589,7 +561,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -609,7 +580,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -629,7 +599,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -649,7 +618,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -669,7 +637,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -694,7 +661,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -714,7 +680,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -734,7 +699,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -754,7 +718,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -774,7 +737,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -799,7 +761,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -819,7 +780,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -839,7 +799,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -859,7 +818,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -879,7 +837,6 @@ exports[`RadialBarSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -907,7 +864,6 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "lime",
       "fillOpacity": 0.5,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -930,7 +886,6 @@ exports[`RadialBarSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],

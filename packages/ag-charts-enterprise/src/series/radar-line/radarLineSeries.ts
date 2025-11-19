@@ -48,7 +48,6 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
     }
 
     protected override makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRadarLineSeriesStylerParams {
         const { properties } = this;
@@ -69,7 +68,6 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
                 lineDashOffset: properties.marker.lineDashOffset,
             },
             highlightState,
-            highlighted,
             lineDash: properties.lineDash,
             lineDashOffset: properties.lineDashOffset,
             seriesId: this.id,
@@ -81,13 +79,10 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
         } satisfies ParamsRules;
     }
 
-    override getStyle(
-        highlighted: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
+    override getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlighted, highlightState);
+        const stylerResult = this.getStylerResult({}, highlightState);
         stylerResult.marker ??= {};
 
         return {

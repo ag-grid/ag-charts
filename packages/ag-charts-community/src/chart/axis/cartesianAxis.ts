@@ -210,7 +210,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     override calculateTickLayout(
         domain: D[],
-        niceMode: NiceMode,
+        niceMode: NiceMode[],
         visibleRange: [number, number],
         initialPrimaryTickCount?: AxisPrimaryTickCount
     ): {
@@ -227,7 +227,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         if (
-            niceMode === NiceMode.Off &&
+            niceMode[0] === NiceMode.Off &&
+            niceMode[1] === NiceMode.Off &&
             this.label.enabled === false &&
             this.tick.enabled === false &&
             this.gridLine.enabled === false

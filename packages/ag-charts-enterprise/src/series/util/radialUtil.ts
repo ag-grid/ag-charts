@@ -58,7 +58,6 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
 
 export function makeStylerParams(
     series: RadialSectorSeries<BaseNodeDatum>,
-    highlighted: boolean,
     highlightStateEnum?: _ModuleSupport.HighlightState
 ): AgRadialSeriesStylerParams<unknown, unknown> {
     const { id: seriesId } = series;
@@ -85,7 +84,6 @@ export function makeStylerParams(
         fill,
         fillOpacity,
         highlightState,
-        highlighted,
         lineDash,
         lineDashOffset,
         radiusKey,
@@ -100,13 +98,12 @@ export function makeStylerParams(
 export function getStyle(
     series: RadialSectorSeries<BaseNodeDatum>,
     ignoreStylerCallback: boolean,
-    highlighted: boolean,
     highlightState?: _ModuleSupport.HighlightState
 ): RadialSeriesStyleResult {
     const { styler } = series.properties;
     let stylerResult: AgRadialSeriesStyle = {};
     if (!ignoreStylerCallback && styler) {
-        const stylerParams = makeStylerParams(series, highlighted, highlightState);
+        const stylerParams = makeStylerParams(series, highlightState);
         stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 ['series', `${series.declarationOrder}`],
@@ -144,7 +141,6 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     return {
         seriesId,
         datum: nodeDatum.datum,
-        highlighted: isHighlight,
         highlightState: highlightStateString,
         angleKey,
         radiusKey,
@@ -163,10 +159,7 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const { itemStyler } = properties;
 
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
-    const baseStyle = mergeDefaults(
-        highlightStyle,
-        getStyle(series, nodeDatum === undefined, isHighlight, highlightState)
-    );
+    const baseStyle = mergeDefaults(highlightStyle, getStyle(series, nodeDatum === undefined, highlightState));
     let style = baseStyle;
 
     if (itemStyler != null && nodeDatum != null) {

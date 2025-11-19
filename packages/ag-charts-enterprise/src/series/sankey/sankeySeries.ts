@@ -840,7 +840,6 @@ export class SankeySeries extends FlowProportionSeries<
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             size,
@@ -935,7 +934,6 @@ export class SankeySeries extends FlowProportionSeries<
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted: isHighlight,
                         highlightState,
                         ...style,
                     });

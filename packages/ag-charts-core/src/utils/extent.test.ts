@@ -1,4 +1,4 @@
-import { extent } from './extent';
+import { extent, normalisedExtentWithMetadata, normalisedTimeExtentWithMetadata } from './extent';
 
 describe('extent module', () => {
     describe('extent with isContinuous', () => {
@@ -69,6 +69,126 @@ describe('extent module', () => {
 
             expect(result?.[0]).toBe(earliest);
             expect(result?.[1]).toBe(latest);
+        });
+    });
+
+    describe('normalisedExtentWithMetadata', () => {
+        test('expands extents to include min/max', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80, 75);
+            expect(result.extent[0]).toBe(-80);
+            expect(result.extent[1]).toBe(75);
+        });
+
+        test('expands extents to include preferredMin/preferredMax', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -65, 60);
+            expect(result.extent[0]).toBe(-65);
+            expect(result.extent[1]).toBe(60);
+        });
+
+        test('contracts extents when min/max within domain', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 45);
+            expect(result.extent[0]).toBe(-30);
+            expect(result.extent[1]).toBe(45);
+        });
+
+        test('does not contract extents when preferredMin/preferredMax within domain', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -30, 45);
+            expect(result.extent[0]).toBe(-50);
+            expect(result.extent[1]).toBe(50);
+        });
+
+        test('prioritises min/max over preferredMin/preferredMax', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 70, -65, 60);
+            expect(result.extent[0]).toBe(-30);
+            expect(result.extent[1]).toBe(70);
+        });
+    });
+
+    describe('normalisedTimeExtentWithMetadata', () => {
+        test('expands extents to include min/max', () => {
+            const result = normalisedTimeExtentWithMetadata(
+                [
+                    new Date(2019, 0, 1),
+                    new Date(2020, 0, 1),
+                    new Date(2021, 0, 1),
+                    new Date(2022, 0, 1),
+                    new Date(2023, 0, 1),
+                ],
+                new Date(2018, 0, 1),
+                new Date(2024, 0, 1)
+            );
+            expect(result.extent[0]).toStrictEqual(new Date(2018, 0, 1));
+            expect(result.extent[1]).toStrictEqual(new Date(2024, 0, 1));
+        });
+
+        test('expands extents to include preferredMin/preferredMax', () => {
+            const result = normalisedTimeExtentWithMetadata(
+                [
+                    new Date(2019, 0, 1),
+                    new Date(2020, 0, 1),
+                    new Date(2021, 0, 1),
+                    new Date(2022, 0, 1),
+                    new Date(2023, 0, 1),
+                ],
+                undefined,
+                undefined,
+                new Date(2018, 0, 1),
+                new Date(2024, 0, 1)
+            );
+            expect(result.extent[0]).toStrictEqual(new Date(2018, 0, 1));
+            expect(result.extent[1]).toStrictEqual(new Date(2024, 0, 1));
+        });
+
+        test('contracts extents when min/max within domain', () => {
+            const result = normalisedTimeExtentWithMetadata(
+                [
+                    new Date(2019, 0, 1),
+                    new Date(2020, 0, 1),
+                    new Date(2021, 0, 1),
+                    new Date(2022, 0, 1),
+                    new Date(2023, 0, 1),
+                ],
+                new Date(2019, 6, 1),
+                new Date(2022, 6, 1)
+            );
+            expect(result.extent[0]).toStrictEqual(new Date(2019, 6, 1));
+            expect(result.extent[1]).toStrictEqual(new Date(2022, 6, 1));
+        });
+
+        test('does not contract extents when preferredMin/preferredMax within domain', () => {
+            const result = normalisedTimeExtentWithMetadata(
+                [
+                    new Date(2019, 0, 1),
+                    new Date(2020, 0, 1),
+                    new Date(2021, 0, 1),
+                    new Date(2022, 0, 1),
+                    new Date(2023, 0, 1),
+                ],
+                undefined,
+                undefined,
+                new Date(2019, 6, 1),
+                new Date(2022, 6, 1)
+            );
+            expect(result.extent[0]).toStrictEqual(new Date(2019, 0, 1));
+            expect(result.extent[1]).toStrictEqual(new Date(2023, 0, 1));
+        });
+
+        test('prioritises min/max over preferredMin/preferredMax', () => {
+            const result = normalisedTimeExtentWithMetadata(
+                [
+                    new Date(2019, 0, 1),
+                    new Date(2020, 0, 1),
+                    new Date(2021, 0, 1),
+                    new Date(2022, 0, 1),
+                    new Date(2023, 0, 1),
+                ],
+                new Date(2019, 6, 1),
+                new Date(2022, 6, 1),
+                new Date(2018, 0, 1),
+                new Date(2024, 0, 1)
+            );
+            expect(result.extent[0]).toStrictEqual(new Date(2019, 6, 1));
+            expect(result.extent[1]).toStrictEqual(new Date(2022, 6, 1));
         });
     });
 });

@@ -7,6 +7,7 @@ import {
     intervalUnit,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
+    normalisedTimeExtentWithMetadata,
     objectsEqual,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
@@ -18,7 +19,7 @@ import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
-import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
+import { TimeAxisParentLevel, calculateDefaultUnit } from './timeAxis';
 
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
@@ -32,6 +33,12 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
 
     @Property
     max?: Date | number = undefined;
+
+    @Property
+    preferredMin?: Date | number = undefined;
+
+    @Property
+    preferredMax?: Date | number = undefined;
 
     @Property
     // eslint-disable-next-line sonarjs/use-type-alias
@@ -85,7 +92,14 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     }
 
     override normaliseDataDomain(domain: Date[]) {
-        return normaliseTimeDataDomain(domain, this.min, this.max);
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            domain,
+            this.min,
+            this.max,
+            this.preferredMin,
+            this.preferredMax
+        );
+        return { domain: extent, clipped };
     }
 
     override tickFormatParams(

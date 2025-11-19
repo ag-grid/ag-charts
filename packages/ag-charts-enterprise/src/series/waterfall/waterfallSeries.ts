@@ -607,7 +607,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             datum,
             xKey,
             yKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,

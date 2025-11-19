@@ -4,7 +4,6 @@ import {
     Property,
     ProxyPropertyOnWrite,
     dateTruncationForDomain,
-    extent,
     intervalEpoch,
     intervalFloor,
     intervalMilliseconds,
@@ -13,6 +12,7 @@ import {
     lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
+    normalisedTimeExtentWithMetadata,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
@@ -50,6 +50,12 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     max?: Date | number = undefined;
 
+    @Property
+    preferredMin?: Date | number = undefined;
+
+    @Property
+    preferredMax?: Date | number = undefined;
+
     // eslint-disable-next-line sonarjs/use-type-alias
     get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
         return undefined;
@@ -83,8 +89,15 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    override normaliseDataDomain(d: Date[]) {
-        return normaliseTimeDataDomain(d, this.min, this.max);
+    override normaliseDataDomain(domain: Date[]) {
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            domain,
+            this.min,
+            this.max,
+            this.preferredMin,
+            this.preferredMax
+        );
+        return { domain: extent, clipped };
     }
 
     override processData(): void {
@@ -185,7 +198,7 @@ export function calculateDefaultUnit(
     for (const series of boundSeries) {
         if (!series.visible) continue;
 
-        const { domain } = normaliseTimeDataDomain(series.getDomain(direction), undefined, undefined);
+        const { extent: domain } = normalisedTimeExtentWithMetadata(series.getDomain(direction));
         if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();
@@ -243,39 +256,4 @@ function minNonZeroDifference(values: number[]): number {
     }
 
     return minDiff;
-}
-
-export function normaliseTimeDataDomain(d: Date[], min: Date | number | undefined, max: Date | number | undefined) {
-    let clipped = false;
-
-    if (typeof min === 'number') {
-        min = new Date(min);
-    }
-    if (typeof max === 'number') {
-        max = new Date(max);
-    }
-
-    const de = extent(d)?.map((x) => new Date(x));
-    if (de == null) {
-        return {
-            domain: min != null && max != null && min.valueOf() <= max.valueOf() ? [min, max] : [],
-            clipped: false,
-        };
-    }
-
-    let [d0, d1] = de;
-
-    if (min instanceof Date) {
-        clipped ||= min > d0;
-        d0 = min;
-    }
-    if (max instanceof Date) {
-        clipped ||= max < d1;
-        d1 = max;
-    }
-    if (d0 > d1) {
-        return { domain: [], clipped: false };
-    }
-
-    return { domain: [d0, d1], clipped };
 }
