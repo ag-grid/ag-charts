@@ -2210,6 +2210,97 @@ describe('ChartOptions', () => {
                 });
             });
 
+            it('should append a primary axis when only one series references a secondary axis', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        myAxis: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                });
+            });
+
+            it('should append a primary axis when only one series references an undefined secondary axis', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        y: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number' },
+                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                });
+            });
+
+            it('should append a secondary axis when all series reference axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myOtherAxis' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        myAxis: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                        myOtherAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number' },
+                    __AXIS_ID_2: { type: 'number' }, // myOtherAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myOtherAxis
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y', // myAxis
+                });
+            });
+
             it('should provide default axes where a direction is missing', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -2225,7 +2316,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     y: { type: 'number', position: 'left' },
                     x: { type: 'category', position: 'bottom' },
-                    __AXIS_ID_1: { type: 'number', position: 'top' },
+                    __AXIS_ID_1: { type: 'number', position: 'top' }, // myAxis
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -2271,9 +2362,9 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'time' }, // matched by index
-                    y: { type: 'number' }, // matched by index
-                    __AXIS_ID_2: { type: 'number' },
+                    x: { type: 'time' }, // matched by index, myAxis0
+                    y: { type: 'number' }, // matched by index, myAxis1
+                    __AXIS_ID_2: { type: 'number' }, // myAxis2
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',

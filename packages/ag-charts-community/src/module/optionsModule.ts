@@ -97,12 +97,6 @@ const DIRECTION_AXIS_KEYS = {
     [ChartAxisDirection.Angle]: 'angleKeyAxis' as const,
     [ChartAxisDirection.Radius]: 'radiusKeyAxis' as const,
 };
-const KEY_AXIS_KEYS = {
-    [ChartAxisDirection.X]: 'xKeyAxis' as const,
-    [ChartAxisDirection.Y]: 'yKeyAxis' as const,
-    [ChartAxisDirection.Angle]: 'angleKeyAxis' as const,
-    [ChartAxisDirection.Radius]: 'radiusKeyAxis' as const,
-};
 const DEFAULT_DIRECTION_AXES_OPTIONS = {
     [ChartAxisDirection.X]: { type: 'category' as const, position: 'bottom' as const },
     [ChartAxisDirection.Y]: { type: 'number' as const, position: 'left' as const },
@@ -532,19 +526,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
                 : [ChartAxisDirection.X, ChartAxisDirection.Y];
 
-        // If the user has not provided axes,
-        if (
-            (!('axes' in options) || Object.keys(options.axes ?? {}).length === 0) &&
-            !this.hasSeriesAxisKeys(options, directions)
-        ) {
-            return;
-        }
+        const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
+        const hasSeriesAxisKeys = this.hasSeriesAxisKeys(options, directions);
+        if (!hasAxes && !hasSeriesAxisKeys) return;
 
         // Axes that are considered the primary axis for their given direction are internally remapped to the standard
         // naming, e.g. the user's primary axis for the 'x' direction is named `myXAxis`, then internally it will be
         // remapped to and accessed as `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
-        const primaryAxisIds = this.getPrimaryAxisIds(options, directions, axisKeys);
+        const primaryAxisIds = this.getPrimaryAxisIds(options, directions, axisKeys, hasSeriesAxisKeys);
         const remappedAxisIds = new Map<string, string>();
         for (const [direction, axisId] of primaryAxisIds) {
             remappedAxisIds.set(axisId, direction);
@@ -590,7 +580,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private getPrimaryAxisIds(
         options: T,
         directions: Array<ChartAxisDirection>,
-        axisKeys: Set<string>
+        axisKeys: Set<string>,
+        hasSeriesAxisKeys: boolean
     ): Map<ChartAxisDirection, string> {
         const primaryAxisIds = new Map<ChartAxisDirection, string>();
 
@@ -614,11 +605,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             if (foundPrimaryAxisId) continue;
 
-            for (const seriesOptions of options.series ?? []) {
-                const key = KEY_AXIS_KEYS[direction];
-                const seriesAxisId = (seriesOptions as any)[key];
-                if (!seriesAxisId || axisKeys.has(seriesAxisId)) continue;
+            // If there are no series references to any axis, then skip ahead and attempt to find the primary axes by
+            // one of the fallback methods.
+            if (!hasSeriesAxisKeys) continue;
 
+            for (const seriesOptions of options.series ?? []) {
+                const key = DIRECTION_AXIS_KEYS[direction];
+                const seriesAxisId = (seriesOptions as any)[key];
+
+                // If this series references an axis that has been defined by the user,
+                if (axisKeys.has(seriesAxisId)) continue;
+
+                // If this series does not reference an axis in this direction, but at least one series references an
+                // axis in any direction, then this series is defaulting to the primary axis id that matches the
+                // direction.
+                if (!seriesAxisId) {
+                    primaryAxisIds.set(direction, direction);
+                    break;
+                }
+
+                // Otherwise, if this series does reference an axis in this direction, then it must be defining the
+                // primary axis in this direction.
                 primaryAxisIds.set(direction, seriesAxisId);
                 break;
             }
