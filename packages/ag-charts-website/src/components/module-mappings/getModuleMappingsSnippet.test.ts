@@ -29,7 +29,9 @@ describe('getModuleMappingsSnippet', () => {
               LineSeriesModule,
           } from 'ag-charts-community';
 
-          ModuleRegistry.registerModules([LineSeriesModule]);"
+          ModuleRegistry.registerModules([
+              LineSeriesModule,
+          ]);"
         `);
     });
 
