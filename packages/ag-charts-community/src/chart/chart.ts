@@ -1367,7 +1367,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
             this.data = new DataSet(dataForDataSet);
         }
-        if ('legend' in deltaOptions && deltaOptions.legend && 'listeners' in deltaOptions.legend && this.modulesManager.isEnabled('legend')) {
+        if (
+            'legend' in deltaOptions &&
+            deltaOptions.legend &&
+            'listeners' in deltaOptions.legend &&
+            this.modulesManager.isEnabled('legend')
+        ) {
             const legendListeners = deltaOptions.legend.listeners;
             if (legendListeners) {
                 Object.assign((this as any).legend.listeners, legendListeners);
