@@ -1106,7 +1106,6 @@ export abstract class Series<
                 ...markerStyle,
                 fill,
                 ...params,
-                highlighted: isHighlight,
                 highlightState: highlightStateString,
                 datum,
             });

@@ -821,10 +821,7 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));
     }
 
-    private makeStylerParams(
-        highlighted: boolean,
-        highlightStateEnum?: HighlightState
-    ): AgBarSeriesStylerParams<unknown, unknown> {
+    private makeStylerParams(highlightStateEnum?: HighlightState): AgBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
             cornerRadius,
@@ -846,7 +843,6 @@ export class BarSeries extends AbstractBarSeries<
             fill,
             fillOpacity,
             highlightState,
-            highlighted,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -886,7 +882,6 @@ export class BarSeries extends AbstractBarSeries<
             xValue,
             yValue,
             stackGroup,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,
@@ -895,7 +890,6 @@ export class BarSeries extends AbstractBarSeries<
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> & { opacity: number } {
         const {
@@ -911,7 +905,7 @@ export class BarSeries extends AbstractBarSeries<
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -941,7 +935,7 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -1111,7 +1105,6 @@ export class BarSeries extends AbstractBarSeries<
 
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
-            false,
             false,
             HighlightState.None
         );

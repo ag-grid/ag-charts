@@ -10,7 +10,6 @@ exports[`RangeAreaSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "cyan",
       "fillOpacity": 0.7,
       "highlightState": "none",
-      "highlighted": false,
       "item": {
         "high": {
           "lineDash": [
@@ -71,7 +70,6 @@ exports[`RangeAreaSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.7,
       "highlightState": "none",
-      "highlighted": false,
       "item": {
         "high": {
           "lineDash": [

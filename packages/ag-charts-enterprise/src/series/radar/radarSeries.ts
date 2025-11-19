@@ -334,7 +334,7 @@ export abstract class RadarSeries<
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
         }
 
-        const markersEnabled = styler == null ? marker.enabled : this.getStyle(false).marker.enabled;
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle().marker.enabled;
         const data = this.visible && marker.shape && markersEnabled ? this.nodeData : [];
         this.itemSelection.update(data);
     }
@@ -347,7 +347,7 @@ export abstract class RadarSeries<
             this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
         }
 
-        const markersEnabled = styler == null ? marker.enabled : this.getStyle(false).marker.enabled;
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle().marker.enabled;
         const highlighted = this.ctx.highlightManager?.getActiveHighlight();
         const data =
             this.visible && marker.shape && markersEnabled && highlighted?.datum
@@ -357,7 +357,7 @@ export abstract class RadarSeries<
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.getStyle(false).marker.fill;
+        return highlightedStyle?.fill ?? this.getStyle().marker.fill;
     }
 
     protected getDatumStylerProperties(datum: any) {
@@ -379,7 +379,7 @@ export abstract class RadarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         selection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const stylerStyle = this.getStyle(isHighlight, highlightState);
+            const stylerStyle = this.getStyle(highlightState);
             const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
             datum.style = this.getMarkerStyle(
@@ -489,7 +489,7 @@ export abstract class RadarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(false);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle();
 
         const markerStyle = {
             shape: marker.shape,
@@ -614,7 +614,7 @@ export abstract class RadarSeries<
         const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightState(highlightDatum);
         const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
-        const stylerStyle = this.getStyle(false, highlightState);
+        const stylerStyle = this.getStyle(highlightState);
         return mergeDefaults(highlightStyle, stylerStyle);
     }
 
@@ -745,7 +745,7 @@ export abstract class RadarSeries<
         if (lineNode) {
             const { path: linePath } = lineNode;
             const linePoints = this.getLinePoints();
-            const stylerStyle = this.getStyle(false);
+            const stylerStyle = this.getStyle();
 
             lineNode.fill = undefined;
             lineNode.stroke = stylerStyle.stroke;
@@ -773,18 +773,16 @@ export abstract class RadarSeries<
     }
 
     protected abstract makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): CallbackParam<NonNullable<TOpts['styler']>>;
 
     protected getStylerResult(
         stylerResult: StylerResult<TStyle>,
-        highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): StylerResult<TStyle> {
         const { styler } = this.properties;
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -800,7 +798,7 @@ export abstract class RadarSeries<
         return stylerResult;
     }
 
-    abstract getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<TStyle>;
+    abstract getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<TStyle>;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;

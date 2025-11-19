@@ -544,7 +544,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             valueKey,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,

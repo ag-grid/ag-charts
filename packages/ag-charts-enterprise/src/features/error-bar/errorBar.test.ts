@@ -762,8 +762,8 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should set itemStyler highlighted param as expected', async () => {
-        const result: boolean[] = [];
+    it('should set itemStyler highlightState param as expected', async () => {
+        const result: string[] = [];
         chart = await createEnterpriseChart({
             series: [
                 {
@@ -772,7 +772,7 @@ describe('ErrorBars', () => {
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
                         itemStyler: (param: AgErrorBarItemStylerParams<any>) => {
-                            result.push(param.highlighted);
+                            result.push(param.highlightState ?? 'none');
                             return {};
                         },
                     },
@@ -781,21 +781,34 @@ describe('ErrorBars', () => {
         });
 
         // Check itemStyler initialisation
-        const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
-        expect(result).toStrictEqual(allfalse);
+        const allNone = [
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+        ];
+        expect(result).toStrictEqual(allNone);
         result.length = 0;
 
         // Hover over an error bar
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y - 20)(chart);
         await waitForChartStability(chart);
-        expect(result).toStrictEqual([true]);
+        expect(result).toStrictEqual(['highlighted-item']);
         result.length = 0;
 
         // Hover over nothing
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
-        expect(result).toStrictEqual([false]);
+        expect(result).toStrictEqual(['unhighlighted-item']);
     });
 
     it('AG-14263 should set itemStyler seriesId', async () => {

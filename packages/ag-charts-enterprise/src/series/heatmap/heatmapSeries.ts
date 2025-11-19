@@ -431,7 +431,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             datum,
             xKey,
             yKey,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,

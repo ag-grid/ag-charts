@@ -485,7 +485,6 @@ export class MapLineSeries extends TopologySeries<
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
         };

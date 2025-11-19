@@ -769,7 +769,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             legendItemKey,
             ...style,
             fill,
-            highlighted: isHighlight,
             highlightState: this.getHighlightStateString(
                 this.ctx.highlightManager?.getActiveHighlight(),
                 isHighlight,
@@ -796,7 +795,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 calloutLabelKey: properties.calloutLabelKey,
                 calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
                 datum: nodeDatum.datum,
-                highlighted,
                 highlightState,
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,

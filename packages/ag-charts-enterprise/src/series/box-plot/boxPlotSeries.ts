@@ -270,7 +270,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
-            false,
             HighlightState.None
         );
 
@@ -440,7 +439,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgBoxPlotSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -489,7 +487,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fill,
             fillOpacity,
             highlightState,
-            highlighted,
             lineDash,
             lineDashOffset,
             maxKey,
@@ -521,7 +518,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
         const {
@@ -539,7 +535,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
         let stylerResult: AgBoxPlotSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -577,7 +573,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, isHighlight, highlightState));
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -627,7 +623,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             medianKey,
             q3Key,
             maxKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,
@@ -663,7 +658,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
-        const strokeAlignment = this.getStyle(false, false, HighlightState.None).strokeWidth / 2;
+        const strokeAlignment = this.getStyle(false, HighlightState.None).strokeWidth / 2;
 
         const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 

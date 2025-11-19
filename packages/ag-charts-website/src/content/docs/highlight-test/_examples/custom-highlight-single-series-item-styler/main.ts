@@ -17,11 +17,12 @@ const options: AgChartOptions = {
             line: {
                 series: {
                     marker: {
-                        itemStyler({ highlighted }) {
+                        itemStyler({ highlightState }) {
+                            const isHighlighted = highlightState === 'highlighted-item';
                             return {
-                                size: highlighted ? 15 : 25,
-                                shape: highlighted ? 'star' : 'circle',
-                                fillOpacity: highlighted ? 0.5 : 1,
+                                size: isHighlighted ? 15 : 25,
+                                shape: isHighlighted ? 'star' : 'circle',
+                                fillOpacity: isHighlighted ? 0.5 : 1,
                             };
                         },
                     },

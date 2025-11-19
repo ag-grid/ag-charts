@@ -55,7 +55,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         if (highlightedStyle?.fill != null) return highlightedStyle.fill;
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         return stylerStyle.marker.fill ?? stylerStyle.fill;
     }
 
@@ -128,7 +128,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         if (areaNode) {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
-            const stylerStyle = superStyle ?? this.getStyle(false);
+            const stylerStyle = superStyle ?? this.getStyle();
             const fillBBox = this.getShapeFillBBox();
 
             applyShapeStyle(
@@ -164,7 +164,6 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     }
 
     protected override makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRadarAreaSeriesStylerParams {
         const { properties } = this;
@@ -185,7 +184,6 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
                 lineDashOffset: properties.marker.lineDashOffset,
             },
             highlightState,
-            highlighted,
             fill: properties.fill,
             fillOpacity: properties.fillOpacity,
             lineDash: properties.lineDash,
@@ -199,14 +197,11 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         } satisfies ParamsRules;
     }
 
-    override getStyle(
-        highlighted: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
+    override getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlighted, highlightState);
+        const stylerResult = this.getStylerResult({}, highlightState);
         stylerResult.marker ??= {};
 
         return {

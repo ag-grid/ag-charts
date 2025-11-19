@@ -18,9 +18,13 @@ const options: AgChartOptions<DataType> = {
                 shape: 'diamond',
                 size: 12,
                 fill: 'green',
-                itemStyler: ({ datum, fill, highlighted }) => {
+                itemStyler: ({ datum, fill, highlightState }) => {
                     return {
-                        fill: customItems.includes(datum.month) ? (highlighted ? 'yellow' : 'red') : fill,
+                        fill: customItems.includes(datum.month)
+                            ? highlightState === 'highlighted-item'
+                                ? 'yellow'
+                                : 'red'
+                            : fill,
                     };
                 },
             },

@@ -367,7 +367,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 () => {
                     const params = this.makeItemStylerParams(
                         nodeDatum,
-                        isHighlight,
                         style,
                         toHierarchyHighlightString(highlightState)
                     );
@@ -385,7 +384,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     private makeItemStylerParams(
         nodeDatum: Pick<TreemapNode, 'datum' | 'depth'>,
-        isHighlight: boolean,
         style: Required<ItemStyle>,
         highlightState: AgTreemapHighlightState
     ) {
@@ -397,7 +395,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             seriesId,
             datum: nodeDatum.datum,
             depth: nodeDatum.depth ?? -1,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,
