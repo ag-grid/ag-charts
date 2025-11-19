@@ -10,7 +10,6 @@ exports[`ScatterSeries AG-11673 styler init callbacks params 1`] = `
       "fill": "magenta",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "labelKey": undefined,
       "lineDash": [
         0,
@@ -34,7 +33,6 @@ exports[`ScatterSeries AG-11673 styler init callbacks params 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.5,
       "highlightState": "none",
-      "highlighted": false,
       "labelKey": undefined,
       "lineDash": [
         0,

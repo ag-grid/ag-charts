@@ -184,7 +184,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 () => {
                     const params = this.makeItemStylerParams(
                         nodeDatum,
-                        isHighlight,
                         style,
                         toHierarchyHighlightString(highlightState)
                     );
@@ -202,7 +201,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     private makeItemStylerParams(
         nodeDatum: SunburstNode,
-        isHighlight: boolean,
         style: ItemStyle,
         highlightState: AgSunburstHighlightState
     ) {
@@ -214,7 +212,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             seriesId,
             datum: nodeDatum.datum,
             depth: nodeDatum.depth ?? 0,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,

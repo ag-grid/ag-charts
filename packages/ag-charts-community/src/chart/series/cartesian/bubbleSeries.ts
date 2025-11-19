@@ -597,7 +597,7 @@ export class BubbleSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(opts.isHighlight, highlightState);
+                const stylerStyle = this.getStyle(highlightState);
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
@@ -753,7 +753,6 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: HighlightState
     ): AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown> {
         const {
@@ -781,7 +780,6 @@ export class BubbleSeries extends CartesianSeries<
             type ResultRules = CallbackParamRules<AgBubbleSeriesStylerParams<unknown, unknown>>;
             return {
                 highlightState,
-                highlighted,
                 size,
                 maxSize,
                 shape,
@@ -802,7 +800,6 @@ export class BubbleSeries extends CartesianSeries<
             type ResultRules = CallbackParamRules<AgScatterSeriesStylerParams<unknown, unknown>>;
             return {
                 highlightState,
-                highlighted,
                 size,
                 shape,
                 fill,
@@ -925,7 +922,7 @@ export class BubbleSeries extends CartesianSeries<
         const activeStyle = this.getMarkerStyle(
             marker,
             { datum, datumIndex },
-            { xKey, yKey, sizeKey, labelKey, highlighted: true },
+            { xKey, yKey, sizeKey, labelKey },
             { resolveMarkerSubPath: [] }
         );
 
@@ -956,7 +953,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const style = this.getStyle(false);
+        const style = this.getStyle();
         const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
             this.properties.marker,
             {},
@@ -1012,12 +1009,12 @@ export class BubbleSeries extends CartesianSeries<
         return new Marker();
     }
 
-    public getStyle(highlighted: boolean, highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
+    public getStyle(highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
         const { properties } = this;
 
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -1042,7 +1039,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     public getSizeRange(): [number, number] {
-        const { size, maxSize } = this.getStyle(false);
+        const { size, maxSize } = this.getStyle();
         return [size, maxSize];
     }
 

@@ -448,7 +448,6 @@ export class ChordSeries extends FlowProportionSeries<
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             size,
@@ -520,7 +519,6 @@ export class ChordSeries extends FlowProportionSeries<
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted: isHighlight,
                         highlightState,
                         ...style,
                     });

@@ -118,7 +118,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted: isHighlight,
                         highlightState: highlightStateString,
                         stageKey,
                         valueKey,

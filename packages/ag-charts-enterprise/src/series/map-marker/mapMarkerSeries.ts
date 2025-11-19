@@ -789,7 +789,6 @@ export class MapMarkerSeries
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,

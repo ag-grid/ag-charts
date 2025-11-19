@@ -578,7 +578,6 @@ export abstract class RadialColumnSeriesBase<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,
             false,
-            false,
             _ModuleSupport.HighlightState.None
         );
 

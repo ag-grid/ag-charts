@@ -578,7 +578,6 @@ export class MapShapeSeries
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,

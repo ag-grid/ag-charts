@@ -13,8 +13,6 @@ export interface AgChartLabelStyleOptions extends Toggleable, FontOptions, Label
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>,
         AgChartLabelStyleOptions {
-    /** Indicates whether the element is highlighted. */
-    highlighted?: boolean;
     /** The specific highlight state of the element. */
     highlightState?: HighlightState | HierarchyHighlightState;
 }

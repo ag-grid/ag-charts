@@ -528,7 +528,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         const { item, fill, fillOpacity, opacity } = mergeDefaults(
             highlightStyle,
-            this.getStyle(false, highlightState)
+            this.getStyle(highlightState)
         );
 
         lowStrokePath.setProperties({
@@ -670,7 +670,7 @@ export class RangeAreaSeries extends BaseSeries {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const stylerStyle = this.getStyle(isHighlight, highlightState);
+            const stylerStyle = this.getStyle(highlightState);
             const { fill, fillOpacity, item } = stylerStyle;
             const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
             const { marker } = this.properties.item[datum.itemType];
@@ -772,23 +772,22 @@ export class RangeAreaSeries extends BaseSeries {
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    private getStyle(highlighted: boolean, highlightState?: _ModuleSupport.HighlightState): StylerResult {
-        return this.getStylerCouple(highlighted, highlightState)[0];
+    private getStyle(highlightState?: _ModuleSupport.HighlightState): StylerResult {
+        return this.getStylerCouple(highlightState)[0];
     }
 
     private getStylerMarkerOptions(): StylerMarkerOptionsResult {
-        return this.getStylerCouple(false)[1];
+        return this.getStylerCouple()[1];
     }
 
     private getStylerCouple(
-        highlighted: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -845,7 +844,6 @@ export class RangeAreaSeries extends BaseSeries {
     }
 
     private makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: _ModuleSupport.HighlightState
     ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -884,7 +882,6 @@ export class RangeAreaSeries extends BaseSeries {
             fill,
             fillOpacity,
             highlightState,
-            highlighted,
             seriesId,
             xKey,
             yLowKey,
@@ -917,7 +914,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         if (xValue == null) return;
 
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(itemType);
         const format = this.getMarkerStyle(
             this.properties.item[itemType].marker,
@@ -963,7 +960,7 @@ export class RangeAreaSeries extends BaseSeries {
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, topLevel } = this.getStyle(false);
+        const { fill, topLevel } = this.getStyle();
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = topLevel;
 
         const markerStyle = {
@@ -1142,7 +1139,7 @@ export class RangeAreaSeries extends BaseSeries {
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(datum.itemType);
 
         return this.getMarkerStyle(

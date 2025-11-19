@@ -492,7 +492,7 @@ export class LineSeries extends CartesianSeries<
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
-        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
+        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
         const segments = this.contextNodeData?.segments;
@@ -553,7 +553,7 @@ export class LineSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const stylerStyle = this.getStyle(highlightState);
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
@@ -645,10 +645,7 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    makeStylerParams(
-        highlighted: boolean,
-        highlightStateEnum?: HighlightState
-    ): AgLineSeriesStylerParams<unknown, unknown> {
+    makeStylerParams(highlightStateEnum?: HighlightState): AgLineSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
@@ -668,7 +665,6 @@ export class LineSeries extends CartesianSeries<
                 lineDashOffset: marker.lineDashOffset,
             },
             highlightState,
-            highlighted,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -722,7 +718,7 @@ export class LineSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle(
@@ -762,7 +758,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle();
 
         const markerStyle = this.getMarkerStyle(
             this.properties.marker,
@@ -960,14 +956,13 @@ export class LineSeries extends CartesianSeries<
     }
 
     public getStyle(
-        highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgLineSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } {
         const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -998,7 +993,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(
             this.dataModel!,
             this.processedData!,

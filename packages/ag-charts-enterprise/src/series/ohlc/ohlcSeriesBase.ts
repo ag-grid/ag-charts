@@ -525,7 +525,6 @@ export abstract class OhlcSeriesBase<
             closeKey,
             highKey,
             lowKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
         };

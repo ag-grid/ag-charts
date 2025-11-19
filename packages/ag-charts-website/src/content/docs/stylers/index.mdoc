@@ -41,9 +41,9 @@ In this example:
         {
             type: 'bar',
             //...
-            itemStyler: ({ datum, fill, highlighted }) => {
+            itemStyler: ({ datum, fill, highlightState }) => {
                 return {
-                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                    fill: datum.month === 'Jul' ? (highlightState === 'highlighted-item' ? 'lime' : '#f44') : fill,
                 };
             },
             label: {

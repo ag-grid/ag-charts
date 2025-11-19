@@ -39,8 +39,6 @@ export interface DatumCallbackParams<TDatum, THighlightState extends string = Hi
     datum: TDatum;
     /** The unique identifier of the series. */
     seriesId: string;
-    /** Indicates whether the element is highlighted. */
-    highlighted: boolean;
     /** The specific highlight state of the element. */
     highlightState?: THighlightState;
 }
@@ -48,8 +46,6 @@ export interface DatumCallbackParams<TDatum, THighlightState extends string = Hi
 export interface SeriesCallbackParams<THighlightState extends string = HighlightState> {
     /** The unique identifier of the series. */
     seriesId: string;
-    /** Indicates whether the element is highlighted. */
-    highlighted: boolean;
     /** The specific highlight state of the element. */
     highlightState?: THighlightState;
 }
