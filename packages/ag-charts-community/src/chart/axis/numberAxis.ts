@@ -18,6 +18,12 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     @Property
     max?: number;
 
+    @Property
+    preferredMin?: number;
+
+    @Property
+    preferredMax?: number;
+
     constructor(moduleCtx: ModuleContext, scale = new LinearScale() as LinearScale | LogScale) {
         super(moduleCtx, scale);
     }
@@ -28,10 +34,14 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     }
 
     override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
 
         return { domain: extent, clipped };
+    }
+
+    override getDomainExtentsNice(): [boolean, boolean] {
+        return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
     override tickFormatParams(_domain: number[], _ticks: number[], fractionDigits?: number): AxisTickFormatParams {

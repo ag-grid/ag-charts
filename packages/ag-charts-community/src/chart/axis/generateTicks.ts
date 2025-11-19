@@ -246,13 +246,15 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     } = options;
 
     const domainParams: ScaleTickParams<any> = {
-        nice: niceMode === NiceMode.TickAndDomain,
+        nice: niceMode.map((n) => n === NiceMode.TickAndDomain),
         interval: interval.step,
         ...countParams,
     };
 
-    const tickParams = { ...domainParams };
-    tickParams.nice ||= niceMode === NiceMode.TicksOnly;
+    const tickParams = {
+        ...domainParams,
+        nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
+    };
 
     let secondaryAxisTicks: { domain: TDatum[]; ticks: number[] } | undefined;
     if (
@@ -264,10 +266,9 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, reverse, visibleRange);
     }
 
-    const niceDomain =
-        niceMode === NiceMode.TickAndDomain
-            ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
-            : domain;
+    const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
+        ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
+        : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
     let rawTickCount: number | undefined;

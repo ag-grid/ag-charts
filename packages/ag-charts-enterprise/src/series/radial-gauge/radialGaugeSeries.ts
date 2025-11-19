@@ -340,7 +340,7 @@ export class RadialGaugeSeries
         const ticks =
             interval.values ??
             scale.ticks({
-                nice: false,
+                nice: [false, false],
                 interval: interval.step,
                 minTickCount,
                 maxTickCount,

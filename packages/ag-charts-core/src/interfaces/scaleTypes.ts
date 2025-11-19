@@ -3,7 +3,7 @@ import type { AgTimeInterval } from 'ag-charts-types';
 export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
 
 export interface ScaleTickParams<I> {
-    nice: boolean;
+    nice: boolean[];
     interval: I | undefined;
     tickCount: number | undefined;
     minTickCount: number;

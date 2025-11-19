@@ -323,6 +323,8 @@ export function continuousAxisOptions(
     return {
         min: and(validDatum, lessThan('max')),
         max: and(validDatum, greaterThan('min')),
+        preferredMin: and(validDatum, lessThan('preferredMax'), lessThan('max')),
+        preferredMax: and(validDatum, greaterThan('preferredMin'), greaterThan('min')),
         nice: boolean,
         interval: {
             step: supportTimeInterval
@@ -430,5 +432,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     bandHighlight: cartesianAxisBandHighlightOptions,
     min: and(or(number, date), lessThan('max')),
     max: and(or(number, date), greaterThan('min')),
+    preferredMin: and(or(number, date), lessThan('preferredMax'), lessThan('max')),
+    preferredMax: and(or(number, date), greaterThan('preferredMin'), greaterThan('min')),
     interval: discreteTimeAxisIntervalOptionsDefs,
 };

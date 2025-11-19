@@ -29,7 +29,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
         } else if (count == null) {
             const segments = scale
                 .ticks({
-                    nice: true,
+                    nice: [true, true],
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,
