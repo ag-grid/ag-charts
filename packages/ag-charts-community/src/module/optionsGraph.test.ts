@@ -1,13 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { setupModules } from '../chart/factory/setupModules';
 import { OptionsGraph } from './optionsGraph';
 
 describe('OptionsGraph', () => {
-    beforeAll(() => {
-        setupModules();
-    });
-
     const originalCloneDefaultAxes = (OptionsGraph as any).cloneDefaultAxes;
     beforeEach(() => {
         (OptionsGraph as any).cloneDefaultAxes = jest.fn().mockImplementation(() => {

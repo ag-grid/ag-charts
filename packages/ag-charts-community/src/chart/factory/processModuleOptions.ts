@@ -30,7 +30,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 ) {
     const missingModules: ModulePlaceholder[] = [];
 
-    for (const module of ExpectedModules) {
+    for (const module of ExpectedModules.values()) {
         if (ModuleRegistry.hasModule(module.name)) continue;
         if (chartType && module.chartType && chartType !== module.chartType) continue;
         if (module.name === 'foreground' && enterpriseRegistry.createForeground != null) continue;

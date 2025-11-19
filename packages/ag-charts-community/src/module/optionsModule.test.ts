@@ -11,7 +11,6 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import { setupModules } from '../chart/factory/setupModules';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { VERSION } from '../version';
@@ -413,10 +412,6 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('ChartOptions', () => {
-    beforeAll(() => {
-        setupModules();
-    });
-
     beforeEach(() => {
         console.warn = jest.fn();
         Logger.reset();
