@@ -43,7 +43,12 @@ In this example:
             //...
             itemStyler: ({ datum, fill, highlightState }) => {
                 return {
-                    fill: datum.month === 'Jul' ? (highlightState === 'highlighted-item' ? 'lime' : '#f44') : fill,
+                    fill:
+                        datum.month === 'Jul'
+                            ? highlightState === 'highlighted-item'
+                                ? 'lime'
+                                : '#f44'
+                            : fill,
                 };
             },
             label: {

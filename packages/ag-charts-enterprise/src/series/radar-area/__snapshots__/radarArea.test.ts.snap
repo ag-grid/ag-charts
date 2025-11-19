@@ -8,7 +8,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -39,7 +38,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -70,7 +68,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -101,7 +98,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -132,7 +128,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -163,7 +158,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -194,7 +188,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -225,7 +218,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -256,7 +248,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -287,7 +278,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -318,7 +308,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -349,7 +338,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -380,7 +368,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -411,7 +398,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -442,7 +428,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -473,7 +458,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -504,7 +488,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -535,7 +518,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -566,7 +548,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -597,7 +578,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -628,7 +608,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -659,7 +638,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -690,7 +668,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -721,7 +698,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -752,7 +728,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -783,7 +758,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -814,7 +788,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -845,7 +818,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -876,7 +848,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -907,7 +878,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -938,7 +908,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -969,7 +938,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1000,7 +968,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1031,7 +998,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1062,7 +1028,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1093,7 +1058,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights sequenced 1 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1129,7 +1093,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1160,7 +1123,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1191,7 +1153,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1222,7 +1183,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1253,7 +1213,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1284,7 +1243,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1315,7 +1273,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1346,7 +1303,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1377,7 +1333,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[0] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1413,7 +1368,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1444,7 +1398,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1475,7 +1428,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1506,7 +1458,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1537,7 +1488,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1568,7 +1518,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1599,7 +1548,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1630,7 +1578,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1661,7 +1608,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single legendItem[1] 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1697,7 +1643,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single miss 1`] = `
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1728,7 +1673,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single miss 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1759,7 +1703,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single miss 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1795,7 +1738,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1826,7 +1768,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1857,7 +1798,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1888,7 +1828,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1919,7 +1858,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1950,7 +1888,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1981,7 +1918,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2012,7 +1948,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2043,7 +1978,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2074,7 +2008,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2105,7 +2038,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2136,7 +2068,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2167,7 +2098,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2203,7 +2133,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2234,7 +2163,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2265,7 +2193,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2296,7 +2223,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2327,7 +2253,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2358,7 +2283,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2389,7 +2313,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2420,7 +2343,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2451,7 +2373,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2482,7 +2403,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2513,7 +2433,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2544,7 +2463,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2575,7 +2493,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[0].datum[2] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2611,7 +2528,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2642,7 +2558,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2673,7 +2588,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2704,7 +2618,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2735,7 +2648,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2766,7 +2678,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2797,7 +2708,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2828,7 +2738,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2859,7 +2768,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2890,7 +2798,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2921,7 +2828,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2952,7 +2858,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2983,7 +2888,6 @@ exports[`RadarAreaSeries AG-15782 styler highlights single series[1].datum[0] 1`
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -3022,7 +2926,6 @@ exports[`RadarAreaSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "lime",
       "fillOpacity": 1,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         7,
         7,
@@ -3059,7 +2962,6 @@ exports[`RadarAreaSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -3090,7 +2992,6 @@ exports[`RadarAreaSeries AG-15782 styler init callbacks params 1`] = `
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],

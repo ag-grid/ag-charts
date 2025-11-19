@@ -67,9 +67,9 @@ const options: AgChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'imported',
             yName: 'Imported',
-            itemStyler: ({ datum, fill, highlighted }) => {
+            itemStyler: ({ datum, fill, highlightState }) => {
                 return {
-                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                    fill: datum.month === 'Jul' ? (highlightState === 'highlighted-item' ? 'lime' : '#f44') : fill,
                 };
             },
             label: {

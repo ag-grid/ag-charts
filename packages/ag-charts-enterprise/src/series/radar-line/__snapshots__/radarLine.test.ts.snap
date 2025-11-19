@@ -6,7 +6,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -35,7 +34,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -64,7 +62,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -93,7 +90,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -122,7 +118,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -151,7 +146,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -180,7 +174,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -209,7 +202,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -238,7 +230,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -267,7 +258,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -296,7 +286,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -325,7 +314,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -354,7 +342,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -383,7 +370,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -412,7 +398,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -441,7 +426,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -470,7 +454,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -499,7 +482,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -528,7 +510,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -557,7 +538,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -586,7 +566,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -615,7 +594,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -644,7 +622,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -673,7 +650,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -702,7 +678,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -731,7 +706,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -760,7 +734,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -789,7 +762,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -818,7 +790,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -847,7 +818,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -876,7 +846,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -905,7 +874,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -934,7 +902,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -963,7 +930,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -992,7 +958,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1021,7 +986,6 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1055,7 +1019,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1084,7 +1047,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1113,7 +1075,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1142,7 +1103,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1171,7 +1131,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1200,7 +1159,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1229,7 +1187,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1258,7 +1215,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1287,7 +1243,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1321,7 +1276,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1350,7 +1304,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1379,7 +1332,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1408,7 +1360,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1437,7 +1388,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1466,7 +1416,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1495,7 +1444,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1524,7 +1472,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1553,7 +1500,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1587,7 +1533,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single miss 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1616,7 +1561,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single miss 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1645,7 +1589,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single miss 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1679,7 +1622,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1708,7 +1650,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1737,7 +1678,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1766,7 +1706,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1795,7 +1734,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1824,7 +1762,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1853,7 +1790,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -1882,7 +1818,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1911,7 +1846,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1940,7 +1874,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -1969,7 +1902,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -1998,7 +1930,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2027,7 +1958,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2061,7 +1991,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2090,7 +2019,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2119,7 +2047,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2148,7 +2075,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2177,7 +2103,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2206,7 +2131,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2235,7 +2159,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2264,7 +2187,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2293,7 +2215,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2322,7 +2243,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2351,7 +2271,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2380,7 +2299,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2409,7 +2327,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2443,7 +2360,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2472,7 +2388,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2501,7 +2416,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2530,7 +2444,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2559,7 +2472,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2588,7 +2500,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2617,7 +2528,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2646,7 +2556,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2675,7 +2584,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-item",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2704,7 +2612,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2733,7 +2640,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2762,7 +2668,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2791,7 +2696,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "highlighted-item",
-      "highlighted": true,
       "lineDash": [
         0,
       ],
@@ -2828,7 +2732,6 @@ exports[`RadarLineSeries AG-15782 styler init callbacks params 1`] = `
         "name": "healer - magic powers",
       },
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         7,
         7,
@@ -2863,7 +2766,6 @@ exports[`RadarLineSeries AG-15782 styler init callbacks params 1`] = `
         "name": "tank - heavy armor",
       },
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],
@@ -2892,7 +2794,6 @@ exports[`RadarLineSeries AG-15782 styler init callbacks params 1`] = `
     {
       "angleKey": "trait",
       "highlightState": "none",
-      "highlighted": false,
       "lineDash": [
         0,
       ],

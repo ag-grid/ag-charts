@@ -781,7 +781,20 @@ describe('ErrorBars', () => {
         });
 
         // Check itemStyler initialisation
-        const allNone = ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'];
+        const allNone = [
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+            'none',
+        ];
         expect(result).toStrictEqual(allNone);
         result.length = 0;
 
@@ -795,7 +808,7 @@ describe('ErrorBars', () => {
         // Hover over nothing
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
-        expect(result).toStrictEqual(['none']);
+        expect(result).toStrictEqual(['unhighlighted-item']);
     });
 
     it('AG-14263 should set itemStyler seriesId', async () => {

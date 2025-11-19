@@ -199,11 +199,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return style;
     }
 
-    private makeItemStylerParams(
-        nodeDatum: SunburstNode,
-        style: ItemStyle,
-        highlightState: AgSunburstHighlightState
-    ) {
+    private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
         const { id: seriesId } = this;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;

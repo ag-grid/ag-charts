@@ -526,10 +526,7 @@ export class RangeAreaSeries extends BaseSeries {
         const highlightState = this.getHighlightState(highlightDatum, false);
         const highlightStyle = this.getHighlightStyle();
 
-        const { item, fill, fillOpacity, opacity } = mergeDefaults(
-            highlightStyle,
-            this.getStyle(highlightState)
-        );
+        const { item, fill, fillOpacity, opacity } = mergeDefaults(highlightStyle, this.getStyle(highlightState));
 
         lowStrokePath.setProperties({
             datum: segments,
@@ -780,9 +777,7 @@ export class RangeAreaSeries extends BaseSeries {
         return this.getStylerCouple()[1];
     }
 
-    private getStylerCouple(
-        highlightState?: _ModuleSupport.HighlightState
-    ): [StylerResult, StylerMarkerOptionsResult] {
+    private getStylerCouple(highlightState?: _ModuleSupport.HighlightState): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};

@@ -197,9 +197,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         } satisfies ParamsRules;
     }
 
-    override getStyle(
-        highlightState?: _ModuleSupport.HighlightState
-    ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
+    override getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;

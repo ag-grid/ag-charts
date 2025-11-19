@@ -9,7 +9,7 @@ const highlight = {
 
 const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     const errorBarStyle = { strokeWidth: 3 };
-    if (param.highlighted) {
+    if (param.highlightState === 'highlighted-item') {
         return { ...errorBarStyle, stroke: 'red' };
     } else {
         return errorBarStyle;
