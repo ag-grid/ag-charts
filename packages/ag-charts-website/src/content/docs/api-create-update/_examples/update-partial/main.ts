@@ -9,12 +9,11 @@ import {
     AreaSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 function buildSeries(name: string): AgAreaSeriesOptions {

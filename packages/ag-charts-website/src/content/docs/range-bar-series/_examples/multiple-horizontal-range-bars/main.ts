@@ -1,14 +1,8 @@
+import { BubbleSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    BubbleSeriesModule,
-    CategoryAxisModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const options: AgChartOptions = {

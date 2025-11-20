@@ -3,7 +3,6 @@ import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
 
-
 ModuleRegistry.registerModules([DonutSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

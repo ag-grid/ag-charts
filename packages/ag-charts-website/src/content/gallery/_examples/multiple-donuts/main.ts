@@ -1,9 +1,8 @@
-import { AgCharts, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { AnimationModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([AnimationModule, DonutSeriesModule]);
 const data = getData();

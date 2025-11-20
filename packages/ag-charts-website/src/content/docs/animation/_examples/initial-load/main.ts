@@ -1,4 +1,14 @@
 import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    DonutSeriesModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    PieSeriesModule,
+} from 'ag-charts-community';
+import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
@@ -6,7 +16,12 @@ import {
     AgPolarChartOptions,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
-import {
+import { AnimationModule } from 'ag-charts-enterprise';
+
+import { DataType, getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
@@ -14,14 +29,7 @@ import {
     LineSeriesModule,
     NumberAxisModule,
     PieSeriesModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
-import { AnimationModule } from 'ag-charts-enterprise';
-
-import { DataType, getData } from './data';
-
-
-ModuleRegistry.registerModules([AnimationModule, AreaSeriesModule, BarSeriesModule, CategoryAxisModule, DonutSeriesModule, LineSeriesModule, NumberAxisModule, PieSeriesModule]);
+]);
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
     renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>): AgTooltipRendererResult => {

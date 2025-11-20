@@ -1,14 +1,7 @@
-import {
-    AgCharts,
-    AgColorRepeat,
-    AgDonutSeriesOptions,
-    AgImageFill,
-    AgPolarChartOptions,
-} from 'ag-charts-community';
+import { AgCharts, AgColorRepeat, AgDonutSeriesOptions, AgImageFill, AgPolarChartOptions } from 'ag-charts-community';
 import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([DonutSeriesModule]);
 const data = getData();

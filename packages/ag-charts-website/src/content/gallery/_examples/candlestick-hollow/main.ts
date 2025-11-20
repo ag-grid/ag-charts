@@ -1,5 +1,5 @@
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 import {
     BandHighlightModule,
     CandlestickSeriesModule,
@@ -10,8 +10,15 @@ import {
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, CandlestickSeriesModule, CrosshairModule, LineSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CandlestickSeriesModule,
+    CrosshairModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

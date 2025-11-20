@@ -1,8 +1,7 @@
 // Source: https://en.wikipedia.org/wiki/List_of_busiest_passenger_flight_routes
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { ChordSeriesModule } from 'ag-charts-enterprise';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, ChordSeriesModule, NumberAxisModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });

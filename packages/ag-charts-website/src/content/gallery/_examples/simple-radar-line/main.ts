@@ -1,9 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AngleCategoryAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([AngleCategoryAxisModule, LegendModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const options: AgChartOptions = {

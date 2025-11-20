@@ -4,12 +4,17 @@ import {
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
-
-ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [

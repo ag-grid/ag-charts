@@ -3,7 +3,6 @@ import { BarSeriesModule, CategoryAxisModule, ModuleRegistry } from 'ag-charts-c
 
 import { DataType, getData } from './data';
 
-
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),

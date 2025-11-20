@@ -14,10 +14,9 @@ import {
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 interface IData {

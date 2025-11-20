@@ -1,8 +1,7 @@
+import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { BubbleSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {

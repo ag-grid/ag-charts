@@ -1,17 +1,22 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     AreaSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([AreaSeriesModule, BandHighlightModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BandHighlightModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

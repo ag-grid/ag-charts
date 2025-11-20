@@ -1,10 +1,5 @@
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
-import {
-    CategoryAxisModule,
-    LegendModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import {
     MapLineSeriesModule,
     MapMarkerSeriesModule,
@@ -21,8 +16,15 @@ import { flightTopology } from './flightTopology';
 import { islandData } from './islandData';
 import { islandTopology } from './islandTopology';
 
-
-ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, MapLineSeriesModule, MapMarkerSeriesModule, MapShapeBackgroundSeriesModule, NumberAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const sizeDomain = [500, 0];
 
 const options: AgTopologyChartOptions<DataType> = {

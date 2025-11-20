@@ -1,9 +1,8 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { AngleCategoryAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([AngleCategoryAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const options: AgPolarChartOptions = {

@@ -2,13 +2,12 @@ import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-cha
 import {
     LegendModule,
     LineSeriesModule,
+    ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {

@@ -1,11 +1,15 @@
-import { AgCartesianAxisOptions, AgCartesianChartOptions, AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import {
+    AgCartesianAxisOptions,
+    AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgCharts,
+} from 'ag-charts-enterprise';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
-
-ModuleRegistry.registerModules([LineSeriesModule, NavigatorModule, NumberAxisModule, TimeAxisModule, ZoomModule]);
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, NavigatorModule, NumberAxisModule, TimeAxisModule, ZoomModule]);
 
 let dataLabel = '1K';
 let seriesType = 'Line';

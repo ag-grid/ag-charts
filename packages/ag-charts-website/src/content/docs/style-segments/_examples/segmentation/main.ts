@@ -1,18 +1,7 @@
-import {
-    AgAreaSeriesOptions,
-    AgCartesianChartOptions,
-    AgCharts,
-    AgLineSeriesOptions,
-} from 'ag-charts-community';
-import {
-    AreaSeriesModule,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
+import { AreaSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { DataType, data } from './data';
-
 
 ModuleRegistry.registerModules([AreaSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {

@@ -1,15 +1,9 @@
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    CategoryAxisModule,
-    LegendModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { central, eastern, mountain, pacific } from './data';
 import { topology } from './topology';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, MapShapeSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {

@@ -1,7 +1,7 @@
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCharts, AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-enterprise';
-import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
-
 import { AllGaugeModule } from 'ag-charts-enterprise';
+
 ModuleRegistry.registerModules([AllGaugeModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',

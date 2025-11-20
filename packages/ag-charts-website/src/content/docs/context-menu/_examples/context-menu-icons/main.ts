@@ -1,7 +1,6 @@
+import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
-import { PieSeriesModule, ModuleRegistry } from 'ag-charts-community';
 import { ContextMenuModule } from 'ag-charts-enterprise';
-
 
 ModuleRegistry.registerModules([ContextMenuModule, PieSeriesModule]);
 const DOWNLOAD_URL =

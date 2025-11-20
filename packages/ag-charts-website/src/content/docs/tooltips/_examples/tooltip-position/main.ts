@@ -1,14 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import {
-    CategoryAxisModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgTooltipAnchorTo, AgTooltipPlacement } from 'ag-charts-types';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {

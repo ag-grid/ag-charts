@@ -3,12 +3,11 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { DataType, data } from './data';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 function lerpColor(t: number, color1: string, color2: string): string {

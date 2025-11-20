@@ -1,22 +1,22 @@
 import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AgMarkerShapeFnParams,
-    AgPath,
-} from 'ag-charts-enterprise';
-import {
     LegendModule,
+    ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, LegendModule, NumberAxisModule, ScatterSeriesModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    LegendModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    UnitTimeAxisModule,
+]);
 function agChartsLogo({ path, size, x, y }: AgMarkerShapeFnParams) {
     const pathData = [
         'M0.480769 0.846154V0.692308H0.211538L0.134615 0.769423V0.846154H0.480769Z',

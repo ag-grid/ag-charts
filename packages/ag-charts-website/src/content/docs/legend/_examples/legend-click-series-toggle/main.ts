@@ -2,13 +2,12 @@ import { AgChartLegendClickEvent, AgChartOptions, AgCharts } from 'ag-charts-com
 import {
     LegendModule,
     LineSeriesModule,
+    ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {

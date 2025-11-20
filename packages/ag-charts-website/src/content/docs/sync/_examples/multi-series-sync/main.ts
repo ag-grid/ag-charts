@@ -1,15 +1,14 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     BarSeriesModule,
     LineSeriesModule,
+    ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { SyncModule } from 'ag-charts-enterprise';
 
 import { regionAdata, regionBdata } from './data';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, LineSeriesModule, NumberAxisModule, SyncModule, UnitTimeAxisModule]);
 const commonOptions: AgCartesianChartOptions = {

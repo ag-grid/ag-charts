@@ -1,11 +1,11 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     LegendModule,
     LineSeriesModule,
+    ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

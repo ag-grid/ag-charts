@@ -1,16 +1,17 @@
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
-import {
-    AnnotationsModule,
-    CandlestickSeriesModule,
-    OrdinalTimeAxisModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
+import { AnnotationsModule, CandlestickSeriesModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([AnnotationsModule, CandlestickSeriesModule, LineSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    AnnotationsModule,
+    CandlestickSeriesModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

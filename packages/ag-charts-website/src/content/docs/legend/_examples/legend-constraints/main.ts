@@ -1,8 +1,7 @@
 import { AgCharts, AgPolarChartOptions } from 'ag-charts-community';
-import { LegendModule, PieSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
 const options: AgPolarChartOptions = {

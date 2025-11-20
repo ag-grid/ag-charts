@@ -1,6 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
-import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
-
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {

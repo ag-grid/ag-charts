@@ -1,14 +1,8 @@
+import { BarSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-enterprise';
-import {
-    BarSeriesModule,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, NavigatorModule, NumberAxisModule, UnitTimeAxisModule, ZoomModule]);
 const options: AgCartesianChartOptions = {

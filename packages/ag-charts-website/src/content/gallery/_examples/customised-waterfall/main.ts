@@ -1,16 +1,16 @@
+import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    LegendModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { BandHighlightModule, WaterfallSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, LegendModule, LineSeriesModule, NumberAxisModule, WaterfallSeriesModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+]);
 const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
     container: document.getElementById('myChart'),
     data: getData(),

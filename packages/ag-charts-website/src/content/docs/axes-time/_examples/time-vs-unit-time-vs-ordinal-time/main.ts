@@ -1,15 +1,20 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     BarSeriesModule,
+    ModuleRegistry,
     NumberAxisModule,
     TimeAxisModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
-
-ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, TimeAxisModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -3,12 +3,11 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {

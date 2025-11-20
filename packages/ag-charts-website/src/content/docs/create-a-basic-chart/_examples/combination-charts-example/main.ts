@@ -1,17 +1,11 @@
-import {
-    AgBarSeriesOptions,
-    AgChartOptions,
-    AgCharts,
-    AgLineSeriesOptions,
-} from 'ag-charts-community';
+import { AgBarSeriesOptions, AgChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
 import {
     BarSeriesModule,
     CategoryAxisModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 interface IData {

@@ -1,13 +1,7 @@
+import { AreaSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    AreaSeriesModule,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 
 import { DataType, getData } from './data';
-
 
 ModuleRegistry.registerModules([AreaSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const labelDates = [

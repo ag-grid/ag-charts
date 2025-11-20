@@ -3,10 +3,9 @@ import {
     CategoryAxisModule,
     LineSeriesModule,
     LogAxisModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, LogAxisModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {

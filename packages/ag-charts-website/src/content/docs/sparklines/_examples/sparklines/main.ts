@@ -4,14 +4,19 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { data } from './data';
 
-
-ModuleRegistry.registerModules([AreaSeriesModule, BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 function marketCapData(marketCap: number) {
     return [{ index: 0, marketCap }];
 }

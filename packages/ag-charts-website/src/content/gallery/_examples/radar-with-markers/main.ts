@@ -1,11 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { LegendModule, LineSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AngleNumberAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([AngleNumberAxisModule, LegendModule, LineSeriesModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
+ModuleRegistry.registerModules([
+    AngleNumberAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const { socialCircle, domains } = getData();
 
 const options: AgChartOptions = {

@@ -1,9 +1,8 @@
+import { ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { NumberAxisModule, UnitTimeAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([NumberAxisModule, RangeBarSeriesModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {

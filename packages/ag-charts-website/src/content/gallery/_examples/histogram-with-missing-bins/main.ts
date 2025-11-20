@@ -1,13 +1,7 @@
+import { HistogramSeriesModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    HistogramSeriesModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([HistogramSeriesModule, LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {

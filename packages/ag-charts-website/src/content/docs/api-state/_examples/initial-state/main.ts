@@ -1,17 +1,23 @@
-import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
 import {
     AreaSeriesModule,
     LegendModule,
+    ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-    ModuleRegistry,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-
-ModuleRegistry.registerModules([AreaSeriesModule, LegendModule, NavigatorModule, NumberAxisModule, UnitTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const data = getData();
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB');

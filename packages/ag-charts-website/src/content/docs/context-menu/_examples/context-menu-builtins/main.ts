@@ -1,14 +1,8 @@
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgContextMenuItemLiteral } from 'ag-charts-enterprise';
-import {
-    CategoryAxisModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { generateCurrencyData } from './data';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, ContextMenuModule, LineSeriesModule, NumberAxisModule, ZoomModule]);
 const CUSTOM_ORDER: AgContextMenuItemLiteral[] = [

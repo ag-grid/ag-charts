@@ -1,11 +1,10 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { OhlcSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([NumberAxisModule, OhlcSeriesModule, TimeAxisModule]);
-
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

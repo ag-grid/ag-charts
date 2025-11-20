@@ -1,14 +1,8 @@
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    CategoryAxisModule,
-    NumberAxisModule,
-    ScatterSeriesModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { BoxPlotSeriesModule } from 'ag-charts-enterprise';
 
 import { getBoxPlotData, getOutliersData } from './data';
-
 
 ModuleRegistry.registerModules([BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgChartOptions = {

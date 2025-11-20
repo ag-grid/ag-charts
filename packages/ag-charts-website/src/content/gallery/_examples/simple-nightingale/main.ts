@@ -1,5 +1,5 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { LineSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     AngleCategoryAxisModule,
     AnimationModule,
@@ -9,8 +9,13 @@ import {
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([AngleCategoryAxisModule, AnimationModule, LineSeriesModule, NightingaleSeriesModule, RadiusNumberAxisModule]);
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    AnimationModule,
+    LineSeriesModule,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const data = getData();
 const totalRevenue = data.reduce((sum, d) => sum + d.hardware, 0);
 const avgRevenue = totalRevenue / data.length;

@@ -1,9 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ModuleRegistry } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { NightingaleSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([NightingaleSeriesModule, RadiusNumberAxisModule]);
 const options: AgChartOptions = {

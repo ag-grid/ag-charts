@@ -3,13 +3,12 @@ import {
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { DataType } from './data';
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const customItems = ['Jun', 'Jul', 'Aug', 'Sep'];

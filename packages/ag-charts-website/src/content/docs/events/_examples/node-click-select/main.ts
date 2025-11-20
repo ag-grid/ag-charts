@@ -1,13 +1,7 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import {
-    CategoryAxisModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData, selectedMonths } from './data';
-
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {

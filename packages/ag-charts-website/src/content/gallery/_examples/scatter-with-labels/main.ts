@@ -1,14 +1,8 @@
+import { LegendModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgScatterSeriesTooltipRendererParams } from 'ag-charts-enterprise';
-import {
-    LegendModule,
-    NumberAxisModule,
-    ScatterSeriesModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
 
 import { NameData, getData } from './data';
-
 
 ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
 const data = getData();

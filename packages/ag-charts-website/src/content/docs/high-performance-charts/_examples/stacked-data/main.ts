@@ -1,15 +1,21 @@
+import { AreaSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
 } from 'ag-charts-enterprise';
-import { AreaSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AreaSeriesModule, NavigatorModule, NumberAxisModule, OrdinalTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+]);
 // @ts-expect-error Undocumented option
 window.agChartsDebug = 'scene:stats';
 

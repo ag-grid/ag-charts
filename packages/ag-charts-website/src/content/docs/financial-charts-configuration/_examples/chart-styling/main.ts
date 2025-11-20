@@ -1,10 +1,16 @@
+import { ModuleRegistry, NumberAxisModule, TimeAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgCharts, AgFinancialChartOptions, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import { FinancialChartModule } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
-import { NumberAxisModule, TimeAxisModule, UnitTimeAxisModule, ModuleRegistry } from 'ag-charts-community';
-import { FinancialChartModule } from 'ag-charts-enterprise';
-ModuleRegistry.registerModules([FinancialChartModule, NumberAxisModule, TimeAxisModule, UnitTimeAxisModule, OrdinalTimeAxisModule]);
-
+ModuleRegistry.registerModules([
+    FinancialChartModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    OrdinalTimeAxisModule,
+]);
 
 const options: AgFinancialChartOptions = {
     theme: {

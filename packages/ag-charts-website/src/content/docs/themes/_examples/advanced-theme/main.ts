@@ -1,14 +1,7 @@
 import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
-import {
-    BarSeriesModule,
-    LegendModule,
-    LineSeriesModule,
-    PieSeriesModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
+import { BarSeriesModule, LegendModule, LineSeriesModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BarSeriesModule, LegendModule, LineSeriesModule, PieSeriesModule]);
 const myTheme: AgChartTheme = {

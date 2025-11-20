@@ -12,14 +12,19 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([AreaSeriesModule, BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const WOMEN: AgBarSeriesOptions = {
     type: 'bar',
     xKey: 'year',

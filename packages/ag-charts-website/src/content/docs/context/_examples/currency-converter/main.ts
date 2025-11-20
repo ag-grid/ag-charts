@@ -1,11 +1,10 @@
+import { ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { NumberAxisModule, TimeAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { CandlestickSeriesModule, ContextMenuModule } from 'ag-charts-enterprise';
 
 import type { CurrencyConverter } from './currencyConverter';
 import { Currency, makeCurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
-
 
 ModuleRegistry.registerModules([CandlestickSeriesModule, ContextMenuModule, NumberAxisModule, TimeAxisModule]);
 const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {

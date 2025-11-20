@@ -1,9 +1,8 @@
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { BandHighlightModule, WaterfallSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, NumberAxisModule, WaterfallSeriesModule]);
 const options: AgCartesianChartOptions = {

@@ -1,8 +1,7 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { DonutSeriesModule, LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
 
 ModuleRegistry.registerModules([DonutSeriesModule, LegendModule]);
 const data = getData();

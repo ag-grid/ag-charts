@@ -1,18 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

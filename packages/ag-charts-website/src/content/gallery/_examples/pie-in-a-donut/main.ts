@@ -1,13 +1,7 @@
+import { DonutSeriesModule, LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import { AgCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
-import {
-    DonutSeriesModule,
-    LegendModule,
-    PieSeriesModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 
 import { getData2020, getData2022 } from './data';
-
 
 ModuleRegistry.registerModules([DonutSeriesModule, LegendModule, PieSeriesModule]);
 const sharedSeriesOptions: AgPolarSeriesOptions = {

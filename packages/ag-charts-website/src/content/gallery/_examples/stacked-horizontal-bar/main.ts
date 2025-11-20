@@ -1,14 +1,8 @@
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
-
 
 ModuleRegistry.registerModules([BandHighlightModule, BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const data: any[] = getData();

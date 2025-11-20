@@ -1,17 +1,22 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const numFormatter = new Intl.NumberFormat('en-US');
 
 const options: AgCartesianChartOptions = {

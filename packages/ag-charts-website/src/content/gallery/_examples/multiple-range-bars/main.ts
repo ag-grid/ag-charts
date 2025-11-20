@@ -1,16 +1,16 @@
+import { LegendModule, LineSeriesModule, ModuleRegistry, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import {
-    LegendModule,
-    LineSeriesModule,
-    UnitTimeAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
 import { BandHighlightModule, RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([BandHighlightModule, LegendModule, LineSeriesModule, RangeBarSeriesModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    LegendModule,
+    LineSeriesModule,
+    RangeBarSeriesModule,
+    UnitTimeAxisModule,
+]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {

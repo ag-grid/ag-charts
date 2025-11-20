@@ -1,8 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
-import { NumberAxisModule, ScatterSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
-
 
 ModuleRegistry.registerModules([NumberAxisModule, ScatterSeriesModule]);
 const options: AgChartOptions = {

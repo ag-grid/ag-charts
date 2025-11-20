@@ -1,18 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
-    NumberAxisModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType } from './data';
 import { getData } from './data';
 
-
-ModuleRegistry.registerModules([CategoryAxisModule, ContextMenuModule, LegendModule, LineSeriesModule, NumberAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'GDP Growth (1995–2024)' },

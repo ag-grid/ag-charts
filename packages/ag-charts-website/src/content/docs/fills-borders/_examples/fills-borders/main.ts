@@ -1,13 +1,7 @@
 import { AgChartLabelStylerParams, AgChartOptions, AgCharts } from 'ag-charts-community';
-import {
-    BubbleSeriesModule,
-    LegendModule,
-    NumberAxisModule,
-    ModuleRegistry,
-} from 'ag-charts-community';
+import { BubbleSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './data';
-
 
 ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 type DataType = { height: number; weight: number; age: number; name: string };
