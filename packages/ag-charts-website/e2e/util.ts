@@ -1,8 +1,6 @@
 import type { ConsoleMessage, Locator, Page } from '@playwright/test';
 import { execSync } from 'child_process';
-import fs from 'fs';
 import glob from 'glob';
-import path from 'path';
 
 import { expect, test } from './fixture';
 
@@ -46,25 +44,6 @@ export function getExamples() {
         console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
     }
     return examples;
-}
-
-export function getPagesWithAPIReferences(): string[] {
-    // Regex that matches `{% apiReference ... /%}` even across multiple lines
-    const apiRefRegex = /\{%\s*apiReference[\s\S]*?\/%\}/m;
-
-    const pathsWithApiRef = glob.sync('./src/content/docs/**/index.mdoc').filter((filepath) => {
-        const content = fs.readFileSync(filepath, 'utf8');
-        return apiRefRegex.test(content);
-    });
-
-    // Extracting & expand the `**` part of the glob.
-    const pageNames = pathsWithApiRef.map((filepath) => {
-        const dir = path.dirname(filepath);
-        return path.relative('./src/content/docs', dir);
-    });
-
-    const base = `${baseUrl}/javascript/`;
-    return pageNames.map((p) => new URL(p, base).toString());
 }
 
 export function toPageUrl(uri: string) {
