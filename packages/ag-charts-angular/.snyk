@@ -107,4 +107,25 @@ ignore:
                   the dev server to the network
               expires: 2025-12-08T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-GLOB-14040952:
+        - 'ng-packagr@17.3.0 > cacache@18.0.3 > glob@10.3.14':
+              reason: Glob is only used for building and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
+        - '@angular/cli@17.3.11 > pacote@17.0.6 > read-package-json@7.0.1 > glob@10.3.14':
+              reason: Glob is only used for development and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
+        - '@angular/cli@17.3.11 > pacote@17.0.6 > @npmcli/run-script@7.0.4 > @npmcli/package-json@5.2.1 > glob@10.3.14':
+              reason: Glob is only used for development and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
+        - '@angular/cli@17.3.11 > pacote@17.0.6 > @npmcli/run-script@7.0.4 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14':
+              reason: Glob is only used for development and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
+        - '@angular/cli@17.3.11 > pacote@17.0.6 > @npmcli/run-script@7.0.4 > node-gyp@10.2.0 > glob@10.4.5':
+              reason: Glob is only used for development and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
 patch: {}

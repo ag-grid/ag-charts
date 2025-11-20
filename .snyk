@@ -56,5 +56,9 @@ ignore:
                   Only used for building and getting changelog/pipeline data
               expires: 2025-12-10T12:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
-
+    SNYK-JS-GLOB-14040952:
+        - '@vitest/coverage-v8@2.1.9 > test-exclude@7.0.1 > glob@10.4.5':
+              reason: Glob is only used for testing and we control what files are passed in
+              expires: 2025-12-08T12:00:00.000Z
+              created: 2025-11-20T10:29:00.007Z
 patch: {}
