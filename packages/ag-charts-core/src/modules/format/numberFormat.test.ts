@@ -22,6 +22,13 @@ describe('number format', () => {
     test('percentage rounded to significant digits', () => {
         expect(createNumberFormatter('.2p')!(0.678)).toBe('68%');
     });
+    test('embedded percent format via #{p}', () => {
+        const withPrecision = createNumberFormatter('Growth #{.2p}')!;
+        expect(withPrecision(0.678)).toBe('Growth 68%');
+
+        const withoutPrecision = createNumberFormatter('Growth #{p}')!;
+        expect(withoutPrecision(0.5)).toBe('Growth 50.0000%');
+    });
     test('decimal rounded to integer', () => {
         expect(createNumberFormatter('d')!(67.7)).toBe('68');
     });
@@ -34,16 +41,33 @@ describe('number format', () => {
     test('space-filled and signed', () => {
         expect(createNumberFormatter('+20')!(42)).toBe('                 +42');
         expect(createNumberFormatter('(')!(-42)).toBe('(42)');
+        const spaceSign = createNumberFormatter(' 6d')!;
+        expect(spaceSign(42)).toBe('    42');
+        expect(spaceSign(-42)).toBe('   \u221242');
     });
     test('dot-filled and centered', () => {
         expect(createNumberFormatter('.^20')!(42)).toBe('.........42.........');
         expect(createNumberFormatter('.^21')!(42)).toBe('..........42.........');
     });
     test('prefixed lowercase hexadecimal', () => {
-        expect(createNumberFormatter('#x')!(48879)).toBe('0xbeef');
+        const formatter = createNumberFormatter('#x')!;
+        expect(formatter(48879)).toBe('0xbeef');
+        expect(formatter(-48879)).toBe('\u22120xbeef');
     });
     test('grouped thousands with fixed point', () => {
         expect(createNumberFormatter(',.5f')!(123456789.9876543)).toBe('123,456,789.98765');
+    });
+    test('alternate form prefixes for binary, octal, and hexadecimal', () => {
+        const binary = createNumberFormatter('#b')!;
+        expect(binary(10)).toBe('0b1010');
+        expect(binary(-10)).toBe('\u22120b1010');
+
+        const octal = createNumberFormatter('#o')!;
+        expect(octal(10)).toBe('0o12');
+        expect(octal(-10)).toBe('\u22120o12');
+
+        expect(createNumberFormatter('#X')!(48879)).toBe('0XBEEF');
+        expect(createNumberFormatter('#08x')!(48879)).toBe('0x00beef');
     });
     test('remove trailing zeros', () => {
         expect(createNumberFormatter('.3~f')!(-0.87)).toBe('−0.87');
@@ -99,6 +123,27 @@ describe('number format', () => {
     });
     test('grouped thousands with two significant digits', () => {
         expect(createNumberFormatter(',.2r')!(4223)).toBe('4,200');
+    });
+    test('zero flag keeps sign before padding', () => {
+        const f = createNumberFormatter('05d')!;
+        expect(f(42)).toBe('00042');
+        expect(f(-42)).toBe('\u22120042');
+    });
+    test('explicit = alignment with custom fill', () => {
+        const f = createNumberFormatter('0=6d')!;
+        expect(f(-42)).toBe('\u221200042');
+    });
+    test('currency with = alignment keeps sign and symbol before padding', () => {
+        const f = createNumberFormatter('0=$6d')!;
+        expect(f(-42)).toBe('\u2212$0042');
+    });
+    test('parentheses honour zero flag padding', () => {
+        const f = createNumberFormatter('($07d')!;
+        expect(f(-42)).toBe('($0042)');
+    });
+    test('space fill with = alignment', () => {
+        const f = createNumberFormatter(' =8d')!;
+        expect(f(-42)).toBe('\u2212     42');
     });
     test('general format', () => {
         expect(createNumberFormatter('.1g')!(0.049)).toBe('0.05');
@@ -169,7 +214,7 @@ describe('number format', () => {
         expect(f(1500, 5)).toBe('1.50k'); // fractionDigits ignored when precision is explicit
     });
     test('no type specified', () => {
-        expect(createNumberFormatter(' ')!(0.1234567890123456)).toBe('0.123456789012');
+        expect(createNumberFormatter('')!(0.1234567890123456)).toBe('0.123456789012');
     });
     test('padding with prefix and suffix', () => {
         expect(createNumberFormatter('🌧️ #{0>2.0f} °C')!(4)).toBe('🌧️ 04 °C');
