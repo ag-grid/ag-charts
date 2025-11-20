@@ -1,6 +1,8 @@
-import type { Locator, Page } from '@playwright/test';
+import type { ConsoleMessage, Locator, Page } from '@playwright/test';
 import { execSync } from 'child_process';
+import fs from 'fs';
 import glob from 'glob';
+import path from 'path';
 
 import { expect, test } from './fixture';
 
@@ -44,6 +46,25 @@ export function getExamples() {
         console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
     }
     return examples;
+}
+
+export function getPagesWithAPIReferences(): string[] {
+    // Regex that matches `{% apiReference ... /%}` even across multiple lines
+    const apiRefRegex = /\{%\s*apiReference[\s\S]*?\/%\}/m;
+
+    const pathsWithApiRef = glob.sync('./src/content/docs/**/index.mdoc').filter((filepath) => {
+        const content = fs.readFileSync(filepath, 'utf8');
+        return apiRefRegex.test(content);
+    });
+
+    // Extracting & expand the `**` part of the glob.
+    const pageNames = pathsWithApiRef.map((filepath) => {
+        const dir = path.dirname(filepath);
+        return path.relative('./src/content/docs', dir);
+    });
+
+    const base = `${baseUrl}/javascript/`;
+    return pageNames.map((p) => new URL(p, base).toString());
 }
 
 export function toPageUrl(uri: string) {
@@ -129,35 +150,47 @@ export function createConsoleLogs() {
         /^\*.*/,
     ];
     const consoleMsgs: string[] = [];
+    const consoleErrors: string[] = [];
     const clear = () => {
         consoleMsgs.length = 0;
     };
 
-    test.beforeEach(({ page }) => {
-        page.on('console', (msg) => {
-            const text = msg.text();
-            const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
-            if (ignore) {
-                return;
-            }
+    const onMsg = (msg: ConsoleMessage) => {
+        const text = msg.text();
+        if (msg.type() === 'error') {
+            consoleErrors.push(text);
+        }
+        const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
+        if (ignore) {
+            return;
+        }
+        consoleMsgs.push(text);
+    };
 
-            consoleMsgs.push(text);
-        });
+    test.beforeEach(({ page }) => {
+        page.on('console', onMsg);
     });
 
-    test.afterEach(() => {
+    test.afterEach(({ page }) => {
+        page.off('console', onMsg);
         clear();
     });
 
     return {
         clear,
-        async expectMsgs(calls: string[]) {
+
+        async expectNoErrors() {
+            expect(consoleErrors).toEqual([]);
+        },
+
+        async expectLogs(calls: string[]) {
             const expectedCount: number = calls.length;
             await expect
                 .poll(() => consoleMsgs.length, { message: `Waiting for ${expectedCount} console logs` })
                 .toBeGreaterThanOrEqual(expectedCount);
             expect(consoleMsgs).toEqual(calls);
         },
+
         getLogs() {
             return consoleMsgs;
         },
