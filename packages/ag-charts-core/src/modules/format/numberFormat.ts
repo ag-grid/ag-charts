@@ -88,7 +88,21 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     }
 
     return (n: number, fractionDigits?: number) => {
-        let result = formatBody(n, formatterPrecision ?? fractionDigits ?? defaultFormatterPrecision);
+        // When a format type is specified and no precision is in the format string:
+        // - For 'f' and '%' types, fractionDigits can be used (it represents decimal places)
+        // - For other types (s, r, g, e, etc.), use default precision (fractionDigits represents tick step, not format precision)
+        // - When no type is specified, fractionDigits can be used as a fallback
+        let effectivePrecision: number;
+        if (formatterPrecision != null) {
+            effectivePrecision = formatterPrecision;
+        } else if (type === 'f' || type === '%') {
+            effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
+        } else if (type) {
+            effectivePrecision = defaultFormatterPrecision;
+        } else {
+            effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
+        }
+        let result = formatBody(n, effectivePrecision);
         if (trim) {
             result = removeTrailingZeros(result);
         }

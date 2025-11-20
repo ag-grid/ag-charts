@@ -134,6 +134,40 @@ describe('number format', () => {
         expect(createNumberFormatter('~s')!(1500)).toBe('1.5k');
         expect(createNumberFormatter('~s')!(-1500)).toBe('\u22121.5k');
     });
+    test('currency with SI prefix and trim', () => {
+        const f = createNumberFormatter('$~s')!;
+        expect(f(0)).toBe('$0');
+        expect(f(100)).toBe('$100');
+        expect(f(150)).toBe('$150');
+        expect(f(200)).toBe('$200');
+        expect(f(1500)).toBe('$1.5k');
+        expect(f(15000)).toBe('$15k');
+        expect(f(150000)).toBe('$150k');
+        expect(f(1500000)).toBe('$1.5M');
+    });
+    test('fractionDigits should not override format precision for SI type', () => {
+        const f = createNumberFormatter('$~s')!;
+        // When fractionDigits is 0 (from axis), it should not override the format's precision
+        expect(f(0, 0)).toBe('$0');
+        expect(f(100, 0)).toBe('$100');
+        expect(f(150, 0)).toBe('$150');
+        expect(f(200, 0)).toBe('$200');
+        expect(f(1500, 0)).toBe('$1.5k');
+        expect(f(15000, 0)).toBe('$15k');
+    });
+    test('fractionDigits should not override format precision for ~s type', () => {
+        const f = createNumberFormatter('~s')!;
+        expect(f(0, 0)).toBe('0');
+        expect(f(100, 0)).toBe('100');
+        expect(f(150, 0)).toBe('150');
+        expect(f(200, 0)).toBe('200');
+        expect(f(1500, 0)).toBe('1.5k');
+    });
+    test('explicit precision in format string always takes precedence', () => {
+        const f = createNumberFormatter('.3s')!;
+        expect(f(1500, 0)).toBe('1.50k');
+        expect(f(1500, 5)).toBe('1.50k'); // fractionDigits ignored when precision is explicit
+    });
     test('no type specified', () => {
         expect(createNumberFormatter(' ')!(0.1234567890123456)).toBe('0.123456789012');
     });
