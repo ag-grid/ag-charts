@@ -1,10 +1,10 @@
 import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { NightingaleSeriesModule } from 'ag-charts-enterprise';
+import { AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([NightingaleSeriesModule]);
+ModuleRegistry.registerModules([NightingaleSeriesModule, AngleCategoryAxisModule, RadiusNumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
