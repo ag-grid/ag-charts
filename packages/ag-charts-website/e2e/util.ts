@@ -128,9 +128,9 @@ export function createConsoleLogs() {
         // AG Charts license error message
         /^\*.*/,
     ];
-    const consoleLogs: string[] = [];
+    const consoleMsgs: string[] = [];
     const clear = () => {
-        consoleLogs.length = 0;
+        consoleMsgs.length = 0;
     };
 
     test.beforeEach(({ page }) => {
@@ -141,7 +141,7 @@ export function createConsoleLogs() {
                 return;
             }
 
-            consoleLogs.push(text);
+            consoleMsgs.push(text);
         });
     });
 
@@ -151,15 +151,15 @@ export function createConsoleLogs() {
 
     return {
         clear,
-        async expectLogs(calls: string[]) {
+        async expectMsgs(calls: string[]) {
             const expectedCount: number = calls.length;
             await expect
-                .poll(() => consoleLogs.length, { message: `Waiting for ${expectedCount} console logs` })
+                .poll(() => consoleMsgs.length, { message: `Waiting for ${expectedCount} console logs` })
                 .toBeGreaterThanOrEqual(expectedCount);
-            expect(consoleLogs).toEqual(calls);
+            expect(consoleMsgs).toEqual(calls);
         },
         getLogs() {
-            return consoleLogs;
+            return consoleMsgs;
         },
     };
 }

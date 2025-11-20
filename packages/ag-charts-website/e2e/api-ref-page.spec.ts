@@ -83,7 +83,7 @@ test.describe('api-ref-page', () => {
         expect(siblingsAfter).toBe(siblingsBefore + 2);
 
         // Assert no warnings in console
-        await consoleLogs.expectLogs([
+        await consoleLogs.expectMsgs([
             '%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold',
         ]);
     });
