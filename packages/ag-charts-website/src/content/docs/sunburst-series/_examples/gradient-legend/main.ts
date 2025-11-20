@@ -1,7 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { GradientLegendModule, SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, NumberAxisModule, SunburstSeriesModule]);
 const gdpFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

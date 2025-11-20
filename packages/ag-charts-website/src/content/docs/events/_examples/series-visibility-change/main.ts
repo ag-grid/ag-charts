@@ -1,5 +1,13 @@
-import { AgChartLegendClickEvent, AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
+import {
+    AgChartLegendClickEvent,
+    AgCharts,
+    AgPolarChartOptions,
+    AgSeriesVisibilityChange,
+} from 'ag-charts-community';
+import { LegendModule, PieSeriesModule, ModuleRegistry } from 'ag-charts-community';
 
+
+ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
 let counter = 1;
 
 let options: AgPolarChartOptions = {

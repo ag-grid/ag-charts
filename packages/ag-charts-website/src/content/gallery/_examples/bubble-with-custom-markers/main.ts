@@ -1,7 +1,10 @@
 import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
+import { BubbleSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const data = getData();
 const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
 

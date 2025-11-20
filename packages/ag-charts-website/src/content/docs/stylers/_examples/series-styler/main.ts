@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Revenue & Growth vs Benchmark' },

@@ -1,7 +1,11 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { NumberAxisModule, ScatterSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { CrosshairModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([CrosshairModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

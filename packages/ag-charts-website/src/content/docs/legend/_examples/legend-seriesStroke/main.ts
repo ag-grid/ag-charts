@@ -1,5 +1,15 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
+
+ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [

@@ -4,9 +4,18 @@ import {
     AgCharts,
     AgSeriesTooltip,
 } from 'ag-charts-enterprise';
+import {
+    AreaSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([AreaSeriesModule, NavigatorModule, NumberAxisModule, UnitTimeAxisModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

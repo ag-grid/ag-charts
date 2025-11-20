@@ -1,8 +1,12 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { MapLineBackgroundSeriesModule, MapShapeBackgroundSeriesModule } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { topology } from './topology';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, MapLineBackgroundSeriesModule, MapShapeBackgroundSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

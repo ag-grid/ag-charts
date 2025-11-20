@@ -1,8 +1,12 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
 // Calculate total capacity for each country for better context
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SunburstSeriesModule]);
 const dataWithTotals = data.map((country) => ({
     ...country,
     totalCapacity: country.children?.reduce((sum, farm) => sum + (farm.capacity || 0), 0) || 0,

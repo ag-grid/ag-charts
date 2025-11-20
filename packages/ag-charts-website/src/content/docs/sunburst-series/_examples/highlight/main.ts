@@ -1,7 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { energyMix } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SunburstSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: energyMix,

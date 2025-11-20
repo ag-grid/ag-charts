@@ -1,7 +1,15 @@
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
     const { datum, fill, yKey } = params;
     return (

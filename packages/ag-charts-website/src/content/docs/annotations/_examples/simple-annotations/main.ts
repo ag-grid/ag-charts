@@ -1,7 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { AnnotationsModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([AnnotationsModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

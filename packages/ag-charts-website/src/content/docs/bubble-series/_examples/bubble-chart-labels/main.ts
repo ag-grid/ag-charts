@@ -1,7 +1,15 @@
-import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgBubbleSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+} from 'ag-charts-community';
+import { BubbleSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
+import {
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -4,9 +4,19 @@ import {
     AgChartState,
     AgCharts,
 } from 'ag-charts-enterprise';
+import {
+    AreaSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([AreaSeriesModule, LegendModule, NavigatorModule, NumberAxisModule, UnitTimeAxisModule, ZoomModule]);
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {

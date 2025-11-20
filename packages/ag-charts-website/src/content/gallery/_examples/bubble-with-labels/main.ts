@@ -1,7 +1,15 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    BubbleSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {

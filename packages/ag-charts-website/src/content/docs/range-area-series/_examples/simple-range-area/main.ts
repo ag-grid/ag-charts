@@ -1,7 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { NumberAxisModule, ModuleRegistry, UnitTimeAxisModule } from 'ag-charts-community';
+import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

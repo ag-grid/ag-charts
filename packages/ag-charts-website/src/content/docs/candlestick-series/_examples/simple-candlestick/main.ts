@@ -1,6 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { CandlestickSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, TimeAxisModule]);
+
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -25,6 +30,16 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
+    axes: {
+        x: {
+            type: 'time',
+            position: 'bottom',
+        },
+        y: {
+            type: 'number',
+            position: 'left',
+        },
+    },
 };
 
 AgCharts.create(options);

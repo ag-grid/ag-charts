@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { BandHighlightModule, CrosshairModule, RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, CrosshairModule, LineSeriesModule, NumberAxisModule, RangeBarSeriesModule]);
 const data = getData();
 
 // Calculate statistics for reference lines

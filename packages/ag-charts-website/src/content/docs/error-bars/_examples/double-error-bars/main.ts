@@ -1,8 +1,12 @@
 import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { DataType } from './data';
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([ErrorBarsModule, LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

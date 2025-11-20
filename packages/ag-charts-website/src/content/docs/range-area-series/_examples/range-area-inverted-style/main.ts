@@ -1,7 +1,11 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, RangeAreaSeriesModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Performance: Projected vs Actual' },

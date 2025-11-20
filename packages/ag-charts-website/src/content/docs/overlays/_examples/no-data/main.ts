@@ -1,5 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
+
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule]);
 const noDataOverlay = () => {
     return [
         '<div',

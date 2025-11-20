@@ -5,10 +5,19 @@ import {
     AgCharts,
     AgContextMenuItem,
 } from 'ag-charts-enterprise';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { ContextMenuModule } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getPersistentMutableData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, ContextMenuModule, NumberAxisModule]);
 const markingStyle: AgBarSeriesStyle = {
     stroke: 'red',
     strokeWidth: 4,

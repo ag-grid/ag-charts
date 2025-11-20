@@ -1,8 +1,16 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    HistogramSeriesModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
 // Calculate statistics for reference lines
+
+ModuleRegistry.registerModules([HistogramSeriesModule, LineSeriesModule, NumberAxisModule]);
 const data = getData();
 const engineSizes = data.map((d) => d['engine-size']);
 const mean = engineSizes.reduce((a, b) => a + b, 0) / engineSizes.length;

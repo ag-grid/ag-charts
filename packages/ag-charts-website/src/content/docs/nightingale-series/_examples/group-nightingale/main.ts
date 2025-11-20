@@ -1,7 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { ModuleRegistry } from 'ag-charts-community';
+import { NightingaleSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([NightingaleSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { BandHighlightModule, WaterfallSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, LegendModule, NumberAxisModule, WaterfallSeriesModule]);
 const formatter = new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'GBP',

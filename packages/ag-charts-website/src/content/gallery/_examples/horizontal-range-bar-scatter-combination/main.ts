@@ -1,7 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     style: 'percent',
     maximumFractionDigits: 0,

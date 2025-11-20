@@ -1,7 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    LineSeriesModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { NavigatorModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { AAPL, MSFT } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, NavigatorModule, NumberAxisModule, SyncModule, TimeAxisModule, UnitTimeAxisModule, ZoomModule]);
 const commonOptions: AgChartOptions = {
     minWidth: 0,
     minHeight: 0,

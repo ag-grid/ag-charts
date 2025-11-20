@@ -1,7 +1,15 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

@@ -1,7 +1,18 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([AreaSeriesModule, BandHighlightModule, BarSeriesModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {

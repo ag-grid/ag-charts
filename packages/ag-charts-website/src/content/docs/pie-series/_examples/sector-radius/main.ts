@@ -1,7 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { PieSeriesModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([PieSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

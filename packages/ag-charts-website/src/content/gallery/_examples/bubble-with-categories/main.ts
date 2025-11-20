@@ -1,7 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { BubbleSeriesModule, CategoryAxisModule, ModuleRegistry } from 'ag-charts-community';
 
 import { days, getData } from './data';
 
+
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule]);
 const data = getData();
 
 const options: AgChartOptions = {

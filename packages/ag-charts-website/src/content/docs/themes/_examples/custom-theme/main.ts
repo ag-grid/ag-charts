@@ -1,7 +1,15 @@
 import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const myTheme: AgChartTheme = {
     palette: {
         fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],

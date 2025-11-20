@@ -1,7 +1,15 @@
 import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const rad = (degree: number) => {
     return (degree / 180) * Math.PI;
 };

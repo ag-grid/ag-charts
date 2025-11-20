@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, ZoomModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {

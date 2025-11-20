@@ -1,5 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { LineSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
+
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     dataSource: {

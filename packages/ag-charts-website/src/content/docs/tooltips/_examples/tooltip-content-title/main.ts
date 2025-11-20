@@ -1,7 +1,15 @@
 import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 function renderer({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
     return {
         heading: 'Clothing Production',

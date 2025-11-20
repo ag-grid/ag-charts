@@ -1,7 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { chromosomes, getData } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, ScatterSeriesModule]);
 const data = getData();
 const options: AgChartOptions = {
     title: {

@@ -1,7 +1,15 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    LineSeriesModule,
+    LogAxisModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([LineSeriesModule, LogAxisModule, NumberAxisModule]);
 const formatter = new Intl.NumberFormat();
 
 const options: AgCartesianChartOptions = {

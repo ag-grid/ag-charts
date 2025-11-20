@@ -1,7 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, ErrorBarsModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

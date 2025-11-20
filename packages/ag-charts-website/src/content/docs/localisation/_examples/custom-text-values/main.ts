@@ -1,5 +1,14 @@
 import { AG_CHARTS_LOCALE_EN_US, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
+import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, ContextMenuModule, LineSeriesModule, NumberAxisModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

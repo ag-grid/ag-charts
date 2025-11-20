@@ -1,7 +1,11 @@
 import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AngleCategoryAxisModule, RadialColumnSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 
 import { type RevenueData, getData } from './data';
 
+
+ModuleRegistry.registerModules([AngleCategoryAxisModule, LegendModule, RadialColumnSeriesModule, RadiusNumberAxisModule]);
 const options: AgPolarChartOptions<RevenueData> = {
     container: document.getElementById('myChart'),
     data: getData(),

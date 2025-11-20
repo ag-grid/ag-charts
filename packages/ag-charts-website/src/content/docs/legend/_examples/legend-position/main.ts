@@ -4,9 +4,18 @@ import {
     AgChartLegendPositionOptions,
     AgCharts,
 } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+    ModuleRegistry,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPositionOptions } } = {
     container: document.getElementById('myChart'),
 

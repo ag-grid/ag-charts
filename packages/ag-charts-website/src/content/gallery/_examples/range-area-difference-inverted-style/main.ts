@@ -1,7 +1,11 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { NumberAxisModule, UnitTimeAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

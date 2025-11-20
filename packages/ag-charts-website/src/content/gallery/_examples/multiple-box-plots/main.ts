@@ -1,7 +1,11 @@
 import { AgBoxPlotSeriesTooltipRendererParams, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { BandHighlightModule, BoxPlotSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const shared = {
     xKey: 'countryOfArrival',
     xName: 'Country Of Arrival',

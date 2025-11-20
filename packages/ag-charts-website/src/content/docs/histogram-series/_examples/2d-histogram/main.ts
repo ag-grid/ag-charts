@@ -1,7 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { HistogramSeriesModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
 
+
+ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

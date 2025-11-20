@@ -1,8 +1,12 @@
 import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import { CategoryAxisModule, NumberAxisModule, ModuleRegistry } from 'ag-charts-community';
+import { GradientLegendModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 import { topology } from './topology';
 
+
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, MapShapeSeriesModule, NumberAxisModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
