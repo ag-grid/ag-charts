@@ -136,12 +136,12 @@ export function createConsoleLogs() {
 
     const onMsg = (msg: ConsoleMessage) => {
         const text = msg.text();
-        if (msg.type() === 'error') {
-            consoleErrors.push(text);
-        }
         const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
         if (ignore) {
             return;
+        }
+        if (msg.type() === 'error') {
+            consoleErrors.push(text);
         }
         consoleMsgs.push(text);
     };
