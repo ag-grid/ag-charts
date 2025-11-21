@@ -132,6 +132,7 @@ export function createConsoleLogs() {
     const consoleErrors: string[] = [];
     const clear = () => {
         consoleMsgs.length = 0;
+        consoleErrors.length = 0;
     };
 
     const onMsg = (msg: ConsoleMessage) => {

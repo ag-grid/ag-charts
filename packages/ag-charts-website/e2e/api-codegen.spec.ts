@@ -58,6 +58,7 @@ test.describe('api-codegen', () => {
                         break;
                     }
                 }
+                consoleLogs.clear(); // ignore React errors fired by calling .click(); we don't care about that
 
                 // Click all "See More" code snippet buttons
                 const buttons = page.locator('button[class*="_seeMore"]');
