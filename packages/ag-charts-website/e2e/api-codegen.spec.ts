@@ -60,7 +60,7 @@ test.describe('api-codegen', () => {
             test(name, async ({ page }) => {
                 await gotoUrl(page, toPageUrl(`javascript/${name}`));
 
-                // Recursively expand all nest properties
+                // Recursively expand all nested properties
                 while (true) {
                     const spanCount = await page.evaluate(() => {
                         const selector =
