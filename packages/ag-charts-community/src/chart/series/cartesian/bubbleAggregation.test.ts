@@ -1,5 +1,7 @@
 import { computeBubbleAggregation } from './bubbleAggregation';
 
+const SIZE_QUANTIZATION = 3;
+
 describe('computeBubbleAggregation', () => {
     describe('basic aggregation', () => {
         it('should create aggregation for simple dataset without size values', () => {
@@ -35,7 +37,15 @@ describe('computeBubbleAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.filters).toBeDefined();
             // Should have SIZE_QUANTIZATION (3) filters for different size ranges
-            expect(result!.filters.length).toBeGreaterThan(0);
+            expect(result!.filters.length).toBe(SIZE_QUANTIZATION);
+            // Verify each filter has distinct sizeRatio values
+            const sizeRatios = result!.filters.map((f) => f.sizeRatio);
+            expect(new Set(sizeRatios).size).toBe(SIZE_QUANTIZATION);
+            // Verify sizeRatio values are in valid range [0, 1)
+            for (const filter of result!.filters) {
+                expect(filter.sizeRatio).toBeGreaterThanOrEqual(0);
+                expect(filter.sizeRatio).toBeLessThan(1);
+            }
         });
 
         it('should return undefined when size domain has no range', () => {
@@ -53,13 +63,16 @@ describe('computeBubbleAggregation', () => {
 
             // Should still create aggregation but with single filter (no size quantization)
             expect(result).toBeDefined();
+            expect(result!.filters.length).toBe(1);
+            expect(result!.filters[0].sizeRatio).toBe(0);
         });
     });
 
     describe('quadtree structure', () => {
         it('should create hierarchical quadtree nodes', () => {
-            const xValues = Array.from({ length: 100 }, () => Math.random() * 100);
-            const yValues = Array.from({ length: 100 }, () => Math.random() * 100);
+            // Use deterministic data instead of random
+            const xValues = Array.from({ length: 100 }, (_, i) => (i % 10) * 10);
+            const yValues = Array.from({ length: 100 }, (_, i) => Math.floor(i / 10) * 10);
             const xDomain: [number, number] = [0, 100];
             const yDomain: [number, number] = [0, 100];
             const sizeDomain: [number, number] = [0, 0];
@@ -76,6 +89,12 @@ describe('computeBubbleAggregation', () => {
             expect(node).toHaveProperty('indices');
             expect(node).toHaveProperty('primaryDatumIndex');
             expect(node).toHaveProperty('children');
+            // Verify node structure
+            expect(node!.indices.length).toBeGreaterThan(0);
+            expect(node!.indices.length).toBeLessThanOrEqual(100);
+            expect(node!.primaryDatumIndex).toBeGreaterThanOrEqual(0);
+            expect(node!.primaryDatumIndex).toBeLessThan(100);
+            expect(node!.indices).toContain(node!.primaryDatumIndex);
         });
 
         it('should have nodes with valid bounds', () => {
@@ -104,6 +123,11 @@ describe('computeBubbleAggregation', () => {
 
             expect(node!.x1).toBeGreaterThanOrEqual(node!.x0);
             expect(node!.y1).toBeGreaterThanOrEqual(node!.y0);
+            // Root node should cover full domain [0, 1] for both axes
+            expect(node!.x0).toBe(0);
+            expect(node!.x1).toBe(1);
+            expect(node!.y0).toBe(0);
+            expect(node!.y1).toBe(1);
         });
 
         it('should have valid primary datum indices', () => {
@@ -152,20 +176,30 @@ describe('computeBubbleAggregation', () => {
             });
 
             expect(result).toBeDefined();
-            // Should have multiple filters for different size quantiles
-            expect(result!.filters.length).toBeGreaterThan(0);
+            // Should have SIZE_QUANTIZATION filters for different size quantiles
+            expect(result!.filters.length).toBe(SIZE_QUANTIZATION);
 
-            // Verify sizeRatio is in valid range [0, 1)
+            // Verify sizeRatio values are distinct and in valid range [0, 1)
+            const sizeRatios = result!.filters.map((f) => f.sizeRatio).sort((a, b) => a - b);
+            for (let i = 0; i < sizeRatios.length; i++) {
+                expect(sizeRatios[i]).toBeGreaterThanOrEqual(0);
+                expect(sizeRatios[i]).toBeLessThan(1);
+                if (i > 0) {
+                    expect(sizeRatios[i]).toBeGreaterThan(sizeRatios[i - 1]);
+                }
+            }
+            // Verify each filter has a node with indices
             for (const filter of result!.filters) {
-                expect(filter.sizeRatio).toBeGreaterThanOrEqual(0);
-                expect(filter.sizeRatio).toBeLessThan(1);
+                expect(filter.node).toBeDefined();
+                expect(filter.node!.indices.length).toBeGreaterThan(0);
             }
         });
 
         it('should group bubbles by size into quantiles', () => {
             const count = 300;
-            const xValues = Array.from({ length: count }, () => Math.random() * 100);
-            const yValues = Array.from({ length: count }, () => Math.random() * 100);
+            // Use deterministic but more spread out spatial distribution to avoid quadtree recursion issues
+            const xValues = Array.from({ length: count }, (_, i) => ((i * 7) % 100) + (i % 3)); // Spread out with some variation
+            const yValues = Array.from({ length: count }, (_, i) => ((i * 11) % 100) + (i % 5)); // Spread out with some variation
             const sizeValues = Array.from({ length: count }, (_, i) => Math.floor((i / count) * 100)); // 0-99
             const xDomain: [number, number] = [0, 100];
             const yDomain: [number, number] = [0, 100];
@@ -177,7 +211,18 @@ describe('computeBubbleAggregation', () => {
             });
 
             expect(result).toBeDefined();
-            expect(result!.filters.length).toBeGreaterThan(0);
+            expect(result!.filters.length).toBe(SIZE_QUANTIZATION);
+            // Verify that indices are distributed across size quantiles
+            const allIndices = new Set<number>();
+            for (const filter of result!.filters) {
+                expect(filter.node).toBeDefined();
+                expect(filter.node!.indices.length).toBeGreaterThan(0);
+                for (const idx of filter.node!.indices) {
+                    allIndices.add(idx);
+                }
+            }
+            // Most indices should be covered (allowing for some overlap at boundaries)
+            expect(allIndices.size).toBeGreaterThan(count * 0.5);
         });
     });
 

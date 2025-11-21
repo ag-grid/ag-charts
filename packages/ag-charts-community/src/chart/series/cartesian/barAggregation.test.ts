@@ -1,3 +1,4 @@
+import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from '../aggregation';
 import { computeBarAggregation } from './barAggregation';
 
 describe('computeBarAggregation', () => {
@@ -30,6 +31,11 @@ describe('computeBarAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
+            // At threshold, should have at least one filter level
+            const coarsestLevel = result![0];
+            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
+            expect(coarsestLevel.positiveIndices.length).toBe(coarsestLevel.maxRange);
+            expect(coarsestLevel.negativeIndices.length).toBe(coarsestLevel.maxRange);
         });
 
         it('should return aggregation filters for large datasets (> 1000 points)', () => {
@@ -46,6 +52,13 @@ describe('computeBarAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
+            // Large dataset should generate multiple compaction levels
+            // Verify compaction progression: each level should have double the maxRange of previous
+            for (let i = 1; i < result!.length; i++) {
+                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
+            }
+            // Coarsest level should stop at 64 or less
+            expect(result![0].maxRange).toBeLessThanOrEqual(64);
         });
     });
 
@@ -127,6 +140,15 @@ describe('computeBarAggregation', () => {
             for (const filter of result!) {
                 expect(filter.positiveIndices.length).toBeGreaterThan(0);
                 expect(Array.isArray(filter.negativeIndices)).toBe(true);
+                // All negative indices should be sentinel values (-1) when no negative data exists
+                expect(filter.negativeIndices.every((idx) => idx === -1)).toBe(true);
+                // Verify corresponding typed array also uses sentinels
+                for (let i = 0; i < filter.maxRange; i++) {
+                    const aggIndex = i * AGGREGATION_SPAN;
+                    // X_MIN and X_MAX indices should be -1 for empty negative buckets
+                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
+                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
+                }
             }
         });
 
@@ -146,6 +168,15 @@ describe('computeBarAggregation', () => {
             for (const filter of result!) {
                 expect(Array.isArray(filter.positiveIndices)).toBe(true);
                 expect(filter.negativeIndices.length).toBeGreaterThan(0);
+                // All positive indices should be sentinel values (-1) when no positive data exists
+                expect(filter.positiveIndices.every((idx) => idx === -1)).toBe(true);
+                // Verify corresponding typed array also uses sentinels
+                for (let i = 0; i < filter.maxRange; i++) {
+                    const aggIndex = i * AGGREGATION_SPAN;
+                    // X_MIN and X_MAX indices should be -1 for empty positive buckets
+                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
+                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
+                }
             }
         });
 
@@ -184,6 +215,14 @@ describe('computeBarAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // Verify stacked bars aggregate correctly: all values are positive (yEnd > yStart)
+            const filter = result![0];
+            expect(filter.positiveIndices.length).toBe(filter.maxRange);
+            // Should have some non-sentinel positive indices
+            const hasPositiveData = filter.positiveIndices.some((idx) => idx >= 0);
+            expect(hasPositiveData).toBe(true);
+            // Negative indices should all be sentinels since all bars are positive
+            expect(filter.negativeIndices.every((idx) => idx === -1)).toBe(true);
         });
 
         it('should handle non-stacked bars (yStartValues undefined)', () => {

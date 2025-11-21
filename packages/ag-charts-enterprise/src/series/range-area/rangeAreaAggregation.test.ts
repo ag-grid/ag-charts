@@ -17,8 +17,8 @@ describe('computeRangeAreaAggregation', () => {
 
         it('should return filters when data points at threshold', () => {
             const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeRangeAreaAggregation([0, 1000], xValues, highValues, lowValues, {
                 xNeedsValueOf: false,
@@ -27,12 +27,17 @@ describe('computeRangeAreaAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // At threshold, should have at least one filter level
+            const coarsestLevel = result![0];
+            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
+            expect(coarsestLevel.topIndices.length).toBeGreaterThan(0);
+            expect(coarsestLevel.bottomIndices.length).toBeGreaterThan(0);
         });
 
         it('should return filters when data points above threshold', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 2000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 2000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeRangeAreaAggregation([0, 2000], xValues, highValues, lowValues, {
                 xNeedsValueOf: false,
@@ -41,6 +46,13 @@ describe('computeRangeAreaAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // Large dataset should generate multiple compaction levels
+            // Verify compaction progression: each level should have double the maxRange of previous
+            for (let i = 1; i < result!.length; i++) {
+                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
+            }
+            // Coarsest level should stop at 64 or less
+            expect(result![0].maxRange).toBeLessThanOrEqual(64);
         });
     });
 
@@ -131,6 +143,21 @@ describe('computeRangeAreaAggregation', () => {
             for (const index of bottomIndices) {
                 expect(index).toBeGreaterThanOrEqual(0);
                 expect(index).toBeLessThan(xValues.length);
+            }
+            // Verify top indices are sorted (extrema tracking should maintain order)
+            for (let i = 1; i < topIndices.length; i++) {
+                expect(topIndices[i]).toBeGreaterThan(topIndices[i - 1]);
+            }
+            // Verify bottom indices are sorted
+            for (let i = 1; i < bottomIndices.length; i++) {
+                expect(bottomIndices[i]).toBeGreaterThan(bottomIndices[i - 1]);
+            }
+            // Verify that top indices correspond to high values and bottom to low values
+            // (at least verify they're not swapped)
+            const firstTopIndex = topIndices[0];
+            const firstBottomIndex = bottomIndices[0];
+            if (firstTopIndex >= 0 && firstBottomIndex >= 0) {
+                expect(highValues[firstTopIndex]).toBeGreaterThanOrEqual(lowValues[firstBottomIndex]);
             }
         });
 

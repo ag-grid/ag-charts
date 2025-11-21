@@ -16,8 +16,8 @@ describe('computeOhlcAggregation', () => {
 
         it('should return filters when data points at threshold', () => {
             const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
@@ -25,12 +25,16 @@ describe('computeOhlcAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // At threshold, should have at least one filter level
+            const coarsestLevel = result![0];
+            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
+            expect(coarsestLevel.indexData.length).toBe(coarsestLevel.maxRange * SPAN);
         });
 
         it('should return filters when data points above threshold', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 2000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 2000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeOhlcAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
@@ -38,6 +42,13 @@ describe('computeOhlcAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // Large dataset should generate multiple compaction levels
+            // Verify compaction progression: each level should have double the maxRange of previous
+            for (let i = 1; i < result!.length; i++) {
+                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
+            }
+            // Coarsest level should stop at 64 or less
+            expect(result![0].maxRange).toBeLessThanOrEqual(64);
         });
     });
 
@@ -101,6 +112,7 @@ describe('computeOhlcAggregation', () => {
     describe('OHLC extrema correctness', () => {
         it('should track open/high/low/close indices correctly', () => {
             const xValues = Array.from({ length: 1000 }, (_, i) => i);
+            // Create deterministic OHLC data: monotonically increasing high, decreasing low
             const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
             const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
@@ -112,12 +124,13 @@ describe('computeOhlcAggregation', () => {
             const { indexData } = result![0];
 
             // Check all aggregation buckets
+            let bucketsWithData = 0;
             for (let i = 0; i < result![0].maxRange; i++) {
                 const aggIndex = i * SPAN;
-                const openIndex = indexData[aggIndex + OPEN];
-                const highIndex = indexData[aggIndex + HIGH];
-                const lowIndex = indexData[aggIndex + LOW];
-                const closeIndex = indexData[aggIndex + CLOSE];
+                const openIndex = indexData[aggIndex + OPEN]; // X_MIN - first index in bucket
+                const highIndex = indexData[aggIndex + HIGH]; // Y_MAX - max high value index
+                const lowIndex = indexData[aggIndex + LOW]; // Y_MIN - min low value index
+                const closeIndex = indexData[aggIndex + CLOSE]; // X_MAX - last index in bucket
 
                 // All indices should be valid
                 expect(openIndex).toBeGreaterThanOrEqual(-1);
@@ -126,23 +139,26 @@ describe('computeOhlcAggregation', () => {
                 expect(closeIndex).toBeGreaterThanOrEqual(-1);
 
                 if (openIndex >= 0) {
+                    bucketsWithData++;
                     expect(openIndex).toBeLessThan(xValues.length);
                     expect(highIndex).toBeLessThan(xValues.length);
                     expect(lowIndex).toBeLessThan(xValues.length);
                     expect(closeIndex).toBeLessThan(xValues.length);
 
-                    // Open should be <= Close (time order)
+                    // Open should be <= Close (time order - first <= last in bucket)
                     expect(openIndex).toBeLessThanOrEqual(closeIndex);
 
-                    // High value at highIndex should be >= values at open/close indices
+                    // High value at highIndex should be >= high values at open/close indices
                     expect(highValues[highIndex]).toBeGreaterThanOrEqual(highValues[openIndex]);
                     expect(highValues[highIndex]).toBeGreaterThanOrEqual(highValues[closeIndex]);
 
-                    // Low value at lowIndex should be <= values at open/close indices
+                    // Low value at lowIndex should be <= low values at open/close indices
                     expect(lowValues[lowIndex]).toBeLessThanOrEqual(lowValues[openIndex]);
                     expect(lowValues[lowIndex]).toBeLessThanOrEqual(lowValues[closeIndex]);
                 }
             }
+            // Should have at least some buckets with data
+            expect(bucketsWithData).toBeGreaterThan(0);
         });
 
         it('should handle monotonically increasing high values', () => {

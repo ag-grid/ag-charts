@@ -28,6 +28,10 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
+            // At threshold, should have at least one filter level
+            const coarsestLevel = result![0];
+            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
+            expect(coarsestLevel.indices.length).toBeGreaterThan(0);
         });
 
         it('should return aggregation filters for large datasets (> 1000 points)', () => {
@@ -43,6 +47,15 @@ describe('computeLineAggregation', () => {
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result!.length).toBeGreaterThan(0);
+            // Large dataset should generate multiple compaction levels
+            // Verify compaction progression: each level should have double the maxRange of previous
+            for (let i = 1; i < result!.length; i++) {
+                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
+            }
+            // Coarsest level should stop at 64 or less, or have <= 10 indices
+            const coarsestLevel = result![0];
+            const stopConditionMet = coarsestLevel.maxRange <= 64 || coarsestLevel.indices.length <= 10;
+            expect(stopConditionMet).toBe(true);
         });
     });
 
@@ -202,6 +215,12 @@ describe('computeLineAggregation', () => {
                 expect(filter.indices.includes(100)).toBe(false);
                 expect(filter.indices.includes(200)).toBe(false);
                 expect(filter.indices.includes(300)).toBe(false);
+                // Verify that some valid indices are included (aggregation may skip some)
+                expect(filter.indices.length).toBeGreaterThan(0);
+                // Verify all included indices are valid (not null positions)
+                for (const index of filter.indices) {
+                    expect([100, 200, 300].includes(index)).toBe(false);
+                }
             }
         });
 
@@ -217,6 +236,14 @@ describe('computeLineAggregation', () => {
 
             expect(result).toBeDefined();
             // Should still work with categorical X axis (uses indices instead of values)
+            expect(result!.length).toBeGreaterThan(0);
+            // Verify indices are valid for categorical data
+            for (const filter of result!) {
+                for (const index of filter.indices) {
+                    expect(index).toBeGreaterThanOrEqual(0);
+                    expect(index).toBeLessThan(xValues.length);
+                }
+            }
         });
 
         it('should handle monotonically increasing values', () => {

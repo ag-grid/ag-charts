@@ -16,8 +16,8 @@ describe('computeRangeBarAggregation', () => {
 
         it('should return filters when data points at threshold', () => {
             const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeRangeBarAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
@@ -25,12 +25,16 @@ describe('computeRangeBarAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // At threshold, should have at least one filter level
+            const coarsestLevel = result![0];
+            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
+            expect(coarsestLevel.indexData.length).toBe(coarsestLevel.maxRange * SPAN);
         });
 
         it('should return filters when data points above threshold', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
+            const highValues = Array.from({ length: 2000 }, (_, i) => 50 + i * 0.1);
+            const lowValues = Array.from({ length: 2000 }, (_, i) => 50 - i * 0.1);
 
             const result = computeRangeBarAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
@@ -38,6 +42,13 @@ describe('computeRangeBarAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThan(0);
+            // Large dataset should generate multiple compaction levels
+            // Verify compaction progression: each level should have double the maxRange of previous
+            for (let i = 1; i < result!.length; i++) {
+                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
+            }
+            // Coarsest level should stop at 64 or less
+            expect(result![0].maxRange).toBeLessThanOrEqual(64);
         });
     });
 
