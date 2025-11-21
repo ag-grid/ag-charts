@@ -27,6 +27,25 @@ test.describe('api-codegen', () => {
     const consoleLogs = createConsoleLogs();
     setupIntrinsicAssertions(test);
 
+    /**
+     * The API code snippet generator breaks if we use anonymous nested objects.
+     *
+     * Example:
+     *    interface AgSomeParams {
+     *        myThing?: { // ERROR! This myThing anonymous object should be declared in an `interface AgMyThing`
+     *            myNumber?: number;
+     *        };
+     *    }
+     *
+     *    interface AgSomeRef {
+     *        someCallback?: (params: AgSomeParams) => void;
+     *    }
+     *
+     * When generating the docs for {% apiReference id="AgSomeRef" /%}, this faulty example will log an error in the
+     * console when clicking the "See More" button of the `someCallback` option.
+     *
+     * These playwright-tests check that the console is clear from errors when clicking these buttons.
+     */
     test.describe('expand see-more buttons', () => {
         let totalSpanCount: number = 0;
         let totalButtonCount: number = 0;
