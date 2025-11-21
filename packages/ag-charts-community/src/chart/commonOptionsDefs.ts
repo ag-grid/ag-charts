@@ -140,9 +140,8 @@ const tooltipPlacementValidator = union(
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 export const textOrSegments = or(
     string,
-    // TODO remove undocumented in next major version, or make official and add to external types
-    undocumented(number),
-    undocumented(date),
+    number,
+    date,
     arrayOfDefs<TextSegment>(
         {
             text: required(string),
