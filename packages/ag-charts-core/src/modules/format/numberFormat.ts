@@ -91,9 +91,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     let padFill = fill;
     if (zero) {
         padFill ??= '0';
-        if (padAlign == null) {
-            padAlign = '=';
-        }
+        padAlign ??= '=';
     }
 
     return (n: number, fractionDigits?: number) => {
