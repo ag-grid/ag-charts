@@ -73,13 +73,13 @@ export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
 }
 
 export interface AgBaseContinuousAxisOptions<TDatum extends Date | number = number> {
-    /** User override for the automatically determined min value (based on series data). */
+    /** The min value for the axis domain. */
     min?: TDatum;
-    /** User override for the automatically determined max value (based on series data). */
+    /** The max value for the axis domain. */
     max?: TDatum;
-    /** The min value for the axis if outside the series data. */
+    /** The min value for the axis, unless extended by the series data or `nice` option. */
     preferredMin?: TDatum;
-    /** The max value for the axis if outside the series data. */
+    /** The max value for the axis, unless extended by the series data or `nice` option. */
     preferredMax?: TDatum;
 }
 
@@ -87,7 +87,10 @@ export interface AgContinuousAxisOptions<
     TDatum extends Date | number = number,
     TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
 > extends AgBaseContinuousAxisOptions<TDatum> {
-    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks.
+     *
+     * __Note:__ This does not override the `min` or `max` options.
+     */
     nice?: boolean;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TInterval>;

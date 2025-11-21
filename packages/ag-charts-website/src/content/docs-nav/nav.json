@@ -108,6 +108,11 @@
                     "children": [
                         {
                             "type": "item",
+                            "title": "Axis Configuration",
+                            "path": "axes-configuration"
+                        },
+                        {
+                            "type": "item",
                             "title": "Axis Types",
                             "path": "axes-types"
                         },

@@ -46,6 +46,7 @@ The full list of breaking changes across all features for version {% migrationVe
 <!-- ### TODO: Breaking changes section Name -->
 
 -   `highlightStyle` is removed from `treemap` and `sunburst` series. Use `highlight` options and `itemStyler` callbacks instead.
+-   The `highlighted` boolean is removed from all callback params. Use `highlightedStyle` instead.
 
 {% /expandingSection %}
 
@@ -65,6 +66,7 @@ This release includes the following behaviour changes:
 
 -   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
 -   `interval.placement` defaults to `'between'` instead of `'on'`.
+-   `min` and `max` are absolute values and not overridden by `nice`. Use `preferredMin` and `preferredMax` for more flexible options.
 
 ### Highlighting
 
