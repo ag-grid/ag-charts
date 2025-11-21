@@ -167,10 +167,12 @@ function NavProperty({
     const interfaceRef = reference?.get(memberType);
     const isInterface = interfaceRef?.kind === 'interface';
     const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
+    const isInterfaceRecord = config.specialTypes?.[memberType] === 'InterfaceRecord';
     const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
-    const expandable = isInterface || isInterfaceArray;
+    const expandable = isInterface || isInterfaceArray || isInterfaceRecord;
     const isObjectArray =
         !isInterfaceArray &&
+        !isInterfaceRecord &&
         typeof member.type === 'object' &&
         member.type.kind === 'array' &&
         reference?.has(memberType) &&
@@ -182,7 +184,7 @@ function NavProperty({
         if (config.keepExpanded?.includes(member.name)) {
             return true;
         }
-        if (isInterfaceArray) {
+        if (isInterfaceArray || isInterfaceRecord) {
             return (
                 typeof selection?.selection.pageInterface === 'string' &&
                 getInterfaceArrayTypes(reference, interfaceRef).some(
@@ -259,6 +261,13 @@ function NavProperty({
                         ) : (
                             cleanupName(member.name)
                         )}
+                        {isInterfaceRecord ? (
+                            <>
+                                .<span className={styles.recordAlias}>key</span>
+                            </>
+                        ) : (
+                            ''
+                        )}
                     </span>
                     {expandable && (
                         <OpeningBrackets
@@ -294,6 +303,7 @@ function NavProperty({
                                       key={type}
                                       depth={depth + 1}
                                       path={path.concat({ name, type })}
+                                      isRecordUnion={isInterfaceRecord}
                                       onClick={onClick}
                                   />
                               ))}
@@ -308,10 +318,12 @@ function NavProperty({
 function NavTypedUnionProperty({
     depth = 0,
     path,
+    isRecordUnion,
     onClick,
 }: {
     depth?: number;
     path: NavigationPath[];
+    isRecordUnion: boolean;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
@@ -348,6 +360,7 @@ function NavTypedUnionProperty({
                 >
                     <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />
                     <>
+                        {isRecordUnion ? <span className={styles.unionPipe}>| </span> : ''}
                         {isExpanded ? (
                             <span className={styles.punctuation}>{'{'}</span>
                         ) : (

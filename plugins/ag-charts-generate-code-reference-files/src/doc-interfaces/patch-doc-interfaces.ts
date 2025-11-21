@@ -89,19 +89,33 @@ function patchAgChartOptionsReference(typeResolver: TypeResolver) {
             const memberTypeName: string | undefined = readMemberName(member);
             if (memberTypeName == null) {
                 unsupportedMembers.push(member);
-            } else {
-                const union = getTypeUnion(typeResolver.get(memberTypeName));
-                options.push(...union);
+                continue;
+            }
 
-                for (const subType of union) {
-                    const subInterfaceRef = typeResolver.get(subType);
-                    if (subInterfaceRef == null) {
-                        console.error('Cannot find API reference for', subType);
-                        unsupportedMembers.push(member);
-                    } else if (subInterfaceRef.kind !== 'interface') {
-                        console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
-                        unsupportedMembers.push(member);
-                    }
+            const memberType = typeResolver.get(memberTypeName);
+            if (memberType == null) {
+                console.error(`Cannot find member ${memberTypeName} for ${member.name}`);
+                continue;
+            }
+
+            let union: string[] = [];
+
+            if (member.name === 'axes') {
+                const axis = typeResolver.get(memberTypeName.replace('Axes', 'Axis'));
+                union = (axis as any)?.type.type.map((t) => t.type);
+            } else {
+                union = getTypeUnion(memberType);
+            }
+            options.push(...union);
+
+            for (const subType of union) {
+                const subInterfaceRef = typeResolver.get(subType);
+                if (subInterfaceRef == null) {
+                    console.error('Cannot find API reference for', subType);
+                    unsupportedMembers.push(member);
+                } else if (subInterfaceRef.kind !== 'interface') {
+                    console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
+                    unsupportedMembers.push(member);
                 }
             }
         }
@@ -115,9 +129,9 @@ function patchAgChartOptionsReference(typeResolver: TypeResolver) {
         throw new Error('Failed to patch options due to unsupported members');
     }
 
-    typeResolver.set('AgChartAxisOptions', {
+    typeResolver.set('AgChartAxesOptions', {
         kind: 'typeAlias',
-        name: 'AgChartAxisOptions',
+        name: 'AgChartAxesOptions',
         type: { kind: 'union', type: specialOptions.axes },
     });
     typeResolver.set('AgChartSeriesOptions', {
@@ -135,7 +149,7 @@ function patchAgChartOptionsReference(typeResolver: TypeResolver) {
             }
             if (member.name === 'axes') {
                 return Object.assign({}, member, {
-                    type: Object.assign({}, member.type, { type: 'AgChartAxisOptions' }),
+                    type: Object.assign({}, member.type, { type: 'AgChartAxesOptions' }),
                 });
             }
             if (member.name === 'series') {
