@@ -103,7 +103,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
             label: {
-                format: '#{p}',
+                format: '#{.2p}',
             },
             title: {
                 text: 'Percentage of Total Energy',

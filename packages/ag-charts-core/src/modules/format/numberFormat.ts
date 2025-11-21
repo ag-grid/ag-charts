@@ -87,32 +87,56 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         formatterPrecision = precision;
     }
 
+    let padAlign = align;
+    let padFill = fill;
+    if (zero) {
+        padFill ??= '0';
+        padAlign ??= '=';
+    }
+
     return (n: number, fractionDigits?: number) => {
-        let result = formatBody(n, formatterPrecision ?? fractionDigits ?? defaultFormatterPrecision);
+        // When a format type is specified and no precision is in the format string:
+        // - For 'f' and '%' types, fractionDigits can be used (it represents decimal places)
+        // - For other types (s, r, g, e, etc.), use default precision (fractionDigits represents tick step, not format precision)
+        // - When no type is specified, fractionDigits can be used as a fallback
+        let effectivePrecision: number;
+        if (formatterPrecision != null) {
+            effectivePrecision = formatterPrecision;
+        } else if (type === 'f' || type === '%') {
+            effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
+        } else if (type) {
+            effectivePrecision = defaultFormatterPrecision;
+        } else {
+            effectivePrecision = fractionDigits ?? defaultFormatterPrecision;
+        }
+        let result = formatBody(n, effectivePrecision);
         if (trim) {
             result = removeTrailingZeros(result);
         }
         if (comma) {
             result = insertSeparator(result, comma);
         }
-        result = addSign(n, result, sign);
-        if (symbol && symbol !== '#') {
-            result = `${symbol}${result}`;
+
+        const symbolPrefix = getSymbolPrefix(symbol, type);
+        const symbolPrefixLength = symbolPrefix?.length ?? 0;
+        if (symbolPrefix) {
+            result = `${symbolPrefix}${result}`;
         }
-        if (symbol === '#' && type === 'x') {
-            result = `0x${result}`;
-        }
+
         if (type === 's') {
             result = `${result}${getSIPrefix(n)}`;
         }
         if (type === '%' || type === 'p') {
             result = `${result}%`;
         }
+        const { value: signedResult, prefixLength: signPrefixLength } = addSign(n, result, sign);
+        const totalPrefixLength = signPrefixLength + symbolPrefixLength;
+        let output = signedResult;
         if (width != null && !Number.isNaN(width)) {
-            result = addPadding(result, width, fill ?? zero, align);
+            output = addPadding(output, width, padFill ?? ' ', padAlign, totalPrefixLength);
         }
-        result = `${prefix}${result}${suffix}`;
-        return result;
+        output = `${prefix}${output}${suffix}`;
+        return output;
     };
 }
 
@@ -234,26 +258,66 @@ function getSIPrefixPower(n: number) {
     return clamp(minSIPrefix, n ? Math.floor(Math.log10(Math.abs(n)) / 3) * 3 : 0, maxSIPrefix);
 }
 
-function addSign(num: number, numString: string, signType = '') {
+function addSign(num: number, numString: string, signType = ''): { value: string; prefixLength: number } {
     if (signType === '(') {
-        return num >= 0 ? numString : `(${numString})`;
+        if (num >= 0) {
+            return { value: numString, prefixLength: 0 };
+        }
+        return { value: `(${numString})`, prefixLength: 1 };
     }
-    const plusSign = signType === '+' ? '+' : '';
-    return `${num >= 0 ? plusSign : minusSign}${numString}`;
+
+    let signPrefix = '';
+    if (num < 0) {
+        signPrefix = minusSign;
+    } else if (signType === '+') {
+        signPrefix = '+';
+    } else if (signType === ' ') {
+        signPrefix = ' ';
+    }
+
+    return { value: `${signPrefix}${numString}`, prefixLength: signPrefix.length };
 }
 
-function addPadding(numString: string, width: number, fill = ' ', align = '>') {
-    let result = numString;
-    if (align === '>' || !align) {
-        result = result.padStart(width, fill);
-    } else if (align === '<') {
-        result = result.padEnd(width, fill);
-    } else if (align === '^') {
-        const padWidth = Math.max(0, width - result.length);
-        const padLeft = Math.ceil(padWidth / 2);
-        const padRight = Math.floor(padWidth / 2);
-        result = result.padStart(padLeft + result.length, fill);
-        result = result.padEnd(padRight + result.length, fill);
+function addPadding(numString: string, width: number, fill = ' ', align = '>', prefixLength = 0) {
+    const padSize = width - numString.length;
+    if (padSize <= 0) {
+        return numString;
     }
-    return result;
+    const padding = fill.repeat(padSize);
+
+    if (align === '=') {
+        const clampedPrefix = Math.min(Math.max(prefixLength, 0), numString.length);
+        const start = numString.slice(0, clampedPrefix);
+        const rest = numString.slice(clampedPrefix);
+        return `${start}${padding}${rest}`;
+    }
+
+    if (align === '>' || !align) {
+        return padding + numString;
+    } else if (align === '<') {
+        return `${numString}${padding}`;
+    } else if (align === '^') {
+        const padLeft = Math.ceil(padSize / 2);
+        const padRight = Math.floor(padSize / 2);
+        return `${fill.repeat(padLeft)}${numString}${fill.repeat(padRight)}`;
+    }
+    return padding + numString;
+}
+
+function getSymbolPrefix(symbol: string | undefined, type: string | undefined) {
+    if (symbol === '#') {
+        switch (type) {
+            case 'b':
+                return '0b';
+            case 'o':
+                return '0o';
+            case 'x':
+                return '0x';
+            case 'X':
+                return '0X';
+            default:
+                return '';
+        }
+    }
+    return symbol ?? '';
 }
