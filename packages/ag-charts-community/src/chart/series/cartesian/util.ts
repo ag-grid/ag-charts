@@ -156,9 +156,40 @@ export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeries
     return { type, position };
 }
 
+export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    datum: DatumDefault,
+    seriesOptions: SeriesOptions
+): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
+    // Only predict the x-axis.
+    if (direction !== ChartAxisDirection.X) return;
+    if (!isObject(datum)) return;
+
+    const key = getSeriesOptionsKey(direction, seriesOptions);
+    if (key == null || !(key in datum)) return;
+
+    const value = datum[key];
+    const position = getAxisPosition(direction, seriesOptions);
+
+    const ordinalTimeAxis = predictOrdinalTimeAxisType(key, value);
+    if (ordinalTimeAxis) {
+        return { type: ordinalTimeAxis, position };
+    }
+
+    if (isString(value)) {
+        return { type: 'category', position };
+    }
+}
+
 function predictTimeAxisType(key: string, value: unknown) {
     if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
         return CARTESIAN_AXIS_TYPE.TIME;
+    }
+}
+
+function predictOrdinalTimeAxisType(key: string, value: unknown) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+        return CARTESIAN_AXIS_TYPE.ORDINAL_TIME;
     }
 }
 
