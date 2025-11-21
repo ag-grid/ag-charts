@@ -73,3 +73,6 @@ vitest.config.*.timestamp*
 .tmp
 /.cursor/
 /docs
+
+# Worktree setup marker
+.worktree-is-setup
