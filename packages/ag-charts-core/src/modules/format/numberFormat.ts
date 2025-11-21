@@ -63,19 +63,7 @@ export function createNumberFormatter(format: string): ((n: number, fractionDigi
 export function createNumberFormatter(format: string | FormatterOptions) {
     const options = typeof format === 'string' ? parseNumberFormat(format) : format;
     if (options == null) return;
-    const {
-        fill,
-        align,
-        sign = '-',
-        symbol,
-        zero,
-        width,
-        comma,
-        type,
-        prefix = '',
-        suffix = '',
-        precision,
-    } = options;
+    const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 
     const precisionIsNaN = precision == null || Number.isNaN(precision);
@@ -299,7 +287,7 @@ function addPadding(numString: string, width: number, fill = ' ', align = '>', p
     }
     const padding = fill.repeat(padSize);
 
-    if (align === '=' ) {
+    if (align === '=') {
         const clampedPrefix = Math.min(Math.max(prefixLength, 0), numString.length);
         const start = numString.slice(0, clampedPrefix);
         const rest = numString.slice(clampedPrefix);
