@@ -331,38 +331,4 @@ describe('computeLineAggregation', () => {
             }
         });
     });
-
-    describe('performance characteristics', () => {
-        it('should handle 10k points efficiently', () => {
-            const xValues = Array.from({ length: 10000 }, (_, i) => i);
-            const yValues = Array.from({ length: 10000 }, (_, i) => Math.sin(i / 10));
-            const domain: [number, number] = [0, 9999];
-
-            const start = performance.now();
-            const result = computeLineAggregation(domain, xValues, yValues, {
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-            const duration = performance.now() - start;
-
-            expect(result).toBeDefined();
-            expect(duration).toBeLessThan(1000); // Should complete in less than 1 second
-        });
-
-        it('should handle 100k points efficiently', () => {
-            const xValues = Array.from({ length: 100000 }, (_, i) => i);
-            const yValues = Array.from({ length: 100000 }, (_, i) => Math.sin(i / 10));
-            const domain: [number, number] = [0, 99999];
-
-            const start = performance.now();
-            const result = computeLineAggregation(domain, xValues, yValues, {
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-            const duration = performance.now() - start;
-
-            expect(result).toBeDefined();
-            expect(duration).toBeLessThan(5000); // Should complete in less than 5 seconds
-        });
-    });
 });

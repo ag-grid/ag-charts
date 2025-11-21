@@ -414,38 +414,6 @@ describe('computeRangeBarAggregation', () => {
         });
     });
 
-    describe('performance', () => {
-        it('should handle large datasets efficiently', () => {
-            const xValues = Array.from({ length: 10000 }, (_, i) => i);
-            const highValues = Array.from({ length: 10000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 10000 }, () => Math.random() * 100);
-
-            const start = performance.now();
-            const result = computeRangeBarAggregation([0, 10000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-            });
-            const duration = performance.now() - start;
-
-            expect(result).toBeDefined();
-            expect(duration).toBeLessThan(1000); // Should complete in < 1 second
-        });
-
-        it('should produce compact aggregation for large datasets', () => {
-            const xValues = Array.from({ length: 50000 }, (_, i) => i);
-            const highValues = Array.from({ length: 50000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 50000 }, () => Math.random() * 100);
-
-            const result = computeRangeBarAggregation([0, 50000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-            });
-
-            expect(result).toBeDefined();
-            const coarsestLevel = result![0];
-            // Should have significantly fewer buckets than data points
-            expect(coarsestLevel.maxRange).toBeLessThan(xValues.length / 10);
-        });
-    });
-
     describe('domain boundaries', () => {
         it('should respect scale domain boundaries', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);

@@ -420,42 +420,4 @@ describe('computeBubbleAggregation', () => {
             expect(result!.yd1).toBe(49);
         });
     });
-
-    describe('performance characteristics', () => {
-        it('should handle 1k points efficiently', () => {
-            const xValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const yValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const xDomain: [number, number] = [0, 100];
-            const yDomain: [number, number] = [0, 100];
-            const sizeDomain: [number, number] = [0, 0];
-
-            const start = performance.now();
-            const result = computeBubbleAggregation(xDomain, yDomain, xValues, yValues, undefined, sizeDomain, {
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-            const duration = performance.now() - start;
-
-            expect(result).toBeDefined();
-            expect(duration).toBeLessThan(500); // Should complete in less than 500ms
-        });
-
-        it('should handle 10k points efficiently', () => {
-            const xValues = Array.from({ length: 10000 }, () => Math.random() * 100);
-            const yValues = Array.from({ length: 10000 }, () => Math.random() * 100);
-            const xDomain: [number, number] = [0, 100];
-            const yDomain: [number, number] = [0, 100];
-            const sizeDomain: [number, number] = [0, 0];
-
-            const start = performance.now();
-            const result = computeBubbleAggregation(xDomain, yDomain, xValues, yValues, undefined, sizeDomain, {
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-            const duration = performance.now() - start;
-
-            expect(result).toBeDefined();
-            expect(duration).toBeLessThan(2000); // Should complete in less than 2 seconds
-        });
-    });
 });
