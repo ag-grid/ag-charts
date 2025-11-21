@@ -12,13 +12,11 @@ let seriesType = 'Line';
 let datapoints = 1e3;
 
 const timeAxes: Record<string, AgCartesianAxisOptions> = {
-
-    x: { type: 'ordinal-time', , parentLevel: { enabled: true } },
+    x: { type: 'ordinal-time', parentLevel: { enabled: true } },
 };
 
 const numberAxes: Record<string, AgCartesianAxisOptions> = {
-
-    x: { type: 'number', },
+    x: { type: 'number' },
 };
 
 const baseData = getData(1e6);
