@@ -158,7 +158,7 @@ export function createConsoleLogs() {
     return {
         clear,
 
-        async expectNoErrors() {
+        expectNoErrors() {
             expect(consoleErrors).toEqual([]);
         },
 
