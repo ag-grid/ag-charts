@@ -5,10 +5,6 @@ import path from 'path';
 import { expect, test } from './fixture';
 import { createConsoleLogs, gotoUrl, setupIntrinsicAssertions, toPageUrl } from './util';
 
-const COLLAPSED_SPANS_SELECTOR = `
-div[class*="_propertyRow"]:not([class*="_expandedChildProps"])
-> div > div > span[class*="_propNameExpander"]`;
-
 function findPagesWithAPIReferences(): string[] {
     // Regex that matches `{% apiReference ... /%}` even across multiple lines
     const apiRefRegex = /\{%\s*apiReference[\s\S]*?\/%\}/m;
@@ -46,16 +42,21 @@ test.describe('api-codegen', () => {
                 await gotoUrl(page, toPageUrl(`javascript/${name}`));
 
                 // Recursively expand all nest properties
-                let collapsedSpans = page.locator(COLLAPSED_SPANS_SELECTOR);
-                let spanCount: number = await collapsedSpans.count();
-                while (spanCount > 0) {
-                    for (let i = 0; i < spanCount; i++) {
-                        const span = collapsedSpans.nth(i);
-                        await span.click();
-                        totalSpanCount++;
+                while (true) {
+                    const spanCount = await page.evaluate(() => {
+                        const selector =
+                            `div[class*="_propertyRow"]:not([class*="_expandedChildProps"]) ` +
+                            `> div > div > span[class*="_propNameExpander"]`;
+                        const selection = document.querySelectorAll(selector);
+                        selection.forEach((el) => (el as HTMLSpanElement).click());
+                        return selection.length;
+                    });
+                    expect(spanCount).toBeGreaterThanOrEqual(0);
+
+                    totalSpanCount += spanCount;
+                    if (spanCount === 0) {
+                        break;
                     }
-                    collapsedSpans = page.locator(COLLAPSED_SPANS_SELECTOR);
-                    spanCount = await collapsedSpans.count();
                 }
 
                 // Click all "See More" code snippet buttons
