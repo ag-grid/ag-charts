@@ -48,13 +48,8 @@ const barOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 autoRotate: false,
             },
@@ -96,10 +91,6 @@ const lineOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'number',
             position: 'bottom',
@@ -150,10 +141,6 @@ const areaOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'number',
             position: 'bottom',

@@ -98,13 +98,8 @@ const options: AgChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Waste collected (tonnes)',
             },

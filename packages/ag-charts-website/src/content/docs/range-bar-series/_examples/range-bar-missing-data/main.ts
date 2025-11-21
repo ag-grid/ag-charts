@@ -18,13 +18,8 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'unit-time',
-            position: 'bottom',
             crosshair: {
                 enabled: false,
             },

@@ -25,7 +25,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             gridLine: {
                 style: [
                     {
@@ -36,10 +35,6 @@ const options: AgCartesianChartOptions = {
                     {},
                 ],
             },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
 };

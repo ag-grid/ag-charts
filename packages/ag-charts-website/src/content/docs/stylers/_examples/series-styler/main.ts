@@ -40,7 +40,6 @@ const options: AgCartesianChartOptions = {
         { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark', yKeyAxis: 'ySecondary' },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom' },
         y: {
             type: 'number',
             position: 'left',

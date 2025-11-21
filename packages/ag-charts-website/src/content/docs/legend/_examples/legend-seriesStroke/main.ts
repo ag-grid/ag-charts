@@ -36,10 +36,6 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
             position: 'left',

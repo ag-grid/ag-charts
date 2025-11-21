@@ -16,13 +16,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'unit-time',
-            position: 'bottom',
             label: {
                 spacing: 8,
                 format: {

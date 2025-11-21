@@ -46,11 +46,9 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
             label: { rotation: 0 },
             depthOptions: [{}, { label: { fontWeight: 'bold' } }],
         },
-        y: { type: 'number', position: 'left' },
     },
 };
 

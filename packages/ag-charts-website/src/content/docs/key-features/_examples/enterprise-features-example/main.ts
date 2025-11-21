@@ -17,13 +17,8 @@ const options: AgCartesianChartOptions = {
         },
     },
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             interval: {
                 minSpacing: 80,

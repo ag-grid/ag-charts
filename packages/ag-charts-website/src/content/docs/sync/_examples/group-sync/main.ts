@@ -15,13 +15,8 @@ const commonOptions: AgCartesianChartOptions = {
 
 const topChartAxis: AgCartesianChartOptions = {
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'category',
-            position: 'bottom',
             label: { enabled: false },
             line: { enabled: false },
             crosshair: {
@@ -34,13 +29,8 @@ const topChartAxis: AgCartesianChartOptions = {
 
 const bottomChartAxis: AgCartesianChartOptions = {
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'category',
-            position: 'bottom',
             label: { autoRotate: false },
             crosshair: { enabled: true },
         },

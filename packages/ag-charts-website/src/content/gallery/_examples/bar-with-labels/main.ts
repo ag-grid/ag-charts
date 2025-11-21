@@ -25,13 +25,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'category',
-            position: 'left',
-        },
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 enabled: true,
                 text: 'Change / Thousands',

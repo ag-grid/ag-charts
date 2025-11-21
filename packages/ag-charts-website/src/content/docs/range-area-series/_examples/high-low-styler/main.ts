@@ -58,11 +58,9 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
         },
         y: {
             type: 'number',
-            position: 'left',
             label: { format: '#{0.1%}' },
         },
     },

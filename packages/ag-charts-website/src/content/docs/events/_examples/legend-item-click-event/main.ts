@@ -41,10 +41,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'diesel',
         },
     ],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
+
     legend: {
         listeners: {
             legendItemClick: ({ seriesId, itemId }: AgChartLegendClickEvent) => {

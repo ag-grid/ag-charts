@@ -170,8 +170,8 @@ const barLineAreaOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'category' },
+        y: { type: 'number' },
     },
 };
 
@@ -220,8 +220,8 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'number', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'number' },
+        y: { type: 'number' },
     },
 };
 

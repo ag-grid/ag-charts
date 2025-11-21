@@ -18,14 +18,9 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             parentLevel: {
                 enabled: true,
             },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
     zoom: {

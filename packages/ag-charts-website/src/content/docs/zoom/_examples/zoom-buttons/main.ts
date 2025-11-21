@@ -14,13 +14,8 @@ const options: AgCartesianChartOptions = {
         enabled: false,
     },
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 minSpacing: 50,
                 maxSpacing: 200,

@@ -23,16 +23,7 @@ const options: AgChartOptions<DataType> = {
             yKey: 'low',
         },
     ],
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-        },
-    },
+
     legend: {
         enabled: false,
     },
