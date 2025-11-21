@@ -163,7 +163,7 @@ export function createConsoleLogs() {
             expect(consoleErrors).toEqual([]);
         },
 
-        async expectLogs(calls: string[]) {
+        async expectMsgs(calls: string[]) {
             const expectedCount: number = calls.length;
             await expect
                 .poll(() => consoleMsgs.length, { message: `Waiting for ${expectedCount} console logs` })
