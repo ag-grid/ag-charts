@@ -66,7 +66,7 @@ import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesT
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
-    aggregateBubbleData,
+    aggregateBubbleDataFromDataModel,
     computeBubbleAggregationCount,
     computeBubbleAggregationData,
     computeBubbleAggregationDilation,
@@ -288,29 +288,14 @@ export class BubbleSeries extends CartesianSeries<
         const yScale = yAxis.scale;
         if (!ContinuousScale.is(xScale) || !ContinuousScale.is(yScale)) return;
 
-        const { sizeScale, properties } = this;
-        const { sizeKey } = properties;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const sizeValues = sizeKey ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const xDomain = dataModel.getDomain(this, `xValue`, 'value', processedData);
-        const yDomain = dataModel.getDomain(this, `yValue`, 'value', processedData);
-        const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
-        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yValue`, processedData);
-
-        // Not used in mini chart - no memoization needed
-        return aggregateBubbleData(
+        return aggregateBubbleDataFromDataModel(
             xScale.type,
             yScale.type,
-            xValues,
-            yValues,
-            sizeValues,
-            xDomain,
-            yDomain,
-            sizeDomain,
-            xNeedsValueOf,
-            yNeedsValueOf
+            dataModel,
+            processedData,
+            this.sizeScale,
+            this.properties.sizeKey != null,
+            this
         );
     }
 

@@ -8,7 +8,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { Logger, mergeDefaults } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -17,7 +17,7 @@ import {
     OPEN,
     type OhlcSeriesDataAggregationFilter,
     SPAN,
-    aggregateOhlcData,
+    aggregateOhlcDataFromDataModel,
 } from './ohlcAggregation';
 import type { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
@@ -39,7 +39,6 @@ const {
     getItemStylesPerItemId,
 } = _ModuleSupport;
 
-const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -185,21 +184,7 @@ export abstract class OhlcSeriesBase<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
-        const lowValues = dataModel.resolveColumnById(this, `lowValue`, processedData);
-
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
-
-        return memoizedAggregateOhlcData(
-            xAxis.scale.type,
-            xValues,
-            highValues,
-            lowValues,
-            domain,
-            processedData.reduced?.smallestKeyInterval
-        );
+        return aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {

@@ -16,9 +16,9 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
-import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
+import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaDataFromDataModel } from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
 import { type RangeAreaMarkerDatum, RangeAreaProperties, type RangeAreaSeriesParams } from './rangeAreaProperties';
 import {
@@ -65,8 +65,6 @@ const {
     toHighlightString,
     HighlightState,
 } = _ModuleSupport;
-
-const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 
 type ResolvedLineStyleMixin = {
     marker?: {
@@ -187,24 +185,13 @@ export class RangeAreaSeries extends BaseSeries {
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
-        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
-
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
-
-        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `yHighValue`, processedData);
-
-        return memoizedAggregateRangeAreaData(
+        return aggregateRangeAreaDataFromDataModel(
             xAxis.scale.type,
-            xValues,
-            yHighValues,
-            yLowValues,
-            domain,
-            xNeedsValueOf,
-            yNeedsValueOf
+            dataModel,
+            processedData,
+            'yHighValue',
+            'yLowValue',
+            this
         );
     }
 

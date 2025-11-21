@@ -1,5 +1,5 @@
 import type { CallbackParamRules, Point, RequireOptional, SizedPoint } from 'ag-charts-core';
-import { extent, isContinuous, isDefined, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { extent, isContinuous, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
@@ -47,7 +47,7 @@ import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
-import { type AreaSeriesDataAggregationFilter, aggregateAreaData } from './areaAggregation';
+import { type AreaSeriesDataAggregationFilter, aggregateAreaDataFromDataModel } from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -98,8 +98,6 @@ interface AreaSeriesStackContext {
     fillSpans: LinePathSpan[];
     strokeSpans: LinePathSpan[];
 }
-
-const memoizedAggregateAreaData = simpleMemorize2(aggregateAreaData);
 
 export class AreaSeries extends CartesianSeries<
     Marker,
@@ -377,18 +375,13 @@ export class AreaSeries extends CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const { scale } = xAxis;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
-        const domain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
-            this,
+        return aggregateAreaDataFromDataModel(
+            xAxis.scale.type,
+            dataModel,
+            processedData,
             this.yCumulativeKey(processedData),
-            processedData
+            this
         );
-
-        return memoizedAggregateAreaData(scale.type, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
     }
 
     private fillSpans: LinePathSpan[] = [];
