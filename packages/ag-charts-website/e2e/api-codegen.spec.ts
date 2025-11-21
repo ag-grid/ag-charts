@@ -5,6 +5,10 @@ import path from 'path';
 import { expect, test } from './fixture';
 import { createConsoleLogs, gotoUrl, setupIntrinsicAssertions, toPageUrl } from './util';
 
+const COLLAPSED_SPANS_SELECTOR = `
+div[class*="_propertyRow"]:not([class*="_expandedChildProps"])
+> div > div > span[class*="_propNameExpander"]`;
+
 function findPagesWithAPIReferences(): string[] {
     // Regex that matches `{% apiReference ... /%}` even across multiple lines
     const apiRefRegex = /\{%\s*apiReference[\s\S]*?\/%\}/m;
@@ -28,10 +32,12 @@ test.describe('api-codegen', () => {
     setupIntrinsicAssertions(test);
 
     test.describe('expand see-more buttons', () => {
-        let buttonCount: number = 0;
+        let totalSpanCount: number = 0;
+        let totalButtonCount: number = 0;
         test.afterAll(() => {
-            // Check that our <button> selector is not completely broken:
-            expect(buttonCount).toBeGreaterThan(0);
+            // Check that our <span> & <button> selectors are not completely broken:
+            expect(totalSpanCount).toBeGreaterThan(0);
+            expect(totalButtonCount).toBeGreaterThan(0);
         });
 
         const pageNames: string[] = findPagesWithAPIReferences();
@@ -39,12 +45,26 @@ test.describe('api-codegen', () => {
             test(name, async ({ page }) => {
                 await gotoUrl(page, toPageUrl(`javascript/${name}`));
 
+                // Recursively expand all nest properties
+                let collapsedSpans = page.locator(COLLAPSED_SPANS_SELECTOR);
+                let spanCount: number = await collapsedSpans.count();
+                while (spanCount > 0) {
+                    for (let i = 0; i < spanCount; i++) {
+                        const span = collapsedSpans.nth(i);
+                        await span.click();
+                        totalSpanCount++;
+                    }
+                    collapsedSpans = page.locator(COLLAPSED_SPANS_SELECTOR);
+                    spanCount = await collapsedSpans.count();
+                }
+
+                // Click all "See More" code snippet buttons
                 const buttons = page.locator('button[class*="_seeMore"]');
-                const count = await buttons.count();
-                for (let i = 0; i < count; i++) {
+                const buttonCount = await buttons.count();
+                for (let i = 0; i < buttonCount; i++) {
                     const button = buttons.nth(i);
                     await button.click();
-                    buttonCount++;
+                    totalButtonCount++;
                 }
                 consoleLogs.expectNoErrors();
             });
