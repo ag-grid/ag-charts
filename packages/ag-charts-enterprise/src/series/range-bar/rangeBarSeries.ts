@@ -7,9 +7,9 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
-import { findMinMax, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { findMinMax, mergeDefaults } from 'ag-charts-core';
 
-import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
+import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarDataFromDataModel } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
 
 const {
@@ -49,8 +49,6 @@ const {
     toHighlightString,
     HighlightState,
 } = _ModuleSupport;
-
-const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
 
 type Bounds = {
     x: number;
@@ -199,21 +197,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
-        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
-
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
-
-        return memoizedAggregateRangeBarData(
-            xAxis.scale.type,
-            xValues,
-            yHighValues,
-            yLowValues,
-            domain,
-            processedData.reduced?.smallestKeyInterval
-        );
+        return aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

@@ -1,5 +1,5 @@
 import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
-import { extent, isDefined, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -52,7 +52,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
+import { type LineSeriesDataAggregationFilter, aggregateLineDataFromDataModel } from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
     type LineNodeDatum,
@@ -80,8 +80,6 @@ const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
-
-const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
 
 export class LineSeries extends CartesianSeries<
     Marker,
@@ -310,19 +308,13 @@ export class LineSeries extends CartesianSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const { scale } = xAxis;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
-        const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
-
-        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
-            this,
+        return aggregateLineDataFromDataModel(
+            xAxis.scale.type,
+            dataModel,
+            processedData,
             this.yCumulativeKey(processedData),
-            processedData
+            this
         );
-
-        return memoizedAggregateLineData(scale.type, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
     }
 
     override createNodeData() {
