@@ -71,7 +71,6 @@ test.describe('api-codegen', () => {
                         return selection.length;
                     });
                     expect(spanCount).toBeGreaterThanOrEqual(0);
-
                     totalSpanCount += spanCount;
                     if (spanCount === 0) {
                         break;
@@ -80,13 +79,14 @@ test.describe('api-codegen', () => {
                 consoleLogs.clear(); // ignore React errors fired by calling .click(); we don't care about that
 
                 // Click all "See More" code snippet buttons
-                const buttons = page.locator('button[class*="_seeMore"]');
-                const buttonCount = await buttons.count();
-                for (let i = 0; i < buttonCount; i++) {
-                    const button = buttons.nth(i);
-                    await button.click();
-                    totalButtonCount++;
-                }
+                const buttonCount = await page.evaluate(() => {
+                    const buttons = document.querySelectorAll('button[class*="_seeMore"]');
+                    buttons.forEach((el) => (el as HTMLButtonElement).click());
+                    return buttons.length;
+                });
+                expect(buttonCount).toBeGreaterThanOrEqual(0);
+                totalButtonCount += buttonCount;
+
                 consoleLogs.expectNoErrors();
             });
         }
