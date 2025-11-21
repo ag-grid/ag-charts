@@ -1,7 +1,8 @@
 import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { ContextMenuModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, ContextMenuModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -1,7 +1,11 @@
 // @ag-skip-fws
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, data1, data2 } from './data';
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, ContextMenuModule, NumberAxisModule]);
 
 const action = () => console.log('Hello world!');
 const nodeAction = (event: any) => console.log(`Hello ${event.yKey} in ${event.datum.month}!`);
