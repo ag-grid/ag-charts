@@ -60,23 +60,53 @@ fi
 
 # Auto-detect branch if not explicitly set
 if [[ -z "$TARGET_BRANCH" ]]; then
-    # Try to get upstream branch
-    UPSTREAM_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
+    log_info "Auto-detecting base branch using merge-base analysis"
     
-    if [[ -n "$UPSTREAM_BRANCH" ]]; then
-        # Check if upstream matches release branch pattern (bX.Y.Z)
-        if [[ "$UPSTREAM_BRANCH" =~ ^origin/b[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            TARGET_BRANCH="$UPSTREAM_BRANCH"
-            log_info "Auto-detected release branch from upstream: $TARGET_BRANCH"
-        else
-            # Upstream exists but not a release branch, default to latest
-            TARGET_BRANCH="origin/latest"
-            log_info "Upstream branch ($UPSTREAM_BRANCH) is not a release branch, defaulting to origin/latest"
+    # Fetch origin to ensure we have latest refs
+    git fetch origin --quiet 2>/dev/null || true
+    
+    # Get all release branches from origin
+    RELEASE_BRANCHES=$(git branch -r | grep -E 'origin/b[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^[[:space:]]*//' || echo "")
+    
+    # Build list of candidate branches (origin/latest + all release branches)
+    CANDIDATES=("origin/latest")
+    if [[ -n "$RELEASE_BRANCHES" ]]; then
+        while IFS= read -r branch; do
+            CANDIDATES+=("$branch")
+        done <<< "$RELEASE_BRANCHES"
+    fi
+    
+    # Find the most recent common ancestor
+    BEST_BRANCH=""
+    BEST_MERGE_BASE=""
+    BEST_COMMIT_TIME=0
+    
+    for candidate in "${CANDIDATES[@]}"; do
+        # Get merge-base with current HEAD
+        merge_base=$(git merge-base HEAD "$candidate" 2>/dev/null || echo "")
+        
+        if [[ -n "$merge_base" ]]; then
+            # Get commit time for this merge-base
+            commit_time=$(git log -1 --format=%ct "$merge_base" 2>/dev/null || echo "0")
+            
+            log_info "  $candidate: merge-base $merge_base (commit time: $commit_time)"
+            
+            # Keep track of the branch with the most recent merge-base
+            if [[ $commit_time -gt $BEST_COMMIT_TIME ]]; then
+                BEST_COMMIT_TIME=$commit_time
+                BEST_MERGE_BASE=$merge_base
+                BEST_BRANCH=$candidate
+            fi
         fi
+    done
+    
+    if [[ -n "$BEST_BRANCH" ]]; then
+        TARGET_BRANCH="$BEST_BRANCH"
+        log_info "Selected $TARGET_BRANCH as base branch (most recent common ancestor: ${BEST_MERGE_BASE:0:12})"
     else
-        # No upstream, default to latest
+        # Fallback to origin/latest if no merge-base found
         TARGET_BRANCH="origin/latest"
-        log_info "No upstream branch found, defaulting to origin/latest"
+        log_info "Could not determine merge-base, defaulting to origin/latest"
     fi
 fi
 
