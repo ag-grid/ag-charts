@@ -138,8 +138,8 @@ export function aggregateRangeBarDataFromDataModel(
     series: any
 ): RangeBarSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
+    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
 
     const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
     const domain = processedData.domain.keys[index];
