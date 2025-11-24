@@ -2,31 +2,6 @@
 
 const doOnceCache = new Set<string>();
 
-const consoleLog = console.log.bind(console);
-const consoleWarn = console.warn.bind(console);
-const consoleError = console.error.bind(console);
-const consoleTable = console.table.bind(console);
-
-export function log(...logContent: any[]) {
-    consoleLog(...logContent);
-}
-
-export function warn(message: any, ...logContent: any[]) {
-    consoleWarn(`AG Charts - ${message}`, ...logContent);
-}
-
-export function error(message: any, ...logContent: any[]) {
-    if (typeof message === 'object') {
-        consoleError(`AG Charts error`, message, ...logContent);
-    } else {
-        consoleError(`AG Charts - ${message}`, ...logContent);
-    }
-}
-
-export function table(...logContent: any[]) {
-    consoleTable(...logContent);
-}
-
 function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => void) {
     let message: string;
     if (messageOrError instanceof Error) {
@@ -44,26 +19,45 @@ function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => voi
     doOnceCache.add(cacheKey);
 }
 
-export function warnOnce(messageOrError: unknown, ...logContent: any[]) {
+// Don't use .bind() at module initialization - it captures console methods before tests can mock them
+// Instead, call console methods directly to allow test mocks to intercept
+export const log = function (...logContent: any[]) {
+    console.log(...logContent);
+};
+
+export const warn = function (message: any, ...logContent: any[]) {
+    console.warn(`AG Charts - ${message}`, ...logContent);
+};
+
+export const error = function (message: any, ...logContent: any[]) {
+    if (typeof message === 'object') {
+        console.error(`AG Charts error`, message, ...logContent);
+    } else {
+        console.error(`AG Charts - ${message}`, ...logContent);
+    }
+};
+
+export const table = function (...logContent: any[]) {
+    console.table(...logContent);
+};
+
+export const warnOnce = function (messageOrError: unknown, ...logContent: any[]) {
     guardOnce(messageOrError, 'Logger.warn', (message) => warn(message, ...logContent));
-}
+};
 
-export function errorOnce(messageOrError: unknown, ...logContent: any[]) {
+export const errorOnce = function (messageOrError: unknown, ...logContent: any[]) {
     guardOnce(messageOrError, 'Logger.error', (message) => error(message, ...logContent));
-}
+};
 
-export function reset() {
+export const reset = function () {
     doOnceCache.clear();
-}
+};
 
-const consoleGroupCollapsed = console.groupCollapsed.bind(console);
-const consoleGroupEnd = console.groupEnd.bind(console);
-
-export function logGroup<T>(name: string, cb: () => T): T {
-    consoleGroupCollapsed(name);
+export const logGroup = function <T>(name: string, cb: () => T): T {
+    console.groupCollapsed(name);
     try {
         return cb();
     } finally {
-        consoleGroupEnd();
+        console.groupEnd();
     }
-}
+};
