@@ -167,67 +167,20 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 {
     contextMenu: {
         getItems: (params) => {
-            const menuItems = ['download', 'separator'];
-
-            if (params.showOn === 'series-node') {
-                const { xKey, yKey } = params;
-                const data = getPersistentMutableData();
-                const pX = params.datum[xKey];
-                const pY = params.datum[yKey];
-                for (const datum of data) {
-                    if (datum[xKey] === pX && datum[yKey] === pY) {
-                        const isMarked = datum.marked[yKey] ?? false;
-                        const name = `"${datum.category} - ${yKey}"`;
-                        menuItems.push(
-                            {
-                                type: 'action',
-                                showOn: 'series-node',
-                                label: 'Compare with...',
-                                items:
-                                    // Create a submenu item for each comparable series:
-                                    options.series
-                                        ?.filter((s) => s.id !== params.seriesId && s.id !== DIFF_SERIES_ID)
-                                        .map((s) => ({
-                                            type: 'action',
-                                            label: s.yName ?? s.yKey,
-                                            action: () => createDiffSeries(params.seriesId, s.id),
-                                        })) ?? [],
-                            },
-                            {
-                                type: 'action',
-                                showOn: 'series-node',
-                                label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
-                                action: () => updateMarking(datum, yKey, !isMarked),
-                            }
-                        );
-                    }
-                }
-            }
-
             if (params.showOn === 'legend-item') {
-                menuItems.push(
+                return [
+                    'download',
+                    'separator',
                     // Custom implementation of 'toggle-series-visibility':
                     {
                         type: 'action',
                         showOn: 'legend-item',
-                        label: params.visible ? `Hide ${params.text}` : `Show ${params.text}`,
+                        label: params.visible ? `Hide ${params.seriesId}` : `Show ${params.seriesId}`,
                         action: () => updateVisibility(params.seriesId, !params.visible),
                     },
-                    'toggle-other-series'
-                );
+                    'toggle-other-series',
+                ];
             }
-
-            const hasDiffSeries = options.series?.some((s) => s.id === DIFF_SERIES_ID);
-            if (hasDiffSeries) {
-                menuItems.push('separator', {
-                    type: 'action',
-                    showOn: 'always',
-                    label: 'Remove Diff',
-                    action: removeDiffSeries,
-                });
-            }
-
-            return menuItems;
         },
     },
 }
