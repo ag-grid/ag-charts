@@ -177,7 +177,9 @@ pre.navContainer {
         color: var(--punctuation-color);
     }
 
-    .unionDiscriminator {
+    .unionDiscriminator,
+    .recordAlias,
+    .unionPipe {
         color: var(--color-fg-code);
     }
 }

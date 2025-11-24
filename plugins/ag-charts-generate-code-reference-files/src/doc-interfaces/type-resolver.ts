@@ -179,6 +179,9 @@ export class TypeResolver {
                     if (Array.isArray(h.members)) {
                         node.members.push(...h.members);
                     }
+                } else if (h.type === 'Record') {
+                    const n = this.resolveType(h.typeArguments![1].type, h.typeArguments![1].typeArguments);
+                    node.members.push(...n.type.type.filter((t) => t.kind === 'typeRef'));
                 } else {
                     console.warn(`Unhandled type "${h.type}" on ${node.name}`, h, this.typeMapper.has(h.type));
                     throw Error(`Unhandled type "${h.type}" on ${node.name}`);

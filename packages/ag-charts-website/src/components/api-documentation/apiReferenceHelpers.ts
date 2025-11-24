@@ -20,7 +20,7 @@ export type SearchDatum = { label: string; searchable: string; navPath: Navigati
 export type SearchIndexDatum = SearchDatum & { id: number };
 export type SearchIndex = Flexsearch.Document<SearchIndexDatum>;
 
-export type SpecialTypesMap = Record<string, 'InterfaceArray' | 'NestedPage'>;
+export type SpecialTypesMap = Record<string, 'InterfaceArray' | 'InterfaceRecord' | 'NestedPage'>;
 type HasProperty<T, K extends PropertyKey> = T extends { [P in K]: any } ? T : never;
 
 export interface PageTitle {
@@ -353,7 +353,7 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         pageInterface: basePath.type,
     };
     for (let item = path.shift(); item; item = path.shift()) {
-        if (specialType?.[item.type] === 'InterfaceArray') {
+        if (specialType?.[item.type] === 'InterfaceArray' || specialType?.[item.type] === 'InterfaceRecord') {
             const child = path.shift();
             if (child) {
                 if (data.hash.startsWith(baseHash)) {
@@ -486,7 +486,7 @@ function findRequiredRefs(reference: ApiReferenceType) {
         return result;
     };
 
-    const axesRef = tryGet('AgChartAxisOptions')!;
+    const axesRef = tryGet('AgChartAxesOptions')!;
     const seriesRef = tryGet('AgChartSeriesOptions')!;
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
