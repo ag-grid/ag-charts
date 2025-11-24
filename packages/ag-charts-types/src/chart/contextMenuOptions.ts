@@ -95,6 +95,10 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
 
 type GetItemsParamsOmissions = 'type' | 'event';
 
+interface GetItemsParamsMixin<TDatum, TContext> {
+    defaultItems: AgContextMenuItem<TDatum, TContext>[];
+}
+
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
 // Using <TContext> instead of <_TDatum, TContext> would make the API very susectible to breaking changes and/or inconsistency.
@@ -105,25 +109,29 @@ type GetItemsParamsOmissions = 'type' | 'event';
 // is inconsistent with the ordering of other generic types in our API.
 
 export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
-    extends Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions> {
+    extends Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
 }
 
 export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
-    extends Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions> {
+    extends Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-area';
 }
 
 export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions> {
+    extends Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<TDatum, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-node';
 }
 
 export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
-    extends Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions> {
+    extends Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'legend-item';
     /** Whether the series of this legend item is visible or hidden. */
