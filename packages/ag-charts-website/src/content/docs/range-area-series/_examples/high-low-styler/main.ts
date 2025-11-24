@@ -1,10 +1,25 @@
 import { LegendModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesItemStylerParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgRangeAreaSeriesItemStylerParams,
+    AnimationModule,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([LegendModule, NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {

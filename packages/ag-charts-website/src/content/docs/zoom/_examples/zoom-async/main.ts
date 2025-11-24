@@ -1,10 +1,12 @@
 import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { FakeServer } from './fakeServer';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     NavigatorModule,

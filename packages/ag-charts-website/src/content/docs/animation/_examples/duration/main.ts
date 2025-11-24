@@ -16,6 +16,8 @@ import {
     AgCharts,
     AgPolarChartOptions,
     AgTooltipRendererResult,
+    CrosshairModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 import { AnimationModule } from 'ag-charts-enterprise';
 
@@ -26,11 +28,13 @@ ModuleRegistry.registerModules([
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    CrosshairModule,
     DonutSeriesModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
     PieSeriesModule,
+    ZoomModule,
 ]);
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {

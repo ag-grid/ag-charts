@@ -1,5 +1,5 @@
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { MapLineSeriesModule, MapMarkerSeriesModule, MapShapeBackgroundSeriesModule } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
@@ -10,12 +10,15 @@ import { stationData } from './stationData';
 import { stationTopology } from './stationTopology';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     CategoryAxisModule,
+    CrosshairModule,
     LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     NumberAxisModule,
+    ZoomModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

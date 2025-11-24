@@ -1,9 +1,17 @@
 // https://www.un.org/development/desa/pd/content/international-migrant-stock
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { ChordSeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([CategoryAxisModule, ChordSeriesModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    ChordSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

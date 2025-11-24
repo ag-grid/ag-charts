@@ -5,15 +5,18 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { ContextMenuModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     NumberAxisModule,
+    ZoomModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

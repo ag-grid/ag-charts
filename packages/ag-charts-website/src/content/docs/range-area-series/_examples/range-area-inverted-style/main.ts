@@ -1,10 +1,18 @@
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, NumberAxisModule, RangeAreaSeriesModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Performance: Projected vs Actual' },

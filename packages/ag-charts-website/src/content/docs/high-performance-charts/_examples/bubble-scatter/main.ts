@@ -6,14 +6,22 @@ import {
     NumberAxisModule,
     ScatterSeriesModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgCharts,
+    AnimationModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
 import { ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     BubbleSeriesModule,
     CategoryAxisModule,
+    CrosshairModule,
     LegendModule,
     NumberAxisModule,
     ScatterSeriesModule,

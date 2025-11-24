@@ -5,14 +5,22 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgContextMenuItemLiteral } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgContextMenuItemLiteral,
+    AnimationModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
 import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { generateCurrencyData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,

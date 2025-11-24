@@ -5,15 +5,17 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
 import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType } from './data';
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,

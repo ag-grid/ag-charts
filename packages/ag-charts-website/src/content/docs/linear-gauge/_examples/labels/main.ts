@@ -1,8 +1,15 @@
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCharts, AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgLinearGaugeLabelPlacement,
+    AgLinearGaugeOptions,
+    AnimationModule,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 import { AllGaugeModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllGaugeModule, LegendModule]);
+ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ZoomModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('myChart'),

@@ -1,10 +1,18 @@
 import { LegendModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { OhlcSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LegendModule, NumberAxisModule, OhlcSeriesModule, TimeAxisModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    TimeAxisModule,
+    ZoomModule,
+]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

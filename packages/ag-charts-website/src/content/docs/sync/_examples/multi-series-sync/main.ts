@@ -6,18 +6,21 @@ import {
     NumberAxisModule,
     UnitTimeAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { SyncModule } from 'ag-charts-enterprise';
 
 import { regionAdata, regionBdata } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     BarSeriesModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
     SyncModule,
     UnitTimeAxisModule,
+    ZoomModule,
 ]);
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },

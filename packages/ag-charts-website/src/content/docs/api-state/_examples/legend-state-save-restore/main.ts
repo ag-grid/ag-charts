@@ -10,13 +10,17 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgChartState,
     AgCharts,
+    AnimationModule,
+    CrosshairModule,
 } from 'ag-charts-enterprise';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     AreaSeriesModule,
+    CrosshairModule,
     LegendModule,
     NavigatorModule,
     NumberAxisModule,

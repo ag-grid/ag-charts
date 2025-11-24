@@ -1,10 +1,18 @@
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { energyMix } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, NumberAxisModule, SunburstSeriesModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    SunburstSeriesModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: energyMix,

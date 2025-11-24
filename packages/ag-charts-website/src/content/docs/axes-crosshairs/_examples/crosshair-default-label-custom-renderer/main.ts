@@ -5,11 +5,26 @@ import {
     NumberAxisModule,
     TimeAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgCrosshairLabelRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgCrosshairLabelRendererParams,
+    AnimationModule,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([HistogramSeriesModule, LegendModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ZoomModule,
+]);
 const crosshairLabelRenderer = ({ value }: AgCrosshairLabelRendererParams) => {
     return {
         text: `${(value / 1000000).toFixed(1)}M`,

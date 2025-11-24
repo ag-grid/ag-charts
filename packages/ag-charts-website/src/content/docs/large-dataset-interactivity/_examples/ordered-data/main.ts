@@ -4,12 +4,16 @@ import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
+    AnimationModule,
+    CrosshairModule,
 } from 'ag-charts-enterprise';
 import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     NavigatorModule,

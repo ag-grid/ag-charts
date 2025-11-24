@@ -5,12 +5,26 @@ import {
     NumberAxisModule,
     UnitTimeAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgUnitTimeAxisOptions,
+    AnimationModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 import { CrosshairModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CrosshairModule, LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

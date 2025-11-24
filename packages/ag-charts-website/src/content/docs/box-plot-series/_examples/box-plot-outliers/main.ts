@@ -5,17 +5,20 @@ import {
     NumberAxisModule,
     ScatterSeriesModule,
 } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { BoxPlotSeriesModule } from 'ag-charts-enterprise';
 
 import { getBoxPlotData, getOutliersData } from './data';
 
 ModuleRegistry.registerModules([
+    AnimationModule,
     BoxPlotSeriesModule,
     CategoryAxisModule,
+    CrosshairModule,
     LegendModule,
     NumberAxisModule,
     ScatterSeriesModule,
+    ZoomModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

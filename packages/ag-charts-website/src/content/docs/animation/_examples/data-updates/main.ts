@@ -9,7 +9,14 @@ import {
     NumberAxisModule,
     PieSeriesModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 import { AnimationModule } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
@@ -21,11 +28,13 @@ ModuleRegistry.registerModules([
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    CrosshairModule,
     DonutSeriesModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
     PieSeriesModule,
+    ZoomModule,
 ]);
 let start = [120, 150, 130, 140, 80];
 let variance = 20;
