@@ -1,4 +1,4 @@
-import { describe } from '@jest/globals';
+import { describe, jest } from '@jest/globals';
 
 import { Logger, ModuleRegistry } from 'ag-charts-core';
 import type {
@@ -2047,7 +2047,7 @@ describe('ChartOptions', () => {
         });
 
         it('should drop unregistered theme overrides before processing', () => {
-            const warnSpy = jest.spyOn(Logger, 'warnOnce');
+            const warnSpy = jest.spyOn(console, 'warn');
             const theme: AgChartTheme = {
                 overrides: {
                     common: {
@@ -2079,7 +2079,9 @@ describe('ChartOptions', () => {
                 expect(chartOptions.activeTheme.overrides?.common?.annotations).toBeUndefined();
                 expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
                 expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
-                expect(warnSpy).not.toHaveBeenCalled();
+                expect(warnSpy).toHaveBeenCalledTimes(2);
+                expect(warnSpy.mock.calls[0]?.[0]).toContain('theme.overrides.common.axes.angle-number.crosshair');
+                expect(warnSpy.mock.calls[1]?.[0]).toContain('theme.overrides.radial-bar.series.errorBar');
             } finally {
                 warnSpy.mockRestore();
             }

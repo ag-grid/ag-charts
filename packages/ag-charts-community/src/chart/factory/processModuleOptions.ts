@@ -123,7 +123,10 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     if (isObject(presets)) {
         const presetsObj = presets as PlainObject;
         for (const presetName of Object.keys(presetsObj)) {
-            if (missingModulesByType.get(ModuleType.Preset)?.has(presetName)) {
+            if (
+                missingModulesByType.get(ModuleType.Preset)?.has(presetName) ||
+                missingModulesByType.get(ModuleType.Series)?.has(presetName)
+            ) {
                 delete presetsObj[presetName];
                 continue;
             }
