@@ -1,0 +1,1 @@
+<div role="presentation" class="ag-charts-proxy-elem" style="width: 15px; height: 72.2617px; left: 20.6523px; top: 207.119px;"><svg role="presentation" viewBox="0 -14 85.28125 17" style="width: 100%; opacity: 0;"><text role="presentation">Y Axis Label</text></svg></div>
