@@ -315,6 +315,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // Must run before chart validation to cleanup invalid types.
+        processModuleOptions(undefined, options);
         this.validateSeriesOptions(options);
 
         const chartType = detectChartType(options);
@@ -388,39 +389,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T): void {
-        const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
 
-        let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
-            if (seriesDef == null) {
-                validSeriesTypes ??= joinFormatted(
-                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
-                        .filter((def) => !chartType || def.chartType === chartType)
-                        .map((def) => def.name),
-                    'or',
-                    stringFormat
-                );
-                Logger.warn(
-                    seriesOptions.type == null
-                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
-                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
-                );
-                continue;
-            } else if (chartType && seriesDef.chartType !== chartType) {
-                Logger.warn(
-                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
-                );
-                continue;
-            }
-
-            if (seriesDef.options == null) {
-                validatedSeriesOptions.push(seriesOptions);
+            if (seriesDef?.options == null) {
+                if (seriesDef) {
+                    validatedSeriesOptions.push(seriesOptions);
+                }
                 continue;
             }
 
