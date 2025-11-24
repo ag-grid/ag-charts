@@ -289,7 +289,17 @@ export abstract class Node<TDatum = unknown> {
 
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
-        Object.assign(this, styles);
+
+        // JavaScript is weird... this is faster than Object.assign().
+        for (const key in styles) {
+            const newValue = styles[key];
+            const previousValue = (this as any)[key];
+
+            if (previousValue !== newValue) {
+                (this as any)[key] = newValue;
+            }
+        }
+
         this.batchLevel--;
 
         if (this.batchLevel === 0 && this.batchDirty) {
