@@ -1,7 +1,9 @@
+import { AreaSeriesModule, BarSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, BarSeriesModule, LegendModule, NumberAxisModule]);
 const data = getData();
 
 type ValueKey = keyof Omit<(typeof data)[number], 'year'>;

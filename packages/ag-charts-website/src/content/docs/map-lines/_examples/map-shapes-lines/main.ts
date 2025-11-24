@@ -1,4 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';
 import { londonBoroughTopology } from './londonBoroughTopology';
@@ -7,6 +9,16 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapShapeSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const sizeDomain = [0, 141537];
 const strokeWidth = 1;
 const maxStrokeWidth = 5;

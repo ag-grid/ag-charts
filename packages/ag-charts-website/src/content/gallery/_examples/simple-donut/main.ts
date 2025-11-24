@@ -1,7 +1,10 @@
+import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AgDonutSeriesOptions } from 'ag-charts-enterprise';
+import { AnimationModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, DonutSeriesModule]);
 const data = getData();
 const numFormatter = new Intl.NumberFormat('en-GB');
 const total = data.reduce((sum, d) => sum + d.count, 0);

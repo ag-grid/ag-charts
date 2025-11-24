@@ -1,4 +1,11 @@
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    MapLineBackgroundSeriesModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { cycleCounterData } from './cycleCounterData';
 import { cycleCounterTopology } from './cycleCounterTopology';
@@ -7,6 +14,15 @@ import { cycleRouteTopology } from './cycleRouteTopology';
 import { yorkRoadsTopology } from './yorkRoadsTopology';
 import { yorkTopology } from './yorkTopology';
 
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    LegendModule,
+    MapLineBackgroundSeriesModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

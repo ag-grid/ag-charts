@@ -1,7 +1,15 @@
+import {
+    BubbleSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getCoffeeIndustryData, getFoodIndustryData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

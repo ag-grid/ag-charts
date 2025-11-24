@@ -1,5 +1,8 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgGaugeOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { AllGaugeModule } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ZoomModule]);
 const performanceStages = ['VERY POOR', 'POOR', 'AVERAGE', 'GOOD', 'VERY GOOD', 'EXCELLENT'].flatMap((item) => [
     '',
     item,

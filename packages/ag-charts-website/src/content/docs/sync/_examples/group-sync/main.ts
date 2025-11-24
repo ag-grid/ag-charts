@@ -1,7 +1,25 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts, AnimationModule } from 'ag-charts-enterprise';
+import { CrosshairModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    SyncModule,
+    ZoomModule,
+]);
 const commonOptions: AgCartesianChartOptions = {
     minWidth: 0,
     minHeight: 0,

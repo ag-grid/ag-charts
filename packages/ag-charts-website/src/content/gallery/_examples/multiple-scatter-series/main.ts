@@ -1,8 +1,17 @@
+import {
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 // Notable countries to label
+
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, ScatterSeriesModule]);
 const notableCountries = [
     'Singapore',
     'Luxembourg',

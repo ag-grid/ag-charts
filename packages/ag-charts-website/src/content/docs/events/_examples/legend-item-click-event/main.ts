@@ -4,7 +4,15 @@ import {
     AgChartLegendDoubleClickEvent,
     AgCharts,
 } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 let options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [

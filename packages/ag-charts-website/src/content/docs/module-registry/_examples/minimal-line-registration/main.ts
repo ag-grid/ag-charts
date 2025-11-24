@@ -2,6 +2,7 @@ import {
     AgChartOptions,
     AgCharts,
     CategoryAxisModule,
+    LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -9,7 +10,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
