@@ -16,7 +16,7 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     dependencies: [CartesianChartModule],
 
     options: rangeAreaSeriesOptionsDef,
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    predictAxis: _ModuleSupport.predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
         x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },

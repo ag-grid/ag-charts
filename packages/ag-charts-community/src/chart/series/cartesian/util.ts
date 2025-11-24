@@ -1,4 +1,4 @@
-import { type Size, isDate, isEmptyObject, isNumber, isObject } from 'ag-charts-core';
+import { type Size, isArray, isDate, isEmptyObject, isNumber, isObject, isString } from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
     AgSeriesSegmentation,
@@ -109,7 +109,8 @@ const TIME_AXIS_KEYS = new Set(['time', 'timestamp', 'date', 'datetime']);
 export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
-    seriesOptions: SeriesOptions
+    seriesOptions: SeriesOptions,
+    { allowPrimitiveTypes = true }: { allowPrimitiveTypes?: boolean } = {}
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
     if (!isObject(datum)) return;
@@ -119,11 +120,18 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
 
     const value = datum[key];
     const position = getAxisPosition(direction, seriesOptions);
-    const timeAxis = predictTimeAxisType(key, value);
 
+    const groupedCategory = predictGroupedCategoryAxisType(value);
+    if (groupedCategory) {
+        return { type: groupedCategory, position };
+    }
+
+    const timeAxis = predictTimeAxisType(key, value);
     if (timeAxis) {
         return { type: timeAxis, position };
     }
+
+    if (!allowPrimitiveTypes) return;
 
     if (typeof value === 'number') {
         return {
@@ -138,22 +146,12 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
     };
 }
 
-export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+export function predictCartesianNonPrimitiveAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
     seriesOptions: SeriesOptions
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
-    if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
-    if (!isObject(datum)) return;
-
-    const key = getSeriesOptionsKey(direction, seriesOptions);
-    if (key == null || !(key in datum)) return;
-
-    const position = getAxisPosition(direction, seriesOptions);
-    const type = predictTimeAxisType(key, datum[key]);
-    if (!type) return;
-
-    return { type, position };
+    return predictCartesianAxis(direction, datum, seriesOptions, { allowPrimitiveTypes: false });
 }
 
 export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianSeriesOptions>(
@@ -178,6 +176,12 @@ export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianS
 
     if (isString(value)) {
         return { type: 'category', position };
+    }
+}
+
+function predictGroupedCategoryAxisType(value: unknown) {
+    if (isArray(value) && value.every(isString)) {
+        return CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY;
     }
 }
 
