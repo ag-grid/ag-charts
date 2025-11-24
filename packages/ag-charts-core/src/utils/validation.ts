@@ -673,21 +673,16 @@ function warnCallbackErrors(
     description: string | undefined,
     result: unknown
 ) {
-    const expectedDescription = description ?? validatorResult.invalid[0]?.description ?? 'a valid value';
+    if (validatorResult.invalid.length === 0) return;
 
     if (isArray(result)) {
+        const expectedDescription = description ?? validatorResult.invalid[0]?.description ?? 'a valid value';
         return warnOnce(
             `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${expectedDescription}, ignoring.`
         );
     }
 
     for (const error of validatorResult.invalid) {
-        callbackWarnInvalid(context, description)(error);
-    }
-}
-
-function callbackWarnInvalid(context: ValidatorContext, description?: string) {
-    return (error: ValidationError) => {
         if (error instanceof UnknownError) {
             return warnOnce(
                 `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
@@ -699,5 +694,5 @@ function callbackWarnInvalid(context: ValidatorContext, description?: string) {
                 ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
                 : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
         );
-    };
+    }
 }

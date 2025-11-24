@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, jest } from '@jest/globals';
 
+import { reset as resetLogger } from '../globals/logger';
 import {
     type OptionsDefs,
     Validator,
@@ -31,7 +32,6 @@ import {
     union,
     validate,
 } from './validation';
-import { reset as resetLogger } from '../globals/logger';
 
 function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?: string): options is T {
     const { invalid } = validate(options, defs, path);
