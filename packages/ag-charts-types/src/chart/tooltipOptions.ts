@@ -73,9 +73,6 @@ export interface AgTooltipPositionOptions {
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset?: PixelSize;
-    testFailure?: {
-        incorrectUsage?: number;
-    };
 }
 
 export interface AgTooltipRendererDataRow {
