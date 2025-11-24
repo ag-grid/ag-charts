@@ -126,4 +126,65 @@ describe('Context Menu', () => {
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
     });
+
+    describe('AG-16259 showsOn', () => {
+        beforeEach(async () => {
+            const options = prepareEnterpriseTestOptions({
+                title: {},
+                subtitle: {},
+                footnote: {},
+                contextMenu: {
+                    items: [
+                        { showOn: 'always', label: 'always', action: () => {} },
+                        { showOn: 'series-area', label: 'series-area', action: () => {} },
+                        { showOn: 'series-node', label: 'series-node', action: () => {} },
+                        { showOn: 'legend-item', label: 'legend-item', action: () => {} },
+                    ],
+                },
+                data: [
+                    { x: 'Jun', y1: 50, y2: 40 },
+                    { x: 'Jul', y1: 70, y2: 50 },
+                    { x: 'Aug', y1: 60, y2: 30 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
+                ],
+                axes: {
+                    x: { title: { text: 'X Axis Label' }, type: 'category' },
+                    y: { title: { text: 'Y Axis Label' }, type: 'number' },
+                },
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        });
+
+        const alwaysText = 'always';
+        const seriesAreaText = 'alwaysseries-area';
+        const seriesNodeText = 'alwaysseries-areaseries-node';
+        const legendText = 'alwayslegend-item';
+        const cases: [string, number, number, string][] = [
+            ['chart', 204, 28, alwaysText],
+            ['title', 407, 32, alwaysText],
+            ['subtitle', 396, 60, alwaysText],
+            ['footnote', 403, 575, alwaysText],
+            ['xAxisLabel', 432, 489, alwaysText],
+            ['yAxisLabel', 30, 263, alwaysText],
+            ['seriesNode1', 397, 250, seriesNodeText],
+            ['seriesNode2', 710, 374, seriesNodeText],
+            ['seriesArea', 283, 175, seriesAreaText],
+            ['legendItem1', 369, 536, legendText],
+            ['legendItem2', 460, 537, legendText],
+        ];
+
+        test.each(cases)('%s', async (_, x, y, expectedHtmlText) => {
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+            const actualHtmlText = document.body
+                .getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS)
+                .item(0)?.textContent;
+
+            expect(actualHtmlText).toEqual(expectedHtmlText);
+        });
+    });
 });
