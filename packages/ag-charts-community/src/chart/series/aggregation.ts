@@ -190,7 +190,7 @@ export function aggregationBucketForDatum(
 }
 
 export function aggregationDatumMatchesIndex(
-    indexData: Int32Array,
+    indexData: Uint32Array,
     aggIndex: number,
     datumIndex: number,
     offsets: number[]
@@ -221,13 +221,14 @@ export function createAggregationIndices(
         yNeedsValueOf?: boolean;
     } = {}
 ): {
-    indexData: Int32Array;
+    indexData: Uint32Array;
     valueData: Float64Array;
 } {
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
-    const indexData = new Int32Array(maxRange * AGGREGATION_SPAN);
+    const indexData = new Uint32Array(maxRange * AGGREGATION_SPAN);
     const valueData = new Float64Array(maxRange * AGGREGATION_SPAN);
+    // const visited = new Uint8Array(maxRange);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
@@ -237,6 +238,7 @@ export function createAggregationIndices(
 
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
+    // let lastBucketIndex = -1;
     let cachedXMinIndex = -1;
     let cachedXMinValue = Number.NaN;
     let cachedXMaxIndex = -1;
@@ -315,6 +317,8 @@ export function createAggregationIndices(
                 flushCache(lastAggIndex);
             }
             lastAggIndex = aggIndex;
+            // lastBucketIndex = Math.trunc(aggIndex / AGGREGATION_SPAN);
+            // visited[lastBucketIndex] = 1;
             resetCache();
         }
 
@@ -362,19 +366,34 @@ export function createAggregationIndices(
         flushCache(lastAggIndex);
     }
 
+    // Fill unvisited buckets with sentinel values
+    // for (let i = 0; i < maxRange; i++) {
+    //     if (visited[i] === 0) {
+    //         const aggIndex = i * AGGREGATION_SPAN;
+    //         indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = -1;
+    //         indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = -1;
+    //         indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = -1;
+    //         indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = -1;
+    //         valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = Number.NaN;
+    //         valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = Number.NaN;
+    //         valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = Number.NaN;
+    //         valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = Number.NaN;
+    //     }
+    // }
+
     return { indexData, valueData };
 }
 
 export function compactAggregationIndices(
-    indexData: Int32Array,
+    indexData: Uint32Array,
     valueData: Float64Array,
     maxRange: number,
-    { inPlace = false, midpointData }: { inPlace?: boolean; midpointData?: Int32Array } = {}
+    { inPlace = false, midpointData }: { inPlace?: boolean; midpointData?: Uint32Array } = {}
 ) {
     const nextMaxRange = Math.trunc(maxRange / 2);
-    const nextIndexData = inPlace ? indexData : new Int32Array(nextMaxRange * AGGREGATION_SPAN);
+    const nextIndexData = inPlace ? indexData : new Uint32Array(nextMaxRange * AGGREGATION_SPAN);
     const nextValueData = inPlace ? valueData : new Float64Array(nextMaxRange * AGGREGATION_SPAN);
-    const nextMidpointData = midpointData ?? new Int32Array(nextMaxRange);
+    const nextMidpointData = midpointData ?? new Uint32Array(nextMaxRange);
 
     for (let i = 0; i < nextMaxRange; i += 1) {
         const aggIndex = Math.trunc(i * AGGREGATION_SPAN);
@@ -425,9 +444,9 @@ export function compactAggregationIndices(
 
 export interface AggregationLevelState {
     maxRange: number;
-    indexData: Int32Array;
+    indexData: Uint32Array;
     valueData: Float64Array;
-    midpointData?: Int32Array;
+    midpointData?: Uint32Array;
 }
 
 export function collectAggregationLevels<T>(

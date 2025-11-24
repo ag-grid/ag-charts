@@ -23,13 +23,13 @@ export const END = AGGREGATION_INDEX_X_MAX;
 export const SPAN = AGGREGATION_SPAN;
 
 export interface RangeBarSeriesDataAggregationFilter {
-    indexData: Int32Array;
+    indexData: Uint32Array;
     maxRange: number;
-    midpointIndices: Int32Array;
+    midpointIndices: Uint32Array;
 }
 
-function getMidpoints(maxRange: number, indexData: Int32Array): Int32Array {
-    const midpoints = new Int32Array(maxRange);
+function getMidpoints(maxRange: number, indexData: Uint32Array): Uint32Array {
+    const midpoints = new Uint32Array(maxRange);
     for (let i = 0, offset = 0; i < maxRange; i += 1, offset += SPAN) {
         const xMinIndex = indexData[offset + START];
         const xMaxIndex = indexData[offset + END];

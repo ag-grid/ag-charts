@@ -15,10 +15,10 @@ import {
 
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;
-    positiveIndices: Int32Array;
-    positiveIndexData: Int32Array;
-    negativeIndices: Int32Array;
-    negativeIndexData: Int32Array;
+    positiveIndices: Uint32Array;
+    positiveIndexData: Uint32Array;
+    negativeIndices: Uint32Array;
+    negativeIndexData: Uint32Array;
 }
 
 export interface PartialBarAggregationResult {
@@ -40,8 +40,8 @@ export interface PartialBarAggregationResult {
  * @param indexData - Aggregation index data (TypedArray)
  * @returns Array of midpoint indices representing each bucket
  */
-function getIndices(maxRange: number, indexData: Int32Array) {
-    const indices = new Int32Array(maxRange);
+function getIndices(maxRange: number, indexData: Uint32Array) {
+    const indices = new Uint32Array(maxRange);
     for (let i = 0, offset = 0; i < maxRange; i += 1, offset += AGGREGATION_SPAN) {
         const xMin = indexData[offset + AGGREGATION_INDEX_X_MIN];
         const xMax = indexData[offset + AGGREGATION_INDEX_X_MAX];

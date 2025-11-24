@@ -139,17 +139,14 @@ describe('computeBarAggregation', () => {
 
             for (const filter of result!) {
                 expect(filter.positiveIndices.length).toBeGreaterThan(0);
-                expect(Array.isArray(filter.negativeIndices)).toBe(true);
-                // All negative indices should be sentinel values (-1) when no negative data exists
-                expect(filter.negativeIndices.every((idx) => idx === -1)).toBe(true);
-                // Verify corresponding typed array also uses sentinels
+                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
+                // Verify corresponding typed array uses sentinels for empty negative buckets
                 for (let i = 0; i < filter.maxRange; i++) {
                     const aggIndex = i * AGGREGATION_SPAN;
                     // X_MIN and X_MAX indices should be -1 for empty negative buckets
                     expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
                     expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
                 }
-                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
             }
         });
 

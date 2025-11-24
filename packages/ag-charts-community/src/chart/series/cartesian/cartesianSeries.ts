@@ -811,7 +811,7 @@ export abstract class CartesianSeries<
     visibleRangeIndices(
         axisKey: string,
         visibleRange: [any, any],
-        indices?: Int32Array | number[],
+        indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
         let sortOrder: 1 | -1;
