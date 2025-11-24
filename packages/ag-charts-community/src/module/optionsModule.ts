@@ -321,14 +321,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.chartDef = ModuleRegistry.getChartModule(chartType);
 
-        if (!this.chartDef.placeholder) {
-            const { validate: validateChart = validate } = this.chartDef;
-            const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
-            for (const error of invalid) {
-                Logger.warn(error);
-            }
-            options = cleared as T;
+        const { validate: validateChart = validate } = this.chartDef;
+        const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
+        for (const error of invalid) {
+            Logger.warn(error);
         }
+        options = cleared as T;
 
         this.validateAxesOptions(options);
         this.removeDisabledOptions(options);

@@ -14,6 +14,11 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: categoryAxisOptionsDefs,
+    themeTemplate: {
+        groupPaddingInner: 0.1,
+        label: { autoRotate: true, wrapping: 'on-space' },
+        gridLine: { enabled: false },
+    },
 
     create: (ctx) => new CategoryAxis(ctx),
 };

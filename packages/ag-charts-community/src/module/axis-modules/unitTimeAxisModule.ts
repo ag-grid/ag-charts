@@ -14,6 +14,12 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: unitTimeAxisOptionsDefs,
+    themeTemplate: {
+        groupPaddingInner: 0.1,
+        label: { autoRotate: false },
+        gridLine: { enabled: false },
+        parentLevel: { enabled: true },
+    },
 
     create: (ctx) => new UnitTimeAxis(ctx),
 };

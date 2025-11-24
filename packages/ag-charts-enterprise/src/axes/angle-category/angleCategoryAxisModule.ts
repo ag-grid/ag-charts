@@ -11,6 +11,10 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     version: VERSION,
 
     options: _ModuleSupport.angleCategoryAxisOptionsDefs,
+    themeTemplate: {
+        label: { spacing: 5 },
+        shape: { $findFirstSiblingNotOperation: undefined },
+    },
 
     create: (ctx) => new AngleCategoryAxis(ctx),
 };

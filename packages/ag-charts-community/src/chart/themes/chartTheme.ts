@@ -39,9 +39,7 @@ import {
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
     DEFAULT_TEXTBOX_COLOR,
@@ -137,6 +135,7 @@ export class ChartTheme {
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
+            separationLinesColor: '#d9d9d9',
 
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' } as any,
@@ -171,9 +170,8 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(overrideDefaults: object, { title, time }: { title: boolean; time: boolean }) {
+    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }) {
         return mergeDefaults(
-            overrideDefaults,
             title && {
                 title: {
                     enabled: false,
@@ -418,85 +416,17 @@ export class ChartTheme {
     }
 
     private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
-            { line: { enabled: false } },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
-            { base: 10, line: { enabled: false } },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0.1,
-                label: { autoRotate: true, wrapping: 'on-space' },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
-                label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
-                maxThicknessRatio: 0.5,
-                paddingInner: 0.4,
-                groupPaddingInner: 0.2,
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
-            { gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0.1,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                parentLevel: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            },
-            { title: true, time: true }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: { $findFirstSiblingNotOperation: undefined },
-            },
-            { title: false, time: false }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            },
-            { title: false, time: false }
-        ),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
-        ),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                shape: { $findFirstSiblingNotOperation: undefined },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
-        ),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ title: false, time: false }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ title: false, time: false }),
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
     };
 
     constructor(options: AgChartTheme = {}) {
@@ -635,7 +565,6 @@ export class ChartTheme {
     getTemplateParameters() {
         const params = new Map();
         params.set(IS_DARK_THEME, false);
-        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
@@ -671,7 +600,6 @@ export class ChartTheme {
         params.set(DEFAULT_TEXTBOX_COLOR, '#000');
 
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
-        params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
         const defaultColors = this.getDefaultColors();
         params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
@@ -705,7 +633,7 @@ function getSeriesThemeTemplate(seriesType: string) {
     let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
         if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
+            themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
         }
     }
     return themeTemplate;

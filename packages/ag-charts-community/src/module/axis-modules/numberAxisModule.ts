@@ -14,6 +14,9 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: numberAxisOptionsDefs,
+    themeTemplate: {
+        line: { enabled: false },
+    },
 
     create: (ctx) => new NumberAxis(ctx),
 };

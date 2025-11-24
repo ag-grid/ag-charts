@@ -137,6 +137,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         popupShadow: string,
         subtleTextColor: color,
         textColor: color,
+        separationLinesColor: color,
 
         chromeBackgroundColor: color,
         chromeFontFamily: fontFamilyFull,
