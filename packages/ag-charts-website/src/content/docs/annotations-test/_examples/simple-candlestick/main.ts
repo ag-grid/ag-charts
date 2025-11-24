@@ -28,14 +28,9 @@ const options: AgChartOptions = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             crosshair: {
                 snap: true,
             },
-        },
-        x: {
-            type: 'ordinal-time',
-            position: 'bottom',
         },
     },
     annotations: {

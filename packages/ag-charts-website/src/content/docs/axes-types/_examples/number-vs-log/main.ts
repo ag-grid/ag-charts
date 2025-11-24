@@ -14,29 +14,14 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-        },
-    },
 };
 
 const chart = AgCharts.create(options);
 
 function setNumberAxis() {
     options.axes = {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             min: 1,
             label: {
                 format: '.0f',
@@ -48,13 +33,8 @@ function setNumberAxis() {
 
 function setLogAxis() {
     options.axes = {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'log',
-            position: 'left',
             min: 10,
             label: {
                 format: '.0f',
@@ -66,13 +46,8 @@ function setLogAxis() {
 
 function setBaseTwoLogAxis() {
     options.axes = {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'log',
-            position: 'left',
             min: 10,
             label: {
                 format: '.0f',
@@ -85,13 +60,8 @@ function setBaseTwoLogAxis() {
 
 function setLogAxisWithFewerTicks() {
     options.axes = {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'log',
-            position: 'left',
             min: 10,
             interval: {
                 minSpacing: 200,

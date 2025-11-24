@@ -48,12 +48,7 @@ function setUnitTimeAxis() {
     options.axes = {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             title: { text: 'Unit Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     };
     chart.update(options);
@@ -63,15 +58,10 @@ function setOrdinalTimeAxis() {
     options.axes = {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: {
                 step: 'month',
             },
             title: { text: 'Ordinal Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     };
     chart.update(options);

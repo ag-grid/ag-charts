@@ -5,38 +5,88 @@ title: 'Secondary Axes'
 Secondary axes are typically used to compare data sets with different scales, with extra axes usually located
 on the opposite side of the chart.
 
+## Creating a Secondary Axis
+
+The easiest way to create a secondary axis is by linking a series to a new axis key with the `series[].yKeyAxis` property.
+
+If a series provides a `yKeyAxis` value that is not the default of `'y'`, a new axis with default properties will be automatically created.
+
+<!-- and positioned to the `'right'`.-->
+
+This allows you to create and use a secondary axis without any explicit axis configuration.
+
 {% chartExampleRunner title="Secondary y-axis" name="multiple-axes" type="generated" /%}
 
-## Configuring Secondary Axes
+In this example:
 
-An extra axis configuration is needed to associate a secondary axis with the appropriate series, where the `keys` axis property
-links the series to the axis.
+-   The `bar` series do not specify a `yKeyAxis`, so they are linked to the default primary `'y'` axis.
+-   The `line` series specifies `yKeyAxis: 'ySecondary'`, which automatically creates a new secondary axis<!-- on the right-->.
+-   Any number of `y` axes can be created in this way and the same concept applies to x-axes using the `xKeyAxis` property.
 
 ```js format="snippet"
-{
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-        },
-        ySecondary: {
-            type: 'number',
-            position: 'right',
-        },
+series: [
+    // These two series are linked to the default 'y' axis
+    { type: 'bar', xKey: 'year', yKey: 'male' },
+    { type: 'bar', xKey: 'year', yKey: 'female' },
+
+    // This series is linked to a new, automatically created 'ySecondary' axis
+    {
+        type: 'line',
+        xKey: 'year',
+        yKey: 'exportedTonnes',
+        yKeyAxis: 'ySecondary',
+    },
+]
+```
+
+## Configuring Axes
+
+Automatic creation is useful in many cases, but explicit axis configuration is often required, for example to add a title or change its position.
+
+To do this, the configured axes are declared in the `axes` property. The keys used here must match the keys used by the `yKeyAxis` property on the series.
+
+```js format="snippet"
+axes: {
+    y: {
+        // This configures the default y-axis
+        type: 'number',
+        position: 'left',
+        title: { text: 'Number of cattle' },
+    },
+    ySecondary: {
+        // This configures the 'ySecondary' used by the line series
+        type: 'number',
+        position: 'right',
+        title: { text: 'Exports (tonnes)' },
     },
 }
 ```
 
-In this configuration:
+## Custom Axes Keys
 
--   The axis `keys` property on the primary axis (left) matches the `yKeys` of the `column` series.
--   The axis `keys` property on the secondary axis (right) matches the `yKey` of the `line` series.
--   The secondary axis has the `position` of `right`.
+The above example used the default key of `'y'` and an additional key of `ySecondary`.
 
-Any number of additional axes can be added to a chart using the same approach.
+To increase readability, especially when dealing with multiple axes with distinct meanings, more descriptive axis keys should be used.
 
-For series with multiple keys only a single matching entry in `keys` is needed.
+For example, to name the axes `cattleAxis` and `exportsAxis`, just set this in the series `yKeyAxis` properties. The axes keys are now these
+values and the default `y` axis is not used.
+
+```js format="snippet"
+series: [
+    { type: 'bar', xKey: 'year', yKey: 'male', yKeyAxis: 'cattleAxis' },
+    { type: 'bar', xKey: 'year', yKey: 'female', yKeyAxis: 'cattleAxis' },
+    { type: 'line', xKey: 'year', yKey: 'exportedTonnes', yKeyAxis: 'exportsAxis' },
+],
+axes: {
+    cattleAxis: {
+        type: 'number',
+        position: 'left',
+        title: { text: 'Number of cattle' },
+    },
+    exportsAxis: {
+        type: 'number',
+        position: 'right',
+        title: { text: 'Exports (tonnes)' },
+    },
+}
+```

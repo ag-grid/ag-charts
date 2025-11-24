@@ -9,12 +9,10 @@ const commonOptions: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             label: { formatter: labelFormatter(formatMillis) },
         },
         xSecondary: {
             type: 'number',
-            position: 'top',
             label: { formatter: labelFormatter(formatBytes) },
         },
     },

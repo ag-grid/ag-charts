@@ -21,7 +21,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         y: {
-            position: 'right',
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -29,10 +28,6 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
-        },
-        x: {
-            position: 'bottom',
-            type: 'time',
         },
     },
     annotations: {
