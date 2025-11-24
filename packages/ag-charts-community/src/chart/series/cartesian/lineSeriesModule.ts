@@ -51,11 +51,6 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        errorBar: {
-            cap: {
-                lengthRatio: 1,
-            },
-        },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
             position: {

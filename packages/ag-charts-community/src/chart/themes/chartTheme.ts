@@ -705,7 +705,7 @@ function getSeriesThemeTemplate(seriesType: string) {
     let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
         if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
         }
     }
     return themeTemplate;

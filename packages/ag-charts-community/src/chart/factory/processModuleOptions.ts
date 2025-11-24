@@ -1,7 +1,85 @@
-import { Logger, ModuleRegistry, ModuleType, enterpriseRegistry, isArray, isObject } from 'ag-charts-core';
+import {
+    type AxisPluginModuleDefinition,
+    Logger,
+    ModuleRegistry,
+    ModuleType,
+    type PluginModuleDefinition,
+    type SeriesPluginModuleDefinition,
+    enterpriseRegistry,
+    isArray,
+    isObject,
+} from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
+
+export function processModuleOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
+    const initialSeriesType = options.series?.[0]?.type as string | undefined;
+    const incompatibleModules = removeIncompatibleModuleOptions(chartType, options);
+    const missingModules = removeUnregisteredModuleOptions(chartType, options);
+
+    if (incompatibleModules.length) {
+        Logger.warnOnce(
+            [
+                `The following module options were removed from the chart options as they are not compatible with a '${chartType}' chart:`,
+                '',
+                ...incompatibleModules,
+            ].join('\n')
+        );
+    }
+
+    if (!missingModules.length) return;
+
+    let enterprisePackageName = 'ag-charts-enterprise';
+    let enterpriseReferenceUrl = 'https://www.ag-grid.com/charts/javascript/installation/';
+
+    if ((options as any).mode === 'integrated') {
+        enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";
+        enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
+    }
+
+    const missingOptions = missingModules.reduce<{ enterprise: string[]; community: string[] }>(
+        (data, module) => {
+            data[module.enterprise ? 'enterprise' : 'community'].push(mapModuleName(module));
+            return data;
+        },
+        { enterprise: [], community: [] }
+    );
+
+    if (initialSeriesType === 'linear-gauge' || initialSeriesType === 'radial-gauge') {
+        missingOptions.enterprise = ['AgCharts.createGauge'];
+    }
+
+    const messages: string[] = [];
+
+    if (missingOptions.enterprise.length) {
+        messages.push(
+            [
+                `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
+                '',
+                ...missingOptions.enterprise,
+                '',
+                `See: ${enterpriseReferenceUrl}`,
+            ].join('\n')
+        );
+    }
+
+    if (missingOptions.community.length) {
+        messages.push(
+            [
+                `unable to use these features as the required community modules have not been registered:`,
+                '',
+                ...missingOptions.community,
+                '',
+                `Call ModuleRegistry.registerModules([...]) with the necessary modules before creating the chart.`,
+            ].join('\n')
+        );
+    }
+
+    if (messages.length) {
+        Logger.warnOnce(messages.join('\n\n'));
+    }
+}
 
 function mapModuleName(module: ModulePlaceholder): string {
     switch (module.type) {
@@ -25,9 +103,8 @@ function mapModuleName(module: ModulePlaceholder): string {
 
 export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string,
-    options: T,
-    silent?: boolean
-) {
+    options: T
+): ModulePlaceholder[] {
     const missingModules: ModulePlaceholder[] = [];
 
     for (const module of ExpectedModules.values()) {
@@ -100,81 +177,42 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
         }
     }
-    if (missingModules.length && !silent) {
-        let enterprisePackageName = 'ag-charts-enterprise';
-        let enterpriseReferenceUrl = 'https://www.ag-grid.com/charts/javascript/installation/';
-
-        if ((options as any).mode === 'integrated') {
-            enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";
-            enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
-        }
-
-        const messages: string[] = [];
-        const missingOptions = missingModules.reduce<{ enterprise: string[]; community: string[] }>(
-            (data, module) => {
-                data[module.enterprise ? 'enterprise' : 'community'].push(mapModuleName(module));
-                return data;
-            },
-            { enterprise: [], community: [] }
-        );
-
-        const optsType: string | undefined = options?.series?.[0]?.type;
-        if (optsType === 'linear-gauge' || optsType === 'radial-gauge') {
-            missingOptions.enterprise = ['AgCharts.createGauge'];
-        }
-
-        if (missingOptions.enterprise.length) {
-            messages.push(
-                [
-                    `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
-                    '',
-                    ...missingOptions.enterprise,
-                    '',
-                    `See: ${enterpriseReferenceUrl}`,
-                ].join('\n')
-            );
-        }
-
-        if (missingOptions.community.length) {
-            messages.push(
-                [
-                    `unable to use these features as the required community modules have not been registered:`,
-                    '',
-                    ...missingOptions.community,
-                    '',
-                    `Call ModuleRegistry.registerModules([...]) with the necessary modules before creating the chart.`,
-                ].join('\n')
-            );
-        }
-
-        if (messages.length) {
-            Logger.warnOnce(messages.join('\n\n'));
-        }
-    }
+    return missingModules;
 }
 
-export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-        if (module.chartType && module.chartType !== chartType) {
-            delete options[module.name as keyof AgChartOptions];
-        }
-    }
-    if ('axes' in options && isObject(options.axes)) {
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            if (module.chartType && module.chartType !== chartType) {
-                for (const axis of Object.values(options.axes)) {
+export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions>>(
+    chartType: string,
+    options: T
+): string[] {
+    const hasAxesOptions = 'axes' in options && isObject(options.axes);
+    const hasSeriesOptions = 'series' in options && isArray(options.series);
+    const matchChartType = (
+        module: AxisPluginModuleDefinition<any> | SeriesPluginModuleDefinition<any> | PluginModuleDefinition<any>
+    ) => !module.chartType || module.chartType === chartType;
+    const incompatibleModules: string[] = [];
+
+    for (const module of ModuleRegistry.listModules()) {
+        if (ModuleRegistry.isModuleType(ModuleType.Plugin, module)) {
+            if (!matchChartType(module)) {
+                delete options[module.name as keyof AgChartOptions];
+                incompatibleModules.push(module.name);
+            }
+        } else if (ModuleRegistry.isModuleType(ModuleType.AxisPlugin, module)) {
+            if (hasAxesOptions && !matchChartType(module)) {
+                for (const axis of Object.values(options.axes as object)) {
                     delete axis[module.name as keyof typeof axis];
                 }
+                incompatibleModules.push(module.name);
             }
-        }
-    }
-    if ('series' in options && isArray(options.series)) {
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-            if (module.chartType && module.chartType !== chartType) {
-                for (const series of options.series) {
+        } else if (ModuleRegistry.isModuleType(ModuleType.SeriesPlugin, module)) {
+            if (hasSeriesOptions && !matchChartType(module)) {
+                for (const series of options.series as object[]) {
                     delete series[module.name as Exclude<keyof typeof series, 'type'>];
                 }
+                incompatibleModules.push(module.name);
             }
         }
     }
+
+    return incompatibleModules;
 }
