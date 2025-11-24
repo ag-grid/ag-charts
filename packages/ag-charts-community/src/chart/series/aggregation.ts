@@ -228,11 +228,17 @@ export function createAggregationIndices(
 } {
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
+    const nan = Number.NaN; // Local constant for faster access
     const indexData = new Uint32Array(maxRange * AGGREGATION_SPAN);
     const valueData = new Float64Array(maxRange * AGGREGATION_SPAN);
-    const visited = new Uint8Array(maxRange);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
+
+    // Pre-fill with sentinel values for continuous case (potentially sparse data).
+    if (continuous) {
+        valueData.fill(nan);
+        indexData.fill(AGGREGATION_INDEX_UNSET);
+    }
 
     // Pre-compute domain range for continuous case
     const domainRange = continuous ? d1 - d0 : 0;
@@ -240,40 +246,14 @@ export function createAggregationIndices(
 
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
-    let lastBucketIndex = -1;
     let cachedXMinIndex = -1;
-    let cachedXMinValue = Number.NaN;
+    let cachedXMinValue = nan;
     let cachedXMaxIndex = -1;
-    let cachedXMaxValue = Number.NaN;
+    let cachedXMaxValue = nan;
     let cachedYMinIndex = -1;
-    let cachedYMinValue = Number.NaN;
+    let cachedYMinValue = nan;
     let cachedYMaxIndex = -1;
-    let cachedYMaxValue = Number.NaN;
-
-    function flushCache(aggIndex: number) {
-        // NOTE: Access order makes a performance difference here - do not change.
-        // Group writes to the same array together for better cache locality
-        const baseIdx = aggIndex;
-        indexData[baseIdx + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
-        indexData[baseIdx + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
-        indexData[baseIdx + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
-        indexData[baseIdx + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
-        valueData[baseIdx + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
-        valueData[baseIdx + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
-        valueData[baseIdx + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
-        valueData[baseIdx + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
-    }
-
-    function resetCache() {
-        cachedXMinIndex = -1;
-        cachedXMinValue = Number.NaN;
-        cachedXMaxIndex = -1;
-        cachedXMaxValue = Number.NaN;
-        cachedYMinIndex = -1;
-        cachedYMinValue = Number.NaN;
-        cachedYMaxIndex = -1;
-        cachedYMaxValue = Number.NaN;
-    }
+    let cachedYMaxValue = nan;
 
     const xValuesLength = xValues.length;
     const yArraysSame = yMaxValues === yMinValues;
@@ -289,11 +269,11 @@ export function createAggregationIndices(
         let yMax: number;
         let yMin: number;
         if (yNeedsValueOf) {
-            yMax = yMaxValue == null ? Number.NaN : yMaxValue.valueOf();
-            yMin = yMinValue == null ? Number.NaN : yMinValue.valueOf();
+            yMax = yMaxValue == null ? nan : yMaxValue.valueOf();
+            yMin = yMinValue == null ? nan : yMinValue.valueOf();
         } else {
-            yMax = yMaxValue ?? Number.NaN;
-            yMin = yMinValue ?? Number.NaN;
+            yMax = yMaxValue ?? nan;
+            yMin = yMinValue ?? nan;
         }
 
         // Early continue for positive check
@@ -311,22 +291,40 @@ export function createAggregationIndices(
             xRatio = datumIndex * invDomainCount;
         }
 
-        const aggIndex = Math.trunc(Math.min(Math.floor(xRatio * maxRange), maxRange - 1) * AGGREGATION_SPAN);
+        // Clamp to maxRange-1 to handle xRatio=1.0 edge case, then multiply by AGGREGATION_SPAN
+        // Note: Must use Math.floor (not |0) because |0 truncates toward zero, causing negative
+        // xRatio values (data below domain) to incorrectly map to bucket 0 instead of negative bucket
+        const bucketIndex = Math.floor(xRatio * maxRange);
+        const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) << 2;
 
         // Reset cache when switching buckets
         if (aggIndex !== lastAggIndex) {
             if (lastAggIndex !== -1) {
-                flushCache(lastAggIndex);
+                // Inline flushCache - group writes by array for cache locality
+                indexData[lastAggIndex] = cachedXMinIndex;
+                indexData[lastAggIndex + 1] = cachedXMaxIndex;
+                indexData[lastAggIndex + 2] = cachedYMinIndex;
+                indexData[lastAggIndex + 3] = cachedYMaxIndex;
+                valueData[lastAggIndex] = cachedXMinValue;
+                valueData[lastAggIndex + 1] = cachedXMaxValue;
+                valueData[lastAggIndex + 2] = cachedYMinValue;
+                valueData[lastAggIndex + 3] = cachedYMaxValue;
             }
             lastAggIndex = aggIndex;
-            lastBucketIndex = Math.trunc(aggIndex / AGGREGATION_SPAN);
-            visited[lastBucketIndex] = 1;
-            resetCache();
+            // Inline resetCache
+            cachedXMinIndex = -1;
+            cachedXMinValue = nan;
+            cachedXMaxIndex = -1;
+            cachedXMaxValue = nan;
+            cachedYMinIndex = -1;
+            cachedYMinValue = nan;
+            cachedYMaxIndex = -1;
+            cachedYMaxValue = nan;
         }
 
-        // Pre-compute NaN checks
-        const yMinValid = !Number.isNaN(yMin);
-        const yMaxValid = !Number.isNaN(yMax);
+        // Pre-compute NaN checks (NaN is the only value where x !== x)
+        const yMinValid = yMin === yMin;
+        const yMaxValid = yMax === yMax;
 
         // Fast path: bucket is unset (first value in bucket)
         if (cachedXMinIndex === -1) {
@@ -365,22 +363,14 @@ export function createAggregationIndices(
 
     // Flush final bucket
     if (lastAggIndex !== -1) {
-        flushCache(lastAggIndex);
-    }
-
-    // Fill unvisited buckets with sentinel values
-    for (let i = 0; i < maxRange; i++) {
-        if (visited[i] === 0) {
-            const aggIndex = i * AGGREGATION_SPAN;
-            indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = AGGREGATION_INDEX_UNSET;
-            indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = AGGREGATION_INDEX_UNSET;
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = AGGREGATION_INDEX_UNSET;
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = AGGREGATION_INDEX_UNSET;
-            valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = Number.NaN;
-            valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = Number.NaN;
-            valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = Number.NaN;
-            valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = Number.NaN;
-        }
+        indexData[lastAggIndex] = cachedXMinIndex;
+        indexData[lastAggIndex + 1] = cachedXMaxIndex;
+        indexData[lastAggIndex + 2] = cachedYMinIndex;
+        indexData[lastAggIndex + 3] = cachedYMaxIndex;
+        valueData[lastAggIndex] = cachedXMinValue;
+        valueData[lastAggIndex + 1] = cachedXMaxValue;
+        valueData[lastAggIndex + 2] = cachedYMinValue;
+        valueData[lastAggIndex + 3] = cachedYMaxValue;
     }
 
     return { indexData, valueData };
