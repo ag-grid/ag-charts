@@ -64,6 +64,10 @@ describe('computeOhlcAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThanOrEqual(2);
+            for (const filter of result!) {
+                expect(filter.midpointIndices).toBeInstanceOf(Int32Array);
+                expect(filter.midpointIndices.length).toBe(filter.maxRange);
+            }
         });
 
         it('should have coarser levels first', () => {

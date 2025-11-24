@@ -8,23 +8,34 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_MIN_RANGE,
+    AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationRangeFittingPoints,
-    compactAggregationIndices,
+    collectAggregationLevels,
     createAggregationIndices,
 } = _ModuleSupport;
-
-const AGGREGATION_THRESHOLD = 1e3;
 
 export const START = AGGREGATION_INDEX_X_MIN;
 export const HIGH = AGGREGATION_INDEX_Y_MAX;
 export const LOW = AGGREGATION_INDEX_Y_MIN;
 export const END = AGGREGATION_INDEX_X_MAX;
-export { AGGREGATION_SPAN as SPAN };
+export const SPAN = AGGREGATION_SPAN;
 
 export interface RangeBarSeriesDataAggregationFilter {
     indexData: Int32Array;
     maxRange: number;
+    midpointIndices: Int32Array;
+}
+
+function getMidpoints(maxRange: number, indexData: Int32Array): Int32Array {
+    const midpoints = new Int32Array(maxRange);
+    for (let i = 0, offset = 0; i < maxRange; i += 1, offset += SPAN) {
+        const xMinIndex = indexData[offset + START];
+        const xMaxIndex = indexData[offset + END];
+        midpoints[i] = xMinIndex === -1 ? -1 : (xMinIndex + xMaxIndex) >> 1;
+    }
+    return midpoints;
 }
 
 // ============================================================================
@@ -73,18 +84,22 @@ export function computeRangeBarAggregation(
     const [d0, d1] = domain;
     const { smallestKeyInterval } = options;
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
-    let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
+    const maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
+    const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
+    const midpointData = getMidpoints(maxRange, indexData);
 
-    const filters: RangeBarSeriesDataAggregationFilter[] = [{ maxRange, indexData }];
-
-    while (maxRange > 64) {
-        ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
-
-        filters.push({ maxRange, indexData });
-    }
-
-    filters.reverse();
+    const filters = collectAggregationLevels<RangeBarSeriesDataAggregationFilter>(
+        { maxRange, indexData, valueData, midpointData },
+        {
+            minRange: AGGREGATION_MIN_RANGE,
+            collectLevel: ({ maxRange: range, indexData: levelIndexData, midpointData: levelMidpointData }) => ({
+                maxRange: range,
+                indexData: levelIndexData,
+                midpointIndices: levelMidpointData ?? getMidpoints(range, levelIndexData),
+            }),
+            shouldContinue: () => true,
+        }
+    );
 
     return filters;
 }

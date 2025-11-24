@@ -5,15 +5,15 @@ import { simpleMemorize2 } from 'ag-charts-core';
 const {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_MIN_RANGE,
+    AGGREGATION_THRESHOLD,
+    aggregationBucketForDatum,
+    aggregationDatumMatchesIndex,
     aggregationDomain,
-    aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
-    aggregationXRatioForXValue,
-    compactAggregationIndices,
+    collectAggregationLevels,
     createAggregationIndices,
 } = _ModuleSupport;
-
-const AGGREGATION_THRESHOLD = 1e3;
 
 export interface RangeAreaSeriesDataAggregationFilter {
     maxRange: number;
@@ -34,13 +34,10 @@ function aggregationContainsTopIndex(
     datumIndex: number,
     xNeedsValueOf: boolean
 ) {
-    const xValue = xValues[datumIndex];
-    if (xValue == null) return false;
+    const aggIndex = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xNeedsValueOf });
+    if (aggIndex === -1) return false;
 
-    const xRatio = aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf);
-    const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
-
-    return datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+    return aggregationDatumMatchesIndex(indexData, aggIndex, datumIndex, [AGGREGATION_INDEX_Y_MAX]);
 }
 
 function aggregationContainsBottomIndex(
@@ -52,13 +49,10 @@ function aggregationContainsBottomIndex(
     datumIndex: number,
     xNeedsValueOf: boolean
 ) {
-    const xValue = xValues[datumIndex];
-    if (xValue == null) return false;
+    const aggIndex = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xNeedsValueOf });
+    if (aggIndex === -1) return false;
 
-    const xRatio = aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf);
-    const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
-
-    return datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
+    return aggregationDatumMatchesIndex(indexData, aggIndex, datumIndex, [AGGREGATION_INDEX_Y_MIN]);
 }
 
 // ============================================================================
@@ -108,38 +102,46 @@ export function computeRangeAreaAggregation(
     const [d0, d1] = domain;
     const { xNeedsValueOf, yNeedsValueOf } = options;
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
+    const maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
     const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange, {
         xNeedsValueOf,
         yNeedsValueOf,
     });
 
-    let topIndices: number[] = [];
-    let bottomIndices: number[] = [];
-    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
-        if (aggregationContainsTopIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf)) {
-            topIndices.push(datumIndex);
+    const filters = collectAggregationLevels<RangeAreaSeriesDataAggregationFilter>(
+        { maxRange, indexData, valueData },
+        {
+            compactInPlace: true,
+            minRange: AGGREGATION_MIN_RANGE,
+            collectLevel: ({ maxRange: range, indexData: levelIndexData }) => {
+                const topIndices: number[] = [];
+                const bottomIndices: number[] = [];
+                for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+                    if (
+                        aggregationContainsTopIndex(xValues, d0, d1, levelIndexData, range, datumIndex, xNeedsValueOf)
+                    ) {
+                        topIndices.push(datumIndex);
+                    }
+                    if (
+                        aggregationContainsBottomIndex(
+                            xValues,
+                            d0,
+                            d1,
+                            levelIndexData,
+                            range,
+                            datumIndex,
+                            xNeedsValueOf
+                        )
+                    ) {
+                        bottomIndices.push(datumIndex);
+                    }
+                }
+
+                return { maxRange: range, topIndices, bottomIndices };
+            },
+            shouldContinue: () => true,
         }
-        if (aggregationContainsBottomIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf)) {
-            bottomIndices.push(datumIndex);
-        }
-    }
-
-    const filters: RangeAreaSeriesDataAggregationFilter[] = [{ maxRange, topIndices, bottomIndices }];
-
-    while (maxRange > 64) {
-        ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
-        topIndices = topIndices.filter((datumIndex) =>
-            aggregationContainsTopIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf)
-        );
-        bottomIndices = bottomIndices.filter((datumIndex) =>
-            aggregationContainsBottomIndex(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf)
-        );
-
-        filters.push({ maxRange, topIndices, bottomIndices });
-    }
-
-    filters.reverse();
+    );
 
     return filters;
 }

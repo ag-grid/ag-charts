@@ -1,23 +1,31 @@
 import { type ScaleType, simpleMemorize2 } from 'ag-charts-core';
+import { nextPowerOf2 } from 'ag-charts-core';
 
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_MIN_RANGE,
     AGGREGATION_SPAN,
+    AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
 } from '../aggregation';
 
-const AGGREGATION_THRESHOLD = 1e3;
-
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;
-    positiveIndices: number[];
+    positiveIndices: Int32Array;
     positiveIndexData: Int32Array;
-    negativeIndices: number[];
+    negativeIndices: Int32Array;
     negativeIndexData: Int32Array;
+}
+
+export interface PartialBarAggregationResult {
+    /** Levels computed immediately (includes the target level) */
+    immediate: BarSeriesDataAggregationFilter[];
+    /** Function to compute remaining coarser levels, or undefined if all levels computed */
+    computeRemaining?: () => BarSeriesDataAggregationFilter[];
 }
 
 // ============================================================================
@@ -32,15 +40,14 @@ export interface BarSeriesDataAggregationFilter {
  * @param indexData - Aggregation index data (TypedArray)
  * @returns Array of midpoint indices representing each bucket
  */
-function getIndices(maxRange: number, indexData: Int32Array): number[] {
-    function midpointIndex(_: unknown, index: number): number {
-        const aggIndex = index * AGGREGATION_SPAN;
-        const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
-        const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-        return Math.trunc((xMinIndex + xMaxIndex) / 2);
+function getIndices(maxRange: number, indexData: Int32Array) {
+    const indices = new Int32Array(maxRange);
+    for (let i = 0, offset = 0; i < maxRange; i += 1, offset += AGGREGATION_SPAN) {
+        const xMin = indexData[offset + AGGREGATION_INDEX_X_MIN];
+        const xMax = indexData[offset + AGGREGATION_INDEX_X_MAX];
+        indices[i] = (xMin + xMax) >> 1; // truncating midpoint
     }
-
-    return Array.from({ length: maxRange }, midpointIndex);
+    return indices;
 }
 
 /**
@@ -118,19 +125,19 @@ export function computeBarAggregation(
     ];
 
     while (maxRange > 64) {
-        ({ indexData: positiveIndexData, valueData: positiveValueData } = compactAggregationIndices(
-            positiveIndexData,
-            positiveValueData,
-            maxRange
-        ));
-        ({
-            indexData: negativeIndexData,
-            valueData: negativeValueData,
-            maxRange,
-        } = compactAggregationIndices(negativeIndexData, negativeValueData, maxRange));
+        const currentMaxRange = maxRange;
+        const positiveCompacted = compactAggregationIndices(positiveIndexData, positiveValueData, currentMaxRange);
+        const negativeCompacted = compactAggregationIndices(negativeIndexData, negativeValueData, currentMaxRange);
 
-        positiveIndices = getIndices(maxRange, positiveIndexData);
-        negativeIndices = getIndices(maxRange, negativeIndexData);
+        maxRange = positiveCompacted.maxRange;
+
+        positiveIndexData = positiveCompacted.indexData;
+        positiveValueData = positiveCompacted.valueData;
+        positiveIndices = positiveCompacted.midpointData ?? getIndices(maxRange, positiveIndexData);
+
+        negativeIndexData = negativeCompacted.indexData;
+        negativeValueData = negativeCompacted.valueData;
+        negativeIndices = negativeCompacted.midpointData ?? getIndices(maxRange, negativeIndexData);
 
         filters.push({ maxRange, positiveIndices, positiveIndexData, negativeIndices, negativeIndexData });
     }
@@ -138,6 +145,88 @@ export function computeBarAggregation(
     filters.reverse();
 
     return filters;
+}
+
+/**
+ * Computes bar aggregation with deferred full recomputation.
+ *
+ * For real-time data updates, this computes only the single aggregation level
+ * needed for the current zoom, deferring a full recomputation of all levels
+ * to idle time. This design enables future incremental updates to focus on
+ * just the immediate level, while deferred processing handles full rebuilds.
+ *
+ * @param domain - Numeric domain bounds [min, max] for X values
+ * @param xValues - X coordinate values
+ * @param yStartValues - Y start values for stacked bars
+ * @param yEndValues - Y end values
+ * @param options - Configuration options including targetRange
+ * @param options.targetRange - The current pixel range for determining bucket count
+ * @returns Partial result with the immediate level and a function to compute all levels
+ */
+export function computeBarAggregationPartial(
+    domain: [number, number],
+    xValues: any[],
+    yStartValues: any[] | undefined,
+    yEndValues: any[],
+    options: {
+        smallestKeyInterval: number | undefined;
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        targetRange: number;
+    }
+): PartialBarAggregationResult | undefined {
+    if (xValues.length < AGGREGATION_THRESHOLD) return;
+
+    const [d0, d1] = domain;
+    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, targetRange } = options;
+
+    // Calculate the finest level bucket count (based on data density)
+    const finestMaxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
+
+    // Calculate target bucket count: next power of 2 >= targetRange, clamped to valid range
+    const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
+
+    // Create aggregation at exactly the target level - single O(n) scan
+    const { indexData: positiveIndexData } = createAggregationIndices(
+        xValues,
+        yEndValues,
+        yStartValues ?? yEndValues,
+        d0,
+        d1,
+        targetMaxRange,
+        { positive: true, xNeedsValueOf, yNeedsValueOf }
+    );
+    const { indexData: negativeIndexData } = createAggregationIndices(
+        xValues,
+        yEndValues,
+        yStartValues ?? yEndValues,
+        d0,
+        d1,
+        targetMaxRange,
+        { positive: false, xNeedsValueOf, yNeedsValueOf }
+    );
+
+    const immediateLevel: BarSeriesDataAggregationFilter = {
+        maxRange: targetMaxRange,
+        positiveIndices: getIndices(targetMaxRange, positiveIndexData),
+        positiveIndexData,
+        negativeIndices: getIndices(targetMaxRange, negativeIndexData),
+        negativeIndexData,
+    };
+
+    // Defer full recomputation of all levels to idle time
+    function computeRemaining(): BarSeriesDataAggregationFilter[] {
+        const allLevels = computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
+            smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf,
+        });
+
+        // Filter out the immediate level (already computed) to avoid duplicates
+        return allLevels?.filter((level) => level.maxRange !== targetMaxRange) ?? [];
+    }
+
+    return { immediate: [immediateLevel], computeRemaining };
 }
 
 // ============================================================================
@@ -222,4 +311,50 @@ export function aggregateBarDataFromDataModel(
         xNeedsValueOf,
         yNeedsValueOf
     );
+}
+
+/**
+ * High-level partial aggregation function for series integration.
+ * Computes immediate levels for the target range and defers coarser levels.
+ *
+ * @param scale - The X-axis scale type
+ * @param dataModel - Data model containing the processed data
+ * @param processedData - Processed data to aggregate
+ * @param series - Series context for data model queries
+ * @param targetRange - Current pixel range for determining which levels to compute immediately
+ * @returns Partial aggregation result with immediate levels and deferred computation function
+ */
+export function aggregateBarDataFromDataModelPartial(
+    scale: ScaleType,
+    dataModel: any,
+    processedData: any,
+    series: any,
+    targetRange: number
+): PartialBarAggregationResult | undefined {
+    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+
+    const isStacked = dataModel.hasColumnById(series, 'yValue-start');
+    const yStartValues = isStacked ? dataModel.resolveColumnById(series, 'yValue-start', processedData) : undefined;
+    const yEndValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
+        : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
+
+    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
+    const domain = processedData.domain.keys[index];
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
+        series,
+        isStacked ? 'yValue-end' : 'yValue-raw',
+        processedData
+    );
+
+    const [d0, d1] = aggregationDomain(scale, domain);
+    // TODO: Use memoized version of computeBarAggregationPartial
+    return computeBarAggregationPartial([d0, d1], xValues, yStartValues, yEndValues, {
+        smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
+        xNeedsValueOf,
+        yNeedsValueOf,
+        targetRange,
+    });
 }

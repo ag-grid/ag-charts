@@ -1,5 +1,5 @@
 import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from '../aggregation';
-import { computeBarAggregation } from './barAggregation';
+import { computeBarAggregation, computeBarAggregationPartial } from './barAggregation';
 
 describe('computeBarAggregation', () => {
     describe('threshold behavior', () => {
@@ -149,6 +149,7 @@ describe('computeBarAggregation', () => {
                     expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
                     expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
                 }
+                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
             }
         });
 
@@ -166,7 +167,7 @@ describe('computeBarAggregation', () => {
             expect(result).toBeDefined();
 
             for (const filter of result!) {
-                expect(Array.isArray(filter.positiveIndices)).toBe(true);
+                expect(filter.positiveIndices).toBeInstanceOf(Int32Array);
                 expect(filter.negativeIndices.length).toBeGreaterThan(0);
                 // All positive indices should be sentinel values (-1) when no positive data exists
                 expect(filter.positiveIndices.every((idx) => idx === -1)).toBe(true);
@@ -361,8 +362,8 @@ describe('computeBarAggregation', () => {
                 expect(typeof filter.maxRange).toBe('number');
                 expect(filter.maxRange).toBeGreaterThan(0);
 
-                expect(Array.isArray(filter.positiveIndices)).toBe(true);
-                expect(Array.isArray(filter.negativeIndices)).toBe(true);
+                expect(filter.positiveIndices).toBeInstanceOf(Int32Array);
+                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
                 expect(filter.positiveIndexData).toBeInstanceOf(Int32Array);
                 expect(filter.negativeIndexData).toBeInstanceOf(Int32Array);
             }
@@ -416,6 +417,201 @@ describe('computeBarAggregation', () => {
                 // Each filter should have maxRange number of indices
                 expect(filter.positiveIndices.length).toBe(filter.maxRange);
                 expect(filter.negativeIndices.length).toBe(filter.maxRange);
+            }
+        });
+    });
+});
+
+describe('computeBarAggregationPartial', () => {
+    describe('threshold behavior', () => {
+        it('should return undefined for datasets below threshold', () => {
+            const xValues = Array.from({ length: 999 }, (_, i) => i);
+            const yValues = Array.from({ length: 999 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 998];
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange: 800,
+            });
+
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('immediate levels', () => {
+        it('should compute immediate levels for current zoom', () => {
+            const xValues = Array.from({ length: 10000 }, (_, i) => i);
+            const yValues = Array.from({ length: 10000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 9999];
+            const targetRange = 800;
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange,
+            });
+
+            expect(result).toBeDefined();
+            expect(result!.immediate).toBeDefined();
+            expect(result!.immediate.length).toBeGreaterThan(0);
+
+            // All immediate levels should have maxRange > targetRange
+            for (const filter of result!.immediate) {
+                expect(filter.maxRange).toBeGreaterThan(targetRange);
+            }
+        });
+
+        it('should return computeRemaining function for deferred work', () => {
+            const xValues = Array.from({ length: 10000 }, (_, i) => i);
+            const yValues = Array.from({ length: 10000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 9999];
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange: 800,
+            });
+
+            expect(result).toBeDefined();
+            expect(result!.computeRemaining).toBeDefined();
+            expect(typeof result!.computeRemaining).toBe('function');
+        });
+
+        it('should return only immediate level when target matches finest', () => {
+            const xValues = Array.from({ length: 2000 }, (_, i) => i);
+            const yValues = Array.from({ length: 2000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 1999];
+
+            // Target range larger than finest level means only one immediate level
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange: 32,
+            });
+
+            expect(result).toBeDefined();
+            // Only one immediate level (the target level)
+            expect(result!.immediate.length).toBe(1);
+        });
+    });
+
+    describe('deferred computation', () => {
+        it('should compute remaining levels (coarser and finer) when called', () => {
+            const xValues = Array.from({ length: 10000 }, (_, i) => i);
+            const yValues = Array.from({ length: 10000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 9999];
+            const targetRange = 800;
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange,
+            });
+
+            expect(result).toBeDefined();
+            expect(result!.computeRemaining).toBeDefined();
+            expect(result!.immediate.length).toBe(1); // Only one immediate level
+
+            const deferredLevels = result!.computeRemaining!();
+
+            expect(deferredLevels).toBeDefined();
+            expect(deferredLevels.length).toBeGreaterThan(0);
+
+            // Deferred levels include both coarser (< immediate) and finer (> immediate) levels
+            const immediateMaxRange = result!.immediate[0].maxRange;
+            const hasCoarser = deferredLevels.some((f) => f.maxRange < immediateMaxRange);
+
+            // Should have at least coarser levels
+            expect(hasCoarser).toBe(true);
+        });
+
+        it('should produce same total levels as full computation', () => {
+            const xValues = Array.from({ length: 10000 }, (_, i) => i);
+            const yValues = Array.from({ length: 10000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 9999];
+            const targetRange = 800;
+
+            const fullResult = computeBarAggregation(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+            });
+
+            const partialResult = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange,
+            });
+
+            expect(fullResult).toBeDefined();
+            expect(partialResult).toBeDefined();
+
+            const deferredLevels = partialResult!.computeRemaining?.() ?? [];
+            const combinedLevels = [...deferredLevels, ...partialResult!.immediate];
+
+            // Combined levels should equal full computation
+            expect(combinedLevels.length).toBe(fullResult!.length);
+
+            // Sort by maxRange for comparison
+            const sortedCombined = [...combinedLevels].sort((a, b) => a.maxRange - b.maxRange);
+            const sortedFull = [...fullResult!].sort((a, b) => a.maxRange - b.maxRange);
+
+            for (let i = 0; i < sortedCombined.length; i++) {
+                expect(sortedCombined[i].maxRange).toBe(sortedFull[i].maxRange);
+            }
+        });
+    });
+
+    describe('edge cases', () => {
+        it('should handle very high target range (zoomed in)', () => {
+            const xValues = Array.from({ length: 5000 }, (_, i) => i);
+            const yValues = Array.from({ length: 5000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 4999];
+            const targetRange = 10000; // Very zoomed in
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange,
+            });
+
+            expect(result).toBeDefined();
+            // When very zoomed in, only the finest level should be immediate
+            expect(result!.immediate.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should handle very low target range (zoomed out)', () => {
+            const xValues = Array.from({ length: 5000 }, (_, i) => i);
+            const yValues = Array.from({ length: 5000 }, (_, i) => i * 10);
+            const domain: [number, number] = [0, 4999];
+            const targetRange = 10; // Very zoomed out
+
+            const result = computeBarAggregationPartial(domain, xValues, undefined, yValues, {
+                smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+                targetRange,
+            });
+
+            expect(result).toBeDefined();
+            // Only one immediate level even when zoomed out
+            expect(result!.immediate.length).toBe(1);
+            // Finer levels (for zoom-in) should still be deferred
+            if (result!.computeRemaining) {
+                const deferred = result!.computeRemaining();
+                // All deferred levels should be finer than immediate
+                const immediateMaxRange = result!.immediate[0].maxRange;
+                for (const filter of deferred) {
+                    expect(filter.maxRange).not.toBe(immediateMaxRange);
+                }
             }
         });
     });
