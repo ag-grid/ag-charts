@@ -199,7 +199,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 type: 'series',
                 name: 'histogram',
                 chartType: 'cartesian',
-                enterprise: true,
+                // enterprise: true,
                 moduleId: 'HistogramSeriesModule',
             },
             {
