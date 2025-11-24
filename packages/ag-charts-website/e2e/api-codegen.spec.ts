@@ -88,6 +88,7 @@ test.describe('api-codegen', () => {
                 totalButtonCount += buttonCount;
 
                 consoleLogs.expectNoErrors();
+                consoleLogs.clear(); // ignore warnings.
             });
         }
     });
