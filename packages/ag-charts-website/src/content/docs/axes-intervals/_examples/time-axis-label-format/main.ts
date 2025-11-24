@@ -1,7 +1,7 @@
-import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions, LegendModule } from 'ag-charts-community';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, TimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

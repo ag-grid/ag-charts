@@ -1,4 +1,10 @@
-import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
@@ -11,7 +17,13 @@ import { ContextMenuModule } from 'ag-charts-enterprise';
 import type { DatumType } from './data';
 import { getPersistentMutableData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, ContextMenuModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const markingStyle: AgBarSeriesStyle = {
     stroke: 'red',
     strokeWidth: 4,

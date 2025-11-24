@@ -17,9 +17,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPositionOptions } } = {
     container: document.getElementById('myChart'),
-
     data: getData(),
-
     series: [
         {
             type: 'bar',

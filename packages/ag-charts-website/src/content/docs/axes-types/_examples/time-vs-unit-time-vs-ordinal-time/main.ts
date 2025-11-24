@@ -1,5 +1,6 @@
 import {
     BarSeriesModule,
+    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     TimeAxisModule,
@@ -10,6 +11,7 @@ import { OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
+    LegendModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     TimeAxisModule,

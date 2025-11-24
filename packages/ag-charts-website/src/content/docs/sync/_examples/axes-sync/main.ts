@@ -1,10 +1,16 @@
-import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { SyncModule } from 'ag-charts-enterprise';
 
 import { currentData, historicalData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, SyncModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, SyncModule]);
 const commonOptions: AgCartesianChartOptions = {
     sync: {
         axes: 'y',

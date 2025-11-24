@@ -5,6 +5,7 @@ import {
     AgCharts,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    LegendModule,
 } from 'ag-charts-community';
 import {
     BarSeriesModule,
@@ -14,7 +15,7 @@ import {
     NumberAxisModule,
 } from 'ag-charts-community';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 interface IData {
     // Chart Data Interface
     month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';

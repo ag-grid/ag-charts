@@ -1,9 +1,9 @@
 // Source: https://www.nationalgrideso.com/data-portal
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { SankeySeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SankeySeriesModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, NumberAxisModule, SankeySeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

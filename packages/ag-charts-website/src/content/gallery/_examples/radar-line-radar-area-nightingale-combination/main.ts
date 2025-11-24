@@ -48,7 +48,6 @@ const options: AgChartOptions = {
     axes: {
         angle: {
             type: 'angle-category',
-
             gridLine: {
                 enabled: true,
             },

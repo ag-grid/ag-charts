@@ -17,16 +17,12 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'heatmap',
-
             xKey: 'month',
             xName: 'Month',
-
             yKey: 'year',
             yName: 'Year',
-
             colorKey: 'revenue',
             colorName: 'Revenue',
-
             label: {
                 enabled: true,
                 formatter: ({ value }: { value: number }) => `£${value.toFixed(1)}m`,

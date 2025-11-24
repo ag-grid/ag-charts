@@ -1,6 +1,7 @@
 import {
     BubbleSeriesModule,
     CategoryAxisModule,
+    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
@@ -13,6 +14,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     BubbleSeriesModule,
     CategoryAxisModule,
+    LegendModule,
     NumberAxisModule,
     ScatterSeriesModule,
     ZoomModule,

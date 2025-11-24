@@ -1,4 +1,5 @@
 import {
+    LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,6 +12,7 @@ import { NavigatorModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
 import { AAPL, MSFT } from './data';
 
 ModuleRegistry.registerModules([
+    LegendModule,
     LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,

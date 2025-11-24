@@ -46,7 +46,6 @@ const options: AgGaugeOptions = {
         fillOpacity: 0.8,
     },
     innerRadiusRatio: 0.8,
-
     secondaryLabel: {
         text: 'mph',
     },

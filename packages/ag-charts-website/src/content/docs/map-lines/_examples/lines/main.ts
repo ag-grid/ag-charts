@@ -1,4 +1,4 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { MapLineSeriesModule, MapShapeBackgroundSeriesModule } from 'ag-charts-enterprise';
 
@@ -8,6 +8,7 @@ import { topology } from './topology';
 
 ModuleRegistry.registerModules([
     CategoryAxisModule,
+    LegendModule,
     MapLineSeriesModule,
     MapShapeBackgroundSeriesModule,
     NumberAxisModule,

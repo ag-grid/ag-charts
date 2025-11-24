@@ -1,10 +1,10 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([NumberAxisModule, RangeBarSeriesModule, CategoryAxisModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, NumberAxisModule, RangeBarSeriesModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

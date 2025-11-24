@@ -1,4 +1,4 @@
-import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { CandlestickSeriesModule, NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
@@ -6,6 +6,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     CandlestickSeriesModule,
+    LegendModule,
     NavigatorModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,

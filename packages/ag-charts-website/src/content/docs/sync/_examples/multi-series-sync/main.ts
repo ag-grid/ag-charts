@@ -1,5 +1,6 @@
 import {
     BarSeriesModule,
+    LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -10,7 +11,14 @@ import { SyncModule } from 'ag-charts-enterprise';
 
 import { regionAdata, regionBdata } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, LineSeriesModule, NumberAxisModule, SyncModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    SyncModule,
+    UnitTimeAxisModule,
+]);
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
     series: [

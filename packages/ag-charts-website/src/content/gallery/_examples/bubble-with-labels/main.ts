@@ -51,7 +51,6 @@ const options: AgChartOptions<DataType> = {
             },
         },
     },
-
     legend: {
         position: 'top',
     },

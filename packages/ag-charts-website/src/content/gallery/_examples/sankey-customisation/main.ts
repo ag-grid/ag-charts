@@ -25,7 +25,6 @@ const options: AgFlowProportionChartOptions = {
         { from: 'Biomass', to: 'Solid Biomass', value: 478 },
         { from: 'Biomass', to: 'Biogas', value: 196 },
         { from: 'Geothermal', to: 'Geothermal Power', value: 97 },
-
         // Generation to grid
         { from: 'Solar PV', to: 'Electricity Grid', value: 1289 },
         { from: 'Solar Thermal', to: 'Electricity Grid', value: 134 },
@@ -36,11 +35,9 @@ const options: AgFlowProportionChartOptions = {
         { from: 'Solid Biomass', to: 'Electricity Grid', value: 478 },
         { from: 'Biogas', to: 'Electricity Grid', value: 196 },
         { from: 'Geothermal Power', to: 'Electricity Grid', value: 97 },
-
         // Grid to distribution
         { from: 'Electricity Grid', to: 'Transmission', value: 7868 },
         { from: 'Electricity Grid', to: 'Distribution Loss', value: 434 },
-
         // Distribution to end sectors
         { from: 'Transmission', to: 'Industrial', value: 3147 },
         { from: 'Transmission', to: 'Residential', value: 2360 },

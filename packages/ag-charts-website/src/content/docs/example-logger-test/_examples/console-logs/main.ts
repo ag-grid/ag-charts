@@ -69,11 +69,9 @@ const CONSOLE_LOG_ARGS = [
         { a: 'more', b: 'here', c: 'now', d: 'more' },
         'asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds asdfasdfsadfsadfds',
     ],
-
     // Browser objects that render differently than console
     [window, document, document.createElement('div')],
     [new CSSStyleSheet(), new Event('click'), new FakeGrid()],
-
     // AG Grid replacement classes
     [new AgColumn()],
     [new RowNode()],

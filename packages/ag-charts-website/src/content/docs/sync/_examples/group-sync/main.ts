@@ -1,4 +1,10 @@
-import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { CrosshairModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
 
@@ -7,6 +13,7 @@ import { costsProductA, costsProductB, salesProductA, salesProductB } from './da
 ModuleRegistry.registerModules([
     CategoryAxisModule,
     CrosshairModule,
+    LegendModule,
     LineSeriesModule,
     NumberAxisModule,
     SyncModule,

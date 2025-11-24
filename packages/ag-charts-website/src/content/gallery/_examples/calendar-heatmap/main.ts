@@ -14,16 +14,12 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'heatmap',
-
             xKey: 'month',
             xName: 'Month',
-
             yKey: 'week',
             yName: 'Week',
-
             colorKey: 'steps',
             colorName: 'Steps',
-
             strokeWidth: 1,
         },
     ],

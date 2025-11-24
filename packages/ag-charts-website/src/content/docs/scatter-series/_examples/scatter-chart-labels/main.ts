@@ -1,9 +1,9 @@
-import { AgCartesianChartOptions, AgCharts, AgScatterSeriesOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgScatterSeriesOptions, LegendModule } from 'ag-charts-community';
 import { ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
-ModuleRegistry.registerModules([NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

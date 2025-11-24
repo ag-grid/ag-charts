@@ -1,4 +1,4 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
@@ -9,7 +9,13 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
-ModuleRegistry.registerModules([CategoryAxisModule, MapLineSeriesModule, MapShapeSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapShapeSeriesModule,
+    NumberAxisModule,
+]);
 const sizeDomain = [0, 141537];
 const strokeWidth = 1;
 const maxStrokeWidth = 5;

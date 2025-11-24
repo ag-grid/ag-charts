@@ -1,9 +1,9 @@
-import { HistogramSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { HistogramSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([HistogramSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

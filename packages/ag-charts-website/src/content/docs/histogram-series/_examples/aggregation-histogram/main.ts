@@ -1,9 +1,9 @@
-import { HistogramSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { HistogramSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([HistogramSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

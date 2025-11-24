@@ -1,9 +1,15 @@
-import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import {
+    BubbleSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule, TimeAxisModule]);
 const magnitudeFormatter = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     maximumFractionDigits: 1,

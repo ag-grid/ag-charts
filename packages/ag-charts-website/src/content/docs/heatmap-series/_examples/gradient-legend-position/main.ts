@@ -14,13 +14,10 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'heatmap',
-
             xKey: 'month',
             xName: 'Month',
-
             yKey: 'year',
             yName: 'Year',
-
             colorKey: 'temperature',
             colorName: 'Temperature',
         },

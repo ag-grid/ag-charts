@@ -1,10 +1,10 @@
-import { ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesItemStylerParams } from 'ag-charts-enterprise';
 import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -21,7 +21,6 @@ const options: AgCartesianChartOptions<DataType> = {
                 type: 'gradient',
                 colorStops: [{ color: '#8ADAF100', stop: 0 }, { color: '#8ADAF1cc' }],
             },
-
             // Shared high/low styling options:
             strokeWidth: 2,
             marker: {
@@ -40,7 +39,6 @@ const options: AgCartesianChartOptions<DataType> = {
                     return {};
                 },
             },
-
             // Distinguished high/low styling options:
             item: {
                 high: {

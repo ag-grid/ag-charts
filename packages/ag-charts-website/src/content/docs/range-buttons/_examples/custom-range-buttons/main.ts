@@ -1,4 +1,10 @@
-import { ModuleRegistry, NumberAxisModule, TimeAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
+import {
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 import { FinancialChartModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
@@ -6,10 +12,11 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     FinancialChartModule,
+    LegendModule,
     NumberAxisModule,
+    OrdinalTimeAxisModule,
     TimeAxisModule,
     UnitTimeAxisModule,
-    OrdinalTimeAxisModule,
 ]);
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 

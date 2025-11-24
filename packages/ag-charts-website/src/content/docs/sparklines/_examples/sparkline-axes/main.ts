@@ -1,9 +1,9 @@
-import { AgCharts, AgSparklineOptions } from 'ag-charts-community';
+import { AgCharts, AgSparklineOptions, LegendModule } from 'ag-charts-community';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, TimeAxisModule]);
 
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),

@@ -1,10 +1,22 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, ErrorBarsModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    ErrorBarsModule,
+    LegendModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

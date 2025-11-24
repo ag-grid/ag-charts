@@ -28,7 +28,6 @@ const options: AgChartOptions = {
             yName: 'Year',
             colorKey: 'temperature',
             colorName: 'Temperature',
-
             // Enhanced color scale - diverging blue to red
             colorRange: [
                 'darkblue',
@@ -41,7 +40,6 @@ const options: AgChartOptions = {
                 'red',
                 'darkred',
             ],
-
             // Enhanced tooltip
             tooltip: {
                 renderer: ({ datum, xKey, yKey, colorKey }) => {
@@ -56,7 +54,6 @@ const options: AgChartOptions = {
                     };
                 },
             },
-
             // Cell styling
             strokeWidth: 0.5,
             strokeOpacity: 0.1,

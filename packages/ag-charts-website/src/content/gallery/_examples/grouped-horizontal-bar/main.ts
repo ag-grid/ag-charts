@@ -117,7 +117,6 @@ const options: AgChartOptions = {
                     range: ['Oct', 'Oct'],
                     strokeWidth: 0,
                     fillOpacity: 0,
-
                     label: {
                         text: '→ OCT',
                         position: 'inside-right',

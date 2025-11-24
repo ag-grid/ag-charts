@@ -1,9 +1,9 @@
-import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartInstance, AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 
 import { DataPoint, getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, TimeAxisModule]);
 const POINTS_PER_UPDATE = 10;
 
 const data = getData();

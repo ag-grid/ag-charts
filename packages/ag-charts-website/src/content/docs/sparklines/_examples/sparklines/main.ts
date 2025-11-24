@@ -1,4 +1,4 @@
-import { AgCharts, AgSparklineOptions } from 'ag-charts-community';
+import { AgCharts, AgSparklineOptions, LegendModule } from 'ag-charts-community';
 import {
     AreaSeriesModule,
     BarSeriesModule,
@@ -14,6 +14,7 @@ ModuleRegistry.registerModules([
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    LegendModule,
     LineSeriesModule,
     NumberAxisModule,
 ]);

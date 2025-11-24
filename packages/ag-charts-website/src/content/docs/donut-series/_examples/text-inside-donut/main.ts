@@ -1,9 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
 import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([DonutSeriesModule]);
+ModuleRegistry.registerModules([DonutSeriesModule, LegendModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
