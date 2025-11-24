@@ -1,12 +1,12 @@
-import { ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([NumberAxisModule, RangeAreaSeriesModule, TimeAxisModule]);
+ModuleRegistry.registerModules([NumberAxisModule, RangeAreaSeriesModule, CategoryAxisModule]);
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {

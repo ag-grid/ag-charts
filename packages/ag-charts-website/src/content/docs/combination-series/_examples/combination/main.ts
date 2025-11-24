@@ -11,6 +11,7 @@ import {
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -24,6 +25,7 @@ ModuleRegistry.registerModules([
     CategoryAxisModule,
     LineSeriesModule,
     NumberAxisModule,
+    LegendModule,
 ]);
 const WOMEN: AgBarSeriesOptions = {
     type: 'bar',
