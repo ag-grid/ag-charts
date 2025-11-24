@@ -7,8 +7,7 @@ export function setupMockConsole(opts?: { debugShowOutput?: boolean; includeAllL
     const loggerSpies = new Map<string, jest.SpyInstance>();
 
     beforeAll(() => {
-        // Spy on logger exports since they use bound console methods
-        // This avoids circular dependency issues since ag-charts-community can import ag-charts-core
+        // Spy on logger exports directly since they use bound console methods
         const loggerMethods = ['warn', 'error', 'warnOnce', 'errorOnce'] as const;
         
         for (const method of loggerMethods) {

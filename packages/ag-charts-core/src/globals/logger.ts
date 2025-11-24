@@ -2,10 +2,30 @@
 
 const doOnceCache = new Set<string>();
 
-export const log = console.log.bind(console);
-export const warn = console.warn.bind(console, 'AG Charts - ');
-export const error = console.error.bind(console, 'AG Charts - ');
-export const table = console.table.bind(console);
+const consoleLog = console.log.bind(console);
+const consoleWarn = console.warn.bind(console);
+const consoleError = console.error.bind(console);
+const consoleTable = console.table.bind(console);
+
+export function log(...logContent: any[]) {
+    consoleLog(...logContent);
+}
+
+export function warn(message: any, ...logContent: any[]) {
+    consoleWarn(`AG Charts - ${message}`, ...logContent);
+}
+
+export function error(message: any, ...logContent: any[]) {
+    if (typeof message === 'object') {
+        consoleError(`AG Charts error`, message, ...logContent);
+    } else {
+        consoleError(`AG Charts - ${message}`, ...logContent);
+    }
+}
+
+export function table(...logContent: any[]) {
+    consoleTable(...logContent);
+}
 
 function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => void) {
     let message: string;
@@ -36,11 +56,14 @@ export function reset() {
     doOnceCache.clear();
 }
 
+const consoleGroupCollapsed = console.groupCollapsed.bind(console);
+const consoleGroupEnd = console.groupEnd.bind(console);
+
 export function logGroup<T>(name: string, cb: () => T): T {
-    console.groupCollapsed(name);
+    consoleGroupCollapsed(name);
     try {
         return cb();
     } finally {
-        console.groupEnd();
+        consoleGroupEnd();
     }
 }
