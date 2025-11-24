@@ -1,6 +1,7 @@
 import {
     AreaSeriesModule,
     BarSeriesModule,
+    GroupedCategoryAxisModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
@@ -15,6 +16,7 @@ ModuleRegistry.registerModules([
     AreaSeriesModule,
     BandHighlightModule,
     BarSeriesModule,
+    GroupedCategoryAxisModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
