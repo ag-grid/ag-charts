@@ -47,9 +47,15 @@ dataGenerator.reset();
 const data = dataGenerator.take(INITIAL_POINTS);
 
 const options: AgChartOptions = {
+    theme: {
+        overrides: {
+            common: {
+                animation: { enabled: false },
+            },
+        },
+    },
     container: document.getElementById('myChart'),
     data,
-    animation: { enabled: false },
     legend: { enabled: false },
     axes: {
         x: {
