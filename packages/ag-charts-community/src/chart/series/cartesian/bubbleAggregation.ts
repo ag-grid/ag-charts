@@ -7,6 +7,10 @@ const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
 const FILTER_RANGE_THRESHOLD = 0.05;
 
+// ============================================================================
+// CORE LAYER: Pure, testable aggregation functions
+// ============================================================================
+
 export interface BubbleAggregation {
     xValues: any[];
     yValues: any[];
@@ -175,21 +179,52 @@ function aggregateQuad(
     return { scale, x0, y0, x1, y1, indices, primaryDatumIndex, children };
 }
 
-export function aggregateBubbleData(
-    xScale: ScaleType,
-    yScale: ScaleType,
+/**
+ * Computes quadtree-based spatial aggregation for bubble chart data.
+ *
+ * Creates a hierarchical quadtree structure to efficiently render large bubble
+ * datasets by grouping spatially-close bubbles. Unlike linear series aggregation,
+ * this uses 2D spatial partitioning with optional size-based quantization.
+ *
+ * @param xDomain - X domain bounds [min, max]
+ * @param yDomain - Y domain bounds [min, max]
+ * @param xValues - X coordinate values
+ * @param yValues - Y coordinate values
+ * @param sizeValues - Bubble size values (optional)
+ * @param sizeDomain - Size domain [min, max]
+ * @param options - Configuration options
+ * @param options.xNeedsValueOf - Whether X values need valueOf() conversion
+ * @param options.yNeedsValueOf - Whether Y values need valueOf() conversion
+ * @returns Bubble aggregation with quadtree nodes, or undefined if no aggregation possible
+ *
+ * @complexity O(n log n) for quadtree construction where n is data points
+ * @memory Creates hierarchical node structure proportional to spatial distribution
+ *
+ * @example
+ * const aggregation = computeBubbleAggregation(
+ *   [0, 100], [0, 100],
+ *   xData, yData, sizeData,
+ *   [10, 50],
+ *   { xNeedsValueOf: false, yNeedsValueOf: false }
+ * );
+ * // Returns quadtree with spatially-grouped bubble indices
+ */
+export function computeBubbleAggregation(
+    xDomain: [number, number],
+    yDomain: [number, number],
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,
-    xDomain: any[],
-    yDomain: any[],
-    sizeDomain: number[],
-    xNeedsValueOf: boolean,
-    yNeedsValueOf: boolean
+    sizeDomain: [number, number],
+    options: {
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+    }
 ): BubbleAggregation | undefined {
-    const [xd0, xd1] = aggregationDomain(xScale, xDomain);
-    const [yd0, yd1] = aggregationDomain(yScale, yDomain);
+    const [xd0, xd1] = xDomain;
+    const [yd0, yd1] = yDomain;
     const [sd0, sd1] = sizeDomain;
+    const { xNeedsValueOf, yNeedsValueOf } = options;
 
     const context: BubbleAggregationContext = {
         xValues,
@@ -233,6 +268,95 @@ export function aggregateBubbleData(
     return filters.length > 0
         ? { xValues, yValues, xd0, xd1, yd0, yd1, filters, xNeedsValueOf, yNeedsValueOf }
         : undefined;
+}
+
+// ============================================================================
+// ADAPTER LAYER: Scale integration
+// ============================================================================
+
+/**
+ * Aggregates bubble data for rendering optimization (low-level adapter).
+ * Extracts domains from scales and delegates to core aggregation function.
+ *
+ * Note: No memoization layer - bubble aggregation is not used in mini charts
+ * where performance would be critical.
+ *
+ * @internal
+ */
+function aggregateBubbleData(
+    xScale: ScaleType,
+    yScale: ScaleType,
+    xValues: any[],
+    yValues: any[],
+    sizeValues: any[] | undefined,
+    xDomain: any[],
+    yDomain: any[],
+    sizeDomain: number[],
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
+): BubbleAggregation | undefined {
+    const [xd0, xd1] = aggregationDomain(xScale, xDomain);
+    const [yd0, yd1] = aggregationDomain(yScale, yDomain);
+    return computeBubbleAggregation(
+        [xd0, xd1],
+        [yd0, yd1],
+        xValues,
+        yValues,
+        sizeValues,
+        [sizeDomain[0], sizeDomain[1]],
+        { xNeedsValueOf, yNeedsValueOf }
+    );
+}
+
+// ============================================================================
+// INTEGRATION LAYER: DataModel
+// ============================================================================
+
+/**
+ * High-level aggregation function for series integration.
+ * Handles data extraction from DataModel and delegates to aggregation.
+ *
+ * @param xScale - The X-axis scale type
+ * @param yScale - The Y-axis scale type
+ * @param dataModel - Data model containing the processed data
+ * @param processedData - Processed data to aggregate
+ * @param sizeScale - Size scale for bubble sizing
+ * @param hasSizeKey - Whether size key is defined
+ * @param series - Series context for data model queries
+ * @returns Bubble aggregation or undefined if aggregation not needed
+ */
+export function aggregateBubbleDataFromDataModel(
+    xScale: ScaleType,
+    yScale: ScaleType,
+    dataModel: any,
+    processedData: any,
+    sizeScale: any,
+    hasSizeKey: boolean,
+    series: any
+): BubbleAggregation | undefined {
+    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
+    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData);
+    const sizeValues = hasSizeKey ? dataModel.resolveColumnById(series, 'sizeValue', processedData) : undefined;
+
+    const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);
+    const yDomain = dataModel.getDomain(series, 'yValue', 'value', processedData);
+    const sizeDomain = hasSizeKey ? sizeScale.domain : [0, 0];
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'yValue', processedData);
+
+    return aggregateBubbleData(
+        xScale,
+        yScale,
+        xValues,
+        yValues,
+        sizeValues,
+        xDomain,
+        yDomain,
+        sizeDomain,
+        xNeedsValueOf,
+        yNeedsValueOf
+    );
 }
 
 export interface BubbleAggregationOptions {

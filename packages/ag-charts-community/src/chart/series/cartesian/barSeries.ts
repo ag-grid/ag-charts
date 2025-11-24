@@ -1,5 +1,5 @@
 import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
-import { isFiniteNumber, mergeDefaults, simpleMemorize2 } from 'ag-charts-core';
+import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -62,7 +62,7 @@ import {
     type AbstractBarSeriesAnimationData,
     type AbstractBarSeriesNodeDataContext,
 } from './abstractBarSeries';
-import { type BarSeriesDataAggregationFilter, aggregateBarData } from './barAggregation';
+import { type BarSeriesDataAggregationFilter, aggregateBarDataFromDataModel } from './barAggregation';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
@@ -114,8 +114,6 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape<BarNodeDatum>, BarNodeDatum>;
-
-const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
 export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
@@ -349,34 +347,7 @@ export class BarSeries extends AbstractBarSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-
-        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
-        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
-        const yEndValues = isStacked
-            ? dataModel.resolveColumnById(this, `yValue-end`, processedData)
-            : dataModel.resolveColumnById(this, `yValue-raw`, processedData);
-
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
-
-        const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this, `xValue`, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
-            this,
-            isStacked ? `yValue-end` : `yValue-raw`,
-            processedData
-        );
-
-        return memoizedAggregateBarData(
-            xAxis.scale.type,
-            xValues,
-            yStartValues,
-            yEndValues,
-            domain,
-            processedData.reduced?.smallestKeyInterval,
-            xNeedsValueOf,
-            yNeedsValueOf
-        );
+        return aggregateBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
     }
 
     createNodeData() {

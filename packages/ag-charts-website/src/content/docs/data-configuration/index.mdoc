@@ -68,8 +68,8 @@ The `_Key` properties vary by series type - see the [Series Options](/options/#r
 
 ### Per-Series Data
 
-By default, all series use the root-level `data` option, but each series can declare its own `data`.
-This is useful when different series have different data sources.
+All series use the root-level `data` option by default, and this approach is recommended for best performance.
+However, to support scenarios where different data sources are needed, each individual series can declare its own `data` option.
 
 ```js format="snippet"
 {
@@ -131,7 +131,7 @@ Use the `suppressFieldDotNotation` option to disable this feature if your field 
 After chart creation, you can update the data by calling `AgChartInstance.update()` or `AgChartInstance.updateDelta()` with a new `data` array.
 
 ```js
-chart.update({
+chart.updateDelta({
     data: newData,
 });
 ```
@@ -159,6 +159,7 @@ chart.applyTransaction({
 
 For details on transaction operations, see [High-Frequency Data](./high-frequency-data/).
 
+<!--
 ## Asynchronous Data
 
 The `dataSource` callback allows fetching data asynchronously as the user zooms and pans.
@@ -173,4 +174,4 @@ The `dataSource` callback allows fetching data asynchronously as the user zooms 
 }
 ```
 
-See [Asynchronous Loading](./zoom/#asynchronous-loading) for more details.
+See [Asynchronous Loading](./zoom/#asynchronous-loading) for more details. -->

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { inputGlob, readFile, writeJSONFile } from 'ag-shared/plugin-utils';
+import { inputGlob, writeJSONFile } from 'ag-shared/plugin-utils';
 import { readFileSync } from 'fs';
 import * as ts from 'typescript';
 

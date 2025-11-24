@@ -10,9 +10,9 @@ For the [Category](./axes-types/#category) axis, the domain consists of the disc
 
 ## Nice Domain
 
-By default, a continuous axis is extended to have start and stop values that are visually pleasing, intuitive, and aligned with the tick interval. This makes the axis more user-friendly, and the plotted data is easier to analyse and understand.
+By default, a continuous axis is extended to have start and stop values that are visually pleasing, intuitive, and aligned with the tick interval.
 
-To prevent this and use the exact data domain as the axis domain, set the `axis.nice` property to `false`:
+To use the exact data bounds without extending to nice round numbers, set the `axis.nice` property to `false`:
 
 ```js format="snippet"
 {
@@ -25,7 +25,7 @@ To prevent this and use the exact data domain as the axis domain, set the `axis.
 }
 ```
 
-The `axis.nice` configuration is demonstrated in the example below. Use the button to toggle the `nice` property. Note that:
+The `axis.nice` configuration is demonstrated in the example below. Use the button to toggle the `nice` property:
 
 -   When `nice` is set to `false`, the axis ranges from the minimum data value of `1.87` to the maximum data value of `88.07`.
 -   When `nice` is set to `true`, the axis domain is extended to nice round numbers, starting from `0` and stopping at `100`.
@@ -34,7 +34,7 @@ The `axis.nice` configuration is demonstrated in the example below. Use the butt
 
 ## Domain Min & Max
 
-The domain of a continuous axis can be configured explicitly by using the `axis.min` and `axis.max` properties.
+Use the `axis.min` and `axis.max` properties to set absolute domain bounds. These are fixed values that will not be extended by the `nice` algorithm or the data.
 
 ```js format="snippet"
 {
@@ -54,10 +54,28 @@ Use the buttons to set a specific domain minimum and maximum, or use the reset b
 
 {% chartExampleRunner title="Number Axis Min & Max" name="axis-min-max" type="generated" /%}
 
-{% note %}
-If the axis interval options have been configured with the [Step](./axes-intervals/#step) or [Min / Max Spacing](./axes-intervals/#min--max-spacing) properties, they take priority over the `axis.min` and `axis.max` properties.
-To enforce the axis domain minimum and maximum configurations while also respecting the [Interval](./axes-intervals/) configurations, set the `axis.nice` property to `false`.
-{% /note %}
+## Preferred Domain Bounds
+
+For more flexible domain configuration, use the `axis.preferredMin` and `axis.preferredMax` properties. These set preferred bounds that can be extended by the `nice` algorithm or by data bounds.
+
+```js format="snippet"
+{
+    axes: {
+        y: {
+            type: 'number',
+            preferredMin: -50,
+            preferredMax: 150,
+            nice: true, // Domain may extend beyond preferred bounds
+        },
+    },
+}
+```
+
+With `preferredMin` and `preferredMax`:
+
+-   If the data extends beyond the preferred bounds, the axis domain expands to accommodate the data.
+-   The `nice` algorithm can extend the domain to nice round numbers.
+-   If the data is within the preferred bounds, the axis domain is bounded by the preferred values.
 
 ## Reversed Domain
 
