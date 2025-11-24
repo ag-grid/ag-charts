@@ -483,11 +483,11 @@ export class ChartTheme {
             const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = mergeDefaults(
                 { axes: {} },
-                this.getChartDefaults(),
-                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
                 ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
                     [p.name]: p.themeTemplate,
-                }))
+                })),
+                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                this.getChartDefaults()
             );
 
             for (const seriesType of seriesTypes) {
