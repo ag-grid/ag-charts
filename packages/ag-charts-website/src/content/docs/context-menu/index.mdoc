@@ -161,9 +161,7 @@ In this configuration:
 
 The `getItems` callback can be used to implement Dynamic Context Menus. This is typically used to write Menu Items that depend on underlying state or data in some way.
 
-<!--
 {% chartExampleRunner title="Dynamic Context Menu" name="dynamic-context-menu" type="generated" /%}
--->
 
 ```js format="snippet"
 {
@@ -237,13 +235,8 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 
 In this example:
 
--   The Series Node Context Menu includes:
-    -   A `Compare with...` Submenu to compare the right-clicked Series to another Series.
-    -   A `Mark` or `Unmark` Menu Item to change styling the right-clicked Datum.
--   The Legend Context Menu includes:
-    -   A `Show ${text}` Menu Item if the Series is hidden.
-    -   A `Hide ${text}` Menu Item if the Series is visible.
--   A `Remove Diff` Menu Item is shown when applicable.
+-   The Legend Context Menu includes a `Show ${text}` Menu Item if the Series is hidden.
+-   The Legend Context Menu includes a `Hide ${text}` Menu Item if the Series is visible.
 
 ## API Reference
 
