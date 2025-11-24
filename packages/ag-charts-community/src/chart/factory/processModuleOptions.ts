@@ -3,15 +3,141 @@ import {
     Logger,
     ModuleRegistry,
     ModuleType,
+    type PlainObject,
     type PluginModuleDefinition,
     type SeriesPluginModuleDefinition,
+    deepClone,
+    deepFreeze,
     enterpriseRegistry,
     isArray,
     isObject,
 } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
+import { ChartTheme } from '../themes/chartTheme';
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
+
+export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
+    const registeredModules = new Set<string>();
+    let hasEnterpriseModules = false;
+
+    for (const module of ModuleRegistry.listModules()) {
+        registeredModules.add(module.name);
+        hasEnterpriseModules ||= Boolean(module.enterprise);
+    }
+
+    const missingModules = new Map<string, ModulePlaceholder>();
+    for (const [name, module] of ExpectedModules) {
+        if ((!hasEnterpriseModules && module.enterprise) || !registeredModules.has(name)) {
+            missingModules.set(name, module);
+        }
+    }
+
+    if (missingModules.size === 0) return theme;
+
+    const missingModulesByType = new Map<string, Set<string>>();
+    for (const missing of missingModules.values()) {
+        if (missingModulesByType.has(missing.type)) {
+            missingModulesByType.get(missing.type)!.add(missing.name);
+        } else {
+            missingModulesByType.set(missing.type, new Set<string>([missing.name]));
+        }
+    }
+
+    const prunePlugins = (target?: PlainObject) => {
+        const missingPlugins = missingModulesByType.get(ModuleType.Plugin);
+        if (!isObject(target) || !missingPlugins) return;
+        for (const pluginName of missingPlugins) {
+            if (pluginName in target) {
+                delete target[pluginName];
+            }
+        }
+    };
+
+    const pruneSeriesPlugins = (target?: PlainObject) => {
+        const missingSeriesPlugins = missingModulesByType.get(ModuleType.SeriesPlugin);
+        if (!isObject(target) || !missingSeriesPlugins) return;
+        for (const pluginName of missingSeriesPlugins) {
+            if (pluginName in target) {
+                delete target[pluginName];
+            }
+        }
+    };
+
+    const pruneAxisPlugins = (target?: PlainObject) => {
+        const missingAxisPlugins = missingModulesByType.get(ModuleType.AxisPlugin);
+        if (!isObject(target) || !missingAxisPlugins) return;
+        for (const pluginName of missingAxisPlugins) {
+            if (pluginName in target) {
+                delete target[pluginName];
+            }
+        }
+    };
+
+    const pruneAxes = (axes?: PlainObject) => {
+        if (!isObject(axes)) return;
+        for (const axisName of Object.keys(axes)) {
+            if (missingModulesByType.get(ModuleType.Axis)?.has(axisName)) {
+                delete axes[axisName];
+                continue;
+            }
+            pruneAxisPlugins(axes[axisName] as PlainObject);
+        }
+    };
+
+    const pruneSeriesEntry = (entry?: PlainObject) => {
+        if (!isObject(entry)) return;
+        pruneAxes(entry.axes as PlainObject);
+        prunePlugins(entry);
+        pruneSeriesPlugins(entry.series as PlainObject);
+    };
+
+    const config = deepClone(theme.config);
+    const overrides = deepClone(theme.overrides);
+    const presets = deepClone(theme.presets);
+
+    for (const seriesType of Object.keys(config)) {
+        if (missingModulesByType.get(ModuleType.Series)?.has(seriesType)) {
+            delete config[seriesType];
+            continue;
+        }
+        pruneSeriesEntry(config[seriesType]);
+    }
+
+    if (isObject(overrides)) {
+        const overridesObj = overrides as PlainObject;
+        if (isObject(overridesObj.common)) {
+            pruneAxes((overridesObj.common as any).axes);
+            prunePlugins(overridesObj.common);
+        }
+        for (const seriesType of Object.keys(overridesObj)) {
+            if (seriesType === 'common') continue;
+            if (missingModulesByType.get(ModuleType.Series)?.has(seriesType)) {
+                delete overridesObj[seriesType];
+                continue;
+            }
+            pruneSeriesEntry(overridesObj[seriesType] as PlainObject);
+        }
+    }
+
+    if (isObject(presets)) {
+        const presetsObj = presets as PlainObject;
+        for (const presetName of Object.keys(presetsObj)) {
+            if (missingModulesByType.get(ModuleType.Preset)?.has(presetName)) {
+                delete presetsObj[presetName];
+                continue;
+            }
+            prunePlugins(presetsObj[presetName] as PlainObject);
+            pruneAxes(presetsObj[presetName]?.axes);
+        }
+    }
+
+    return Object.create(theme, {
+        config: { value: deepFreeze(config), enumerable: true },
+        overrides: { value: isObject(overrides) ? deepFreeze(overrides) : overrides, enumerable: true },
+        presets: { value: isObject(presets) ? deepFreeze(presets) : presets, enumerable: true },
+    });
+}
 
 export function processModuleOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
     const initialSeriesType = options.series?.[0]?.type as string | undefined;
