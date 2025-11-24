@@ -135,7 +135,7 @@ export class ChartTheme {
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
-            separationLinesColor: '#d9d9d9',
+            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' } as any,

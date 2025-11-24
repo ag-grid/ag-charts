@@ -89,7 +89,7 @@ export class DarkTheme extends ChartTheme {
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
-            separationLinesColor: '#7f8389',
+            separationLinesColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
         };
