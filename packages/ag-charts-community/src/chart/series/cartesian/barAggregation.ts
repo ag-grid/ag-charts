@@ -36,9 +36,13 @@ export interface PartialBarAggregationResult {
  * Extracts midpoint indices from aggregation index data.
  * For each bucket, calculates the midpoint between min and max X indices.
  *
+ * The returned indices are inherently sorted because buckets are ordered by domain position
+ * (bucket 0 covers the lowest domain range, bucket N-1 covers the highest). This ordering
+ * enables binary search in visibleRangeIndices() for efficient visible range detection.
+ *
  * @param maxRange - Number of aggregation buckets
  * @param indexData - Aggregation index data (TypedArray)
- * @returns Array of midpoint indices representing each bucket
+ * @returns Array of midpoint indices representing each bucket, sorted by domain position
  */
 function getIndices(maxRange: number, indexData: Uint32Array) {
     const indices = new Uint32Array(maxRange);

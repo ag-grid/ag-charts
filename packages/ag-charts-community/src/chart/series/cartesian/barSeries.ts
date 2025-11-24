@@ -52,6 +52,7 @@ import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
+    AGGREGATION_INDEX_UNSET,
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
@@ -682,7 +683,7 @@ export class BarSeries extends AbstractBarSeries<
                     const yMinIndex = indexData[aggIndex + Y_MIN];
                     const yMaxIndex = indexData[aggIndex + Y_MAX];
 
-                    if (xMinIndex === -1) continue;
+                    if (xMinIndex === AGGREGATION_INDEX_UNSET) continue;
                     if (xValues[yMaxIndex] == null || xValues[yMinIndex] == null) continue;
 
                     const x = xPosition(Math.trunc((xMinIndex + xMaxIndex) / 2));

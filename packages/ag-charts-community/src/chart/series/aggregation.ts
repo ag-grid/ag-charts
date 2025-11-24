@@ -10,6 +10,8 @@ export const AGGREGATION_SPAN = 4;
 export const AGGREGATION_THRESHOLD = 1e3;
 export const AGGREGATION_MAX_POINTS = 10;
 export const AGGREGATION_MIN_RANGE = 64;
+// Sentinel value for unvisited buckets in Uint32Array (cannot use -1, which becomes 0xFFFFFFFF)
+export const AGGREGATION_INDEX_UNSET = 0xffffffff;
 
 const SMALLEST_INTERVAL_MIN_RECURSE = 3;
 const SMALLEST_INTERVAL_RECURSE_LIMIT = 20;
@@ -370,10 +372,10 @@ export function createAggregationIndices(
     for (let i = 0; i < maxRange; i++) {
         if (visited[i] === 0) {
             const aggIndex = i * AGGREGATION_SPAN;
-            indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = -1;
-            indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = -1;
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = -1;
-            indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = -1;
+            indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = AGGREGATION_INDEX_UNSET;
+            indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = AGGREGATION_INDEX_UNSET;
+            indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = AGGREGATION_INDEX_UNSET;
+            indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = AGGREGATION_INDEX_UNSET;
             valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = Number.NaN;
             valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = Number.NaN;
             valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = Number.NaN;
@@ -400,7 +402,7 @@ export function compactAggregationIndices(
         const index0 = Math.trunc(aggIndex * 2);
         const index1 = Math.trunc(index0 + AGGREGATION_SPAN);
 
-        const index1Unset = indexData[index1 + AGGREGATION_INDEX_X_MIN] === -1;
+        const index1Unset = indexData[index1 + AGGREGATION_INDEX_X_MIN] === AGGREGATION_INDEX_UNSET;
 
         const xMinAggIndex =
             index1Unset || valueData[index0 + AGGREGATION_INDEX_X_MIN] < valueData[index1 + AGGREGATION_INDEX_X_MIN]
