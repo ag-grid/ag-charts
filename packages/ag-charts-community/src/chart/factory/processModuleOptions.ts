@@ -144,18 +144,8 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
 
 export function processModuleOptions<T extends Partial<AgChartOptions>>(chartType: string, options: T) {
     const initialSeriesType = options.series?.[0]?.type as string | undefined;
-    const incompatibleModules = removeIncompatibleModuleOptions(chartType, options);
+    removeIncompatibleModuleOptions(chartType, options);
     const missingModules = removeUnregisteredModuleOptions(chartType, options);
-
-    if (incompatibleModules.length) {
-        Logger.warnOnce(
-            [
-                `The following module options were removed from the chart options as they are not compatible with a '${chartType}' chart:`,
-                '',
-                ...incompatibleModules,
-            ].join('\n')
-        );
-    }
 
     if (!missingModules.length) return;
 

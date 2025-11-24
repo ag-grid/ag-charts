@@ -19,7 +19,7 @@ export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = 
         strokeOpacity: 1,
         cap: {
             lengthRatio: {
-                $if: [{ $eq: [{ $path: '../type' }, 'bar'] }, 0.3, 1],
+                $if: [{ $eq: [{ $path: '../../type' }, 'bar'] }, 0.3, 1],
             },
         },
     },

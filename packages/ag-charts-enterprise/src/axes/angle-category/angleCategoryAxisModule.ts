@@ -13,6 +13,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     options: _ModuleSupport.angleCategoryAxisOptionsDefs,
     themeTemplate: {
         label: { spacing: 5 },
+        gridLine: { enabled: false },
         shape: { $findFirstSiblingNotOperation: undefined },
     },
 
