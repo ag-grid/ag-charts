@@ -335,7 +335,7 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
     const hasSeriesOptions = 'series' in options && isArray(options.series);
     const matchChartType = (
         module: AxisPluginModuleDefinition<any> | SeriesPluginModuleDefinition<any> | PluginModuleDefinition<any>
-    ) => chartType == null && (!module.chartType || module.chartType === chartType);
+    ) => chartType == null || !module.chartType || module.chartType === chartType;
     const incompatibleModules: string[] = [];
 
     for (const module of ModuleRegistry.listModules()) {
