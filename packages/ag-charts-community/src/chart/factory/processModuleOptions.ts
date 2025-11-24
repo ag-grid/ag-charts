@@ -18,34 +18,22 @@ import { ChartTheme } from '../themes/chartTheme';
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
-    const registeredModules = new Set<string>();
-    let hasEnterpriseModules = false;
+    const missingModules = new Map<string, Set<string>>();
 
-    for (const module of ModuleRegistry.listModules()) {
-        registeredModules.add(module.name);
-        hasEnterpriseModules ||= Boolean(module.enterprise);
-    }
+    for (const [name, { type }] of ExpectedModules) {
+        if (ModuleRegistry.hasModule(name)) continue;
 
-    const missingModules = new Map<string, ModulePlaceholder>();
-    for (const [name, module] of ExpectedModules) {
-        if ((!hasEnterpriseModules && module.enterprise) || !registeredModules.has(name)) {
-            missingModules.set(name, module);
+        if (missingModules.has(type)) {
+            missingModules.get(type)!.add(name);
+        } else {
+            missingModules.set(type, new Set<string>([name]));
         }
     }
 
     if (missingModules.size === 0) return theme;
 
-    const missingModulesByType = new Map<string, Set<string>>();
-    for (const missing of missingModules.values()) {
-        if (missingModulesByType.has(missing.type)) {
-            missingModulesByType.get(missing.type)!.add(missing.name);
-        } else {
-            missingModulesByType.set(missing.type, new Set<string>([missing.name]));
-        }
-    }
-
     const prunePlugins = (target?: PlainObject) => {
-        const missingPlugins = missingModulesByType.get(ModuleType.Plugin);
+        const missingPlugins = missingModules.get(ModuleType.Plugin);
         if (!isObject(target) || !missingPlugins) return;
         for (const pluginName of missingPlugins) {
             if (pluginName in target) {
@@ -55,7 +43,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     };
 
     const pruneSeriesPlugins = (target?: PlainObject) => {
-        const missingSeriesPlugins = missingModulesByType.get(ModuleType.SeriesPlugin);
+        const missingSeriesPlugins = missingModules.get(ModuleType.SeriesPlugin);
         if (!isObject(target) || !missingSeriesPlugins) return;
         for (const pluginName of missingSeriesPlugins) {
             if (pluginName in target) {
@@ -65,7 +53,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     };
 
     const pruneAxisPlugins = (target?: PlainObject) => {
-        const missingAxisPlugins = missingModulesByType.get(ModuleType.AxisPlugin);
+        const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
         if (!isObject(target) || !missingAxisPlugins) return;
         for (const pluginName of missingAxisPlugins) {
             if (pluginName in target) {
@@ -77,7 +65,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     const pruneAxes = (axes?: PlainObject) => {
         if (!isObject(axes)) return;
         for (const axisName of Object.keys(axes)) {
-            if (missingModulesByType.get(ModuleType.Axis)?.has(axisName)) {
+            if (missingModules.get(ModuleType.Axis)?.has(axisName)) {
                 delete axes[axisName];
                 continue;
             }
@@ -97,7 +85,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     const presets = deepClone(theme.presets);
 
     for (const seriesType of Object.keys(config)) {
-        if (missingModulesByType.get(ModuleType.Series)?.has(seriesType)) {
+        if (missingModules.get(ModuleType.Series)?.has(seriesType)) {
             delete config[seriesType];
             continue;
         }
@@ -112,7 +100,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
         }
         for (const seriesType of Object.keys(overridesObj)) {
             if (seriesType === 'common') continue;
-            if (missingModulesByType.get(ModuleType.Series)?.has(seriesType)) {
+            if (missingModules.get(ModuleType.Series)?.has(seriesType)) {
                 delete overridesObj[seriesType];
                 continue;
             }
@@ -124,8 +112,8 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
         const presetsObj = presets as PlainObject;
         for (const presetName of Object.keys(presetsObj)) {
             if (
-                missingModulesByType.get(ModuleType.Preset)?.has(presetName) ||
-                missingModulesByType.get(ModuleType.Series)?.has(presetName)
+                missingModules.get(ModuleType.Preset)?.has(presetName) ||
+                missingModules.get(ModuleType.Series)?.has(presetName)
             ) {
                 delete presetsObj[presetName];
                 continue;
@@ -157,40 +145,50 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(chartTyp
         enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
     }
 
-    const missingOptions = missingModules.reduce<{ enterprise: string[]; community: string[] }>(
+    const missingOptions = missingModules.reduce<{ enterprise: ModulePlaceholder[]; community: ModulePlaceholder[] }>(
         (data, module) => {
-            data[module.enterprise ? 'enterprise' : 'community'].push(mapModuleName(module));
+            data[module.enterprise ? 'enterprise' : 'community'].push(module);
             return data;
         },
         { enterprise: [], community: [] }
     );
 
     if (initialSeriesType === 'linear-gauge' || initialSeriesType === 'radial-gauge') {
-        missingOptions.enterprise = ['AgCharts.createGauge'];
+        missingOptions.enterprise = [
+            {
+                type: ModuleType.Plugin,
+                name: 'createGauge',
+                moduleId: 'AgCharts.createGauge',
+                enterprise: true,
+            },
+        ];
     }
 
     const messages: string[] = [];
 
     if (missingOptions.enterprise.length) {
+        const missingEnterpriseModules = missingOptions.enterprise.map(formatMissingModuleName);
         messages.push(
             [
-                `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
+                `AG Charts - required enterprise modules are missing or not registered:`,
                 '',
-                ...missingOptions.enterprise,
+                ...missingEnterpriseModules,
                 '',
+                `Install and register '${enterprisePackageName}' before creating the chart.`,
                 `See: ${enterpriseReferenceUrl}`,
             ].join('\n')
         );
     }
 
     if (missingOptions.community.length) {
+        const missingCommunityModules = missingOptions.community.map(formatMissingModuleName);
         messages.push(
             [
-                `unable to use these features as the required community modules have not been registered:`,
+                `AG Charts - required community modules are missing or not registered:`,
                 '',
-                ...missingOptions.community,
+                ...missingCommunityModules,
                 '',
-                `Call ModuleRegistry.registerModules([...]) with the necessary modules before creating the chart.`,
+                `Call ModuleRegistry.registerModules([...]) with the listed modules before creating the chart.`,
             ].join('\n')
         );
     }
@@ -220,15 +218,29 @@ function mapModuleName(module: ModulePlaceholder): string {
     }
 }
 
+function formatMissingModuleName(module: ModulePlaceholder): string {
+    const moduleName = module.moduleId ?? module.name;
+    const optionName = mapModuleName(module);
+
+    return moduleName === optionName ? moduleName : `${moduleName} (${optionName})`;
+}
+
 export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string,
     options: T
 ): ModulePlaceholder[] {
     const missingModules: ModulePlaceholder[] = [];
+    const seriesTypesInOptions =
+        (isArray(options.series) &&
+            options.series
+                .map((series) => series?.type as string | undefined)
+                .filter((type): type is string => typeof type === 'string')) ||
+        [];
 
     for (const module of ExpectedModules.values()) {
         if (ModuleRegistry.hasModule(module.name)) continue;
-        if (chartType && module.chartType && chartType !== module.chartType) continue;
+        const seriesTypeMissing = module.type === 'series' && seriesTypesInOptions.includes(module.name);
+        if (!seriesTypeMissing && chartType && module.chartType && chartType !== module.chartType) continue;
         if (module.name === 'foreground' && enterpriseRegistry.createForeground != null) continue;
 
         switch (module.type) {
