@@ -228,7 +228,7 @@ export function createAggregationIndices(
     // take care not to undo optimizations when making changes here.
     const indexData = new Uint32Array(maxRange * AGGREGATION_SPAN);
     const valueData = new Float64Array(maxRange * AGGREGATION_SPAN);
-    // const visited = new Uint8Array(maxRange);
+    const visited = new Uint8Array(maxRange);
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
@@ -238,7 +238,7 @@ export function createAggregationIndices(
 
     // Cache for current bucket to reduce array access overhead
     let lastAggIndex = -1;
-    // let lastBucketIndex = -1;
+    let lastBucketIndex = -1;
     let cachedXMinIndex = -1;
     let cachedXMinValue = Number.NaN;
     let cachedXMaxIndex = -1;
@@ -317,8 +317,8 @@ export function createAggregationIndices(
                 flushCache(lastAggIndex);
             }
             lastAggIndex = aggIndex;
-            // lastBucketIndex = Math.trunc(aggIndex / AGGREGATION_SPAN);
-            // visited[lastBucketIndex] = 1;
+            lastBucketIndex = Math.trunc(aggIndex / AGGREGATION_SPAN);
+            visited[lastBucketIndex] = 1;
             resetCache();
         }
 
@@ -367,19 +367,19 @@ export function createAggregationIndices(
     }
 
     // Fill unvisited buckets with sentinel values
-    // for (let i = 0; i < maxRange; i++) {
-    //     if (visited[i] === 0) {
-    //         const aggIndex = i * AGGREGATION_SPAN;
-    //         indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = -1;
-    //         indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = -1;
-    //         indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = -1;
-    //         indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = -1;
-    //         valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = Number.NaN;
-    //         valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = Number.NaN;
-    //         valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = Number.NaN;
-    //         valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = Number.NaN;
-    //     }
-    // }
+    for (let i = 0; i < maxRange; i++) {
+        if (visited[i] === 0) {
+            const aggIndex = i * AGGREGATION_SPAN;
+            indexData[aggIndex + AGGREGATION_INDEX_X_MIN] = -1;
+            indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = -1;
+            indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = -1;
+            indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = -1;
+            valueData[aggIndex + AGGREGATION_INDEX_X_MIN] = Number.NaN;
+            valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = Number.NaN;
+            valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = Number.NaN;
+            valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = Number.NaN;
+        }
+    }
 
     return { indexData, valueData };
 }

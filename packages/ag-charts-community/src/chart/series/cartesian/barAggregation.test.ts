@@ -1,6 +1,9 @@
 import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from '../aggregation';
 import { computeBarAggregation, computeBarAggregationPartial } from './barAggregation';
 
+// Sentinel value for empty buckets in Uint32Array (-1 as unsigned)
+const EMPTY_INDEX = 0xffffffff;
+
 describe('computeBarAggregation', () => {
     describe('threshold behavior', () => {
         it('should return undefined for datasets below threshold (< 1000 points)', () => {
@@ -139,13 +142,13 @@ describe('computeBarAggregation', () => {
 
             for (const filter of result!) {
                 expect(filter.positiveIndices.length).toBeGreaterThan(0);
-                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
+                expect(filter.negativeIndices).toBeInstanceOf(Uint32Array);
                 // Verify corresponding typed array uses sentinels for empty negative buckets
                 for (let i = 0; i < filter.maxRange; i++) {
                     const aggIndex = i * AGGREGATION_SPAN;
-                    // X_MIN and X_MAX indices should be -1 for empty negative buckets
-                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
-                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
+                    // X_MIN and X_MAX indices should be EMPTY_INDEX for empty negative buckets
+                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(EMPTY_INDEX);
+                    expect(filter.negativeIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(EMPTY_INDEX);
                 }
             }
         });
@@ -164,16 +167,16 @@ describe('computeBarAggregation', () => {
             expect(result).toBeDefined();
 
             for (const filter of result!) {
-                expect(filter.positiveIndices).toBeInstanceOf(Int32Array);
+                expect(filter.positiveIndices).toBeInstanceOf(Uint32Array);
                 expect(filter.negativeIndices.length).toBeGreaterThan(0);
-                // All positive indices should be sentinel values (-1) when no positive data exists
-                expect(filter.positiveIndices.every((idx) => idx === -1)).toBe(true);
+                // All positive indices should be sentinel values when no positive data exists
+                expect(filter.positiveIndices.every((idx) => idx === EMPTY_INDEX)).toBe(true);
                 // Verify corresponding typed array also uses sentinels
                 for (let i = 0; i < filter.maxRange; i++) {
                     const aggIndex = i * AGGREGATION_SPAN;
-                    // X_MIN and X_MAX indices should be -1 for empty positive buckets
-                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(-1);
-                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(-1);
+                    // X_MIN and X_MAX indices should be EMPTY_INDEX for empty positive buckets
+                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MIN]).toBe(EMPTY_INDEX);
+                    expect(filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MAX]).toBe(EMPTY_INDEX);
                 }
             }
         });
@@ -217,10 +220,10 @@ describe('computeBarAggregation', () => {
             const filter = result![0];
             expect(filter.positiveIndices.length).toBe(filter.maxRange);
             // Should have some non-sentinel positive indices
-            const hasPositiveData = filter.positiveIndices.some((idx) => idx >= 0);
+            const hasPositiveData = filter.positiveIndices.some((idx) => idx !== EMPTY_INDEX);
             expect(hasPositiveData).toBe(true);
             // Negative indices should all be sentinels since all bars are positive
-            expect(filter.negativeIndices.every((idx) => idx === -1)).toBe(true);
+            expect(filter.negativeIndices.every((idx) => idx === EMPTY_INDEX)).toBe(true);
         });
 
         it('should handle non-stacked bars (yStartValues undefined)', () => {
@@ -359,10 +362,10 @@ describe('computeBarAggregation', () => {
                 expect(typeof filter.maxRange).toBe('number');
                 expect(filter.maxRange).toBeGreaterThan(0);
 
-                expect(filter.positiveIndices).toBeInstanceOf(Int32Array);
-                expect(filter.negativeIndices).toBeInstanceOf(Int32Array);
-                expect(filter.positiveIndexData).toBeInstanceOf(Int32Array);
-                expect(filter.negativeIndexData).toBeInstanceOf(Int32Array);
+                expect(filter.positiveIndices).toBeInstanceOf(Uint32Array);
+                expect(filter.negativeIndices).toBeInstanceOf(Uint32Array);
+                expect(filter.positiveIndexData).toBeInstanceOf(Uint32Array);
+                expect(filter.negativeIndexData).toBeInstanceOf(Uint32Array);
             }
         });
 
@@ -381,16 +384,14 @@ describe('computeBarAggregation', () => {
 
             for (const filter of result!) {
                 for (const index of filter.positiveIndices) {
-                    // Can be -1 for empty buckets, or a valid index
-                    expect(index).toBeGreaterThanOrEqual(-1);
-                    if (index >= 0) {
+                    // Can be EMPTY_INDEX for empty buckets, or a valid index
+                    if (index !== EMPTY_INDEX) {
                         expect(index).toBeLessThan(xValues.length);
                     }
                 }
                 for (const index of filter.negativeIndices) {
-                    // Can be -1 for empty buckets, or a valid index
-                    expect(index).toBeGreaterThanOrEqual(-1);
-                    if (index >= 0) {
+                    // Can be EMPTY_INDEX for empty buckets, or a valid index
+                    if (index !== EMPTY_INDEX) {
                         expect(index).toBeLessThan(xValues.length);
                     }
                 }

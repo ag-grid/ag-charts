@@ -65,7 +65,7 @@ describe('computeOhlcAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.length).toBeGreaterThanOrEqual(2);
             for (const filter of result!) {
-                expect(filter.midpointIndices).toBeInstanceOf(Int32Array);
+                expect(filter.midpointIndices).toBeInstanceOf(Uint32Array);
                 expect(filter.midpointIndices.length).toBe(filter.maxRange);
             }
         });
@@ -366,12 +366,12 @@ describe('computeOhlcAggregation', () => {
                 expect(filter).toHaveProperty('maxRange');
                 expect(filter).toHaveProperty('indexData');
                 expect(filter.maxRange).toBeGreaterThan(0);
-                expect(filter.indexData).toBeInstanceOf(Int32Array);
+                expect(filter.indexData).toBeInstanceOf(Uint32Array);
                 expect(filter.indexData.length).toBe(filter.maxRange * SPAN);
             }
         });
 
-        it('should use Int32Array for index storage', () => {
+        it('should use Uint32Array for index storage', () => {
             const xValues = Array.from({ length: 1000 }, (_, i) => i);
             const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
@@ -381,7 +381,7 @@ describe('computeOhlcAggregation', () => {
             });
 
             expect(result).toBeDefined();
-            expect(result![0].indexData).toBeInstanceOf(Int32Array);
+            expect(result![0].indexData).toBeInstanceOf(Uint32Array);
         });
 
         it('should have valid SPAN-based indexing', () => {
