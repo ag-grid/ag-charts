@@ -197,14 +197,10 @@ function getSeriesOptionsKey<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     seriesOptions: SeriesOptions
 ): string | undefined {
-    if (direction === ChartAxisDirection.X) {
-        if ('xKey' in seriesOptions) {
-            return seriesOptions.xKey;
-        }
-    } else if (direction === ChartAxisDirection.Y) {
-        if ('yKey' in seriesOptions) {
-            return seriesOptions.yKey;
-        }
+    if (direction === ChartAxisDirection.X && 'xKey' in seriesOptions) {
+        return seriesOptions.xKey;
+    } else if (direction === ChartAxisDirection.Y && 'yKey' in seriesOptions) {
+        return seriesOptions.yKey;
     }
 }
 
