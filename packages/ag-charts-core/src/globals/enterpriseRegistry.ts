@@ -18,6 +18,7 @@ interface EnterpriseRegistryOptions {
 
 export const enterpriseRegistry: EnterpriseRegistryOptions = {
     isRegistered() {
-        return Object.keys(this).length > 0;
+        // has siblings apart from the isRegistered method
+        return Object.keys(this).length > 1;
     },
 };
