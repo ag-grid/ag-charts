@@ -5,15 +5,17 @@ import {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_MAX_POINTS,
-    AGGREGATION_THRESHOLD,
-    aggregationBucketForDatum,
-    aggregationDatumMatchesIndex,
     aggregationDomain,
+    aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
-    collectAggregationLevels,
+    aggregationXRatioForDatumIndex,
+    aggregationXRatioForXValue,
+    compactAggregationIndices,
     createAggregationIndices,
 } from '../aggregation';
+
+const AGGREGATION_THRESHOLD = 1e3;
+const MAX_POINTS = 10;
 
 export interface LineSeriesDataAggregationFilter {
     indices: number[];
@@ -48,19 +50,20 @@ function isIndexInAggregation(
     xNeedsValueOf: boolean,
     xValuesLength: number
 ): boolean {
-    const aggIndex = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, {
-        xNeedsValueOf,
-        xValuesLength,
-    });
+    const xValue = xValues[datumIndex];
+    if (xValue == null) return false;
 
-    if (aggIndex === -1) return false;
+    const xRatio = Number.isFinite(d0)
+        ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
+        : aggregationXRatioForDatumIndex(datumIndex, xValuesLength);
+    const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-    return aggregationDatumMatchesIndex(indexData, aggIndex, datumIndex, [
-        AGGREGATION_INDEX_X_MIN,
-        AGGREGATION_INDEX_X_MAX,
-        AGGREGATION_INDEX_Y_MIN,
-        AGGREGATION_INDEX_Y_MAX,
-    ]);
+    return (
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MAX] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]
+    );
 }
 
 /**
@@ -106,41 +109,32 @@ export function computeLineAggregation(
     const [d0, d1] = domain;
     const { xNeedsValueOf, yNeedsValueOf } = options;
 
-    const maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
 
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
         xNeedsValueOf,
         yNeedsValueOf,
     });
 
-    const filters = collectAggregationLevels<LineSeriesDataAggregationFilter>(
-        { maxRange, indexData, valueData },
-        {
-            compactInPlace: true,
-            collectLevel: ({ maxRange: range, indexData: levelIndexData }) => {
-                const indices: number[] = [];
-                for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
-                    if (
-                        isIndexInAggregation(
-                            xValues,
-                            d0,
-                            d1,
-                            levelIndexData,
-                            range,
-                            datumIndex,
-                            xNeedsValueOf,
-                            xValuesLength
-                        )
-                    ) {
-                        indices.push(datumIndex);
-                    }
-                }
-
-                return { maxRange: range, indices };
-            },
-            shouldContinue: (level) => level.indices.length > AGGREGATION_MAX_POINTS,
+    let indices: number[] = [];
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
+            indices.push(datumIndex);
         }
-    );
+    }
+
+    const filters: LineSeriesDataAggregationFilter[] = [{ maxRange, indices }];
+
+    while (indices.length > MAX_POINTS && maxRange > 64) {
+        ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
+        indices = indices.filter((datumIndex) =>
+            isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)
+        );
+
+        filters.push({ maxRange, indices });
+    }
+
+    filters.reverse();
 
     return filters;
 }
