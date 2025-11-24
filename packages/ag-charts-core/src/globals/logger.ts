@@ -2,25 +2,10 @@
 
 const doOnceCache = new Set<string>();
 
-export function log(...logContent: any[]) {
-    console.log(...logContent);
-}
-
-export function warn(message: any, ...logContent: any[]) {
-    console.warn(`AG Charts - ${message}`, ...logContent);
-}
-
-export function error(message: any, ...logContent: any[]) {
-    if (typeof message === 'object') {
-        console.error(`AG Charts error`, message, ...logContent);
-    } else {
-        console.error(`AG Charts - ${message}`, ...logContent);
-    }
-}
-
-export function table(...logContent: any[]) {
-    console.table(...logContent);
-}
+export const log = console.log.bind(console);
+export const warn = console.warn.bind(console, 'AG Charts - ');
+export const error = console.error.bind(console, 'AG Charts - ');
+export const table = console.table.bind(console);
 
 function guardOnce<T>(messageOrError: T, prefix: string, cb: (message: T) => void) {
     let message: string;
