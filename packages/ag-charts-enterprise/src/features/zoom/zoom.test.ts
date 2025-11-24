@@ -586,6 +586,51 @@ describe('Zoom', () => {
             );
             await compare();
         });
+
+        describe('callbacks', () => {
+            let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
+            beforeEach(async () => {
+                zoomListener = newFreezableZoomListenerMock();
+            });
+            afterEach(() => {
+                expect(zoomListener.mock).toBeCalledTimes(1);
+            });
+        });
+        it('should fire zoom event with correct ratios', async () => {
+            const zoomListener = newFreezableZoomListenerMock();
+            await prepareChart(
+                {},
+                {
+                    ratioX: { start: 0.25, end: 0.75 },
+                    ratioY: { start: 0.1, end: 0.9 },
+                },
+                { listeners: { zoom: zoomListener.frozen } }
+            );
+
+            expect(zoomListener.mock).toBeCalledTimes(1);
+            expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({
+                ratioX: { start: 0.25, end: 0.75 },
+                ratioY: { start: 0.1, end: 0.9 },
+            });
+        });
+
+        it('should fire zoom event with correct ranges', async () => {
+            const zoomListener = newFreezableZoomListenerMock();
+            await prepareChart(
+                {},
+                {
+                    rangeX: { start: 3, end: 6 },
+                    rangeY: { start: 30, end: 70 },
+                },
+                { listeners: { zoom: zoomListener.frozen } }
+            );
+
+            expect(zoomListener.mock).toBeCalledTimes(1);
+            expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({
+                rangeX: { start: 3, end: 6 },
+                rangeY: { start: 30, end: 70 },
+            });
+        });
     });
 
     describe('listeners', () => {
