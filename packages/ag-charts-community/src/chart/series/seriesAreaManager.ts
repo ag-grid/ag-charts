@@ -333,7 +333,7 @@ export class SeriesAreaManager extends BaseManager {
         const { sourceEvent } = event;
         if (sourceEvent.currentTarget != current.getElement()) return;
 
-        if (sourceEvent.target == this.chart.ctx.widgets.containerWidget.getElement()) {
+        if (current !== this.chart.ctx.widgets.seriesWidget) {
             if (this.isState(InteractionState.ContextMenuable)) {
                 const { currentX: canvasX, currentY: canvasY } = event;
                 this.chart.ctx.contextMenuRegistry.dispatchContext(
