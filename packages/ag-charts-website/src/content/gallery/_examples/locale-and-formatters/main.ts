@@ -1,4 +1,14 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    LocaleModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
+import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 import {
     AG_CHARTS_LOCALE_AR_EG,
     AG_CHARTS_LOCALE_EN_US,
@@ -14,6 +24,19 @@ import { makeLocaleContext } from './context';
 import type { LocaleContext, LocaleString } from './context';
 import { getData } from './data';
 import type { DatumType } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    LocaleModule,
+    TimeAxisModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 
 type ExampleText = {
     localeText: Record<string, string>;
@@ -96,12 +119,13 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
             xKey: 'month',
             yKey: 'growth',
             yName: EXAMPLE_TEXT[INITIAL_LOCALE].growth,
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             marker: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].month },
@@ -109,25 +133,23 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
                 formatter: (params) => params.context?.formatMonth(params.value),
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['income'],
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].income },
             label: {
                 formatter: (params) => params.context?.formatUSD(params.value),
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['growth'],
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].growth },
             label: {
                 formatter: (params) => params.context?.formatPercent(params.value),
             },
         },
-    ],
+    },
     legend: { enabled: true },
     zoom: { enabled: true },
     contextMenu: { enabled: true },
@@ -142,9 +164,9 @@ function updateLocale(locale: LocaleString) {
     options.context = makeLocaleContext(locale);
     options.series[0]!.yName = EXAMPLE_TEXT[locale].income;
     options.series[1]!.yName = EXAMPLE_TEXT[locale].growth;
-    options.axes![0]!.title!.text = EXAMPLE_TEXT[locale].month;
-    options.axes![1]!.title!.text = EXAMPLE_TEXT[locale].income;
-    options.axes![2]!.title!.text = EXAMPLE_TEXT[locale].growth;
+    options.axes!.x!.title!.text = EXAMPLE_TEXT[locale].month;
+    options.axes!.y!.title!.text = EXAMPLE_TEXT[locale].income;
+    options.axes!.ySecondary!.title!.text = EXAMPLE_TEXT[locale].growth;
     options.locale!.localeText = EXAMPLE_TEXT[locale].localeText;
     chart.update(options);
 }
