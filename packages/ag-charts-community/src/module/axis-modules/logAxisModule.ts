@@ -14,6 +14,10 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: logAxisOptionsDefs,
+    themeTemplate: {
+        base: 10,
+        line: { enabled: false },
+    },
 
     create: (ctx) => new LogAxis(ctx),
 };

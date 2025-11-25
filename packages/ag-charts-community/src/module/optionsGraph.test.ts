@@ -2,7 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 
 import { PlainObject } from 'ag-charts-core';
 
-import { setupModules } from '../chart/factory/setupModules';
 import { OptionsGraph } from './optionsGraph';
 
 function prepareOptions(options: PlainObject) {
@@ -16,10 +15,6 @@ function prepareOptions(options: PlainObject) {
 }
 
 describe('OptionsGraph', () => {
-    beforeAll(() => {
-        setupModules();
-    });
-
     it('should merge chart defaults and user options', () => {
         const themeConfig = {
             line: {

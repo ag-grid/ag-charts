@@ -75,7 +75,12 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         panKey: 'alt',
         scrollingStep: 0.1,
         autoScaling: {
-            enabled: { $eq: [{ $path: '../axes' }, 'x'] },
+            enabled: {
+                $and: [
+                    { $eq: [{ $path: '../axes' }, 'x'] },
+                    { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
+                ],
+            },
             padding: 0.05,
         },
         onDataChange: {

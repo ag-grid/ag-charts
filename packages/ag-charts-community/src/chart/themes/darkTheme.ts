@@ -11,7 +11,6 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
     DEFAULT_TEXTBOX_FILL,
     DEFAULT_TEXTBOX_STROKE,
@@ -90,6 +89,7 @@ export class DarkTheme extends ChartTheme {
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
+            separationLinesColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
         };
@@ -100,8 +100,6 @@ export class DarkTheme extends ChartTheme {
 
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
-
-        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');

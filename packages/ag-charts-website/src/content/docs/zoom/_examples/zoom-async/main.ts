@@ -1,12 +1,26 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
-import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
+import {
+    AgCharts,
+    AnimationModule,
+    CrosshairModule,
+    DataSourceModule,
+    NavigatorModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { FakeServer } from './fakeServer';
 
 ModuleRegistry.registerModules([
     AnimationModule,
     CrosshairModule,
+    DataSourceModule,
     LegendModule,
     LineSeriesModule,
     NavigatorModule,

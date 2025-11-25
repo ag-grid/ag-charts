@@ -19,16 +19,6 @@ import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'bar'> = {
-    zoom: {
-        autoScaling: {
-            enabled: {
-                $and: [
-                    { $eq: [{ $path: '../axes' }, 'x'] },
-                    { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
-                ],
-            },
-        },
-    },
     series: {
         direction: 'vertical',
         fill: {
@@ -72,11 +62,6 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             xOffset: 3,
             yOffset: 3,
             blur: 5,
-        },
-        errorBar: {
-            cap: {
-                lengthRatio: 0.3,
-            },
         },
         highlight: multiSeriesHighlightStyle(),
         segmentation: SEGMENTATION_DEFAULTS,

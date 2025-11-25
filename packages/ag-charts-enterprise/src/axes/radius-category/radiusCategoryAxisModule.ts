@@ -11,6 +11,11 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
     version: VERSION,
 
     options: _ModuleSupport.radiusCategoryAxisOptionsDefs,
+    themeTemplate: {
+        positionAngle: 0,
+        line: { enabled: false },
+        label: { minSpacing: 5 },
+    },
 
     create: (ctx) => new RadiusCategoryAxis(ctx),
 };

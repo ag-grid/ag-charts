@@ -6,7 +6,6 @@ import {
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_TOOLBAR_POSITION,
 } from './symbols';
 import { getSequentialColors } from './util';
@@ -73,7 +72,6 @@ export class FinancialDark extends DarkTheme {
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
         params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');
-        params.set(DEFAULT_GRIDLINE_ENABLED, true);
 
         return params;
     }

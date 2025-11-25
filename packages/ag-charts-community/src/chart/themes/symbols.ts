@@ -1,5 +1,4 @@
 export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
-export const DEFAULT_SEPARATION_LINES_COLOUR = Symbol('default-separation-lines-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_CAPTION_LAYOUT_STYLE = Symbol('default-caption-layout-style') as unknown as string;
 export const DEFAULT_CAPTION_ALIGNMENT = Symbol('default-caption-alignment') as unknown as string;
@@ -43,4 +42,3 @@ export const DEFAULT_TEXTBOX_FILL = Symbol('default-textbox-fill') as unknown as
 export const DEFAULT_TEXTBOX_STROKE = Symbol('default-textbox-stroke') as unknown as string;
 export const DEFAULT_TEXTBOX_COLOR = Symbol('default-textbox-color') as unknown as string;
 export const DEFAULT_TOOLBAR_POSITION = Symbol('default-toolbar-position') as unknown as string;
-export const DEFAULT_GRIDLINE_ENABLED = Symbol('default-gridline-enabled') as unknown as string;

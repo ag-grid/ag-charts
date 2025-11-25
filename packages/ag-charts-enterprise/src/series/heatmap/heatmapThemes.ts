@@ -11,14 +11,6 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
             ],
         },
         strokeWidth: { $isUserOption: ['./stroke', 2, undefined] },
-        // @ts-expect-error undocumented option
-        colorRange: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                { $palette: 'divergingColors' },
-                _ModuleSupport.SAFE_RANGE2_OPERATION,
-            ],
-        },
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -38,6 +30,14 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
     },
     gradientLegend: {
         enabled: true,
-        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
+};
+
+// @ts-expect-error undocumented option
+HEATMAP_SERIES_THEME.series.colorRange = {
+    $if: [
+        { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+        { $palette: 'divergingColors' },
+        _ModuleSupport.SAFE_RANGE2_OPERATION,
+    ],
 };

@@ -43,13 +43,10 @@ import {
 } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
-import {
-    removeIncompatibleModuleOptions,
-    removeUnregisteredModuleOptions,
-} from '../chart/factory/processModuleOptions';
+import { processModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
-import { type ChartTheme } from '../chart/themes/chartTheme';
+import { ChartTheme } from '../chart/themes/chartTheme';
 import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
@@ -278,6 +275,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
+        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
+
         const { presetType } = this.optionMetadata;
         if (presetType != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
@@ -289,8 +288,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // Note financial charts defines the theme in its returned options,
                 // so we need to get the theme before and after applying the preset
                 const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
-                const presetTheme =
-                    presetSubType == null ? undefined : getChartTheme(options.theme).presets[presetSubType];
+                const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
                 for (const error of invalid) {
@@ -302,13 +300,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 } else {
                     ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
                     options = presetDef.create(cleared, presetTheme, () => this.activeTheme);
+                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
                 }
             }
         }
 
         this.soloSeriesIntegrity(options);
-
-        const activeTheme = getChartTheme(options.theme);
 
         // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
         if (presetType != null) {
@@ -316,6 +313,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // Must run before chart validation to cleanup invalid types.
+        processModuleOptions(undefined, options);
         this.validateSeriesOptions(options);
 
         const chartType = detectChartType(options);
@@ -354,8 +352,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
-        removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        removeUnregisteredModuleOptions(this.chartDef.name, processedOptions, true);
+        processModuleOptions(this.chartDef.name, processedOptions);
 
         this.validateSeriesOptions(processedOptions);
         this.validateAxesOptions(processedOptions);
@@ -389,39 +386,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T): void {
-        const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
 
-        let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
-            if (seriesDef == null) {
-                validSeriesTypes ??= joinFormatted(
-                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Series))
-                        .filter((def) => !chartType || def.chartType === chartType)
-                        .map((def) => def.name),
-                    'or',
-                    stringFormat
-                );
-                Logger.warn(
-                    seriesOptions.type == null
-                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
-                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
-                );
-                continue;
-            } else if (chartType && seriesDef.chartType !== chartType) {
-                Logger.warn(
-                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
-                );
-                continue;
-            }
-
-            if (seriesDef.options == null) {
-                validatedSeriesOptions.push(seriesOptions);
+            if (seriesDef?.options == null) {
+                if (seriesDef) {
+                    validatedSeriesOptions.push(seriesOptions);
+                }
                 continue;
             }
 

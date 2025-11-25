@@ -1,4 +1,4 @@
-import { describe } from '@jest/globals';
+import { describe, jest } from '@jest/globals';
 
 import { Logger, ModuleRegistry } from 'ag-charts-core';
 import type {
@@ -6,12 +6,13 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartOptions,
+    AgChartTheme,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
     SeriesType,
 } from 'ag-charts-types';
 
-import { setupModules } from '../chart/factory/setupModules';
+import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { VERSION } from '../version';
@@ -413,10 +414,6 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('ChartOptions', () => {
-    beforeAll(() => {
-        setupModules();
-    });
-
     beforeEach(() => {
         console.warn = jest.fn();
         Logger.reset();
@@ -2047,6 +2044,78 @@ describe('ChartOptions', () => {
                 false,
                 true,
             ]);
+        });
+
+        it('should drop unregistered theme overrides before processing', () => {
+            const warnSpy = jest.spyOn(console, 'warn');
+            const theme: AgChartTheme = {
+                overrides: {
+                    common: {
+                        annotations: { enabled: true } as any,
+                        navigator: { enabled: true } as any,
+                        axes: {
+                            // @ts-expect-error Testing unregistered axis plugins
+                            'angle-number': { crosshair: { enabled: true } },
+                        },
+                    },
+                    'radial-bar': { series: { strokeWidth: 5, errorBar: { visible: true } } } as any,
+                },
+            };
+
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 1, y: 2 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    theme,
+                },
+                {} as AgCartesianChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            try {
+                expect(chartOptions.activeTheme.overrides?.common?.navigator).toBeUndefined();
+                expect(chartOptions.activeTheme.overrides?.common?.annotations).toBeUndefined();
+                expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
+                expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
+                expect(warnSpy).toHaveBeenCalledTimes(2);
+                expect(warnSpy.mock.calls[0]?.[0]).toContain('theme.overrides.common.axes.angle-number.crosshair');
+                expect(warnSpy.mock.calls[1]?.[0]).toContain('theme.overrides.radial-bar.series.errorBar');
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        it('sanitizes theme defaults when modules are missing', () => {
+            const baseTheme = new ChartTheme();
+            const themeWithExtras = Object.create(baseTheme, {
+                config: {
+                    value: { ...baseTheme.config, 'radial-bar': { series: { strokeWidth: 2 } } },
+                    enumerable: true,
+                },
+                overrides: {
+                    value: {
+                        ...(baseTheme.overrides ?? {}),
+                        common: { ...(baseTheme.overrides?.common ?? {}), navigator: { enabled: true } },
+                        'radial-bar': { series: { strokeWidth: 5 } },
+                        line: { series: { errorBar: { enabled: true } } },
+                    },
+                    enumerable: true,
+                },
+                presets: {
+                    value: { ...(baseTheme.presets ?? {}), 'linear-gauge': { enabled: true } },
+                    enumerable: true,
+                },
+            }) as ChartTheme;
+
+            const sanitizedTheme = sanitizeThemeModules(themeWithExtras);
+
+            expect(sanitizedTheme.config['radial-bar']).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.['radial-bar']).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.common?.navigator).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.line?.series?.errorBar).toBeUndefined();
+            expect((sanitizedTheme.presets as any)?.['linear-gauge']).toBeUndefined();
         });
 
         it('should use default theme options when `enabled` is set to `false` on an options object', () => {

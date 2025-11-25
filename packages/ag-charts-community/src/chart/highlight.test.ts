@@ -169,7 +169,6 @@ describe('Chart highlighting', () => {
         {
             name: 'bar',
             options: {
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -187,7 +186,6 @@ describe('Chart highlighting', () => {
         {
             name: 'line',
             options: {
-                animation: { enabled: false },
                 data: cartesianSeriesData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -217,7 +215,6 @@ describe('Chart highlighting', () => {
         {
             name: 'area',
             options: {
-                animation: { enabled: false },
                 data: cartesianSeriesData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -249,7 +246,6 @@ describe('Chart highlighting', () => {
         {
             name: 'scatter',
             options: {
-                animation: { enabled: false },
                 data: scatterData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -281,7 +277,6 @@ describe('Chart highlighting', () => {
         {
             name: 'bubble',
             options: {
-                animation: { enabled: false },
                 data: scatterData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -316,7 +311,6 @@ describe('Chart highlighting', () => {
         {
             name: 'histogram',
             options: {
-                animation: { enabled: false },
                 data: histogramData,
                 axes: {
                     x: { position: 'bottom', type: 'number' },
@@ -341,7 +335,6 @@ describe('Chart highlighting', () => {
         {
             name: 'pie',
             options: {
-                animation: { enabled: false },
                 data: partWholeData,
                 legend: { enabled: false },
                 series: [
@@ -361,7 +354,6 @@ describe('Chart highlighting', () => {
         {
             name: 'donut',
             options: {
-                animation: { enabled: false },
                 data: partWholeData,
                 legend: { enabled: false },
                 series: [
@@ -414,7 +406,6 @@ describe('Chart highlighting', () => {
 
         it('highlighting is immediate with no delay', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -451,7 +442,6 @@ describe('Chart highlighting', () => {
 
         it('unhighlighting is delayed by 100ms', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -498,7 +488,6 @@ describe('Chart highlighting', () => {
 
         it('highlighting new item cancels pending unhighlight for same caller', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -553,7 +542,6 @@ describe('Chart highlighting', () => {
 
         it('multiple callers can have independent pending unhighlights', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -620,7 +608,6 @@ describe('Chart highlighting', () => {
 
         it("highlighting from one caller does not cancel another caller's pending unhighlight", async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -679,7 +666,6 @@ describe('Chart highlighting', () => {
 
         it('unhighlighting is immediate when delayed=false', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -718,7 +704,6 @@ describe('Chart highlighting', () => {
 
         it('immediate unhighlight cancels pending delayed unhighlight', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -770,7 +755,6 @@ describe('Chart highlighting', () => {
 
         it('repeated delayed unhighlight calls do not reset countdown', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },
@@ -825,7 +809,6 @@ describe('Chart highlighting', () => {
 
         it('multiple rapid highlight/unhighlight cycles work correctly', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
-                animation: { enabled: false },
                 data: categoryData,
                 axes: {
                     x: { position: 'bottom', type: 'category' },

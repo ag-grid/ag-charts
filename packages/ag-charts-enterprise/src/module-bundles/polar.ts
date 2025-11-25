@@ -17,10 +17,12 @@ import { RadialColumnSeriesModule } from '../series/radial-column/radialColumnMo
 
 export const AllPolarModule: ModuleDefinition[] = [
     AllCommunityPolarModule,
+
     AngleNumberAxisModule,
     AngleCategoryAxisModule,
     RadiusNumberAxisModule,
     RadiusCategoryAxisModule,
+
     NightingaleSeriesModule,
     RadarAreaSeriesModule,
     RadarLineSeriesModule,

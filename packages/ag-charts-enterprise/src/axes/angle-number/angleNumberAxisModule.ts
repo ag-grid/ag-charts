@@ -11,6 +11,10 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
     version: VERSION,
 
     options: _ModuleSupport.angleNumberAxisOptionsDefs,
+    themeTemplate: {
+        label: { spacing: 5 },
+        gridLine: { enabled: false },
+    },
 
     create: (ctx) => new AngleNumberAxis(ctx),
 };

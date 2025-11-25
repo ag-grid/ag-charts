@@ -144,4 +144,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     fontWeight?: FontWeight;
     /** Default colour for grid lines. */
     gridLineColor?: CssColor;
+    /** Default colour for grouped-category separation lines. */
+    separationLinesColor?: CssColor;
 }

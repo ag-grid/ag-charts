@@ -11,6 +11,12 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
     version: VERSION,
 
     options: _ModuleSupport.radiusNumberAxisOptionsDefs,
+    themeTemplate: {
+        positionAngle: 0,
+        line: { enabled: false },
+        shape: { $findFirstSiblingNotOperation: undefined },
+        label: { minSpacing: 5 },
+    },
 
     create: (ctx) => new RadiusNumberAxis(ctx),
 };

@@ -11,6 +11,11 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     version: VERSION,
 
     options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
+    themeTemplate: {
+        groupPaddingInner: 0,
+        label: { autoRotate: false },
+        gridLine: { enabled: false },
+    },
 
     create: (ctx) => new OrdinalTimeAxis(ctx),
 };

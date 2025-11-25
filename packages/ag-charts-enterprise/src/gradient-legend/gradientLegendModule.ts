@@ -56,6 +56,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         },
     },
     themeTemplate: {
+        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
         enabled: false,
         position: 'bottom',
         spacing: 20,
