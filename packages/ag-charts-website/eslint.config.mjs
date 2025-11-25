@@ -11,7 +11,20 @@ export default [
         rules: reactHooksPlugin.configs.recommended.rules,
     },
     {
-        ignores: ['.astro/', '**/_examples/', 'scripts/showcase-github/tmp/', '**/.angular'],
+        // Ignore generated/transformed framework example files, but NOT main.ts (vanilla source)
+        ignores: [
+            '.astro/',
+            '**/_examples/*/_gen/',
+            '**/_examples/*/angular/',
+            '**/_examples/*/react/',
+            '**/_examples/*/vue/',
+            '**/_examples/*/vue3/',
+            '**/_examples/*/reactFunctional/',
+            '**/_examples/*/reactFunctionalTs/',
+            '**/_examples/*/typescript/',
+            'scripts/showcase-github/tmp/',
+            '**/.angular',
+        ],
     },
     {
         rules: {
@@ -74,6 +87,20 @@ export default [
         rules: {
             'no-console': 'off',
             '@typescript-eslint/no-var-requires': 'off',
+        },
+    },
+    // Example files - validate module registrations
+    {
+        files: ['src/content/**/_examples/*/main.ts'],
+        languageOptions: {
+            parserOptions: {
+                projectService: false,
+                project: 'packages/ag-charts-website/tsconfig.examples.json',
+                tsconfigRootDir: import.meta.dirname + '/../..',
+            },
+        },
+        rules: {
+            'aglint/validate-module-registration': [2, { warnOverRegistration: true }],
         },
     },
     {

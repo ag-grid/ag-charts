@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint';
 
 import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change-detection.mjs';
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
+import validateModuleRegistration from './libraries/ag-charts-eslint-rules/rules/validate-module-registration.mjs';
 
 let env = 'unknown';
 if (process.env.CI != null) {
@@ -104,7 +105,7 @@ export default [
     },
     {
         files: ['**/src/**/*'],
-        ignores: ['**/src/pages/**'], // Ignore astro pages
+        ignores: ['**/src/pages/**', '**/_examples/**'], // Ignore astro pages and example files
         plugins: {
             'check-file': checkFile,
         },
@@ -124,6 +125,7 @@ export default [
                 rules: {
                     'require-explicit-generic': requireExplicitGeneric,
                     'change-detection': lintChangeDetection,
+                    'validate-module-registration': validateModuleRegistration,
                 },
             },
             unicorn,

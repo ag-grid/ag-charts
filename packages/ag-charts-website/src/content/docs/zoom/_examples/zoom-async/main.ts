@@ -18,15 +18,15 @@ import {
 import { FakeServer } from './fakeServer';
 
 ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    DataSourceModule,
-    LegendModule,
-    LineSeriesModule,
-    NavigatorModule,
-    NumberAxisModule,
-    TimeAxisModule,
-    ZoomModule,
+    // AnimationModule,
+    // CrosshairModule,
+    // DataSourceModule,
+    // LegendModule,
+    // LineSeriesModule,
+    // NavigatorModule,
+    // NumberAxisModule,
+    // TimeAxisModule,
+    // ZoomModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
