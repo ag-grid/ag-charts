@@ -33,14 +33,16 @@ export interface AgRangeAreaSeriesLineStyle extends StrokeOptions, LineDashOptio
     marker?: AgSeriesMarkerStyle;
 }
 
+export interface AgRangeAreaSeriesStyleItems {
+    /** Configuration for the `yLowKey` line. */
+    low?: AgRangeAreaSeriesLineStyle;
+    /** Configuration for the `yHighKey` line. */
+    high?: AgRangeAreaSeriesLineStyle;
+}
+
 export interface AgRangeAreaSeriesStyle extends FillOptions {
     /** Configuration used for the range area series low and high lines. */
-    item?: {
-        /** Configuration for the `yLowKey` line. */
-        low?: AgRangeAreaSeriesLineStyle;
-        /** Configuration for the `yHighKey` line. */
-        high?: AgRangeAreaSeriesLineStyle;
-    };
+    item?: AgRangeAreaSeriesStyleItems;
 }
 
 export type AgRangeAreaSeriesItemType = 'low' | 'high';
