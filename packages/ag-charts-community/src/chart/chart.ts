@@ -502,11 +502,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // "new / updated" state; sometimes `updateDelta()` updates the series visibility, and sometimes it doesn't. To
         // address this discrepancy, we'll update processedOptions to match the current visibility state of the series.
         for (let i = 0; i < this.series.length; i++) {
-            type TSrc = { visible: boolean; id: string } | undefined;
-            type TDst = { visible: boolean } | {} | undefined;
+            type TSrc = { visible: boolean; id: string };
+            type TDst = { visible: boolean } | object | undefined;
             const src: TSrc = this.series[i];
             const dst: TDst = outdatedOptions.processedOptions.series?.[i];
-            if (src !== undefined && seriesWithUserVisibility.has(src.id) && dst !== undefined && 'visible' in dst) {
+            if (seriesWithUserVisibility.has(src.id) && dst !== undefined && 'visible' in dst) {
                 dst.visible = src.visible;
             }
         }
