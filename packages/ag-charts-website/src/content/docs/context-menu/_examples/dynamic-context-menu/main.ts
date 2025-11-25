@@ -67,11 +67,10 @@ const options: AgCartesianChartOptions<DatumType> = {
 const chart = AgCharts.create(options);
 
 function updateVisibility(seriesId: string, visible: boolean) {
-    const currentState = chart.getState();
-    for (const series of currentState.legend ?? []) {
-        if (series.seriesId === seriesId) {
+    for (const series of options.series!) {
+        if (series.id === seriesId) {
             series.visible = visible;
         }
     }
-    chart.setState(currentState);
+    chart.updateDelta(options);
 }
