@@ -9,6 +9,7 @@ import {
     deepClone,
     deepFreeze,
     enterpriseRegistry,
+    groupBy,
     isArray,
     isObject,
 } from 'ag-charts-core';
@@ -95,7 +96,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     if (isObject(overrides)) {
         const overridesObj = overrides as PlainObject;
         if (isObject(overridesObj.common)) {
-            pruneAxes((overridesObj.common as any).axes);
+            pruneAxes(overridesObj.common.axes);
             prunePlugins(overridesObj.common);
         }
         for (const seriesType of Object.keys(overridesObj)) {
@@ -145,28 +146,20 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(chartTyp
         enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
     }
 
-    const missingOptions = missingModules.reduce<{ enterprise: ModulePlaceholder[]; community: ModulePlaceholder[] }>(
-        (data, module) => {
-            data[module.enterprise ? 'enterprise' : 'community'].push(module);
-            return data;
-        },
-        { enterprise: [], community: [] }
-    );
+    const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (initialSeriesType === 'linear-gauge' || initialSeriesType === 'radial-gauge') {
-        missingOptions.enterprise = [
-            {
-                type: ModuleType.Plugin,
-                name: 'createGauge',
-                moduleId: 'AgCharts.createGauge',
-                enterprise: true,
-            },
-        ];
+        missingOptions.enterprise?.unshift({
+            type: ModuleType.Plugin,
+            name: 'createGauge',
+            moduleId: 'AgCharts.createGauge',
+            enterprise: true,
+        });
     }
 
     const messages: string[] = [];
 
-    if (missingOptions.enterprise.length) {
+    if (missingOptions.enterprise?.length) {
         messages.push(
             [
                 `AG Charts - required enterprise modules are missing or not registered:`,
@@ -179,7 +172,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(chartTyp
         );
     }
 
-    if (missingOptions.community.length) {
+    if (missingOptions.community?.length) {
         messages.push(
             [
                 `AG Charts - required community modules are missing or not registered:`,
