@@ -167,9 +167,12 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
-        for (const entry of this._nodes.entries()) {
-            iterate(entry[1], entry[1].datum, entry[0]);
-        }
+        const nodes = this._nodes;
+        this.parentNode.batchedUpdate(function selectionEach() {
+            for (const entry of nodes.entries()) {
+                iterate(entry[1], entry[1].datum, entry[0]);
+            }
+        });
         return this;
     }
 
@@ -202,5 +205,9 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     get length() {
         return this._nodes.length;
+    }
+
+    batchedUpdate(fn: () => void) {
+        this.parentNode.batchedUpdate(fn);
     }
 }

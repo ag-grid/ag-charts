@@ -246,9 +246,12 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 node.setProperties(start);
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties(start);
-                }
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionPlay() {
+                    for (const node of selectionNodes) {
+                        node.setProperties(start);
+                    }
+                });
             }
         },
         onUpdate(props) {
@@ -256,9 +259,12 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 node.setProperties(props);
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties(props);
-                }
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionUpdate() {
+                    for (const node of selectionNodes) {
+                        node.setProperties(props);
+                    }
+                });
             }
         },
         onStop: () => {
@@ -266,10 +272,13 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 node.setProperties({ ...to, ...finish });
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties({ ...to, ...finish });
-                }
-                selection.cleanup();
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionStop() {
+                    for (const node of selectionNodes) {
+                        node.setProperties({ ...to, ...finish });
+                    }
+                    selection.cleanup();
+                });
             }
         },
     });

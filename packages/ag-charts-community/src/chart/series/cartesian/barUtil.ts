@@ -221,28 +221,32 @@ export function resetBarSelectionsFn(
 /**
  * High-performance direct reset for bar selections.
  * Bypasses resetMotion callback pattern and decorator system entirely.
+ * Uses batchedUpdate to consolidate markDirty calls per selection.
  */
 export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?: boolean }>(
-    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void }[]
+    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
 ): void {
     for (const selection of selections) {
-        for (const node of selection.nodes()) {
-            const datum = node.datum;
-            if (datum == null) continue;
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetBarNodes() {
+            for (const node of nodes) {
+                const datum = node.datum;
+                if (datum == null) continue;
 
-            // Direct method bypasses decorators - writes to __x, __y, etc.
-            node.resetAnimationProperties(
-                datum.x,
-                datum.y,
-                datum.width,
-                datum.height,
-                datum.opacity ?? 1,
-                datum.clipBBox
-            );
-            node.crisp = datum.crisp ?? false;
-        }
-        // Important: cleanup garbage-collected nodes (same as resetMotion does)
-        selection.cleanup();
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                node.resetAnimationProperties(
+                    datum.x,
+                    datum.y,
+                    datum.width,
+                    datum.height,
+                    datum.opacity ?? 1,
+                    datum.clipBBox
+                );
+                node.crisp = datum.crisp ?? false;
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
     }
 }
 
