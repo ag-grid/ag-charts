@@ -249,7 +249,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             case 'axis':
                 if (axisTypesInOptions.has(module.name)) {
                     for (const key of Object.keys(optionsAxes)) {
-                        if (optionsAxes[key].type === module.name) {
+                        if (optionsAxes?.[key].type === module.name) {
                             delete optionsAxes[key];
                         }
                     }
@@ -277,7 +277,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
             case 'axis:plugin':
                 for (const axis of Object.values(optionsAxes)) {
-                    if (axis[module.name as keyof typeof axis]) {
+                    if (axis?.[module.name as keyof typeof axis]) {
                         delete axis[module.name as keyof typeof axis];
                         addMissingModule(module);
                     }
