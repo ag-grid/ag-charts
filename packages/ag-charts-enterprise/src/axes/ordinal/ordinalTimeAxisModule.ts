@@ -13,7 +13,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
     themeTemplate: {
         groupPaddingInner: 0,
-        label: { autoRotate: false },
+        label: { autoRotate: false, minSpacing: 40 },
         gridLine: { enabled: false },
     },
 
