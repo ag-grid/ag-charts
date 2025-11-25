@@ -88,7 +88,15 @@ const stringFormat = (value: string) => `'${value}'`;
 const AXIS_ID_PREFIX = '__AXIS_ID_';
 const DIRECTION_KEYS = {
     [ChartAxisDirection.X]: ['xKey' as const],
-    [ChartAxisDirection.Y]: ['yKey' as const, 'yLowKey' as const, 'yHighKey' as const],
+    [ChartAxisDirection.Y]: [
+        'yKey' as const,
+        'yLowKey' as const,
+        'yHighKey' as const,
+        'lowKey' as const,
+        'highKey' as const,
+        'openKey' as const,
+        'closeKey' as const,
+    ],
     [ChartAxisDirection.Angle]: ['angleKey' as const],
     [ChartAxisDirection.Radius]: ['radiusKey' as const],
 };
