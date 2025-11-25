@@ -5,7 +5,6 @@ import {
     AgChartLegendOptions,
     AgChartOptions,
     AgChartSubtitleOptions,
-    AgChartThemeName,
     AgCharts,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
