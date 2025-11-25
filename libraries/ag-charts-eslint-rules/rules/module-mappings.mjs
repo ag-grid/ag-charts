@@ -444,7 +444,7 @@ export const intrinsicDefaults = {
     // Always expected for any chart
     always: ['LegendModule'],
     // Expected when using enterprise features (commonly included for interactivity)
-    enterprise: ['AnimationModule', 'CrosshairModule', 'ZoomModule'],
+    enterprise: ['AnimationModule', 'ContextMenuModule', 'CrosshairModule', 'ZoomModule'],
     // Expected for cartesian charts (axis modules)
     cartesian: ['CategoryAxisModule', 'NumberAxisModule', 'TimeAxisModule', 'LogAxisModule'],
 };

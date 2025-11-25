@@ -147,38 +147,113 @@ export default {
         }
 
         /**
+         * Unwrap TypeScript type assertions and parenthesized expressions
+         */
+        function unwrapExpressions(node) {
+            if (!node) return node;
+            while (
+                node.type === 'TSAsExpression' ||
+                node.type === 'TSSatisfiesExpression' ||
+                node.type === 'ParenthesizedExpression'
+            ) {
+                node = node.expression;
+            }
+            return node;
+        }
+
+        /**
+         * Process a single series object to find required modules
+         */
+        function processSeriesObject(element, parentNode) {
+            element = unwrapExpressions(element);
+            if (!element || element.type !== 'ObjectExpression') return;
+
+            for (const prop of element.properties) {
+                if (prop.type !== 'Property') continue;
+                const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+
+                if (keyName === 'type') {
+                    // Unwrap 'map-line' as const -> 'map-line'
+                    const typeValue = unwrapExpressions(prop.value);
+                    const seriesType = getStringValue(typeValue);
+                    if (seriesType) {
+                        seriesTypes.push(seriesType);
+                        const moduleId = seriesTypeToModule.get(seriesType);
+                        if (moduleId) {
+                            requireModule(moduleId, `series type '${seriesType}'`, prop);
+                        }
+                    }
+                }
+
+                // Check for series plugins (errorBar)
+                if (keyName && seriesPluginToModule.has(keyName)) {
+                    const moduleId = seriesPluginToModule.get(keyName);
+                    requireModule(moduleId, `series option '${keyName}'`, prop);
+                }
+            }
+        }
+
+        /**
+         * Extract return value from a function body
+         */
+        function extractReturnValue(body) {
+            if (!body) return null;
+
+            // Expression body: d => ({ type: 'bar' })
+            body = unwrapExpressions(body);
+            if (body.type === 'ObjectExpression') {
+                return body;
+            }
+
+            // Block body: d => { return { type: 'bar' }; }
+            if (body.type === 'BlockStatement') {
+                for (const stmt of body.body) {
+                    if (stmt.type === 'ReturnStatement' && stmt.argument) {
+                        return unwrapExpressions(stmt.argument);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Process a CallExpression that may contain series (e.g., data.map())
+         */
+        function processSeriesCallExpression(callExpr, parentNode) {
+            const callback = callExpr.arguments[0];
+            if (callback && (callback.type === 'ArrowFunctionExpression' || callback.type === 'FunctionExpression')) {
+                const returnValue = extractReturnValue(callback.body);
+                if (returnValue && returnValue.type === 'ObjectExpression') {
+                    processSeriesObject(returnValue, parentNode);
+                }
+            }
+        }
+
+        /**
          * Process series array to find required modules
          */
         function processSeriesArray(seriesArray, parentNode) {
-            if (seriesArray.type !== 'ArrayExpression') return;
+            seriesArray = unwrapExpressions(seriesArray);
 
-            for (const element of seriesArray.elements) {
-                if (!element || element.type !== 'ObjectExpression') continue;
+            if (seriesArray.type === 'ArrayExpression') {
+                for (const element of seriesArray.elements) {
+                    if (!element) continue;
 
-                let seriesType = null;
-                let seriesNode = element;
-
-                for (const prop of element.properties) {
-                    if (prop.type !== 'Property') continue;
-                    const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
-
-                    if (keyName === 'type') {
-                        seriesType = getStringValue(prop.value);
-                        if (seriesType) {
-                            seriesTypes.push(seriesType);
-                            const moduleId = seriesTypeToModule.get(seriesType);
-                            if (moduleId) {
-                                requireModule(moduleId, `series type '${seriesType}'`, prop);
-                            }
+                    // Handle spread elements: ...data.map(...)
+                    if (element.type === 'SpreadElement') {
+                        const spreadArg = unwrapExpressions(element.argument);
+                        if (spreadArg.type === 'CallExpression') {
+                            processSeriesCallExpression(spreadArg, parentNode);
                         }
+                        continue;
                     }
 
-                    // Check for series plugins (errorBar)
-                    if (keyName && seriesPluginToModule.has(keyName)) {
-                        const moduleId = seriesPluginToModule.get(keyName);
-                        requireModule(moduleId, `series option '${keyName}'`, prop);
-                    }
+                    processSeriesObject(element, parentNode);
                 }
+            } else if (seriesArray.type === 'CallExpression') {
+                // Handle computed series like: series: data.map(d => ({ type: 'bar', ... }))
+                processSeriesCallExpression(seriesArray, parentNode);
             }
         }
 
@@ -386,12 +461,32 @@ export default {
                 const keyName = node.key.type === 'Identifier' ? node.key.name : getStringValue(node.key);
                 if (!keyName) return;
 
-                if (keyName === 'series' && node.value.type === 'ArrayExpression') {
+                if (keyName === 'series') {
+                    // Handle series: [...], series: variable, series: data.map(...)
                     processSeriesArray(node.value, node);
                 } else if (keyName === 'axes') {
                     processAxes(node.value, node);
                 } else if (pluginOptionToModule.has(keyName)) {
                     processPluginOption(keyName, node.value, node);
+                } else if (keyName === 'type') {
+                    // Handle sparkline-style options where type is at top level
+                    const seriesType = getStringValue(node.value);
+                    if (seriesType && seriesTypeToModule.has(seriesType)) {
+                        // Skip types that are ambiguous with non-series contexts
+                        // (e.g., 'line'/'range' in crossLines, annotation types in annotations)
+                        const ancestors = context.sourceCode.getAncestors(node);
+                        const isInNonSeriesContext = ancestors.some(
+                            (a) =>
+                                a.type === 'Property' &&
+                                a.key.type === 'Identifier' &&
+                                (a.key.name === 'crossLines' || a.key.name === 'annotations')
+                        );
+                        if (isInNonSeriesContext) return;
+
+                        seriesTypes.push(seriesType);
+                        const moduleId = seriesTypeToModule.get(seriesType);
+                        requireModule(moduleId, `series type '${seriesType}'`, node);
+                    }
                 }
             },
 
