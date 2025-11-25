@@ -2,7 +2,6 @@ import { expect, test } from './fixture';
 import {
     SELECTORS,
     canvasToPageTransformer,
-    elementFromPoint,
     gotoExample,
     locateCanvas,
     setupIntrinsicAssertions,
@@ -141,7 +140,13 @@ test.describe('context-menu', () => {
         for (const [name, x, y, expectedHtmlText] of cases) {
             test(name, async ({ page }) => {
                 // Check that (x,y) coord are clicking the correct HTML element that we expect.
-                const rightClickedTextContent = (await elementFromPoint(page, x, y))?.textContent;
+                const rightClickedTextContent = await page.evaluate(
+                    ({ x, y }) => {
+                        const el = document.elementFromPoint(x, y);
+                        return el?.textContent ?? '';
+                    },
+                    { x, y }
+                );
                 expect(rightClickedTextContent).toMatchSnapshot();
 
                 await page.mouse.click(x, y, { button: 'right' });
