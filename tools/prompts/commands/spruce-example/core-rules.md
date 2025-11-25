@@ -307,13 +307,14 @@ series: [
 ```
 
 **Available `highlightState` values:**
-- `'highlighted-item'`: The directly hovered item
-- `'highlighted-series'`: The series containing the hovered item
-- `'unhighlighted-item'`: Other items not hovered
-- `'unhighlighted-series'`: Other series not containing hovered item
-- `'highlighted-branch'`: For hierarchical series (treemap/sunburst) - nodes sharing same root branch
-- `'unhighlighted-branch'`: For hierarchical series - nodes in different branches
-- `'none'`: Default state
+
+-   `'highlighted-item'`: The directly hovered item
+-   `'highlighted-series'`: The series containing the hovered item
+-   `'unhighlighted-item'`: Other items not hovered
+-   `'unhighlighted-series'`: Other series not containing hovered item
+-   `'highlighted-branch'`: For hierarchical series (treemap/sunburst) - nodes sharing same root branch
+-   `'unhighlighted-branch'`: For hierarchical series - nodes in different branches
+-   `'none'`: Default state
 
 ### ❌ `itemId` → ✅ Use `itemType` for series item classification:
 

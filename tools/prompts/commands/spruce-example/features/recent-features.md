@@ -457,10 +457,11 @@ zoom: {
 ```
 
 **Strategy Options:**
-- `'preserveDomain'` (default): Keep current zoom domain when data changes
-- `'reset'`: Reset zoom to show all data when data changes
-- `'resize'`: Adjust zoom to fit new data range while maintaining zoom level
-- `'preserveData'`: Keep zoom focused on existing data points
+
+-   `'preserveDomain'` (default): Keep current zoom domain when data changes
+-   `'reset'`: Reset zoom to show all data when data changes
+-   `'resize'`: Adjust zoom to fit new data range while maintaining zoom level
+-   `'preserveData'`: Keep zoom focused on existing data points
 
 _Use for_: Live data updates where you want to control how zoom behaves when new data arrives.
 
@@ -476,7 +477,7 @@ series: [
         labelKey: 'name',
         styler: (params) => {
             const { highlightState } = params;
-            
+
             // Differentiate between directly hovered items and branch items
             if (highlightState === 'highlighted-item') {
                 return { strokeWidth: 3 }; // Directly hovered
@@ -494,11 +495,12 @@ series: [
 ```
 
 **Available States:**
-- `'highlighted-item'`: The directly hovered node
-- `'highlighted-branch'`: Nodes sharing the same root branch as the hovered item
-- `'unhighlighted-branch'`: Nodes in different branches
-- `'unhighlighted-item'`: Other items not in the hovered branch
-- `'none'`: Default state
+
+-   `'highlighted-item'`: The directly hovered node
+-   `'highlighted-branch'`: Nodes sharing the same root branch as the hovered item
+-   `'unhighlighted-branch'`: Nodes in different branches
+-   `'unhighlighted-item'`: Other items not in the hovered branch
+-   `'none'`: Default state
 
 _Use for_: Treemap and sunburst charts where you want to highlight related nodes in the same hierarchy branch.
 
@@ -511,26 +513,27 @@ series: [
     {
         type: 'bar',
         xKey: 'category',
-        yKey: 'value',
-        xKeyAxis: 'x', // Default: 'x'
-        yKeyAxis: 'y2', // Bind to secondary y-axis
+        yKey: 'volume',
+        xKeyAxis: 'category', // Default: 'x'
+        yKeyAxis: 'volume', // Bind to volume axis
     },
     {
         type: 'line',
         xKey: 'category',
-        yKey: 'percentage',
-        xKeyAxis: 'x', // Same x-axis
-        yKeyAxis: 'y', // Primary y-axis
+        yKey: 'price',
+        xKeyAxis: 'category', // Same x-axis
+        yKeyAxis: 'price', // Bind to price axis
     },
 ],
 axes: {
-    x: { type: 'category', position: 'bottom' },
-    y: { type: 'number', position: 'left' },
-    y2: { type: 'number', position: 'right' }, // Secondary axis
+    category: { type: 'category', position: 'bottom' },
+    price: { type: 'number', position: 'left' },
+    volume: { type: 'number', position: 'right' }, // Secondary axis
 }
 ```
 
 **Polar Series:**
+
 ```typescript
 series: [
     {
@@ -540,7 +543,7 @@ series: [
         angleKeyAxis: 'angle', // Default: 'angle'
         radiusKeyAxis: 'radius', // Default: 'radius'
     },
-]
+];
 ```
 
 _Use for_: Multi-axis charts where different series need to be bound to different axes, or polar charts with multiple angle/radius axes.

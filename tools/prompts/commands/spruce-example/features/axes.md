@@ -274,18 +274,21 @@ axes: {
 ```
 
 **Difference from `min`/`max`:**
-- `min`/`max`: Hard bounds that take priority - axis will never go beyond these values
-- `preferredMin`/`preferredMax`: Soft bounds that can be extended by data or `nice` option
+
+-   `min`/`max`: Hard bounds that take priority - axis will never go beyond these values
+-   `preferredMin`/`preferredMax`: Soft bounds that can be extended by data or `nice` option
 
 **When to use `preferredMin`/`preferredMax`:**
-- ✅ When you want a suggested range but allow data to extend beyond it
-- ✅ For axes where you want to start near zero but allow negative values if data has them
-- ✅ When `nice: true` should be able to round beyond your preferred bounds
+
+-   ✅ When you want a suggested range but allow data to extend beyond it
+-   ✅ For axes where you want to start near zero but allow negative values if data has them
+-   ✅ When `nice: true` should be able to round beyond your preferred bounds
 
 **When to use `min`/`max` instead:**
-- ✅ When you need strict bounds that must never be exceeded
-- ✅ For percentage axes that must stay 0-100
-- ✅ When you need guaranteed axis limits regardless of data
+
+-   ✅ When you need strict bounds that must never be exceeded
+-   ✅ For percentage axes that must stay 0-100
+-   ✅ When you need guaranteed axis limits regardless of data
 
 ## 📏 Axis Enhancement
 
@@ -520,19 +523,22 @@ axes: {
 ```
 
 **Wrapping Options:**
-- `'always'`: Always wrap text to fit within `maxWidth`
-- `'hyphenate'`: Similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap mid-word
-- `'on-space'` (default): Only wrap on whitespace. If no space available and `maxWidth` can't be satisfied, text will be truncated
-- `'never'`: Disable text wrapping
+
+-   `'always'`: Always wrap text to fit within `maxWidth`
+-   `'hyphenate'`: Similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap mid-word
+-   `'on-space'` (default): Only wrap on whitespace. If no space available and `maxWidth` can't be satisfied, text will be truncated
+-   `'never'`: Disable text wrapping
 
 **Truncate:**
-- When `truncate: true`, text that exceeds available space will be truncated with an ellipsis (`...`)
-- Works in combination with `wrapping` - if wrapping can't fit the text, truncation applies
+
+-   When `truncate: true`, text that exceeds available space will be truncated with an ellipsis (`...`)
+-   Works in combination with `wrapping` - if wrapping can't fit the text, truncation applies
 
 **Use Cases:**
-- ✅ Long category names that need to fit in limited space
-- ✅ Multi-level grouped categories where labels can be lengthy
-- ✅ Responsive charts where label space varies
+
+-   ✅ Long category names that need to fit in limited space
+-   ✅ Multi-level grouped categories where labels can be lengthy
+-   ✅ Responsive charts where label space varies
 
 ## ⚠️ Special Considerations for Radial/Polar Charts
 

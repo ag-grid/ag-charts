@@ -294,24 +294,27 @@ tooltip: {
 ```
 
 **Symbol Options:**
-- `marker`: Configure the marker symbol shown next to series name
-  - `enabled`: Toggle marker visibility
-  - `shape`: Marker shape (circle, square, diamond, plus, cross, triangle, or custom function)
-- `line`: Configure the line symbol shown for line/area series
-  - `enabled`: Toggle line visibility
-  - `strokeWidth`: Line thickness
-  - `lineDash`: Optional dash pattern
+
+-   `marker`: Configure the marker symbol shown next to series name
+    -   `enabled`: Toggle marker visibility
+    -   `shape`: Marker shape (circle, square, diamond, plus, cross, triangle, or custom function)
+-   `line`: Configure the line symbol shown for line/area series
+    -   `enabled`: Toggle line visibility
+    -   `strokeWidth`: Line thickness
+    -   `lineDash`: Optional dash pattern
 
 **Use Cases:**
-- ✅ Differentiate series visually in shared tooltips
-- ✅ Match tooltip symbols to series marker styles
-- ✅ Create consistent visual language between chart and tooltip
-- ✅ Improve accessibility by providing visual cues alongside text
+
+-   ✅ Differentiate series visually in shared tooltips
+-   ✅ Match tooltip symbols to series marker styles
+-   ✅ Create consistent visual language between chart and tooltip
+-   ✅ Improve accessibility by providing visual cues alongside text
 
 **Theme Compatibility:**
-- Colors are automatically handled by the theme
-- Works seamlessly in light/dark modes
-- Don't hardcode fill/stroke colors - let theme manage them
+
+-   Colors are automatically handled by the theme
+-   Works seamlessly in light/dark modes
+-   Don't hardcode fill/stroke colors - let theme manage them
 
 ## Pro Tip for Complex Data
 

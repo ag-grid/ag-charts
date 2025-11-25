@@ -76,29 +76,33 @@ const chart = AgCharts.create(options);
 **Common Modules:**
 
 **From `ag-charts-community`:**
-- `BarSeriesModule`, `LineSeriesModule`, `AreaSeriesModule`, `ScatterSeriesModule`
-- `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`
-- `PieSeriesModule`, `DonutSeriesModule`, `RadarSeriesModule`
-- `ChartModule` (if using standalone chart types)
+
+-   `BarSeriesModule`, `LineSeriesModule`, `AreaSeriesModule`, `ScatterSeriesModule`
+-   `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`
+-   `PieSeriesModule`, `DonutSeriesModule`, `RadarSeriesModule`
+-   `ChartModule` (if using standalone chart types)
 
 **From `ag-charts-enterprise`:**
-- `AnimationModule` (for animations)
-- `BandHighlightModule` (for axis band highlighting)
-- `ZoomModule` (for zoom functionality)
-- `NavigatorModule` (for navigator mini-chart)
-- Enterprise series modules (e.g., `WaterfallSeriesModule`, `BoxPlotSeriesModule`)
+
+-   `AnimationModule` (for animations)
+-   `BandHighlightModule` (for axis band highlighting)
+-   `ZoomModule` (for zoom functionality)
+-   `NavigatorModule` (for navigator mini-chart)
+-   Enterprise series modules (e.g., `WaterfallSeriesModule`, `BoxPlotSeriesModule`)
 
 **Best Practices:**
-- ✅ Register modules at the top of `main.ts`, before chart creation
-- ✅ Only import and register modules actually used by the example
-- ✅ Group community and enterprise imports separately for clarity
-- ✅ Use specific series/axis modules rather than importing everything
+
+-   ✅ Register modules at the top of `main.ts`, before chart creation
+-   ✅ Only import and register modules actually used by the example
+-   ✅ Group community and enterprise imports separately for clarity
+-   ✅ Use specific series/axis modules rather than importing everything
 
 **Why This Matters:**
-- Enables proper tree-shaking in production builds
-- Ensures modules are loaded before chart creation
-- Prevents runtime errors from missing module registrations
-- Improves bundle size by only including used modules
+
+-   Enables proper tree-shaking in production builds
+-   Ensures modules are loaded before chart creation
+-   Prevents runtime errors from missing module registrations
+-   Improves bundle size by only including used modules
 
 ## Framework Generation
 
