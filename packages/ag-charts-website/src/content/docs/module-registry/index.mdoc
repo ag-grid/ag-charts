@@ -3,44 +3,57 @@ title: 'Module Registry'
 description: 'Register AG Charts modules to enable chart types and features before creating charts.'
 ---
 
-AG Charts ships as a set of modules so you can pick only the chart types, axes and features your application needs. Every module must be registered with the global `ModuleRegistry` **before** calling any AG Charts APIs such as `AgCharts.create`.
+Reduce bundle size by importing only the AG Chart modules required by your application, with treeshaking support.
 
-## Importing the Module Registry
-
-```js
-import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-```
-
-Enterprise projects can import the same registry from `ag-charts-enterprise`, but the registry class itself is shared; you only need one import.
-
-## Register modules once
-
-Add your registration call near the bootstrap of your application so it runs exactly once. Series modules automatically bring in their required chart module dependencies, so you only need to register the series and supporting axes. The example below registers the minimum set of community modules required for a cartesian line chart:
-
-```js
-import { AgCharts, ModuleRegistry } from 'ag-charts-community';
-import { CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
-
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
-
-AgCharts.create({
-    container: document.getElementById('myChart'),
-    data,
-    series: [{ type: 'line', xKey: 'quarter', yKey: 'revenue' }],
-});
-```
-
-Run the example below to see the registration pattern in action.
-
-{% chartExampleRunner title="Minimal Line Chart Registration" name="minimal-line-registration" type="generated" /%}
-
+{% if isFramework("javascript") %}
 {% note %}
-`ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a newer version is detected.
+If you are using the UMD bundle you do not need to register modules as this is already done automatically.
 {% /note %}
+{% /if %}
 
-## Mixing community and enterprise modules
+## Overview
 
-Enterprise builds register community modules the same way, then add the premium modules they require:
+AG Chart Modules allow you to reduce the bundle size of your application by only including the modules you want to use.
+Use the [Module Selector](#selecting-modules) tool below to select the modules you want to use and generate the correct module registration code.
+
+Alternatively, if you are not concerned about bundle size and you want access to every feature in Community / Enterprise, use [Bundles](#bundles) to include all Community / Enterprise modules.
+
+## Registering AG Charts Modules
+
+Every module must be registered with the global `ModuleRegistry` **_*before*_** calling any AG Charts APIs such as `AgCharts.create`.
+
+Add your registration call near the bootstrap of your application so it runs exactly once.
+
+### Importing the Module Registry
+
+The Module Registry can be imported from either `ag-charts-enterprise` or `ag-charts-community`, but the registry class itself is shared and only one import is required.
+
+```js
+// For Enterprise users:
+import { AgCharts, ModuleRegistry } from 'ag-charts-enterprise';
+```
+
+```js
+// For Community users:
+import { AgCharts, ModuleRegistry } from 'ag-charts-community';
+```
+
+### Importing Modules
+
+For Enterprise users, all modules (including Community ones) are exported by `ag-charts-enterprise`, allowing you to import everything from a single package.
+
+```js
+import {
+    AllCommunityModule,
+    AnimationModule,
+    HeatmapSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
+
+ModuleRegistry.registerModules([AllCommunityModule, HeatmapSeriesModule, AnimationModule]);
+```
+
+Mixing imports from `ag-charts-community` is also supported if required.
 
 ```js
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
@@ -49,57 +62,38 @@ import { AnimationModule, HeatmapSeriesModule } from 'ag-charts-enterprise';
 ModuleRegistry.registerModules([AllCommunityModule, HeatmapSeriesModule, AnimationModule]);
 ```
 
-### Module bundles
+### Registering Modules
 
-Use the provided bundles when you want all modules of a given edition:
+The example below registers the minimum set of Community modules required for a cartesian line chart:
 
--   `AllCommunityModule` – every community chart, axis, preset and plugin.
--   `AllEnterpriseModules` – all enterprise and community modules.
+{% chartExampleRunner title="Minimal Line Chart Registration" name="minimal-line-registration" type="generated" /%}
+
+```js
+import { AgCharts, ModuleRegistry } from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, NumberAxisModule } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, CategoryAxisModule]);
+```
+
+{% note %}
+`ModuleRegistry.registerModules` is idempotent: registering the same module again is ignored unless a newer version is detected.
+{% /note %}
+
+## Bundles
+
+-   The `AllCommunityModule` bundle contains all of the modules available in AG Charts Community.
+-   The `AllEnterpriseModule` bundle contains all of the modules available in both Community and Enterprise.
 
 Registering a bundle is identical to manual registration:
 
 ```js
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 ```
 
-## Module reference
+## Selecting Modules
 
-Use the interactive matrix below to find the modules required for a given feature, including series and axes. Select the features you need and copy the generated registration snippet.
+To work out which modules are required, select the features of the chart that you are using below and copy the generated registration snippet.
 
 {% moduleMappings /%}
-
-## Framework wrappers
-
-React, Angular and Vue wrappers do **not** register modules automatically. Import the registry from the relevant package and register modules before mounting framework components. For example, in React:
-
-```jsx format="reactHooks"
-import { ModuleRegistry, AllCommunityModule } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-react';
-
-ModuleRegistry.registerModules([AllCommunityModule]);
-
-export function RevenueChart(props) {
-    return <AgCharts options={props.options} />;
-}
-```
-
-## Using AG Charts from a CDN
-
-When using the UMD bundles the `agCharts` global exposes the registry and modules, and **all bundled modules register automatically** as soon as the script loads:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/ag-charts-community/dist/umd/ag-charts-community.js"></script>
-<script>
-    const { AgCharts } = agCharts;
-
-    AgCharts.create({
-        container: document.getElementById('myChart'),
-        data,
-        series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-    });
-</script>
-```
-
-Enterprise scripts expose the same `agCharts` global, so you continue to access APIs via `agCharts.AgCharts` (or the destructured `AgCharts` import shown above).
