@@ -1,4 +1,10 @@
-import { CategoryAxisModule, LegendModule, LineSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AnimationModule, BandHighlightModule } from 'ag-charts-enterprise';
 
@@ -10,6 +16,7 @@ ModuleRegistry.registerModules([
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
+    NumberAxisModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

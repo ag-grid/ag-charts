@@ -1,4 +1,4 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule, WaterfallSeriesModule } from 'ag-charts-enterprise';
 
@@ -9,6 +9,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     WaterfallSeriesModule,
+    CategoryAxisModule,
 ]);
 const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
     container: document.getElementById('myChart'),

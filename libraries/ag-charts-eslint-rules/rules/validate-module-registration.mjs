@@ -315,6 +315,10 @@ export default {
          */
         function processPluginOption(keyName, valueNode, propNode) {
             if (pluginOptionToModule.has(keyName)) {
+                // Skip if feature is explicitly disabled (e.g., legend: { enabled: false })
+                if (isFeatureDisabled(valueNode)) {
+                    return;
+                }
                 const moduleId = pluginOptionToModule.get(keyName);
                 requireModule(moduleId, `option '${keyName}'`, propNode);
             }
@@ -466,6 +470,13 @@ export default {
                     processSeriesArray(node.value, node);
                 } else if (keyName === 'axes') {
                     processAxes(node.value, node);
+                } else if (keyName === 'axis') {
+                    // Sparklines use singular 'axis' - mark as explicit to skip default axis application
+                    hasExplicitAxes = true;
+                    // Process the axis type if it's an object with type property
+                    if (node.value.type === 'ObjectExpression') {
+                        processAxisObject(node.value, node);
+                    }
                 } else if (pluginOptionToModule.has(keyName)) {
                     processPluginOption(keyName, node.value, node);
                 } else if (keyName === 'type') {
@@ -506,11 +517,8 @@ export default {
                 // Get intrinsic defaults (modules that are OK to register without explicit options)
                 const intrinsicDefaultSet = getIntrinsicDefaults();
 
-                // Check for missing modules (skip intrinsic modules - they're typically included)
+                // Check for missing modules
                 for (const [moduleId, info] of requiredModules) {
-                    // Skip intrinsic modules - they're expected to be included without explicit registration check
-                    if (intrinsicDefaultSet.has(moduleId)) continue;
-
                     if (!isModuleSatisfied(moduleId, expandedRegistered)) {
                         context.report({
                             node: info.node || registeredModulesNode,
