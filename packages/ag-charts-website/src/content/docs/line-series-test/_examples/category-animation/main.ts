@@ -28,14 +28,6 @@ const options: AgCartesianChartOptions = {
             // visible: false
         },
     ],
-    axes: {
-        x: {
-            type: 'number',
-        },
-        y: {
-            type: 'category',
-        },
-    },
 };
 
 const chart = AgCharts.create(options);
