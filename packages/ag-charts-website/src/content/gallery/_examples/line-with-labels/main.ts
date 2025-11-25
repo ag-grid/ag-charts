@@ -1,10 +1,10 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([LineSeriesModule, BandHighlightModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
