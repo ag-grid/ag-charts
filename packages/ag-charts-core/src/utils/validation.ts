@@ -257,20 +257,16 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
  * @returns The closest matching suggestion within the allowed distance, or null if none are found.
  */
 function findSuggestions(value: string, suggestions: string[], maxDistance: number = 2): string[] {
-    const result: string[] = [];
     const lowerCaseValue = value.toLowerCase();
     const similarValues = similarOptionsMap.get(lowerCaseValue);
-    for (const key of suggestions) {
+    return suggestions.filter((key) => {
         const lowerCaseKey = key.toLowerCase();
-        if (
-            similarValues?.has(key) ||
+        return (
+            similarValues?.has(key) === true ||
             lowerCaseKey.includes(lowerCaseValue) ||
             levenshteinDistance(lowerCaseValue, lowerCaseKey) <= maxDistance
-        ) {
-            result.push(key);
-        }
-    }
-    return result;
+        );
+    });
 }
 
 /**
@@ -370,11 +366,13 @@ export const and = (...validators: Validator[]): Validator =>
             }
             return { valid: true, cleared: value, invalid };
         },
-        validators
-            .filter((v) => !v[undocumentedSymbol])
-            .map((v) => v[descriptionSymbol])
-            .filter(Boolean)
-            .join(' and ')
+        joinFormatted(
+            validators
+                .filter((v) => !v[undocumentedSymbol])
+                .map((v) => v[descriptionSymbol])
+                .filter(isDefined),
+            'and'
+        )
     );
 
 /**
@@ -393,11 +391,13 @@ export const or = (...validators: Validator[]) =>
             }
             return false;
         },
-        validators
-            .filter((v) => !v[undocumentedSymbol])
-            .map((v) => v[descriptionSymbol])
-            .filter(Boolean)
-            .join(' or ')
+        joinFormatted(
+            validators
+                .filter((v) => !v[undocumentedSymbol])
+                .map((v) => v[descriptionSymbol])
+                .filter(isDefined),
+            'or'
+        )
     );
 
 // Helpers
@@ -555,7 +555,9 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
 
             const cleared: unknown[] = [];
             const invalid: ValidationError[] = [];
-            const setValid = (result: boolean) => (valid = strict ? valid && result : valid || result);
+            const updateValidity = (result: boolean) => {
+                valid = strict ? valid && result : valid || result;
+            };
 
             if (value.length === 0) {
                 return { valid: true, cleared, invalid };
@@ -565,13 +567,13 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
                 const options = value[i];
                 const result = validator(options, { options, path: `${context.path}[${i}]` });
                 if (typeof result === 'object') {
-                    valid = setValid(result.valid);
+                    updateValidity(result.valid);
                     invalid.push(...result.invalid);
                     if (result.cleared != null) {
                         cleared.push(result.cleared);
                     }
                 } else {
-                    valid = setValid(result);
+                    updateValidity(result);
                     if (result) {
                         cleared.push(options);
                     }
@@ -614,15 +616,15 @@ export const callbackOf = (validator: Validator, description?: string) =>
         if (!isFunction(value)) return false;
         if (markedSymbol in value) return true;
 
+        const validatorDescription = description ?? validator[descriptionSymbol];
+
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
                 const result = safeCall(value, args);
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '' });
                 if (typeof validatorResult === 'object') {
-                    for (const error of validatorResult.invalid) {
-                        callbackWarnInvalid(context, description ?? validator[descriptionSymbol])(error);
-                    }
+                    warnCallbackErrors(validatorResult, context, validatorDescription, result);
                     if (validatorResult.valid) {
                         return validatorResult.cleared;
                     }
@@ -630,7 +632,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                     return result;
                 } else {
                     warnOnce(
-                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${description ?? validator[descriptionSymbol]}, ignoring.`
+                        `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}, ignoring.`
                     );
                 }
             },
@@ -645,14 +647,14 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
         if (!isFunction(value)) return false;
         if (markedSymbol in value) return true;
 
+        const validatorDescription = description;
+
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
                 const result = safeCall(value, args, context.path);
                 if (result == null) return;
                 const validatorResult = validate(result, defs);
-                for (const error of validatorResult.invalid) {
-                    callbackWarnInvalid(context, description)(error);
-                }
+                warnCallbackErrors(validatorResult, context, validatorDescription, result);
                 return validatorResult.cleared;
             },
             { [markedSymbol]: true }
@@ -665,8 +667,22 @@ export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
     return errors.some((error: ValidationError) => error.type === ErrorType.Required && error.path === rootPath);
 }
 
-function callbackWarnInvalid(context: ValidatorContext, description?: string) {
-    return (error: ValidationError) => {
+function warnCallbackErrors(
+    validatorResult: Pick<ValidatorResult, 'invalid'>,
+    context: ValidatorContext,
+    description: string | undefined,
+    result: unknown
+) {
+    if (validatorResult.invalid.length === 0) return;
+
+    if (isArray(result)) {
+        const expectedDescription = description ?? validatorResult.invalid[0]?.description ?? 'a valid value';
+        return warnOnce(
+            `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${expectedDescription}, ignoring.`
+        );
+    }
+
+    for (const error of validatorResult.invalid) {
         if (error instanceof UnknownError) {
             return warnOnce(
                 `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
@@ -678,5 +694,5 @@ function callbackWarnInvalid(context: ValidatorContext, description?: string) {
                 ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
                 : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
         );
-    };
+    }
 }

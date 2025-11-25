@@ -1,7 +1,9 @@
+import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import { AgCharts, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([PieSeriesModule]);
 const usdShortOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD', notation: 'compact' };
 const usdShortFormatter = new Intl.NumberFormat('en-US', usdShortOptions);
 const usdFullFormatter = new Intl.NumberFormat('en-US', {

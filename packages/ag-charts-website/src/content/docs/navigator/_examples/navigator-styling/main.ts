@@ -1,12 +1,32 @@
 import {
+    AreaSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
+import {
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
     AgSeriesTooltip,
+    AnimationModule,
+    CrosshairModule,
 } from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

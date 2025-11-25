@@ -4,7 +4,6 @@ import { getData1, getData2 } from './data';
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
-
     data: getData1(),
     series: [
         {

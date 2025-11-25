@@ -1,7 +1,10 @@
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SunburstSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,

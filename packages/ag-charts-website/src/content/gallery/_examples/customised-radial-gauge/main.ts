@@ -1,5 +1,7 @@
 import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AllGaugeModule, ModuleRegistry } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AllGaugeModule]);
 const options: AgGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
@@ -44,7 +46,6 @@ const options: AgGaugeOptions = {
         fillOpacity: 0.8,
     },
     innerRadiusRatio: 0.8,
-
     secondaryLabel: {
         text: 'mph',
     },

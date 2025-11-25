@@ -181,6 +181,18 @@ export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Pa
     return target;
 }
 
+export function assignIfNotStrictlyEqual<T>(target: T, source: T): T {
+    // JavaScript is weird... this is faster than Object.assign().
+    for (const key in source) {
+        const newValue = source[key];
+        const previousValue = target[key];
+        if (previousValue !== newValue) {
+            target[key] = newValue;
+        }
+    }
+    return target;
+}
+
 export function deepFreeze<T>(obj: T): T {
     if (obj == null || typeof obj !== 'object' || !isPlainObject(obj)) {
         return obj;

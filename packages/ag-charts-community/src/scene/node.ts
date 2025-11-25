@@ -1,4 +1,4 @@
-import { Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
+import { Logger, assignIfNotStrictlyEqual, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
@@ -289,7 +289,7 @@ export abstract class Node<TDatum = unknown> {
 
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
-        Object.assign(this, styles);
+        assignIfNotStrictlyEqual(this, styles);
         this.batchLevel--;
 
         if (this.batchLevel === 0 && this.batchDirty) {

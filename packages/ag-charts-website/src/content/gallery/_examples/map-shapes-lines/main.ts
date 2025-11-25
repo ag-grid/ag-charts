@@ -1,4 +1,6 @@
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import { MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';
 import { londonBoroughTopology } from './londonBoroughTopology';
@@ -7,6 +9,13 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapShapeSeriesModule,
+    NumberAxisModule,
+]);
 const sizeDomain = [0, 141537];
 
 const tubeLineColours = {

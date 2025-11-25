@@ -1,5 +1,8 @@
-import { AgCharts, AgLinearGaugeOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgLinearGaugeOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { AllGaugeModule } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ZoomModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('myChart'),

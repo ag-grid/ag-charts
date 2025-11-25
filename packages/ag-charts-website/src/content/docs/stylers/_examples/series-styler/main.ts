@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Revenue & Growth vs Benchmark' },
@@ -35,7 +43,6 @@ const options: AgCartesianChartOptions = {
     series: [
         { type: 'bar', xKey: 'year', yKey: 'revenue', yName: 'Revenue' },
         { type: 'bar', xKey: 'year', yKey: 'revenue_benchmark', yName: 'Revenue Benchmark' },
-
         { type: 'line', xKey: 'year', yKey: 'growth', yName: 'Growth', yKeyAxis: 'ySecondary' },
         { type: 'line', xKey: 'year', yKey: 'growth_benchmark', yName: 'Growth Benchmark', yKeyAxis: 'ySecondary' },
     ],
