@@ -151,12 +151,13 @@ function updateMarking(changedDatum: DatumType, yKey: string, marked: boolean) {
 }
 
 function updateVisibility(seriesId: string, visible: boolean) {
-    for (const series of options.series!) {
-        if (series.id === seriesId) {
+    const currentState = chart.getState();
+    for (const series of currentState.legend ?? []) {
+        if (series.seriesId === seriesId) {
             series.visible = visible;
         }
     }
-    chart.updateDelta(options);
+    chart.setState(currentState);
 }
 
 function createDiffSeries(baseSeriesId: string, compareToId: string) {
