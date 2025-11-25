@@ -22,7 +22,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = Contex
 }
 
 export interface AgSunburstSeriesHighlightStyle extends AgSunburstSeriesStyle {
-    /** Opacity to apply to the sector (and any labels within it). */
+    /** Opacity to apply to the sector its labels. */
     opacity?: Opacity;
 }
 
@@ -31,7 +31,7 @@ export interface AgSunburstSeriesHighlightOptions {
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
     /** Style for the directly hovered node. */
     highlightedItem?: AgSunburstSeriesHighlightStyle;
-    /** Style for other nodes within the same branch. */
+    /** Style for other nodes within the hovered branch. */
     unhighlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for nodes outside of the hovered branch. */
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
