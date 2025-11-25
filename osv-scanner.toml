@@ -71,11 +71,6 @@ ignore = true
 name = "webpack-dev-middleware"
 ignore = true
 
-
-[[IgnoredVulns]]
-id = "GHSA-67mh-4wv8-2f99"
-reason = "We do not use the esbuild development server"
-
 [[IgnoredVulns]]
 id = "GHSA-3p6v-hrg8-8qj7"
 reason = "Used for MCP server, not exposed to end users"
@@ -211,3 +206,8 @@ reason = "astro is only used for generating a static site, so server vulnerabili
 [[IgnoredVulns]]
 id = "GHSA-gcx4-mw62-g8wm"
 reason = "rollup is only used for development, so does not impact production code"
+
+[[IgnoredVulns]]
+id = "GHSA-5j98-mcp5-4vw2"
+reason = "glob not accessible to end user/external users"
+
