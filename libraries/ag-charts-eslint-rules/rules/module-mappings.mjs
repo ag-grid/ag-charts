@@ -147,8 +147,8 @@ export const seriesDefaultAxes = new Map([
     ['bubble', { x: 'number', y: 'number' }],
     // Enterprise cartesian
     ['box-plot', { x: 'category', y: 'number' }],
-    ['candlestick', { x: 'time', y: 'number' }],
-    ['ohlc', { x: 'time', y: 'number' }],
+    ['candlestick', { x: 'ordinal-time', y: 'number' }],
+    ['ohlc', { x: 'ordinal-time', y: 'number' }],
     ['heatmap', { x: 'category', y: 'category' }],
     ['range-area', { x: 'category', y: 'number' }],
     ['range-bar', { x: 'category', y: 'number' }],

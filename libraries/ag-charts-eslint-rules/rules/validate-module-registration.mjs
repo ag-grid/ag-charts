@@ -344,8 +344,11 @@ export default {
                 // Get intrinsic defaults (modules that are OK to register without explicit options)
                 const intrinsicDefaultSet = getIntrinsicDefaults();
 
-                // Check for missing modules
+                // Check for missing modules (skip intrinsic modules - they're typically included)
                 for (const [moduleId, info] of requiredModules) {
+                    // Skip intrinsic modules - they're expected to be included without explicit registration check
+                    if (intrinsicDefaultSet.has(moduleId)) continue;
+
                     if (!isModuleSatisfied(moduleId, expandedRegistered)) {
                         context.report({
                             node: info.node || registeredModulesNode,
