@@ -447,6 +447,7 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
             type: 'ohlc',
             // @ts-expect-error undocumented option
             focusPriority: 0,
+            highlight: { enabled: false },
             ...common,
             ...keys,
         } satisfies AgOhlcSeriesOptions,
@@ -459,6 +460,7 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
             type: 'line',
             // @ts-expect-error undocumented option
             focusPriority: 0,
+            highlight: { enabled: false },
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -475,6 +477,7 @@ function createPriceSeriesHLC(
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
             focusPriority: 0,
+            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: highKey,
@@ -484,6 +487,7 @@ function createPriceSeriesHLC(
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
             focusPriority: 0,
+            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: closeKey,
@@ -491,6 +495,7 @@ function createPriceSeriesHLC(
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: 'line',
+            highlight: { enabled: false },
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -501,6 +506,7 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
     return [
         {
             type: 'range-bar',
+            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: highKey,
@@ -518,6 +524,7 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
             type: 'candlestick',
             // @ts-expect-error undocumented option
             focusPriority: 0,
+            highlight: { enabled: false },
             ...common,
             ...keys,
         } satisfies AgCandlestickSeriesOptions,
