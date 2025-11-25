@@ -4,13 +4,7 @@ import { RadialColumnSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    RadialColumnSeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, RadialColumnSeriesModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

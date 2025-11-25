@@ -11,13 +11,7 @@ import { PyramidSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    PyramidSeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, PyramidSeriesModule, ZoomModule]);
 const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

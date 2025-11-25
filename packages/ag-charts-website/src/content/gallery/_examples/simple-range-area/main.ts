@@ -4,12 +4,7 @@ import { AnimationModule, RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    NumberAxisModule,
-    RangeAreaSeriesModule,
-    UnitTimeAxisModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

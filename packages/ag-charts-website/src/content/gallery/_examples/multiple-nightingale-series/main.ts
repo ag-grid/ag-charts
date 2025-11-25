@@ -4,11 +4,7 @@ import { AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModul
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AngleCategoryAxisModule,
-    NightingaleSeriesModule,
-    RadiusNumberAxisModule,
-]);
+ModuleRegistry.registerModules([AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModule]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

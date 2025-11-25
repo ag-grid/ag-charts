@@ -4,12 +4,7 @@ import { BandHighlightModule, BoxPlotSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    BandHighlightModule,
-    BoxPlotSeriesModule,
-    CategoryAxisModule,
-    NumberAxisModule,
-]);
+ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const data = getData();
 
 // Calculate overall median for reference line

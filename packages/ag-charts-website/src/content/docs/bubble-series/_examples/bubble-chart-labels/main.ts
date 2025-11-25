@@ -1,9 +1,4 @@
-import {
-    AgBubbleSeriesOptions,
-    AgCartesianChartOptions,
-    AgCharts,
-    LegendModule,
-} from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
 import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';

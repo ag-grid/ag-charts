@@ -4,13 +4,7 @@ import { TreemapSeriesModule } from 'ag-charts-enterprise';
 
 import { salesPerformance } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    TreemapSeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, TreemapSeriesModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: salesPerformance,

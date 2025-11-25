@@ -10,13 +10,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    NumberAxisModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, NumberAxisModule, ZoomModule]);
 const crosshairLabelRenderer = (arrowPosition: 'top' | 'right') => {
     const classList =
         arrowPosition === 'top'

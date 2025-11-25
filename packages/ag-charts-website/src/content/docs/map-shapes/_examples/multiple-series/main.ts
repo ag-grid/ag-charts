@@ -5,13 +5,7 @@ import { MapShapeSeriesModule } from 'ag-charts-enterprise';
 import { central, eastern, mountain, pacific } from './data';
 import { topology } from './topology';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    MapShapeSeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, MapShapeSeriesModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

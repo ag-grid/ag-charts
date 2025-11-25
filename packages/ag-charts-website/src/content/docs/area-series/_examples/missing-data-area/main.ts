@@ -1,9 +1,4 @@
-import {
-    AgAreaSeriesOptions,
-    AgCartesianChartOptions,
-    AgCharts,
-    LegendModule,
-} from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
 import { AreaSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';

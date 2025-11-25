@@ -4,13 +4,7 @@ import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    SunburstSeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, SunburstSeriesModule, ZoomModule]);
 const gdpFormatter = new Intl.NumberFormat('en-US', {
     useGrouping: true,
     minimumFractionDigits: 2,

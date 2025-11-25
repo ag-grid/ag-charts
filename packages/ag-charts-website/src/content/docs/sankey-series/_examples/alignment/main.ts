@@ -9,13 +9,7 @@ import {
 } from 'ag-charts-enterprise';
 import { SankeySeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    SankeySeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, SankeySeriesModule, ZoomModule]);
 const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
     title: {
