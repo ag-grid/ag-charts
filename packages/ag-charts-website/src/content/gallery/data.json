@@ -779,6 +779,10 @@
                     {
                         "title": "Dynamic Context Menu",
                         "name": "fruit-comparison"
+                    },
+                    {
+                        "title": "Locales And Formatters",
+                        "name": "locale-and-formatters"
                     }
                 ]
             }
