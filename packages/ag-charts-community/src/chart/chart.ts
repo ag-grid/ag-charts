@@ -25,6 +25,7 @@ import {
     roundTo,
     toPlainText,
     without,
+    type DeepPartial,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
@@ -495,18 +496,30 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
-    refreshProcessedSeriesVisibilityOptions(): void {
+    refreshProcessedSeriesVisibilityOptions(deltaOptions?: DeepPartial<AgChartOptions>): void {
         // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
         // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
         // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
         // "new / updated" state; sometimes `updateDelta()` updates the series visibility, and sometimes it doesn't. To
         // address this discrepancy, we'll update processedOptions to match the current visibility state of the series.
+        let seriesIdsToRefresh: Set<string> | undefined;
+        if (deltaOptions?.series) {
+            for (const s of deltaOptions.series) {
+                if ('visible' in s && 'id' in s && s.id) {
+                    seriesIdsToRefresh ??= new Set();
+                    seriesIdsToRefresh.add(s.id)
+                }
+            }
+        }
+
         const options = this.getChartOptions();
-        if (options) {
+        if (options && seriesIdsToRefresh) {
             for (let i = 0; i < this.series.length; i++) {
-                const src: undefined | { visible: boolean } = this.series[i];
-                const dst: undefined | { visible: boolean } | {} = options.processedOptions.series?.[i];
-                if (src !== undefined && dst !== undefined && 'visible' in dst) {
+                type TSrc = { visible: boolean, id: string } |  undefined;
+                type TDst = { visible: boolean } |{}|undefined;
+                const src: TSrc = this.series[i];
+                const dst: TDst = options.processedOptions.series?.[i];
+                if (src !== undefined && seriesIdsToRefresh.has(src.id) && dst !== undefined && 'visible' in dst) {
                     dst.visible = src.visible;
                 }
             }

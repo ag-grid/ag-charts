@@ -202,7 +202,7 @@ class AgChartsInternal {
             poolResult = pool.obtainFree();
             chart = poolResult.item;
         }
-        chart?.refreshProcessedSeriesVisibilityOptions();
+        chart?.refreshProcessedSeriesVisibilityOptions(deltaOptions);
 
         const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
