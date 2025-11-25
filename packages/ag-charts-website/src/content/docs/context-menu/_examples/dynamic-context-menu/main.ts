@@ -1,55 +1,8 @@
-<<<<<<< HEAD
 import { AgCartesianChartOptions, AgCharts, AgContextMenuItem } from 'ag-charts-enterprise';
-=======
-import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-import {
-    AgBarSeriesOptions,
-    AgBarSeriesStyle,
-    AgCartesianChartOptions,
-    AgCharts,
-    AgContextMenuItem,
-    AnimationModule,
-    CrosshairModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
-import { ContextMenuModule } from 'ag-charts-enterprise';
->>>>>>> latest
 
 type DatumType = { sector: string; nyse: number; lse: number; tyo: number };
 
-<<<<<<< HEAD
 const options: AgCartesianChartOptions<DatumType> = {
-=======
-ModuleRegistry.registerModules([
-    AnimationModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    ContextMenuModule,
-    CrosshairModule,
-    LegendModule,
-    NumberAxisModule,
-    ZoomModule,
-]);
-const markingStyle: AgBarSeriesStyle = {
-    stroke: 'red',
-    strokeWidth: 4,
-    fillOpacity: 1,
-};
-
-const DIFF_SERIES_ID = 'diff-series';
-
-interface BarChartOptions extends Omit<AgCartesianChartOptions<DatumType>, 'series'> {
-    series: AgBarSeriesOptions[];
-}
-
-const options: BarChartOptions = {
->>>>>>> latest
     container: document.getElementById('myChart'),
     title: {
         text: 'Stock Investment Portfolio by Sector',
