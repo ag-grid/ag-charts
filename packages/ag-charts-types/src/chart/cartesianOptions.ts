@@ -212,7 +212,7 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
         AgBaseCrosshairLabel<TContext>,
         TContext
     > {
-    type: 'category';
+    type?: 'category';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisCategoryIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -236,7 +236,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault>
         >,
         'tick'
     > {
-    type: 'grouped-category';
+    type?: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
@@ -266,7 +266,7 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number> {
-    type: 'time';
+    type?: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
 }
@@ -281,7 +281,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgBaseContinuousAxisOptions<Date | number> {
-    type: 'unit-time';
+    type?: 'unit-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
@@ -304,7 +304,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
         AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
         TContext
     > {
-    type: 'ordinal-time';
+    type?: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
@@ -329,7 +329,7 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
-    type: 'number';
+    type?: 'number';
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
@@ -342,7 +342,7 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
-    type: 'log';
+    type?: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
