@@ -9,7 +9,6 @@ ModuleRegistry.registerModules([
     AnimationModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
     RadarLineSeriesModule,
     RadiusNumberAxisModule,
     ZoomModule,

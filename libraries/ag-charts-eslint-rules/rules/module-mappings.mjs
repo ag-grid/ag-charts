@@ -92,6 +92,28 @@ export const axisPluginToModule = new Map([
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 
+// Nested annotations plugin option → Module ID
+export const annotationsPluginToModule = new Map([['toolbar', 'ChartToolbarModule']]);
+
+// Series modules that indicate cartesian chart type (for intrinsic axis detection)
+export const cartesianSeriesModules = new Set([
+    'AreaSeriesModule',
+    'BarSeriesModule',
+    'BubbleSeriesModule',
+    'HistogramSeriesModule',
+    'LineSeriesModule',
+    'ScatterSeriesModule',
+    'BoxPlotSeriesModule',
+    'CandlestickSeriesModule',
+    'ConeFunnelSeriesModule',
+    'FunnelSeriesModule',
+    'HeatmapSeriesModule',
+    'OhlcSeriesModule',
+    'RangeAreaSeriesModule',
+    'RangeBarSeriesModule',
+    'WaterfallSeriesModule',
+]);
+
 // Series type → chart type mapping
 export const seriesChartType = new Map([
     // Community - Cartesian

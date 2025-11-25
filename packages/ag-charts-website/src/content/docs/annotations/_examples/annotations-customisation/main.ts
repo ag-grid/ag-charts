@@ -10,7 +10,6 @@ ModuleRegistry.registerModules([
     CandlestickSeriesModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,

@@ -6,7 +6,6 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
-    LineSeriesModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 ]);

@@ -8,7 +8,6 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     CategoryAxisModule,
     CrosshairModule,
-    LineSeriesModule,
     NumberAxisModule,
     RangeBarSeriesModule,
 ]);

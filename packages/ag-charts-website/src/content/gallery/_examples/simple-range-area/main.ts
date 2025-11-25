@@ -6,7 +6,6 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    LineSeriesModule,
     NumberAxisModule,
     RangeAreaSeriesModule,
     UnitTimeAxisModule,

@@ -5,14 +5,7 @@ import { MapShapeBackgroundSeriesModule, MapShapeSeriesModule, ZoomModule } from
 import { africaData, asiaData, europeData, gdpData, northAmericaData, oceaniaData, southAmericaData } from './data';
 import { topology } from './topology';
 
-ModuleRegistry.registerModules([
-    CategoryAxisModule,
-    LegendModule,
-    MapShapeBackgroundSeriesModule,
-    MapShapeSeriesModule,
-    NumberAxisModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([LegendModule, MapShapeBackgroundSeriesModule, MapShapeSeriesModule, ZoomModule]);
 interface CountryData {
     pop_est: number;
     pop_rank: number;

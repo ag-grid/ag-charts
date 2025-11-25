@@ -3,7 +3,7 @@ import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { SankeySeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SankeySeriesModule]);
+ModuleRegistry.registerModules([SankeySeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

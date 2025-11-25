@@ -14,7 +14,6 @@ ModuleRegistry.registerModules([
     AnimationModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
     NumberAxisModule,
     ZoomModule,
 ]);

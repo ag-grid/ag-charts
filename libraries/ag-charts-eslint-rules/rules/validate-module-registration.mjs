@@ -2,9 +2,11 @@
  * @fileoverview Validates that ModuleRegistry.registerModules includes all required modules
  */
 import {
+    annotationsPluginToModule,
     axisPluginToModule,
     axisTypeToModule,
     bundleContents,
+    cartesianSeriesModules,
     enterpriseModules,
     intrinsicDefaults,
     pluginOptionToModule,
@@ -19,6 +21,7 @@ import {
 export default {
     meta: {
         type: 'problem',
+        fixable: 'code',
         docs: {
             description:
                 'Validates that ModuleRegistry.registerModules includes all modules required by chart options.',
@@ -51,7 +54,9 @@ export default {
 
         // Track state across the file
         let registeredModules = new Set();
+        let registeredModuleNodes = new Map(); // moduleId -> AST node
         let registeredModulesNode = null;
+        let registeredModulesArrayNode = null;
         let requiredModules = new Map(); // moduleId -> { reason, node }
         let isEnterprise = false;
         let hasExplicitAxes = false;
@@ -130,9 +135,12 @@ export default {
             const arg = node.arguments[0];
             if (arg.type !== 'ArrayExpression') return modules;
 
+            registeredModulesArrayNode = arg;
+
             for (const element of arg.elements) {
                 if (element && element.type === 'Identifier') {
                     modules.add(element.name);
+                    registeredModuleNodes.set(element.name, element);
                 }
             }
             return modules;
@@ -235,6 +243,19 @@ export default {
                 const moduleId = pluginOptionToModule.get(keyName);
                 requireModule(moduleId, `option '${keyName}'`, propNode);
             }
+
+            // Check for nested options under annotations
+            if (keyName === 'annotations' && valueNode.type === 'ObjectExpression') {
+                for (const nestedProp of valueNode.properties) {
+                    if (nestedProp.type !== 'Property') continue;
+                    const nestedKey =
+                        nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
+                    if (nestedKey && annotationsPluginToModule.has(nestedKey)) {
+                        const nestedModuleId = annotationsPluginToModule.get(nestedKey);
+                        requireModule(nestedModuleId, `annotations.${nestedKey} option`, nestedProp);
+                    }
+                }
+            }
         }
 
         /**
@@ -253,6 +274,50 @@ export default {
         }
 
         /**
+         * Create a fixer to remove a module from the registerModules array
+         */
+        function createRemoveModuleFixer(moduleId) {
+            const moduleNode = registeredModuleNodes.get(moduleId);
+            if (!moduleNode || !registeredModulesArrayNode) return null;
+
+            return function (fixer) {
+                const sourceCode = context.sourceCode || context.getSourceCode();
+                const elements = registeredModulesArrayNode.elements;
+                const index = elements.indexOf(moduleNode);
+
+                if (index === -1) return null;
+
+                // Determine the range to remove (including comma and whitespace)
+                let start = moduleNode.range[0];
+                let end = moduleNode.range[1];
+
+                if (index < elements.length - 1) {
+                    // Not the last element - remove trailing comma and whitespace
+                    const nextElement = elements[index + 1];
+                    if (nextElement) {
+                        const textBetween = sourceCode.text.slice(end, nextElement.range[0]);
+                        const commaMatch = textBetween.match(/^[\s,]*/);
+                        if (commaMatch) {
+                            end += commaMatch[0].length;
+                        }
+                    }
+                } else if (index > 0) {
+                    // Last element - remove preceding comma and whitespace
+                    const prevElement = elements[index - 1];
+                    if (prevElement) {
+                        const textBetween = sourceCode.text.slice(prevElement.range[1], start);
+                        const commaMatch = textBetween.match(/[\s,]*$/);
+                        if (commaMatch) {
+                            start -= commaMatch[0].length;
+                        }
+                    }
+                }
+
+                return fixer.removeRange([start, end]);
+            };
+        }
+
+        /**
          * Get intrinsic default modules (commonly registered without explicit options)
          */
         function getIntrinsicDefaults() {
@@ -262,9 +327,11 @@ export default {
                     defaults.add(mod);
                 }
             }
-            // Check if any series is cartesian type
+            // Check if any series is cartesian type (from options parsing)
             const hasCartesianSeries = seriesTypes.some((type) => seriesChartType.get(type) === 'cartesian');
-            if (hasCartesianSeries && intrinsicDefaults.cartesian) {
+            // Also check if any registered module is a cartesian series module (for dynamic series)
+            const hasCartesianSeriesModule = [...registeredModules].some((mod) => cartesianSeriesModules.has(mod));
+            if ((hasCartesianSeries || hasCartesianSeriesModule) && intrinsicDefaults.cartesian) {
                 for (const mod of intrinsicDefaults.cartesian) {
                     defaults.add(mod);
                 }
@@ -385,15 +452,17 @@ export default {
                         // Check if it's a valid module ID
                         if (!validModuleIds.has(moduleId)) {
                             context.report({
-                                node: registeredModulesNode,
+                                node: registeredModuleNodes.get(moduleId) || registeredModulesNode,
                                 messageId: 'unknownModule',
                                 data: { moduleId },
+                                fix: createRemoveModuleFixer(moduleId),
                             });
                         } else {
                             context.report({
-                                node: registeredModulesNode,
+                                node: registeredModuleNodes.get(moduleId) || registeredModulesNode,
                                 messageId: 'unnecessaryModule',
                                 data: { moduleId },
+                                fix: createRemoveModuleFixer(moduleId),
                             });
                         }
                     }

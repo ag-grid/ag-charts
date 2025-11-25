@@ -9,13 +9,7 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
-ModuleRegistry.registerModules([
-    CategoryAxisModule,
-    LegendModule,
-    MapLineSeriesModule,
-    MapShapeSeriesModule,
-    NumberAxisModule,
-]);
+ModuleRegistry.registerModules([LegendModule, MapLineSeriesModule, MapShapeSeriesModule]);
 const sizeDomain = [0, 141537];
 
 const tubeLineColours = {

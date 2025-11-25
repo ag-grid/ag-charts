@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([HistogramSeriesModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

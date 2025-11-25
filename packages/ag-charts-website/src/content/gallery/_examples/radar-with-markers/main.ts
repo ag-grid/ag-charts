@@ -4,13 +4,7 @@ import { AngleNumberAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule } 
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AngleNumberAxisModule,
-    LegendModule,
-    LineSeriesModule,
-    RadarLineSeriesModule,
-    RadiusNumberAxisModule,
-]);
+ModuleRegistry.registerModules([AngleNumberAxisModule, LegendModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const { socialCircle, domains } = getData();
 
 const options: AgChartOptions = {

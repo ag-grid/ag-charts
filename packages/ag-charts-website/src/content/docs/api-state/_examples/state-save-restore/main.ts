@@ -22,10 +22,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     FinancialChartModule,
     LegendModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
     ZoomModule,
 ]);
 

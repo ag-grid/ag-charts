@@ -15,7 +15,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    OrdinalTimeAxisModule,
     TimeAxisModule,
     UnitTimeAxisModule,
     ZoomModule,

@@ -3,7 +3,7 @@ import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ChordSeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([CategoryAxisModule, ChordSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([ChordSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
 
 const options: AgChartOptions = {

@@ -12,7 +12,6 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
     AnimationModule,
-    LineSeriesModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 ]);

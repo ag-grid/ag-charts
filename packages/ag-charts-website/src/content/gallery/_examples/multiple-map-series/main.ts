@@ -17,12 +17,10 @@ import { islandData } from './islandData';
 import { islandTopology } from './islandTopology';
 
 ModuleRegistry.registerModules([
-    CategoryAxisModule,
     LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const sizeDomain = [500, 0];

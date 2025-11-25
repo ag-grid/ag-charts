@@ -13,7 +13,6 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     BandHighlightModule,
     LegendModule,
-    LineSeriesModule,
     RangeBarSeriesModule,
     UnitTimeAxisModule,
     NumberAxisModule,

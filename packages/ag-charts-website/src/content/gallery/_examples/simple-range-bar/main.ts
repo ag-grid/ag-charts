@@ -12,7 +12,6 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AnimationModule,
     BandHighlightModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     RangeBarSeriesModule,

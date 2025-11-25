@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {

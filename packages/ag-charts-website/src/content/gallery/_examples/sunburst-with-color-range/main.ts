@@ -4,7 +4,7 @@ import { SunburstSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SunburstSeriesModule]);
+ModuleRegistry.registerModules([SunburstSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,

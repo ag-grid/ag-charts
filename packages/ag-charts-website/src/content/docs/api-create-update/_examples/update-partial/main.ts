@@ -15,7 +15,8 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+/* eslint-disable-next-line aglint/validate-module-registration */
+ModuleRegistry.registerModules([LegendModule]);
 function buildSeries(name: string): AgAreaSeriesOptions {
     return {
         type: 'area',

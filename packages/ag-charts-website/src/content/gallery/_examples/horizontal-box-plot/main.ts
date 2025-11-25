@@ -8,7 +8,6 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     BoxPlotSeriesModule,
     CategoryAxisModule,
-    LineSeriesModule,
     NumberAxisModule,
 ]);
 const data = getData();

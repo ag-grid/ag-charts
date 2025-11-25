@@ -16,7 +16,6 @@ ModuleRegistry.registerModules([
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    LineSeriesModule,
     NumberAxisModule,
 ]);
 const options: AgChartOptions = {

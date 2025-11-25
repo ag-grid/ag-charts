@@ -4,7 +4,7 @@ import { PyramidSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, PyramidSeriesModule]);
+ModuleRegistry.registerModules([PyramidSeriesModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

@@ -5,7 +5,7 @@ import { GradientLegendModule, MapShapeSeriesModule } from 'ag-charts-enterprise
 import { data } from './data';
 import { topology } from './topology';
 
-ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, MapShapeSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([GradientLegendModule, MapShapeSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',

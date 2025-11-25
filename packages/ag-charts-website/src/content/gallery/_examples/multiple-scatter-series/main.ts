@@ -11,7 +11,7 @@ import { getData } from './data';
 
 // Notable countries to label
 
-ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule]);
 const notableCountries = [
     'Singapore',
     'Luxembourg',

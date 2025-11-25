@@ -6,10 +6,8 @@ import { data } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     GradientLegendModule,
-    NumberAxisModule,
     TreemapSeriesModule,
     ZoomModule,
 ]);

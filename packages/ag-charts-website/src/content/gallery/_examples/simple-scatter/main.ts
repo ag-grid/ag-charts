@@ -3,7 +3,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

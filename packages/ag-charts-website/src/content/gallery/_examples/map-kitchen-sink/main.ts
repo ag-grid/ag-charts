@@ -12,13 +12,11 @@ import { getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
 ModuleRegistry.registerModules([
-    CategoryAxisModule,
     LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     MapShapeSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const currencyLayers: Record<string, { title: string; symbol: string; countries: number }> = {

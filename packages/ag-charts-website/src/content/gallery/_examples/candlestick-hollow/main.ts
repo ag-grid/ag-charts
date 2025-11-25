@@ -14,7 +14,6 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     CandlestickSeriesModule,
     CrosshairModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
