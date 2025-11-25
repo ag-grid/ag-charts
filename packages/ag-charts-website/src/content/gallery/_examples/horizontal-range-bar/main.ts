@@ -1,7 +1,10 @@
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const subjects = ['Math', 'English', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 
 const options: AgChartOptions = {

@@ -16,7 +16,7 @@ import {
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'bar'> = {
     zoom: {
@@ -93,7 +93,7 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: barSeriesOptionsDef,
-    predictAxis: predictCartesianTimeAxis,
+    predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate,
 

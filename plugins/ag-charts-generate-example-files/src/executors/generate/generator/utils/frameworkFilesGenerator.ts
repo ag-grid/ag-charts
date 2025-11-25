@@ -57,7 +57,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
-        let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry.registerModules\(.*\);/m, '');
+        // Strip ModuleRegistry calls (including multi-line) - vanilla uses UMD bundle with pre-registered modules
+        let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry\.registerModules\([\s\S]*?\);/m, '');
 
         const localeImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-locale'))

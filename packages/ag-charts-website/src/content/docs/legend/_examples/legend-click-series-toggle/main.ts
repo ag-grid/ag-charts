@@ -1,7 +1,15 @@
 import { AgChartLegendClickEvent, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

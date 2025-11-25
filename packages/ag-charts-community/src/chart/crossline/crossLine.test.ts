@@ -204,7 +204,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[null,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
+            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[null,134]`; expecting crossLine type to be 'range', a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
@@ -214,7 +214,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134,135]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
+            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134,135]`; expecting crossLine type to be 'range', a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
@@ -225,7 +225,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
         }),
         warningMessages: [
             "AG Charts - Option `axes[y].crossLines[0].type` is required and has not been provided; expecting a keyword such as 'line' or 'range', ignoring.",
-            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
+            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range', a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_LINE_VALUE_CROSSLINES: {
@@ -243,7 +243,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
+            "AG Charts - Option `axes[y].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range', a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {

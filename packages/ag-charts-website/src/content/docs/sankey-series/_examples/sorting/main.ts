@@ -1,5 +1,23 @@
-import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesOptions } from 'ag-charts-enterprise';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    AgCharts,
+    AgFlowProportionChartOptions,
+    AgSankeySeriesOptions,
+    AnimationModule,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
+import { SankeySeriesModule } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    SankeySeriesModule,
+    ZoomModule,
+]);
 const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
     title: {

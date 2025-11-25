@@ -5,7 +5,10 @@ import { CandlestickSeries } from './candlestickSeries';
 import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
-const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
+const {
+    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+    predictCartesianFinancialAxis,
+} = _ModuleSupport;
 
 export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
     type: 'series',
@@ -17,6 +20,7 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     dependencies: [CartesianChartModule],
 
     options: candlestickSeriesOptionsDef,
+    predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {
         y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

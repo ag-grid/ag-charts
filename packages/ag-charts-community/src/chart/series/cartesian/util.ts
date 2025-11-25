@@ -1,4 +1,4 @@
-import { type Size, isDate, isEmptyObject, isNumber, isObject } from 'ag-charts-core';
+import { type Size, isArray, isDate, isEmptyObject, isNumber, isObject, isString } from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
     AgSeriesSegmentation,
@@ -109,7 +109,8 @@ const TIME_AXIS_KEYS = new Set(['time', 'timestamp', 'date', 'datetime']);
 export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
-    seriesOptions: SeriesOptions
+    seriesOptions: SeriesOptions,
+    { allowPrimitiveTypes = true }: { allowPrimitiveTypes?: boolean } = {}
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
     if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
     if (!isObject(datum)) return;
@@ -119,11 +120,18 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
 
     const value = datum[key];
     const position = getAxisPosition(direction, seriesOptions);
-    const timeAxis = predictTimeAxisType(key, value);
 
+    const groupedCategory = predictGroupedCategoryAxisType(value);
+    if (groupedCategory) {
+        return { type: groupedCategory, position };
+    }
+
+    const timeAxis = predictTimeAxisType(key, value);
     if (timeAxis) {
         return { type: timeAxis, position };
     }
+
+    if (!allowPrimitiveTypes) return;
 
     if (typeof value === 'number') {
         return {
@@ -138,22 +146,43 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
     };
 }
 
-export function predictCartesianTimeAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+export function predictCartesianNonPrimitiveAxis<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     datum: DatumDefault,
     seriesOptions: SeriesOptions
 ): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
-    if (direction !== ChartAxisDirection.X && direction !== ChartAxisDirection.Y) return;
+    return predictCartesianAxis(direction, datum, seriesOptions, { allowPrimitiveTypes: false });
+}
+
+export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianSeriesOptions>(
+    direction: ChartAxisDirection,
+    datum: DatumDefault,
+    seriesOptions: SeriesOptions
+): SeriesPredictAxis<AgCartesianSeriesOptions['type']> | undefined {
+    // Only predict the x-axis.
+    if (direction !== ChartAxisDirection.X) return;
     if (!isObject(datum)) return;
 
     const key = getSeriesOptionsKey(direction, seriesOptions);
     if (key == null || !(key in datum)) return;
 
+    const value = datum[key];
     const position = getAxisPosition(direction, seriesOptions);
-    const type = predictTimeAxisType(key, datum[key]);
-    if (!type) return;
 
-    return { type, position };
+    const ordinalTimeAxis = predictOrdinalTimeAxisType(key, value);
+    if (ordinalTimeAxis) {
+        return { type: ordinalTimeAxis, position };
+    }
+
+    if (isString(value)) {
+        return { type: 'category', position };
+    }
+}
+
+function predictGroupedCategoryAxisType(value: unknown) {
+    if (isArray(value) && value.every(isString)) {
+        return CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY;
+    }
 }
 
 function predictTimeAxisType(key: string, value: unknown) {
@@ -162,18 +191,20 @@ function predictTimeAxisType(key: string, value: unknown) {
     }
 }
 
+function predictOrdinalTimeAxisType(key: string, value: unknown) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+        return CARTESIAN_AXIS_TYPE.ORDINAL_TIME;
+    }
+}
+
 function getSeriesOptionsKey<SeriesOptions extends AgCartesianSeriesOptions>(
     direction: ChartAxisDirection,
     seriesOptions: SeriesOptions
 ): string | undefined {
-    if (direction === ChartAxisDirection.X) {
-        if ('xKey' in seriesOptions) {
-            return seriesOptions.xKey;
-        }
-    } else if (direction === ChartAxisDirection.Y) {
-        if ('yKey' in seriesOptions) {
-            return seriesOptions.yKey;
-        }
+    if (direction === ChartAxisDirection.X && 'xKey' in seriesOptions) {
+        return seriesOptions.xKey;
+    } else if (direction === ChartAxisDirection.Y && 'yKey' in seriesOptions) {
+        return seriesOptions.yKey;
     }
 }
 

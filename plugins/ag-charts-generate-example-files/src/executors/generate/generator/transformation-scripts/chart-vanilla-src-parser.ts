@@ -71,9 +71,11 @@ export function parser({
     Object.assign(bindings.optionsTypeInfo, typedBindings.optionsTypeInfo);
 
     if (jsFile.includes('ModuleRegistry.registerModules(')) {
-        const [match] = jsFile.match(/ModuleRegistry.registerModules\(.*\);/m);
-        bindings.globals.push(match);
-        typedBindings.globals.push(match);
+        const match = jsFile.match(/ModuleRegistry\.registerModules\([\s\S]*?\);/);
+        if (match) {
+            bindings.globals.push(match[0]);
+            typedBindings.globals.push(match[0]);
+        }
     } else {
         const isEnterprise = exampleSettings.enterprise;
         const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';

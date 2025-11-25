@@ -1,8 +1,18 @@
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import { MapShapeBackgroundSeriesModule, MapShapeSeriesModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { africaData, asiaData, europeData, gdpData, northAmericaData, oceaniaData, southAmericaData } from './data';
 import { topology } from './topology';
 
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    LegendModule,
+    MapShapeBackgroundSeriesModule,
+    MapShapeSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 interface CountryData {
     pop_est: number;
     pop_rank: number;

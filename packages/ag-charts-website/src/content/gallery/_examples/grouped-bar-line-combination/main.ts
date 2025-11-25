@@ -1,7 +1,26 @@
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
+import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const data = getData();
 
 const bar = ({ x, y, path, size }: AgMarkerShapeFnParams) => {

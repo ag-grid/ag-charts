@@ -48,7 +48,6 @@ const options: AgPolarChartOptions = {
                 return {};
             },
         },
-
         {
             type: 'radar-area',
             angleKey: 'trait',
@@ -84,7 +83,6 @@ const options: AgPolarChartOptions = {
                 return {};
             },
         },
-
         {
             type: 'radar-area',
             angleKey: 'trait',

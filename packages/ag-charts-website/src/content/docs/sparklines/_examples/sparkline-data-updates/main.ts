@@ -1,6 +1,17 @@
-import { AgCharts, AgSparklineOptions } from 'ag-charts-enterprise';
+import { AreaSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { AgCharts, AgSparklineOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ZoomModule,
+]);
 
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),

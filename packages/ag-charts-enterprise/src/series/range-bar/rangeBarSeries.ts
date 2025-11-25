@@ -359,13 +359,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter != null) {
-            const { maxRange, indexData } = dataAggregationFilter;
+            const { maxRange, indexData, midpointIndices } = dataAggregationFilter;
             const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
                 const aggIndex = index * AGGREGATION_SPAN;
-                const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
                 const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-                if (xMinIndex === -1) return;
-                const midDatumIndex = Math.trunc((xMinIndex + xMaxIndex) / 2);
+                const midDatumIndex = midpointIndices[index];
+                if (midDatumIndex === -1) return;
                 return [xPosition(midDatumIndex), xPosition(xMaxIndex) + effectiveBarWidth];
             });
 
@@ -376,9 +375,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const yMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
                 const yMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
 
-                if (xMinIndex === -1) continue;
-
-                const midDatumIndex = Math.trunc((xMinIndex + xMaxIndex) / 2);
+                const midDatumIndex = midpointIndices[i];
+                if (midDatumIndex === -1) continue;
 
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;

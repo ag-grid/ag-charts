@@ -1,7 +1,31 @@
-import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-enterprise';
+import {
+    BarSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgUnitTimeAxisThemeOptions,
+    AnimationModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

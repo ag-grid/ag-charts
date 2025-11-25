@@ -379,14 +379,14 @@ export abstract class OhlcSeriesBase<
                 handleDatum(datumIndex, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
             }
         } else {
-            const { maxRange, indexData } = dataAggregationFilter;
+            const { maxRange, indexData, midpointIndices } = dataAggregationFilter;
             const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
-                const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
-                if (openIndex === -1) return;
+                const midDatumIndex = midpointIndices[index];
+                if (midDatumIndex === -1) return;
                 const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
-                return [xPosition(openIndex) + xOffset, xPosition(closeIndex) + xOffset + effectiveBarWidth];
+                return [xPosition(midDatumIndex) + xOffset, xPosition(closeIndex) + xOffset + effectiveBarWidth];
             });
 
             for (let i = start; i < end; i += 1) {
@@ -396,9 +396,8 @@ export abstract class OhlcSeriesBase<
                 const highIndex = indexData[aggIndex + HIGH];
                 const lowIndex = indexData[aggIndex + LOW];
 
-                if (openIndex === -1) continue;
-
-                const midDatumIndex = Math.trunc((openIndex + closeIndex) / 2);
+                const midDatumIndex = midpointIndices[i];
+                if (midDatumIndex === -1) continue;
 
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;

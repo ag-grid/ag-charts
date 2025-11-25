@@ -15,7 +15,7 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     dependencies: [CartesianChartModule],
 
     options: rangeBarSeriesOptionsDef,
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    predictAxis: _ModuleSupport.predictCartesianNonPrimitiveAxis,
     defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
