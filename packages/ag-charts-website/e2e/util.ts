@@ -62,6 +62,10 @@ export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
+export async function elementFromPoint(page: Page, x: number, y: number) {
+    return await page.evaluate((args) => document.elementFromPoint(args.x, args.y), { x, y });
+}
+
 export function setupIntrinsicAssertions(
     testFn: {
         beforeEach: (fn: ({ page }: { page: Page }, testInfo: { title?: string }) => Promise<void>) => void;
