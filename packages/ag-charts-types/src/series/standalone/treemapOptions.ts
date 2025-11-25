@@ -86,23 +86,23 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
 }
 
 export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileStyle {
-    /** Opacity to apply to the tile (and its labels). */
+    /** Opacity to apply to the tile and its labels. */
     opacity?: Opacity;
 }
 
 export interface AgTreemapSeriesTileHighlightOptions {
-    /** Style for tiles that belong to the hovered branch but aren't directly hovered. */
+    /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
     highlightedItem?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for tiles within the hovered branch that should fade while keeping branch defaults. */
+    /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for tiles in branches unrelated to the hovered node. */
+    /** Style for tiles outside of the hovered branch. */
     unhighlightedBranch?: AgTreemapSeriesTileHighlightStyle;
 }
 
 export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeOptions {
-    /** Opacity to apply to the group tile (propagates to child tiles when highlighted). */
+    /** Opacity to apply to the group tile and its child tiles. */
     opacity?: Opacity;
 }
 
