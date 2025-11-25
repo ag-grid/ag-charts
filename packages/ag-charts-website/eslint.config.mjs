@@ -11,20 +11,7 @@ export default [
         rules: reactHooksPlugin.configs.recommended.rules,
     },
     {
-        // Ignore generated/transformed framework example files, but NOT main.ts (vanilla source)
-        ignores: [
-            '.astro/',
-            '**/_examples/*/_gen/',
-            '**/_examples/*/angular/',
-            '**/_examples/*/react/',
-            '**/_examples/*/vue/',
-            '**/_examples/*/vue3/',
-            '**/_examples/*/reactFunctional/',
-            '**/_examples/*/reactFunctionalTs/',
-            '**/_examples/*/typescript/',
-            'scripts/showcase-github/tmp/',
-            '**/.angular',
-        ],
+        ignores: ['.astro/', '**/_examples/', 'scripts/showcase-github/tmp/', '**/.angular'],
     },
     {
         rules: {
