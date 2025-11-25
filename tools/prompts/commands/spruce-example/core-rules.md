@@ -71,6 +71,8 @@ Gallery examples are used by thousands of developers who:
 -   **Custom tooltip HTML via `renderer()`** - use multiple `data[]` elements instead (simpler + better styling)
 -   **Tooltip renderers without `heading`** - ALWAYS include `heading` property to avoid empty lines at the top of tooltips
 -   **Use deprecated `highlightStyle`** - use the newer `highlight.*` options instead
+-   **Use deprecated `highlighted` boolean** - callback params now use `highlightState` string instead (`'highlighted-item'`, `'highlighted-series'`, etc.)
+-   **Use deprecated `itemId` for series item types** - use `itemType` instead (for waterfall, range-area, range-bar, OHLC series)
 -   **Add no-op formatters** - NEVER use formatters that just call `toLocaleString()` without additional formatting
 -   **Use deeply nested formatters** - ALWAYS prefer root-level `formatter.x` and `formatter.y` over duplicating formatters
 -   **Over-decorate radial/polar charts** - Avoid adding cross lines, excessive grid lines, or axis labels unless absolutely necessary
@@ -275,6 +277,81 @@ series: [
     },
 ];
 ```
+
+### ❌ `highlighted` boolean → ✅ Use `highlightState` string:
+
+```typescript
+// ❌ DEPRECATED - Do not use
+series: [
+    {
+        styler: (params) => {
+            if (params.highlighted) {
+                return { strokeWidth: 3 };
+            }
+            return {};
+        },
+    },
+];
+
+// ✅ MODERN - Use this instead
+series: [
+    {
+        styler: (params) => {
+            if (params.highlightState === 'highlighted-item') {
+                return { strokeWidth: 3 };
+            }
+            return {};
+        },
+    },
+];
+```
+
+**Available `highlightState` values:**
+- `'highlighted-item'`: The directly hovered item
+- `'highlighted-series'`: The series containing the hovered item
+- `'unhighlighted-item'`: Other items not hovered
+- `'unhighlighted-series'`: Other series not containing hovered item
+- `'highlighted-branch'`: For hierarchical series (treemap/sunburst) - nodes sharing same root branch
+- `'unhighlighted-branch'`: For hierarchical series - nodes in different branches
+- `'none'`: Default state
+
+### ❌ `itemId` → ✅ Use `itemType` for series item classification:
+
+```typescript
+// ❌ DEPRECATED - Do not use (for waterfall, range-area, range-bar, OHLC series)
+series: [
+    {
+        type: 'range-area',
+        label: {
+            formatter: ({ itemId, value }) => `${itemId === 'high' ? 'High' : 'Low'}: ${value}`,
+        },
+        styler: ({ itemId }) => {
+            if (itemId === 'high') {
+                return { lineDash: [6, 3] };
+            }
+            return {};
+        },
+    },
+];
+
+// ✅ MODERN - Use this instead
+series: [
+    {
+        type: 'range-area',
+        label: {
+            formatter: ({ itemType, value }) => `${itemType === 'high' ? 'High' : 'Low'}: ${value}`,
+        },
+        styler: ({ itemType }) => {
+            if (itemType === 'high') {
+                return { lineDash: [6, 3] };
+            }
+            return {};
+        },
+    },
+];
+```
+
+**Note:** `itemId` is still valid for legend events and other contexts where it refers to legend item identifiers, not series datum types.
 
 ### Other deprecated patterns to avoid:
 

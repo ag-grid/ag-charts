@@ -260,6 +260,59 @@ const options: AgChartOptions = {
 };
 ```
 
+## 🎨 Tooltip Symbol Customization
+
+_New Nov 2024 • Apply: 5 minutes • Impact: MEDIUM_
+
+Customize the marker and line symbols shown in tooltips for better visual distinction:
+
+```typescript
+tooltip: {
+    renderer: (params) => {
+        return {
+            heading: params.datum.category,
+            title: params.yName || 'Series',
+            symbol: {
+                marker: {
+                    enabled: true,
+                    shape: 'circle', // 'circle' | 'square' | 'diamond' | 'plus' | 'cross' | 'triangle'
+                    // Don't set fill/stroke - theme handles colors
+                },
+                line: {
+                    enabled: true,
+                    strokeWidth: 2,
+                    lineDash: [4, 2], // Optional dashed line
+                    // Don't set stroke - theme handles colors
+                },
+            },
+            data: [
+                { label: 'Value', value: params.value },
+            ],
+        };
+    },
+}
+```
+
+**Symbol Options:**
+- `marker`: Configure the marker symbol shown next to series name
+  - `enabled`: Toggle marker visibility
+  - `shape`: Marker shape (circle, square, diamond, plus, cross, triangle, or custom function)
+- `line`: Configure the line symbol shown for line/area series
+  - `enabled`: Toggle line visibility
+  - `strokeWidth`: Line thickness
+  - `lineDash`: Optional dash pattern
+
+**Use Cases:**
+- ✅ Differentiate series visually in shared tooltips
+- ✅ Match tooltip symbols to series marker styles
+- ✅ Create consistent visual language between chart and tooltip
+- ✅ Improve accessibility by providing visual cues alongside text
+
+**Theme Compatibility:**
+- Colors are automatically handled by the theme
+- Works seamlessly in light/dark modes
+- Don't hardcode fill/stroke colors - let theme manage them
+
 ## Pro Tip for Complex Data
 
 When dealing with grouped data (like player wins/losses), the shared tooltip automatically groups all series at the same x-position, making it perfect for comparative analysis. This is why examples like `stacked-horizontal-bar` are so effective - users can instantly see all three players' performance for any given year.

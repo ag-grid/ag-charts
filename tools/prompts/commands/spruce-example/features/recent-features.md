@@ -176,9 +176,9 @@ series: [
         type: 'line',
         styler: (params) => {
             // Access series-level properties
-            const { seriesId, seriesName, highlighted } = params;
+            const { seriesId, seriesName, highlightState } = params;
 
-            if (highlighted) {
+            if (highlightState === 'highlighted-series') {
                 return {
                     strokeWidth: 3,
                     // Don't hardcode colors - let theme handle it
@@ -261,15 +261,15 @@ series: [
         xKey: 'date',
         yLowKey: 'low',
         yHighKey: 'high',
-        styler: ({ itemId }) => {
-            if (itemId === 'high') {
+        styler: ({ itemType }) => {
+            if (itemType === 'high') {
                 return { lineDash: [6, 3] };
             }
             return {};
         },
         label: {
             enabled: true,
-            formatter: ({ itemId, value }) => `${itemId === 'high' ? 'High' : 'Low'}: ${value.toFixed(0)}`,
+            formatter: ({ itemType, value }) => `${itemType === 'high' ? 'High' : 'Low'}: ${value.toFixed(0)}`,
         },
         invertedStyle: {
             fillOpacity: 0.35, // Theme picks fill color
@@ -285,7 +285,7 @@ series: [
 ];
 ```
 
-_Takeaway_: Use `styler`, `itemId` aware label callbacks, and `invertedStyle` to emphasise band flips without resorting to manual fills.
+_Takeaway_: Use `styler`, `itemType` aware label callbacks, and `invertedStyle` to emphasise band flips without resorting to manual fills.
 
 ### 🪵 Range Bar Styling Hooks
 
@@ -300,11 +300,11 @@ series: [
         yHighKey: 'finish',
         direction: 'horizontal',
         cornerRadius: 8,
-        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 2 } : {}),
+        styler: ({ highlightState }) => (highlightState === 'highlighted-item' ? { strokeWidth: 2 } : {}),
         label: {
             enabled: true,
             placement: 'outside',
-            formatter: ({ itemId, value }) => `${itemId === 'high' ? 'Finish' : 'Start'}: ${value}`,
+            formatter: ({ itemType, value }) => `${itemType === 'high' ? 'Finish' : 'Start'}: ${value}`,
         },
     },
 ];
@@ -322,7 +322,7 @@ series: [
         type: 'box-plot',
         xKey: 'group',
         yNameKey: 'label',
-        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 3 } : {}),
+        styler: ({ highlightState }) => (highlightState === 'highlighted-item' ? { strokeWidth: 3 } : {}),
         cap: { strokeWidth: 2 },
         whisker: { strokeWidth: 1 },
         legendItemName: 'Distribution',
@@ -362,7 +362,7 @@ series: [
         type: 'radar-line',
         angleKey: 'metric',
         radiusKey: 'score',
-        styler: ({ highlighted }) => (highlighted ? { strokeWidth: 4 } : {}),
+        styler: ({ highlightState }) => (highlightState === 'highlighted-item' ? { strokeWidth: 4 } : {}),
         highlight: {
             series: {
                 item: { strokeWidth: 3 },
@@ -442,6 +442,108 @@ const chart = AgCharts.createFinancialChart({
 ```
 
 _Best for_: Tailoring toolbars to analyst workflows (earnings windows, YTD, custom presets).
+
+### 🔄 Zoom Data Change Strategy
+
+_New Nov 2024 • Apply: 3 minutes • Impact: MEDIUM_
+
+```typescript
+zoom: {
+    enabled: true,
+    onDataChange: {
+        strategy: 'preserveDomain', // 'preserveDomain' | 'reset' | 'resize' | 'preserveData'
+    },
+}
+```
+
+**Strategy Options:**
+- `'preserveDomain'` (default): Keep current zoom domain when data changes
+- `'reset'`: Reset zoom to show all data when data changes
+- `'resize'`: Adjust zoom to fit new data range while maintaining zoom level
+- `'preserveData'`: Keep zoom focused on existing data points
+
+_Use for_: Live data updates where you want to control how zoom behaves when new data arrives.
+
+### 🌳 Hierarchy Highlight States
+
+_New Nov 2024 • Apply: 5 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'treemap',
+        sizeKey: 'value',
+        labelKey: 'name',
+        styler: (params) => {
+            const { highlightState } = params;
+            
+            // Differentiate between directly hovered items and branch items
+            if (highlightState === 'highlighted-item') {
+                return { strokeWidth: 3 }; // Directly hovered
+            }
+            if (highlightState === 'highlighted-branch') {
+                return { strokeWidth: 2, opacity: 0.8 }; // Same branch
+            }
+            if (highlightState === 'unhighlighted-branch') {
+                return { opacity: 0.3 }; // Different branch
+            }
+            return {};
+        },
+    },
+];
+```
+
+**Available States:**
+- `'highlighted-item'`: The directly hovered node
+- `'highlighted-branch'`: Nodes sharing the same root branch as the hovered item
+- `'unhighlighted-branch'`: Nodes in different branches
+- `'unhighlighted-item'`: Other items not in the hovered branch
+- `'none'`: Default state
+
+_Use for_: Treemap and sunburst charts where you want to highlight related nodes in the same hierarchy branch.
+
+### 📊 Series Axis Binding
+
+_New Nov 2024 • Apply: 4 minutes • Impact: MEDIUM_
+
+```typescript
+series: [
+    {
+        type: 'bar',
+        xKey: 'category',
+        yKey: 'value',
+        xKeyAxis: 'x', // Default: 'x'
+        yKeyAxis: 'y2', // Bind to secondary y-axis
+    },
+    {
+        type: 'line',
+        xKey: 'category',
+        yKey: 'percentage',
+        xKeyAxis: 'x', // Same x-axis
+        yKeyAxis: 'y', // Primary y-axis
+    },
+],
+axes: {
+    x: { type: 'category', position: 'bottom' },
+    y: { type: 'number', position: 'left' },
+    y2: { type: 'number', position: 'right' }, // Secondary axis
+}
+```
+
+**Polar Series:**
+```typescript
+series: [
+    {
+        type: 'pie',
+        angleKey: 'category',
+        valueKey: 'value',
+        angleKeyAxis: 'angle', // Default: 'angle'
+        radiusKeyAxis: 'radius', // Default: 'radius'
+    },
+]
+```
+
+_Use for_: Multi-axis charts where different series need to be bound to different axes, or polar charts with multiple angle/radius axes.
 
 ## 🆕 Recently Added Features (Past 6 Months)
 
