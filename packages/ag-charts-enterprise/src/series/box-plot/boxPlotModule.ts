@@ -15,7 +15,7 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     dependencies: [CartesianChartModule],
 
     options: boxPlotSeriesOptionsDef,
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
+    predictAxis: _ModuleSupport.predictCartesianNonPrimitiveAxis,
     defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: BOX_PLOT_SERIES_THEME,
 

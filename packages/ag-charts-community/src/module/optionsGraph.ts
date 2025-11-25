@@ -4,18 +4,13 @@ import {
     ModuleRegistry,
     type PlainObject,
     type Vertex,
-    deepClone,
-    distribute,
     isObject,
     isObjectLike,
-    mapValues,
     pick,
     simpleMemorize,
     without,
 } from 'ag-charts-core';
-import type { DatumDefault, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
-import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
@@ -146,13 +141,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
         const seriesType = userOptions.series?.[0]?.type ?? 'line';
-
-        // Apply the default axes of the primary series type if none are provided by the user.
-        if (!('axes' in userOptions) || Object.keys(userOptions.axes).length === 0) {
-            userOptions.axes =
-                this.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
-                this.cloneDefaultAxes(seriesType);
-        }
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -1121,68 +1109,5 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.rollbackEdgesTo = [];
         this.rollbackEdgesValue = [];
         this.isRollingBack = false;
-    }
-
-    // TODO: this should not be part of the OptionsGraph
-    private predictAxes(
-        seriesType: SeriesType,
-        userSeriesOptions?: any,
-        data?: DatumDefault[]
-    ): Record<string, any> | undefined {
-        if (!userSeriesOptions) return;
-
-        const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
-        if (!seriesData?.length) return;
-
-        const predictAxis = ModuleRegistry.getSeriesModule(seriesType)?.predictAxis;
-        if (!predictAxis) return;
-
-        const axes = new Map<ChartAxisDirection, SeriesPredictAxis<SeriesType> | undefined>();
-        const indices = distribute(0, seriesData.length - 1, 5);
-
-        for (const index of indices) {
-            const datum = seriesData[index];
-            for (const direction of Object.values(ChartAxisDirection)) {
-                const axis = predictAxis(direction, datum, userSeriesOptions);
-                if (!axes.has(direction)) {
-                    axes.set(direction, axis);
-                    continue;
-                }
-
-                // Check for stability in the predicted axis for this direction, if the prediction is unstable then
-                // return and fallback to the defaults.
-                const prevAxis = axes.get(direction);
-                if (!axis && !prevAxis) continue;
-                if (!axis || !prevAxis) return;
-                for (const key of Object.keys(prevAxis)) {
-                    if ((prevAxis as any)[key] !== (axis as any)[key]) return;
-                }
-            }
-        }
-
-        for (const [direction, axis] of axes) {
-            if (!axis) axes.delete(direction);
-        }
-
-        // If we couldn't predict any axes, fallback to the defaults.
-        if (axes.size === 0) return;
-
-        // If we predicted a single axis, merge this with the defaults by replacing the category axis.
-        if (axes.size === 1) {
-            const [predictedAxis] = axes.values();
-            return mapValues(this.cloneDefaultAxes(seriesType), (axis) => {
-                if (!('position' in axis) || !('position' in predictedAxis!)) {
-                    return axis;
-                }
-                return axis.position === predictedAxis.position ? predictedAxis : axis;
-            });
-        }
-
-        return Object.fromEntries(axes);
-    }
-
-    private cloneDefaultAxes(seriesType: SeriesType) {
-        const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
-        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
     }
 }

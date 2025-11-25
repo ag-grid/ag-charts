@@ -15,7 +15,7 @@ import {
 } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'histogram'> = {
     series: {
@@ -62,7 +62,7 @@ export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOpti
     dependencies: [CartesianChartModule],
 
     options: histogramSeriesOptionsDef,
-    predictAxis: predictCartesianTimeAxis,
+    predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         x: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
