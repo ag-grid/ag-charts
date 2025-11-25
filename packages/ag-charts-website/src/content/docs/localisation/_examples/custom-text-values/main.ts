@@ -2,6 +2,7 @@ import {
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
+    LocaleModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
@@ -21,6 +22,7 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     LineSeriesModule,
+    LocaleModule,
     NumberAxisModule,
     ZoomModule,
 ]);
