@@ -81,6 +81,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc-df783f9ea1-20240708",
     "eslint-plugin-sonarjs": "^3.0.5",
     "eslint-plugin-unicorn": "^61.0.2",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "event-stream": "4.0.1",
     "glob": "8.0.3",
     "globals": "^15.12.0",
