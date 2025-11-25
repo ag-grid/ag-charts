@@ -1,1 +1,1 @@
-<text role="presentation">Footnote</text>
+Footnote

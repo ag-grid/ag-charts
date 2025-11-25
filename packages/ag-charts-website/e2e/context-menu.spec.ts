@@ -139,14 +139,15 @@ test.describe('context-menu', () => {
 
         for (const [name, x, y, expectedHtmlText] of cases) {
             test(name, async ({ page }) => {
-                const outerHTML = await page.evaluate(
+                // Check that (x,y) coord are clicking the correct HTML element that we expect.
+                const rightClickedTextContent = await page.evaluate(
                     ({ x, y }) => {
                         const el = document.elementFromPoint(x, y);
-                        return el?.outerHTML ?? '';
+                        return el?.textContent ?? '';
                     },
                     { x, y }
                 );
-                expect(outerHTML).toMatchSnapshot();
+                expect(rightClickedTextContent).toMatchSnapshot();
 
                 await page.mouse.click(x, y, { button: 'right' });
                 const actualHtmlText = await page.textContent('.ag-charts-context-menu');

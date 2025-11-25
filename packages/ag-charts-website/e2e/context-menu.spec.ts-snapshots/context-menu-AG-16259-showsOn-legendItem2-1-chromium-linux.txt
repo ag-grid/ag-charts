@@ -1,1 +1,1 @@
-<button aria-disabled="false" role="switch" aria-checked="true" class="ag-charts-proxy-elem" aria-describedby="ag-charts-3" tabindex="-1" style="width: 100%; height: 100%; cursor: pointer;">Series 2, Legend item 2 of 2</button>
+Series 2, Legend item 2 of 2

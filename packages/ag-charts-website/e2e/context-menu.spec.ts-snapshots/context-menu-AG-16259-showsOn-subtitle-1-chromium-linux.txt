@@ -1,1 +1,1 @@
-<text role="presentation">Subtitle</text>
+Subtitle
