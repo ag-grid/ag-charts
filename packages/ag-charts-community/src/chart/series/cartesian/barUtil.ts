@@ -122,6 +122,9 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
+
+// Pre-computed keys for bar animation properties - avoids Object.keys() allocation per node
+const BAR_ANIMATABLE_KEYS: readonly string[] = ['x', 'y', 'width', 'height', 'clipBBox', 'opacity'];
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
     unknownStatus: NodeUpdateState
@@ -183,7 +186,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         }
     };
     const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
-        rect.setProperties(datum);
+        rect.setPropertiesWithKeys(datum, BAR_ANIMATABLE_KEYS);
         rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);
     };
 
