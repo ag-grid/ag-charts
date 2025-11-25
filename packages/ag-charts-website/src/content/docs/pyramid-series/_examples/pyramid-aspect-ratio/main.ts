@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgPyramidSeriesOptions,
@@ -13,10 +13,8 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     LegendModule,
-    NumberAxisModule,
     PyramidSeriesModule,
     ZoomModule,
 ]);

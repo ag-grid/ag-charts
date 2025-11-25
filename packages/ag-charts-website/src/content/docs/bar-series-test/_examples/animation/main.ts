@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

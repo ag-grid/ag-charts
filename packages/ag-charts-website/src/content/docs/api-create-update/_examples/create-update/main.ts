@@ -1,6 +1,5 @@
 import {
     AgAreaSeriesOptions,
-    AgChartInstance,
     AgChartLegendPosition,
     AgChartOptions,
     AgCharts,

@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgCharts, AgLinearGaugeOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { AllGaugeModule } from 'ag-charts-enterprise';
 

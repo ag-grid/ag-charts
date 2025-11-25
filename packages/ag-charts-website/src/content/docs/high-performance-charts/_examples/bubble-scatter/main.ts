@@ -4,7 +4,6 @@ import {
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
-    ScatterSeriesModule,
 } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
@@ -24,7 +23,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ScatterSeriesModule,
     ZoomModule,
 ]);
 // @ts-expect-error Undocumented option

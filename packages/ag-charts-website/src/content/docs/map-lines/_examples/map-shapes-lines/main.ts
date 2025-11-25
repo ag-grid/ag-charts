@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
@@ -11,12 +11,10 @@ import { tubeTopology } from './tubeTopology';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     LegendModule,
     MapLineSeriesModule,
     MapShapeSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const sizeDomain = [0, 141537];

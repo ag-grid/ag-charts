@@ -1,5 +1,5 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
 import {
     MapLineSeriesModule,
     MapMarkerSeriesModule,

@@ -1,7 +1,6 @@
 import {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
-    AgChartOptions,
     AgCharts,
     LegendModule,
 } from 'ag-charts-community';

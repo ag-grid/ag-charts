@@ -2,7 +2,6 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';

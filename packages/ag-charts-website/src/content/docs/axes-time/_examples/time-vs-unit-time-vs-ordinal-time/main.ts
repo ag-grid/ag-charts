@@ -7,7 +7,6 @@ import {
     UnitTimeAxisModule,
 } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
     AnimationModule,

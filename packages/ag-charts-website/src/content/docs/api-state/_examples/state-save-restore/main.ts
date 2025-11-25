@@ -1,9 +1,6 @@
 import {
     LegendModule,
     ModuleRegistry,
-    NumberAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
 } from 'ag-charts-community';
 import {
     AgChartState,
@@ -13,7 +10,7 @@ import {
     CrosshairModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
-import { FinancialChartModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import { FinancialChartModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

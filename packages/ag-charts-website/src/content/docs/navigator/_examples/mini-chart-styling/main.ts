@@ -7,9 +7,7 @@ import {
 } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCharts,
-    AgSeriesTooltip,
     AnimationModule,
     CrosshairModule,
 } from 'ag-charts-enterprise';

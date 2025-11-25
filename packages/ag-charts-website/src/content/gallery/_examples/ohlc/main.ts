@@ -1,4 +1,4 @@
-import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { OhlcSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 

@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgFlowProportionChartOptions,
@@ -11,10 +11,8 @@ import { SankeySeriesModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     LegendModule,
-    NumberAxisModule,
     SankeySeriesModule,
     ZoomModule,
 ]);

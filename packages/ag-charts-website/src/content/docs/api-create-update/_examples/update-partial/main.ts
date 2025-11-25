@@ -6,16 +6,13 @@ import {
     AgCharts,
 } from 'ag-charts-community';
 import {
-    AreaSeriesModule,
-    CategoryAxisModule,
     LegendModule,
     ModuleRegistry,
-    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
 
-/* eslint-disable-next-line aglint/validate-module-registration */
+ 
 ModuleRegistry.registerModules([LegendModule]);
 function buildSeries(name: string): AgAreaSeriesOptions {
     return {

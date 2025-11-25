@@ -1,5 +1,5 @@
 // Source: https://survey.stackoverflow.co
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ChordSeriesModule } from 'ag-charts-enterprise';
 

@@ -1,16 +1,14 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { AngleCategoryAxisModule, RadialColumnSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
+import { RadialColumnSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
-    AngleCategoryAxisModule,
     AnimationModule,
     CrosshairModule,
     LegendModule,
     RadialColumnSeriesModule,
-    RadiusNumberAxisModule,
     ZoomModule,
 ]);
 const options: AgChartOptions = {

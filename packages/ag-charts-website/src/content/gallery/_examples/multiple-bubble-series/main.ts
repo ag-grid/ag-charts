@@ -1,7 +1,6 @@
 import {
     BubbleSeriesModule,
     LegendModule,
-    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';

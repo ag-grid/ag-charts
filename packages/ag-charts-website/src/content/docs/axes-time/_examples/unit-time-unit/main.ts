@@ -8,7 +8,6 @@ import {
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgUnitTimeAxisThemeOptions,
     AnimationModule,
     CrosshairModule,
 } from 'ag-charts-enterprise';

@@ -1,16 +1,12 @@
 import {
     LegendModule,
     ModuleRegistry,
-    NumberAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
 } from 'ag-charts-community';
 import {
     AgCharts,
     AgFinancialChartOptions,
     AnimationModule,
     CrosshairModule,
-    OrdinalTimeAxisModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
 import { FinancialChartModule } from 'ag-charts-enterprise';
@@ -22,10 +18,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     FinancialChartModule,
     LegendModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
     ZoomModule,
 ]);
 

@@ -6,10 +6,8 @@ import {
     UnitTimeAxisModule,
 } from 'ag-charts-community';
 import {
-    AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
-    AgSeriesTooltip,
     AnimationModule,
     CrosshairModule,
 } from 'ag-charts-enterprise';

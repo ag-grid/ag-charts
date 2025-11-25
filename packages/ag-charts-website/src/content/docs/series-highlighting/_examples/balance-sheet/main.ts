@@ -1,6 +1,5 @@
 import {
     AgCartesianChartOptions,
-    AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
     AgCharts,
 } from 'ag-charts-community';

@@ -1,7 +1,6 @@
 import {
     AreaSeriesModule,
     GroupedCategoryAxisModule,
-    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';

@@ -1,5 +1,4 @@
 /* @ag-options-extract */
-import { highlight } from 'prismjs';
 
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 

@@ -1,4 +1,4 @@
-import { LineSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
 

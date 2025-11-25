@@ -7,7 +7,7 @@ import {
     AnimationModule,
     CrosshairModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +18,6 @@ ModuleRegistry.registerModules([
     LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,
-    OrdinalTimeAxisModule,
     TimeAxisModule,
     ZoomModule,
 ]);

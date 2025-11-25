@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { days, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule]);
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule]);
 const data = getData();
 
 const options: AgChartOptions = {
