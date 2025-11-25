@@ -226,7 +226,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
     const axisTypesInOptions = new Set<string>(
         Object.values(optionsAxes)
-            .map((axis) => axis.type)
+            .map((axis) => axis?.type)
             .filter(isDefined)
     );
     const seriesTypesInOptions = new Set<string>(options.series?.map((series) => series.type).filter(isDefined));
