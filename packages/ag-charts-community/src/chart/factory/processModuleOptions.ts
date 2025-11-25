@@ -267,8 +267,10 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             case 'plugin':
                 const optionsKey = module.name as keyof T;
                 const pluginValue = options[optionsKey];
-                if (isObject(pluginValue) && pluginValue.enabled !== false) {
-                    addMissingModule(module);
+                if (isObject(pluginValue)) {
+                    if (pluginValue.enabled !== false) {
+                        addMissingModule(module);
+                    }
                     delete options[optionsKey];
                 }
                 break;
