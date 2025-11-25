@@ -768,6 +768,20 @@
                     }
                 ]
             }
+        ],
+        [
+            {
+                "title": "Interactions",
+                "seriesName": "interactions",
+                "icon": "cursor",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Dynamic Context Menu",
+                        "name": "fruit-comparison"
+                    }
+                ]
+            }
         ]
     ]
 }

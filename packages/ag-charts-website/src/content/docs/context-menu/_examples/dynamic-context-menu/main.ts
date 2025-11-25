@@ -1,153 +1,70 @@
-import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-import {
-    AgBarSeriesOptions,
-    AgBarSeriesStyle,
-    AgCartesianChartOptions,
-    AgCharts,
-    AgContextMenuItem,
-    AnimationModule,
-    CrosshairModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
-import { ContextMenuModule } from 'ag-charts-enterprise';
+import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import type { AgCartesianChartOptions, AgContextMenuItem } from 'ag-charts-types';
 
-import type { DatumType } from './data';
-import { getPersistentMutableData } from './data';
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    ContextMenuModule,
-    CrosshairModule,
-    LegendModule,
-    NumberAxisModule,
-    ZoomModule,
-]);
-const markingStyle: AgBarSeriesStyle = {
-    stroke: 'red',
-    strokeWidth: 4,
-    fillOpacity: 1,
-};
+type DatumType = { sector: string; nyse: number; lse: number; tyo: number };
 
-const DIFF_SERIES_ID = 'diff-series';
-
-interface BarChartOptions extends Omit<AgCartesianChartOptions<DatumType>, 'series'> {
-    series: AgBarSeriesOptions[];
-}
-
-const options: BarChartOptions = {
+const options: AgCartesianChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
-    data: getPersistentMutableData(),
     title: {
-        text: 'Dynamic Context Menu',
+        text: 'Stock Investment Portfolio by Sector',
     },
     subtitle: {
-        text: 'Right-Click on a Series Node or Legend Item',
+        text: 'Allocation (%) by Market',
     },
-    series: [
-        { type: 'bar', xKey: 'category', yKey: 'apples', yName: 'Apples', id: 'apples', fill: '#cceeff' },
-        { type: 'bar', xKey: 'category', yKey: 'oranges', yName: 'Oranges', id: 'oranges', fill: '#ffe6cc' },
-        { type: 'bar', xKey: 'category', yKey: 'pears', yName: 'Pears', id: 'pears', fill: '#ddffcc' },
+    data: [
+        { sector: 'Industrial', nyse: 28, lse: 22, tyo: 18 },
+        { sector: 'Financial', nyse: 24, lse: 30, tyo: 20 },
+        { sector: 'Energy', nyse: 20, lse: 18, tyo: 25 },
+        { sector: 'Technology', nyse: 15, lse: 10, tyo: 12 },
+        { sector: 'Healthcare', nyse: 8, lse: 13, tyo: 10 },
+        { sector: 'Consumer Staples', nyse: 5, lse: 7, tyo: 15 },
     ],
-    theme: {
-        overrides: {
-            bar: {
-                series: {
-                    strokeWidth: 1,
-                    fillOpacity: 0.75,
-                    itemStyler: ({ yKey, datum }) => (datum.marked?.[yKey] ? markingStyle : undefined),
-                },
-            },
+    series: [
+        {
+            id: 'New York Stock Exchange',
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'nyse',
+            yName: 'NYSE',
         },
-    },
+        {
+            id: 'London Stock Exchange',
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'lse',
+            yName: 'LSE',
+        },
+        {
+            id: 'Tokyo Stock Exchange',
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'tyo',
+            yName: 'TYO',
+        },
+    ],
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
-            const menuItems: AgContextMenuItem[] = ['download', 'separator'];
-
-            if (params.showOn === 'series-node') {
-                const { xKey, yKey } = params;
-                if (!xKey || !yKey) return;
-                const data = getPersistentMutableData();
-                const pX = params.datum[xKey];
-                const pY = params.datum[yKey];
-                for (const datum of data) {
-                    if (datum[xKey] === pX && datum[yKey] === pY) {
-                        const isMarked = datum.marked[yKey] ?? false;
-                        const name = `"${datum.category} - ${yKey}"`;
-                        menuItems.push(
-                            {
-                                type: 'action',
-                                showOn: 'series-node',
-                                label: 'Compare with...',
-                                items:
-                                    // Create a submenu item for each comparable series:
-                                    options.series
-                                        ?.filter((s) => s.id !== params.seriesId && s.id !== DIFF_SERIES_ID)
-                                        .map((s) => ({
-                                            type: 'action' as const,
-                                            label: s.yName ?? s.yKey,
-                                            action: () => createDiffSeries(params.seriesId!, s.id!),
-                                        })) ?? [],
-                            },
-                            {
-                                type: 'action',
-                                showOn: 'series-node',
-                                label: isMarked ? `Unmark ${name}` : `Mark ${name}`,
-                                action: () => updateMarking(datum, yKey, !isMarked),
-                            }
-                        );
-                    }
-                }
-            }
-
             if (params.showOn === 'legend-item') {
-                menuItems.push(
+                return [
+                    'download',
+                    'separator',
                     // Custom implementation of 'toggle-series-visibility':
                     {
                         type: 'action',
                         showOn: 'legend-item',
-                        label: params.visible ? `Hide ${params.text}` : `Show ${params.text}`,
+                        label: params.visible ? `Hide ${params.seriesId}` : `Show ${params.seriesId}`,
                         action: () => updateVisibility(params.seriesId, !params.visible),
                     },
-                    'toggle-other-series'
-                );
+                    'toggle-other-series',
+                ];
             }
-
-            const hasDiffSeries = options.series?.some((s) => s.id === DIFF_SERIES_ID);
-            if (hasDiffSeries) {
-                menuItems.push('separator', {
-                    type: 'action',
-                    showOn: 'always',
-                    label: 'Remove Diff',
-                    action: removeDiffSeries,
-                });
-            }
-
-            return menuItems;
         },
     },
 };
 
 const chart = AgCharts.create(options);
-
-function updateMarking(changedDatum: DatumType, yKey: string, marked: boolean) {
-    const newData = getPersistentMutableData();
-    for (const datum of newData) {
-        if (datum.category === changedDatum.category) {
-            datum.marked[yKey] = marked;
-            break;
-        }
-    }
-    options.data = newData;
-    chart.updateDelta(options);
-}
 
 function updateVisibility(seriesId: string, visible: boolean) {
     for (const series of options.series!) {
@@ -156,45 +73,4 @@ function updateVisibility(seriesId: string, visible: boolean) {
         }
     }
     chart.updateDelta(options);
-}
-
-function createDiffSeries(baseSeriesId: string, compareToId: string) {
-    const data = getPersistentMutableData();
-    const baseSeries = options.series?.find((s) => s.id === baseSeriesId);
-    const compareToSeries = options.series?.find((s) => s.id === compareToId);
-    if (!baseSeries || !compareToSeries) return;
-
-    const getDatumTypeYKey = (series: AgBarSeriesOptions) => {
-        const { yKey } = series;
-        if (yKey === 'apples' || yKey === 'oranges' || yKey === 'pears') return yKey;
-    };
-    const baseKey = getDatumTypeYKey(baseSeries);
-    const compareKey = getDatumTypeYKey(compareToSeries);
-    if (!baseKey || !compareKey) return;
-
-    const diffData = data.map((d) => ({
-        category: d.category,
-        diff: d[baseKey] - d[compareKey],
-    }));
-
-    removeDiffSeries();
-    options.series!.push({
-        type: 'bar',
-        id: DIFF_SERIES_ID,
-        xKey: 'category',
-        yKey: 'diff',
-        yName: `Diff (${baseKey} - ${compareKey})`,
-        data: diffData,
-        fill: 'gray',
-        stroke: 'black',
-    });
-    chart.updateDelta(options);
-}
-
-function removeDiffSeries() {
-    const before = options.series!.length;
-    options.series = options.series!.filter((s) => s.id !== DIFF_SERIES_ID);
-    if (options.series!.length !== before) {
-        chart.updateDelta(options);
-    }
 }

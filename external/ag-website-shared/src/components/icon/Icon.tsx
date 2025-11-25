@@ -153,6 +153,7 @@ export const ICON_MAP = {
     alarm: CarbonIcon.Alarm,
     terminal: CarbonIcon.Terminal,
     support: CarbonIcon.Chat,
+    cursor: CarbonIcon.Cursor_1,
     ...SOCIALS_ICON_MAP,
     ...CHARTS_ICON_MAP,
 };
