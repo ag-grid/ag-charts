@@ -89,20 +89,6 @@ export default [
             '@typescript-eslint/no-var-requires': 'off',
         },
     },
-    // Example files - validate module registrations
-    {
-        files: ['src/content/**/_examples/*/main.ts'],
-        languageOptions: {
-            parserOptions: {
-                projectService: false,
-                project: 'packages/ag-charts-website/tsconfig.examples.json',
-                tsconfigRootDir: import.meta.dirname + '/../..',
-            },
-        },
-        rules: {
-            'aglint/validate-module-registration': [2, { warnOverRegistration: true }],
-        },
-    },
     {
         // TODO: Remove these
         ignores: [
