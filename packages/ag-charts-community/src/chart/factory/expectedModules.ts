@@ -10,6 +10,10 @@ export interface ModulePlaceholder {
     enterprise?: boolean;
 }
 
+/**
+ * IMPORTANT: Make sure to update libraries/ag-charts-eslint-rules/rules/module-mappings.mjs
+ * when adding/removing modules to keep example validation in sync.
+ */
 export const ExpectedModules = new Map<string, ModulePlaceholder>(
     (
         [
