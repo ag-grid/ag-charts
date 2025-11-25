@@ -248,19 +248,19 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
             case 'axis':
                 if (axisTypesInOptions.has(module.name)) {
-                    addMissingModule(module);
                     for (const key of Object.keys(optionsAxes)) {
                         if (optionsAxes[key].type === module.name) {
                             delete optionsAxes[key];
                         }
                     }
+                    addMissingModule(module);
                 }
                 break;
 
             case 'series':
                 if (seriesTypesInOptions.has(module.name)) {
-                    addMissingModule(module);
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
+                    addMissingModule(module);
                 }
                 break;
 
@@ -276,24 +276,20 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             case 'axis:plugin':
-                if (Object.values(optionsAxes).some((axis) => axis[module.name as keyof typeof axis])) {
-                    addMissingModule(module);
-                    for (const axis of Object.values(optionsAxes)) {
-                        if (axis[module.name as keyof typeof axis]) {
-                            delete axis[module.name as keyof typeof axis];
-                        }
+                for (const axis of Object.values(optionsAxes)) {
+                    if (axis[module.name as keyof typeof axis]) {
+                        delete axis[module.name as keyof typeof axis];
+                        addMissingModule(module);
                     }
                 }
                 break;
 
             case 'series:plugin':
-                if (options.series?.some((series) => series[module.name as keyof typeof series])) {
-                    addMissingModule(module);
-                    for (const series of options.series) {
-                        type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
-                        if (series[module.name as SeriesModuleKey]) {
-                            delete series[module.name as SeriesModuleKey];
-                        }
+                for (const series of options.series ?? []) {
+                    type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
+                    if (series[module.name as SeriesModuleKey]) {
+                        delete series[module.name as SeriesModuleKey];
+                        addMissingModule(module);
                     }
                 }
                 break;
