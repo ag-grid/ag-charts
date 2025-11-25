@@ -141,10 +141,7 @@ test.describe('context-menu', () => {
             test(name, async ({ page }) => {
                 // Check that (x,y) coord are clicking the correct HTML element that we expect.
                 const rightClickedTextContent = await page.evaluate(
-                    ({ x, y }) => {
-                        const el = document.elementFromPoint(x, y);
-                        return el?.textContent ?? '';
-                    },
+                    (args) => document.elementFromPoint(args.x, args.y)?.textContent ?? '',
                     { x, y }
                 );
                 expect(rightClickedTextContent).toMatchSnapshot();
