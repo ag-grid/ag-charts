@@ -181,12 +181,13 @@ export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Pa
     return target;
 }
 
-export function assignIfNotStrictlyEqual<T>(target: T, source: T): T {
-    // JavaScript is weird... this is faster than Object.assign().
-    for (const key in source) {
+export function assignIfNotStrictlyEqual<T extends object>(target: T, source: T): T {
+    // Object.keys() + indexed loop is faster than for-in (avoids prototype chain traversal)
+    const keys = Object.keys(source) as (keyof T & string)[];
+    for (let i = 0, len = keys.length; i < len; i++) {
+        const key = keys[i];
         const newValue = source[key];
-        const previousValue = target[key];
-        if (previousValue !== newValue) {
+        if (target[key] !== newValue) {
             target[key] = newValue;
         }
     }
