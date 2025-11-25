@@ -8,15 +8,17 @@ import {
     type SeriesPluginModuleDefinition,
     deepClone,
     deepFreeze,
-    enterpriseRegistry,
     groupBy,
     isArray,
+    isDefined,
     isObject,
 } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ChartTheme } from '../themes/chartTheme';
 import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
+
+const SkippedModules = new Set<string>(['foreground']);
 
 export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
@@ -221,12 +223,13 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     options: T
 ): ModulePlaceholder[] {
     const missingModules = new Map<string, ModulePlaceholder>();
-    const seriesTypesInOptions =
-        (isArray(options.series) &&
-            options.series
-                .map((series) => series?.type as string | undefined)
-                .filter((type): type is string => typeof type === 'string')) ||
-        [];
+    const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
+    const axisTypesInOptions = new Set<string>(
+        Object.values(optionsAxes)
+            .map((axis) => axis.type)
+            .filter(isDefined)
+    );
+    const seriesTypesInOptions = new Set<string>(options.series?.map((series) => series.type).filter(isDefined));
 
     function addMissingModule(module: ModulePlaceholder) {
         missingModules.set(module.name, module);
@@ -234,31 +237,28 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
     for (const module of ExpectedModules.values()) {
         if (ModuleRegistry.hasModule(module.name)) continue;
-        const seriesTypeMissing = module.type === 'series' && seriesTypesInOptions.includes(module.name);
-        if (!seriesTypeMissing && chartType && module.chartType && chartType !== module.chartType) continue;
-        if (module.name === 'foreground' && enterpriseRegistry.createForeground != null) continue;
+        if (SkippedModules.has(module.name)) continue;
+        // Ignore modules that don't match the current chart type
+        if (chartType && module.chartType && chartType !== module.chartType) continue;
 
         switch (module.type) {
             case 'chart':
+                // Chart modules should automatically register as dependencies, so we don't need to warn here.
                 break;
 
             case 'axis':
-                if (
-                    'axes' in options &&
-                    isObject(options.axes) &&
-                    Object.values(options.axes).some((series) => series.type === module.name)
-                ) {
+                if (axisTypesInOptions.has(module.name)) {
                     addMissingModule(module);
-                    for (const key of Object.keys(options.axes)) {
-                        if (options.axes[key].type === module.name) {
-                            delete options.axes[key];
+                    for (const key of Object.keys(optionsAxes)) {
+                        if (optionsAxes[key].type === module.name) {
+                            delete optionsAxes[key];
                         }
                     }
                 }
                 break;
 
             case 'series':
-                if (isArray(options.series) && options.series.some((series) => series.type === module.name)) {
+                if (seriesTypesInOptions.has(module.name)) {
                     addMissingModule(module);
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
                 }
@@ -266,20 +266,17 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
             case 'plugin':
                 const optionsKey = module.name as keyof T;
-                if (options[optionsKey] != null) {
+                const pluginValue = options[optionsKey];
+                if (isObject(pluginValue) && pluginValue.enabled !== false) {
                     addMissingModule(module);
                     delete options[optionsKey];
                 }
                 break;
 
             case 'axis:plugin':
-                if (
-                    'axes' in options &&
-                    isObject(options.axes) &&
-                    Object.values(options.axes).some((axis) => axis[module.name as keyof typeof axis])
-                ) {
+                if (Object.values(optionsAxes).some((axis) => axis[module.name as keyof typeof axis])) {
                     addMissingModule(module);
-                    for (const axis of Object.values(options.axes)) {
+                    for (const axis of Object.values(optionsAxes)) {
                         if (axis[module.name as keyof typeof axis]) {
                             delete axis[module.name as keyof typeof axis];
                         }
@@ -288,10 +285,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             case 'series:plugin':
-                if (
-                    isArray(options.series as unknown) &&
-                    options.series?.some((series) => series[module.name as keyof typeof series])
-                ) {
+                if (options.series?.some((series) => series[module.name as keyof typeof series])) {
                     addMissingModule(module);
                     for (const series of options.series) {
                         type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
