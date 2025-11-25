@@ -629,6 +629,9 @@ const ohlcOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('ohlc2'),
         },
     ],
+    axes: {
+        x: { type: 'time', position: 'bottom' },
+    },
 };
 
 const candlestickOptions: AgCartesianChartOptions = {
@@ -654,6 +657,9 @@ const candlestickOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('candlestick2'),
         },
     ],
+    axes: {
+        x: { type: 'time', position: 'bottom' },
+    },
 };
 
 const pyramidOptions: AgChartOptions = {

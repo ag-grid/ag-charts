@@ -24,19 +24,21 @@ In this example:
 -   Any number of `y` axes can be created in this way and the same concept applies to x-axes using the `xKeyAxis` property.
 
 ```js format="snippet"
-series: [
-    // These two series are linked to the default 'y' axis
-    { type: 'bar', xKey: 'year', yKey: 'male' },
-    { type: 'bar', xKey: 'year', yKey: 'female' },
+{
+    series: [
+        // These two series are linked to the default 'y' axis
+        { type: 'bar', xKey: 'year', yKey: 'male' },
+        { type: 'bar', xKey: 'year', yKey: 'female' },
 
-    // This series is linked to a new, automatically created 'ySecondary' axis
-    {
-        type: 'line',
-        xKey: 'year',
-        yKey: 'exportedTonnes',
-        yKeyAxis: 'ySecondary',
-    },
-]
+        // This series is linked to a new, automatically created 'ySecondary' axis
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'exportedTonnes',
+            yKeyAxis: 'ySecondary',
+        },
+    ],
+}
 ```
 
 ## Configuring Axes
@@ -46,18 +48,20 @@ Automatic creation is useful in many cases, but explicit axis configuration is o
 To do this, the configured axes are declared in the `axes` property. The keys used here must match the keys used by the `yKeyAxis` property on the series.
 
 ```js format="snippet"
-axes: {
-    y: {
-        // This configures the default y-axis
-        type: 'number',
-        position: 'left',
-        title: { text: 'Number of cattle' },
-    },
-    ySecondary: {
-        // This configures the 'ySecondary' used by the line series
-        type: 'number',
-        position: 'right',
-        title: { text: 'Exports (tonnes)' },
+{
+    axes: {
+        y: {
+            // This configures the default y-axis
+            type: 'number',
+            position: 'left',
+            title: { text: 'Number of cattle' },
+        },
+        ySecondary: {
+            // This configures the 'ySecondary' used by the line series
+            type: 'number',
+            position: 'right',
+            title: { text: 'Exports (tonnes)' },
+        },
     },
 }
 ```
