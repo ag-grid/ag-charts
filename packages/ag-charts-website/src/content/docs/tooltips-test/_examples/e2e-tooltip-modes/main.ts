@@ -44,6 +44,10 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'unit-time',
         },
+        y: {
+            type: 'number',
+            position: 'right',
+        },
     },
 };
 
