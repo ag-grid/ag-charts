@@ -1201,12 +1201,12 @@ export class BarSeries extends AbstractBarSeries<
     protected override resetDatumAnimation(
         data: CartesianAnimationData<BarShape<BarNodeDatum>, BarNodeDatum, BarNodeDatum, BarSeriesNodeDataContext>
     ) {
-        // Use direct reset instead of super.resetDatumAnimation() to bypass resetMotion callback overhead
+        // Use direct reset for phantom selection to bypass resetMotion callback overhead
         resetBarSelectionsDirect([data.datumSelection, this.phantomSelection]);
     }
 
     override animateReadyHighlight(data: Selection<BarShape<BarNodeDatum>, BarNodeDatum>) {
-        // Use direct reset instead of super.animateReadyHighlight() to bypass resetMotion callback overhead
+        // Use direct reset for phantom selection to bypass resetMotion callback overhead
         resetBarSelectionsDirect([data, this.phantomHighlightSelection]);
     }
 

@@ -475,7 +475,9 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         self.__width = width;
         self.__height = height;
         self.__opacity = opacity;
+
         self.__clipBBox = clipBBox;
+        self._dirtyPath = true;
 
         // Single dirty notification for the batch
         this.markDirty();
