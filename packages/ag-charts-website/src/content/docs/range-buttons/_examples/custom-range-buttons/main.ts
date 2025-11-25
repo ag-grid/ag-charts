@@ -1,7 +1,26 @@
-import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
+import {
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
+import { AgCharts, AgFinancialChartOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { FinancialChartModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    FinancialChartModule,
+    LegendModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 const options: AgFinancialChartOptions = {

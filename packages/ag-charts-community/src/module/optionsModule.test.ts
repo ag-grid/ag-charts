@@ -2491,7 +2491,21 @@ describe('ChartOptions', () => {
                 }
             );
 
-            it('should only create default axes when series have axis keys but no axes are provided', () => {
+            it('should create default axes by series type', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should create default axes when series have axis keys but no axes are provided', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myXAxis', yKeyAxis: 'myYAxis' }],
                 };

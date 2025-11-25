@@ -44,7 +44,7 @@ function aggregationIndexType(
     xValues: any[],
     d0: number,
     d1: number,
-    indexData: Int32Array,
+    indexData: Uint32Array,
     maxRange: number,
     datumIndex: number,
     xNeedsValueOf: boolean

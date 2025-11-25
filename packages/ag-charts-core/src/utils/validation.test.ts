@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, jest } from '@jest/globals';
 
+import { reset as resetLogger } from '../globals/logger';
 import {
     type OptionsDefs,
     Validator,
@@ -13,6 +14,7 @@ import {
     attachDescription,
     boolean,
     callback,
+    callbackOf,
     constant,
     date,
     greaterThan,
@@ -45,6 +47,7 @@ describe('Validation utils', () => {
 
     beforeEach(() => {
         console.warn = jest.fn();
+        resetLogger();
     });
 
     describe('Base Validators', () => {
@@ -172,6 +175,33 @@ describe('Validation utils', () => {
             expect(runValidator(isArrayOfStrings, ['a', 'b', 'c'])).toBe(true);
             expect(runValidator(isArrayOfStrings, ['a', 1, 'c'])).toBe(false);
             expect(runValidator(isArrayOfStrings, 'not an array')).toBe(false);
+        });
+    });
+
+    describe('Callback Validators', () => {
+        test('callbackOf emits a single warning for invalid array returns', () => {
+            const formatterValidator = callbackOf(
+                arrayOfDefs<{ text: string }>(
+                    {
+                        text: required(string),
+                    },
+                    'text segment'
+                ),
+                'text segments'
+            );
+            const formatter = (value: any) => value;
+            const context = { options: {}, path: 'formatter' };
+            const validatorResult = formatterValidator(formatter, context) as ValidatorResult;
+            const wrappedFormatter = validatorResult.cleared as (...args: any[]) => any;
+
+            wrappedFormatter([
+                { text: 'ok' },
+                { text: 123 }, // invalid
+                42, // invalid
+            ]);
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('returned an invalid value');
         });
     });
 

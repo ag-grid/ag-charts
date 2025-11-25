@@ -1,7 +1,10 @@
+import { HistogramSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
+import { CrosshairModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([CrosshairModule, HistogramSeriesModule, LegendModule, NumberAxisModule]);
 type GradeBoundaries = {
     U: [number, number];
     E: [number, number];

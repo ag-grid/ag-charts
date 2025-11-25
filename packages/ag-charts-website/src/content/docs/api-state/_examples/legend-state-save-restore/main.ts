@@ -1,12 +1,32 @@
 import {
+    AreaSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
+import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgChartState,
     AgCharts,
+    AnimationModule,
+    CrosshairModule,
 } from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {

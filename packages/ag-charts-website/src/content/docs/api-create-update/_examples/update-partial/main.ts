@@ -5,9 +5,17 @@ import {
     AgChartTheme,
     AgCharts,
 } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 function buildSeries(name: string): AgAreaSeriesOptions {
     return {
         type: 'area',

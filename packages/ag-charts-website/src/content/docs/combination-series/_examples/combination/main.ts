@@ -7,9 +7,26 @@ import {
     AgCharts,
     AgLineSeriesOptions,
 } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    LegendModule,
+]);
 const WOMEN: AgBarSeriesOptions = {
     type: 'bar',
     xKey: 'year',

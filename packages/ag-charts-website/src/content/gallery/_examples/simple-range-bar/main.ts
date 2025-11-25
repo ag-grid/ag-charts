@@ -1,7 +1,22 @@
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AnimationModule,
+    BandHighlightModule,
+    OrdinalTimeAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BandHighlightModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    RangeBarSeriesModule,
+]);
 const day = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',

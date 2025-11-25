@@ -1,8 +1,26 @@
-import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgLineSeriesTooltipRendererParams,
+    AnimationModule,
+    CrosshairModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
+import { ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { DataType } from './data';
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    ErrorBarsModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

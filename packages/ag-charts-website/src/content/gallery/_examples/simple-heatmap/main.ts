@@ -1,7 +1,10 @@
+import { CategoryAxisModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { GradientLegendModule, HeatmapSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -25,7 +28,6 @@ const options: AgChartOptions = {
             yName: 'Year',
             colorKey: 'temperature',
             colorName: 'Temperature',
-
             // Enhanced color scale - diverging blue to red
             colorRange: [
                 'darkblue',
@@ -38,7 +40,6 @@ const options: AgChartOptions = {
                 'red',
                 'darkred',
             ],
-
             // Enhanced tooltip
             tooltip: {
                 renderer: ({ datum, xKey, yKey, colorKey }) => {
@@ -53,7 +54,6 @@ const options: AgChartOptions = {
                     };
                 },
             },
-
             // Cell styling
             strokeWidth: 0.5,
             strokeOpacity: 0.1,

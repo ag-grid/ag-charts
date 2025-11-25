@@ -1,7 +1,28 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
+import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
+import { NavigatorModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { AAPL, MSFT } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    SyncModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const commonOptions: AgChartOptions = {
     minWidth: 0,
     minHeight: 0,

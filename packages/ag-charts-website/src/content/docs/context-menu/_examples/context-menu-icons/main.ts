@@ -1,5 +1,15 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { ContextMenuModule } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    PieSeriesModule,
+    ZoomModule,
+]);
 const DOWNLOAD_URL =
     'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJhZy1pY29uIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMS41IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxzdHlsZT4qIHsgdmVjdG9yLWVmZmVjdDogbm9uLXNjYWxpbmctc3Ryb2tlOyB9PC9zdHlsZT48cGF0aCBkPSJNMTIgMTdWMyIvPjxwYXRoIGQ9Im02IDExIDYgNiA2LTYiLz48cGF0aCBkPSJNMTkgMjFINSIvPjwvc3ZnPg==';
 

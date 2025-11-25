@@ -1,5 +1,7 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { AreaSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
+ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 var data = [
     { quarter: 'Q1', coffee: 450, tea: 270, milk: 180 },
     { quarter: 'Q2', coffee: 560, tea: 380, milk: 170 },

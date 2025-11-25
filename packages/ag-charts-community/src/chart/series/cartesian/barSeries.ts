@@ -22,6 +22,7 @@ import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
+import { DeferredExecutor } from '../../../util/deferredExecutor';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -51,6 +52,7 @@ import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
+    AGGREGATION_INDEX_UNSET,
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
@@ -62,7 +64,11 @@ import {
     type AbstractBarSeriesAnimationData,
     type AbstractBarSeriesNodeDataContext,
 } from './abstractBarSeries';
-import { type BarSeriesDataAggregationFilter, aggregateBarDataFromDataModel } from './barAggregation';
+import {
+    type BarSeriesDataAggregationFilter,
+    aggregateBarDataFromDataModel,
+    aggregateBarDataFromDataModelPartial,
+} from './barAggregation';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
@@ -131,6 +137,7 @@ export class BarSeries extends AbstractBarSeries<
     override connectsToYAxis = true;
 
     private dataAggregationFilters: BarSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationExecutor = new DeferredExecutor<BarSeriesDataAggregationFilter[]>();
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : undefined;
@@ -347,11 +354,74 @@ export class BarSeries extends AbstractBarSeries<
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
+        // Cancel any pending deferred aggregation from previous data
+        this.aggregationExecutor.cancel();
+
+        // Estimate target range from current axis scale
+        const targetRange = this.estimateTargetRange();
+
+        // Use partial computation if we have a valid target range
+        if (targetRange > 0) {
+            const partialResult = aggregateBarDataFromDataModelPartial(
+                xAxis.scale.type,
+                dataModel,
+                processedData,
+                this,
+                targetRange
+            );
+
+            if (partialResult) {
+                const { immediate, computeRemaining } = partialResult;
+
+                if (computeRemaining) {
+                    // Schedule deferred computation of remaining levels
+                    this.aggregationExecutor.schedule(computeRemaining, (remaining) => {
+                        this.mergeAggregationLevels(remaining);
+                    });
+                }
+
+                return immediate;
+            }
+        }
+
+        // Fallback to full computation
         return aggregateBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
     }
 
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale?.range) {
+            const [r0, r1] = xAxis.scale.range;
+            return Math.abs(r1 - r0);
+        }
+        // Fallback: estimate from chart dimensions
+        return this.ctx.scene?.canvas?.width ?? 800;
+    }
+
+    private mergeAggregationLevels(deferredLevels: BarSeriesDataAggregationFilter[]): void {
+        if (!this.dataAggregationFilters || deferredLevels.length === 0) return;
+
+        // Merge deferred levels with immediate levels, maintaining coarse-to-fine order
+        const allLevels = [...this.dataAggregationFilters, ...deferredLevels];
+        allLevels.sort((a, b) => a.maxRange - b.maxRange);
+        this.dataAggregationFilters = allLevels;
+    }
+
+    private ensureAggregationLevelForRange(range: number): void {
+        // Check if we have a level suitable for the given range
+        const hasLevel = this.dataAggregationFilters?.some((f) => f.maxRange > range);
+
+        if (!hasLevel && this.aggregationExecutor.isPending()) {
+            // Force immediate computation of deferred levels
+            const remaining = this.aggregationExecutor.demand();
+            if (remaining) {
+                this.mergeAggregationLevels(remaining);
+            }
+        }
+    }
+
     createNodeData() {
-        const { dataModel, processedData, groupScale, dataAggregationFilters } = this;
+        const { dataModel, processedData, groupScale } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -385,7 +455,12 @@ export class BarSeries extends AbstractBarSeries<
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        // Ensure we have the aggregation level needed for the current range
+        // This will force-compute deferred levels if necessary
+        this.ensureAggregationLevelForRange(range);
+
+        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const crisp =
             dataAggregationFilter == null &&
@@ -393,7 +468,8 @@ export class BarSeries extends AbstractBarSeries<
                 checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval));
 
         const bboxBottom = yScale.convert(0);
-        const nodeDatum = ({
+        const series = this;
+        function nodeDatum({
             datum,
             datumIndex,
             xValue,
@@ -427,13 +503,13 @@ export class BarSeries extends AbstractBarSeries<
             opacity: number;
             featherRatio: number;
             crossScale: number | undefined;
-        }): BarNodeDatum => {
+        }): BarNodeDatum {
             const isUpward = isPositive !== yReversed;
 
             const y = yScale.convert(currY);
             const bottomY = yScale.convert(prevY);
             const bboxHeight = yScale.convert(yRange);
-            const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+            const barAlongX = series.getBarDirection() === ChartAxisDirection.X;
 
             const xOffset = width * 0.5 * (1 - crossScale);
             const rect = {
@@ -452,11 +528,11 @@ export class BarSeries extends AbstractBarSeries<
                 height: barAlongX ? width * crossScale : Math.abs(bboxBottom - bboxHeight),
             };
 
-            const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
+            const lengthRatioMultiplier = series.shouldFlipXY() ? rect.height : rect.width;
 
             const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             return {
-                series: this,
+                series,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
                 datumIndex,
@@ -499,13 +575,13 @@ export class BarSeries extends AbstractBarSeries<
                 missing: isTooltipValueMissing(yValue),
                 focusable: !phantom,
             };
-        };
+        }
 
         const phantomNodes: BarNodeDatum[] = [];
         const nodes: BarNodeDatum[] = [];
         const labels: BarNodeDatum[] = [];
 
-        const handleDatum = (
+        function handleDatum(
             datumIndex: number,
             x: number,
             width: number,
@@ -514,11 +590,11 @@ export class BarSeries extends AbstractBarSeries<
             yRange: number,
             featherRatio = 0,
             opacity = 1
-        ) => {
+        ) {
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
-            const datum = rawData.data[datumIndex];
+            const datum = rawData?.data[datumIndex];
 
             const yRawValue = yRawValues[datumIndex];
             const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
@@ -529,7 +605,7 @@ export class BarSeries extends AbstractBarSeries<
 
             const labelText =
                 label.enabled && yRawValue != null
-                    ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
+                    ? series.getLabelText<AgBarSeriesLabelFormatterParams>(
                           yFilterValue ?? yRawValue,
                           datum,
                           yKey,
@@ -565,7 +641,7 @@ export class BarSeries extends AbstractBarSeries<
 
             if (yFilterValue != null) {
                 const phantomNodeData = nodeDatum({
-                    datum: rawData.data[datumIndex],
+                    datum: rawData?.data[datumIndex],
                     datumIndex,
                     xValue,
                     yValue: yFilterValue,
@@ -584,7 +660,7 @@ export class BarSeries extends AbstractBarSeries<
                 });
                 phantomNodes.push(phantomNodeData);
             }
-        };
+        }
 
         if (dataAggregationFilter != null) {
             const { positiveIndices, positiveIndexData, negativeIndices, negativeIndexData } = dataAggregationFilter;
@@ -607,7 +683,7 @@ export class BarSeries extends AbstractBarSeries<
                     const yMinIndex = indexData[aggIndex + Y_MIN];
                     const yMaxIndex = indexData[aggIndex + Y_MAX];
 
-                    if (xMinIndex === -1) continue;
+                    if (xMinIndex === AGGREGATION_INDEX_UNSET) continue;
                     if (xValues[yMaxIndex] == null || xValues[yMinIndex] == null) continue;
 
                     const x = xPosition(Math.trunc((xMinIndex + xMaxIndex) / 2));

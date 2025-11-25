@@ -8,6 +8,7 @@ import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
     multiSeriesHighlightStyle,
+    predictCartesianFinancialAxis,
 } = _ModuleSupport;
 
 const themeTemplate: ExtensibleTheme<'ohlc'> = {
@@ -62,6 +63,7 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: ohlcSeriesOptionsDef,
+    predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {
         y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
         x: { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },

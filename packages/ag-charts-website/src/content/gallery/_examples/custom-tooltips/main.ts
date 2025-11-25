@@ -1,7 +1,9 @@
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 function tooltipRenderer({ fill, yName, datum, yKey }: AgBarSeriesTooltipRendererParams<DataType>) {
     var formatThousands = function (value: number) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');

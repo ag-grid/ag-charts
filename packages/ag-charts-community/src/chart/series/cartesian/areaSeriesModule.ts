@@ -17,7 +17,7 @@ import {
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'area'> = {
     series: {
@@ -90,7 +90,7 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: areaSeriesOptionsDef,
-    predictAxis: predictCartesianTimeAxis,
+    predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

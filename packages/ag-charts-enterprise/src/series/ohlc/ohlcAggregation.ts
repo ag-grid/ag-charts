@@ -8,23 +8,34 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_MIN_RANGE,
+    AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationRangeFittingPoints,
-    compactAggregationIndices,
+    collectAggregationLevels,
     createAggregationIndices,
 } = _ModuleSupport;
-
-const AGGREGATION_THRESHOLD = 1e3;
 
 export const OPEN = AGGREGATION_INDEX_X_MIN;
 export const HIGH = AGGREGATION_INDEX_Y_MAX;
 export const LOW = AGGREGATION_INDEX_Y_MIN;
 export const CLOSE = AGGREGATION_INDEX_X_MAX;
-export { AGGREGATION_SPAN as SPAN };
+export const SPAN = AGGREGATION_SPAN;
 
 export interface OhlcSeriesDataAggregationFilter {
-    indexData: Int32Array;
+    indexData: Uint32Array;
     maxRange: number;
+    midpointIndices: Uint32Array;
+}
+
+function getMidpoints(maxRange: number, indexData: Uint32Array): Uint32Array {
+    const midpoints = new Uint32Array(maxRange);
+    for (let i = 0, offset = 0; i < maxRange; i += 1, offset += SPAN) {
+        const openIndex = indexData[offset + OPEN];
+        const closeIndex = indexData[offset + CLOSE];
+        midpoints[i] = openIndex === -1 ? -1 : (openIndex + closeIndex) >> 1;
+    }
+    return midpoints;
 }
 
 // ============================================================================
@@ -73,18 +84,22 @@ export function computeOhlcAggregation(
     const [d0, d1] = domain;
     const { smallestKeyInterval } = options;
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
-    let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
+    const maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
+    const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
+    const midpointData = getMidpoints(maxRange, indexData);
 
-    const filters: OhlcSeriesDataAggregationFilter[] = [{ maxRange, indexData }];
-
-    while (maxRange > 64) {
-        ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
-
-        filters.push({ maxRange, indexData });
-    }
-
-    filters.reverse();
+    const filters = collectAggregationLevels<OhlcSeriesDataAggregationFilter>(
+        { maxRange, indexData, valueData, midpointData },
+        {
+            minRange: AGGREGATION_MIN_RANGE,
+            collectLevel: ({ maxRange: range, indexData: levelIndexData, midpointData: levelMidpointData }) => ({
+                maxRange: range,
+                indexData: levelIndexData,
+                midpointIndices: levelMidpointData ?? getMidpoints(range, levelIndexData),
+            }),
+            shouldContinue: () => true,
+        }
+    );
 
     return filters;
 }
