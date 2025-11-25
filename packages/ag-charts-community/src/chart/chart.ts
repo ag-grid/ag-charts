@@ -495,6 +495,24 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
+    refreshProcessedSeriesVisibilityOptions(): void {
+        // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
+        // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
+        // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
+        // "new / updated" state; sometimes `updateDelta()` updates the series visibility, and sometimes it doesn't. To
+        // address this discrepancy, we'll update processedOptions to match the current visibility state of the series.
+        const options = this.getChartOptions();
+        if (options) {
+            for (let i = 0; i < this.series.length; i++) {
+                const src: undefined | { visible: boolean } = this.series[i];
+                const dst: undefined | { visible: boolean } | {} = options.processedOptions.series?.[i];
+                if (src !== undefined && dst !== undefined && 'visible' in dst) {
+                    dst.visible = src.visible;
+                }
+            }
+        }
+    }
+
     resetAnimations() {
         this.chartAnimationPhase = 'initial';
 
