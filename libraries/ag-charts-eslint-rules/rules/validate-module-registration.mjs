@@ -352,6 +352,70 @@ export default {
             return false;
         }
 
+        // Property keys whose values should not be interpreted as series/axis types
+        const excludedPropertyKeys = new Set([
+            // Data keys
+            'xKey',
+            'yKey',
+            'sizeKey',
+            'colorKey',
+            'labelKey',
+            'angleKey',
+            'radiusKey',
+            'calloutLabelKey',
+            'sectorLabelKey',
+            'fromKey',
+            'toKey',
+            'openKey',
+            'closeKey',
+            'highKey',
+            'lowKey',
+            'yLowKey',
+            'yHighKey',
+            // Shape/style properties
+            'shape',
+            // Non-chart contexts
+            'crossLines',
+            'annotations',
+            'targets',
+            // Callback properties
+            'formatter',
+            'renderer',
+            'comparator',
+            // Other
+            'department',
+            'category',
+        ]);
+
+        /**
+         * Check if a literal is in a context where it should not be interpreted as a type
+         */
+        function isLiteralInExcludedContext(node) {
+            const ancestors = context.sourceCode.getAncestors(node);
+
+            for (let i = ancestors.length - 1; i >= 0; i--) {
+                const ancestor = ancestors[i];
+
+                // Skip if inside a function body (formatters, renderers, callbacks)
+                if (ancestor.type === 'ArrowFunctionExpression' || ancestor.type === 'FunctionExpression') {
+                    // Check if this function is a property value (e.g., formatter: () => ...)
+                    const funcParentIndex = i - 1;
+                    if (funcParentIndex >= 0 && ancestors[funcParentIndex]?.type === 'Property') {
+                        return true; // Exclude literals inside callback functions
+                    }
+                }
+
+                // Skip if inside excluded property context
+                if (ancestor.type === 'Property' && ancestor.key.type === 'Identifier') {
+                    if (excludedPropertyKeys.has(ancestor.key.name)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /**
          * Create a fixer to remove a module from the registerModules array
          */
@@ -480,24 +544,57 @@ export default {
                 } else if (pluginOptionToModule.has(keyName)) {
                     processPluginOption(keyName, node.value, node);
                 } else if (keyName === 'type') {
-                    // Handle sparkline-style options where type is at top level
-                    const seriesType = getStringValue(node.value);
-                    if (seriesType && seriesTypeToModule.has(seriesType)) {
-                        // Skip types that are ambiguous with non-series contexts
-                        // (e.g., 'line'/'range' in crossLines, annotation types in annotations)
-                        const ancestors = context.sourceCode.getAncestors(node);
-                        const isInNonSeriesContext = ancestors.some(
-                            (a) =>
-                                a.type === 'Property' &&
-                                a.key.type === 'Identifier' &&
-                                (a.key.name === 'crossLines' || a.key.name === 'annotations')
-                        );
-                        if (isInNonSeriesContext) return;
+                    // Handle type properties anywhere in the file
+                    const typeValue = getStringValue(node.value);
+                    if (!typeValue) return;
 
-                        seriesTypes.push(seriesType);
-                        const moduleId = seriesTypeToModule.get(seriesType);
-                        requireModule(moduleId, `series type '${seriesType}'`, node);
+                    // Skip types in non-chart contexts (crossLines, annotations)
+                    const ancestors = context.sourceCode.getAncestors(node);
+                    const isInNonSeriesContext = ancestors.some(
+                        (a) =>
+                            a.type === 'Property' &&
+                            a.key.type === 'Identifier' &&
+                            (a.key.name === 'crossLines' || a.key.name === 'annotations')
+                    );
+                    if (isInNonSeriesContext) return;
+
+                    // Check if it's a series type
+                    if (seriesTypeToModule.has(typeValue)) {
+                        seriesTypes.push(typeValue);
+                        const moduleId = seriesTypeToModule.get(typeValue);
+                        requireModule(moduleId, `series type '${typeValue}'`, node);
                     }
+
+                    // Check if it's an axis type
+                    if (axisTypeToModule.has(typeValue)) {
+                        hasExplicitAxes = true;
+                        const moduleId = axisTypeToModule.get(typeValue);
+                        requireModule(moduleId, `axis type '${typeValue}'`, node);
+                    }
+                }
+            },
+
+            // Scan ALL string literals in the file for known series/axis types
+            // This catches dynamic patterns like: case 'bar':, type === 'bar' ? ...
+            Literal(node) {
+                if (typeof node.value !== 'string') return;
+                const value = node.value;
+
+                // Skip if in excluded context (data keys, callbacks, shapes, etc.)
+                if (isLiteralInExcludedContext(node)) return;
+
+                // Check if it's a known series type
+                if (seriesTypeToModule.has(value)) {
+                    seriesTypes.push(value);
+                    const moduleId = seriesTypeToModule.get(value);
+                    requireModule(moduleId, `series type '${value}'`, node);
+                }
+
+                // Check if it's a known axis type and require the module
+                if (axisTypeToModule.has(value)) {
+                    hasExplicitAxes = true;
+                    const moduleId = axisTypeToModule.get(value);
+                    requireModule(moduleId, `axis type '${value}'`, node);
                 }
             },
 

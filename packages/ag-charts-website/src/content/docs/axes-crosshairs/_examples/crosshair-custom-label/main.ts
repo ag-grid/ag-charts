@@ -1,4 +1,4 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
@@ -10,7 +10,14 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, NumberAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const crosshairLabelRenderer = (arrowPosition: 'top' | 'right') => {
     const classList =
         arrowPosition === 'top'
