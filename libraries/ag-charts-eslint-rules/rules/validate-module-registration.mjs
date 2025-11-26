@@ -9,7 +9,9 @@ import {
     cartesianSeriesModules,
     enterpriseModules,
     intrinsicDefaults,
+    moduleToPackage,
     pluginOptionToModule,
+    polarSeriesModules,
     seriesChartType,
     seriesDefaultAxes,
     seriesPluginToModule,
@@ -61,6 +63,10 @@ export default {
         let isEnterprise = false;
         let hasExplicitAxes = false;
         let seriesTypes = [];
+
+        // Import tracking for auto-fix
+        let importedModules = new Map(); // moduleId -> { node, packageName }
+        let importDeclarations = new Map(); // packageName -> ImportDeclaration node
 
         /**
          * Expand bundle modules to their contents
@@ -461,6 +467,73 @@ export default {
         }
 
         /**
+         * Check if an array node spans multiple lines
+         */
+        function isArrayMultiline(arrayNode) {
+            return arrayNode.loc.start.line !== arrayNode.loc.end.line;
+        }
+
+        /**
+         * Detect the indentation used for array elements
+         */
+        function detectIndentation(node) {
+            const sourceCode = context.sourceCode || context.getSourceCode();
+            const lineStart = sourceCode.getIndexFromLoc({ line: node.loc.start.line, column: 0 });
+            const textBeforeNode = sourceCode.text.slice(lineStart, node.range[0]);
+            const match = textBeforeNode.match(/^(\s*)/);
+            return match ? match[1] : '    ';
+        }
+
+        /**
+         * Create a fixer to add a module to the registerModules array and import if needed
+         */
+        function createAddModuleFixer(moduleId) {
+            if (!registeredModulesArrayNode) return null;
+
+            const packageName = moduleToPackage.get(moduleId);
+            if (!packageName) return null; // Can't fix if we don't know the package
+
+            return function* (fixer) {
+                const sourceCode = context.sourceCode || context.getSourceCode();
+
+                // Part 1: Add import if needed
+                if (!importedModules.has(moduleId)) {
+                    const existingImport = importDeclarations.get(packageName);
+
+                    if (existingImport && existingImport.specifiers.length > 0) {
+                        // Add to existing import: import { A } from '...' -> import { A, B } from '...'
+                        const lastSpecifier = existingImport.specifiers[existingImport.specifiers.length - 1];
+                        yield fixer.insertTextAfter(lastSpecifier, `, ${moduleId}`);
+                    } else {
+                        // Create new import at top of file
+                        const importText = `import { ${moduleId} } from '${packageName}';\n`;
+                        yield fixer.insertTextBefore(sourceCode.ast.body[0], importText);
+                    }
+                }
+
+                // Part 2: Add to registerModules array
+                const elements = registeredModulesArrayNode.elements;
+
+                if (elements.length === 0) {
+                    // Empty array: insert as first element
+                    const openBracket = sourceCode.getFirstToken(registeredModulesArrayNode);
+                    yield fixer.insertTextAfter(openBracket, moduleId);
+                } else {
+                    const lastElement = elements[elements.length - 1];
+                    const multiline = isArrayMultiline(registeredModulesArrayNode);
+
+                    if (multiline) {
+                        // Detect indentation from existing elements
+                        const indent = detectIndentation(lastElement);
+                        yield fixer.insertTextAfter(lastElement, `,\n${indent}${moduleId}`);
+                    } else {
+                        yield fixer.insertTextAfter(lastElement, `, ${moduleId}`);
+                    }
+                }
+            };
+        }
+
+        /**
          * Get intrinsic default modules (commonly registered without explicit options)
          */
         function getIntrinsicDefaults() {
@@ -479,6 +552,15 @@ export default {
                     defaults.add(mod);
                 }
             }
+            // Check if any series is polar type (from options parsing)
+            const hasPolarSeries = seriesTypes.some((type) => seriesChartType.get(type) === 'polar');
+            // Also check if any registered module is a polar series module (for dynamic series)
+            const hasPolarSeriesModule = [...registeredModules].some((mod) => polarSeriesModules.has(mod));
+            if ((hasPolarSeries || hasPolarSeriesModule) && intrinsicDefaults.polar) {
+                for (const mod of intrinsicDefaults.polar) {
+                    defaults.add(mod);
+                }
+            }
             return defaults;
         }
 
@@ -491,6 +573,7 @@ export default {
             for (const seriesType of seriesTypes) {
                 const defaults = seriesDefaultAxes.get(seriesType);
                 if (defaults) {
+                    // Cartesian axes (x, y)
                     if (defaults.x) {
                         const moduleId = axisTypeToModule.get(defaults.x);
                         if (moduleId) {
@@ -503,15 +586,43 @@ export default {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
+                    // Polar axes (angle, radius)
+                    if (defaults.angle) {
+                        const moduleId = axisTypeToModule.get(defaults.angle);
+                        if (moduleId) {
+                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        }
+                    }
+                    if (defaults.radius) {
+                        const moduleId = axisTypeToModule.get(defaults.radius);
+                        if (moduleId) {
+                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        }
+                    }
                 }
             }
         }
 
         return {
-            // Check for enterprise imports
+            // Track imports for auto-fix and enterprise detection
             ImportDeclaration(node) {
-                if (node.source.value === 'ag-charts-enterprise') {
+                const packageName = node.source.value;
+
+                // Track enterprise detection (existing behavior)
+                if (packageName === 'ag-charts-enterprise') {
                     isEnterprise = true;
+                }
+
+                // Track all AG Charts imports for auto-fix
+                if (packageName === 'ag-charts-community' || packageName === 'ag-charts-enterprise') {
+                    importDeclarations.set(packageName, node);
+
+                    for (const specifier of node.specifiers) {
+                        if (specifier.type === 'ImportSpecifier' && specifier.imported) {
+                            const moduleName = specifier.imported.name;
+                            importedModules.set(moduleName, { node: specifier, packageName });
+                        }
+                    }
                 }
             },
 
@@ -621,6 +732,7 @@ export default {
                             node: info.node || registeredModulesNode,
                             messageId: 'missingModule',
                             data: { moduleId, reason: info.reason },
+                            fix: createAddModuleFixer(moduleId),
                         });
                     }
                 }
