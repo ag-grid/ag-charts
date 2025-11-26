@@ -2,7 +2,6 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
@@ -16,7 +15,6 @@ ModuleRegistry.registerModules([
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
-    LineSeriesModule,
     NumberAxisModule,
 ]);
 const options: AgChartOptions = {

@@ -1,10 +1,10 @@
-import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, CrosshairModule } from 'ag-charts-enterprise';
 import { OhlcSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, OhlcSeriesModule, OrdinalTimeAxisModule]);
+ModuleRegistry.registerModules([NumberAxisModule, OhlcSeriesModule, OrdinalTimeAxisModule, CrosshairModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 4,
     maximumFractionDigits: 4,

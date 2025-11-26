@@ -1,24 +1,49 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    HistogramSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
+    CandlestickSeriesModule,
     CrosshairModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    CandlestickSeriesModule,
     CrosshairModule,
+    HistogramSeriesModule,
     LegendModule,
     LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,
+    OhlcSeriesModule,
     OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    ScatterSeriesModule,
     TimeAxisModule,
     ZoomModule,
 ]);

@@ -347,7 +347,7 @@ export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTime
 
 export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    type: required(constant('category')),
+    type: constant('category'),
     label: cartesianAxisLabelOptionsDefs,
     paddingInner: ratio,
     paddingOuter: ratio,
@@ -362,7 +362,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    type: required(constant('grouped-category')),
+    type: constant('grouped-category'),
     label: cartesianAxisLabelOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(),
     bandHighlight: cartesianAxisBandHighlightOptions,
@@ -393,7 +393,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('number')),
+    type: constant('number'),
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
 };
@@ -401,7 +401,7 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
 export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('log')),
+    type: constant('log'),
     base: and(
         positiveNumberNonZero,
         attachDescription((value) => value !== 1, 'not equal to 1')
@@ -413,7 +413,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
 export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
-    type: required(constant('time')),
+    type: constant('time'),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true, true),
@@ -421,7 +421,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    type: required(constant('unit-time')),
+    type: constant('unit-time'),
     unit: or(timeInterval, timeIntervalUnit),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,

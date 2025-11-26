@@ -221,3 +221,24 @@ exports[`aglint/require-explicit-generic 1`] = `
 ",
 }
 `;
+
+exports[`aglint/validate-module-registration 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-validate-module-registration.data.ts
+   41:16  error  Module 'BarSeriesModule' is required for series type 'bar' but not registered          aglint/validate-module-registration
+   99:32  error  Module 'CrosshairModule' is required for axis option 'crosshair' but not registered    aglint/validate-module-registration
+  112:5   error  Module 'ZoomModule' is required for option 'zoom' but not registered                   aglint/validate-module-registration
+  149:13  error  Module 'ScatterSeriesModule' is required for series type 'scatter' but not registered  aglint/validate-module-registration
+  152:13  error  Module 'ErrorBarsModule' is required for series option 'errorBar' but not registered   aglint/validate-module-registration
+  178:5   error  Module 'NavigatorModule' is required for option 'navigator' but not registered         aglint/validate-module-registration
+  187:16  error  Module 'PieSeriesModule' is required for series type 'pie' but not registered          aglint/validate-module-registration
+  198:5   error  Module 'DataSourceModule' is required for option 'dataSource' but not registered       aglint/validate-module-registration
+
+✖ 8 problems (8 errors, 0 warnings)
+  8 errors and 0 warnings potentially fixable with the \`--fix\` option.
+
+",
+}
+`;

@@ -1,7 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getBenchmark1Data, getBenchmark2Data } from './data';
-import { formatBytes, formatMillis, labelFormatter } from './utils';
 
 const commonOptions = {
     sync: { axes: 'xy' },

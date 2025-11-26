@@ -1,5 +1,5 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
 import {
     MapLineSeriesModule,
     MapMarkerSeriesModule,
@@ -12,13 +12,11 @@ import { getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
 ModuleRegistry.registerModules([
-    CategoryAxisModule,
     LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     MapShapeSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const currencyLayers: Record<string, { title: string; symbol: string; countries: number }> = {

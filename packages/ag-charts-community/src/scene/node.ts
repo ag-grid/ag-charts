@@ -299,6 +299,18 @@ export abstract class Node<TDatum = unknown> {
         return this;
     }
 
+    setPropertiesWithKeys<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys: readonly string[]) {
+        this.batchLevel++;
+        assignIfNotStrictlyEqual(this, styles, keys);
+        this.batchLevel--;
+
+        if (this.batchLevel === 0 && this.batchDirty) {
+            this.markDirty();
+            this.batchDirty = false;
+        }
+        return this;
+    }
+
     containsPoint(_x: number, _y: number): boolean {
         return false;
     }

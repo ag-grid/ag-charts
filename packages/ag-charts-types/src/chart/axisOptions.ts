@@ -55,7 +55,7 @@ export interface AgAxisCaptionOptions {
 
 export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     /** Axis type identifier. */
-    type: string;
+    type?: string;
     /** Context object to use in callbacks. */
     context?: TContext;
     /** Reverse the axis scale domain if `true`. */

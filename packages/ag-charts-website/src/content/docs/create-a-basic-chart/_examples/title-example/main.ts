@@ -2,7 +2,6 @@ import {
     AgBarSeriesOptions,
     AgCategoryAxisOptions,
     AgChartCaptionOptions,
-    AgChartLegendOptions,
     AgChartOptions,
     AgChartSubtitleOptions,
     AgCharts,

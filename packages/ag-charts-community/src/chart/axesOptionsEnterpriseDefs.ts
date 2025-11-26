@@ -8,7 +8,6 @@ import {
     number,
     positiveNumber,
     ratio,
-    required,
     union,
 } from 'ag-charts-core';
 import type {
@@ -37,7 +36,7 @@ import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    type: required(constant('ordinal-time')),
+    type: constant('ordinal-time'),
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
@@ -51,7 +50,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('angle-number')),
+    type: constant('angle-number'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
     startAngle: number,
     endAngle: number,
@@ -64,7 +63,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
 
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
-    type: required(constant('angle-category')),
+    type: constant('angle-category'),
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
     startAngle: number,
@@ -83,7 +82,7 @@ angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;
 export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('radius-number')),
+    type: constant('radius-number'),
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
@@ -112,7 +111,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
 
 export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
-    type: required(constant('radius-category')),
+    type: constant('radius-category'),
     positionAngle: number,
     innerRadiusRatio: ratio,
     paddingInner: ratio,

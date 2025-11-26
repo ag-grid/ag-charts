@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     MapLineBackgroundSeriesModule,
@@ -15,13 +15,11 @@ import { yorkRoadsTopology } from './yorkRoadsTopology';
 import { yorkTopology } from './yorkTopology';
 
 ModuleRegistry.registerModules([
-    CategoryAxisModule,
     LegendModule,
     MapLineBackgroundSeriesModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
-    NumberAxisModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

@@ -1,11 +1,11 @@
 // Source: https://survey.stackoverflow.co
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { ChordSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, ChordSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([ChordSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
 
 const options: AgChartOptions<DataType> = {

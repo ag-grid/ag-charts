@@ -1,4 +1,4 @@
-import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     AnimationModule,
@@ -12,7 +12,6 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AnimationModule,
     BandHighlightModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     RangeBarSeriesModule,

@@ -1,6 +1,6 @@
 // @ag-skip-fws
 // AgCharts import needed for dark-mode skippet
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions } from 'ag-charts-community';
 
 const css = String.raw;
 const html = String.raw;

@@ -84,6 +84,8 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
     private proxyText?: BoundedTextWidget;
     private proxyTextListeners?: Array<() => void>;
+    private lastProxyTextContent?: string;
+    private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
     registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
         return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
@@ -129,8 +131,26 @@ export class Caption extends BaseProperties implements CaptionLike {
                 this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev)),
             ];
         }
-        this.proxyText.textContent = toPlainText(this.text);
-        this.proxyText.setBounds(bbox);
+
+        // Only update DOM if content changed - avoids unnecessary DOM operations
+        const textContent = toPlainText(this.text);
+        if (textContent !== this.lastProxyTextContent) {
+            this.proxyText.textContent = textContent;
+            this.lastProxyTextContent = textContent;
+        }
+
+        // Only update bounds if they changed
+        const { lastProxyBBox } = this;
+        if (
+            lastProxyBBox == null ||
+            bbox.x !== lastProxyBBox.x ||
+            bbox.y !== lastProxyBBox.y ||
+            bbox.width !== lastProxyBBox.width ||
+            bbox.height !== lastProxyBBox.height
+        ) {
+            this.proxyText.setBounds(bbox);
+            this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+        }
     }
 
     private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
@@ -161,5 +181,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.proxyTextListeners = undefined;
         this.proxyText.destroy();
         this.proxyText = undefined;
+        this.lastProxyTextContent = undefined;
+        this.lastProxyBBox = undefined;
     }
 }

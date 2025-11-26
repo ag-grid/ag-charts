@@ -15,7 +15,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([AreaSeriesModule, LegendModule, CategoryAxisModule, NumberAxisModule]);
 function buildSeries(name: string): AgAreaSeriesOptions {
     return {
         type: 'area',

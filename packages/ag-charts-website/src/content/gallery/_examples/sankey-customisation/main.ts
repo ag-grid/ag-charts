@@ -1,8 +1,8 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesTooltipRendererParams } from 'ag-charts-enterprise';
 import { SankeySeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, SankeySeriesModule]);
+ModuleRegistry.registerModules([SankeySeriesModule]);
 const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
     title: {

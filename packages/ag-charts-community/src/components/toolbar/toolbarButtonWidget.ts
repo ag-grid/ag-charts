@@ -72,6 +72,8 @@ function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-
 
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
+    private lastInnerHTML?: string;
+    private lastTooltip?: string;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
@@ -81,7 +83,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const { localeManager } = this;
 
         if (options.tooltip) {
-            this.elem.title = localeManager.t(options.tooltip);
+            const tooltip = localeManager.t(options.tooltip);
+            if (tooltip !== this.lastTooltip) {
+                this.elem.title = tooltip;
+                this.lastTooltip = tooltip;
+            }
         }
 
         let innerHTML = '';
@@ -104,7 +110,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
             this.setAriaExpanded(false);
         }
 
-        this.elem.innerHTML = innerHTML;
+        // Only update innerHTML if content changed - avoids HTML parsing and style recalculation
+        if (innerHTML !== this.lastInnerHTML) {
+            this.elem.innerHTML = innerHTML;
+            this.lastInnerHTML = innerHTML;
+        }
     }
 
     public setChecked(checked: boolean) {

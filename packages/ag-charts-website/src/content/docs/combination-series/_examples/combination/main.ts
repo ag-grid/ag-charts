@@ -1,9 +1,7 @@
 import {
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgLineSeriesOptions,
 } from 'ag-charts-community';

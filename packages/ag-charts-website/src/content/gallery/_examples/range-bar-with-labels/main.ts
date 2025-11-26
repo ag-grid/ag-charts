@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { BandHighlightModule, CrosshairModule, RangeBarSeriesModule } from 'ag-charts-enterprise';
 
@@ -8,7 +8,6 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     CategoryAxisModule,
     CrosshairModule,
-    LineSeriesModule,
     NumberAxisModule,
     RangeBarSeriesModule,
 ]);

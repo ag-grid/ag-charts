@@ -16,7 +16,9 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
+    isKeyOf,
     isObject,
+    isPlainObject,
     isSymbol,
     joinFormatted,
     jsonDiff,
@@ -88,7 +90,15 @@ const stringFormat = (value: string) => `'${value}'`;
 const AXIS_ID_PREFIX = '__AXIS_ID_';
 const DIRECTION_KEYS = {
     [ChartAxisDirection.X]: ['xKey' as const],
-    [ChartAxisDirection.Y]: ['yKey' as const, 'yLowKey' as const, 'yHighKey' as const],
+    [ChartAxisDirection.Y]: [
+        'yKey' as const,
+        'yLowKey' as const,
+        'yHighKey' as const,
+        'lowKey' as const,
+        'highKey' as const,
+        'openKey' as const,
+        'closeKey' as const,
+    ],
     [ChartAxisDirection.Angle]: ['angleKey' as const],
     [ChartAxisDirection.Radius]: ['radiusKey' as const],
 };
@@ -143,6 +153,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraph;
+    seriesWithUserVisibility?: Set<string>; // AG-16360
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -208,7 +219,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
-                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+                this.slowSetup(newUserOptions, processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -265,8 +276,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+    private slowSetup(
+        newUserOptions: T,
+        processedOverrides: Partial<T>,
+        deltaOptions?: DeepPartial<T> | null,
+        stripSymbols = false
+    ) {
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
+
+        for (const o of [newUserOptions, deltaOptions]) {
+            for (const s of o?.series ?? []) {
+                if ('visible' in s && s.id) {
+                    this.seriesWithUserVisibility ??= new Set();
+                    this.seriesWithUserVisibility.add(s.id);
+                }
+            }
+        }
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;
@@ -329,7 +354,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options = cleared as T;
         }
 
+        // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
+        // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
         this.validateAxesOptions(options);
+
         this.removeDisabledOptions(options);
 
         // TODO: Chicken-or-egg, ideally should pass themeParameters in here, but this processing needs to happen
@@ -341,7 +369,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
         this.processSeriesOptions(options);
-        this.processAxesOptions(options, chartType);
+        const unmappedAxisIds = this.processAxesOptions(options, chartType);
 
         const optionsGraph = createOptionsGraph(activeTheme, options);
         const resolvedOptions = optionsGraph.resolve() as any;
@@ -355,7 +383,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processModuleOptions(this.chartDef.name, processedOptions);
 
         this.validateSeriesOptions(processedOptions);
-        this.validateAxesOptions(processedOptions);
+
+        // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
+        // `type` properties are now inferred and those axes can be validated.
+        this.validateAxesOptions(processedOptions, unmappedAxisIds);
+
         this.validatePluginOptions(processedOptions);
         this.processMiniChartSeriesOptions(processedOptions);
 
@@ -415,7 +447,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.series = validatedSeriesOptions;
     }
 
-    private validateAxesOptions(options: T) {
+    private validateAxesOptions(options: T, unmappedAxisIds?: Map<string, string>) {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
@@ -425,7 +457,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const [key, axisOptions] of entries(options.axes)) {
             if (!axisOptions) continue;
 
-            const keyPath = `axes[${key}]`;
+            // When the `type` property is omitted, the axis can not be validated. It will be validated only on the
+            // second pass once the `type` property has been inferred by `processAxesOptions()`.
+            if (axisOptions.type == null) {
+                validatedAxesOptions[key] = axisOptions;
+                continue;
+            }
+
+            const keyPath = `axes.${key}`;
+            const keyPathUser = `axes.${unmappedAxisIds?.get(key) ?? key}`;
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -437,13 +477,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
                 Logger.warn(
-                    `Unknown type \`${axisOptions.type}\` at  \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
+                    `Unknown type \`${axisOptions.type}\` at  \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
                 );
                 delete options.axes;
                 break;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
+                    `Axis type \`${axisDef.name}\` at  \`${keyPathUser}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }
@@ -500,14 +540,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 : [ChartAxisDirection.X, ChartAxisDirection.Y];
 
         const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
-        const hasSeriesAxisKeys = this.hasSeriesAxisKeys(options, directions);
+        const hasNonDefaultSeriesAxisKeys = this.hasNonDefaultSeriesAxisKeys(options, directions);
 
-        const seriesOptions = options.series?.[0];
+        const primarySeriesOptions = options.series?.[0];
         const seriesType = this.optionsType(options);
-        const defaultAxes =
-            this.predictAxes(seriesType, directions, seriesOptions, options.data) ?? this.cloneDefaultAxes(seriesType);
+        const defaultAxes: Record<string, PlainObject> =
+            this.predictAxes(seriesType, directions, primarySeriesOptions, options.data) ??
+            this.cloneDefaultAxes(seriesType);
 
-        if (!hasAxes && !hasSeriesAxisKeys) {
+        if (!hasAxes && !hasNonDefaultSeriesAxisKeys) {
             (options as any).axes = defaultAxes;
             return;
         }
@@ -516,7 +557,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // naming, e.g. the user's primary axis for the 'x' direction is named `myXAxis`, then internally it will be
         // remapped to and accessed as `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
-        const primaryAxisIds = this.getPrimaryAxisIds(options, directions, axisKeys, hasSeriesAxisKeys);
+        const primaryAxisIds = this.getPrimaryAxisIds(options, directions, axisKeys, hasNonDefaultSeriesAxisKeys);
         const remappedAxisIds = new Map<string, string>();
         for (const [direction, axisId] of primaryAxisIds) {
             remappedAxisIds.set(axisId, direction);
@@ -530,22 +571,28 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Create the new axes from the remapped axis ids.
         const newAxes: Record<string, unknown> = {};
+        const unmappedAxisIds = new Map<string, string>();
         for (const [fromAxisId, toAxisId] of remappedAxisIds) {
             newAxes[toAxisId] = 'axes' in options ? options.axes?.[fromAxisId] : undefined;
+            unmappedAxisIds.set(toAxisId, fromAxisId);
         }
 
         this.remapSeriesAxisIds(options, directions, newAxes, remappedAxisIds, defaultAxes);
+        this.predictAxesMissingTypes(options, directions, newAxes, defaultAxes);
 
         (options as any).axes = newAxes as any;
+
+        return unmappedAxisIds;
     }
 
-    private hasSeriesAxisKeys(options: T, directions: ChartAxisDirection[]) {
+    private hasNonDefaultSeriesAxisKeys(options: T, directions: ChartAxisDirection[]) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
                 if (!DIRECTION_KEYS[direction].some((k) => Object.keys(seriesOptions).includes(k))) continue;
 
                 const directionAxisKey = DIRECTION_AXIS_KEYS[direction];
-                if (!(directionAxisKey in seriesOptions)) continue;
+                if (!isKeyOf(directionAxisKey, seriesOptions)) continue;
+                if (seriesOptions[directionAxisKey] === direction) continue;
 
                 return true;
             }
@@ -563,14 +610,24 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options: T,
         directions: Array<ChartAxisDirection>,
         axisKeys: Set<string>,
-        hasSeriesAxisKeys: boolean
+        hasNonDefaultSeriesAxisKeys: boolean
     ): Map<ChartAxisDirection, string> {
         const primaryAxisIds = new Map<ChartAxisDirection, string>();
 
         for (const direction of directions) {
             let foundPrimaryAxisId = false;
 
-            if ('axes' in options && options.axes) {
+            if (
+                // has axes
+                'axes' in options &&
+                options.axes &&
+                // does not have standard-name primary axis without position
+                !(
+                    direction in options.axes &&
+                    isObject(options.axes[direction]) &&
+                    !('position' in options.axes[direction]!)
+                )
+            ) {
                 for (const [axisKey, axisOptions] of entries(options.axes)) {
                     // Attempt to find primary axis by position, for cartesian axes only
                     if (
@@ -589,7 +646,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             // If there are no series references to any axis, then skip ahead and attempt to find the primary axes by
             // one of the fallback methods.
-            if (!hasSeriesAxisKeys) continue;
+            if (!hasNonDefaultSeriesAxisKeys) continue;
 
             for (const seriesOptions of options.series ?? []) {
                 const key = DIRECTION_AXIS_KEYS[direction];
@@ -628,7 +685,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (primaryAxisIds.size === 0) {
             for (const direction of directions) {
                 for (const [axisKey, axisOptions] of entries(options.axes)) {
-                    if (axisOptions.type.startsWith(direction)) {
+                    if (axisOptions.type?.startsWith(direction)) {
                         primaryAxisIds.set(direction, axisKey);
                         break;
                     }
@@ -696,7 +753,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         directions: ChartAxisDirection[],
         userSeriesOptions?: any,
         data?: DatumDefault[]
-    ): Record<string, any> | undefined {
+    ): Record<string, PlainObject> | undefined {
         if (!userSeriesOptions) return;
 
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
@@ -746,12 +803,80 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
         }
 
-        return Object.fromEntries(axes);
+        return Object.fromEntries(axes) as Record<string, PlainObject>;
     }
 
     private cloneDefaultAxes(seriesType: SeriesType) {
         const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
         return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
+    }
+
+    private predictAxesMissingTypes(
+        options: T,
+        directions: ChartAxisDirection[],
+        newAxes: Record<string, unknown>,
+        defaultAxes: Record<string, PlainObject>
+    ) {
+        for (const [key, axis] of entries(newAxes)) {
+            if (!isPlainObject(axis) || 'type' in axis) continue;
+
+            // Pick the default type and position if this is one of the primary axes.
+            if (key in defaultAxes) {
+                axis.type = defaultAxes[key].type;
+                axis.position ??= defaultAxes[key].position;
+                continue;
+            }
+
+            let foundAxisType = false;
+
+            // Pick the default type where the axis position matches a default axis.
+            if ('position' in axis && isKeyOf(axis.position, POSITION_DIRECTIONS)) {
+                for (const defaultAxis of Object.values(defaultAxes)) {
+                    if (
+                        isKeyOf(defaultAxis.position, POSITION_DIRECTIONS) &&
+                        POSITION_DIRECTIONS[axis.position] === POSITION_DIRECTIONS[defaultAxis.position]
+                    ) {
+                        axis.type = defaultAxis.type;
+                        foundAxisType = true;
+                        break;
+                    }
+                }
+
+                if (foundAxisType) continue;
+
+                for (const [position, positionDirection] of entries(POSITION_DIRECTIONS)) {
+                    if (axis.position !== position && positionDirection === POSITION_DIRECTIONS[axis.position]) {
+                        axis.type = defaultAxes[positionDirection].type;
+                        foundAxisType = true;
+                        break;
+                    }
+                }
+            }
+
+            if (foundAxisType) continue;
+
+            // Pick the default type and position where the axis key is referenced by a series axis key.
+            for (const seriesOptions of options.series ?? []) {
+                for (const direction of directions) {
+                    if (!DIRECTION_KEYS[direction].some((k) => Object.keys(seriesOptions).includes(k))) continue;
+
+                    const directionAxisKey = DIRECTION_AXIS_KEYS[direction];
+                    if (!isKeyOf(directionAxisKey, seriesOptions)) continue;
+                    if (seriesOptions[directionAxisKey] !== key) continue;
+
+                    axis.type = defaultAxes[direction].type;
+                    axis.position ??= defaultAxes[direction].position;
+                    foundAxisType = true;
+                    break;
+                }
+                if (foundAxisType) break;
+            }
+
+            // Remove secondary axes that are not referenced and have no type.
+            if (!('type' in axis)) {
+                delete newAxes[key];
+            }
+        }
     }
 
     private processMiniChartSeriesOptions(options: T) {
