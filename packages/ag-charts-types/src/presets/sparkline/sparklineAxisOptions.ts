@@ -28,19 +28,19 @@ export interface AgSparklineContinuousAxisOptions<TDatum extends Date | number> 
 }
 
 export interface AgSparklineCategoryAxisOptions extends AgSparklineBaseCategoryAxisOptions {
-    type: 'category';
+    type?: 'category';
 }
 
 export interface AgSparklineNumberAxisOptions
     extends AgSparklineBaseAxisOptions,
         AgSparklineContinuousAxisOptions<number> {
-    type: 'number';
+    type?: 'number';
 }
 
 export interface AgSparklineTimeAxisOptions
     extends AgSparklineBaseAxisOptions,
         AgSparklineContinuousAxisOptions<Date | number> {
-    type: 'time';
+    type?: 'time';
 }
 
 export type AgSparklineAxisOptions =

@@ -14,6 +14,7 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesTooltipRendererParams,
     AgSparklineAxisOptions,
+    AgSparklineCategoryAxisOptions,
     AgSparklineOptions,
     AgSparklineTooltip,
     AgTooltipRendererResult,
@@ -241,7 +242,7 @@ function axisPreset(opts: AgSparklineAxisOptions | undefined): AgCartesianAxisOp
             if (opts == null) {
                 return { type: 'category' };
             }
-            const { reverse, paddingInner, paddingOuter } = opts;
+            const { reverse, paddingInner, paddingOuter } = opts as AgSparklineCategoryAxisOptions;
             return {
                 type: 'category',
                 reverse,

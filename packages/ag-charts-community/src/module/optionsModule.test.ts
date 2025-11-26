@@ -2567,6 +2567,103 @@ describe('ChartOptions', () => {
                     yKeyAxis: 'y',
                 });
             });
+
+            it('should predict missing types and positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {},
+                        y: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing types and positions for secondary axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should should predict missing types when given positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: { position: 'left' },
+                        myAxis2: { position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing positions for primary axes when secondary axes have positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: { position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+            });
+
+            it('should discard secondary axes that are not referenced and have no position or type', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: {},
+                        myAxis2: {},
+                        myAxis3: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+            });
         });
     });
 });

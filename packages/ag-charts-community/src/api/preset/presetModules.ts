@@ -73,7 +73,7 @@ const commonSparklineOptionsDef: OptionsDefs<
     data: defined,
     styleNonce: string,
 
-    axis: typeUnion<AgSparklineAxisOptions>(
+    axis: typeUnion<AgSparklineAxisOptions & { type: NonNullable<AgSparklineAxisOptions['type']> }>(
         {
             number: {
                 ...commonSparklineAxisOptionsDef,
@@ -92,7 +92,7 @@ const commonSparklineOptionsDef: OptionsDefs<
             },
         },
         'axis options',
-        'category' // AG-14799 - Contrary to the AgSparklineAxisOptions interface, type is optional and defaults to 'category'.
+        'category'
     ),
     min: and(number, lessThan('max')),
     max: and(number, greaterThan('min')),
