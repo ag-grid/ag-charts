@@ -492,6 +492,9 @@ export class BarSeries extends AbstractBarSeries<
             opacity,
             featherRatio,
             crossScale = 1,
+            // Pre-computed values to avoid redundant calculations when creating phantom nodes
+            precomputedBottomY,
+            precomputedIsUpward,
         }: {
             datum: any;
             datumIndex: number;
@@ -509,11 +512,13 @@ export class BarSeries extends AbstractBarSeries<
             opacity: number;
             featherRatio: number;
             crossScale: number | undefined;
+            precomputedBottomY?: number;
+            precomputedIsUpward?: boolean;
         }): BarNodeDatum {
-            const isUpward = isPositive !== yReversed;
+            const isUpward = precomputedIsUpward ?? isPositive !== yReversed;
 
             const y = yScale.convert(currY);
-            const bottomY = yScale.convert(prevY);
+            const bottomY = precomputedBottomY ?? yScale.convert(prevY);
             const bboxHeight = yScale.convert(yRange);
 
             const xOffset = width * 0.5 * (1 - crossScale);
@@ -622,6 +627,10 @@ export class BarSeries extends AbstractBarSeries<
 
             const inset = yFilterValue != null && yFilterValue > yRawValue;
 
+            // Pre-compute shared values when phantom node will be created
+            const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
+            const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+
             const nodeData = nodeDatum({
                 datum,
                 datumIndex,
@@ -639,6 +648,8 @@ export class BarSeries extends AbstractBarSeries<
                 opacity,
                 featherRatio,
                 crossScale: inset ? 0.6 : undefined,
+                precomputedBottomY,
+                precomputedIsUpward,
             });
             nodes.push(nodeData);
             labels.push(nodeData);
@@ -661,6 +672,8 @@ export class BarSeries extends AbstractBarSeries<
                     opacity,
                     featherRatio,
                     crossScale: undefined,
+                    precomputedBottomY,
+                    precomputedIsUpward,
                 });
                 phantomNodes.push(phantomNodeData);
             }
