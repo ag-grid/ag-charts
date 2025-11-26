@@ -4,6 +4,7 @@ import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -82,6 +83,8 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
             position: CARTESIAN_POSITION.BOTTOM,
         },
     },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new LineSeries(ctx),

@@ -5,6 +5,8 @@ import { RangeBarSeries } from './rangeBarSeries';
 import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
+const { DIRECTION_SWAP_AXES, ChartAxisDirection, predictCartesianNonPrimitiveAxis } = _ModuleSupport;
+
 export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
     type: 'series',
     name: 'range-bar',
@@ -15,8 +17,10 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     dependencies: [CartesianChartModule],
 
     options: rangeBarSeriesOptionsDef,
-    predictAxis: _ModuleSupport.predictCartesianNonPrimitiveAxis,
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
+    predictAxis: predictCartesianNonPrimitiveAxis,
+    defaultAxes: DIRECTION_SWAP_AXES,
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'] },
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
     create: (ctx) => new RangeBarSeries(ctx),

@@ -5,7 +5,10 @@ import { RadialColumnSeries } from './radialColumnSeries';
 import { radialColumnSeriesOptionsDef } from './radialColumnSeriesOptionsDef';
 import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
 
-const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+const {
+    ChartAxisDirection,
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const RadialColumnSeriesModule: SeriesModuleDefinition<AgRadialColumnSeriesOptions> = {
     type: 'series',
@@ -19,6 +22,8 @@ export const RadialColumnSeriesModule: SeriesModuleDefinition<AgRadialColumnSeri
 
     options: radialColumnSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
+    axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.Angle]: 'angleKey', [ChartAxisDirection.Radius]: 'radiusKey' },
     themeTemplate: RADIAL_COLUMN_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadialColumnSeries(ctx),
