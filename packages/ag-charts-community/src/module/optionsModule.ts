@@ -10,6 +10,7 @@ import {
     deepClone,
     deepFreeze,
     distribute,
+    enterpriseRegistry,
     entries,
     getDocument,
     getWindow,
@@ -45,6 +46,7 @@ import {
 } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
+import { ExpectedModules } from '../chart/factory/expectedModules';
 import { processModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
@@ -418,18 +420,45 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T): void {
+        const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
 
+        let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
-            if (seriesDef?.options == null) {
-                if (seriesDef) {
-                    validatedSeriesOptions.push(seriesOptions);
-                }
+            if (seriesDef == null) {
+                const isEnterprise = enterpriseRegistry.isRegistered();
+                validSeriesTypes ??= joinFormatted(
+                    Array.from(ExpectedModules.values())
+                        .filter(
+                            (def) =>
+                                def.type === ModuleType.Series &&
+                                (isEnterprise || !def.enterprise) &&
+                                (!chartType || def.chartType === chartType)
+                        )
+                        .map((def) => def.name),
+                    'or',
+                    stringFormat
+                );
+                Logger.warn(
+                    seriesOptions.type == null
+                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
+                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
+                );
+                continue;
+            } else if (chartType && seriesDef.chartType !== chartType) {
+                Logger.warn(
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
+                );
+                continue;
+            }
+
+            if (seriesDef.options == null) {
+                validatedSeriesOptions.push(seriesOptions);
                 continue;
             }
 
@@ -469,18 +498,24 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
+                const isEnterprise = enterpriseRegistry.isRegistered();
                 validAxesTypes ??= joinFormatted(
-                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
-                        .filter((def) => def.chartType === chartType)
+                    Array.from(ExpectedModules.values())
+                        .filter(
+                            (def) =>
+                                def.type === ModuleType.Axis &&
+                                (isEnterprise || !def.enterprise) &&
+                                def.chartType === chartType
+                        )
                         .map((def) => def.name),
                     'or',
                     stringFormat
                 );
+
                 Logger.warn(
-                    `Unknown type \`${axisOptions.type}\` at  \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
+                    `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                 );
-                delete options.axes;
-                break;
+                continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
                     `Axis type \`${axisDef.name}\` at  \`${keyPathUser}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
@@ -578,7 +613,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.remapSeriesAxisIds(options, directions, newAxes, remappedAxisIds, defaultAxes);
-        this.predictAxesMissingTypes(options, directions, newAxes, defaultAxes);
+        this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
 
         (options as any).axes = newAxes as any;
 
@@ -811,70 +846,80 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
     }
 
-    private predictAxesMissingTypes(
+    private predictAxesMissingTypesAndPositions(
         options: T,
         directions: ChartAxisDirection[],
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
         for (const [key, axis] of entries(newAxes)) {
-            if (!isPlainObject(axis) || 'type' in axis) continue;
+            if (!isPlainObject(axis)) continue;
+            if ('type' in axis && 'position' in axis) continue;
 
             // Pick the default type and position if this is one of the primary axes.
             if (key in defaultAxes) {
-                axis.type = defaultAxes[key].type;
+                axis.type ??= defaultAxes[key].type;
                 axis.position ??= defaultAxes[key].position;
                 continue;
             }
 
-            let foundAxisType = false;
-
             // Pick the default type where the axis position matches a default axis.
-            if ('position' in axis && isKeyOf(axis.position, POSITION_DIRECTIONS)) {
-                for (const defaultAxis of Object.values(defaultAxes)) {
-                    if (
-                        isKeyOf(defaultAxis.position, POSITION_DIRECTIONS) &&
-                        POSITION_DIRECTIONS[axis.position] === POSITION_DIRECTIONS[defaultAxis.position]
-                    ) {
-                        axis.type = defaultAxis.type;
-                        foundAxisType = true;
-                        break;
-                    }
-                }
-
-                if (foundAxisType) continue;
-
-                for (const [position, positionDirection] of entries(POSITION_DIRECTIONS)) {
-                    if (axis.position !== position && positionDirection === POSITION_DIRECTIONS[axis.position]) {
-                        axis.type = defaultAxes[positionDirection].type;
-                        foundAxisType = true;
-                        break;
-                    }
-                }
-            }
-
-            if (foundAxisType) continue;
+            const predictedType = this.predictAxisMissingTypeFromPosition(axis, defaultAxes);
+            if (predictedType) continue;
 
             // Pick the default type and position where the axis key is referenced by a series axis key.
-            for (const seriesOptions of options.series ?? []) {
-                for (const direction of directions) {
-                    if (!DIRECTION_KEYS[direction].some((k) => Object.keys(seriesOptions).includes(k))) continue;
-
-                    const directionAxisKey = DIRECTION_AXIS_KEYS[direction];
-                    if (!isKeyOf(directionAxisKey, seriesOptions)) continue;
-                    if (seriesOptions[directionAxisKey] !== key) continue;
-
-                    axis.type = defaultAxes[direction].type;
-                    axis.position ??= defaultAxes[direction].position;
-                    foundAxisType = true;
-                    break;
-                }
-                if (foundAxisType) break;
-            }
+            this.predictAxisMissingTypeAndPositionFromSeries(options, directions, key, axis, defaultAxes);
 
             // Remove secondary axes that are not referenced and have no type.
             if (!('type' in axis)) {
                 delete newAxes[key];
+            }
+        }
+    }
+
+    private predictAxisMissingTypeFromPosition(axis: PlainObject, defaultAxes: Record<string, PlainObject>) {
+        if (!('position' in axis) || !isKeyOf(axis.position, POSITION_DIRECTIONS)) {
+            return false;
+        }
+
+        for (const defaultAxis of Object.values(defaultAxes)) {
+            if (
+                isKeyOf(defaultAxis.position, POSITION_DIRECTIONS) &&
+                POSITION_DIRECTIONS[axis.position] === POSITION_DIRECTIONS[defaultAxis.position]
+            ) {
+                axis.type = defaultAxis.type;
+                return true;
+            }
+        }
+
+        for (const [position, positionDirection] of entries(POSITION_DIRECTIONS)) {
+            if (axis.position !== position && positionDirection === POSITION_DIRECTIONS[axis.position]) {
+                axis.type = defaultAxes[positionDirection].type;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private predictAxisMissingTypeAndPositionFromSeries(
+        options: T,
+        directions: ChartAxisDirection[],
+        axisKey: string,
+        axis: PlainObject,
+        defaultAxes: Record<string, PlainObject>
+    ) {
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                if (!DIRECTION_KEYS[direction].some((k) => Object.keys(seriesOptions).includes(k))) continue;
+
+                const directionAxisKey = DIRECTION_AXIS_KEYS[direction];
+                if (!isKeyOf(directionAxisKey, seriesOptions)) continue;
+                if (seriesOptions[directionAxisKey] !== axisKey) continue;
+
+                axis.type ??= defaultAxes[direction].type;
+                axis.position ??= defaultAxes[direction].position;
+                return;
             }
         }
     }
