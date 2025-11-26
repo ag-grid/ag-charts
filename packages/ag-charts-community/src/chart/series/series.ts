@@ -1096,6 +1096,8 @@ export abstract class Series<
 
         let markerStyle = baseStyle;
 
+        // console.log('Series.getMarkerStyle()', resolvePath, itemStyler, params);
+
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
             const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
@@ -1110,6 +1112,14 @@ export abstract class Series<
                 datum,
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
+
+            // console.log('Series.getMarkerStyle()', resolvePath, style, resolved);
+
+            markerStyle = mergeDefaults(resolved, markerStyle);
+        } else {
+            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, markerStyle);
+
+            // console.log('Series.getMarkerStyle()', resolvePath, markerStyle, resolved);
 
             markerStyle = mergeDefaults(resolved, markerStyle);
         }

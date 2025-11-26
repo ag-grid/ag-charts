@@ -16,6 +16,20 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'Onshore wind',
             yName: 'Onshore Wind',
+            tooltip: {
+                renderer(params) {
+                    return {
+                        heading: 'test',
+                        symbol: {
+                            marker: {
+                                // strokeWidth: 1,
+                                stroke: 'red',
+                                fill: 'white',
+                            },
+                        },
+                    };
+                },
+            },
         },
         {
             type: 'line',

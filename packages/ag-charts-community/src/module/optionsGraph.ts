@@ -248,7 +248,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     clearSafe() {
         if (this.hasUnsafeClearKeys) return;
-        this.clear();
+        // this.clear();
     }
 
     resolve() {
@@ -320,6 +320,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
+
+        console.log('OptionsGraph.resolvePartial()', partialOptions);
 
         if (debug.check()) {
             // eslint-disable-next-line no-console

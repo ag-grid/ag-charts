@@ -721,6 +721,8 @@ export class LineSeries extends CartesianSeries<
             stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
+        console.log('LineSeries.getTooltipContent()', format);
+
         return this.formatTooltipWithContext(
             tooltip,
             {
