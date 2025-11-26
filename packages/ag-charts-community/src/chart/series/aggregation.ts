@@ -218,11 +218,20 @@ export function createAggregationIndices(
         split = false,
         xNeedsValueOf = true,
         yNeedsValueOf = true,
+        // Optional pre-allocated arrays to reuse (must be correct size: maxRange * AGGREGATION_SPAN)
+        reuseIndexData,
+        reuseValueData,
+        reuseNegativeIndexData,
+        reuseNegativeValueData,
     }: {
         positive?: boolean;
         split?: boolean;
         xNeedsValueOf?: boolean;
         yNeedsValueOf?: boolean;
+        reuseIndexData?: Uint32Array;
+        reuseValueData?: Float64Array;
+        reuseNegativeIndexData?: Uint32Array;
+        reuseNegativeValueData?: Float64Array;
     } = {}
 ): {
     indexData: Uint32Array;
@@ -233,12 +242,27 @@ export function createAggregationIndices(
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
     const nan = Number.NaN; // Local constant for faster access
-    const indexData = new Uint32Array(maxRange * AGGREGATION_SPAN);
-    const valueData = new Float64Array(maxRange * AGGREGATION_SPAN);
+    const requiredSize = maxRange * AGGREGATION_SPAN;
+
+    // Reuse provided arrays if correct size, otherwise allocate new ones
+    const indexData = reuseIndexData?.length === requiredSize ? reuseIndexData : new Uint32Array(requiredSize);
+    const valueData = reuseValueData?.length === requiredSize ? reuseValueData : new Float64Array(requiredSize);
 
     // For split mode, we need a second set of arrays
-    const negativeIndexData = split ? new Uint32Array(maxRange * AGGREGATION_SPAN) : undefined;
-    const negativeValueData = split ? new Float64Array(maxRange * AGGREGATION_SPAN) : undefined;
+    let negativeIndexData: Uint32Array | undefined;
+    let negativeValueData: Float64Array | undefined;
+
+    if (split) {
+        negativeIndexData =
+            reuseNegativeIndexData && reuseNegativeIndexData.length === requiredSize
+                ? reuseNegativeIndexData
+                : new Uint32Array(requiredSize);
+
+        negativeValueData =
+            reuseNegativeValueData && reuseNegativeValueData.length === requiredSize
+                ? reuseNegativeValueData
+                : new Float64Array(requiredSize);
+    }
 
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
@@ -485,11 +509,32 @@ export function compactAggregationIndices(
     indexData: Uint32Array,
     valueData: Float64Array,
     maxRange: number,
-    { inPlace = false, midpointData }: { inPlace?: boolean; midpointData?: Uint32Array } = {}
+    {
+        inPlace = false,
+        midpointData,
+        reuseIndexData,
+        reuseValueData,
+    }: {
+        inPlace?: boolean;
+        midpointData?: Uint32Array;
+        reuseIndexData?: Uint32Array;
+        reuseValueData?: Float64Array;
+    } = {}
 ) {
     const nextMaxRange = Math.trunc(maxRange / 2);
-    const nextIndexData = inPlace ? indexData : new Uint32Array(nextMaxRange * AGGREGATION_SPAN);
-    const nextValueData = inPlace ? valueData : new Float64Array(nextMaxRange * AGGREGATION_SPAN);
+    const requiredSize = nextMaxRange * AGGREGATION_SPAN;
+
+    // Priority: inPlace > reuse > allocate new
+    const nextIndexData = inPlace
+        ? indexData
+        : reuseIndexData?.length === requiredSize
+          ? reuseIndexData
+          : new Uint32Array(requiredSize);
+    const nextValueData = inPlace
+        ? valueData
+        : reuseValueData?.length === requiredSize
+          ? reuseValueData
+          : new Float64Array(requiredSize);
     const nextMidpointData = midpointData ?? new Uint32Array(nextMaxRange);
 
     for (let i = 0; i < nextMaxRange; i += 1) {

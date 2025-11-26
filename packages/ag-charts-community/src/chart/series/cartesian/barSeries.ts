@@ -276,6 +276,13 @@ export class BarSeries extends AbstractBarSeries<
             groupByData: !grouped,
         });
 
+        // Mark existing filters as stale before recomputing
+        if (this.dataAggregationFilters) {
+            for (const f of this.dataAggregationFilters) {
+                f.stale = true;
+            }
+        }
+
         this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
@@ -367,7 +374,8 @@ export class BarSeries extends AbstractBarSeries<
                 dataModel,
                 processedData,
                 this,
-                targetRange
+                targetRange,
+                this.dataAggregationFilters // Pass existing filters for array reuse
             );
 
             if (partialResult) {

@@ -430,8 +430,8 @@ export class ExtendedPath2D {
         this.path2d = new Path2D();
         this.openedPath = false;
         this.closedPath = false;
-        this.commands = [];
-        this.params = [];
+        this.commands.length = 0;
+        this.params.length = 0;
     }
 
     isPointInPath(x: number, y: number): boolean {
