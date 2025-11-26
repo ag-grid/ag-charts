@@ -513,10 +513,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 );
 
                 Logger.warn(
-                    `Unknown type \`${axisOptions.type}\` at  \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
+                    `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                 );
-                delete options.axes;
-                break;
+                continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
                     `Axis type \`${axisDef.name}\` at  \`${keyPathUser}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
