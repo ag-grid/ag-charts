@@ -118,6 +118,8 @@ export interface SeriesModuleDefinition<TOptions>
         seriesOptions: any
     ) => SeriesPredictAxis<SeriesType> | undefined;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
+    axisKeys?: Partial<Record<string /* ChartAxisDirection */, string>>;
+    axisValueKeys?: Partial<Record<string /* ChartAxisDirection */, keyof TOptions | (keyof TOptions)[]>>;
 
     options: OptionsDefs<TOptions>;
 }

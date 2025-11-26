@@ -6,6 +6,7 @@ import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
 const {
+    ChartAxisDirection,
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
     predictCartesianFinancialAxis,
 } = _ModuleSupport;
@@ -30,6 +31,11 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
             type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
             position: CARTESIAN_POSITION.BOTTOM,
         },
+    },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: {
+        [ChartAxisDirection.X]: 'xKey',
+        [ChartAxisDirection.Y]: ['openKey', 'highKey', 'lowKey', 'closeKey'],
     },
     themeTemplate: CANDLESTICK_SERIES_THEME,
 
