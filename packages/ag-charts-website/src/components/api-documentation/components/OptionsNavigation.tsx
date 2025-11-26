@@ -8,8 +8,19 @@ import type {
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import Flexsearch from 'flexsearch';
-import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
-import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import {
+    type AllHTMLAttributes,
+    type CSSProperties,
+    type Dispatch,
+    type MouseEventHandler,
+    type ReactNode,
+    type SetStateAction,
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+} from 'react';
 
 import {
     INDEXED_SEARCH_FIELD,
