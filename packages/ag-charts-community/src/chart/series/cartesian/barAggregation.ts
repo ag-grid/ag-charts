@@ -102,24 +102,21 @@ export function computeBarAggregation(
 
     let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
 
-    let { indexData: positiveIndexData, valueData: positiveValueData } = createAggregationIndices(
-        xValues,
-        yEndValues,
-        yStartValues ?? yEndValues,
-        d0,
-        d1,
-        maxRange,
-        { positive: true, xNeedsValueOf, yNeedsValueOf }
-    );
-    let { indexData: negativeIndexData, valueData: negativeValueData } = createAggregationIndices(
-        xValues,
-        yEndValues,
-        yStartValues ?? yEndValues,
-        d0,
-        d1,
-        maxRange,
-        { positive: false, xNeedsValueOf, yNeedsValueOf }
-    );
+    let {
+        indexData: positiveIndexData,
+        valueData: positiveValueData,
+        negativeIndexData,
+        negativeValueData,
+    } = createAggregationIndices(xValues, yEndValues, yStartValues ?? yEndValues, d0, d1, maxRange, {
+        split: true,
+        xNeedsValueOf,
+        yNeedsValueOf,
+    });
+
+    // Ensure we have valid arrays (typescript safety, though split=true guarantees them)
+    if (!negativeIndexData || !negativeValueData) {
+        throw new Error('Negative aggregation data missing in split mode');
+    }
 
     let positiveIndices = getIndices(maxRange, positiveIndexData);
     let negativeIndices = getIndices(maxRange, negativeIndexData);
@@ -191,24 +188,23 @@ export function computeBarAggregationPartial(
     const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
 
     // Create aggregation at exactly the target level - single O(n) scan
-    const { indexData: positiveIndexData } = createAggregationIndices(
+    const { indexData: positiveIndexData, negativeIndexData } = createAggregationIndices(
         xValues,
         yEndValues,
         yStartValues ?? yEndValues,
         d0,
         d1,
         targetMaxRange,
-        { positive: true, xNeedsValueOf, yNeedsValueOf }
+        {
+            split: true,
+            xNeedsValueOf,
+            yNeedsValueOf,
+        }
     );
-    const { indexData: negativeIndexData } = createAggregationIndices(
-        xValues,
-        yEndValues,
-        yStartValues ?? yEndValues,
-        d0,
-        d1,
-        targetMaxRange,
-        { positive: false, xNeedsValueOf, yNeedsValueOf }
-    );
+
+    if (!negativeIndexData) {
+        throw new Error('Negative aggregation data missing in split mode');
+    }
 
     const immediateLevel: BarSeriesDataAggregationFilter = {
         maxRange: targetMaxRange,

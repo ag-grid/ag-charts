@@ -14,6 +14,8 @@ export function boxEmpty(b: BoxBounds | undefined): boolean {
     return b == null || b.height === 0 || b.width === 0 || Number.isNaN(b.height) || Number.isNaN(b.width);
 }
 
-export function boxesEqual(a: BoxBounds, b: BoxBounds): boolean {
+export function boxesEqual(a: BoxBounds | undefined, b: BoxBounds | undefined): boolean {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
     return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }

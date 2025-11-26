@@ -12,7 +12,6 @@ import type {
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
@@ -75,6 +74,7 @@ import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
     prepareBarAnimationFunctions,
+    resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './barUtil';
 import {
@@ -1201,15 +1201,13 @@ export class BarSeries extends AbstractBarSeries<
     protected override resetDatumAnimation(
         data: CartesianAnimationData<BarShape<BarNodeDatum>, BarNodeDatum, BarNodeDatum, BarSeriesNodeDataContext>
     ) {
-        super.resetDatumAnimation(data);
-
-        resetMotion([this.phantomSelection], resetBarSelectionsFn);
+        // Use direct reset for phantom selection to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection, this.phantomSelection]);
     }
 
     override animateReadyHighlight(data: Selection<BarShape<BarNodeDatum>, BarNodeDatum>) {
-        super.animateReadyHighlight(data);
-
-        resetMotion([this.phantomHighlightSelection], resetBarSelectionsFn);
+        // Use direct reset for phantom selection to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data, this.phantomHighlightSelection]);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
