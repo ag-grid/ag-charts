@@ -32,6 +32,8 @@ const AllCommunityModule = {};
 const AllEnterpriseModule = {};
 const DataSourceModule = {};
 const ContextMenuModule = {};
+const CandlestickSeriesModule = {};
+const OrdinalTimeAxisModule = {};
 
 // =============================================================================
 // TEST CASE 1: Correct registration - should pass
@@ -198,3 +200,77 @@ const dataSourceMissing = {
     dataSource: { getData: () => [] },
 };
 AgCharts.create(dataSourceMissing);
+
+// =============================================================================
+// TEST CASE 14: Candlestick with only y-axis - should require OrdinalTimeAxisModule for default x
+// =============================================================================
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
+const candlestickOnlyYAxis = {
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+            lowKey: 'low',
+        },
+    ],
+    axes: {
+        y: { type: 'number', nice: false },
+    },
+};
+AgCharts.create(candlestickOnlyYAxis);
+
+// =============================================================================
+// TEST CASE 15: Candlestick with only x-axis - should require NumberAxisModule for default y
+// =============================================================================
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
+const candlestickOnlyXAxis = {
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+            lowKey: 'low',
+        },
+    ],
+    axes: {
+        x: { type: 'ordinal-time' },
+    },
+};
+AgCharts.create(candlestickOnlyXAxis);
+
+// =============================================================================
+// TEST CASE 16: Candlestick with both axes - should pass
+// =============================================================================
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
+const candlestickBothAxes = {
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+            lowKey: 'low',
+        },
+    ],
+    axes: {
+        x: { type: 'ordinal-time' },
+        y: { type: 'number' },
+    },
+};
+AgCharts.create(candlestickBothAxes);
+
+// =============================================================================
+// TEST CASE 17: Array format with only one axis position - default for other axis should apply
+// =============================================================================
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
+const arrayAxesPartial = {
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+    axes: [{ type: 'number', position: 'left' }],
+};
+AgCharts.create(arrayAxesPartial);

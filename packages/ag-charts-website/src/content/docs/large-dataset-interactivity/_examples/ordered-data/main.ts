@@ -8,7 +8,7 @@ import {
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
-    TimeAxisModule,
+    TimeAxisModule, CategoryAxisModule,
 } from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
@@ -46,6 +46,7 @@ ModuleRegistry.registerModules([
     ScatterSeriesModule,
     TimeAxisModule,
     ZoomModule,
+    CategoryAxisModule,
 ]);
 
 let dataLabel = '1K';

@@ -62,7 +62,7 @@ export default {
         let registeredModulesArrayNode = null;
         let requiredModules = new Map(); // moduleId -> { reason, node }
         let isEnterprise = false;
-        let hasExplicitAxes = false;
+        let explicitAxes = new Set(); // tracks 'x', 'y', 'angle', 'radius'
         let seriesTypes = [];
 
         // Import tracking for auto-fix
@@ -268,13 +268,17 @@ export default {
          * Process axes object or array to find required modules
          */
         function processAxes(axesNode, parentNode) {
-            hasExplicitAxes = true;
-
             if (axesNode.type === 'ObjectExpression') {
                 // Object format: axes: { x: { type: '...' }, y: { type: '...' } }
                 for (const prop of axesNode.properties) {
                     if (prop.type !== 'Property') continue;
                     if (prop.value.type !== 'ObjectExpression') continue;
+
+                    // Track which axis key was explicitly defined
+                    const axisKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+                    if (axisKey) {
+                        explicitAxes.add(axisKey);
+                    }
 
                     processAxisObject(prop.value, prop);
                 }
@@ -282,6 +286,27 @@ export default {
                 // Array format: axes: [{ type: '...' }, { type: '...' }]
                 for (const element of axesNode.elements) {
                     if (!element || element.type !== 'ObjectExpression') continue;
+                    
+                    // Try to determine axis key from position property
+                    let axisKey = null;
+                    for (const prop of element.properties) {
+                        if (prop.type !== 'Property') continue;
+                        const propKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+                        if (propKey === 'position') {
+                            const position = getStringValue(prop.value);
+                            // Map position to axis: bottom/top -> x, left/right -> y
+                            if (position === 'bottom' || position === 'top') {
+                                axisKey = 'x';
+                            } else if (position === 'left' || position === 'right') {
+                                axisKey = 'y';
+                            }
+                            break;
+                        }
+                    }
+                    if (axisKey) {
+                        explicitAxes.add(axisKey);
+                    }
+                    
                     processAxisObject(element, element);
                 }
             }
@@ -569,32 +594,30 @@ export default {
          * Apply default axes based on series types
          */
         function applyDefaultAxes() {
-            if (hasExplicitAxes) return;
-
             for (const seriesType of seriesTypes) {
                 const defaults = seriesDefaultAxes.get(seriesType);
                 if (defaults) {
-                    // Cartesian axes (x, y)
-                    if (defaults.x) {
+                    // Cartesian axes (x, y) - only apply if not explicitly defined
+                    if (defaults.x && !explicitAxes.has('x')) {
                         const moduleId = axisTypeToModule.get(defaults.x);
                         if (moduleId) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
-                    if (defaults.y) {
+                    if (defaults.y && !explicitAxes.has('y')) {
                         const moduleId = axisTypeToModule.get(defaults.y);
                         if (moduleId) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
-                    // Polar axes (angle, radius)
-                    if (defaults.angle) {
+                    // Polar axes (angle, radius) - only apply if not explicitly defined
+                    if (defaults.angle && !explicitAxes.has('angle')) {
                         const moduleId = axisTypeToModule.get(defaults.angle);
                         if (moduleId) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
-                    if (defaults.radius) {
+                    if (defaults.radius && !explicitAxes.has('radius')) {
                         const moduleId = axisTypeToModule.get(defaults.radius);
                         if (moduleId) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
@@ -647,8 +670,11 @@ export default {
                 } else if (keyName === 'axes') {
                     processAxes(node.value, node);
                 } else if (keyName === 'axis') {
-                    // Sparklines use singular 'axis' - mark as explicit to skip default axis application
-                    hasExplicitAxes = true;
+                    // Sparklines use singular 'axis' - mark all axes as explicit to skip default axis application
+                    explicitAxes.add('x');
+                    explicitAxes.add('y');
+                    explicitAxes.add('angle');
+                    explicitAxes.add('radius');
                     // Process the axis type if it's an object with type property
                     if (node.value.type === 'ObjectExpression') {
                         processAxisObject(node.value, node);
@@ -679,7 +705,6 @@ export default {
 
                     // Check if it's an axis type
                     if (axisTypeToModule.has(typeValue)) {
-                        hasExplicitAxes = true;
                         const moduleId = axisTypeToModule.get(typeValue);
                         requireModule(moduleId, `axis type '${typeValue}'`, node);
                     }
@@ -702,12 +727,11 @@ export default {
                     requireModule(moduleId, `series type '${value}'`, node);
                 }
 
-                // Check if it's a known axis type and require the module
-                if (axisTypeToModule.has(value)) {
-                    hasExplicitAxes = true;
-                    const moduleId = axisTypeToModule.get(value);
-                    requireModule(moduleId, `axis type '${value}'`, node);
-                }
+                    // Check if it's a known axis type and require the module
+                    if (axisTypeToModule.has(value)) {
+                        const moduleId = axisTypeToModule.get(value);
+                        requireModule(moduleId, `axis type '${value}'`, node);
+                    }
             },
 
             // Report at end of file
