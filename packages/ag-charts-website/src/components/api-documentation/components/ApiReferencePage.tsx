@@ -3,13 +3,11 @@ import type { InterfaceNode, NodeTypes } from '@generate-code-reference-plugin/d
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import { Action } from 'history';
-import type { CSSProperties } from 'react';
-import { useContext, useEffect, useState } from 'react';
+import { type CSSProperties, useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 
-import { type PageTitle, parseJsDocs } from '../apiReferenceHelpers';
-import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
+import { type NavigationData, type PageTitle, type SpecialTypesMap, parseJsDocs } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';

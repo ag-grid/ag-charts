@@ -39,7 +39,7 @@ if (moduleOutput) console.log(moduleOutput);
 
 const moduleErrors = moduleResults.reduce((a, r) => a + r.errorCount, 0);
 
-// Second pass (only if --fix): clean up unused imports
+// Second pass (only if --fix): clean up unused and duplicate imports
 if (shouldFix) {
     const importEslint = new ESLint({
         overrideConfigFile: true,
@@ -49,7 +49,10 @@ if (shouldFix) {
                 files: ['**/*.ts'],
                 languageOptions: { parser: tseslint.parser, parserOptions: { project: false, projectService: false } },
                 plugins: { 'unused-imports': unusedImports },
-                rules: { 'unused-imports/no-unused-imports': 'error' },
+                rules: {
+                    'unused-imports/no-unused-imports': 'error',
+                    'no-duplicate-imports': 'error',
+                },
             },
         ],
     });
@@ -58,7 +61,7 @@ if (shouldFix) {
 
     const importFixedCount = importResults.reduce((a, r) => a + r.fixableErrorCount, 0);
     if (importFixedCount > 0) {
-        console.log(`Cleaned up unused imports in ${importFixedCount} files.`);
+        console.log(`Cleaned up unused and duplicate imports in ${importFixedCount} files.`);
     }
 }
 

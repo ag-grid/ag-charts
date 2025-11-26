@@ -6,8 +6,7 @@ import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import { useMemo } from 'react';
-import type { FunctionComponent } from 'react';
+import { type FunctionComponent, useMemo } from 'react';
 
 import { getBootstrapSnippet, getDependenciesSnippet, getNpmInstallSnippet } from '../utils/getSnippets';
 import { hasValue } from '../utils/hasValue';
