@@ -27,8 +27,7 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: { type: 'number', position: 'left' },
-        x: { type: 'unit-time', position: 'bottom' },
+        x: { type: 'unit-time' },
     },
 };
 /* @ag-options-end */

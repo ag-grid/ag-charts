@@ -11,17 +11,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
             label: {},
             depthOptions: [
                 { tick: { enabled: false } },
                 { label: { fontWeight: 'bold' } },
                 { label: { fontSize: 10 } },
             ],
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
     series: [

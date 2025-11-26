@@ -28,11 +28,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'right',
         },
     },
     annotations: {

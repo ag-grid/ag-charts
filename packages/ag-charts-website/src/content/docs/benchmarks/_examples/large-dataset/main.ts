@@ -47,8 +47,7 @@ const options: AgCartesianChartOptions = {
         },
     },
     axes: {
-        y: { type: 'number', position: 'left' },
-        x: { type: 'time', position: 'bottom' },
+        x: { type: 'time' },
     },
     data: getLargeScaleData(size),
     series: [

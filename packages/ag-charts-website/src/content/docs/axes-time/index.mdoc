@@ -25,8 +25,9 @@ For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as thre
 
 ```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
+    axes: {
+        x: { type: 'unit-time' },
+    },
 }
 ```
 
@@ -45,9 +46,12 @@ To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeInter
 
 ```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
-    unit: 'day', // every day
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: 'day', // every day
+        },
+    },
 }
 ```
 
@@ -70,12 +74,15 @@ The `AgTimeIntervalUnit` object supports advanced configuration for more complex
 
 ```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
-    unit: {
-        unit: 'day',
-        step: 7, //every 7 days (weekly)
-        epoch: new Date(2024, 0, 1), //start the week on Monday
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: {
+                unit: 'day',
+                step: 7, //every 7 days (weekly)
+                epoch: new Date(2024, 0, 1), //start the week on Monday
+            },
+        },
     },
 }
 ```
@@ -101,8 +108,11 @@ A basic Ordinal Time Axis configuration looks like this:
 
 ```js format="snippet"
 {
-    type: 'ordinal-time',
-    position: 'bottom',
+    axes: {
+        x: {
+            type: 'ordinal-time',
+        },
+    },
 }
 ```
 
@@ -116,8 +126,11 @@ Time axes are typically used as x-axes and placed at the bottom of a chart. The 
 
 ```js format="snippet"
 {
-    type: 'time',
-    position: 'bottom',
+    axes: {
+        x: {
+            type: 'time',
+        },
+    },
 }
 ```
 

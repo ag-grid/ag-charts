@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'salary',
             yName: 'Salary',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'subcon',
             yName: 'Subcon',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'travel',
             yName: 'Travel',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -39,7 +39,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'visa',
             yName: 'Visa',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -47,18 +47,12 @@ const options: AgCartesianChartOptions = {
             yKey: 'others',
             yName: 'Others',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
     ],
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
-            label: {},
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
 };

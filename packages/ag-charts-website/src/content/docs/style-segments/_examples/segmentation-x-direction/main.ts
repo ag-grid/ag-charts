@@ -30,8 +30,8 @@ const options: AgCartesianChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: { type: 'unit-time', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'unit-time' },
+        y: { type: 'number' },
     },
 };
 

@@ -23,7 +23,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
             title: {
                 text: 'Date',
@@ -44,7 +43,6 @@ const options: AgChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Price in pence',

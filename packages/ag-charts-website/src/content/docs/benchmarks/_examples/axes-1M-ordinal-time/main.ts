@@ -38,8 +38,7 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: { type: 'number', position: 'left' },
-        x: { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: false } },
+        x: { type: 'ordinal-time', parentLevel: { enabled: false } },
     },
 };
 /* @ag-options-end */

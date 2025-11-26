@@ -24,9 +24,7 @@ const options: AgCartesianChartOptions = {
         { type: 'line', xKey: 'month', yKey: 'avgTemp', yKeyAxis: 'ySecondary' },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-        ySecondary: { type: 'number', position: 'right' },
+        ySecondary: { type: 'number' },
     },
 };
 

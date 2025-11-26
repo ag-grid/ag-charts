@@ -38,10 +38,6 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
             position: 'left',

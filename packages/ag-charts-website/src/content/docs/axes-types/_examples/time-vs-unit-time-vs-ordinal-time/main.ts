@@ -52,12 +52,7 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             title: { text: 'Unit Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
 };
@@ -68,12 +63,7 @@ function setContinuousTimeAxis() {
     options.axes = {
         x: {
             type: 'time',
-            position: 'bottom',
             title: { text: 'Continuous Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     };
     chart.update(options);
@@ -83,12 +73,7 @@ function setUnitTimeAxis() {
     options.axes = {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             title: { text: 'Unit Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     };
     chart.update(options);
@@ -98,15 +83,10 @@ function setOrdinalTimeAxis() {
     options.axes = {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: {
                 step: 'month',
             },
             title: { text: 'Ordinal Time Axis' },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     };
     chart.update(options);

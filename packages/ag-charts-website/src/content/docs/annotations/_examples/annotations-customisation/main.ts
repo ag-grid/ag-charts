@@ -38,13 +38,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        x: {
-            type: 'ordinal-time',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             nice: false,
         },
     },

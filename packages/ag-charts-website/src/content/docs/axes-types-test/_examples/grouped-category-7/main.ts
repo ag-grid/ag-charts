@@ -14,24 +14,19 @@ const options: AgCartesianChartOptions = {
             xKey: 'category',
             yKey: 'a_value',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
             xKey: 'category',
             yKey: 'b_value',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
     ],
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
     legend: {

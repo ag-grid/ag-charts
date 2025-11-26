@@ -28,16 +28,6 @@ const options: AgChartOptions = {
             // visible: false
         },
     ],
-    axes: {
-        y: {
-            position: 'left',
-            type: 'number',
-        },
-        x: {
-            position: 'bottom',
-            type: 'category',
-        },
-    },
 };
 
 const chart = AgCharts.create(options as AgChartOptions);
