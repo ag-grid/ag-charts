@@ -419,6 +419,46 @@ describe('ChartOptions', () => {
         Logger.reset();
     });
 
+    describe('type warnings', () => {
+        it('warns when a series type is missing', () => {
+            prepareOptions({
+                series: [{ xKey: 'x', yKey: 'y' } as any],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Option `series[0].type` is required and has not been provided');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when a series type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'lien' as any, xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `lien` at `series[0].type`');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when an axis type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'nmuber' as any, position: 'left' },
+                },
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `nmuber` at  `axes.y.type`');
+            expect(message).toContain("'number'");
+            expect(message).toContain('ignoring all axes options.');
+        });
+    });
+
     describe('#processSeriesOptions', () => {
         test('Simple series options processing works as expected', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });
