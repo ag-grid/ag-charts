@@ -453,9 +453,9 @@ describe('ChartOptions', () => {
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as jest.Mock).mock.calls[0];
-            expect(message).toContain('Unknown type `nmuber` at  `axes.y.type`');
+            expect(message).toContain('Unknown type `nmuber` at `axes.y.type`');
             expect(message).toContain("'number'");
-            expect(message).toContain('ignoring all axes options.');
+            expect(message).toContain('ignoring.');
         });
     });
 
@@ -2703,6 +2703,51 @@ describe('ChartOptions', () => {
                 const preparedOptions = prepareOptions(options);
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+            });
+
+            it('should discard invalid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'invalid' } as any,
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(2);
+                const [[message1], [message2]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+                expect(message2).toContain('Unknown type `invalid` at `axes.y.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should discard invalid axes and keep valid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'category', position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                const [[message1]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'category', position: 'right' },
+                });
             });
         });
     });
