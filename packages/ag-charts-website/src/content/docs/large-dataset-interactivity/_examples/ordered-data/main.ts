@@ -2,6 +2,7 @@ import {
     AreaSeriesModule,
     BarSeriesModule,
     BubbleSeriesModule,
+    CategoryAxisModule,
     HistogramSeriesModule,
     LegendModule,
     LineSeriesModule,
@@ -46,6 +47,7 @@ ModuleRegistry.registerModules([
     ScatterSeriesModule,
     TimeAxisModule,
     ZoomModule,
+    CategoryAxisModule,
 ]);
 
 let dataLabel = '1K';
