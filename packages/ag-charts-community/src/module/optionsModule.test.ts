@@ -2650,6 +2650,29 @@ describe('ChartOptions', () => {
                 });
             });
 
+            it('should predict missing positions when primary and secondary axes given types', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: { type: 'number' },
+                        myAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                });
+            });
+
             it('should discard secondary axes that are not referenced and have no position or type', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],

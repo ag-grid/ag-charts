@@ -578,7 +578,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.remapSeriesAxisIds(options, directions, newAxes, remappedAxisIds, defaultAxes);
-        this.predictAxesMissingTypes(options, directions, newAxes, defaultAxes);
+        this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
 
         (options as any).axes = newAxes as any;
 
@@ -811,18 +811,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
     }
 
-    private predictAxesMissingTypes(
+    private predictAxesMissingTypesAndPositions(
         options: T,
         directions: ChartAxisDirection[],
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
         for (const [key, axis] of entries(newAxes)) {
-            if (!isPlainObject(axis) || 'type' in axis) continue;
+            if (!isPlainObject(axis)) continue;
+            if ('type' in axis && 'position' in axis) continue;
 
             // Pick the default type and position if this is one of the primary axes.
             if (key in defaultAxes) {
-                axis.type = defaultAxes[key].type;
+                axis.type ??= defaultAxes[key].type;
                 axis.position ??= defaultAxes[key].position;
                 continue;
             }
@@ -864,7 +865,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     if (!isKeyOf(directionAxisKey, seriesOptions)) continue;
                     if (seriesOptions[directionAxisKey] !== key) continue;
 
-                    axis.type = defaultAxes[direction].type;
+                    axis.type ??= defaultAxes[direction].type;
                     axis.position ??= defaultAxes[direction].position;
                     foundAxisType = true;
                     break;
