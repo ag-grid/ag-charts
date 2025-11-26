@@ -137,6 +137,7 @@ export default [
             'no-console': 2,
             'no-unused-vars': 0,
             'no-case-declarations': 0,
+            'no-duplicate-imports': 2,
             'aglint/change-detection': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,

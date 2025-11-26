@@ -1,10 +1,10 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgFinancialChartOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { ModuleRegistry } from 'ag-charts-community';
+import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 import { FinancialChartModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AnimationModule, CrosshairModule, FinancialChartModule, LegendModule, ZoomModule]);
+ModuleRegistry.registerModules([FinancialChartModule]);
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 const options: AgFinancialChartOptions = {

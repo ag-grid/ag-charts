@@ -33,6 +33,7 @@ export default {
             missingModule: "Module '{{moduleId}}' is required for {{reason}} but not registered.",
             unnecessaryModule: "Module '{{moduleId}}' is registered but not used by chart options.",
             unknownModule: "Unknown module '{{moduleId}}' in registerModules call.",
+            redundantModule: "Module '{{moduleId}}' is already included in registered bundle '{{bundleId}}'.",
         },
         schema: [
             {
@@ -734,6 +735,27 @@ export default {
                             data: { moduleId, reason: info.reason },
                             fix: createAddModuleFixer(moduleId),
                         });
+                    }
+                }
+
+                // Check for redundant modules already included in bundles
+                if (registeredModulesNode) {
+                    for (const moduleId of registeredModules) {
+                        // Skip bundles themselves
+                        if (bundleContents.has(moduleId)) continue;
+
+                        // Check if this module is contained in any registered bundle
+                        for (const bundleId of registeredModules) {
+                            if (bundleContents.has(bundleId) && bundleContents.get(bundleId).includes(moduleId)) {
+                                context.report({
+                                    node: registeredModuleNodes.get(moduleId) || registeredModulesNode,
+                                    messageId: 'redundantModule',
+                                    data: { moduleId, bundleId },
+                                    fix: createRemoveModuleFixer(moduleId),
+                                });
+                                break; // Only report once per module
+                            }
+                        }
                     }
                 }
 
