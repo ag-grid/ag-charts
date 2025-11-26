@@ -468,6 +468,12 @@ export class BarSeries extends AbstractBarSeries<
                 checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval));
 
         const bboxBottom = yScale.convert(0);
+
+        // Pre-compute values used in nodeDatum to avoid repeated calls
+        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+        const shouldFlipXY = this.shouldFlipXY();
+        const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+
         const series = this;
         function nodeDatum({
             datum,
@@ -509,7 +515,6 @@ export class BarSeries extends AbstractBarSeries<
             const y = yScale.convert(currY);
             const bottomY = yScale.convert(prevY);
             const bboxHeight = yScale.convert(yRange);
-            const barAlongX = series.getBarDirection() === ChartAxisDirection.X;
 
             const xOffset = width * 0.5 * (1 - crossScale);
             const rect = {
@@ -528,9 +533,8 @@ export class BarSeries extends AbstractBarSeries<
                 height: barAlongX ? width * crossScale : Math.abs(bboxBottom - bboxHeight),
             };
 
-            const lengthRatioMultiplier = series.shouldFlipXY() ? rect.height : rect.width;
+            const lengthRatioMultiplier = shouldFlipXY ? rect.height : rect.width;
 
-            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             return {
                 series,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
@@ -1046,34 +1050,34 @@ export class BarSeries extends AbstractBarSeries<
         const fillBBox = this.getShapeFillBBox();
 
         const direction = this.getBarDirection();
+        const { drawingMode, isHighlight } = opts;
 
         const series = this;
         const contextStyles = contextNodeData.styles;
 
         function updateDatumNode(rect: BarShape, datum: BarNodeDatum): void {
             const style =
-                datum.style ??
-                contextStyles[series.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
+                datum.style ?? contextStyles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
 
             applyShapeStyle(rect, style, fillBBox);
 
-            rect.drawingMode = opts.drawingMode;
-
             const cornerRadius = style.cornerRadius ?? 0;
-            rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;
-            rect.topRightCornerRadius = datum.topRightCornerRadius ? cornerRadius : 0;
-            rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? cornerRadius : 0;
-            rect.bottomLeftCornerRadius = datum.bottomLeftCornerRadius ? cornerRadius : 0;
-
-            rect.visible = categoryAlongX
+            const visible = categoryAlongX
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            rect.direction = direction;
-            rect.featherRatio = datum.featherRatio;
-
-            rect.crisp = datum.crisp;
-            rect.fillShadow = shadow;
+            rect.setProperties({
+                drawingMode,
+                topLeftCornerRadius: datum.topLeftCornerRadius ? cornerRadius : 0,
+                topRightCornerRadius: datum.topRightCornerRadius ? cornerRadius : 0,
+                bottomRightCornerRadius: datum.bottomRightCornerRadius ? cornerRadius : 0,
+                bottomLeftCornerRadius: datum.bottomLeftCornerRadius ? cornerRadius : 0,
+                visible,
+                direction,
+                featherRatio: datum.featherRatio,
+                crisp: datum.crisp,
+                fillShadow: shadow,
+            });
         }
 
         opts.datumSelection.each(updateDatumNode);

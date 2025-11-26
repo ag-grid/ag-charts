@@ -205,6 +205,9 @@ export abstract class CartesianSeries<
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
+    // Track last highlighted datum to skip redundant highlight updates
+    private lastHighlightedDatumIndex: number | undefined;
+
     protected animationState: StateMachine<
         CartesianAnimationState,
         CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
@@ -440,6 +443,7 @@ export abstract class CartesianSeries<
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
             this.markQuadtreeDirty();
+            this.lastHighlightedDatumIndex = undefined; // Reset highlight cache when data changes
             this._contextNodeData = this.createNodeData();
             const animationValid = this.isProcessedDataAnimatable();
             if (this._contextNodeData) {
@@ -562,7 +566,17 @@ export abstract class CartesianSeries<
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
         const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
 
-        if (item == null) return false;
+        if (item == null) {
+            this.lastHighlightedDatumIndex = undefined;
+            return false;
+        }
+
+        // Skip selection update if the same datum is still highlighted
+        const currentDatumIndex = item.datumIndex;
+        if (currentDatumIndex === this.lastHighlightedDatumIndex) {
+            return true; // Still highlighted, but skip expensive selection updates
+        }
+        this.lastHighlightedDatumIndex = currentDatumIndex;
 
         const { nodeData, labelData } = contextNodeData;
         const highlightItems = this.getHighlightData(nodeData, item);
