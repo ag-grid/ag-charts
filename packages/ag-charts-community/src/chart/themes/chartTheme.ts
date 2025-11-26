@@ -375,21 +375,19 @@ export class ChartTheme {
                 mode: {
                     $if: [
                         {
-                            $or: [
+                            $and: [
+                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
                                 {
-                                    $and: [
-                                        { $isChartType: 'cartesian' },
-                                        { $not: { $hasSeriesType: 'bubble' } },
-                                        { $not: { $hasSeriesType: 'scatter' } },
-                                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                                    ],
-                                },
-                                {
-                                    $and: [
+                                    $or: [
+                                        {
+                                            $and: [
+                                                { $isChartType: 'cartesian' },
+                                                { $not: { $hasSeriesType: 'bubble' } },
+                                                { $not: { $hasSeriesType: 'scatter' } },
+                                            ],
+                                        },
                                         { $isChartType: 'polar' },
-                                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
                                     ],
                                 },
                             ],
