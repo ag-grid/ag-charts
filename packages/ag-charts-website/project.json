@@ -200,6 +200,11 @@
       "options": {
         "cwd": "{projectRoot}",
         "commands": ["npx tsc -p ./tsconfig.examples.json", "node ./scripts/validate-modules.mjs"]
+      },
+      "configurations": {
+        "fix": {
+          "commands": ["node ./scripts/validate-modules.mjs --fix", "npx tsc -p ./tsconfig.examples.json"]
+        }
       }
     },
     "update-algolia": {

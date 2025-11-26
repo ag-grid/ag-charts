@@ -1,5 +1,5 @@
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { integratedChartOptions } from './data';
 

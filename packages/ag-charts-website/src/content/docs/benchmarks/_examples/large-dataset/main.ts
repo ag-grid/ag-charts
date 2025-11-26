@@ -1,9 +1,26 @@
 /* @ag-options-extract */
-import { highlight } from 'prismjs';
-
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
 
 import { getLargeScaleData } from './data';
+
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+]);
 
 (window as any).agChartsDebug = 'scene:stats';
 

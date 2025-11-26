@@ -5,13 +5,13 @@ import { AngleNumberAxisModule, RadialBarSeriesModule, RadiusCategoryAxisModule 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
-    AngleNumberAxisModule,
     AnimationModule,
     CrosshairModule,
     LegendModule,
     RadialBarSeriesModule,
-    RadiusCategoryAxisModule,
     ZoomModule,
+    AngleNumberAxisModule,
+    RadiusCategoryAxisModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

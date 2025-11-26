@@ -1,10 +1,4 @@
-import {
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    TimeAxisModule,
-} from 'ag-charts-community';
+import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 

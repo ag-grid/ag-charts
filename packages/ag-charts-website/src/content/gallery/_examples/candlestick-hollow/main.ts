@@ -1,4 +1,4 @@
-import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     BandHighlightModule,
@@ -14,7 +14,6 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     CandlestickSeriesModule,
     CrosshairModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,

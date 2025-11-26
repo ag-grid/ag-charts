@@ -5,14 +5,7 @@ import {
     NumberAxisModule,
     UnitTimeAxisModule,
 } from 'ag-charts-community';
-import {
-    AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
-    AgCharts,
-    AgSeriesTooltip,
-    AnimationModule,
-    CrosshairModule,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
 import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { data } from './data';

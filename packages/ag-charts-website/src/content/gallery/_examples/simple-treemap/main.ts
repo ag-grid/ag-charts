@@ -1,10 +1,10 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AgTreemapSeriesOptions } from 'ag-charts-enterprise';
 import { TreemapSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, TreemapSeriesModule]);
+ModuleRegistry.registerModules([TreemapSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,

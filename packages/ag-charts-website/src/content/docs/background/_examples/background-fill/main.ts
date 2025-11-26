@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgPolarChartOptions, LegendModule } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions, LegendModule } from 'ag-charts-community';
 import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 import { getData } from './data';

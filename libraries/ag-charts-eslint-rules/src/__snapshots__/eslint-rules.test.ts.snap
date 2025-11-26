@@ -237,6 +237,7 @@ exports[`aglint/validate-module-registration 1`] = `
   198:5   error  Module 'DataSourceModule' is required for option 'dataSource' but not registered       aglint/validate-module-registration
 
 ✖ 8 problems (8 errors, 0 warnings)
+  8 errors and 0 warnings potentially fixable with the \`--fix\` option.
 
 ",
 }

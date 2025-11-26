@@ -2,7 +2,7 @@ import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 import { AnimationModule } from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
+import { getData } from './data';
 
 ModuleRegistry.registerModules([AnimationModule, PieSeriesModule]);
 const currencyFormatter = new Intl.NumberFormat('en-US', {

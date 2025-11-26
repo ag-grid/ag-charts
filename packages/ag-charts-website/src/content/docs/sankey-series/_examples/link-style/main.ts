@@ -1,17 +1,9 @@
 // Source: https://www.nationalgrideso.com/data-portal
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { SankeySeriesModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CategoryAxisModule,
-    CrosshairModule,
-    LegendModule,
-    NumberAxisModule,
-    SankeySeriesModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, SankeySeriesModule, ZoomModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

@@ -1,4 +1,13 @@
-import { AreaSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
@@ -6,19 +15,25 @@ import {
     AgCharts,
     AnimationModule,
     CrosshairModule,
+    NavigatorModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
     AreaSeriesModule,
+    BarSeriesModule,
     CrosshairModule,
     LegendModule,
+    LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
     ZoomModule,
 ]);
 // @ts-expect-error Undocumented option

@@ -92,6 +92,37 @@ export const axisPluginToModule = new Map([
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 
+// Nested annotations plugin option → Module ID
+export const annotationsPluginToModule = new Map([['toolbar', 'ChartToolbarModule']]);
+
+// Series modules that indicate cartesian chart type (for intrinsic axis detection)
+export const cartesianSeriesModules = new Set([
+    'AreaSeriesModule',
+    'BarSeriesModule',
+    'BubbleSeriesModule',
+    'HistogramSeriesModule',
+    'LineSeriesModule',
+    'ScatterSeriesModule',
+    'BoxPlotSeriesModule',
+    'CandlestickSeriesModule',
+    'ConeFunnelSeriesModule',
+    'FunnelSeriesModule',
+    'HeatmapSeriesModule',
+    'OhlcSeriesModule',
+    'RangeAreaSeriesModule',
+    'RangeBarSeriesModule',
+    'WaterfallSeriesModule',
+]);
+
+// Series modules that indicate polar chart type (for intrinsic axis detection)
+export const polarSeriesModules = new Set([
+    'NightingaleSeriesModule',
+    'RadarAreaSeriesModule',
+    'RadarLineSeriesModule',
+    'RadialBarSeriesModule',
+    'RadialColumnSeriesModule',
+]);
+
 // Series type → chart type mapping
 export const seriesChartType = new Map([
     // Community - Cartesian
@@ -155,6 +186,12 @@ export const seriesDefaultAxes = new Map([
     ['waterfall', { x: 'category', y: 'number' }],
     ['funnel', { x: 'category', y: 'number' }],
     ['cone-funnel', { x: 'category', y: 'number' }],
+    // Enterprise polar
+    ['nightingale', { angle: 'angle-category', radius: 'radius-number' }],
+    ['radar-area', { angle: 'angle-category', radius: 'radius-number' }],
+    ['radar-line', { angle: 'angle-category', radius: 'radius-number' }],
+    ['radial-bar', { angle: 'angle-number', radius: 'radius-category' }],
+    ['radial-column', { angle: 'angle-category', radius: 'radius-number' }],
 ]);
 
 // Enterprise modules set
@@ -422,9 +459,11 @@ export const intrinsicDefaults = {
     // Always expected for any chart
     always: ['LegendModule'],
     // Expected when using enterprise features (commonly included for interactivity)
-    enterprise: ['AnimationModule', 'CrosshairModule', 'ZoomModule'],
+    enterprise: ['AnimationModule', 'ContextMenuModule', 'CrosshairModule', 'ZoomModule'],
     // Expected for cartesian charts (axis modules)
     cartesian: ['CategoryAxisModule', 'NumberAxisModule', 'TimeAxisModule', 'LogAxisModule'],
+    // Expected for polar charts (axis modules)
+    polar: ['AngleCategoryAxisModule', 'AngleNumberAxisModule', 'RadiusCategoryAxisModule', 'RadiusNumberAxisModule'],
 };
 
 // All valid module identifiers
@@ -515,3 +554,24 @@ export const validModuleIds = new Set([
     'AllGaugeModule',
     'AllMapSeriesModule',
 ]);
+
+// Bundle module IDs (these come from the main package, not individual imports)
+const bundleModuleIds = new Set([
+    'AllCommunityModule',
+    'AllEnterpriseModule',
+    'AllCartesianModule',
+    'AllCartesianAxesModule',
+    'AllCartesianSeriesModule',
+    'AllPolarModule',
+    'AllGaugeModule',
+    'AllMapSeriesModule',
+    'FinancialChartModule',
+]);
+
+// Module ID → Package name (for auto-fix import generation)
+// Derived from enterpriseModules set - anything in that set is enterprise, else community
+export const moduleToPackage = new Map(
+    [...validModuleIds]
+        .filter((moduleId) => !bundleModuleIds.has(moduleId))
+        .map((moduleId) => [moduleId, enterpriseModules.has(moduleId) ? 'ag-charts-enterprise' : 'ag-charts-community'])
+);
