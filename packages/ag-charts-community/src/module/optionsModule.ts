@@ -143,6 +143,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraph;
+    seriesWithUserVisibility?: Set<string>; // AG-16360
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -208,7 +209,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
-                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+                this.slowSetup(newUserOptions, processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -265,8 +266,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+    private slowSetup(
+        newUserOptions: T,
+        processedOverrides: Partial<T>,
+        deltaOptions?: DeepPartial<T> | null,
+        stripSymbols = false
+    ) {
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
+
+        for (const o of [newUserOptions, deltaOptions]) {
+            for (const s of o?.series ?? []) {
+                if ('visible' in s && s.id) {
+                    this.seriesWithUserVisibility ??= new Set();
+                    this.seriesWithUserVisibility.add(s.id);
+                }
+            }
+        }
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;
