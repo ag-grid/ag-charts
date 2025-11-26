@@ -14,6 +14,13 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
     dependencies: [CartesianChartModule],
 
     options: groupedCategoryAxisOptionsDefs,
+    themeTemplate: {
+        tick: { enabled: true, stroke: { $ref: 'separationLinesColor' } },
+        label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
+        maxThicknessRatio: 0.5,
+        paddingInner: 0.4,
+        groupPaddingInner: 0.2,
+    },
 
     create: (ctx) => new GroupedCategoryAxis(ctx),
 };

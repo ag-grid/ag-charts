@@ -14,6 +14,9 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: timeAxisOptionsDefs,
+    themeTemplate: {
+        gridLine: { enabled: false },
+    },
 
     create: (ctx) => new TimeAxis(ctx),
 };

@@ -16,19 +16,9 @@ import {
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'bar'> = {
-    zoom: {
-        autoScaling: {
-            enabled: {
-                $and: [
-                    { $eq: [{ $path: '../axes' }, 'x'] },
-                    { $not: { $eq: [{ $path: '/series/0/direction' }, 'horizontal'] } },
-                ],
-            },
-        },
-    },
     series: {
         direction: 'vertical',
         fill: {
@@ -73,11 +63,6 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             yOffset: 3,
             blur: 5,
         },
-        errorBar: {
-            cap: {
-                lengthRatio: 0.3,
-            },
-        },
         highlight: multiSeriesHighlightStyle(),
         segmentation: SEGMENTATION_DEFAULTS,
     },
@@ -93,7 +78,7 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: barSeriesOptionsDef,
-    predictAxis: predictCartesianTimeAxis,
+    predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate,
 

@@ -24,7 +24,7 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import type { ChartType } from '../factory/expectedModules';
-import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
+import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -39,9 +39,7 @@ import {
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
     DEFAULT_TEXTBOX_COLOR,
@@ -63,7 +61,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from './symbols';
-import { LEGEND_CONTAINER_THEME, getSequentialColors } from './util';
+import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
@@ -137,6 +135,7 @@ export class ChartTheme {
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
+            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' } as any,
@@ -171,9 +170,8 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(overrideDefaults: object, { title, time }: { title: boolean; time: boolean }) {
+    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }) {
         return mergeDefaults(
-            overrideDefaults,
             title && {
                 title: {
                     enabled: false,
@@ -369,76 +367,6 @@ export class ChartTheme {
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
-            legend: {
-                ...LEGEND_CONTAINER_THEME,
-                enabled: {
-                    $and: [
-                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                        {
-                            $or: [
-                                { $isChartType: 'cartesian' },
-                                { $isChartType: 'standalone' },
-                                {
-                                    $and: [
-                                        { $isChartType: 'polar' },
-                                        { $not: { $isSeriesType: 'pie' } },
-                                        { $not: { $isSeriesType: 'donut' } },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-                position: CARTESIAN_POSITION.BOTTOM,
-                orientation: {
-                    $if: [
-                        {
-                            $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
-                            ],
-                        },
-                        'vertical',
-                        'horizontal',
-                    ],
-                },
-                spacing: 30,
-                listeners: {},
-                toggleSeries: true,
-                item: {
-                    paddingX: 16,
-                    paddingY: 8,
-                    marker: { size: 15, padding: 8 },
-                    showSeriesStroke: true,
-                    label: {
-                        color: { $ref: 'textColor' },
-                        fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                        fontFamily: { $ref: 'fontFamily' },
-                        fontWeight: { $ref: 'fontWeight' },
-                    },
-                },
-                reverseOrder: false,
-                pagination: {
-                    marker: { size: 12 },
-                    activeStyle: { fill: { $ref: 'foregroundColor' } },
-                    inactiveStyle: { fill: { $ref: 'subtleTextColor' } },
-                    highlightStyle: { fill: { $ref: 'foregroundColor' } },
-                    label: { color: { $ref: 'textColor' } },
-                },
-                fill: {
-                    $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
-                },
-            },
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
@@ -488,99 +416,17 @@ export class ChartTheme {
     }
 
     private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
-            {
-                base: 10,
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0.1,
-                label: { autoRotate: true, wrapping: 'on-space' },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: false },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
-                label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
-                maxThicknessRatio: 0.5,
-                paddingInner: 0.4,
-                groupPaddingInner: 0.2,
-                crosshair: { enabled: false },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
-            {
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0.1,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-                parentLevel: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
-            {
-                groupPaddingInner: 0,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: { $findFirstSiblingNotOperation: undefined },
-            },
-            { title: false, time: false }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            },
-            { title: false, time: false }
-        ),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
-        ),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                shape: { $findFirstSiblingNotOperation: undefined },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
-        ),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ title: false, time: false }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ title: false, time: false }),
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
     };
 
     constructor(options: AgChartTheme = {}) {
@@ -637,11 +483,11 @@ export class ChartTheme {
             const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = mergeDefaults(
                 { axes: {} },
-                this.getChartDefaults(),
-                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
                 ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
                     [p.name]: p.themeTemplate,
-                }))
+                })),
+                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                this.getChartDefaults()
             );
 
             for (const seriesType of seriesTypes) {
@@ -719,7 +565,6 @@ export class ChartTheme {
     getTemplateParameters() {
         const params = new Map();
         params.set(IS_DARK_THEME, false);
-        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
@@ -755,7 +600,6 @@ export class ChartTheme {
         params.set(DEFAULT_TEXTBOX_COLOR, '#000');
 
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
-        params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
         const defaultColors = this.getDefaultColors();
         params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
@@ -779,7 +623,7 @@ function getAxisThemeTemplate(axisType: string) {
     let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (module.axisTypes?.includes(axisType) ?? true) {
-            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
         }
     }
     return themeTemplate;
@@ -789,7 +633,7 @@ function getSeriesThemeTemplate(seriesType: string) {
     let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
         if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaults(module.themeTemplate, themeTemplate);
+            themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
         }
     }
     return themeTemplate;

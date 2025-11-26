@@ -221,6 +221,18 @@ export function priceVolume(
                                 interval: { maxSpacing: 45 },
                                 label: { format: '.2f' },
                             },
+                            category: {
+                                gridLine: { enabled: true },
+                            },
+                            time: {
+                                gridLine: { enabled: true },
+                            },
+                            'unit-time': {
+                                gridLine: { enabled: true },
+                            },
+                            'ordinal-time': {
+                                gridLine: { enabled: true },
+                            },
                         },
                     },
                     bar: {

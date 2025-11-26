@@ -42,6 +42,68 @@ Example paths are mapped from repo paths:
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
 
+## Module Registration
+
+_New Nov 2024 • Required for all examples_
+
+Examples must explicitly register the modules they use. This ensures proper tree-shaking and module loading:
+
+```typescript
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AnimationModule, BandHighlightModule } from 'ag-charts-enterprise';
+
+import { getData } from './data';
+
+// Register all required modules BEFORE creating the chart
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+]);
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    // ... rest of options
+};
+
+const chart = AgCharts.create(options);
+```
+
+**Common Modules:**
+
+**From `ag-charts-community`:**
+
+-   `BarSeriesModule`, `LineSeriesModule`, `AreaSeriesModule`, `ScatterSeriesModule`
+-   `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`
+-   `PieSeriesModule`, `DonutSeriesModule`, `RadarSeriesModule`
+-   `ChartModule` (if using standalone chart types)
+
+**From `ag-charts-enterprise`:**
+
+-   `AnimationModule` (for animations)
+-   `BandHighlightModule` (for axis band highlighting)
+-   `ZoomModule` (for zoom functionality)
+-   `NavigatorModule` (for navigator mini-chart)
+-   Enterprise series modules (e.g., `WaterfallSeriesModule`, `BoxPlotSeriesModule`)
+
+**Best Practices:**
+
+-   ✅ Register modules at the top of `main.ts`, before chart creation
+-   ✅ Only import and register modules actually used by the example
+-   ✅ Group community and enterprise imports separately for clarity
+-   ✅ Use specific series/axis modules rather than importing everything
+
+**Why This Matters:**
+
+-   Enables proper tree-shaking in production builds
+-   Ensures modules are loaded before chart creation
+-   Prevents runtime errors from missing module registrations
+-   Improves bundle size by only including used modules
+
 ## Framework Generation
 
 Examples written in vanilla TypeScript are automatically transformed into React, Angular, and Vue variants. Understanding how this transformation works is essential for creating examples that work across all frameworks.

@@ -1,5 +1,5 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
-import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     Logger,
@@ -30,19 +30,6 @@ type ErrorBoundCartesianSeries = Omit<
     'highlightSelection'
 >;
 
-function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBoundCartesianSeries {
-    for (const supportedType of AgErrorBarSupportedSeriesTypes) {
-        if (supportedType === ctx.series.type) {
-            return ctx.series as ErrorBoundCartesianSeries;
-        }
-    }
-    throw new Error(
-        `AG Charts - unsupported series type '${
-            ctx.series.type
-        }', error bars supported series types: ${AgErrorBarSupportedSeriesTypes.join(', ')}`
-    );
-}
-
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
@@ -61,7 +48,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        const series = toErrorBoundCartesianSeries(ctx);
+        const series = ctx.series as ErrorBoundCartesianSeries;
         const { annotationGroup, annotationSelections } = series;
 
         this.cartesianSeries = series;

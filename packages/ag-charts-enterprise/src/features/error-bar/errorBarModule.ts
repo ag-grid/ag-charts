@@ -5,26 +5,21 @@ import { ErrorBars } from './errorBar';
 
 export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = {
     type: 'series:plugin',
-    // name: 'error-bars',
     name: 'errorBar',
-    // chartType: 'cartesian',
-    // seriesTypes: AgErrorBarSupportedSeriesTypes,
+    chartType: 'cartesian',
     seriesTypes: ['bar', 'line', 'scatter'],
     enterprise: true,
     version: VERSION,
 
     options: _ModuleSupport.errorBarOptionsDefs,
     themeTemplate: {
-        series: {
-            errorBar: {
-                visible: true,
-                stroke: { $ref: 'foregroundColor' },
-                strokeWidth: 1,
-                strokeOpacity: 1,
-                cap: {
-                    length: undefined,
-                    lengthRatio: undefined,
-                },
+        visible: true,
+        stroke: { $ref: 'foregroundColor' },
+        strokeWidth: 1,
+        strokeOpacity: 1,
+        cap: {
+            lengthRatio: {
+                $if: [{ $eq: [{ $path: '../../type' }, 'bar'] }, 0.3, 1],
             },
         },
     },

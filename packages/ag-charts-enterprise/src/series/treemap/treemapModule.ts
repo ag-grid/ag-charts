@@ -110,7 +110,6 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
         },
         gradientLegend: {
             enabled: true,
-            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
         },
     },
 

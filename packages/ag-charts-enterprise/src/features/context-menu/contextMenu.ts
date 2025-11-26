@@ -13,6 +13,7 @@ import {
     callWithContext,
     clamp,
     createElement,
+    deepClone,
     getIconClassNames,
     toPlainText,
 } from 'ag-charts-core';
@@ -133,10 +134,11 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
         const { showOn } = event;
         const { context } = this.ctx.chartService; // TODO: callWithContext
+        const defaultItems: AgContextMenuItem[] = deepClone([...this.items]);
         switch (showOn) {
             case 'always':
             case 'series-area':
-                return { showOn, context };
+                return { showOn, context, defaultItems };
 
             case 'series-node': {
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
@@ -145,6 +147,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     context,
                     seriesId: this.pickedNode.series.id,
                     datum: this.pickedNode.datum,
+                    defaultItems,
                 };
 
                 for (const k of DATUM_KEYS) {
@@ -164,7 +167,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     throw new Error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
                 }
 
-                return { showOn, context, itemId, seriesId, text, visible: enabled };
+                return { showOn, context, itemId, seriesId, text, visible: enabled, defaultItems };
 
             default:
                 return showOn satisfies never; // unreachable

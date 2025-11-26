@@ -16,7 +16,7 @@ import {
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleTheme<'line'> = {
     series: {
@@ -51,11 +51,6 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        errorBar: {
-            cap: {
-                lengthRatio: 1,
-            },
-        },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
             position: {
@@ -76,7 +71,7 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: lineSeriesOptionsDef,
-    predictAxis: predictCartesianTimeAxis,
+    predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

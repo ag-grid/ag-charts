@@ -255,6 +255,41 @@ axes: {
 -   ✅ When axis labels should be "nice" values (0, 50, 100 vs 0, 47, 94)
 -   ✅ For better readability with clean axis tick values
 
+## 🎯 Preferred Min/Max (Soft Bounds)
+
+_New Nov 2024 • Apply: 3 minutes • Impact: MEDIUM_
+
+```typescript
+axes: {
+    y: {
+        type: 'number', // ⚠️ REQUIRED field
+        position: 'left',
+        preferredMin: 0, // Soft lower bound - can be extended by data or nice
+        preferredMax: 100, // Soft upper bound - can be extended by data or nice
+        // These are "preferred" values that will be used unless:
+        // - Data extends beyond them
+        // - nice: true rounds beyond them
+    },
+}
+```
+
+**Difference from `min`/`max`:**
+
+-   `min`/`max`: Hard bounds that take priority - axis will never go beyond these values
+-   `preferredMin`/`preferredMax`: Soft bounds that can be extended by data or `nice` option
+
+**When to use `preferredMin`/`preferredMax`:**
+
+-   ✅ When you want a suggested range but allow data to extend beyond it
+-   ✅ For axes where you want to start near zero but allow negative values if data has them
+-   ✅ When `nice: true` should be able to round beyond your preferred bounds
+
+**When to use `min`/`max` instead:**
+
+-   ✅ When you need strict bounds that must never be exceeded
+-   ✅ For percentage axes that must stay 0-100
+-   ✅ When you need guaranteed axis limits regardless of data
+
 ## 📏 Axis Enhancement
 
 _Apply: 10 minutes, Impact: HIGH_
@@ -469,6 +504,41 @@ axes: {
     },
 };
 ```
+
+### 📋 Grouped Category Axis Label Options
+
+_New Nov 2024 • Apply: 4 minutes • Impact: MEDIUM_
+
+```typescript
+axes: {
+    x: {
+        type: 'grouped-category',
+        position: 'bottom',
+        label: {
+            wrapping: 'on-space', // 'always' | 'hyphenate' | 'on-space' | 'never'
+            truncate: true, // Add ellipsis when text is truncated
+        },
+    },
+}
+```
+
+**Wrapping Options:**
+
+-   `'always'`: Always wrap text to fit within `maxWidth`
+-   `'hyphenate'`: Similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap mid-word
+-   `'on-space'` (default): Only wrap on whitespace. If no space available and `maxWidth` can't be satisfied, text will be truncated
+-   `'never'`: Disable text wrapping
+
+**Truncate:**
+
+-   When `truncate: true`, text that exceeds available space will be truncated with an ellipsis (`...`)
+-   Works in combination with `wrapping` - if wrapping can't fit the text, truncation applies
+
+**Use Cases:**
+
+-   ✅ Long category names that need to fit in limited space
+-   ✅ Multi-level grouped categories where labels can be lengthy
+-   ✅ Responsive charts where label space varies
 
 ## ⚠️ Special Considerations for Radial/Polar Charts
 
