@@ -10,6 +10,7 @@ import {
     deepClone,
     deepFreeze,
     distribute,
+    enterpriseRegistry,
     entries,
     getDocument,
     getWindow,
@@ -45,6 +46,7 @@ import {
 } from 'ag-charts-types';
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
+import { ExpectedModules } from '../chart/factory/expectedModules';
 import { processModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
@@ -418,18 +420,45 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T): void {
+        const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
 
+        let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
-            if (seriesDef?.options == null) {
-                if (seriesDef) {
-                    validatedSeriesOptions.push(seriesOptions);
-                }
+            if (seriesDef == null) {
+                const isEnterprise = enterpriseRegistry.isRegistered();
+                validSeriesTypes ??= joinFormatted(
+                    Array.from(ExpectedModules.values())
+                        .filter(
+                            (def) =>
+                                def.type === ModuleType.Series &&
+                                (isEnterprise || !def.enterprise) &&
+                                (!chartType || def.chartType === chartType)
+                        )
+                        .map((def) => def.name),
+                    'or',
+                    stringFormat
+                );
+                Logger.warn(
+                    seriesOptions.type == null
+                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
+                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
+                );
+                continue;
+            } else if (chartType && seriesDef.chartType !== chartType) {
+                Logger.warn(
+                    `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
+                );
+                continue;
+            }
+
+            if (seriesDef.options == null) {
+                validatedSeriesOptions.push(seriesOptions);
                 continue;
             }
 
@@ -469,13 +498,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
+                const isEnterprise = enterpriseRegistry.isRegistered();
                 validAxesTypes ??= joinFormatted(
-                    Array.from(ModuleRegistry.listModulesByType(ModuleType.Axis))
-                        .filter((def) => def.chartType === chartType)
+                    Array.from(ExpectedModules.values())
+                        .filter(
+                            (def) =>
+                                def.type === ModuleType.Axis &&
+                                (isEnterprise || !def.enterprise) &&
+                                def.chartType === chartType
+                        )
                         .map((def) => def.name),
                     'or',
                     stringFormat
                 );
+
                 Logger.warn(
                     `Unknown type \`${axisOptions.type}\` at  \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring all axes options.`
                 );
