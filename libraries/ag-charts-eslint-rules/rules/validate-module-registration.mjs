@@ -265,50 +265,23 @@ export default {
         }
 
         /**
-         * Process axes object or array to find required modules
+         * Process axes object to find required modules
          */
         function processAxes(axesNode, parentNode) {
-            if (axesNode.type === 'ObjectExpression') {
-                // Object format: axes: { x: { type: '...' }, y: { type: '...' } }
-                for (const prop of axesNode.properties) {
-                    if (prop.type !== 'Property') continue;
-                    if (prop.value.type !== 'ObjectExpression') continue;
+            if (axesNode.type !== 'ObjectExpression') return;
 
-                    // Track which axis key was explicitly defined
-                    const axisKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
-                    if (axisKey) {
-                        explicitAxes.add(axisKey);
-                    }
+            // Object format: axes: { x: { type: '...' }, y: { type: '...' } }
+            for (const prop of axesNode.properties) {
+                if (prop.type !== 'Property') continue;
+                if (prop.value.type !== 'ObjectExpression') continue;
 
-                    processAxisObject(prop.value, prop);
+                // Track which axis key was explicitly defined
+                const axisKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+                if (axisKey) {
+                    explicitAxes.add(axisKey);
                 }
-            } else if (axesNode.type === 'ArrayExpression') {
-                // Array format: axes: [{ type: '...' }, { type: '...' }]
-                for (const element of axesNode.elements) {
-                    if (!element || element.type !== 'ObjectExpression') continue;
-                    
-                    // Try to determine axis key from position property
-                    let axisKey = null;
-                    for (const prop of element.properties) {
-                        if (prop.type !== 'Property') continue;
-                        const propKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
-                        if (propKey === 'position') {
-                            const position = getStringValue(prop.value);
-                            // Map position to axis: bottom/top -> x, left/right -> y
-                            if (position === 'bottom' || position === 'top') {
-                                axisKey = 'x';
-                            } else if (position === 'left' || position === 'right') {
-                                axisKey = 'y';
-                            }
-                            break;
-                        }
-                    }
-                    if (axisKey) {
-                        explicitAxes.add(axisKey);
-                    }
-                    
-                    processAxisObject(element, element);
-                }
+
+                processAxisObject(prop.value, prop);
             }
         }
 
@@ -727,11 +700,11 @@ export default {
                     requireModule(moduleId, `series type '${value}'`, node);
                 }
 
-                    // Check if it's a known axis type and require the module
-                    if (axisTypeToModule.has(value)) {
-                        const moduleId = axisTypeToModule.get(value);
-                        requireModule(moduleId, `axis type '${value}'`, node);
-                    }
+                // Check if it's a known axis type and require the module
+                if (axisTypeToModule.has(value)) {
+                    const moduleId = axisTypeToModule.get(value);
+                    requireModule(moduleId, `axis type '${value}'`, node);
+                }
             },
 
             // Report at end of file

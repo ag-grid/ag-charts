@@ -2,13 +2,14 @@ import {
     AreaSeriesModule,
     BarSeriesModule,
     BubbleSeriesModule,
+    CategoryAxisModule,
     HistogramSeriesModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
-    TimeAxisModule, CategoryAxisModule,
+    TimeAxisModule,
 } from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,

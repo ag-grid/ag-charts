@@ -129,20 +129,7 @@ const multipleSeriesTypes = {
 AgCharts.create(multipleSeriesTypes);
 
 // =============================================================================
-// TEST CASE 9: Array format axes - should detect types
-// =============================================================================
-ModuleRegistry.registerModules([LineSeriesModule, CategoryAxisModule, LegendModule]);
-const arrayAxes = {
-    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' }, // Missing NumberAxisModule
-    ],
-};
-AgCharts.create(arrayAxes);
-
-// =============================================================================
-// TEST CASE 10: ErrorBar requires ErrorBarsModule
+// TEST CASE 9: ErrorBar requires ErrorBarsModule
 // =============================================================================
 ModuleRegistry.registerModules([ScatterSeriesModule, NumberAxisModule, LegendModule]);
 const errorBarMissing = {
@@ -159,7 +146,7 @@ const errorBarMissing = {
 AgCharts.create(errorBarMissing);
 
 // =============================================================================
-// TEST CASE 11: Correct with plugins - should pass
+// TEST CASE 10: Correct with plugins - should pass
 // =============================================================================
 ModuleRegistry.registerModules([
     LineSeriesModule,
@@ -182,7 +169,7 @@ const correctWithPlugins = {
 AgCharts.create(correctWithPlugins);
 
 // =============================================================================
-// TEST CASE 12: Pie chart with polar modules
+// TEST CASE 11: Pie chart with polar modules
 // =============================================================================
 ModuleRegistry.registerModules([PieSeriesModule, LegendModule]);
 const pieChart = {
@@ -191,7 +178,7 @@ const pieChart = {
 AgCharts.create(pieChart);
 
 // =============================================================================
-// TEST CASE 13: DataSource requires DataSourceModule
+// TEST CASE 12: DataSource requires DataSourceModule
 // =============================================================================
 ModuleRegistry.registerModules([LineSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
 const dataSourceMissing = {
@@ -202,7 +189,7 @@ const dataSourceMissing = {
 AgCharts.create(dataSourceMissing);
 
 // =============================================================================
-// TEST CASE 14: Candlestick with only y-axis - should require OrdinalTimeAxisModule for default x
+// TEST CASE 13: Candlestick with only y-axis - should require OrdinalTimeAxisModule for default x
 // =============================================================================
 ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
 const candlestickOnlyYAxis = {
@@ -223,7 +210,7 @@ const candlestickOnlyYAxis = {
 AgCharts.create(candlestickOnlyYAxis);
 
 // =============================================================================
-// TEST CASE 15: Candlestick with only x-axis - should require NumberAxisModule for default y
+// TEST CASE 14: Candlestick with only x-axis - should require NumberAxisModule for default y
 // =============================================================================
 ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
 const candlestickOnlyXAxis = {
@@ -244,7 +231,7 @@ const candlestickOnlyXAxis = {
 AgCharts.create(candlestickOnlyXAxis);
 
 // =============================================================================
-// TEST CASE 16: Candlestick with both axes - should pass
+// TEST CASE 15: Candlestick with both axes - should pass
 // =============================================================================
 ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
 const candlestickBothAxes = {
@@ -264,13 +251,3 @@ const candlestickBothAxes = {
     },
 };
 AgCharts.create(candlestickBothAxes);
-
-// =============================================================================
-// TEST CASE 17: Array format with only one axis position - default for other axis should apply
-// =============================================================================
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
-const arrayAxesPartial = {
-    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-    axes: [{ type: 'number', position: 'left' }],
-};
-AgCharts.create(arrayAxesPartial);
