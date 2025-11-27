@@ -34,7 +34,6 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
-    type AgCartesianSeriesOptions,
     type AgChartOptions,
     type AgChartThemeParams,
     type AgMiniChartSeriesOptions,
