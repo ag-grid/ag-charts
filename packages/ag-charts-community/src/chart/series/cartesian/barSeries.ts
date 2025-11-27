@@ -965,8 +965,8 @@ export class BarSeries extends AbstractBarSeries<
 
         // Reuse existing arrays directly for incremental updates (mutate in place), or create new ones
         const phantomNodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData.phantomNodeData ?? [] : [];
-        const nodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData!.nodeData : [];
-        const labels: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData!.nodeData : [];
+        const nodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData.nodeData : [];
+        const labels: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData.nodeData : [];
 
         // Counters to track how many nodes we've reused/updated
         let nodeIndex = 0;
@@ -1027,7 +1027,7 @@ export class BarSeries extends AbstractBarSeries<
                     phantomIndex++;
                 } else {
                     // Need to create phantom node - check if it's needed first
-                    const needsPhantomNode = ctx.yFilterValues != null && ctx.yFilterValues[datumIndex] != null;
+                    const needsPhantomNode = ctx.yFilterValues?.[datumIndex] != null;
                     if (needsPhantomNode) {
                         // Create just the phantom node (createNodeDatum will create both, but we'll ignore main)
                         const result = this.createNodeDatum(
@@ -1505,18 +1505,18 @@ export class BarSeries extends AbstractBarSeries<
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            rect.setProperties({
+            rect.setStaticProperties(
                 drawingMode,
-                topLeftCornerRadius: datum.topLeftCornerRadius ? cornerRadius : 0,
-                topRightCornerRadius: datum.topRightCornerRadius ? cornerRadius : 0,
-                bottomRightCornerRadius: datum.bottomRightCornerRadius ? cornerRadius : 0,
-                bottomLeftCornerRadius: datum.bottomLeftCornerRadius ? cornerRadius : 0,
+                datum.topLeftCornerRadius ? cornerRadius : 0,
+                datum.topRightCornerRadius ? cornerRadius : 0,
+                datum.bottomRightCornerRadius ? cornerRadius : 0,
+                datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 direction,
-                featherRatio: datum.featherRatio,
-                crisp: datum.crisp,
-                fillShadow: shadow,
-            });
+                datum.featherRatio,
+                datum.crisp,
+                shadow
+            );
         }
 
         opts.datumSelection.each(updateDatumNode);

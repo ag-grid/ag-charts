@@ -1,8 +1,10 @@
 import type { DistantObject } from 'ag-charts-core';
 import { boxesEqual, isNumberEqual } from 'ag-charts-core';
+import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
+import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -477,6 +479,52 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         self.__opacity = opacity;
 
         self.__clipBBox = clipBBox;
+        self._dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
+
+    /**
+     * High-performance static property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setStaticProperties(
+        drawingMode: AgDrawingMode,
+        topLeftCornerRadius: number,
+        topRightCornerRadius: number,
+        bottomRightCornerRadius: number,
+        bottomLeftCornerRadius: number,
+        visible: boolean,
+        direction: 'x' | 'y',
+        featherRatio: number,
+        crisp: boolean,
+        fillShadow: DropShadow | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        // Convention: __propertyName (from changeDetectable.ts)
+        const self = this as any;
+
+        self.__drawingMode = drawingMode;
+        self.__topLeftCornerRadius = topLeftCornerRadius;
+        self.__topRightCornerRadius = topRightCornerRadius;
+        self.__bottomRightCornerRadius = bottomRightCornerRadius;
+        self.__bottomLeftCornerRadius = bottomLeftCornerRadius;
+        self.__visible = visible;
+        self.__direction = direction;
+        self.__featherRatio = featherRatio;
+        self.__crisp = crisp;
+        self.__fillShadow = fillShadow;
+
+        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
         self._dirtyPath = true;
 
         // Single dirty notification for the batch
