@@ -151,6 +151,18 @@ interface PreparedBarNodeDatumState {
     precomputedIsUpward?: boolean;
 }
 
+interface NodeDatumParams {
+    nodeDatumScratch: PreparedBarNodeDatumState;
+    datumIndex: number;
+    x: number;
+    width: number;
+    yStart: number;
+    yEnd: number;
+    yRange: number;
+    featherRatio: number;
+    opacity: number;
+}
+
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly itemId: string;
     readonly xValue: string | number;
@@ -216,17 +228,6 @@ export class BarSeries extends AbstractBarSeries<
         () => this.nodeFactory(),
         false
     );
-    private readonly nodeDatumScratch: PreparedBarNodeDatumState = {
-        datum: undefined,
-        xValue: undefined,
-        yRawValue: 0,
-        yFilterValue: undefined,
-        labelText: undefined,
-        inset: false,
-        isPositive: false,
-        precomputedBottomY: undefined,
-        precomputedIsUpward: undefined,
-    };
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -573,104 +574,78 @@ export class BarSeries extends AbstractBarSeries<
 
     private prepareNodeDatumState(
         ctx: BarSeriesNodeDatumContext,
+        nodeDatumScratch: PreparedBarNodeDatumState,
         datumIndex: number,
         yStart: number,
         yEnd: number
     ): PreparedBarNodeDatumState | undefined {
-        const {
-            rawData,
-            xValues,
-            yRawValues,
-            yFilterValues,
-            yScale,
-            yReversed,
-            label,
-            xKey,
-            yKey,
-            xName,
-            yName,
-            legendItemName,
-            yDomain,
-        } = ctx;
-
         if (!Number.isFinite(yEnd)) {
             return undefined;
         }
 
-        const xValue = xValues[datumIndex];
+        const xValue = ctx.xValues[datumIndex];
         if (xValue == null) {
             return undefined;
         }
 
-        const datum = rawData?.data[datumIndex];
-        const yRawValue = yRawValues[datumIndex];
-        const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
+        const datum = ctx.rawData?.data[datumIndex];
+        const yRawValue = ctx.yRawValues[datumIndex];
+        const yFilterValue = ctx.yFilterValues == null ? undefined : Number(ctx.yFilterValues[datumIndex]);
         if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
             return undefined;
         }
 
         const labelText =
-            label.enabled && yRawValue != null
+            ctx.label.enabled && yRawValue != null
                 ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
                       yFilterValue ?? yRawValue,
                       datum,
-                      yKey,
+                      ctx.yKey,
                       'y',
-                      yDomain,
-                      label,
-                      { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
+                      ctx.yDomain,
+                      ctx.label,
+                      {
+                          datum,
+                          value: yFilterValue ?? yRawValue,
+                          xKey: ctx.xKey,
+                          yKey: ctx.yKey,
+                          xName: ctx.xName,
+                          yName: ctx.yName,
+                          legendItemName: ctx.legendItemName,
+                      }
                   )
                 : undefined;
 
-        const scratch = this.nodeDatumScratch;
         const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
 
-        scratch.datum = datum;
-        scratch.xValue = xValue;
-        scratch.yRawValue = yRawValue;
-        scratch.yFilterValue = yFilterValue;
-        scratch.labelText = labelText;
-        scratch.inset = yFilterValue != null && yFilterValue > yRawValue;
-        scratch.isPositive = isPositive;
-        scratch.precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
-        scratch.precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+        nodeDatumScratch.datum = datum;
+        nodeDatumScratch.xValue = xValue;
+        nodeDatumScratch.yRawValue = yRawValue;
+        nodeDatumScratch.yFilterValue = yFilterValue;
+        nodeDatumScratch.labelText = labelText;
+        nodeDatumScratch.inset = yFilterValue != null && yFilterValue > yRawValue;
+        nodeDatumScratch.isPositive = isPositive;
+        nodeDatumScratch.precomputedBottomY = yFilterValue == null ? undefined : ctx.yScale.convert(yStart);
+        nodeDatumScratch.precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== ctx.yReversed;
 
-        return scratch;
+        return nodeDatumScratch;
     }
 
     /**
      * Creates a BarNodeDatum (and optionally a phantom node) for a single data point.
      * This is the primary method for node creation, extracted from the inline handleDatum/nodeDatum functions.
      */
-    private createNodeDatum(
-        ctx: BarSeriesNodeDatumContext,
-        datumIndex: number,
-        x: number,
-        width: number,
-        yStart: number,
-        yEnd: number,
-        yRange: number,
-        featherRatio: number = 0,
-        opacity: number = 1
-    ): CreateNodeDatumResult {
-        const { yScale, yReversed, bboxBottom, crisp, labelSpacing, barAlongX, shouldFlipXY, xKey, yKey, label } = ctx;
-
-        const prepared = this.prepareNodeDatumState(ctx, datumIndex, yStart, yEnd);
+    private createNodeDatum(ctx: BarSeriesNodeDatumContext, params: NodeDatumParams): CreateNodeDatumResult {
+        const prepared = this.prepareNodeDatumState(
+            ctx,
+            params.nodeDatumScratch,
+            params.datumIndex,
+            params.yStart,
+            params.yEnd
+        );
         if (!prepared) {
             return { nodeData: undefined, phantomNodeData: undefined };
         }
-
-        const {
-            datum,
-            xValue,
-            yRawValue,
-            yFilterValue,
-            labelText,
-            inset,
-            isPositive,
-            precomputedBottomY,
-            precomputedIsUpward,
-        } = prepared;
 
         // Helper to build the actual BarNodeDatum
         const buildNodeDatum = (
@@ -683,38 +658,42 @@ export class BarSeries extends AbstractBarSeries<
             nodeLabelText: TextOrSegments | undefined,
             crossScale: number | undefined
         ): BarNodeDatum => {
-            const isUpward = precomputedIsUpward ?? isPositive !== yReversed;
+            const isUpward = prepared.precomputedIsUpward ?? prepared.isPositive !== ctx.yReversed;
 
-            const y = yScale.convert(currY);
-            const bottomY = precomputedBottomY ?? yScale.convert(prevY);
-            const bboxHeight = yScale.convert(nodeYRange);
+            const y = ctx.yScale.convert(currY);
+            const bottomY = prepared.precomputedBottomY ?? ctx.yScale.convert(prevY);
+            const bboxHeight = ctx.yScale.convert(nodeYRange);
 
-            const xOffset = width * 0.5 * (1 - (crossScale ?? 1));
-            const rectX = barAlongX ? Math.min(y, bottomY) : x + xOffset;
-            const rectY = barAlongX ? x + xOffset : Math.min(y, bottomY);
-            const rectWidth = barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1);
-            const rectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y);
+            const xOffset = params.width * 0.5 * (1 - (crossScale ?? 1));
+            const rectX = ctx.barAlongX ? Math.min(y, bottomY) : params.x + xOffset;
+            const rectY = ctx.barAlongX ? params.x + xOffset : Math.min(y, bottomY);
+            const rectWidth = ctx.barAlongX ? Math.abs(bottomY - y) : params.width * (crossScale ?? 1);
+            const rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
 
             const clipBBox = new BBox(rectX, rectY, rectWidth, rectHeight);
 
-            const barRectX = barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset;
-            const barRectY = barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight);
-            const barRectWidth = barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1);
-            const barRectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight);
+            const barRectX = ctx.barAlongX ? Math.min(ctx.bboxBottom, bboxHeight) : params.x + xOffset;
+            const barRectY = ctx.barAlongX ? params.x + xOffset : Math.min(ctx.bboxBottom, bboxHeight);
+            const barRectWidth = ctx.barAlongX
+                ? Math.abs(ctx.bboxBottom - bboxHeight)
+                : params.width * (crossScale ?? 1);
+            const barRectHeight = ctx.barAlongX
+                ? params.width * (crossScale ?? 1)
+                : Math.abs(ctx.bboxBottom - bboxHeight);
 
-            const lengthRatioMultiplier = shouldFlipXY ? rectHeight : rectWidth;
+            const lengthRatioMultiplier = ctx.shouldFlipXY ? rectHeight : rectWidth;
 
             return {
                 series: this,
-                itemId: phantom ? createDatumId(yKey, phantom) : yKey,
-                datum,
-                datumIndex,
+                itemId: phantom ? createDatumId(ctx.yKey, phantom) : ctx.yKey,
+                datum: prepared.datum,
+                datumIndex: params.datumIndex,
                 cumulativeValue,
                 phantom,
-                xValue,
+                xValue: prepared.xValue,
                 yValue,
-                yKey,
-                xKey,
+                yKey: ctx.yKey,
+                xKey: ctx.xKey,
                 capDefaults: {
                     lengthRatioMultiplier,
                     lengthMax: lengthRatioMultiplier,
@@ -724,14 +703,14 @@ export class BarSeries extends AbstractBarSeries<
                 width: barRectWidth,
                 height: barRectHeight,
                 midPoint: { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 },
-                opacity,
-                featherRatio,
-                topLeftCornerRadius: barAlongX !== isUpward,
+                opacity: params.opacity,
+                featherRatio: params.featherRatio,
+                topLeftCornerRadius: ctx.barAlongX !== isUpward,
                 topRightCornerRadius: isUpward,
-                bottomRightCornerRadius: barAlongX === isUpward,
+                bottomRightCornerRadius: ctx.barAlongX === isUpward,
                 bottomLeftCornerRadius: !isUpward,
                 clipBBox,
-                crisp,
+                crisp: ctx.crisp,
                 label:
                     nodeLabelText == null
                         ? undefined
@@ -739,9 +718,9 @@ export class BarSeries extends AbstractBarSeries<
                               text: nodeLabelText,
                               ...adjustLabelPlacement({
                                   isUpward,
-                                  isVertical: !barAlongX,
-                                  placement: label.placement,
-                                  spacing: labelSpacing,
+                                  isVertical: !ctx.barAlongX,
+                                  placement: ctx.label.placement,
+                                  spacing: ctx.labelSpacing,
                                   rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
                               }),
                           },
@@ -753,25 +732,25 @@ export class BarSeries extends AbstractBarSeries<
         // Create main node
         const nodeData = buildNodeDatum(
             false,
-            yFilterValue == null ? yEnd : yStart + yFilterValue,
-            yStart,
-            yFilterValue ?? yRawValue,
-            yFilterValue ?? yEnd,
-            Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
-            labelText,
-            inset ? 0.6 : undefined
+            prepared.yFilterValue == null ? params.yEnd : params.yStart + prepared.yFilterValue,
+            params.yStart,
+            prepared.yFilterValue ?? prepared.yRawValue,
+            prepared.yFilterValue ?? params.yEnd,
+            Math.max(params.yStart + (prepared.yFilterValue ?? -Infinity), params.yRange),
+            prepared.labelText,
+            prepared.inset ? 0.6 : undefined
         );
 
         // Create phantom node if cross-filtering is active
         let phantomNodeData: BarNodeDatum | undefined;
-        if (yFilterValue != null) {
+        if (prepared.yFilterValue != null) {
             phantomNodeData = buildNodeDatum(
                 true,
-                yEnd,
-                yStart,
-                yFilterValue,
-                yFilterValue,
-                yRange,
+                params.yEnd,
+                params.yStart,
+                prepared.yFilterValue,
+                prepared.yFilterValue,
+                params.yRange,
                 undefined,
                 undefined
             );
@@ -785,93 +764,74 @@ export class BarSeries extends AbstractBarSeries<
      * This is more efficient than recreating the entire node when only data values change
      * but the structure (insertions/removals) remains the same.
      */
-    private updateNodeDatum(
-        ctx: BarSeriesNodeDatumContext,
-        node: BarNodeDatum,
-        datumIndex: number,
-        x: number,
-        width: number,
-        yStart: number,
-        yEnd: number,
-        yRange: number,
-        featherRatio: number = 0,
-        opacity: number = 1
-    ): void {
-        const { yScale, yReversed, bboxBottom, crisp, labelSpacing, barAlongX, label } = ctx;
-
-        const prepared = this.prepareNodeDatumState(ctx, datumIndex, yStart, yEnd);
+    private updateNodeDatum(ctx: BarSeriesNodeDatumContext, node: BarNodeDatum, params: NodeDatumParams): void {
+        const prepared = this.prepareNodeDatumState(
+            ctx,
+            params.nodeDatumScratch,
+            params.datumIndex,
+            params.yStart,
+            params.yEnd
+        );
         if (!prepared) {
             return;
         }
-
-        const {
-            datum,
-            xValue,
-            yRawValue,
-            yFilterValue,
-            labelText,
-            inset,
-            isPositive,
-            precomputedBottomY,
-            precomputedIsUpward,
-        } = prepared;
 
         const mutableNode = node as Mutable<BarNodeDatum>;
 
         // Update main node properties
         const phantom = node.phantom;
-        const prevY = yStart;
-        const yValue = phantom ? yFilterValue! : yFilterValue ?? yRawValue;
-        const cumulativeValue = phantom ? yFilterValue! : yFilterValue ?? yEnd;
-        const nodeLabelText = phantom ? undefined : labelText;
+        const prevY = params.yStart;
+        const yValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? prepared.yRawValue;
+        const cumulativeValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? params.yEnd;
+        const nodeLabelText = phantom ? undefined : prepared.labelText;
 
         let currY: number;
         if (phantom) {
-            currY = yEnd;
-        } else if (yFilterValue == null) {
-            currY = yEnd;
+            currY = params.yEnd;
+        } else if (prepared.yFilterValue == null) {
+            currY = params.yEnd;
         } else {
-            currY = yStart + yFilterValue;
+            currY = params.yStart + prepared.yFilterValue;
         }
 
         let nodeYRange: number;
         if (phantom) {
-            nodeYRange = yRange;
+            nodeYRange = params.yRange;
         } else {
-            nodeYRange = Math.max(yStart + (yFilterValue ?? -Infinity), yRange);
+            nodeYRange = Math.max(params.yStart + (prepared.yFilterValue ?? -Infinity), params.yRange);
         }
 
         let crossScale: number | undefined;
         if (phantom) {
             crossScale = undefined;
-        } else if (inset) {
+        } else if (prepared.inset) {
             crossScale = 0.6;
         } else {
             crossScale = undefined;
         }
 
-        const isUpward = precomputedIsUpward ?? isPositive !== yReversed;
+        const isUpward = prepared.precomputedIsUpward ?? prepared.isPositive !== ctx.yReversed;
 
-        const y = yScale.convert(currY);
-        const bottomY = precomputedBottomY ?? yScale.convert(prevY);
-        const bboxHeight = yScale.convert(nodeYRange);
+        const y = ctx.yScale.convert(currY);
+        const bottomY = prepared.precomputedBottomY ?? ctx.yScale.convert(prevY);
+        const bboxHeight = ctx.yScale.convert(nodeYRange);
 
-        const xOffset = width * 0.5 * (1 - (crossScale ?? 1));
-        const rectX = barAlongX ? Math.min(y, bottomY) : x + xOffset;
-        const rectY = barAlongX ? x + xOffset : Math.min(y, bottomY);
-        const rectWidth = barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1);
-        const rectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y);
+        const xOffset = params.width * 0.5 * (1 - (crossScale ?? 1));
+        const rectX = ctx.barAlongX ? Math.min(y, bottomY) : params.x + xOffset;
+        const rectY = ctx.barAlongX ? params.x + xOffset : Math.min(y, bottomY);
+        const rectWidth = ctx.barAlongX ? Math.abs(bottomY - y) : params.width * (crossScale ?? 1);
+        const rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
 
-        const barRectX = barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset;
-        const barRectY = barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight);
-        const barRectWidth = barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1);
-        const barRectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight);
+        const barRectX = ctx.barAlongX ? Math.min(ctx.bboxBottom, bboxHeight) : params.x + xOffset;
+        const barRectY = ctx.barAlongX ? params.x + xOffset : Math.min(ctx.bboxBottom, bboxHeight);
+        const barRectWidth = ctx.barAlongX ? Math.abs(ctx.bboxBottom - bboxHeight) : params.width * (crossScale ?? 1);
+        const barRectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(ctx.bboxBottom - bboxHeight);
 
         // Update mutable properties
-        mutableNode.datum = datum;
-        mutableNode.datumIndex = datumIndex;
+        mutableNode.datum = prepared.datum;
+        mutableNode.datumIndex = params.datumIndex;
         mutableNode.cumulativeValue = cumulativeValue;
-        mutableNode.xValue = xValue;
+        mutableNode.xValue = prepared.xValue;
         mutableNode.yValue = yValue;
         mutableNode.x = barRectX;
         mutableNode.y = barRectY;
@@ -883,11 +843,11 @@ export class BarSeries extends AbstractBarSeries<
         mutableMidPoint.x = rectX + rectWidth / 2;
         mutableMidPoint.y = rectY + rectHeight / 2;
 
-        mutableNode.opacity = opacity;
-        mutableNode.featherRatio = featherRatio;
-        mutableNode.topLeftCornerRadius = barAlongX !== isUpward;
+        mutableNode.opacity = params.opacity;
+        mutableNode.featherRatio = params.featherRatio;
+        mutableNode.topLeftCornerRadius = ctx.barAlongX !== isUpward;
         mutableNode.topRightCornerRadius = isUpward;
-        mutableNode.bottomRightCornerRadius = barAlongX === isUpward;
+        mutableNode.bottomRightCornerRadius = ctx.barAlongX === isUpward;
         mutableNode.bottomLeftCornerRadius = !isUpward;
 
         // Update clipBBox in place
@@ -901,7 +861,7 @@ export class BarSeries extends AbstractBarSeries<
             mutableNode.clipBBox = new BBox(rectX, rectY, rectWidth, rectHeight);
         }
 
-        mutableNode.crisp = crisp;
+        mutableNode.crisp = ctx.crisp;
 
         // Update label in place
         if (nodeLabelText == null) {
@@ -909,9 +869,9 @@ export class BarSeries extends AbstractBarSeries<
         } else {
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
-                isVertical: !barAlongX,
-                placement: label.placement,
-                spacing: labelSpacing,
+                isVertical: !ctx.barAlongX,
+                placement: ctx.label.placement,
+                spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
 
@@ -936,21 +896,24 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     createNodeData() {
-        const { dataModel, processedData } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+        if (!this.dataModel || !this.processedData || !xAxis || !yAxis) return;
 
         const xScale = xAxis.scale;
-        const { yKey } = this.properties;
 
-        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
-        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
-        const yEndValues = isStacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
+        const isStacked = this.dataModel.hasColumnById(this, `yValue-start`);
+        const yStartValues = isStacked
+            ? this.dataModel.resolveColumnById(this, `yValue-start`, this.processedData)
+            : undefined;
+        const yEndValues = isStacked
+            ? this.dataModel.resolveColumnById(this, `yValue-end`, this.processedData)
+            : undefined;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        const [r0, r1] = xScale.range;
+        const r0 = xScale.range[0];
+        const r1 = xScale.range[1];
         const range = Math.abs(r1 - r0);
 
         // Ensure we have the aggregation level needed for the current range
@@ -968,14 +931,12 @@ export class BarSeries extends AbstractBarSeries<
         const ctx = this.createNodeDatumContext(xAxis, yAxis, crisp);
         if (!ctx) return;
 
-        const { xValues, yRawValues, barWidth, yReversed } = ctx;
-
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
         // Check if we can do incremental updates
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
         // Reuse existing arrays directly for incremental updates (mutate in place), or create new ones
         const phantomNodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData.phantomNodeData ?? [] : [];
@@ -986,35 +947,38 @@ export class BarSeries extends AbstractBarSeries<
         let nodeIndex = 0;
         let phantomIndex = 0;
 
+        // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
+        const nodeDatumParamsScratch: NodeDatumParams = {
+            nodeDatumScratch: {
+                datum: undefined,
+                xValue: undefined,
+                yRawValue: 0,
+                yFilterValue: undefined,
+                labelText: undefined,
+                inset: false,
+                isPositive: false,
+                precomputedBottomY: undefined,
+                precomputedIsUpward: undefined,
+            },
+            datumIndex: 0,
+            x: 0,
+            width: 0,
+            yStart: 0,
+            yEnd: 0,
+            yRange: 0,
+            featherRatio: 0,
+            opacity: 1,
+        };
+
         // Helper to handle node creation/update - reuses existing nodes when possible
-        const handleNodeDatum = (
-            datumIndex: number,
-            x: number,
-            width: number,
-            yStart: number,
-            yEnd: number,
-            yRange: number,
-            featherRatio: number = 0,
-            opacity: number = 1
-        ): void => {
+        const handleNodeDatum = (params: NodeDatumParams): void => {
             // Check if we can reuse existing nodes
             const canReuseNode = canIncrementallyUpdate && nodeIndex < nodes.length;
             const canReusePhantom = canIncrementallyUpdate && phantomIndex < phantomNodes.length;
 
             if (canReuseNode) {
                 // Reuse existing main node by updating in place
-                this.updateNodeDatum(
-                    ctx,
-                    nodes[nodeIndex],
-                    datumIndex,
-                    x,
-                    width,
-                    yStart,
-                    yEnd,
-                    yRange,
-                    featherRatio,
-                    opacity
-                );
+                this.updateNodeDatum(ctx, nodes[nodeIndex], params);
                 // Update label reference (same node is used for labels)
                 if (nodeIndex < labels.length) {
                     labels[nodeIndex] = nodes[nodeIndex];
@@ -1026,35 +990,14 @@ export class BarSeries extends AbstractBarSeries<
                 // Handle phantom node if needed
                 if (canReusePhantom) {
                     // Reuse existing phantom node by updating in place
-                    this.updateNodeDatum(
-                        ctx,
-                        phantomNodes[phantomIndex],
-                        datumIndex,
-                        x,
-                        width,
-                        yStart,
-                        yEnd,
-                        yRange,
-                        featherRatio,
-                        opacity
-                    );
+                    this.updateNodeDatum(ctx, phantomNodes[phantomIndex], params);
                     phantomIndex++;
                 } else {
                     // Need to create phantom node - check if it's needed first
-                    const needsPhantomNode = ctx.yFilterValues?.[datumIndex] != null;
+                    const needsPhantomNode = ctx.yFilterValues?.[params.datumIndex] != null;
                     if (needsPhantomNode) {
                         // Create just the phantom node (createNodeDatum will create both, but we'll ignore main)
-                        const result = this.createNodeDatum(
-                            ctx,
-                            datumIndex,
-                            x,
-                            width,
-                            yStart,
-                            yEnd,
-                            yRange,
-                            featherRatio,
-                            opacity
-                        );
+                        const result = this.createNodeDatum(ctx, params);
                         if (result.phantomNodeData) {
                             phantomNodes.push(result.phantomNodeData);
                             phantomIndex++;
@@ -1063,17 +1006,7 @@ export class BarSeries extends AbstractBarSeries<
                 }
             } else {
                 // Need to create new node(s) - call createNodeDatum once
-                const result = this.createNodeDatum(
-                    ctx,
-                    datumIndex,
-                    x,
-                    width,
-                    yStart,
-                    yEnd,
-                    yRange,
-                    featherRatio,
-                    opacity
-                );
+                const result = this.createNodeDatum(ctx, params);
 
                 if (result.nodeData) {
                     nodes.push(result.nodeData);
@@ -1084,18 +1017,7 @@ export class BarSeries extends AbstractBarSeries<
                 if (result.phantomNodeData) {
                     if (canReusePhantom) {
                         // Update existing phantom node in place
-                        this.updateNodeDatum(
-                            ctx,
-                            phantomNodes[phantomIndex],
-                            datumIndex,
-                            x,
-                            width,
-                            yStart,
-                            yEnd,
-                            yRange,
-                            featherRatio,
-                            opacity
-                        );
+                        this.updateNodeDatum(ctx, phantomNodes[phantomIndex], params);
                     } else {
                         // Push new phantom node
                         phantomNodes.push(result.phantomNodeData);
@@ -1106,18 +1028,23 @@ export class BarSeries extends AbstractBarSeries<
         };
 
         if (dataAggregationFilter != null) {
-            const { positiveIndices, positiveIndexData, negativeIndices, negativeIndexData } = dataAggregationFilter;
-            const sign = yReversed ? -1 : 1;
+            const sign = ctx.yReversed ? -1 : 1;
 
             for (let p = 0; p < 2; p += 1) {
                 const positive = p === 0;
-                const indices = positive ? positiveIndices : negativeIndices;
-                const indexData = positive ? positiveIndexData : negativeIndexData;
+                const indices = positive
+                    ? dataAggregationFilter.positiveIndices
+                    : dataAggregationFilter.negativeIndices;
+                const indexData = positive
+                    ? dataAggregationFilter.positiveIndexData
+                    : dataAggregationFilter.negativeIndexData;
 
                 const Y_MIN = positive ? AGGREGATION_INDEX_Y_MIN : AGGREGATION_INDEX_Y_MAX;
                 const Y_MAX = positive ? AGGREGATION_INDEX_Y_MAX : AGGREGATION_INDEX_Y_MIN;
 
-                const [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
+                const visibleRange = this.visibleRangeIndices('xValue', xAxis.range, indices);
+                const start = visibleRange[0];
+                const end = visibleRange[1];
 
                 for (let i = start; i < end; i += 1) {
                     const aggIndex = i * AGGREGATION_SPAN;
@@ -1127,11 +1054,11 @@ export class BarSeries extends AbstractBarSeries<
                     const yMaxIndex = indexData[aggIndex + Y_MAX];
 
                     if (xMinIndex === AGGREGATION_INDEX_UNSET) continue;
-                    if (xValues[yMaxIndex] == null || xValues[yMinIndex] == null) continue;
+                    if (ctx.xValues[yMaxIndex] == null || ctx.xValues[yMinIndex] == null) continue;
 
                     const x = xPosition(Math.trunc((xMinIndex + xMaxIndex) / 2));
                     // The width of the shape is the width from the left of the first bar to the right of the second bar
-                    const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
+                    const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + ctx.barWidth;
 
                     // start & end may be incorrect when there's a lot of missing data
                     if (x - width < 0 || x > range) continue;
@@ -1143,41 +1070,45 @@ export class BarSeries extends AbstractBarSeries<
                         ? Math.min((xScale.bandwidth * Math.max(bandCount - 1, 1)) / (xScale.step * bandCount), 1)
                         : 1;
 
-                    let yStart: number;
-                    let yEnd: number;
-                    let featherRatio = 0;
+                    nodeDatumParamsScratch.datumIndex = yMaxIndex;
+                    nodeDatumParamsScratch.x = x;
+                    nodeDatumParamsScratch.width = width;
+                    nodeDatumParamsScratch.opacity = opacity;
                     if (isStacked) {
-                        yStart = Number(yStartValues![yMinIndex]);
-                        yEnd = Number(yEndValues![yMaxIndex]);
+                        nodeDatumParamsScratch.yStart = Number(yStartValues![yMinIndex]);
+                        nodeDatumParamsScratch.yEnd = Number(yEndValues![yMaxIndex]);
+                        nodeDatumParamsScratch.featherRatio = 0;
                     } else {
-                        const yEndMax = Number(yRawValues[yMaxIndex]);
-                        const yEndMin = Number(yRawValues[yMinIndex]);
+                        const yEndMax = Number(ctx.yRawValues[yMaxIndex]);
+                        const yEndMin = Number(ctx.yRawValues[yMinIndex]);
 
-                        yStart = 0;
-                        yEnd = yEndMax;
-
-                        featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
+                        nodeDatumParamsScratch.yStart = 0;
+                        nodeDatumParamsScratch.yEnd = yEndMax;
+                        nodeDatumParamsScratch.featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
                     }
+                    nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
 
-                    handleNodeDatum(yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity);
+                    handleNodeDatum(nodeDatumParamsScratch);
                 }
             }
-        } else if (processedData.type === 'grouped') {
-            const invalidData = processedData.invalidData?.get(this.id);
-            const width = barWidth;
-            const yRangeIndex = isStacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
-            const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
-            const { groups } = processedData;
+        } else if (this.processedData.type === 'grouped') {
+            const invalidData = this.processedData.invalidData?.get(this.id);
+            const width = ctx.barWidth;
+            const yRangeIndex = isStacked ? this.dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
+            const columnIndex = this.processedData.columnScopes.findIndex((s) => s.has(this.id));
+            const groups = this.processedData.groups;
 
-            const [start, end] = visibleRangeIndices(1, groups.length, xAxis.range, (groupIndex) => {
+            const visibleRange = visibleRangeIndices(1, groups.length, xAxis.range, (groupIndex) => {
                 const group = groups[groupIndex];
                 const xValue = group.keys[0];
                 return this.xCoordinateRange(xValue);
             });
+            const start = visibleRange[0];
+            const end = visibleRange[1];
 
             for (let groupIndex = start; groupIndex < end; groupIndex += 1) {
                 const group = groups[groupIndex];
-                const { aggregation } = group;
+                const aggregation = group.aggregation;
 
                 const datumIndices = group.datumIndices[columnIndex];
                 if (datumIndices == null) continue;
@@ -1187,7 +1118,7 @@ export class BarSeries extends AbstractBarSeries<
                     const x = xPosition(datumIndex);
                     if (invalidData?.[datumIndex] === true) continue;
 
-                    const yRawValue = yRawValues[datumIndex];
+                    const yRawValue = ctx.yRawValues[datumIndex];
                     if (yRawValue == null) continue;
                     const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                     const yStart = isStacked ? Number(yStartValues?.[datumIndex]) : 0;
@@ -1197,29 +1128,49 @@ export class BarSeries extends AbstractBarSeries<
                         yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                     }
 
-                    handleNodeDatum(datumIndex, x, width, yStart, yEnd, yRange);
+                    nodeDatumParamsScratch.datumIndex = datumIndex;
+                    nodeDatumParamsScratch.x = x;
+                    nodeDatumParamsScratch.width = width;
+                    nodeDatumParamsScratch.yStart = yStart;
+                    nodeDatumParamsScratch.yEnd = yEnd;
+                    nodeDatumParamsScratch.yRange = yRange;
+                    nodeDatumParamsScratch.featherRatio = 0;
+                    nodeDatumParamsScratch.opacity = 1;
+
+                    handleNodeDatum(nodeDatumParamsScratch);
                 }
             }
         } else {
-            const invalidData = processedData.invalidData?.get(this.id);
-            const width = barWidth;
-            let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
+            const invalidData = this.processedData.invalidData?.get(this.id);
+            const width = ctx.barWidth;
+            const visibleRange = this.visibleRangeIndices('xValue', xAxis.range);
+            let start = visibleRange[0];
+            let end = visibleRange[1];
             // @todo(AG-13575) Remove this if block
-            if (processedData.input.count < 1e3) {
+            if (this.processedData.input.count < 1e3) {
                 start = 0;
-                end = processedData.input.count;
+                end = this.processedData.input.count;
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
 
-                const yRawValue = yRawValues[datumIndex];
+                const yRawValue = ctx.yRawValues[datumIndex];
                 if (yRawValue == null) continue;
 
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValue);
 
-                handleNodeDatum(datumIndex, x, width, 0, yEnd, yEnd);
+                nodeDatumParamsScratch.datumIndex = datumIndex;
+                nodeDatumParamsScratch.x = x;
+                nodeDatumParamsScratch.width = width;
+                nodeDatumParamsScratch.yStart = 0;
+                nodeDatumParamsScratch.yEnd = yEnd;
+                nodeDatumParamsScratch.yRange = yEnd;
+                nodeDatumParamsScratch.featherRatio = 0;
+                nodeDatumParamsScratch.opacity = 1;
+
+                handleNodeDatum(nodeDatumParamsScratch);
             }
         }
 
@@ -1246,7 +1197,7 @@ export class BarSeries extends AbstractBarSeries<
         );
 
         return {
-            itemId: yKey,
+            itemId: this.properties.yKey,
             nodeData: nodes,
             phantomNodeData: phantomNodes,
             labelData: labels,

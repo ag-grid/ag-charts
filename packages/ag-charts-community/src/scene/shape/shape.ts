@@ -22,6 +22,7 @@ import type {
 import type { BBox } from '../bbox';
 import {
     DeclaredSceneChangeDetection,
+    DeclaredSceneObjectChangeDetection,
     SceneArrayChangeDetection,
     SceneObjectChangeDetection,
     TRIPLE_EQ,
@@ -69,7 +70,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     strokeOpacity: number = 1;
     declare __strokeOpacity: number; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: Shape.handleFillChange })
+    @DeclaredSceneObjectChangeDetection({
+        equals: objectsEqual,
+        changeCb: Shape.handleFillChange,
+    })
     fill: ShapeColor | undefined = 'black';
     declare __fill: ShapeColor | undefined; // optimised field accessor
 
@@ -192,11 +196,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: DropShadow | undefined;
     declare __fillShadow: DropShadow | undefined; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
+    declare __fillBBox: BBox | undefined; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @DeclaredSceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s) => s.onFillChange() })
     fillParams?: GradientParams;
+    declare __fillParams: GradientParams | undefined; // optimised field accessor
 
     private cachedDefaultGradientFillBBox?: BBox;
 
@@ -512,11 +518,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ? undefined
                 : fillBBox[fill.bounds];
 
-        if (computedFillBBox !== this.fillBBox) {
-            this.fillBBox = computedFillBBox;
+        let hasDirectChanges = false;
+        if (this.__fillBBox !== computedFillBBox) {
+            this.__fillBBox = computedFillBBox;
+            hasDirectChanges = true;
         }
-        if (fillParams !== this.fillParams) {
-            this.fillParams = fillParams;
+        if (this.__fillParams !== fillParams) {
+            this.__fillParams = fillParams;
+            hasDirectChanges = true;
+        }
+
+        if (hasDirectChanges) {
+            this.onFillChange();
+            this.markDirty();
         }
     }
 }

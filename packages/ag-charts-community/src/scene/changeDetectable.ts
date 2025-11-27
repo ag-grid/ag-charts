@@ -48,25 +48,16 @@ export function SceneArrayChangeDetection<T extends Target = any>(opts?: SceneAr
     return SceneChangeDetection<T>(opts);
 }
 
-/**
- * A variant of SceneChangeDetection that enforces the backing `__`-prefixed field is declared.
- *
- * Usage:
- * ```ts
- * class MyShape extends Node {
- *     declare __myProp: number;  // Required - enforced by decorator type
- *
- *     @DeclaredSceneChangeDetection()
- *     myProp: number = 0;
- * }
- * ```
- *
- * This allows type-safe access to the backing field without `as any` casts:
- * ```ts
- * const value = this.__myProp;  // Type-safe!
- * ```
- */
-export function DeclaredSceneChangeDetection<V>(opts?: SceneChangeDetectionOptions<V>) {
+export function DeclaredSceneChangeDetection<V>(opts?: SceneChangeDetectionOptions) {
+    return function <K extends string, T extends Target & { [P in `__${K}`]: V }>(target: T, key: K): void {
+        const privateKey = `__${key}`;
+        if (target[key as keyof T]) return;
+        prepareGetSet(target, key, privateKey, opts);
+    };
+}
+
+// eslint-disable-next-line sonarjs/no-identical-functions
+export function DeclaredSceneObjectChangeDetection<V>(opts?: SceneObjectChangeDetectionOptions) {
     return function <K extends string, T extends Target & { [P in `__${K}`]: V }>(target: T, key: K): void {
         const privateKey = `__${key}`;
         if (target[key as keyof T]) return;
