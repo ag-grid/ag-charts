@@ -53,7 +53,6 @@ const {
     markerFadeInAnimation,
     fromToMotion,
     pathMotion,
-    applyShapeFillBBox,
     PointerEvents,
     Marker,
     BBox,
@@ -545,7 +544,7 @@ export class RangeAreaSeries extends BaseSeries {
         });
 
         const fillBBox = this.getShapeFillBBox();
-        applyShapeFillBBox(fillPath, fill, fillBBox);
+        fillPath.setFillProperties(fill, fillBBox);
         fillPath.setStyleProperties({ stroke: undefined, fill, fillOpacity, opacity }, fillBBox);
 
         const fillSegments = this.contextNodeData?.intersectionSegments ?? segments;

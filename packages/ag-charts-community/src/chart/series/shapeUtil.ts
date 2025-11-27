@@ -10,8 +10,7 @@ import {
 } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
-import { type GradientParams } from '../../scene/gradient/gradient';
-import type { Shape, ShapeColor } from '../../scene/shape/shape';
+import type { Shape } from '../../scene/shape/shape';
 
 export type ShapeStyle = Partial<
     Pick<
@@ -133,22 +132,4 @@ export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
         ...style,
         fill: getShapeFill(style.fill, defaultGradient, defaultPattern, defaultImage),
     };
-}
-
-export function applyShapeFillBBox(
-    shape: Shape,
-    fill: ShapeColor | undefined,
-    fillBBox?: ShapeFillBBox,
-    fillParams?: GradientParams
-) {
-    shape.setProperties(
-        {
-            fillBBox:
-                fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
-                    ? undefined
-                    : fillBBox[fill.bounds],
-            fillParams,
-        },
-        ['fillBBox', 'fillParams']
-    );
 }

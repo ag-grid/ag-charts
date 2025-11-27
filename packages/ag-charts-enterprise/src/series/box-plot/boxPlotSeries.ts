@@ -28,7 +28,6 @@ const {
     ChartAxisDirection,
     motion,
     getItemStyles,
-    applyShapeFillBBox,
     calculateSegments,
     toHighlightString,
 } = _ModuleSupport;
@@ -667,7 +666,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 contextNodeData.styles[
                     this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
                 ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
-            applyShapeFillBBox(boxPlotNode, style.fill, fillBBox);
+            boxPlotNode.setFillProperties(style.fill, fillBBox);
 
             const nodeOpacity = style.opacity ?? 1;
             const whiskerOpacity = style.whisker?.strokeOpacity ?? style.strokeOpacity;

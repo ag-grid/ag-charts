@@ -482,21 +482,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             hasDirectChanges = true;
         }
 
-        // fill and stroke have change callbacks that must run, so use setters
-        // fillBBox and fillParams are decorated fields - set them directly if they're not decorated
-        const computedFillBBox =
-            fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
-                ? undefined
-                : fillBBox[fill.bounds];
-
         // fillBBox and fillParams are decorated (@SceneObjectChangeDetection), so we need to use setters
         // to trigger their change callbacks (onFillChange)
-        if (computedFillBBox !== this.fillBBox) {
-            this.fillBBox = computedFillBBox;
-        }
-        if (fillParams !== this.fillParams) {
-            this.fillParams = fillParams;
-        }
+        this.setFillProperties(fill, fillBBox, fillParams);
         if (fill !== this.fill) {
             this.fill = fill;
         }
@@ -507,6 +495,28 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // Ensure node is marked dirty if direct field writes changed values
         if (hasDirectChanges) {
             this.markDirty();
+        }
+    }
+
+    /**
+     * Sets fill-related properties (fillBBox and fillParams) on the shape.
+     * Used for gradient fills that need bounding box information.
+     */
+    setFillProperties(
+        fill: ShapeColor | undefined,
+        fillBBox?: { series: BBox; axis: BBox },
+        fillParams?: GradientParams
+    ): void {
+        const computedFillBBox =
+            fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
+                ? undefined
+                : fillBBox[fill.bounds];
+
+        if (computedFillBBox !== this.fillBBox) {
+            this.fillBBox = computedFillBBox;
+        }
+        if (fillParams !== this.fillParams) {
+            this.fillParams = fillParams;
         }
     }
 }
