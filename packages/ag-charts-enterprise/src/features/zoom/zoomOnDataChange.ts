@@ -81,6 +81,11 @@ export class ZoomOnDataChange {
     }
 
     private performUpdateStrategy() {
+        if (this.properties.stickToEnd) {
+            const isAtEnd = this.ctx.zoomManager.getZoom()?.x?.max === 1;
+            if (isAtEnd) return; // mimic 'preserveRatios'
+        }
+
         switch (this.properties.strategy) {
             case 'reset':
                 return this.ctx.zoomManager.resetZoom(this.callerId);
