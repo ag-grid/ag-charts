@@ -287,9 +287,9 @@ export abstract class Node<TDatum = unknown> {
         }
     }
 
-    setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
+    setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys?: readonly string[]) {
         this.batchLevel++;
-        assignIfNotStrictlyEqual(this, styles);
+        assignIfNotStrictlyEqual(this, styles, keys ?? (Object.keys(styles) as (keyof T & string)[]));
         this.batchLevel--;
 
         if (this.batchLevel === 0 && this.batchDirty) {

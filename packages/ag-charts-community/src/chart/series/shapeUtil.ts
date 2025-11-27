@@ -141,13 +141,29 @@ export function applyShapeFillBBox(
     fillBBox?: ShapeFillBBox,
     fillParams?: GradientParams
 ) {
-    if (fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item') {
-        shape.fillBBox = undefined;
-    } else {
-        shape.fillBBox = fillBBox[fill.bounds];
-    }
-    shape.fillParams = fillParams;
+    shape.setProperties(
+        {
+            fillBBox:
+                fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
+                    ? undefined
+                    : fillBBox[fill.bounds],
+            fillParams,
+        },
+        ['fillBBox', 'fillParams']
+    );
 }
+
+const shapeStyleKeys = [
+    'fill',
+    'fillBBox',
+    'fillParams',
+    'fillOpacity',
+    'stroke',
+    'strokeOpacity',
+    'strokeWidth',
+    'lineDash',
+    'lineDashOffset',
+] as const;
 
 export function applyShapeStyle(
     shape: Shape,
@@ -157,12 +173,22 @@ export function applyShapeStyle(
 ) {
     // Opacity is managed by animation - so don't set it on the shape
     const opacity = style?.opacity ?? 1;
-    shape.fill = style?.fill;
-    applyShapeFillBBox(shape, shape.fill, fillBBox, fillParams);
-    shape.fillOpacity = (style?.fillOpacity ?? 1) * opacity;
-    shape.stroke = style?.stroke;
-    shape.strokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
-    shape.strokeWidth = style?.strokeWidth ?? 0;
-    shape.lineDash = style?.lineDash;
-    shape.lineDashOffset = style?.lineDashOffset ?? 0;
+    const fill = style?.fill;
+    shape.setProperties(
+        {
+            fill,
+            fillBBox:
+                fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
+                    ? undefined
+                    : fillBBox[fill.bounds],
+            fillParams,
+            fillOpacity: (style?.fillOpacity ?? 1) * opacity,
+            stroke: style?.stroke,
+            strokeOpacity: (style?.strokeOpacity ?? 1) * opacity,
+            strokeWidth: style?.strokeWidth ?? 0,
+            lineDash: style?.lineDash,
+            lineDashOffset: style?.lineDashOffset ?? 0,
+        },
+        shapeStyleKeys
+    );
 }

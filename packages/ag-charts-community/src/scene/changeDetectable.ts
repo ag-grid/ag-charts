@@ -48,6 +48,32 @@ export function SceneArrayChangeDetection<T extends Target = any>(opts?: SceneAr
     return SceneChangeDetection<T>(opts);
 }
 
+/**
+ * A variant of SceneChangeDetection that enforces the backing `__`-prefixed field is declared.
+ *
+ * Usage:
+ * ```ts
+ * class MyShape extends Node {
+ *     declare __myProp: number;  // Required - enforced by decorator type
+ *
+ *     @DeclaredSceneChangeDetection()
+ *     myProp: number = 0;
+ * }
+ * ```
+ *
+ * This allows type-safe access to the backing field without `as any` casts:
+ * ```ts
+ * const value = this.__myProp;  // Type-safe!
+ * ```
+ */
+export function DeclaredSceneChangeDetection<V>(opts?: SceneChangeDetectionOptions<V>) {
+    return function <K extends string, T extends Target & { [P in `__${K}`]: V }>(target: T, key: K): void {
+        const privateKey = `__${key}`;
+        if (target[key as keyof T]) return;
+        prepareGetSet(target, key, privateKey, opts);
+    };
+}
+
 function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
     const { changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
     const requiredOpts = { changeCb, checkDirtyOnAssignment, convertor };
