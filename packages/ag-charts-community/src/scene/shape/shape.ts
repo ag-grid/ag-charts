@@ -188,7 +188,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
-        if (this.drawingMode === 'cutout') {
+        if ((this as any).__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             this.executeStroke(ctx, path);
@@ -200,7 +200,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        const { fill, fillOpacity, fillImage } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity, __fillImage: fillImage } = this as any;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const { globalAlpha } = ctx;
             if (fillImage) {
@@ -228,7 +228,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected applyFillAndAlpha(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern, fillImage, fillOpacity = 1, opacity = 1 } = this;
+        const {
+            __fill: fill,
+            __fillGradient: fillGradient,
+            __fillPattern: fillPattern,
+            __fillImage: fillImage,
+            __fillOpacity: fillOpacity = 1,
+            __opacity: opacity = 1,
+        } = this as any;
 
         ctx.globalAlpha *= opacity * fillOpacity;
 
@@ -257,7 +264,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected applyStrokeAndAlpha(ctx: CanvasContext) {
-        const { stroke, strokeOpacity = 1, strokeGradient, opacity = 1 } = this;
+        const {
+            __stroke: stroke,
+            __strokeOpacity: strokeOpacity = 1,
+            __strokeGradient: strokeGradient,
+            __opacity: opacity = 1,
+        } = this as any;
 
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
@@ -272,7 +284,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // has no effect on shadows, so we have to account for the pixel ratio
         // manually here.
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const fillShadow = this.fillShadow;
+        const fillShadow = (this as any).__fillShadow;
         if (fillShadow?.enabled) {
             ctx.shadowColor = fillShadow.color;
             ctx.shadowOffsetX = fillShadow.xOffset * pixelRatio;
@@ -282,7 +294,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin, miterLimit } = this;
+        const {
+            __stroke: stroke,
+            __strokeWidth: strokeWidth,
+            __strokeOpacity: strokeOpacity = 1,
+            __lineDash: lineDash,
+            __lineDashOffset: lineDashOffset,
+            __lineCap: lineCap,
+            __lineJoin: lineJoin,
+            __miterLimit: miterLimit,
+        } = this as any;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
             const { globalAlpha } = ctx;
             this.applyStrokeAndAlpha(ctx);
