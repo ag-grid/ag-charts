@@ -33,7 +33,6 @@ const {
     motion,
     checkCrisp,
     createDatumId,
-    applyShapeStyle,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -481,8 +480,7 @@ export abstract class BaseFunnelSeries<
 
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            applyShapeStyle(
-                connector,
+            connector.setStyleProperties(
                 {
                     fill,
                     stroke,

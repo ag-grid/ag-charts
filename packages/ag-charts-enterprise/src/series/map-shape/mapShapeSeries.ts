@@ -40,7 +40,6 @@ const {
     Selection,
     Text,
     PointerEvents,
-    applyShapeStyle,
     getLabelStyles,
 } = _ModuleSupport;
 
@@ -614,7 +613,7 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, nodeDatum.style, fillBBox);
+            geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
         });
     }
 

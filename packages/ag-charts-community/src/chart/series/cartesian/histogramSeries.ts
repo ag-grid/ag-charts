@@ -50,7 +50,6 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
-import { applyShapeStyle } from '../shapeUtil';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
@@ -494,7 +493,7 @@ export class HistogramSeries extends CartesianSeries<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

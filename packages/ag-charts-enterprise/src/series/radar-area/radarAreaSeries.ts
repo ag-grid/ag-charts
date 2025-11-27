@@ -10,16 +10,7 @@ import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const {
-    ChartAxisDirection,
-    Group,
-    HighlightState,
-    Path,
-    PointerEvents,
-    Selection,
-    applyShapeStyle,
-    toHighlightString,
-} = _ModuleSupport;
+const { ChartAxisDirection, Group, HighlightState, Path, PointerEvents, Selection, toHighlightString } = _ModuleSupport;
 
 type S = AgRadarAreaSeriesStyle;
 type O = AgRadarAreaSeriesOptions;
@@ -81,7 +72,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
         const areaNode = this.getAreaNode();
         if (areaNode) {
-            applyShapeStyle(areaNode, { fill, fillOpacity, stroke: undefined }, this.getShapeFillBBox());
+            areaNode.setStyleProperties({ fill, fillOpacity, stroke: undefined }, this.getShapeFillBBox());
             areaNode.setProperties({
                 lineJoin: 'round',
                 pointerEvents: PointerEvents.None,
@@ -131,8 +122,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
             const stylerStyle = superStyle ?? this.getStyle();
             const fillBBox = this.getShapeFillBBox();
 
-            applyShapeStyle(
-                areaNode,
+            areaNode.setStyleProperties(
                 {
                     fill: stylerStyle.fill,
                     stroke: undefined,

@@ -5,7 +5,6 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { applyShapeStyle } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickNode,
@@ -66,7 +65,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
             node.yClose = yClose;
             node.crisp = crisp;
 
-            applyShapeStyle(node, style, this.getShapeFillBBox());
+            node.setStyleProperties(style, this.getShapeFillBBox());
 
             const styleWick = style?.wick;
             node.wickStroke = styleWick?.stroke;

@@ -67,7 +67,6 @@ import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '.
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
 import type { SeriesNodeEventTypes } from '../seriesTypes';
-import { applyShapeStyle } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -1070,7 +1069,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
 
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
-            applyShapeStyle(sector, format, fillBBox, fillParams);
+            sector.setStyleProperties(format, fillBBox, fillParams);
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;

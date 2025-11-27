@@ -30,7 +30,6 @@ const {
     SeriesNodePickMode,
     CategoryScale,
     motion,
-    applyShapeStyle,
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
@@ -463,7 +462,7 @@ export abstract class RadialColumnSeriesBase<
 
                 this.updateItemPath(node, nodeDatum, isHighlight);
 
-                applyShapeStyle(node, style, fillBBox, fillParams);
+                node.setStyleProperties(style, fillBBox, fillParams);
 
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';

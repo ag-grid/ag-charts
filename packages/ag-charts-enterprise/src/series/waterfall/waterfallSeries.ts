@@ -35,7 +35,6 @@ const {
     computeBarFocusBounds,
     Rect,
     motion,
-    applyShapeStyle,
     getItemStylesPerItemId,
     DataSet,
 } = _ModuleSupport;
@@ -647,7 +646,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

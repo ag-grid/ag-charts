@@ -25,7 +25,7 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, Sector, applyShapeStyle, getShapeStyle, getLabelStyles, BBox } =
+const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } =
     _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
@@ -468,7 +468,7 @@ export class ChordSeries extends FlowProportionSeries<
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex.index, isHighlight);
 
-            applyShapeStyle(sector, style, fillBBox);
+            sector.setStyleProperties(style, fillBBox);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -561,7 +561,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle2 = datum.endAngle2;
 
             link.tension = style.tension;
-            applyShapeStyle(link, style, fillBBox);
+            link.setStyleProperties(style, fillBBox);
         });
     }
 

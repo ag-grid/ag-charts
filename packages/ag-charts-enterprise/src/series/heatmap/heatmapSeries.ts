@@ -35,7 +35,6 @@ const {
     ColorScale,
     Rect,
     PointerEvents,
-    applyShapeStyle,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     updateLabelNode,
@@ -465,7 +464,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datumSelection.each((rect, nodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
-            applyShapeStyle(rect, style);
+            rect.setStyleProperties(style);
 
             rect.crisp = crisp;
             rect.x = Math.floor(point.x - width / 2);

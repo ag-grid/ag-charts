@@ -427,4 +427,86 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private static handleStrokeChange(this: void, shape: Shape): void {
         shape.onStrokeChange();
     }
+
+    /**
+     * Sets style properties on the shape, optimizing by writing directly to __ prefix fields
+     * where possible to avoid setter overhead.
+     */
+    setStyleProperties(
+        style?: Partial<
+            Pick<
+                Shape,
+                | 'fill'
+                | 'fillOpacity'
+                | 'stroke'
+                | 'strokeOpacity'
+                | 'strokeWidth'
+                | 'lineDash'
+                | 'lineDashOffset'
+                | 'opacity'
+            >
+        >,
+        fillBBox?: { series: BBox; axis: BBox },
+        fillParams?: GradientParams
+    ): void {
+        // Opacity is managed by animation - so don't set it on the shape
+        const opacity = style?.opacity ?? 1;
+        const fill = style?.fill;
+
+        // Write directly to __ prefix fields for fields with @DeclaredSceneChangeDetection/@SceneArrayChangeDetection
+        // to avoid setter overhead. Fields with change callbacks (fill, stroke, fillBBox, fillParams) must use setters.
+        const computedFillOpacity = (style?.fillOpacity ?? 1) * opacity;
+        const computedStrokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
+        const computedStrokeWidth = style?.strokeWidth ?? 0;
+        const computedLineDashOffset = style?.lineDashOffset ?? 0;
+
+        let hasDirectChanges = false;
+        if (this.__fillOpacity !== computedFillOpacity) {
+            this.__fillOpacity = computedFillOpacity;
+            hasDirectChanges = true;
+        }
+        if (this.__strokeOpacity !== computedStrokeOpacity) {
+            this.__strokeOpacity = computedStrokeOpacity;
+            hasDirectChanges = true;
+        }
+        if (this.__strokeWidth !== computedStrokeWidth) {
+            this.__strokeWidth = computedStrokeWidth;
+            hasDirectChanges = true;
+        }
+        if (this.__lineDashOffset !== computedLineDashOffset) {
+            this.__lineDashOffset = computedLineDashOffset;
+            hasDirectChanges = true;
+        }
+        if (this.__lineDash !== style?.lineDash) {
+            this.__lineDash = style?.lineDash;
+            hasDirectChanges = true;
+        }
+
+        // fill and stroke have change callbacks that must run, so use setters
+        // fillBBox and fillParams are decorated fields - set them directly if they're not decorated
+        const computedFillBBox =
+            fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
+                ? undefined
+                : fillBBox[fill.bounds];
+
+        // fillBBox and fillParams are decorated (@SceneObjectChangeDetection), so we need to use setters
+        // to trigger their change callbacks (onFillChange)
+        if (computedFillBBox !== this.fillBBox) {
+            this.fillBBox = computedFillBBox;
+        }
+        if (fillParams !== this.fillParams) {
+            this.fillParams = fillParams;
+        }
+        if (fill !== this.fill) {
+            this.fill = fill;
+        }
+        if (style?.stroke !== this.stroke) {
+            this.stroke = style?.stroke;
+        }
+
+        // Ensure node is marked dirty if direct field writes changed values
+        if (hasDirectChanges) {
+            this.markDirty();
+        }
+    }
 }

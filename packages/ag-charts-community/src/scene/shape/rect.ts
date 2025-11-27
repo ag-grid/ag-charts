@@ -2,7 +2,7 @@ import type { DistantObject } from 'ag-charts-core';
 import { boxesEqual, isNumberEqual } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import { DeclaredSceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
+import { DeclaredSceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -283,7 +283,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @SceneObjectChangeDetection({ equals: boxesEqual })
+    @DeclaredSceneChangeDetection({ equals: boxesEqual })
     clipBBox?: BBox = undefined;
     declare __clipBBox: BBox | undefined; // optimised field accessor
 
@@ -298,16 +298,16 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     private borderClipPath?: ExtendedPath2D;
 
-    private lastUpdatePathStrokeWidth: number = this.strokeWidth;
+    private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
     protected override isDirtyPath() {
         return (
-            this.lastUpdatePathStrokeWidth !== this.strokeWidth ||
+            this.lastUpdatePathStrokeWidth !== this.__strokeWidth ||
             Boolean(this.path.isDirty() || this.borderPath.isDirty())
         );
     }
 
-    private effectiveStrokeWidth: number = this.strokeWidth;
+    private effectiveStrokeWidth: number = this.__strokeWidth;
 
     private hittester = super.isPointInPath.bind(this);
     private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
@@ -323,13 +323,13 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         const {
             path,
             borderPath,
-            crisp,
-            topLeftCornerRadius: topLeft,
-            topRightCornerRadius: topRight,
-            bottomRightCornerRadius: bottomRight,
-            bottomLeftCornerRadius: bottomLeft,
+            __crisp: crisp,
+            __topLeftCornerRadius: topLeft,
+            __topRightCornerRadius: topRight,
+            __bottomRightCornerRadius: bottomRight,
+            __bottomLeftCornerRadius: bottomLeft,
         } = this;
-        let { x, y, width: w, height: h, strokeWidth, clipBBox } = this;
+        let { __x: x, __y: y, __width: w, __height: h, __strokeWidth: strokeWidth, __clipBBox: clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
@@ -447,7 +447,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
     }
 
     protected override computeBBox(): BBox {
-        const { x, y, width, height, clipBBox } = this;
+        const { __x: x, __y: y, __width: width, __height: height, __clipBBox: clipBBox } = this;
         return clipBBox?.clone() ?? new BBox(x, y, width, height);
     }
 
@@ -456,7 +456,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
     }
 
     get midPoint(): { x: number; y: number } {
-        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+        return { x: this.__x + this.__width / 2, y: this.__y + this.__height / 2 };
     }
 
     /**

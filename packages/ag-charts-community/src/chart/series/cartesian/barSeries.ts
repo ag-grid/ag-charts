@@ -49,7 +49,6 @@ import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext }
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AGGREGATION_INDEX_UNSET,
@@ -1513,7 +1512,7 @@ export class BarSeries extends AbstractBarSeries<
             const style =
                 datum.style ?? contextStyles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
 
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             const cornerRadius = style.cornerRadius ?? 0;
             const visible = categoryAlongX
