@@ -218,7 +218,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        const { __fill: fill, __fillOpacity: fillOpacity, fillImage } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const { globalAlpha } = ctx;
             if (fillImage) {
@@ -251,8 +251,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             fillGradient,
             fillPattern,
             fillImage,
-            __fillOpacity: fillOpacity,
-            __opacity: opacity,
+            __fillOpacity: fillOpacity = 1,
+            __opacity: opacity = 1,
         } = this;
 
         ctx.globalAlpha *= opacity * fillOpacity;
@@ -282,7 +282,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected applyStrokeAndAlpha(ctx: CanvasContext) {
-        const { __stroke: stroke, __strokeOpacity: strokeOpacity, strokeGradient, __opacity: opacity } = this;
+        const { __stroke: stroke, __strokeOpacity: strokeOpacity = 1, strokeGradient, __opacity: opacity = 1 } = this;
 
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
@@ -309,8 +309,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
         const {
             __stroke: stroke,
-            __strokeWidth: strokeWidth,
-            __strokeOpacity: strokeOpacity,
+            __strokeWidth: strokeWidth = 0,
+            __strokeOpacity: strokeOpacity = 1,
             __lineDash: lineDash,
             __lineDashOffset: lineDashOffset,
             __lineCap: lineCap,
