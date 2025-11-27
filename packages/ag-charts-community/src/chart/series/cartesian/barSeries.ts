@@ -1,4 +1,4 @@
-import type { CallbackParamRules, Point, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, Point, RequireOptional, Scale } from 'ag-charts-core';
 import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -24,6 +24,7 @@ import type { Text } from '../../../scene/shape/text';
 import { DeferredExecutor } from '../../../util/deferredExecutor';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
+import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
@@ -91,6 +92,52 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
+}
+
+/**
+ * Shared context for creating/updating BarNodeDatum instances.
+ * Instantiated once per createNodeData() call and reused across all datum operations
+ * to minimize memory allocations. Only contains values that are expensive to compute
+ * or resolve - cheap property lookups use `this` directly in methods.
+ */
+interface BarSeriesNodeDatumContext {
+    // Data arrays (resolved from dataModel - worth caching)
+    readonly rawData: { data: any[] } | undefined;
+    readonly xValues: any[];
+    readonly yRawValues: any[];
+    readonly yFilterValues: any[] | undefined;
+
+    // Scales (axis lookups - worth caching)
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+
+    // Computed positioning (involves scale conversions - worth caching)
+    readonly groupOffset: number;
+    readonly barOffset: number;
+    readonly barWidth: number;
+
+    // Pre-computed values (scale conversions or computed - worth caching)
+    readonly yReversed: boolean;
+    readonly bboxBottom: number;
+    readonly labelSpacing: number;
+    readonly crisp: boolean;
+
+    // Property lookups (constant across all datums - worth caching)
+    readonly barAlongX: boolean;
+    readonly shouldFlipXY: boolean;
+    readonly xKey: string;
+    readonly yKey: string;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly legendItemName: string | undefined;
+    readonly label: BarSeriesProperties['label'];
+    readonly yDomain: any[];
+}
+
+/** Result of creating node datum(s) for a single data point */
+interface CreateNodeDatumResult {
+    nodeData: BarNodeDatum | undefined;
+    phantomNodeData: BarNodeDatum | undefined;
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
@@ -428,113 +475,175 @@ export class BarSeries extends AbstractBarSeries<
         }
     }
 
-    createNodeData() {
+    /**
+     * Creates shared context for node datum creation/update operations.
+     * This context is instantiated once and reused across all datum operations
+     * to minimize memory allocations. Only caches values that are expensive to
+     * compute - cheap property lookups use `this` directly.
+     */
+    private createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis,
+        crisp: boolean
+    ): BarSeriesNodeDatumContext | undefined {
         const { dataModel, processedData, groupScale } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+        if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources?.get(this.id);
-        if (rawData == null) return;
+        if (rawData == null) return undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-        const { xKey, yKey, xName, yName, legendItemName, label } = this.properties;
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const yReversed = yAxis.isReversed();
 
         const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
         const groupOffset = groupScale.convert(String(groupScaleIndex));
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
-        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
-        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
-        const yEndValues = isStacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
         const yFilterValues = this.crossFilteringEnabled()
             ? dataModel.resolveColumnById(this, `yFilterValue`, processedData)
             : undefined;
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        const xPosition = (index: number): number => xScale.convert(xValues[index]) + groupOffset + barOffset;
-
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
-
-        // Ensure we have the aggregation level needed for the current range
-        // This will force-compute deferred levels if necessary
-        this.ensureAggregationLevelForRange(range);
-
-        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
-
-        const crisp =
-            dataAggregationFilter == null &&
-            (this.properties.crisp ??
-                checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval));
-
+        const yReversed = yAxis.isReversed();
         const bboxBottom = yScale.convert(0);
+        const { label } = this.properties;
+        const labelSpacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
-        // Pre-compute values used in nodeDatum to avoid repeated calls
+        // Pre-compute property lookups that are constant across all datums
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const shouldFlipXY = this.shouldFlipXY();
-        const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+        const { xKey, yKey, xName, yName, legendItemName } = this.properties;
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const series = this;
-        function nodeDatum({
-            datum,
-            datumIndex,
-            xValue,
-            yValue,
-            cumulativeValue,
-            phantom,
-            currY,
-            prevY,
-            x,
-            width,
-            isPositive,
-            yRange,
-            labelText,
-            opacity,
-            featherRatio,
-            crossScale = 1,
-            // Pre-computed values to avoid redundant calculations when creating phantom nodes
-            precomputedBottomY,
-            precomputedIsUpward,
-        }: {
-            datum: any;
-            datumIndex: number;
-            xValue: string;
-            yValue: number;
-            cumulativeValue: number;
-            phantom: boolean;
-            currY: number;
-            prevY: number;
-            x: number;
-            width: number;
-            isPositive: boolean;
-            yRange: number;
-            labelText: TextOrSegments | undefined;
-            opacity: number;
-            featherRatio: number;
-            crossScale: number | undefined;
-            precomputedBottomY?: number;
-            precomputedIsUpward?: boolean;
-        }): BarNodeDatum {
+        return {
+            rawData,
+            xValues,
+            yRawValues,
+            yFilterValues,
+            xScale,
+            yScale,
+            groupOffset,
+            barOffset,
+            barWidth,
+            yReversed,
+            bboxBottom,
+            labelSpacing,
+            crisp,
+            barAlongX,
+            shouldFlipXY,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            label,
+            yDomain,
+        };
+    }
+
+    /**
+     * Computes the x position for a datum at the given index.
+     */
+    private computeXPosition(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
+        return ctx.xScale.convert(ctx.xValues[datumIndex]) + ctx.groupOffset + ctx.barOffset;
+    }
+
+    /**
+     * Creates a BarNodeDatum (and optionally a phantom node) for a single data point.
+     * This is the primary method for node creation, extracted from the inline handleDatum/nodeDatum functions.
+     */
+    private createNodeDatum(
+        ctx: BarSeriesNodeDatumContext,
+        datumIndex: number,
+        x: number,
+        width: number,
+        yStart: number,
+        yEnd: number,
+        yRange: number,
+        featherRatio: number = 0,
+        opacity: number = 1
+    ): CreateNodeDatumResult {
+        const {
+            rawData,
+            xValues,
+            yRawValues,
+            yFilterValues,
+            yScale,
+            yReversed,
+            bboxBottom,
+            crisp,
+            labelSpacing,
+            barAlongX,
+            shouldFlipXY,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            label,
+            yDomain,
+        } = ctx;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) {
+            return { nodeData: undefined, phantomNodeData: undefined };
+        }
+
+        const datum = rawData?.data[datumIndex];
+        const yRawValue = yRawValues[datumIndex];
+        const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
+        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
+
+        if (!Number.isFinite(yEnd)) {
+            return { nodeData: undefined, phantomNodeData: undefined };
+        }
+        if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
+            return { nodeData: undefined, phantomNodeData: undefined };
+        }
+
+        const labelText =
+            label.enabled && yRawValue != null
+                ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
+                      yFilterValue ?? yRawValue,
+                      datum,
+                      yKey,
+                      'y',
+                      yDomain,
+                      label,
+                      { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
+                  )
+                : undefined;
+
+        const inset = yFilterValue != null && yFilterValue > yRawValue;
+
+        // Pre-compute shared values when phantom node will be created
+        const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
+        const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+
+        // Helper to build the actual BarNodeDatum
+        const buildNodeDatum = (
+            phantom: boolean,
+            currY: number,
+            prevY: number,
+            yValue: number,
+            cumulativeValue: number,
+            nodeYRange: number,
+            nodeLabelText: TextOrSegments | undefined,
+            crossScale: number | undefined
+        ): BarNodeDatum => {
             const isUpward = precomputedIsUpward ?? isPositive !== yReversed;
 
             const y = yScale.convert(currY);
             const bottomY = precomputedBottomY ?? yScale.convert(prevY);
-            const bboxHeight = yScale.convert(yRange);
+            const bboxHeight = yScale.convert(nodeYRange);
 
-            const xOffset = width * 0.5 * (1 - crossScale);
+            const xOffset = width * 0.5 * (1 - (crossScale ?? 1));
             const rect = {
                 x: barAlongX ? Math.min(y, bottomY) : x + xOffset,
                 y: barAlongX ? x + xOffset : Math.min(y, bottomY),
-                width: barAlongX ? Math.abs(bottomY - y) : width * crossScale,
-                height: barAlongX ? width * crossScale : Math.abs(bottomY - y),
+                width: barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1),
+                height: barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y),
             };
 
             const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
@@ -542,14 +651,14 @@ export class BarSeries extends AbstractBarSeries<
             const barRect = {
                 x: barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset,
                 y: barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight),
-                width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * crossScale,
-                height: barAlongX ? width * crossScale : Math.abs(bboxBottom - bboxHeight),
+                width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1),
+                height: barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight),
             };
 
             const lengthRatioMultiplier = shouldFlipXY ? rect.height : rect.width;
 
             return {
-                series,
+                series: this,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
                 datumIndex,
@@ -560,7 +669,7 @@ export class BarSeries extends AbstractBarSeries<
                 yKey,
                 xKey,
                 capDefaults: {
-                    lengthRatioMultiplier: lengthRatioMultiplier,
+                    lengthRatioMultiplier,
                     lengthMax: lengthRatioMultiplier,
                 },
                 x: barRect.x,
@@ -577,115 +686,105 @@ export class BarSeries extends AbstractBarSeries<
                 clipBBox,
                 crisp,
                 label:
-                    labelText == null
+                    nodeLabelText == null
                         ? undefined
                         : {
-                              text: labelText,
+                              text: nodeLabelText,
                               ...adjustLabelPlacement({
-                                  isUpward: isUpward,
+                                  isUpward,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
-                                  spacing,
+                                  spacing: labelSpacing,
                                   rect,
                               }),
                           },
                 missing: isTooltipValueMissing(yValue),
                 focusable: !phantom,
             };
+        };
+
+        // Create main node
+        const nodeData = buildNodeDatum(
+            false,
+            yFilterValue == null ? yEnd : yStart + yFilterValue,
+            yStart,
+            yFilterValue ?? yRawValue,
+            yFilterValue ?? yEnd,
+            Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
+            labelText,
+            inset ? 0.6 : undefined
+        );
+
+        // Create phantom node if cross-filtering is active
+        let phantomNodeData: BarNodeDatum | undefined;
+        if (yFilterValue != null) {
+            phantomNodeData = buildNodeDatum(
+                true,
+                yEnd,
+                yStart,
+                yFilterValue,
+                yFilterValue,
+                yRange,
+                undefined,
+                undefined
+            );
         }
+
+        return { nodeData, phantomNodeData };
+    }
+
+    createNodeData() {
+        const { dataModel, processedData } = this;
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+
+        const xScale = xAxis.scale;
+        const { yKey } = this.properties;
+
+        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
+        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
+        const yEndValues = isStacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+
+        // Ensure we have the aggregation level needed for the current range
+        // This will force-compute deferred levels if necessary
+        this.ensureAggregationLevelForRange(range);
+
+        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        const crisp =
+            dataAggregationFilter == null &&
+            (this.properties.crisp ??
+                checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval));
+
+        // Create shared context for datum creation (instantiated once, reused for all datums)
+        const ctx = this.createNodeDatumContext(xAxis, yAxis, crisp);
+        if (!ctx) return;
+
+        const { xValues, yRawValues, barWidth, yReversed } = ctx;
+
+        // Helper for x position calculation (uses context)
+        const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
         const phantomNodes: BarNodeDatum[] = [];
         const nodes: BarNodeDatum[] = [];
         const labels: BarNodeDatum[] = [];
 
-        function handleDatum(
-            datumIndex: number,
-            x: number,
-            width: number,
-            yStart: number,
-            yEnd: number,
-            yRange: number,
-            featherRatio = 0,
-            opacity = 1
-        ) {
-            const xValue = xValues[datumIndex];
-            if (xValue == null) return;
-
-            const datum = rawData?.data[datumIndex];
-
-            const yRawValue = yRawValues[datumIndex];
-            const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
-            const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-
-            if (!Number.isFinite(yEnd)) return;
-            if (yFilterValue != null && !Number.isFinite(yFilterValue)) return;
-
-            const labelText =
-                label.enabled && yRawValue != null
-                    ? series.getLabelText<AgBarSeriesLabelFormatterParams>(
-                          yFilterValue ?? yRawValue,
-                          datum,
-                          yKey,
-                          'y',
-                          yDomain,
-                          label,
-                          { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
-                      )
-                    : undefined;
-
-            const inset = yFilterValue != null && yFilterValue > yRawValue;
-
-            // Pre-compute shared values when phantom node will be created
-            const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
-            const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
-
-            const nodeData = nodeDatum({
-                datum,
-                datumIndex,
-                xValue,
-                yValue: yFilterValue ?? yRawValue,
-                cumulativeValue: yFilterValue ?? yEnd,
-                phantom: false,
-                currY: yFilterValue == null ? yEnd : yStart + yFilterValue,
-                prevY: yStart,
-                x,
-                width,
-                isPositive,
-                yRange: Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
-                labelText,
-                opacity,
-                featherRatio,
-                crossScale: inset ? 0.6 : undefined,
-                precomputedBottomY,
-                precomputedIsUpward,
-            });
-            nodes.push(nodeData);
-            labels.push(nodeData);
-
-            if (yFilterValue != null) {
-                const phantomNodeData = nodeDatum({
-                    datum: rawData?.data[datumIndex],
-                    datumIndex,
-                    xValue,
-                    yValue: yFilterValue,
-                    cumulativeValue: yFilterValue,
-                    phantom: true,
-                    currY: yEnd,
-                    prevY: yStart,
-                    x,
-                    width,
-                    isPositive,
-                    yRange,
-                    labelText: undefined,
-                    opacity,
-                    featherRatio,
-                    crossScale: undefined,
-                    precomputedBottomY,
-                    precomputedIsUpward,
-                });
-                phantomNodes.push(phantomNodeData);
+        // Helper to handle result from createNodeDatum and push to arrays
+        const handleNodeDatumResult = (result: CreateNodeDatumResult): void => {
+            if (result.nodeData) {
+                nodes.push(result.nodeData);
+                labels.push(result.nodeData);
             }
-        }
+            if (result.phantomNodeData) {
+                phantomNodes.push(result.phantomNodeData);
+            }
+        };
 
         if (dataAggregationFilter != null) {
             const { positiveIndices, positiveIndexData, negativeIndices, negativeIndexData } = dataAggregationFilter;
@@ -741,7 +840,9 @@ export class BarSeries extends AbstractBarSeries<
                         featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
                     }
 
-                    handleDatum(yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity);
+                    handleNodeDatumResult(
+                        this.createNodeDatum(ctx, yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity)
+                    );
                 }
             }
         } else if (processedData.type === 'grouped') {
@@ -779,7 +880,7 @@ export class BarSeries extends AbstractBarSeries<
                         yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                     }
 
-                    handleDatum(datumIndex, x, width, yStart, yEnd, yRange);
+                    handleNodeDatumResult(this.createNodeDatum(ctx, datumIndex, x, width, yStart, yEnd, yRange));
                 }
             }
         } else {
@@ -801,7 +902,7 @@ export class BarSeries extends AbstractBarSeries<
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValue);
 
-                handleDatum(datumIndex, x, width, 0, yEnd, yEnd);
+                handleNodeDatumResult(this.createNodeDatum(ctx, datumIndex, x, width, 0, yEnd, yEnd));
             }
         }
 
