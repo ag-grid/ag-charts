@@ -123,6 +123,8 @@ function normalizeForComparison(data: any): any {
     const json = JSON.parse(JSON.stringify(data, jsonReplacer));
     delete json.time;
     delete json.optimizations;
+    // Exclude changeDescription - it's only present during reprocessData, not processData
+    delete json.changeDescription;
     // Exclude diff metadata - it's only generated during reprocessData, not processData
     if (json.reduced?.diff) {
         delete json.reduced.diff;
