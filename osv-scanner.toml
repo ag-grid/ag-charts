@@ -71,6 +71,11 @@ ignore = true
 name = "webpack-dev-middleware"
 ignore = true
 
+# node-forge is only used for angular dev server
+[[PackageOverrides]]
+name = "node-forge"
+ignore = true
+
 [[IgnoredVulns]]
 id = "GHSA-3p6v-hrg8-8qj7"
 reason = "Used for MCP server, not exposed to end users"
@@ -204,10 +209,33 @@ id = "GHSA-5ff5-9fcw-vg88"
 reason = "astro is only used for generating a static site, so server vulnerabilities do not apply"
 
 [[IgnoredVulns]]
+id = "GHSA-fvmw-cj7j-j39q"
+reason = "astro is only used for generating a static site, so server vulnerabilities do not apply. We also do not use the cloudflare plugin"
+
+[[IgnoredVulns]]
+id = "GHSA-ggxq-hp9w-j794"
+reason = "astro is only used for generating a static site, so server middleware vulnerabilities do not apply"
+
+[[IgnoredVulns]]
+id = "GHSA-hr2q-hp5q-x767"
+reason = "astro is only used for generating a static site, so server middleware vulnerabilities do not apply"
+
+[[IgnoredVulns]]
+id = "GHSA-w2vj-39qv-7vh7"
+reason = "astro is only used for generating a static site, and this only applies to the development server"
+
+[[IgnoredVulns]]
+id = "GHSA-wrwg-2hg8-v723"
+reason = "This vulnerability affects server-side code, but astro is only used for generating a static site"
+
+[[IgnoredVulns]]
+id = "GHSA-x3h8-62x9-952g"
+reason = "astro is only used for generating a static site, and this only applies to the development server"
+
+[[IgnoredVulns]]
 id = "GHSA-gcx4-mw62-g8wm"
 reason = "rollup is only used for development, so does not impact production code"
 
 [[IgnoredVulns]]
 id = "GHSA-5j98-mcp5-4vw2"
 reason = "glob not accessible to end user/external users"
-
