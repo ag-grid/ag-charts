@@ -21,9 +21,7 @@ export function makeLocaleContext(locale: LocaleString): LocaleContext {
         minimumFractionDigits: 1,
     });
 
-    if ('document' in global) {
-        document.documentElement.lang = locale;
-    }
+    document.documentElement.lang = locale;
 
     return {
         get locale(): LocaleString {

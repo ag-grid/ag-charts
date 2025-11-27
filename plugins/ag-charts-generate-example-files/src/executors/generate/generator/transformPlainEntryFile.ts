@@ -35,6 +35,7 @@ function generateOptions(
     const options: agCharts.AgChartOptions = parseExampleOptions(node.id.name, code, preamble, {
         agCharts,
         agChartsLocale,
+        document: { documentElement: { lang: 'en-US' } }, // for dynamic locale-and-formatters example.
     });
 
     return { code, options };
