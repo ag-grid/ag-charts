@@ -12,6 +12,14 @@
             <option value="applyTransaction">applyTransaction()</option>
             <option value="updateDelta">updateDelta()</option>
         </select>
+        <select id="frequencySelect" onchange="updateFrequency(this.value)">
+            <option value="raf">requestAnimationFrame()</option>
+            <option value="50">50ms</option>
+            <option value="100">100ms</option>
+            <option value="200" selected>200ms</option>
+            <option value="500">500ms</option>
+            <option value="1000">1000ms</option>
+        </select>
         <select id="seriesTypeSelect" onchange="updateSeriesType(this.value)">
             <option value="line" selected>Line</option>
             <option value="bar">Bar</option>
@@ -19,6 +27,7 @@
             <option value="candlestick">Candlestick</option>
         </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <span id="fpsCounter" style="margin-left: 10px">FPS: 0</span>
         <span id="dataCount" style="margin-left: 10px">Points: 100000</span>
     </div>
 </div>
