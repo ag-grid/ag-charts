@@ -194,6 +194,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts, optionsGraph;
         if (
             !stripSymbols &&
+            this.seriesWithUserVisibility == undefined &&
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions) &&
             baseChartOptions != null &&
