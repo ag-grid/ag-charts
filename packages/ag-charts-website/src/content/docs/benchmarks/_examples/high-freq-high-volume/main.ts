@@ -161,6 +161,17 @@ async function removePoints(count: number) {
     updateDataCountDisplay();
 }
 
+async function rollBatch() {
+    if (data.length <= BATCH_SIZE) {
+        return;
+    }
+    const remove = data.slice(0, BATCH_SIZE);
+    const append = createBatch(BATCH_SIZE);
+    data = data.slice(BATCH_SIZE).concat(append);
+    await dispatchUpdate({ append, remove });
+    updateDataCountDisplay();
+}
+
 async function runAutoUpdate() {
     if (updateInFlight) {
         return;
@@ -228,14 +239,10 @@ function setUpdateMethod(method: string) {
 }
 
 function updateButtonLabels() {
-    const addBtn = document.getElementById('addBtn');
-    const removeBtn = document.getElementById('removeBtn');
+    const rollBtn = document.getElementById('rollBtn');
 
-    if (addBtn) {
-        addBtn.textContent = `Add ${BATCH_SIZE.toLocaleString()}`;
-    }
-    if (removeBtn) {
-        removeBtn.textContent = `Remove ${BATCH_SIZE.toLocaleString()}`;
+    if (rollBtn) {
+        rollBtn.textContent = `Roll ${BATCH_SIZE.toLocaleString()}`;
     }
 }
 
@@ -262,11 +269,6 @@ if (methodSelect) {
 (window as any).updateBatchSize = (size: string) => {
     setBatchSize(parseInt(size, 10));
 };
-(window as any).addBatch = () => {
-    void addPoints(BATCH_SIZE);
-};
-(window as any).removeBatch = () => {
-    void removePoints(BATCH_SIZE);
-};
+(window as any).rollBatch = rollBatch;
 
 export {};
