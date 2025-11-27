@@ -13,6 +13,9 @@ export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRe
     @Property
     // TODO(olegat): change default to 'preserveDomain'
     strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
+
+    @Property
+    stickToEnd: boolean = true;
 }
 
 export class ZoomOnDataChange {
