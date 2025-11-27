@@ -959,18 +959,135 @@ export class BarSeries extends AbstractBarSeries<
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
-        const phantomNodes: BarNodeDatum[] = [];
-        const nodes: BarNodeDatum[] = [];
-        const labels: BarNodeDatum[] = [];
+        // Check if we can do incremental updates
+        const canIncrementallyUpdate =
+            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        // Helper to handle result from createNodeDatum and push to arrays
-        const handleNodeDatumResult = (result: CreateNodeDatumResult): void => {
-            if (result.nodeData) {
-                nodes.push(result.nodeData);
-                labels.push(result.nodeData);
-            }
-            if (result.phantomNodeData) {
-                phantomNodes.push(result.phantomNodeData);
+        // Reuse existing arrays directly for incremental updates (mutate in place), or create new ones
+        const phantomNodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData.phantomNodeData ?? [] : [];
+        const nodes: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData!.nodeData : [];
+        const labels: BarNodeDatum[] = canIncrementallyUpdate ? this.contextNodeData!.nodeData : [];
+
+        // Counters to track how many nodes we've reused/updated
+        let nodeIndex = 0;
+        let phantomIndex = 0;
+
+        // Helper to handle node creation/update - reuses existing nodes when possible
+        const handleNodeDatum = (
+            datumIndex: number,
+            x: number,
+            width: number,
+            yStart: number,
+            yEnd: number,
+            yRange: number,
+            featherRatio: number = 0,
+            opacity: number = 1
+        ): void => {
+            // Check if we can reuse existing nodes
+            const canReuseNode = canIncrementallyUpdate && nodeIndex < nodes.length;
+            const canReusePhantom = canIncrementallyUpdate && phantomIndex < phantomNodes.length;
+
+            if (canReuseNode) {
+                // Reuse existing main node by updating in place
+                this.updateNodeDatum(
+                    ctx,
+                    nodes[nodeIndex],
+                    datumIndex,
+                    x,
+                    width,
+                    yStart,
+                    yEnd,
+                    yRange,
+                    featherRatio,
+                    opacity
+                );
+                // Update label reference (same node is used for labels)
+                if (nodeIndex < labels.length) {
+                    labels[nodeIndex] = nodes[nodeIndex];
+                } else {
+                    labels.push(nodes[nodeIndex]);
+                }
+                nodeIndex++;
+
+                // Handle phantom node if needed
+                if (canReusePhantom) {
+                    // Reuse existing phantom node by updating in place
+                    this.updateNodeDatum(
+                        ctx,
+                        phantomNodes[phantomIndex],
+                        datumIndex,
+                        x,
+                        width,
+                        yStart,
+                        yEnd,
+                        yRange,
+                        featherRatio,
+                        opacity
+                    );
+                    phantomIndex++;
+                } else {
+                    // Need to create phantom node - check if it's needed first
+                    const needsPhantomNode = ctx.yFilterValues != null && ctx.yFilterValues[datumIndex] != null;
+                    if (needsPhantomNode) {
+                        // Create just the phantom node (createNodeDatum will create both, but we'll ignore main)
+                        const result = this.createNodeDatum(
+                            ctx,
+                            datumIndex,
+                            x,
+                            width,
+                            yStart,
+                            yEnd,
+                            yRange,
+                            featherRatio,
+                            opacity
+                        );
+                        if (result.phantomNodeData) {
+                            phantomNodes.push(result.phantomNodeData);
+                            phantomIndex++;
+                        }
+                    }
+                }
+            } else {
+                // Need to create new node(s) - call createNodeDatum once
+                const result = this.createNodeDatum(
+                    ctx,
+                    datumIndex,
+                    x,
+                    width,
+                    yStart,
+                    yEnd,
+                    yRange,
+                    featherRatio,
+                    opacity
+                );
+
+                if (result.nodeData) {
+                    nodes.push(result.nodeData);
+                    labels.push(result.nodeData);
+                    nodeIndex++;
+                }
+
+                if (result.phantomNodeData) {
+                    if (canReusePhantom) {
+                        // Update existing phantom node in place
+                        this.updateNodeDatum(
+                            ctx,
+                            phantomNodes[phantomIndex],
+                            datumIndex,
+                            x,
+                            width,
+                            yStart,
+                            yEnd,
+                            yRange,
+                            featherRatio,
+                            opacity
+                        );
+                    } else {
+                        // Push new phantom node
+                        phantomNodes.push(result.phantomNodeData);
+                    }
+                    phantomIndex++;
+                }
             }
         };
 
@@ -1028,9 +1145,7 @@ export class BarSeries extends AbstractBarSeries<
                         featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
                     }
 
-                    handleNodeDatumResult(
-                        this.createNodeDatum(ctx, yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity)
-                    );
+                    handleNodeDatum(yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity);
                 }
             }
         } else if (processedData.type === 'grouped') {
@@ -1068,7 +1183,7 @@ export class BarSeries extends AbstractBarSeries<
                         yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                     }
 
-                    handleNodeDatumResult(this.createNodeDatum(ctx, datumIndex, x, width, yStart, yEnd, yRange));
+                    handleNodeDatum(datumIndex, x, width, yStart, yEnd, yRange);
                 }
             }
         } else {
@@ -1090,7 +1205,21 @@ export class BarSeries extends AbstractBarSeries<
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValue);
 
-                handleNodeDatumResult(this.createNodeDatum(ctx, datumIndex, x, width, 0, yEnd, yEnd));
+                handleNodeDatum(datumIndex, x, width, 0, yEnd, yEnd);
+            }
+        }
+
+        // Trim excess nodes if we did incremental updates and have leftover nodes
+        if (canIncrementallyUpdate) {
+            if (nodeIndex < nodes.length) {
+                nodes.length = nodeIndex;
+            }
+            if (phantomIndex < phantomNodes.length) {
+                phantomNodes.length = phantomIndex;
+            }
+            // Labels array should match nodes array length
+            if (labels.length > nodes.length) {
+                labels.length = nodes.length;
             }
         }
 
