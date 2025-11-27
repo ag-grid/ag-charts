@@ -34,6 +34,7 @@ import {
     validate,
 } from 'ag-charts-core';
 import {
+    type AgCartesianSeriesOptions,
     type AgChartOptions,
     type AgChartThemeParams,
     type AgMiniChartSeriesOptions,
@@ -177,6 +178,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
+        this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
         if (stripSymbols) {
             this.removeLeftoverSymbols(this.userOptions);
@@ -201,7 +203,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
-                this.slowSetup(newUserOptions, processedOverrides, deltaOptions, stripSymbols));
+                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -221,6 +223,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // This ChartOptions should be treated as immutable from here-on, force immutability to
         // flush out runtime issues.
         Debug.inDevelopmentMode(() => deepFreeze(this));
+    }
+
+    private findSeriesWithUserVisiblity(newUserOptions: T, deltaOptions: DeepPartial<T> | null | undefined) {
+        for (const o of [newUserOptions, deltaOptions]) {
+            const series = o?.series;
+            if (Array.isArray(series)) {
+                for (const s of series) {
+                    if ('visible' in s && s.id) {
+                        this.seriesWithUserVisibility ??= new Set();
+                        this.seriesWithUserVisibility.add(s.id);
+                    }
+                }
+            }
+        }
     }
 
     private fastSetup(deltaOptions: DeepPartial<T> | null, baseChartOptions: ChartOptions<T>) {
@@ -258,22 +274,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private slowSetup(
-        newUserOptions: T,
-        processedOverrides: Partial<T>,
-        deltaOptions?: DeepPartial<T> | null,
-        stripSymbols = false
-    ) {
+    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
-
-        for (const o of [newUserOptions, deltaOptions]) {
-            for (const s of o?.series ?? []) {
-                if ('visible' in s && s.id) {
-                    this.seriesWithUserVisibility ??= new Set();
-                    this.seriesWithUserVisibility.add(s.id);
-                }
-            }
-        }
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;
