@@ -1,9 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgChartLabelStyleOptions,
-    AgChartLabelStylerParams,
-    AgCharts,
-} from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLabelStylerParams, AgCharts } from 'ag-charts-community';
 import {
     CategoryAxisModule,
     LegendModule,

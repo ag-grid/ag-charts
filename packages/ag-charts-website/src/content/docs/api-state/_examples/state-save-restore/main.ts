@@ -1,33 +1,10 @@
-import {
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-} from 'ag-charts-community';
-import {
-    AgChartState,
-    AgCharts,
-    AgFinancialChartOptions,
-    AnimationModule,
-    CrosshairModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
-import { FinancialChartModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import { ModuleRegistry } from 'ag-charts-community';
+import { AgChartState, AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
+import { FinancialChartModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    FinancialChartModule,
-    LegendModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([FinancialChartModule]);
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),

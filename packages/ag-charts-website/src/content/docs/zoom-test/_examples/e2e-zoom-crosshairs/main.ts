@@ -12,13 +12,8 @@ const options: AgCartesianChartOptions = {
         enabled: false,
     },
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             crosshair: { snap: false },
         },

@@ -15,9 +15,9 @@ const options: AgChartOptions = {
             type: 'area',
             xKey: 'month',
             yKey: 'subscriptions',
-            yName: 'Subscriptions',
             stacked: true,
             normalizedTo: 1000,
+            yName: 'Subscriptions',
         },
         {
             type: 'area',

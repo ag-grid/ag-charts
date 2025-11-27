@@ -215,22 +215,31 @@ export function createAggregationIndices(
     maxRange: number,
     {
         positive,
+        split = false,
         xNeedsValueOf = true,
         yNeedsValueOf = true,
     }: {
         positive?: boolean;
+        split?: boolean;
         xNeedsValueOf?: boolean;
         yNeedsValueOf?: boolean;
     } = {}
 ): {
     indexData: Uint32Array;
     valueData: Float64Array;
+    negativeIndexData?: Uint32Array;
+    negativeValueData?: Float64Array;
 } {
     // NOTE: This function has been aggressively optimized for performance over readability, please
     // take care not to undo optimizations when making changes here.
     const nan = Number.NaN; // Local constant for faster access
     const indexData = new Uint32Array(maxRange * AGGREGATION_SPAN);
     const valueData = new Float64Array(maxRange * AGGREGATION_SPAN);
+
+    // For split mode, we need a second set of arrays
+    const negativeIndexData = split ? new Uint32Array(maxRange * AGGREGATION_SPAN) : undefined;
+    const negativeValueData = split ? new Float64Array(maxRange * AGGREGATION_SPAN) : undefined;
+
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
@@ -238,13 +247,17 @@ export function createAggregationIndices(
     if (continuous) {
         valueData.fill(nan);
         indexData.fill(AGGREGATION_INDEX_UNSET);
+        if (split) {
+            negativeValueData!.fill(nan);
+            negativeIndexData!.fill(AGGREGATION_INDEX_UNSET);
+        }
     }
 
     // Pre-compute domain range for continuous case
     const domainRange = continuous ? d1 - d0 : 0;
     const invDomainCount = 1 / domainCount;
 
-    // Cache for current bucket to reduce array access overhead
+    // Cache for current bucket to reduce array access overhead (Positive / Default)
     let lastAggIndex = -1;
     let cachedXMinIndex = -1;
     let cachedXMinValue = nan;
@@ -254,6 +267,17 @@ export function createAggregationIndices(
     let cachedYMinValue = nan;
     let cachedYMaxIndex = -1;
     let cachedYMaxValue = nan;
+
+    // Cache for current bucket (Negative, only used if split=true)
+    let negLastAggIndex = -1;
+    let negCachedXMinIndex = -1;
+    let negCachedXMinValue = nan;
+    let negCachedXMaxIndex = -1;
+    let negCachedXMaxValue = nan;
+    let negCachedYMinIndex = -1;
+    let negCachedYMinValue = nan;
+    let negCachedYMaxIndex = -1;
+    let negCachedYMaxValue = nan;
 
     const xValuesLength = xValues.length;
     const yArraysSame = yMaxValues === yMinValues;
@@ -276,8 +300,18 @@ export function createAggregationIndices(
             yMin = yMinValue ?? nan;
         }
 
-        // Early continue for positive check
-        if (positive != null && yMax >= 0 !== positive) continue;
+        // Determine which bucket set to use
+        let isPositiveDatum = true;
+        if (split) {
+            // In split mode, we decide based on sign
+            // Positive bucket gets values >= 0
+            // Negative bucket gets values < 0
+            // (Using yMax as the discriminator, similar to original logic)
+            isPositiveDatum = yMax >= 0;
+        } else if (positive != null && yMax >= 0 !== positive) {
+            // In non-split mode, filter by 'positive' arg if present
+            continue;
+        }
 
         // Optimize xRatio calculation with pre-computed values
         let xRatio: number;
@@ -297,66 +331,126 @@ export function createAggregationIndices(
         const bucketIndex = Math.floor(xRatio * maxRange);
         const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) << 2;
 
-        // Reset cache when switching buckets
-        if (aggIndex !== lastAggIndex) {
-            if (lastAggIndex !== -1) {
-                // Inline flushCache - group writes by array for cache locality
-                indexData[lastAggIndex] = cachedXMinIndex;
-                indexData[lastAggIndex + 1] = cachedXMaxIndex;
-                indexData[lastAggIndex + 2] = cachedYMinIndex;
-                indexData[lastAggIndex + 3] = cachedYMaxIndex;
-                valueData[lastAggIndex] = cachedXMinValue;
-                valueData[lastAggIndex + 1] = cachedXMaxValue;
-                valueData[lastAggIndex + 2] = cachedYMinValue;
-                valueData[lastAggIndex + 3] = cachedYMaxValue;
+        if (isPositiveDatum) {
+            // Reset cache when switching buckets
+            if (aggIndex !== lastAggIndex) {
+                if (lastAggIndex !== -1) {
+                    // Inline flushCache - group writes by array for cache locality
+                    indexData[lastAggIndex] = cachedXMinIndex;
+                    indexData[lastAggIndex + 1] = cachedXMaxIndex;
+                    indexData[lastAggIndex + 2] = cachedYMinIndex;
+                    indexData[lastAggIndex + 3] = cachedYMaxIndex;
+                    valueData[lastAggIndex] = cachedXMinValue;
+                    valueData[lastAggIndex + 1] = cachedXMaxValue;
+                    valueData[lastAggIndex + 2] = cachedYMinValue;
+                    valueData[lastAggIndex + 3] = cachedYMaxValue;
+                }
+                lastAggIndex = aggIndex;
+                // Inline resetCache
+                cachedXMinIndex = -1;
+                cachedXMinValue = nan;
+                cachedXMaxIndex = -1;
+                cachedXMaxValue = nan;
+                cachedYMinIndex = -1;
+                cachedYMinValue = nan;
+                cachedYMaxIndex = -1;
+                cachedYMaxValue = nan;
             }
-            lastAggIndex = aggIndex;
-            // Inline resetCache
-            cachedXMinIndex = -1;
-            cachedXMinValue = nan;
-            cachedXMaxIndex = -1;
-            cachedXMaxValue = nan;
-            cachedYMinIndex = -1;
-            cachedYMinValue = nan;
-            cachedYMaxIndex = -1;
-            cachedYMaxValue = nan;
-        }
 
-        // Pre-compute NaN checks (NaN is the only value where x !== x)
-        const yMinValid = yMin === yMin;
-        const yMaxValid = yMax === yMax;
+            // Pre-compute NaN checks (NaN is the only value where x !== x)
+            const yMinValid = yMin === yMin;
+            const yMaxValid = yMax === yMax;
 
-        // Fast path: bucket is unset (first value in bucket)
-        if (cachedXMinIndex === -1) {
-            cachedXMinIndex = datumIndex;
-            cachedXMinValue = xRatio;
-            cachedXMaxIndex = datumIndex;
-            cachedXMaxValue = xRatio;
-            if (yMinValid) {
-                cachedYMinIndex = datumIndex;
-                cachedYMinValue = yMin;
-            }
-            if (yMaxValid) {
-                cachedYMaxIndex = datumIndex;
-                cachedYMaxValue = yMax;
-            }
-        } else {
-            // Slow path: bucket has values, need comparisons
-            if (xRatio < cachedXMinValue) {
+            // Fast path: bucket is unset (first value in bucket)
+            if (cachedXMinIndex === -1) {
                 cachedXMinIndex = datumIndex;
                 cachedXMinValue = xRatio;
-            }
-            if (xRatio > cachedXMaxValue) {
                 cachedXMaxIndex = datumIndex;
                 cachedXMaxValue = xRatio;
+                if (yMinValid) {
+                    cachedYMinIndex = datumIndex;
+                    cachedYMinValue = yMin;
+                }
+                if (yMaxValid) {
+                    cachedYMaxIndex = datumIndex;
+                    cachedYMaxValue = yMax;
+                }
+            } else {
+                // Slow path: bucket has values, need comparisons
+                if (xRatio < cachedXMinValue) {
+                    cachedXMinIndex = datumIndex;
+                    cachedXMinValue = xRatio;
+                }
+                if (xRatio > cachedXMaxValue) {
+                    cachedXMaxIndex = datumIndex;
+                    cachedXMaxValue = xRatio;
+                }
+                if (yMinValid && yMin < cachedYMinValue) {
+                    cachedYMinIndex = datumIndex;
+                    cachedYMinValue = yMin;
+                }
+                if (yMaxValid && yMax > cachedYMaxValue) {
+                    cachedYMaxIndex = datumIndex;
+                    cachedYMaxValue = yMax;
+                }
             }
-            if (yMinValid && yMin < cachedYMinValue) {
-                cachedYMinIndex = datumIndex;
-                cachedYMinValue = yMin;
+        } else {
+            // Negative Datum (Split mode only)
+            if (aggIndex !== negLastAggIndex) {
+                if (negLastAggIndex !== -1) {
+                    negativeIndexData![negLastAggIndex] = negCachedXMinIndex;
+                    negativeIndexData![negLastAggIndex + 1] = negCachedXMaxIndex;
+                    negativeIndexData![negLastAggIndex + 2] = negCachedYMinIndex;
+                    negativeIndexData![negLastAggIndex + 3] = negCachedYMaxIndex;
+                    negativeValueData![negLastAggIndex] = negCachedXMinValue;
+                    negativeValueData![negLastAggIndex + 1] = negCachedXMaxValue;
+                    negativeValueData![negLastAggIndex + 2] = negCachedYMinValue;
+                    negativeValueData![negLastAggIndex + 3] = negCachedYMaxValue;
+                }
+                negLastAggIndex = aggIndex;
+                negCachedXMinIndex = -1;
+                negCachedXMinValue = nan;
+                negCachedXMaxIndex = -1;
+                negCachedXMaxValue = nan;
+                negCachedYMinIndex = -1;
+                negCachedYMinValue = nan;
+                negCachedYMaxIndex = -1;
+                negCachedYMaxValue = nan;
             }
-            if (yMaxValid && yMax > cachedYMaxValue) {
-                cachedYMaxIndex = datumIndex;
-                cachedYMaxValue = yMax;
+
+            const yMinValid = yMin === yMin;
+            const yMaxValid = yMax === yMax;
+
+            if (negCachedXMinIndex === -1) {
+                negCachedXMinIndex = datumIndex;
+                negCachedXMinValue = xRatio;
+                negCachedXMaxIndex = datumIndex;
+                negCachedXMaxValue = xRatio;
+                if (yMinValid) {
+                    negCachedYMinIndex = datumIndex;
+                    negCachedYMinValue = yMin;
+                }
+                if (yMaxValid) {
+                    negCachedYMaxIndex = datumIndex;
+                    negCachedYMaxValue = yMax;
+                }
+            } else {
+                if (xRatio < negCachedXMinValue) {
+                    negCachedXMinIndex = datumIndex;
+                    negCachedXMinValue = xRatio;
+                }
+                if (xRatio > negCachedXMaxValue) {
+                    negCachedXMaxIndex = datumIndex;
+                    negCachedXMaxValue = xRatio;
+                }
+                if (yMinValid && yMin < negCachedYMinValue) {
+                    negCachedYMinIndex = datumIndex;
+                    negCachedYMinValue = yMin;
+                }
+                if (yMaxValid && yMax > negCachedYMaxValue) {
+                    negCachedYMaxIndex = datumIndex;
+                    negCachedYMaxValue = yMax;
+                }
             }
         }
     }
@@ -373,7 +467,18 @@ export function createAggregationIndices(
         valueData[lastAggIndex + 3] = cachedYMaxValue;
     }
 
-    return { indexData, valueData };
+    if (split && negLastAggIndex !== -1) {
+        negativeIndexData![negLastAggIndex] = negCachedXMinIndex;
+        negativeIndexData![negLastAggIndex + 1] = negCachedXMaxIndex;
+        negativeIndexData![negLastAggIndex + 2] = negCachedYMinIndex;
+        negativeIndexData![negLastAggIndex + 3] = negCachedYMaxIndex;
+        negativeValueData![negLastAggIndex] = negCachedXMinValue;
+        negativeValueData![negLastAggIndex + 1] = negCachedXMaxValue;
+        negativeValueData![negLastAggIndex + 2] = negCachedYMinValue;
+        negativeValueData![negLastAggIndex + 3] = negCachedYMaxValue;
+    }
+
+    return { indexData, valueData, negativeIndexData, negativeValueData };
 }
 
 export function compactAggregationIndices(

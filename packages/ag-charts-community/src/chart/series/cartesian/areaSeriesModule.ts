@@ -4,6 +4,7 @@ import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
@@ -101,6 +102,8 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
             position: CARTESIAN_POSITION.BOTTOM,
         },
     },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new AreaSeries(ctx),

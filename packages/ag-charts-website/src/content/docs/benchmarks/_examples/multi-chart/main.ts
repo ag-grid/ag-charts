@@ -14,8 +14,7 @@ const theme: AgCartesianChartOptions['theme'] = {
     },
 };
 const axes = {
-    x: { type: 'time', position: 'bottom', crosshair: {} },
-    y: { type: 'number', position: 'left' },
+    x: { type: 'time', crosshair: {} },
 } as const;
 
 let chartIndex = 1;

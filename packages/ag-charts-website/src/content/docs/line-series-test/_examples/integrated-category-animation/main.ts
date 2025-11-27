@@ -47,11 +47,9 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'number',
         },
         x: {
-            position: 'bottom',
             type: 'category',
         },
     },

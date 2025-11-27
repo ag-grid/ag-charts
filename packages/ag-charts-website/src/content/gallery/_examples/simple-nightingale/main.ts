@@ -1,4 +1,4 @@
-import { LineSeriesModule, ModuleRegistry } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
     AngleCategoryAxisModule,
@@ -12,7 +12,6 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
     AnimationModule,
-    LineSeriesModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 ]);

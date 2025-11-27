@@ -170,8 +170,8 @@ const barLineAreaOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'category' },
+        y: { type: 'number' },
     },
 };
 
@@ -220,8 +220,8 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'number', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'number' },
+        y: { type: 'number' },
     },
 };
 
@@ -455,10 +455,6 @@ const histogramOptions: AgCartesianChartOptions = {
             // Note: Histogram series does not support itemStyler
         },
     ],
-    axes: {
-        x: { type: 'number', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
 };
 
 const boxPlotOptions: AgCartesianChartOptions = {
@@ -486,10 +482,6 @@ const boxPlotOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('boxPlot2'),
         },
     ],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
 };
 
 const heatmapOptions: AgCartesianChartOptions = {
@@ -511,10 +503,6 @@ const heatmapOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('heatmap2'),
         },
     ],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'category', position: 'left' },
-    },
 };
 
 const rangeSeriesOptions: AgCartesianChartOptions = {
@@ -558,10 +546,6 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
 };
 
 const waterfallOptions: AgCartesianChartOptions = {
@@ -592,10 +576,6 @@ const waterfallOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
 };
 
 const funnelOptions: AgChartOptions = {
@@ -651,7 +631,6 @@ const ohlcOptions: AgCartesianChartOptions = {
     ],
     axes: {
         x: { type: 'time', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
     },
 };
 
@@ -680,7 +659,6 @@ const candlestickOptions: AgCartesianChartOptions = {
     ],
     axes: {
         x: { type: 'time', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
     },
 };
 

@@ -24,20 +24,21 @@ const options: AgChartOptions = {
             xKey: 'timestamp',
             yKey: 'volume',
             yName: 'Volume',
-            yKeyAxis: 'ySecondary',
+            yKeyAxis: 'volumeAxis',
             marker: { enabled: false },
         },
         {
             type: 'line',
             xKey: 'timestamp',
             yKey: 'price',
+            yKeyAxis: 'priceAxis',
             marker: { enabled: false },
         },
     ],
     axes: {
-        y: { type: 'number', position: 'left' },
-        x: { type: 'time', nice: false, position: 'bottom' },
-        ySecondary: { type: 'number', position: 'right' },
+        x: { type: 'time', nice: false },
+        priceAxis: { type: 'number', position: 'left' },
+        volumeAxis: { type: 'number', position: 'right' },
     },
 };
 /* @ag-options-end */

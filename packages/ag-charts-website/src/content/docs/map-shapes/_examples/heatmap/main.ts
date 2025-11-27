@@ -1,4 +1,4 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { GradientLegendModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
@@ -7,11 +7,9 @@ import { topology } from './topology';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     GradientLegendModule,
     MapShapeSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const options: AgChartOptions<DataType> = {

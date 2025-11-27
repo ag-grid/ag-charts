@@ -67,10 +67,6 @@ const options: AgCartesianChartOptions = {
             checkAngularZone('doubleClick');
         },
     },
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
     legend: {
         listeners: {
             legendItemClick: () => {

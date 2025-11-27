@@ -122,6 +122,7 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
+
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
     unknownStatus: NodeUpdateState
@@ -183,7 +184,8 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         }
     };
     const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
-        rect.setProperties(datum);
+        // Use aggressive bypass method that writes directly to backing fields
+        rect.resetAnimationProperties(datum.x, datum.y, datum.width, datum.height, datum.opacity ?? 1, datum.clipBBox);
         rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);
     };
 
@@ -214,6 +216,38 @@ export function resetBarSelectionsFn(
     { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum
 ) {
     return { x, y, width, height, clipBBox, opacity, crisp: rect.datum?.crisp ?? false };
+}
+
+/**
+ * High-performance direct reset for bar selections.
+ * Bypasses resetMotion callback pattern and decorator system entirely.
+ * Uses batchedUpdate to consolidate markDirty calls per selection.
+ */
+export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?: boolean }>(
+    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetBarNodes() {
+            for (const node of nodes) {
+                const datum = node.datum;
+                if (datum == null) continue;
+
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                node.resetAnimationProperties(
+                    datum.x,
+                    datum.y,
+                    datum.width,
+                    datum.height,
+                    datum.opacity ?? 1,
+                    datum.clipBBox
+                );
+                node.crisp = datum.crisp ?? false;
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
 }
 
 export function computeBarFocusBounds(

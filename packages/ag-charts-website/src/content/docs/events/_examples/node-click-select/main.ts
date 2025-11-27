@@ -38,16 +38,6 @@ const options: AgCartesianChartOptions<DataType> = {
             cursor: 'pointer',
         },
     ],
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-        },
-    },
 };
 
 const chart = AgCharts.create(options);

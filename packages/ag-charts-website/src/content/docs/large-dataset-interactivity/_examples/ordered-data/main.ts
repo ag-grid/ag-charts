@@ -1,26 +1,53 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    HistogramSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
+    CandlestickSeriesModule,
     CrosshairModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
+import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    CandlestickSeriesModule,
     CrosshairModule,
+    HistogramSeriesModule,
     LegendModule,
     LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,
+    OhlcSeriesModule,
     OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    ScatterSeriesModule,
     TimeAxisModule,
     ZoomModule,
+    CategoryAxisModule,
 ]);
 
 let dataLabel = '1K';
@@ -28,13 +55,11 @@ let seriesType = 'Line';
 let datapoints = 1e3;
 
 const timeAxes: Record<string, AgCartesianAxisOptions> = {
-    y: { type: 'number', position: 'left' },
-    x: { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: true } },
+    x: { type: 'ordinal-time', parentLevel: { enabled: true } },
 };
 
 const numberAxes: Record<string, AgCartesianAxisOptions> = {
-    y: { type: 'number', position: 'left' },
-    x: { type: 'number', position: 'bottom' },
+    x: { type: 'number' },
 };
 
 const baseData = getData(1e6);

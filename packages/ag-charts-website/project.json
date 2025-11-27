@@ -188,14 +188,23 @@
       "executor": "nx:run-commands",
       "dependsOn": ["^build:types"],
       "inputs": [
+        "{projectRoot}/scripts/validate-modules.mjs",
         "{projectRoot}/tsconfig.examples.json",
-        "{workspaceRoot}/packages/ag-charts-website/src/**/_examples/**/*.ts",
+        "{projectRoot}/src/**/_examples/**/*.ts",
+        "{workspaceRoot}/libraries/ag-charts-eslint-rules/rules/validate-module-registration.mjs",
+        "{workspaceRoot}/libraries/ag-charts-eslint-rules/rules/module-mappings.mjs",
         "tsDeclarations"
       ],
       "outputs": [],
       "cache": true,
       "options": {
-        "commands": ["npx tsc -p {projectRoot}/tsconfig.examples.json"]
+        "cwd": "{projectRoot}",
+        "commands": ["npx tsc -p ./tsconfig.examples.json", "node ./scripts/validate-modules.mjs"]
+      },
+      "configurations": {
+        "fix": {
+          "commands": ["node ./scripts/validate-modules.mjs --fix", "npx tsc -p ./tsconfig.examples.json"]
+        }
       }
     },
     "update-algolia": {

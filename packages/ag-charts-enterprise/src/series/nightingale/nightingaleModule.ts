@@ -5,7 +5,10 @@ import { NightingaleSeries } from './nightingaleSeries';
 import { nightingaleSeriesOptionsDef } from './nightingaleSeriesOptionsDef';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
-const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+const {
+    ChartAxisDirection,
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
     type: 'series',
@@ -20,6 +23,8 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
 
     options: nightingaleSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.Angle]: 'angleKey', [ChartAxisDirection.Radius]: 'radiusKey' },
     themeTemplate: NIGHTINGALE_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new NightingaleSeries(ctx),

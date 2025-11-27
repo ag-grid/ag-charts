@@ -88,13 +88,8 @@ const options: AgChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             interval: { step: 0.2 },
             gridLine: {
                 enabled: false,

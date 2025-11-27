@@ -1,0 +1,146 @@
+[
+    {
+        "name": "LightningChart JS",
+        "website": "https://lightningchart.com/js-charts/",
+        "documentationUrl": "https://lightningchart.com/js-charts/docs/",
+        "weeklyDownloads": 2378,
+        "targetMarket": "Financial Services & High-Performance Applications",
+        "usp": "1M points/sec @ 60 FPS with WebGL and TypedArray technology"
+    },
+    {
+        "name": "SciChart.js",
+        "website": "https://www.scichart.com/",
+        "documentationUrl": "https://www.scichart.com/documentation/js/current/",
+        "weeklyDownloads": 6297,
+        "targetMarket": "Scientific & Financial Applications",
+        "usp": "300K points/sec with WebAssembly + WebGL, specialized for scientific charting"
+    },
+    {
+        "name": "TradingView",
+        "website": "https://www.tradingview.com/lightweight-charts/",
+        "documentationUrl": "https://tradingview.github.io/lightweight-charts/",
+        "weeklyDownloads": 152958,
+        "targetMarket": "Financial Trading Platforms",
+        "usp": "Professional-grade financial charts with native WebSocket support"
+    },
+    {
+        "name": "Highcharts",
+        "website": "https://www.highcharts.com",
+        "documentationUrl": "https://www.highcharts.com/docs/index",
+        "weeklyDownloads": 1228830,
+        "targetMarket": "Enterprise Business Intelligence",
+        "usp": "250 points/sec with Canvas + Boost module, extensive chart types"
+    },
+    {
+        "name": "ECharts",
+        "website": "https://echarts.apache.org/",
+        "documentationUrl": "https://echarts.apache.org/handbook/en/get-started/",
+        "weeklyDownloads": 1284212,
+        "targetMarket": "Enterprise Data Visualization",
+        "usp": "<30ms rendering for millions of points using TypedArray and Canvas"
+    },
+    {
+        "name": "AMCharts",
+        "website": "https://www.amcharts.com/",
+        "documentationUrl": "https://www.amcharts.com/docs/v5/",
+        "weeklyDownloads": 106398,
+        "targetMarket": "Enterprise Dashboards",
+        "usp": "~20 updates/sec with SVG/Canvas hybrid rendering"
+    },
+    {
+        "name": "ZingChart",
+        "website": "https://www.zingchart.com/",
+        "documentationUrl": "https://docs.zingchart.com/",
+        "weeklyDownloads": 1975,
+        "targetMarket": "Enterprise Applications",
+        "usp": "Declarative Canvas library with 5 updates/sec streaming capability"
+    },
+    {
+        "name": "FusionCharts",
+        "website": "https://www.fusioncharts.com/",
+        "documentationUrl": "https://www.fusioncharts.com/dev/",
+        "weeklyDownloads": 21985,
+        "targetMarket": "Enterprise Business Applications",
+        "usp": "100 points/sec with SVG/Canvas rendering and extensive chart library"
+    },
+    {
+        "name": "Chart.js",
+        "website": "https://www.chartjs.org/",
+        "documentationUrl": "https://www.chartjs.org/docs/",
+        "weeklyDownloads": 2400000,
+        "targetMarket": "General Purpose Web Applications",
+        "usp": "Most popular open-source Canvas charting library with 30 FPS streaming via plugin"
+    },
+    {
+        "name": "Google Charts",
+        "website": "https://developers.google.com/chart",
+        "documentationUrl": "https://developers.google.com/chart",
+        "weeklyDownloads": null,
+        "targetMarket": "General Purpose Web Applications",
+        "usp": "Free CDN-based SVG charts with 1 update/sec, no dependencies"
+    },
+    {
+        "name": "Recharts",
+        "website": "https://recharts.org/",
+        "documentationUrl": "https://recharts.org/en-US/guide",
+        "weeklyDownloads": 7782505,
+        "targetMarket": "React Applications",
+        "usp": "Most popular React charting library built on D3, 5-10 FPS streaming"
+    },
+    {
+        "name": "D3.js",
+        "website": "https://d3js.org/",
+        "documentationUrl": "https://d3js.org/getting-started",
+        "weeklyDownloads": 4768618,
+        "targetMarket": "Custom Data Visualizations",
+        "usp": "Low-level SVG/Canvas library for expert developers, infinite customization"
+    },
+    {
+        "name": "ApexCharts",
+        "website": "https://apexcharts.com/",
+        "documentationUrl": "https://apexcharts.com/docs/installation/",
+        "weeklyDownloads": 1078576,
+        "targetMarket": "General Purpose Web Applications",
+        "usp": "Modern SVG charts with 15 FPS max, extensive styling options"
+    },
+    {
+        "name": "Plotly.js",
+        "website": "https://plotly.com/javascript/",
+        "documentationUrl": "https://plotly.com/javascript/",
+        "weeklyDownloads": 174218,
+        "targetMarket": "Scientific & Data Analysis",
+        "usp": "20 updates/sec with WebGL/SVG, scientific and statistical focus"
+    },
+    {
+        "name": "Kendo UI",
+        "website": "https://www.telerik.com/kendo-ui",
+        "documentationUrl": "https://www.telerik.com/kendo-jquery-ui/documentation/controls/charts/overview",
+        "weeklyDownloads": 65676,
+        "targetMarket": "Enterprise Framework Applications",
+        "usp": "Canvas/SVG charts with 5K point limit, integrated with Telerik UI suite"
+    },
+    {
+        "name": "AnyChart",
+        "website": "https://www.anychart.com/",
+        "documentationUrl": "https://docs.anychart.com/",
+        "weeklyDownloads": 5567,
+        "targetMarket": "Enterprise Applications",
+        "usp": "Batch updates with SVG/Canvas, extensive chart types and data grouping"
+    },
+    {
+        "name": "Victory",
+        "website": "https://nearform.com/open-source/victory/",
+        "documentationUrl": "https://formidable.com/open-source/victory/docs/victory-chart/",
+        "weeklyDownloads": 285885,
+        "targetMarket": "React & React Native Applications",
+        "usp": "100+ FPS on React Native with composable React components"
+    },
+    {
+        "name": "Nivo",
+        "website": "https://nivo.rocks/",
+        "documentationUrl": "https://nivo.rocks/",
+        "weeklyDownloads": 636847,
+        "targetMarket": "React Applications",
+        "usp": "Rich D3-powered React components with server-side rendering support"
+    }
+]

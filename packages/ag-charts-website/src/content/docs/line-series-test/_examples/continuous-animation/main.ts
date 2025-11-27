@@ -94,11 +94,9 @@ const options: AgCartesianChartOptions<DataType> = {
     series: allSeries.slice(0, 2),
     axes: {
         x: {
-            position: 'bottom',
             type: 'time',
         },
         y: {
-            position: 'left',
             type: 'number',
             label: {
                 autoRotate: false,

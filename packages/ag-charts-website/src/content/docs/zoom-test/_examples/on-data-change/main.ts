@@ -32,11 +32,6 @@ const options: AgCartesianChartOptions<DatumType> = {
     axes: {
         x: {
             type: 'number' as AgCartesianAxisOptions['type'],
-            position: 'bottom',
-        },
-        y: {
-            type: 'number' as AgCartesianAxisOptions['type'],
-            position: 'left',
         },
     },
 };

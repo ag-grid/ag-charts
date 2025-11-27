@@ -495,6 +495,23 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
+    private refreshSeriesUserVisibility(outdatedOptions: ChartOptions, seriesWithUserVisibility: Set<string>): void {
+        // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
+        // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
+        // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
+        // "new / updated" state; sometimes `updateDelta()` updates the series visibility, and sometimes it doesn't. To
+        // address this discrepancy, we'll update processedOptions to match the current visibility state of the series.
+        for (let i = 0; i < this.series.length; i++) {
+            type TSrc = { visible: boolean; id: string };
+            type TDst = { visible: boolean } | object | undefined;
+            const src: TSrc = this.series[i];
+            const dst: TDst = outdatedOptions.processedOptions.series?.[i];
+            if (seriesWithUserVisibility.has(src.id) && dst !== undefined && 'visible' in dst) {
+                dst.visible = src.visible;
+            }
+        }
+    }
+
     resetAnimations() {
         this.chartAnimationPhase = 'initial';
 
@@ -1304,6 +1321,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     applyOptions(newChartOptions: ChartOptions) {
+        if (newChartOptions.seriesWithUserVisibility) {
+            this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
+        }
+
         const minimumUpdateType = ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
@@ -1801,7 +1822,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const moduleContext = this.getModuleContext();
 
         for (const [id, axisOptions] of entries(options)) {
-            const axis = ModuleRegistry.getAxisModule(axisOptions.type)!.create(moduleContext) as any;
+            const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(moduleContext) as any;
             axis.id = id as AxisID;
             this.applyAxisModules(axis, axisOptions);
             jsonApply(axis, axisOptions, { skip });

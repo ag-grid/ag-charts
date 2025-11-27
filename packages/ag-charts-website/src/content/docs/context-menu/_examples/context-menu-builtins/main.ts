@@ -51,8 +51,7 @@ const options: AgCartesianChartOptions = {
         { type: 'line', xKey: 'year', yKey: 'JPY' },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom', label: { autoRotate: false } },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'category', label: { autoRotate: false } },
     },
 };
 

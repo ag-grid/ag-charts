@@ -87,13 +87,8 @@ const barOptions: AgCartesianChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
@@ -142,13 +137,8 @@ const lineOptions: AgCartesianChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
@@ -202,13 +192,8 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
         },
     ],
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';

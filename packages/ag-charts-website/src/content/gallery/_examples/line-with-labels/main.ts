@@ -4,7 +4,7 @@ import { BandHighlightModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([LineSeriesModule, BandHighlightModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

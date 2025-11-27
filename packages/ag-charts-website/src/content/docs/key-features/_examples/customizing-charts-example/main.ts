@@ -83,8 +83,7 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom', paddingOuter: 0 },
-        y: { type: 'number', position: 'left' },
+        x: { type: 'category', paddingOuter: 0 },
     },
     legend: {
         fill: '#f6f6f6',

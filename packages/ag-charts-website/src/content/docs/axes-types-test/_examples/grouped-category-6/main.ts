@@ -43,11 +43,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
 };

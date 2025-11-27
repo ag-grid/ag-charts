@@ -1,4 +1,13 @@
-import { AreaSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
@@ -6,19 +15,25 @@ import {
     AgCharts,
     AnimationModule,
     CrosshairModule,
+    NavigatorModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
     AreaSeriesModule,
+    BarSeriesModule,
     CrosshairModule,
     LegendModule,
+    LineSeriesModule,
     NavigatorModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
     ZoomModule,
 ]);
 // @ts-expect-error Undocumented option
@@ -57,13 +72,8 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            position: 'left',
-        },
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             parentLevel: { enabled: true },
         },
     },
@@ -106,7 +116,6 @@ function setAxes(type: string) {
         case 'time':
             axis = {
                 type,
-                position: 'bottom',
                 nice: false,
             };
             break;
@@ -114,13 +123,11 @@ function setAxes(type: string) {
         case 'unit-time':
             axis = {
                 type,
-                position: 'bottom',
             };
             break;
         case 'ordinal-time-parent':
             axis = {
                 type: 'ordinal-time',
-                position: 'bottom',
                 parentLevel: { enabled: true },
             };
             break;
@@ -128,7 +135,7 @@ function setAxes(type: string) {
             return;
     }
 
-    options.axes = { y: { type: 'number', position: 'left' }, x: axis };
+    options.axes = { x: axis };
     chart.update(options);
 }
 

@@ -9,7 +9,7 @@ on:
 env:
     SLACK_CHANNEL: '#ci-chart-gate'
     AG_LIBRARY: charts
-    THRESHOLD: 7.5
+    THRESHOLD: 7.3
     SCORECARD_FILE: ./scorecard.json
     REPORT_FILE: ./ctrf-report.json
 

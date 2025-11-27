@@ -16,7 +16,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'category',
             title: {
                 text: 'Month',
@@ -29,7 +28,6 @@ const options: AgChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Temperature (°C)',

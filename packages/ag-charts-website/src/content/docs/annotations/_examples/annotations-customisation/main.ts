@@ -1,4 +1,4 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
 import { AnnotationsModule, CandlestickSeriesModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
@@ -10,7 +10,6 @@ ModuleRegistry.registerModules([
     CandlestickSeriesModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
@@ -39,13 +38,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        x: {
-            type: 'ordinal-time',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             nice: false,
         },
     },

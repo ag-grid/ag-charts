@@ -1,7 +1,18 @@
 /* @ag-options-extract */
+import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts, AgOrdinalTimeAxisOptions } from 'ag-charts-enterprise';
+import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+]);
 
 (window as any).agChartsDebug = 'scene:stats:verbose';
 
@@ -27,8 +38,7 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        y: { type: 'number', position: 'left' },
-        x: { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: false } },
+        x: { type: 'ordinal-time', parentLevel: { enabled: false } },
     },
 };
 /* @ag-options-end */

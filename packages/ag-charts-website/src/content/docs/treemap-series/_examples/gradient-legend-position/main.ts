@@ -1,4 +1,4 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import { GradientLegendModule, TreemapSeriesModule } from 'ag-charts-enterprise';
 
@@ -6,10 +6,8 @@ import { data } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     GradientLegendModule,
-    NumberAxisModule,
     TreemapSeriesModule,
     ZoomModule,
 ]);

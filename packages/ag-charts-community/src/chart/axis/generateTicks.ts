@@ -138,8 +138,10 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
-    if (CategoryScale.is(scale)) {
-        const maxTickCount = domain.length;
+    if (CategoryScale.is(scale) || OrdinalTimeScale.is(scale)) {
+        const maxTickCount = CategoryScale.is(scale)
+            ? domain.length
+            : Math.min(domain.length, Math.max(1, Math.floor(rangeExtent / (zoomExtent * defaultTickMinSpacing))));
         const estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
         return {
             tickCount: Math.min(estimatedTickCount, maxTickCount),

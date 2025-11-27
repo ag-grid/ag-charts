@@ -99,13 +99,8 @@ const options: AgChartOptions = {
     animation: { enabled: false },
     legend: { enabled: false },
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => `$${params.value.toFixed(2)}`,
             },

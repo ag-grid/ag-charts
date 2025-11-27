@@ -1,4 +1,4 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import {
     MapLineSeriesModule,
@@ -12,14 +12,12 @@ import { cables, capitals, topology } from './topology';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CategoryAxisModule,
     CrosshairModule,
     LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     MapShapeSeriesModule,
-    NumberAxisModule,
     ZoomModule,
 ]);
 const currencyLayers: Record<string, { title: string; fill: string }> = {

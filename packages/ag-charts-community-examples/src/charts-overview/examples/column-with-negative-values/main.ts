@@ -45,16 +45,7 @@ const options: AgChartOptions = {
       yName: "Female",
     },
   ],
-  axes: {
-    x: {
-      type: "category",
-      position: "bottom",
-    },
-    y: {
-      type: "number",
-      position: "left",
-    },
-  },
+
 }
 
 AgCharts.create(options)

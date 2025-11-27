@@ -1,9 +1,7 @@
 import {
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgLineSeriesOptions,
 } from 'ag-charts-community';
@@ -71,10 +69,6 @@ const options: AgCartesianChartOptions = {
     },
     series: BAR_AND_LINE,
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
             position: 'left',

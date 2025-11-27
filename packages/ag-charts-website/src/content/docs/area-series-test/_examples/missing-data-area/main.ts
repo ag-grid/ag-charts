@@ -40,14 +40,7 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     series,
     axes: {
-        y: {
-            position: 'left',
-            type: 'number',
-        },
-        x: {
-            position: 'bottom',
-            type: 'time',
-        },
+        x: { type: 'time' },
     },
 };
 

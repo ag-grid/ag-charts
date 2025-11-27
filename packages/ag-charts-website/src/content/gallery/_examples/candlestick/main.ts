@@ -2,7 +2,7 @@ import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { CandlestickSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
+import { getData } from './data';
 
 ModuleRegistry.registerModules([
     CandlestickSeriesModule,

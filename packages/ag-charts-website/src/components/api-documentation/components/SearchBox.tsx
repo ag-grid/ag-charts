@@ -1,8 +1,6 @@
-import type { IconName } from '@ag-website-shared/components/icon/Icon';
-import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import classnames from 'classnames';
-import type { AllHTMLAttributes, FormEventHandler, KeyboardEventHandler } from 'react';
-import { useRef, useState } from 'react';
+import { type AllHTMLAttributes, type FormEventHandler, type KeyboardEventHandler, useRef, useState } from 'react';
 
 import { INDEXED_SEARCH_FIELD, type SearchDatum, type SearchIndex } from '../apiReferenceHelpers';
 import { HighlightText } from './HighlightText';

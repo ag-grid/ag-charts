@@ -50,11 +50,9 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: ({ value, context }) => {
                     return context?.formatUserCurrency(value);

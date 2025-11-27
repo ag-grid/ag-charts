@@ -449,6 +449,40 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
     }
 
+    /**
+     * High-performance animation reset that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__x, __y, etc.) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls
+     * - Object.keys() iteration
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for animation hot paths where performance is critical.
+     */
+    resetAnimationProperties(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        opacity: number,
+        clipBBox: BBox | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        // Convention: __propertyName (from changeDetectable.ts)
+        const self = this as any;
+        self.__x = x;
+        self.__y = y;
+        self.__width = width;
+        self.__height = height;
+        self.__opacity = opacity;
+
+        self.__clipBBox = clipBBox;
+        self._dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
+
     override distanceSquared(x: number, y: number): number {
         return this.distanceCalculator(x, y);
     }

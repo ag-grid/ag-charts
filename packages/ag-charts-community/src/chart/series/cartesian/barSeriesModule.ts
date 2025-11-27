@@ -4,6 +4,7 @@ import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
     DIRECTION_SWAP_AXES,
@@ -80,6 +81,8 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     options: barSeriesOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new BarSeries(ctx),

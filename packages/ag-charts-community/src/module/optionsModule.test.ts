@@ -419,6 +419,46 @@ describe('ChartOptions', () => {
         Logger.reset();
     });
 
+    describe('type warnings', () => {
+        it('warns when a series type is missing', () => {
+            prepareOptions({
+                series: [{ xKey: 'x', yKey: 'y' } as any],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Option `series[0].type` is required and has not been provided');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when a series type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'lien' as any, xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `lien` at `series[0].type`');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when an axis type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'nmuber' as any, position: 'left' },
+                },
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `nmuber` at `axes.y.type`');
+            expect(message).toContain("'number'");
+            expect(message).toContain('ignoring.');
+        });
+    });
+
     describe('#processSeriesOptions', () => {
         test('Simple series options processing works as expected', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });
@@ -2565,6 +2605,171 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
                     yKeyAxis: 'y',
+                });
+            });
+
+            it('should predict missing types and positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {},
+                        y: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing types and positions for secondary axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should should predict missing types when given positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: { position: 'left' },
+                        myAxis2: { position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing positions for primary axes when secondary axes have positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: { position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+            });
+
+            it('should predict missing positions when primary and secondary axes given types', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: { type: 'number' },
+                        myAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should discard secondary axes that are not referenced and have no position or type', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: {},
+                        myAxis2: {},
+                        myAxis3: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+            });
+
+            it('should discard invalid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'invalid' } as any,
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(2);
+                const [[message1], [message2]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+                expect(message2).toContain('Unknown type `invalid` at `axes.y.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should discard invalid axes and keep valid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'category', position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                const [[message1]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'category', position: 'right' },
                 });
             });
         });

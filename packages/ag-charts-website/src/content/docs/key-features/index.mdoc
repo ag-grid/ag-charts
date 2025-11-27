@@ -71,10 +71,6 @@ Use the axes `keys` property to link the series `_Key` property to the axis.
 ```js format="snippet"
 {
     axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         y: {
             type: 'number',
             position: 'left',
@@ -99,7 +95,6 @@ Use `axes.interval` to control the interval of the axis.
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             interval: { step: 5 }, // or { values: [0, 5, 10] } | { minSpacing: 50, maxSpacing: 100 }
         },
     },
@@ -117,7 +112,6 @@ Use `axes.label` to control the appearance of the axis labels.
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 minSpacing: 20,
                 avoidCollisions: false, // enabled by default

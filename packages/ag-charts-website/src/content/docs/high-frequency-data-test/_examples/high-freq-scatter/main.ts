@@ -152,16 +152,6 @@ const options: AgCartesianChartOptions = {
             // size: 4,
         },
     ],
-    axes: {
-        x: {
-            type: 'number',
-            position: 'bottom',
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-        },
-    },
 };
 /* @ag-options-end */
 
