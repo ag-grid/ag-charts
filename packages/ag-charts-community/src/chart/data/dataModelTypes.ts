@@ -1,4 +1,5 @@
 import type { BandedReducer } from './data-model/reducers/bandedReducer';
+import type { DataChangeDescription } from './dataChangeDescription';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
 import type { DataSet } from './dataSet';
 import type { RangeLookup } from './rangeLookup';
@@ -116,6 +117,7 @@ export interface CommonMetadata<D> {
     [COLUMN_SORT_ORDERS]: Map<number, SortOrderEntry>;
     [DOMAIN_BANDS]: Map<InternalDatumPropertyDefinition<any>, BandedDomain>;
     [REDUCER_BANDS]?: Map<ReducerBandKey, BandedReducer>;
+    changeDescription?: DataChangeDescription;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {

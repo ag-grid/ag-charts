@@ -147,6 +147,12 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         // Collect optimization metadata for testing
         collectOptimizationMetadataFn(processedData, 'reprocess');
 
+        // Store the change description on processedData for series to use
+        // for incremental nodeData updates. For single-scope cases (most common),
+        // this provides direct access. For multi-scope, series can check their scope.
+        const uniqueChanges = uniqueChangeDescriptions(scopeChanges);
+        processedData.changeDescription = uniqueChanges.size === 1 ? uniqueChanges.values().next().value : undefined;
+
         return processedData;
     }
 
