@@ -68,11 +68,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
         if (axis) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
-
-            if (zoom.min !== 0 || zoom.max !== 1) {
-                window = this.getAxisWindow(axis, zoom);
-            }
-
+            window = this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
 
