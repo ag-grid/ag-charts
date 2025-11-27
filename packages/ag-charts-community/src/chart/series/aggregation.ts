@@ -253,15 +253,17 @@ export function createAggregationIndices(
     let negativeValueData: Float64Array | undefined;
 
     if (split) {
-        negativeIndexData =
-            reuseNegativeIndexData && reuseNegativeIndexData.length === requiredSize
-                ? reuseNegativeIndexData
-                : new Uint32Array(requiredSize);
+        if (reuseNegativeIndexData && reuseNegativeIndexData.length === requiredSize) {
+            negativeIndexData = reuseNegativeIndexData;
+        } else {
+            negativeIndexData = new Uint32Array(requiredSize);
+        }
 
-        negativeValueData =
-            reuseNegativeValueData && reuseNegativeValueData.length === requiredSize
-                ? reuseNegativeValueData
-                : new Float64Array(requiredSize);
+        if (reuseNegativeValueData && reuseNegativeValueData.length === requiredSize) {
+            negativeValueData = reuseNegativeValueData;
+        } else {
+            negativeValueData = new Float64Array(requiredSize);
+        }
     }
 
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
