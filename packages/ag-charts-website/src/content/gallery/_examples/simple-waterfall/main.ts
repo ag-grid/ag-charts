@@ -1,5 +1,11 @@
 import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, BandHighlightModule, WaterfallSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    ContextMenuModule,
+    WaterfallSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

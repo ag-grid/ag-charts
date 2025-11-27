@@ -1,6 +1,6 @@
 // @ag-skip-fws
 // @ag-skip-container-check
-import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 const chartCount = 10;
 const refreshRateInMilliseconds = 50;

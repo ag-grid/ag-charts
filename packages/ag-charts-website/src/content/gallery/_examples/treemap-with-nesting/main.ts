@@ -1,5 +1,5 @@
 import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, TreemapSeriesModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule, TreemapSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';
 

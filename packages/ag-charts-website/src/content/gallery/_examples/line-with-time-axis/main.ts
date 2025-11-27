@@ -9,6 +9,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BandHighlightModule,
+    ContextMenuModule,
     CrosshairModule,
     ZoomModule,
 } from 'ag-charts-enterprise';

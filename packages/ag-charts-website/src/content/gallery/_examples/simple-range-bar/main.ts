@@ -4,6 +4,7 @@ import {
     AgCharts,
     AnimationModule,
     BandHighlightModule,
+    ContextMenuModule,
     OrdinalTimeAxisModule,
     RangeBarSeriesModule,
 } from 'ag-charts-enterprise';

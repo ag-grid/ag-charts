@@ -1,4 +1,4 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData1, getData2 } from './data';
 

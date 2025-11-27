@@ -1,4 +1,4 @@
-import { AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 import { AgCartesianChartOptions } from 'ag-charts-types';
 
 function week(id: number) {

@@ -4,6 +4,7 @@ import {
     AgCharts,
     BandHighlightModule,
     CandlestickSeriesModule,
+    ContextMenuModule,
     CrosshairModule,
     OrdinalTimeAxisModule,
     ZoomModule,

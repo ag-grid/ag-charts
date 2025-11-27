@@ -4,6 +4,7 @@ import {
     AgCharts,
     AngleCategoryAxisModule,
     AnimationModule,
+    ContextMenuModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';

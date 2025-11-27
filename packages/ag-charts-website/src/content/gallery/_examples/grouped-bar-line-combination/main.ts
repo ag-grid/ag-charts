@@ -7,7 +7,13 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, BandHighlightModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    BandHighlightModule,
+    ContextMenuModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

@@ -1,5 +1,5 @@
 /* @ag-options-extract */
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 const INITIAL_POINTS = 100_000;
 const DATA_INTERVAL_MS = 250;

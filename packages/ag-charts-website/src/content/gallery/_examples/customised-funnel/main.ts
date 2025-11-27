@@ -1,5 +1,5 @@
 import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, FunnelSeriesModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule, FunnelSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

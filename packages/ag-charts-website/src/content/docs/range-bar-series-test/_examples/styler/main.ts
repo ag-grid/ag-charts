@@ -3,6 +3,7 @@ import {
     AgCharts,
     AgRangeBarSeriesStyle,
     AgRangeBarSeriesStylerParams,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';

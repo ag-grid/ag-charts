@@ -7,6 +7,7 @@ import {
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgTopologyChartOptions,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import {

@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getData, getData2 } from './data';
 

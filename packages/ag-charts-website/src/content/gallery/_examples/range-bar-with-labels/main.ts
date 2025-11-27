@@ -3,6 +3,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BandHighlightModule,
+    ContextMenuModule,
     CrosshairModule,
     RangeBarSeriesModule,
 } from 'ag-charts-enterprise';

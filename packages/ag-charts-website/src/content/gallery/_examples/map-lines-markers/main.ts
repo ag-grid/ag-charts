@@ -2,6 +2,7 @@ import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
+    ContextMenuModule,
     MapLineBackgroundSeriesModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,

@@ -2,6 +2,7 @@ import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
+    ContextMenuModule,
     CrosshairModule,
     OhlcSeriesModule,
     OrdinalTimeAxisModule,

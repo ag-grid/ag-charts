@@ -5,7 +5,13 @@ import {
     NumberAxisModule,
     UnitTimeAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

@@ -4,6 +4,7 @@ import {
     AgCharts,
     AgRangeAreaSeriesItemStylerParams,
     AgRangeAreaSeriesThemeableOptions,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';

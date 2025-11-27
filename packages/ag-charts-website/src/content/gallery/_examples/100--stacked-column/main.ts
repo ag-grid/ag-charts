@@ -5,7 +5,7 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, BandHighlightModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, BandHighlightModule, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

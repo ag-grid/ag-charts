@@ -3,6 +3,7 @@ import {
     AgChartOptions,
     AgCharts,
     AngleCategoryAxisModule,
+    ContextMenuModule,
     NightingaleSeriesModule,
     RadarAreaSeriesModule,
     RadarLineSeriesModule,

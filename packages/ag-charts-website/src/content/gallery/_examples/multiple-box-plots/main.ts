@@ -5,6 +5,7 @@ import {
     AgCharts,
     BandHighlightModule,
     BoxPlotSeriesModule,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

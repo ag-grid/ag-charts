@@ -1,5 +1,5 @@
 import { ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, CrosshairModule } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule, CrosshairModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

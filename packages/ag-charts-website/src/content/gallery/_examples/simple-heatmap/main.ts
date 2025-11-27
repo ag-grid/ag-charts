@@ -1,5 +1,11 @@
 import { CategoryAxisModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, GradientLegendModule, HeatmapSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

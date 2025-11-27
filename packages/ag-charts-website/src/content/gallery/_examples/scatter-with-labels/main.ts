@@ -4,6 +4,7 @@ import {
     AgCharts,
     AgScatterSeriesTooltipRendererParams,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
 } from 'ag-charts-enterprise';
 

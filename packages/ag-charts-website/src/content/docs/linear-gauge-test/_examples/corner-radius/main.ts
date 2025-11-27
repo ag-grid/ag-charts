@@ -1,4 +1,4 @@
-import { AgCharts, AgLinearGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgLinearGaugeOptions, ContextMenuModule } from 'ag-charts-enterprise';
 
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',

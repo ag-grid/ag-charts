@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

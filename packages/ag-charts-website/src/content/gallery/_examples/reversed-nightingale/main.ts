@@ -3,6 +3,7 @@ import {
     AgChartOptions,
     AgCharts,
     AngleCategoryAxisModule,
+    ContextMenuModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';

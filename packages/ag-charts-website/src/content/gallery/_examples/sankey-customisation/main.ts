@@ -3,6 +3,7 @@ import {
     AgCharts,
     AgFlowProportionChartOptions,
     AgSankeySeriesTooltipRendererParams,
+    ContextMenuModule,
     SankeySeriesModule,
 } from 'ag-charts-enterprise';
 
