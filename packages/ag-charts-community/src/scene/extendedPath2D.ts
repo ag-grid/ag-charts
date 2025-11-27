@@ -426,12 +426,17 @@ export class ExtendedPath2D {
             this.previousCommands = this.commands;
             this.previousParams = this.params;
             this.previousClosedPath = this.closedPath;
+            // Create new arrays since previous now holds references to the old ones
+            this.commands = [];
+            this.params = [];
+        } else {
+            // Safe to clear in place when not tracking changes
+            this.commands.length = 0;
+            this.params.length = 0;
         }
         this.path2d = new Path2D();
         this.openedPath = false;
         this.closedPath = false;
-        this.commands.length = 0;
-        this.params.length = 0;
     }
 
     isPointInPath(x: number, y: number): boolean {
