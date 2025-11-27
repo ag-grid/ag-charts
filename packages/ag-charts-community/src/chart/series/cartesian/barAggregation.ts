@@ -17,8 +17,11 @@ export interface BarSeriesDataAggregationFilter {
     maxRange: number;
     positiveIndices: Uint32Array;
     positiveIndexData: Uint32Array;
+    positiveValueData: Float64Array;
     negativeIndices: Uint32Array;
     negativeIndexData: Uint32Array;
+    negativeValueData: Float64Array;
+    stale?: boolean;
 }
 
 export interface PartialBarAggregationResult {
@@ -93,14 +96,18 @@ export function computeBarAggregation(
         smallestKeyInterval: number | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
+        existingFilters?: BarSeriesDataAggregationFilter[];
     }
 ): BarSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = domain;
-    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf } = options;
+    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
 
     let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
+
+    // Find existing filter at finest level for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === maxRange);
 
     let {
         indexData: positiveIndexData,
@@ -111,6 +118,10 @@ export function computeBarAggregation(
         split: true,
         xNeedsValueOf,
         yNeedsValueOf,
+        reuseIndexData: existingFilter?.positiveIndexData,
+        reuseValueData: existingFilter?.positiveValueData,
+        reuseNegativeIndexData: existingFilter?.negativeIndexData,
+        reuseNegativeValueData: existingFilter?.negativeValueData,
     });
 
     // Ensure we have valid arrays (typescript safety, though split=true guarantees them)
@@ -122,13 +133,32 @@ export function computeBarAggregation(
     let negativeIndices = getIndices(maxRange, negativeIndexData);
 
     const filters: BarSeriesDataAggregationFilter[] = [
-        { maxRange, positiveIndices, positiveIndexData, negativeIndices, negativeIndexData },
+        {
+            maxRange,
+            positiveIndices,
+            positiveIndexData,
+            positiveValueData,
+            negativeIndices,
+            negativeIndexData,
+            negativeValueData,
+        },
     ];
 
     while (maxRange > 64) {
         const currentMaxRange = maxRange;
-        const positiveCompacted = compactAggregationIndices(positiveIndexData, positiveValueData, currentMaxRange);
-        const negativeCompacted = compactAggregationIndices(negativeIndexData, negativeValueData, currentMaxRange);
+        const nextMaxRange = Math.trunc(currentMaxRange / 2);
+
+        // Find existing filter at target level for array reuse
+        const nextExistingFilter = existingFilters?.find((f) => f.maxRange === nextMaxRange);
+
+        const positiveCompacted = compactAggregationIndices(positiveIndexData, positiveValueData, currentMaxRange, {
+            reuseIndexData: nextExistingFilter?.positiveIndexData,
+            reuseValueData: nextExistingFilter?.positiveValueData,
+        });
+        const negativeCompacted = compactAggregationIndices(negativeIndexData, negativeValueData, currentMaxRange, {
+            reuseIndexData: nextExistingFilter?.negativeIndexData,
+            reuseValueData: nextExistingFilter?.negativeValueData,
+        });
 
         maxRange = positiveCompacted.maxRange;
 
@@ -140,7 +170,15 @@ export function computeBarAggregation(
         negativeValueData = negativeCompacted.valueData;
         negativeIndices = negativeCompacted.midpointData ?? getIndices(maxRange, negativeIndexData);
 
-        filters.push({ maxRange, positiveIndices, positiveIndexData, negativeIndices, negativeIndexData });
+        filters.push({
+            maxRange,
+            positiveIndices,
+            positiveIndexData,
+            positiveValueData,
+            negativeIndices,
+            negativeIndexData,
+            negativeValueData,
+        });
     }
 
     filters.reverse();
@@ -174,12 +212,14 @@ export function computeBarAggregationPartial(
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         targetRange: number;
+        // Optional existing filters to find matching level for array reuse
+        existingFilters?: BarSeriesDataAggregationFilter[];
     }
 ): PartialBarAggregationResult | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = domain;
-    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, targetRange } = options;
+    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, targetRange, existingFilters } = options;
 
     // Calculate the finest level bucket count (based on data density)
     const finestMaxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
@@ -187,22 +227,26 @@ export function computeBarAggregationPartial(
     // Calculate target bucket count: next power of 2 >= targetRange, clamped to valid range
     const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
 
-    // Create aggregation at exactly the target level - single O(n) scan
-    const { indexData: positiveIndexData, negativeIndexData } = createAggregationIndices(
-        xValues,
-        yEndValues,
-        yStartValues ?? yEndValues,
-        d0,
-        d1,
-        targetMaxRange,
-        {
-            split: true,
-            xNeedsValueOf,
-            yNeedsValueOf,
-        }
-    );
+    // Find existing filter at matching maxRange for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === targetMaxRange);
 
-    if (!negativeIndexData) {
+    // Create aggregation at exactly the target level - single O(n) scan
+    const {
+        indexData: positiveIndexData,
+        valueData: positiveValueData,
+        negativeIndexData,
+        negativeValueData,
+    } = createAggregationIndices(xValues, yEndValues, yStartValues ?? yEndValues, d0, d1, targetMaxRange, {
+        split: true,
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.positiveIndexData,
+        reuseValueData: existingFilter?.positiveValueData,
+        reuseNegativeIndexData: existingFilter?.negativeIndexData,
+        reuseNegativeValueData: existingFilter?.negativeValueData,
+    });
+
+    if (!negativeIndexData || !negativeValueData) {
         throw new Error('Negative aggregation data missing in split mode');
     }
 
@@ -210,8 +254,10 @@ export function computeBarAggregationPartial(
         maxRange: targetMaxRange,
         positiveIndices: getIndices(targetMaxRange, positiveIndexData),
         positiveIndexData,
+        positiveValueData,
         negativeIndices: getIndices(targetMaxRange, negativeIndexData),
         negativeIndexData,
+        negativeValueData,
     };
 
     // Defer full recomputation of all levels to idle time
@@ -220,6 +266,7 @@ export function computeBarAggregationPartial(
             smallestKeyInterval,
             xNeedsValueOf,
             yNeedsValueOf,
+            existingFilters,
         });
 
         // Filter out the immediate level (already computed) to avoid duplicates
@@ -322,6 +369,7 @@ export function aggregateBarDataFromDataModel(
  * @param processedData - Processed data to aggregate
  * @param series - Series context for data model queries
  * @param targetRange - Current pixel range for determining which levels to compute immediately
+ * @param existingFilters - Optional existing filters for array reuse
  * @returns Partial aggregation result with immediate levels and deferred computation function
  */
 export function aggregateBarDataFromDataModelPartial(
@@ -329,7 +377,8 @@ export function aggregateBarDataFromDataModelPartial(
     dataModel: any,
     processedData: any,
     series: any,
-    targetRange: number
+    targetRange: number,
+    existingFilters?: BarSeriesDataAggregationFilter[]
 ): PartialBarAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
@@ -356,5 +405,6 @@ export function aggregateBarDataFromDataModelPartial(
         xNeedsValueOf,
         yNeedsValueOf,
         targetRange,
+        existingFilters,
     });
 }
