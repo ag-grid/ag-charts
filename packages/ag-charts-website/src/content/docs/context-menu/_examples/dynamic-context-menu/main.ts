@@ -72,5 +72,5 @@ function updateVisibility(seriesId: string, visible: boolean) {
             series.visible = visible;
         }
     }
-    chart.updateDelta(options);
+    chart.update(options);
 }
