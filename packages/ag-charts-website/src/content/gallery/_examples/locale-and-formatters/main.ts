@@ -1,4 +1,5 @@
 import {
+    BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
     LineSeriesModule,
@@ -27,6 +28,7 @@ import type { DatumType } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
+    BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
