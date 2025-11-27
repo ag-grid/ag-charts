@@ -92,6 +92,16 @@ const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
     '${baseWWWUrl}': `${process.cwd()}/packages/ag-charts-website/public`,
 };
 
+function safeSet(obj, key, value) {
+    const desc = Object.getOwnPropertyDescriptor(obj, key);
+
+    if (!desc || desc.writable || desc.set) {
+        obj[key] = value;
+    } else {
+        console.warn(`Skipped read-only property: ${key}`);
+    }
+}
+
 const maybeApplySubstitutions = (node: unknown) => {
     if (typeof node === 'object') {
         jsonWalk(node, (nodes) => {
@@ -99,12 +109,12 @@ const maybeApplySubstitutions = (node: unknown) => {
                 const value = nodes[key];
                 if (typeof value === 'string') {
                     // Inline static string case.
-                    nodes[key] = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    const newValue = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    safeSet(nodes, key, newValue);
                 } else if (typeof value === 'function') {
                     // Callback function case (apply substitutions to the result).
-                    nodes[key] = (...args) => {
-                        return maybeApplySubstitutions(value(...args));
-                    };
+                    const newValue = (...args) => maybeApplySubstitutions(value(...args));
+                    safeSet(nodes, key, newValue);
                 }
             }
         });
