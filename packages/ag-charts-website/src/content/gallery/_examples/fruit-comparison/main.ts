@@ -14,7 +14,6 @@ import {
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
@@ -28,7 +27,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
 ]);
 
 const markingStyle: AgBarSeriesStyle = {

@@ -457,9 +457,9 @@ export const bundleContents = new Map([
 // Intrinsic defaults - modules that are expected without explicit options
 export const intrinsicDefaults = {
     // Always expected for any chart
-    always: ['LegendModule'],
+    always: ['LegendModule', 'GradientLegendModule'],
     // Expected when using enterprise features (commonly included for interactivity)
-    enterprise: ['AnimationModule', 'ContextMenuModule', 'CrosshairModule', 'ZoomModule'],
+    enterprise: ['AnimationModule', 'ContextMenuModule', 'CrosshairModule'],
     // Expected for cartesian charts (axis modules)
     cartesian: ['CategoryAxisModule', 'NumberAxisModule', 'TimeAxisModule', 'LogAxisModule'],
     // Expected for polar charts (axis modules)

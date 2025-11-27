@@ -3,7 +3,7 @@ import { AgCharts, AgFinancialChartOptions, ContextMenuModule, FinancialChartMod
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([FinancialChartModule, ContextMenuModule]);
+ModuleRegistry.registerModules([FinancialChartModule]);
 
 const options: AgFinancialChartOptions = {
     theme: {
