@@ -1,6 +1,5 @@
 import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { AnimationModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

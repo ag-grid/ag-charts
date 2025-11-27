@@ -1,7 +1,14 @@
 /* @ag-options-extract */
 import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgOrdinalTimeAxisOptions } from 'ag-charts-enterprise';
-import { NavigatorModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgOrdinalTimeAxisOptions,
+    ContextMenuModule,
+    NavigatorModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -12,6 +19,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 
 (window as any).agChartsDebug = 'scene:stats:verbose';

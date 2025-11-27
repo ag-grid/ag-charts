@@ -5,7 +5,13 @@ import {
     NumberAxisModule,
     TimeAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -16,7 +22,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     TimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const magnitudeFormatter = new Intl.NumberFormat('en-US', {
     style: 'decimal',

@@ -15,6 +15,7 @@ import {
     AgCharts,
     AnimationModule,
     CandlestickSeriesModule,
+    ContextMenuModule,
     CrosshairModule,
     NavigatorModule,
     OhlcSeriesModule,
@@ -43,6 +44,7 @@ ModuleRegistry.registerModules([
     TimeAxisModule,
     UnitTimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 // @ts-expect-error Undocumented option
 window.agChartsDebug = 'scene:stats';

@@ -1,6 +1,5 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
-import { MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
+import { AgCharts, AgTopologyChartOptions, MapLineSeriesModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';
 import { londonBoroughTopology } from './londonBoroughTopology';

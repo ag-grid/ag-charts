@@ -10,9 +10,10 @@ import {
     AgCharts,
     AgContextMenuItemLiteral,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { generateCurrencyData } from './data';
 

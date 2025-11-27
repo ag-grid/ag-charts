@@ -1,5 +1,4 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
-import { AllGaugeModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgCharts, AgGaugeOptions, AllGaugeModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([AllGaugeModule]);
 const options: AgGaugeOptions = {

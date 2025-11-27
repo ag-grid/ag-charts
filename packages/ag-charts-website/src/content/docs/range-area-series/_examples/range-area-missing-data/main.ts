@@ -4,10 +4,10 @@ import {
     AgCharts,
     AgRangeAreaSeriesOptions,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
+    RangeAreaSeriesModule,
 } from 'ag-charts-enterprise';
-import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +18,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     RangeAreaSeriesModule,
     UnitTimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

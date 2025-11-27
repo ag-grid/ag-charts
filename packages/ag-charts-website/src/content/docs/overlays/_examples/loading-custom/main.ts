@@ -3,9 +3,9 @@ import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
     DataSourceModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
@@ -15,7 +15,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 
 const options: AgChartOptions = {

@@ -1,6 +1,5 @@
 import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { CandlestickSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, CandlestickSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

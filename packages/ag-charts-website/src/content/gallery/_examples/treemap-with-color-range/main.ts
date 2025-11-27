@@ -1,6 +1,5 @@
 import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { GradientLegendModule, TreemapSeriesModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, GradientLegendModule, TreemapSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';
 

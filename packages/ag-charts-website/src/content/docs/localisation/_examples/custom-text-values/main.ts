@@ -11,9 +11,10 @@ import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { ContextMenuModule, ZoomModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
     AnimationModule,

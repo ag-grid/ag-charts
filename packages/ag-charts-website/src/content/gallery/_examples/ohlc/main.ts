@@ -1,6 +1,11 @@
 import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, CrosshairModule } from 'ag-charts-enterprise';
-import { OhlcSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    CrosshairModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

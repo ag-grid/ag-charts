@@ -1,7 +1,7 @@
-import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgCharts, AllEnterpriseModule, ContextMenuModule, ModuleRegistry } from 'ag-charts-enterprise';
 import type { AgCartesianChartOptions, AgContextMenuItem } from 'ag-charts-types';
 
-ModuleRegistry.registerModules([AllEnterpriseModule]);
+ModuleRegistry.registerModules([AllEnterpriseModule, ContextMenuModule]);
 
 type DatumType = { sector: string; nyse: number; lse: number; tyo: number };
 

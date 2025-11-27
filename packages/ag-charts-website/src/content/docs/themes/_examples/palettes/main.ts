@@ -10,8 +10,8 @@ import {
     AgChartTheme,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -23,7 +23,7 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const paperTheme: AgChartTheme = {
     palette: {

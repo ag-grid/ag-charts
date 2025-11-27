@@ -5,8 +5,7 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { BandHighlightModule, ErrorBarsModule } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, BandHighlightModule, ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

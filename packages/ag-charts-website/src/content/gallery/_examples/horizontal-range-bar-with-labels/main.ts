@@ -1,6 +1,5 @@
 import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { RangeBarSeriesModule } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, RangeBarSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

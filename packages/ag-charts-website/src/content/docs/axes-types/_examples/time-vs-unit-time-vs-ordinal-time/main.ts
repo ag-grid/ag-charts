@@ -10,9 +10,9 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
     OrdinalTimeAxisModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([
@@ -24,7 +24,7 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
     TimeAxisModule,
     UnitTimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

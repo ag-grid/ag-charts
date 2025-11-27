@@ -3,13 +3,13 @@ import {
     AgCharts,
     AgLinearGaugeLabelPlacement,
     AgLinearGaugeOptions,
+    AllGaugeModule,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
-import { AllGaugeModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ZoomModule]);
+ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ContextMenuModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('myChart'),

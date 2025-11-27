@@ -1,6 +1,11 @@
 import { ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
-import { AngleCategoryAxisModule, RadarAreaSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    RadarAreaSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

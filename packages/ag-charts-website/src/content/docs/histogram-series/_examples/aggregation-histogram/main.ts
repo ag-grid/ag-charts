@@ -4,8 +4,8 @@ import {
     AgCharts,
     AgHistogramSeriesOptions,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([
     HistogramSeriesModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

@@ -10,10 +10,10 @@ import {
     AgChartTheme,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
+    ErrorBarsModule,
 } from 'ag-charts-enterprise';
-import { ErrorBarsModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -25,7 +25,7 @@ ModuleRegistry.registerModules([
     ErrorBarsModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const paperTheme: AgChartTheme = {
     palette: {

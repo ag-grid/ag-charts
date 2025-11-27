@@ -11,9 +11,11 @@ import {
     AgChartState,
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
+    NavigatorModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -26,6 +28,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     UnitTimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {

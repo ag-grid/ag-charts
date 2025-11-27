@@ -1,6 +1,5 @@
 import { ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
-import { GradientLegendModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
+import { AgCharts, AgTopologyChartOptions, GradientLegendModule, MapShapeSeriesModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 import { topology } from './topology';

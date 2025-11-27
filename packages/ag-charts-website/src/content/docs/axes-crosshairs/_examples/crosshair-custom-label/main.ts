@@ -4,8 +4,8 @@ import {
     AgCharts,
     AgCrosshairLabelRendererParams,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const crosshairLabelRenderer = (arrowPosition: 'top' | 'right') => {
     const classList =
