@@ -15,9 +15,6 @@ export class BarShape<D = any> extends Rect<D> {
     featherRatio: number = 0;
     declare __featherRatio: number; // optimised field accessor
 
-    // Inherited from Node - declared here for type-safe access in setStaticProperties
-    declare __visible: boolean; // optimised field accessor
-
     /**
      * High-performance static property setter that bypasses the decorator system entirely.
      * Writes directly to backing fields (__propertyName) to avoid:
