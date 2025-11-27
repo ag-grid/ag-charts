@@ -210,7 +210,7 @@ jobs:
     build:
         runs-on: ubuntu-24.04
         name: Build
-        needs: [init, generate]
+        needs: init
         outputs:
             build: ${{ steps.build.outcome || '' }}
         steps:
@@ -241,7 +241,7 @@ jobs:
     validate:
         runs-on: ubuntu-24.04
         name: Validate Examples
-        needs: [init, build]
+        needs: init
         outputs:
             validate: ${{ steps.validate.outcome || '' }}
         steps:
