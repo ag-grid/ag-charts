@@ -1,4 +1,4 @@
-import type { CallbackParamRules, Point, RequireOptional, Scale } from 'ag-charts-core';
+import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
 import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -639,23 +639,19 @@ export class BarSeries extends AbstractBarSeries<
             const bboxHeight = yScale.convert(nodeYRange);
 
             const xOffset = width * 0.5 * (1 - (crossScale ?? 1));
-            const rect = {
-                x: barAlongX ? Math.min(y, bottomY) : x + xOffset,
-                y: barAlongX ? x + xOffset : Math.min(y, bottomY),
-                width: barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1),
-                height: barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y),
-            };
+            const rectX = barAlongX ? Math.min(y, bottomY) : x + xOffset;
+            const rectY = barAlongX ? x + xOffset : Math.min(y, bottomY);
+            const rectWidth = barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1);
+            const rectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y);
 
-            const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
+            const clipBBox = new BBox(rectX, rectY, rectWidth, rectHeight);
 
-            const barRect = {
-                x: barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset,
-                y: barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight),
-                width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1),
-                height: barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight),
-            };
+            const barRectX = barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset;
+            const barRectY = barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight);
+            const barRectWidth = barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1);
+            const barRectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight);
 
-            const lengthRatioMultiplier = shouldFlipXY ? rect.height : rect.width;
+            const lengthRatioMultiplier = shouldFlipXY ? rectHeight : rectWidth;
 
             return {
                 series: this,
@@ -672,11 +668,11 @@ export class BarSeries extends AbstractBarSeries<
                     lengthRatioMultiplier,
                     lengthMax: lengthRatioMultiplier,
                 },
-                x: barRect.x,
-                y: barRect.y,
-                width: barRect.width,
-                height: barRect.height,
-                midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
+                x: barRectX,
+                y: barRectY,
+                width: barRectWidth,
+                height: barRectHeight,
+                midPoint: { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 },
                 opacity,
                 featherRatio,
                 topLeftCornerRadius: barAlongX !== isUpward,
@@ -695,7 +691,7 @@ export class BarSeries extends AbstractBarSeries<
                                   isVertical: !barAlongX,
                                   placement: label.placement,
                                   spacing: labelSpacing,
-                                  rect,
+                                  rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
                               }),
                           },
                 missing: isTooltipValueMissing(yValue),
@@ -731,6 +727,198 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         return { nodeData, phantomNodeData };
+    }
+
+    /**
+     * Updates an existing BarNodeDatum in-place for value-only changes.
+     * This is more efficient than recreating the entire node when only data values change
+     * but the structure (insertions/removals) remains the same.
+     */
+    private updateNodeDatum(
+        ctx: BarSeriesNodeDatumContext,
+        node: BarNodeDatum,
+        datumIndex: number,
+        x: number,
+        width: number,
+        yStart: number,
+        yEnd: number,
+        yRange: number,
+        featherRatio: number = 0,
+        opacity: number = 1
+    ): void {
+        const {
+            rawData,
+            xValues,
+            yRawValues,
+            yFilterValues,
+            yScale,
+            yReversed,
+            bboxBottom,
+            crisp,
+            labelSpacing,
+            barAlongX,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            label,
+            yDomain,
+        } = ctx;
+
+        const mutableNode = node as Mutable<BarNodeDatum>;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) {
+            return;
+        }
+
+        const datum = rawData?.data[datumIndex];
+        const yRawValue = yRawValues[datumIndex];
+        const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
+        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
+
+        if (!Number.isFinite(yEnd)) {
+            return;
+        }
+        if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
+            return;
+        }
+
+        const labelText =
+            label.enabled && yRawValue != null
+                ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
+                      yFilterValue ?? yRawValue,
+                      datum,
+                      yKey,
+                      'y',
+                      yDomain,
+                      label,
+                      { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
+                  )
+                : undefined;
+
+        const inset = yFilterValue != null && yFilterValue > yRawValue;
+
+        // Pre-compute shared values when phantom node will be created
+        const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
+        const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+
+        // Update main node properties
+        const phantom = node.phantom;
+        const prevY = yStart;
+        const yValue = phantom ? yFilterValue! : yFilterValue ?? yRawValue;
+        const cumulativeValue = phantom ? yFilterValue! : yFilterValue ?? yEnd;
+        const nodeLabelText = phantom ? undefined : labelText;
+
+        let currY: number;
+        if (phantom) {
+            currY = yEnd;
+        } else if (yFilterValue == null) {
+            currY = yEnd;
+        } else {
+            currY = yStart + yFilterValue;
+        }
+
+        let nodeYRange: number;
+        if (phantom) {
+            nodeYRange = yRange;
+        } else {
+            nodeYRange = Math.max(yStart + (yFilterValue ?? -Infinity), yRange);
+        }
+
+        let crossScale: number | undefined;
+        if (phantom) {
+            crossScale = undefined;
+        } else if (inset) {
+            crossScale = 0.6;
+        } else {
+            crossScale = undefined;
+        }
+
+        const isUpward = precomputedIsUpward ?? isPositive !== yReversed;
+
+        const y = yScale.convert(currY);
+        const bottomY = precomputedBottomY ?? yScale.convert(prevY);
+        const bboxHeight = yScale.convert(nodeYRange);
+
+        const xOffset = width * 0.5 * (1 - (crossScale ?? 1));
+        const rectX = barAlongX ? Math.min(y, bottomY) : x + xOffset;
+        const rectY = barAlongX ? x + xOffset : Math.min(y, bottomY);
+        const rectWidth = barAlongX ? Math.abs(bottomY - y) : width * (crossScale ?? 1);
+        const rectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bottomY - y);
+
+        const barRectX = barAlongX ? Math.min(bboxBottom, bboxHeight) : x + xOffset;
+        const barRectY = barAlongX ? x + xOffset : Math.min(bboxBottom, bboxHeight);
+        const barRectWidth = barAlongX ? Math.abs(bboxBottom - bboxHeight) : width * (crossScale ?? 1);
+        const barRectHeight = barAlongX ? width * (crossScale ?? 1) : Math.abs(bboxBottom - bboxHeight);
+
+        // Update mutable properties
+        mutableNode.datum = datum;
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.cumulativeValue = cumulativeValue;
+        mutableNode.xValue = xValue;
+        mutableNode.yValue = yValue;
+        mutableNode.x = barRectX;
+        mutableNode.y = barRectY;
+        mutableNode.width = barRectWidth;
+        mutableNode.height = barRectHeight;
+
+        // Update midPoint in place
+        const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
+        mutableMidPoint.x = rectX + rectWidth / 2;
+        mutableMidPoint.y = rectY + rectHeight / 2;
+
+        mutableNode.opacity = opacity;
+        mutableNode.featherRatio = featherRatio;
+        mutableNode.topLeftCornerRadius = barAlongX !== isUpward;
+        mutableNode.topRightCornerRadius = isUpward;
+        mutableNode.bottomRightCornerRadius = barAlongX === isUpward;
+        mutableNode.bottomLeftCornerRadius = !isUpward;
+
+        // Update clipBBox in place
+        const existingClipBBox = mutableNode.clipBBox;
+        if (existingClipBBox) {
+            existingClipBBox.x = rectX;
+            existingClipBBox.y = rectY;
+            existingClipBBox.width = rectWidth;
+            existingClipBBox.height = rectHeight;
+        } else {
+            mutableNode.clipBBox = new BBox(rectX, rectY, rectWidth, rectHeight);
+        }
+
+        mutableNode.crisp = crisp;
+
+        // Update label in place
+        if (nodeLabelText == null) {
+            mutableNode.label = undefined;
+        } else {
+            const labelPlacement = adjustLabelPlacement({
+                isUpward,
+                isVertical: !barAlongX,
+                placement: label.placement,
+                spacing: labelSpacing,
+                rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+            });
+
+            const existingLabel = mutableNode.label;
+            if (existingLabel) {
+                // Update existing label object in place
+                existingLabel.text = nodeLabelText;
+                existingLabel.x = labelPlacement.x;
+                existingLabel.y = labelPlacement.y;
+                existingLabel.textAlign = labelPlacement.textAlign;
+                existingLabel.textBaseline = labelPlacement.textBaseline;
+            } else {
+                // Create new label object (first time label is added)
+                mutableNode.label = {
+                    text: nodeLabelText,
+                    ...labelPlacement,
+                };
+            }
+        }
+
+        mutableNode.missing = isTooltipValueMissing(yValue);
     }
 
     createNodeData() {
