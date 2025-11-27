@@ -12,7 +12,7 @@ type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
     // TODO(olegat): change default to 'preserveDomain'
-    strategy: AgZoomOnDataChangeStrategy = 'resize';
+    strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
 }
 
 export class ZoomOnDataChange {
@@ -81,7 +81,7 @@ export class ZoomOnDataChange {
         switch (this.properties.strategy) {
             case 'reset':
                 return this.ctx.zoomManager.resetZoom(this.callerId);
-            case 'resize':
+            case 'preserveRatios':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':
                 return this.performPreserveDomain();
