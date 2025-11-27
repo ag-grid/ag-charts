@@ -60,11 +60,6 @@ const options: AgChartOptions = {
     ],
     // Axes: Configure the axes for the chart
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        } as AgCategoryAxisOptions,
         // Use left axis for 'iceCreamSales' series
         priceAxis: {
             type: 'number',

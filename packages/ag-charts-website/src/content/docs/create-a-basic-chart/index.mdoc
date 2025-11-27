@@ -251,11 +251,6 @@ The `yKeyAxis` property provides a way to reference a series from the axis confi
 ```js format="snippet"
 const options = {
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         // Use left axis for 'iceCreamSales' series
         priceAxis: {
             type: 'number',
@@ -278,11 +273,6 @@ const options = {
 ```jsx format="reactHooks"
 const [chartOptions, setChartOptions] = useState({
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         // Use left axis for 'iceCreamSales' series
         priceAxis: {
             type: 'number',
@@ -305,11 +295,6 @@ const [chartOptions, setChartOptions] = useState({
 ```js
 this.chartOptions = {
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         // Use left axis for 'iceCreamSales' series
         priceAxis: {
             type: 'number',
@@ -332,11 +317,6 @@ this.chartOptions = {
 ```tsx format="reactHooks"
 const options = ref<AgChartOptions>({
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        },
         // Use left axis for 'iceCreamSales' series
         priceAxis: {
             type: 'number',
@@ -356,16 +336,16 @@ const options = ref<AgChartOptions>({
 
 Let's breakdown what's happening here:
 
--   **axes.key:** The key used to reference the axis, which should match the `yKeyAxis` property on the series.
--   **Type:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
--   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
+-   **`axes.{key}`:** The key used to reference the axis, which should match the `yKeyAxis` property on the series.
+-   **`Type`:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
+-   **`Position`:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 
 Now when we run our chart, we should see both series and three axes.
 
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
 
 {% note %}
-Refer to our [Axes Configuration](./axes-configuration/). docs for more information on configuring axes.
+Refer to our [Axes Configuration](./axes-configuration/) docs for more information on configuring axes.
 {% /note %}
 
 ## Styling
