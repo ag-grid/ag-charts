@@ -140,6 +140,18 @@ interface CreateNodeDatumResult {
     phantomNodeData: BarNodeDatum | undefined;
 }
 
+interface PreparedBarNodeDatumState {
+    datum: any;
+    xValue: any;
+    yRawValue: number;
+    yFilterValue?: number;
+    labelText?: TextOrSegments;
+    inset: boolean;
+    isPositive: boolean;
+    precomputedBottomY?: number;
+    precomputedIsUpward?: boolean;
+}
+
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly itemId: string;
     readonly xValue: string | number;
@@ -205,6 +217,17 @@ export class BarSeries extends AbstractBarSeries<
         () => this.nodeFactory(),
         false
     );
+    private readonly nodeDatumScratch: PreparedBarNodeDatumState = {
+        datum: undefined,
+        xValue: undefined,
+        yRawValue: 0,
+        yFilterValue: undefined,
+        labelText: undefined,
+        inset: false,
+        isPositive: false,
+        precomputedBottomY: undefined,
+        precomputedIsUpward: undefined,
+    };
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -549,21 +572,12 @@ export class BarSeries extends AbstractBarSeries<
         return ctx.xScale.convert(ctx.xValues[datumIndex]) + ctx.groupOffset + ctx.barOffset;
     }
 
-    /**
-     * Creates a BarNodeDatum (and optionally a phantom node) for a single data point.
-     * This is the primary method for node creation, extracted from the inline handleDatum/nodeDatum functions.
-     */
-    private createNodeDatum(
+    private prepareNodeDatumState(
         ctx: BarSeriesNodeDatumContext,
         datumIndex: number,
-        x: number,
-        width: number,
         yStart: number,
-        yEnd: number,
-        yRange: number,
-        featherRatio: number = 0,
-        opacity: number = 1
-    ): CreateNodeDatumResult {
+        yEnd: number
+    ): PreparedBarNodeDatumState | undefined {
         const {
             rawData,
             xValues,
@@ -571,35 +585,29 @@ export class BarSeries extends AbstractBarSeries<
             yFilterValues,
             yScale,
             yReversed,
-            bboxBottom,
-            crisp,
-            labelSpacing,
-            barAlongX,
-            shouldFlipXY,
+            label,
             xKey,
             yKey,
             xName,
             yName,
             legendItemName,
-            label,
             yDomain,
         } = ctx;
 
+        if (!Number.isFinite(yEnd)) {
+            return undefined;
+        }
+
         const xValue = xValues[datumIndex];
         if (xValue == null) {
-            return { nodeData: undefined, phantomNodeData: undefined };
+            return undefined;
         }
 
         const datum = rawData?.data[datumIndex];
         const yRawValue = yRawValues[datumIndex];
         const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
-        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-
-        if (!Number.isFinite(yEnd)) {
-            return { nodeData: undefined, phantomNodeData: undefined };
-        }
         if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
-            return { nodeData: undefined, phantomNodeData: undefined };
+            return undefined;
         }
 
         const labelText =
@@ -615,11 +623,55 @@ export class BarSeries extends AbstractBarSeries<
                   )
                 : undefined;
 
-        const inset = yFilterValue != null && yFilterValue > yRawValue;
+        const scratch = this.nodeDatumScratch;
+        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
 
-        // Pre-compute shared values when phantom node will be created
-        const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
-        const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+        scratch.datum = datum;
+        scratch.xValue = xValue;
+        scratch.yRawValue = yRawValue;
+        scratch.yFilterValue = yFilterValue;
+        scratch.labelText = labelText;
+        scratch.inset = yFilterValue != null && yFilterValue > yRawValue;
+        scratch.isPositive = isPositive;
+        scratch.precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
+        scratch.precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
+
+        return scratch;
+    }
+
+    /**
+     * Creates a BarNodeDatum (and optionally a phantom node) for a single data point.
+     * This is the primary method for node creation, extracted from the inline handleDatum/nodeDatum functions.
+     */
+    private createNodeDatum(
+        ctx: BarSeriesNodeDatumContext,
+        datumIndex: number,
+        x: number,
+        width: number,
+        yStart: number,
+        yEnd: number,
+        yRange: number,
+        featherRatio: number = 0,
+        opacity: number = 1
+    ): CreateNodeDatumResult {
+        const { yScale, yReversed, bboxBottom, crisp, labelSpacing, barAlongX, shouldFlipXY, xKey, yKey, label } = ctx;
+
+        const prepared = this.prepareNodeDatumState(ctx, datumIndex, yStart, yEnd);
+        if (!prepared) {
+            return { nodeData: undefined, phantomNodeData: undefined };
+        }
+
+        const {
+            datum,
+            xValue,
+            yRawValue,
+            yFilterValue,
+            labelText,
+            inset,
+            isPositive,
+            precomputedBottomY,
+            precomputedIsUpward,
+        } = prepared;
 
         // Helper to build the actual BarNodeDatum
         const buildNodeDatum = (
@@ -746,63 +798,26 @@ export class BarSeries extends AbstractBarSeries<
         featherRatio: number = 0,
         opacity: number = 1
     ): void {
+        const { yScale, yReversed, bboxBottom, crisp, labelSpacing, barAlongX, label } = ctx;
+
+        const prepared = this.prepareNodeDatumState(ctx, datumIndex, yStart, yEnd);
+        if (!prepared) {
+            return;
+        }
+
         const {
-            rawData,
-            xValues,
-            yRawValues,
-            yFilterValues,
-            yScale,
-            yReversed,
-            bboxBottom,
-            crisp,
-            labelSpacing,
-            barAlongX,
-            xKey,
-            yKey,
-            xName,
-            yName,
-            legendItemName,
-            label,
-            yDomain,
-        } = ctx;
+            datum,
+            xValue,
+            yRawValue,
+            yFilterValue,
+            labelText,
+            inset,
+            isPositive,
+            precomputedBottomY,
+            precomputedIsUpward,
+        } = prepared;
 
         const mutableNode = node as Mutable<BarNodeDatum>;
-
-        const xValue = xValues[datumIndex];
-        if (xValue == null) {
-            return;
-        }
-
-        const datum = rawData?.data[datumIndex];
-        const yRawValue = yRawValues[datumIndex];
-        const yFilterValue = yFilterValues == null ? undefined : Number(yFilterValues[datumIndex]);
-        const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-
-        if (!Number.isFinite(yEnd)) {
-            return;
-        }
-        if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
-            return;
-        }
-
-        const labelText =
-            label.enabled && yRawValue != null
-                ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
-                      yFilterValue ?? yRawValue,
-                      datum,
-                      yKey,
-                      'y',
-                      yDomain,
-                      label,
-                      { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
-                  )
-                : undefined;
-
-        const inset = yFilterValue != null && yFilterValue > yRawValue;
-
-        // Pre-compute shared values when phantom node will be created
-        const precomputedBottomY = yFilterValue == null ? undefined : yScale.convert(yStart);
-        const precomputedIsUpward = yFilterValue == null ? undefined : isPositive !== yReversed;
 
         // Update main node properties
         const phantom = node.phantom;
