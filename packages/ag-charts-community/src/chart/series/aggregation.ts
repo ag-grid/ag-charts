@@ -525,16 +525,24 @@ export function compactAggregationIndices(
     const requiredSize = nextMaxRange * AGGREGATION_SPAN;
 
     // Priority: inPlace > reuse > allocate new
-    const nextIndexData = inPlace
-        ? indexData
-        : reuseIndexData?.length === requiredSize
-          ? reuseIndexData
-          : new Uint32Array(requiredSize);
-    const nextValueData = inPlace
-        ? valueData
-        : reuseValueData?.length === requiredSize
-          ? reuseValueData
-          : new Float64Array(requiredSize);
+    let nextIndexData: Uint32Array;
+    if (inPlace) {
+        nextIndexData = indexData;
+    } else if (reuseIndexData && reuseIndexData.length === requiredSize) {
+        nextIndexData = reuseIndexData;
+    } else {
+        nextIndexData = new Uint32Array(requiredSize);
+    }
+
+    let nextValueData: Float64Array;
+    if (inPlace) {
+        nextValueData = valueData;
+    } else if (reuseValueData && reuseValueData.length === requiredSize) {
+        nextValueData = reuseValueData;
+    } else {
+        nextValueData = new Float64Array(requiredSize);
+    }
+
     const nextMidpointData = midpointData ?? new Uint32Array(nextMaxRange);
 
     for (let i = 0; i < nextMaxRange; i += 1) {
