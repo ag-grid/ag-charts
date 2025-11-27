@@ -11,8 +11,7 @@ type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
-    // TODO(olegat): change default to 'preserveDomain'
-    strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
+    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
 }
 
 export class ZoomOnDataChange {
