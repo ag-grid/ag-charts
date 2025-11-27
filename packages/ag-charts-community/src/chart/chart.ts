@@ -495,7 +495,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
-    private refreshSeriesUserVisibility(outdatedOptions: ChartOptions, seriesWithUserVisibility: Set<string>): void {
+    private refreshSeriesUserVisibility(
+        outdatedOptions: ChartOptions,
+        seriesWithUserVisibility: NonNullable<ChartOptions['seriesWithUserVisibility']>
+    ): void {
         // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
         // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
         // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
@@ -506,8 +509,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             type TDst = { visible: boolean } | object | undefined;
             const src: TSrc = this.series[i];
             const dst: TDst = outdatedOptions.processedOptions.series?.[i];
-            if (seriesWithUserVisibility.has(src.id) && dst !== undefined && 'visible' in dst) {
-                dst.visible = src.visible;
+            if (seriesWithUserVisibility.identifiers.has(src.id) || seriesWithUserVisibility.indices.has(i)) {
+                if (dst !== undefined && 'visible' in dst) {
+                    dst.visible = src.visible;
+                }
             }
         }
     }

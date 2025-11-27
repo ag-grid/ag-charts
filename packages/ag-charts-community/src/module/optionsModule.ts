@@ -135,7 +135,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraph;
-    seriesWithUserVisibility?: Set<string>; // AG-16360
+    seriesWithUserVisibility?: {
+        identifiers: Set<string>;
+        indices: Set<number>;
+    }; // AG-16360
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -228,10 +231,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const o of [newUserOptions, deltaOptions]) {
             const series = o?.series;
             if (Array.isArray(series)) {
-                for (const s of series) {
-                    if ('visible' in s && s.id) {
-                        this.seriesWithUserVisibility ??= new Set();
-                        this.seriesWithUserVisibility.add(s.id);
+                for (let index = 0; index < series.length; index++) {
+                    const s = series[index];
+                    if ('visible' in s) {
+                        this.seriesWithUserVisibility ??= {
+                            identifiers: new Set<string>(),
+                            indices: new Set<number>(),
+                        };
+                        if (s.id) {
+                            this.seriesWithUserVisibility.identifiers.add(s.id);
+                        } else {
+                            this.seriesWithUserVisibility.indices.add(index);
+                        }
                     }
                 }
             }
