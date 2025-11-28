@@ -307,7 +307,6 @@ export function priceVolume(
                             highlight: {
                                 unhighlightedItem: { opacity: 1 },
                                 unhighlightedSeries: { opacity: 1 },
-                                unhighlightedSeries: { opacity: 1 },
                             },
                             ...inlineSwitch(chartType, {
                                 'high-low': {
