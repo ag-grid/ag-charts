@@ -49,14 +49,12 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         const fillBBox = this.getShapeFillBBox();
 
-        datumSelection.each((node, datum) => {
+        const series = this;
+        datumSelection.each(function updateCandlestickNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
 
             node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 

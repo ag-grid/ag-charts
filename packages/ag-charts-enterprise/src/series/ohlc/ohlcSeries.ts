@@ -43,7 +43,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = properties.item;
 
-        datumSelection.each((node, datum) => {
+        const series = this;
+        datumSelection.each(function updateOhlcNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
 
@@ -52,7 +53,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             const style =
                 datum.style ??
                 contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                    series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 
             node.setStyleProperties(style);
