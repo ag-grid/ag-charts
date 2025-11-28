@@ -8,19 +8,19 @@ import {
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    FlashOnUpdateModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData, random } from './data';
 
 ModuleRegistry.registerModules([
-    AnimationModule,
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
+    FlashOnUpdateModule,
     LegendModule,
     NumberAxisModule,
 ]);
