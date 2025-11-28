@@ -251,3 +251,14 @@ const candlestickBothAxes = {
     },
 };
 AgCharts.create(candlestickBothAxes);
+
+// =============================================================================
+// TEST CASE 16: flashOnUpdate requires FlashOnUpdateModule
+// =============================================================================
+ModuleRegistry.registerModules([LineSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
+const flashOnUpdateMissing = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'category' }, y: { type: 'number' } },
+    flashOnUpdate: { enabled: true },
+};
+AgCharts.create(flashOnUpdateMissing);
