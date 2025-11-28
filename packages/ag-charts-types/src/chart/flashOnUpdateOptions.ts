@@ -1,14 +1,18 @@
+import type { CssColor, DurationMs, Opacity } from "./types";
+
+export type AgFlashOnUpdateItem = 'chart' | 'category';
+
 export interface AgFlashOnUpdateOptions {
     /** Whether the flash effect is enabled. */
     enabled?: boolean;
     /** What part of the chart to flash. */
-    item?: 'chart' | 'category';
+    item?: AgFlashOnUpdateItem;
     /** The color of the flash effect. */
-    color?: string;
+    color?: CssColor;
     /** The opacity of the flash effect. */
-    opacity?: number;
+    opacity?: Opacity;
     /** The duration of the flash in milliseconds. */
-    flashDuration?: number;
+    flashDuration?: DurationMs;
     /** The duration of the fade-out effect in milliseconds. */
-    fadeDuration?: number;
+    fadeDuration?: DurationMs;
 }
