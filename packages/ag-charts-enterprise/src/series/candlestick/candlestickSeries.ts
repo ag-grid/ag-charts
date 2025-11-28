@@ -47,6 +47,8 @@ export class CandlestickSeries extends OhlcSeriesBase<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = properties.item;
 
+        const fillBBox = this.getShapeFillBBox();
+
         datumSelection.each((node, datum) => {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
@@ -58,7 +60,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
             node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
-            node.setStyleProperties(style, this.getShapeFillBBox());
+            node.setStyleProperties(style, fillBBox);
 
             const styleWick = style?.wick;
             node.setWickProperties(
