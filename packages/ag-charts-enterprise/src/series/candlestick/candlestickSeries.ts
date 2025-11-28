@@ -47,31 +47,27 @@ export class CandlestickSeries extends OhlcSeriesBase<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = properties.item;
 
-        datumSelection.each((node, datum) => {
+        const fillBBox = this.getShapeFillBBox();
+
+        const series = this;
+        datumSelection.each(function updateCandlestickNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
 
-            node.centerX = centerX;
-            node.width = width;
-            node.y = y;
-            node.height = height;
-            node.yOpen = yOpen;
-            node.yClose = yClose;
-            node.crisp = crisp;
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
-            node.setStyleProperties(style, this.getShapeFillBBox());
+            node.setStyleProperties(style, fillBBox);
 
             const styleWick = style?.wick;
-            node.wickStroke = styleWick?.stroke;
-            node.wickStrokeWidth = styleWick?.strokeWidth;
-            node.wickStrokeOpacity = styleWick?.strokeOpacity;
-            node.wickLineDash = styleWick?.lineDash;
-            node.wickLineDashOffset = styleWick?.lineDashOffset;
+            node.setWickProperties(
+                styleWick?.stroke,
+                styleWick?.strokeWidth,
+                styleWick?.strokeOpacity,
+                styleWick?.lineDash,
+                styleWick?.lineDashOffset
+            );
 
             node.wickStrokeAlignment = baseStyle.wick.strokeWidth ?? baseStyle.strokeWidth;
         });

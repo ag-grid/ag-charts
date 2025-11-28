@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ScaleType } from 'ag-charts-core';
-import { simpleMemorize2 } from 'ag-charts-core';
+import { nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
 const {
     AGGREGATION_SPAN,
@@ -12,7 +12,7 @@ const {
     AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationRangeFittingPoints,
-    collectAggregationLevels,
+    compactAggregationIndices,
     createAggregationIndices,
 } = _ModuleSupport;
 
@@ -24,12 +24,21 @@ export const SPAN = AGGREGATION_SPAN;
 
 export interface OhlcSeriesDataAggregationFilter {
     indexData: Uint32Array;
+    valueData: Float64Array;
     maxRange: number;
     midpointIndices: Uint32Array;
 }
 
-function getMidpoints(maxRange: number, indexData: Uint32Array): Uint32Array {
-    const midpoints = new Uint32Array(maxRange);
+export interface OhlcPartialAggregationResult {
+    /** Levels computed immediately (includes the target level) */
+    immediate: OhlcSeriesDataAggregationFilter[];
+    /** Function to compute remaining coarser levels, or undefined if all levels computed */
+    computeRemaining?: () => OhlcSeriesDataAggregationFilter[];
+}
+
+function getMidpoints(maxRange: number, indexData: Uint32Array, reuseMidpointData?: Uint32Array): Uint32Array {
+    const midpoints =
+        reuseMidpointData && reuseMidpointData.length === maxRange ? reuseMidpointData : new Uint32Array(maxRange);
     for (let i = 0, offset = 0; i < maxRange; i += 1, offset += SPAN) {
         const openIndex = indexData[offset + OPEN];
         const closeIndex = indexData[offset + CLOSE];
@@ -77,31 +86,143 @@ export function computeOhlcAggregation(
     lowValues: any[],
     options: {
         smallestKeyInterval: number | undefined;
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        existingFilters?: OhlcSeriesDataAggregationFilter[];
     }
 ): OhlcSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = domain;
-    const { smallestKeyInterval } = options;
+    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
 
-    const maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
-    const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
-    const midpointData = getMidpoints(maxRange, indexData);
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
 
-    const filters = collectAggregationLevels<OhlcSeriesDataAggregationFilter>(
-        { maxRange, indexData, valueData, midpointData },
+    // Find existing filter at finest level for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === maxRange);
+
+    let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
+    });
+    let midpointIndices = getMidpoints(maxRange, indexData, existingFilter?.midpointIndices);
+
+    const filters: OhlcSeriesDataAggregationFilter[] = [
         {
-            minRange: AGGREGATION_MIN_RANGE,
-            collectLevel: ({ maxRange: range, indexData: levelIndexData, midpointData: levelMidpointData }) => ({
-                maxRange: range,
-                indexData: levelIndexData,
-                midpointIndices: levelMidpointData ?? getMidpoints(range, levelIndexData),
-            }),
-            shouldContinue: () => true,
-        }
-    );
+            maxRange,
+            indexData,
+            valueData,
+            midpointIndices,
+        },
+    ];
+
+    // Build coarser aggregation levels with array reuse (like bar aggregation)
+    while (maxRange > AGGREGATION_MIN_RANGE) {
+        const currentMaxRange = maxRange;
+        const nextMaxRange = Math.trunc(currentMaxRange / 2);
+
+        // Find existing filter at target level for array reuse
+        const nextExistingFilter = existingFilters?.find((f) => f.maxRange === nextMaxRange);
+
+        const compacted = compactAggregationIndices(indexData, valueData, currentMaxRange, {
+            reuseIndexData: nextExistingFilter?.indexData,
+            reuseValueData: nextExistingFilter?.valueData,
+        });
+
+        maxRange = compacted.maxRange;
+        indexData = compacted.indexData;
+        valueData = compacted.valueData;
+        midpointIndices =
+            compacted.midpointData ?? getMidpoints(maxRange, indexData, nextExistingFilter?.midpointIndices);
+
+        filters.push({
+            maxRange,
+            indexData,
+            valueData,
+            midpointIndices,
+        });
+    }
+
+    filters.reverse();
 
     return filters;
+}
+
+/**
+ * Computes OHLC aggregation with deferred full recomputation.
+ *
+ * For real-time data updates, this computes only the single aggregation level
+ * needed for the current zoom, deferring a full recomputation of all levels
+ * to idle time. This design enables future incremental updates to focus on
+ * just the immediate level, while deferred processing handles full rebuilds.
+ *
+ * @param domain - Numeric domain bounds [min, max] for X values
+ * @param xValues - X coordinate values (typically time/date)
+ * @param highValues - High values for each period
+ * @param lowValues - Low values for each period
+ * @param options - Configuration options including targetRange
+ * @param options.targetRange - The current pixel range for determining bucket count
+ * @returns Partial result with the immediate level and a function to compute all levels
+ */
+export function computeOhlcAggregationPartial(
+    domain: [number, number],
+    xValues: any[],
+    highValues: any[],
+    lowValues: any[],
+    options: {
+        smallestKeyInterval: number | undefined;
+        targetRange: number;
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        existingFilters?: OhlcSeriesDataAggregationFilter[];
+    }
+): OhlcPartialAggregationResult | undefined {
+    if (xValues.length < AGGREGATION_THRESHOLD) return;
+
+    const [d0, d1] = domain;
+    const { smallestKeyInterval, targetRange, xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
+
+    // Calculate the finest level bucket count (based on data density)
+    const finestMaxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
+
+    // Calculate target bucket count: next power of 2 >= targetRange, clamped to valid range
+    const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
+
+    // Find existing filter at matching maxRange for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === targetMaxRange);
+
+    // Create aggregation at exactly the target level - single O(n) scan
+    const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, targetMaxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
+    });
+    const midpointIndices = getMidpoints(targetMaxRange, indexData, existingFilter?.midpointIndices);
+
+    const immediateLevel: OhlcSeriesDataAggregationFilter = {
+        maxRange: targetMaxRange,
+        indexData,
+        valueData,
+        midpointIndices,
+    };
+
+    // Defer full recomputation of all levels to idle time
+    function computeRemaining(): OhlcSeriesDataAggregationFilter[] {
+        const allLevels = computeOhlcAggregation([d0, d1], xValues, highValues, lowValues, {
+            smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
+
+        // Filter out the immediate level (already computed) to avoid duplicates
+        return allLevels?.filter((level) => level.maxRange !== targetMaxRange) ?? [];
+    }
+
+    return { immediate: [immediateLevel], computeRemaining };
 }
 
 // ============================================================================
@@ -120,10 +241,16 @@ function aggregateOhlcData(
     highValues: any[],
     lowValues: any[],
     domain: number[],
-    smallestKeyInterval: number | undefined
+    smallestKeyInterval: number | undefined,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): OhlcSeriesDataAggregationFilter[] | undefined {
     const [d0, d1] = aggregationDomain(scale, domain);
-    return computeOhlcAggregation([d0, d1], xValues, highValues, lowValues, { smallestKeyInterval });
+    return computeOhlcAggregation([d0, d1], xValues, highValues, lowValues, {
+        smallestKeyInterval,
+        xNeedsValueOf,
+        yNeedsValueOf,
+    });
 }
 
 // ============================================================================
@@ -159,12 +286,61 @@ export function aggregateOhlcDataFromDataModel(
     const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
     const domain = processedData.domain.keys[index];
 
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf =
+        dataModel.resolveColumnNeedsValueOf(series, 'highValue', processedData) ??
+        dataModel.resolveColumnNeedsValueOf(series, 'lowValue', processedData);
+
     return memoizedAggregateOhlcData(
         scale,
         xValues,
         highValues,
         lowValues,
         domain,
-        processedData.reduced?.smallestKeyInterval
+        processedData.reduced?.smallestKeyInterval,
+        xNeedsValueOf,
+        yNeedsValueOf
     );
+}
+
+/**
+ * High-level partial aggregation function for series integration.
+ * Computes immediate levels for the target range and defers coarser levels.
+ *
+ * @param scale - The X-axis scale type
+ * @param dataModel - Data model containing the processed data
+ * @param processedData - Processed data to aggregate
+ * @param series - Series context for data model queries
+ * @param targetRange - Current pixel range for determining which levels to compute immediately
+ * @param existingFilters - Optional existing filters for array reuse
+ * @returns Partial aggregation result with immediate levels and deferred computation function
+ */
+export function aggregateOhlcDataFromDataModelPartial(
+    scale: ScaleType,
+    dataModel: any,
+    processedData: any,
+    series: any,
+    targetRange: number,
+    existingFilters?: OhlcSeriesDataAggregationFilter[]
+): OhlcPartialAggregationResult | undefined {
+    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
+    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
+
+    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
+    const domain = processedData.domain.keys[index];
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf =
+        dataModel.resolveColumnNeedsValueOf(series, 'highValue', processedData) ??
+        dataModel.resolveColumnNeedsValueOf(series, 'lowValue', processedData);
+
+    const [d0, d1] = aggregationDomain(scale, domain);
+    return computeOhlcAggregationPartial([d0, d1], xValues, highValues, lowValues, {
+        smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
+        targetRange,
+        xNeedsValueOf,
+        yNeedsValueOf,
+        existingFilters,
+    });
 }
