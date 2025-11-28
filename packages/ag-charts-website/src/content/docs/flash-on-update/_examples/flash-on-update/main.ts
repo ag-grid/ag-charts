@@ -73,19 +73,19 @@ const barOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             label: {
                 autoRotate: false,
             },
         },
-    ],
+        y: {
+            type: 'number',
+            position: 'left',
+        },
+    },
 };
 
 let options: AgCartesianChartOptions = {
