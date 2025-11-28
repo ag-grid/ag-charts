@@ -13,7 +13,8 @@ import {
     FlashOnUpdateModule,
 } from 'ag-charts-enterprise';
 
-import { DataType, getData, random } from './data';
+import { type ContextType, makeContext } from './context';
+import { type DataType, getData } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -25,17 +26,16 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
 ]);
 
-// Series type data options
-let start = [
-    120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140,
-    80,
-];
-let variance = 20;
-let offset = 0;
-let length = 8;
-let seed = 1234;
+const context: ContextType = makeContext();
 
-const barOptions = {
+const options: AgCartesianChartOptions<DataType, ContextType> = {
+    container: document.getElementById('myChart'),
+    context,
+    animation: {
+        enabled: false,
+    },
+    background: { fill: 'transparent' },
+    data: context.randomizeData(),
     series: [
         {
             type: 'bar',
@@ -88,26 +88,10 @@ const barOptions = {
     },
 };
 
-let options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    animation: {
-        enabled: false,
-    },
-    background: { fill: 'transparent' },
-    data: getGeneratedData(),
-    ...barOptions,
-};
-
-// Create chart
 const chart = AgCharts.create(options);
 
-function getGeneratedData(): DataType[] {
-    return getData(start, variance, offset, length, seed);
-}
-
-const chartBackground = document.querySelector('#myChart');
-
 function flashChart() {
+    const chartBackground = document.querySelector('#myChart');
     chartBackground.animate(
         [
             { background: '#cfeeff', offset: 0 },
@@ -118,13 +102,7 @@ function flashChart() {
     );
 }
 
-function bounceChart() {
-    chartBackground.animate([{ transform: 'scale(1.01)', offset: 0.15 }, { transform: 'scale(1)' }], { duration: 777 });
-}
-
-function update() {
-    seed = Math.floor(random() * 1000);
-    chart.updateDelta({ data: getGeneratedData() });
+function randomize() {
+    chart.updateDelta({ data: options.context!.randomizeData() });
     flashChart();
-    // bounceChart();
 }
