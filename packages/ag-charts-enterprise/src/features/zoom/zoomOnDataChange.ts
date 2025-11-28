@@ -8,16 +8,37 @@ type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsH
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
+type NoDesiredChanges = {
+    ranges?: never;
+    stickToEnd?: never;
+};
+
+type DesiredRanges = {
+    ranges: { axisId: AxisID; range: AgZoomRange }[];
+    stickToEnd?: never;
+};
+
+type DesiredStickToEnd = {
+    ranges?: never;
+    stickToEnd: { axisId: AxisID; difference: number; type: 'number' | 'date' };
+};
+
+type DesiredChanges = NoDesiredChanges | DesiredRanges | DesiredStickToEnd;
+
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
     // TODO(olegat): change default to 'preserveDomain'
     strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
+
+    @Property
+    // TODO(olegat): change default to 'true'
+    stickToEnd: boolean = false;
 }
 
 export class ZoomOnDataChange {
     private readonly callerId = 'zoom-on-data-change';
-    private desiredRanges?: { axisId: AxisID; range: AgZoomRange }[];
+    private desiredChanges?: DesiredChanges;
 
     constructor(
         private readonly properties: ZoomOnDataChangeProperties,
@@ -60,13 +81,27 @@ export class ZoomOnDataChange {
         }
     }
 
-    private popDesiredChanges(): ZoomChangeState | undefined {
-        const { desiredRanges } = this;
-        this.desiredRanges = undefined;
+    private calculateNewStickToEndRange(
+        axisId: AxisID,
+        difference: number
+    ): { start: number; end: number } | { start: Date; end: Date } | undefined {
+        const end = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 })?.end;
+        if (end === undefined || typeof end === 'string') return;
 
-        if (desiredRanges) {
+        if (end instanceof Date) {
+            return { start: new Date(end.getTime() - difference), end };
+        } else {
+            return { start: end - difference, end };
+        }
+    }
+
+    private popDesiredChanges(): ZoomChangeState | undefined {
+        const { desiredChanges = {} } = this;
+        this.desiredChanges = undefined;
+
+        if (desiredChanges.ranges) {
             const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
-            for (const entry of desiredRanges) {
+            for (const entry of desiredChanges.ranges) {
                 const ratio = this.ctx.zoomManager.rangeToRatio(entry.axisId, entry.range);
                 if (ratio) {
                     const { min, max } = ratio;
@@ -74,10 +109,27 @@ export class ZoomOnDataChange {
                 }
             }
             return changes;
+        } else if (desiredChanges.stickToEnd) {
+            const { axisId, difference } = desiredChanges.stickToEnd;
+            const newRange = this.calculateNewStickToEndRange(axisId, difference);
+            if (newRange == undefined) return;
+
+            const newRatio = this.ctx.zoomManager.rangeToRatio(axisId, newRange);
+            if (newRatio == undefined) return;
+
+            const { min, max } = newRatio;
+            return { [axisId]: { direction: 'x', min, max } };
         }
     }
 
-    private performUpdateStrategy() {
+    private performUpdateStrategy(): void {
+        if (this.properties.stickToEnd) {
+            const isAtEnd = this.ctx.zoomManager.getZoom()?.x?.max === 1;
+            if (isAtEnd) {
+                return this.performStickToEnd();
+            }
+        }
+
         switch (this.properties.strategy) {
             case 'reset':
                 return this.ctx.zoomManager.resetZoom(this.callerId);
@@ -93,16 +145,35 @@ export class ZoomOnDataChange {
         }
     }
 
-    private performPreserveDomain() {
+    private performPreserveDomain(): void {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
-        this.desiredRanges = [];
+        this.desiredChanges = { ranges: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
             const range = this.ctx.zoomManager.getCurrentRange(axisId);
             if (range) {
-                this.desiredRanges.push({ axisId, range });
+                this.desiredChanges.ranges.push({ axisId, range });
             }
+        }
+    }
+
+    private performStickToEnd(): void {
+        const axisId = this.ctx.zoomManager.getPrimaryAxisId(ChartAxisDirection.X);
+        if (!axisId) return;
+
+        const range = this.ctx.zoomManager.getCurrentRange(axisId);
+        if (!range) return;
+        const { start, end } = range;
+
+        if (typeof end === 'number' && typeof start === 'number') {
+            const difference = end - start;
+            this.desiredChanges = { stickToEnd: { axisId, difference, type: 'number' } };
+        } else if (end instanceof Date && start instanceof Date) {
+            const difference = end.getTime() - start.getTime();
+            this.desiredChanges = { stickToEnd: { axisId, difference, type: 'date' } };
+        } else {
+            Logger.error(`Unexpected range types: start (${typeof start}), end (${typeof end})`);
         }
     }
 }
