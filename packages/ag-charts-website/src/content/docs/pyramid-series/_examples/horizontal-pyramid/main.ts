@@ -1,19 +1,15 @@
 import {
-    ModuleRegistry,
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
+    ModuleRegistry,
     PyramidSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    PyramidSeriesModule,
-    ContextMenuModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, PyramidSeriesModule, ContextMenuModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
