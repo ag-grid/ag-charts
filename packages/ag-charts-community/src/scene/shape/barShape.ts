@@ -27,35 +27,32 @@ export class BarShape<D = any> extends Rect<D> {
      * WARNING: Only use for hot paths where performance is critical and properties don't need
      * individual change detection (e.g., when updating many nodes in a loop).
      */
-    setStaticProperties(
+    override setStaticProperties(
         drawingMode: AgDrawingMode,
         topLeftCornerRadius: number,
         topRightCornerRadius: number,
         bottomRightCornerRadius: number,
         bottomLeftCornerRadius: number,
         visible: boolean,
-        direction: 'x' | 'y',
-        featherRatio: number,
         crisp: boolean,
-        fillShadow: DropShadow | undefined
+        fillShadow: DropShadow | undefined,
+        direction?: 'x' | 'y',
+        featherRatio?: number
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
-        this.__drawingMode = drawingMode;
-        this.__topLeftCornerRadius = topLeftCornerRadius;
-        this.__topRightCornerRadius = topRightCornerRadius;
-        this.__bottomRightCornerRadius = bottomRightCornerRadius;
-        this.__bottomLeftCornerRadius = bottomLeftCornerRadius;
-        this.__visible = visible;
-        this.__direction = direction;
-        this.__featherRatio = featherRatio;
-        this.__crisp = crisp;
-        this.__fillShadow = fillShadow;
+        this.__direction = direction ?? 'x';
+        this.__featherRatio = featherRatio ?? 0;
 
-        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
-        this.dirtyPath = true;
-
-        // Single dirty notification for the batch
-        this.markDirty();
+        super.setStaticProperties(
+            drawingMode,
+            topLeftCornerRadius,
+            topRightCornerRadius,
+            bottomRightCornerRadius,
+            bottomLeftCornerRadius,
+            visible,
+            crisp,
+            fillShadow
+        );
     }
 
     private get feathered() {
