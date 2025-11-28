@@ -91,7 +91,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         },
         onDataChange: {
             strategy: 'preserveRatios', // TODO(olegat): change default to 'preserveDomain'
-            stickToEnd: true,
+            stickToEnd: false, // TODO(olegat): change default to 'true'
         },
         anchorPointX: 'end',
         anchorPointY: 'middle',
