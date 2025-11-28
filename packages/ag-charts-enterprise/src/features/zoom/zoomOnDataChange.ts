@@ -8,6 +8,24 @@ type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsH
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
+type NoDesiredChanges = {
+    ranges?: never;
+    stickToEnd?: never;
+};
+
+type DesiredRanges = {
+    ranges: { axisId: AxisID; range: AgZoomRange }[];
+    stickToEnd?: never;
+};
+
+type DesiredStickToEnd = {
+    ranges?: never;
+    stickToEnd: { difference: number };
+};
+
+type DesiredChanges = NoDesiredChanges | DesiredRanges | DesiredStickToEnd;
+
+
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
@@ -18,9 +36,10 @@ export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRe
     stickToEnd: boolean = true;
 }
 
+
 export class ZoomOnDataChange {
     private readonly callerId = 'zoom-on-data-change';
-    private desiredRanges?: { axisId: AxisID; range: AgZoomRange }[];
+    private desiredChanges?: DesiredChanges;
 
     constructor(
         private readonly properties: ZoomOnDataChangeProperties,
@@ -64,12 +83,12 @@ export class ZoomOnDataChange {
     }
 
     private popDesiredChanges(): ZoomChangeState | undefined {
-        const { desiredRanges } = this;
-        this.desiredRanges = undefined;
+        const { desiredChanges = {} } = this;
+        this.desiredChanges = undefined;
 
-        if (desiredRanges) {
+        if (desiredChanges.ranges) {
             const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
-            for (const entry of desiredRanges) {
+            for (const entry of desiredChanges.ranges) {
                 const ratio = this.ctx.zoomManager.rangeToRatio(entry.axisId, entry.range);
                 if (ratio) {
                     const { min, max } = ratio;
@@ -77,6 +96,8 @@ export class ZoomOnDataChange {
                 }
             }
             return changes;
+        } else if (desiredChanges.stickToEnd) {
+            // TODO
         }
     }
 
@@ -104,12 +125,12 @@ export class ZoomOnDataChange {
     private performPreserveDomain() {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
-        this.desiredRanges = [];
+        this.desiredChanges = { ranges: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
             const range = this.ctx.zoomManager.getCurrentRange(axisId);
             if (range) {
-                this.desiredRanges.push({ axisId, range });
+                this.desiredChanges.ranges.push({ axisId, range });
             }
         }
     }
