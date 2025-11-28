@@ -1,4 +1,4 @@
-import type { CssColor, DurationMs, Opacity } from "./types";
+import type { CssColor, DurationMs, Opacity } from './types';
 
 export type AgFlashOnUpdateItem = 'chart' | 'category';
 
