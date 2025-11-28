@@ -197,9 +197,47 @@ The tooltip's content can be customised within the default template by using a `
 In this configuration:
 
 -   The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
--   The `renderer` returns an object with optional `heading`, `title`, and `data` fields.
+-   The `renderer` returns an object with optional `heading`, `title`, `symbol`, and `data` fields.
 -   The `heading` and `title` must be plain text.
 -   The `data` field consists of an array of `label` and `value` fields, which are both plain text.
+-   Returning an empty string for any field will cause it to be omitted from the rendered tooltip.
+
+### Modifying the Symbol
+
+The tooltip symbol (the coloured marker that represents the series) can be customised using the `symbol` property in the renderer's return object.
+
+Whether the symbol includes a `marker`, `line`, or both depends on the series type and options used.
+
+{% chartExampleRunner title="Customising the Tooltip Symbol" name="tooltip-symbol" type="generated" /%}
+
+```js format="snippet"
+{
+    tooltip: {
+        renderer: function () {
+            return {
+                symbol: {
+                    marker: {
+                        enabled: true,
+                        shape: 'star',
+                        fill: '#cc0000',
+                    },
+                    line: {
+                        enabled: true,
+                        stroke: '#ff6b00',
+                    },
+                },
+            };
+        },
+    },
+}
+```
+
+In this example:
+
+-   Click the button to toggle the symbol. This will take effect on the next hover.
+-   The `marker` shape has been changed to `'star'` instead of inheriting the circle shape from the series.
+-   The marker and line colours have been changed from those used in the series.
+-   The `line` option is only used for series that support it such as `line` or `area`.
 
 ### Using Custom Tooltips
 

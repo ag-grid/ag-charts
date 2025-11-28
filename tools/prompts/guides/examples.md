@@ -36,11 +36,43 @@ Example paths are mapped from repo paths:
         </div>
         <div id="myChart"></div>
         ```
+    -   **Important**: Controls should be placed BEFORE the chart div, wrapped in `class="example-controls"` with `class="controls-row"` for each row of controls.
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
     -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
 -   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
+
+## Event Handlers and Functions
+
+Functions called from HTML event handlers (onclick, onchange, etc.) should be declared as top-level functions in `main.ts`. The framework generator automatically handles making these functions available to the HTML.
+
+**Correct Pattern:**
+
+```typescript
+const chart = AgCharts.create(options);
+
+function toggleFeature() {
+    options.someOption = !options.someOption;
+    chart.update(options);
+}
+```
+
+```html
+<button onclick="toggleFeature()">Toggle</button>
+```
+
+**Anti-Pattern - Do NOT use:**
+
+```typescript
+// ❌ WRONG: Do not assign functions to window
+(window as any).toggleFeature = toggleFeature;
+
+// ❌ WRONG: Do not use window assignments
+window.toggleFeature = toggleFeature;
+```
+
+The framework generator handles function exposure automatically. Using `window` assignments breaks framework transformation and is unnecessary.
 
 ## Module Registration
 
