@@ -26,7 +26,10 @@ ModuleRegistry.registerModules([
 ]);
 
 // Series type data options
-let start = [120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80];
+let start = [
+    120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140, 80, 120, 150, 130, 140,
+    80,
+];
 let variance = 20;
 let offset = 0;
 let length = 8;
@@ -90,7 +93,7 @@ let options = {
     animation: {
         enabled: false,
     },
-    background: {fill: 'transparent'},
+    background: { fill: 'transparent' },
     data: getGeneratedData(),
     ...barOptions,
 };
@@ -109,15 +112,14 @@ function flashChart() {
         [
             { background: '#cfeeff', offset: 0 },
             { background: '#cfeeff', offset: 0.1 },
-            { background: 'transparent', offset: 1 }
+            { background: 'transparent', offset: 1 },
         ],
         { duration: 1000, easing: 'ease-out' }
     );
 }
 
 function bounceChart() {
-    chartBackground.animate([{transform: 'scale(1.01)', offset: 0.15}, {transform: 'scale(1)'}], {duration: 777}
-                           )
+    chartBackground.animate([{ transform: 'scale(1.01)', offset: 0.15 }, { transform: 'scale(1)' }], { duration: 777 });
 }
 
 function update() {
