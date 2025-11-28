@@ -33,7 +33,7 @@ export type AgPolarAxisOptions<TContext = ContextDefault> =
     | AgRadiusCategoryAxisOptions<TContext>
     | AgRadiusNumberAxisOptions<TContext>;
 
-export type AgPolarAxisType<TContext = ContextDefault> = AgPolarAxisOptions<TContext>['type'];
+export type AgPolarAxisType<TContext = ContextDefault> = NonNullable<AgPolarAxisOptions<TContext>['type']>;
 
 export type AgPolarAxesOptions<TContext = ContextDefault> = Record<string, AgPolarAxisOptions<TContext>> & {
     angle?: AgAngleCategoryAxisOptions<TContext> | AgAngleNumberAxisOptions<TContext>;

@@ -358,7 +358,7 @@ export type AgCartesianAxisOptions<TContext = ContextDefault> =
     | AgUnitTimeAxisOptions<TContext>
     | AgGroupedCategoryAxisOptions<TContext>;
 
-export type AgCartesianAxisType<TContext = ContextDefault> = AgCartesianAxisOptions<TContext>['type'];
+export type AgCartesianAxisType<TContext = ContextDefault> = NonNullable<AgCartesianAxisOptions<TContext>['type']>;
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
