@@ -9,6 +9,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -21,6 +23,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -38,6 +42,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -60,6 +66,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 5000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -77,6 +85,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 3000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -92,6 +102,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -106,6 +118,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([500, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -121,6 +135,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -167,6 +183,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -190,6 +208,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -213,6 +233,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -238,6 +260,8 @@ describe('computeRangeBarAggregation', () => {
         it('should handle empty data', () => {
             const result = computeRangeBarAggregation([0, 0], [], [], [], {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -246,6 +270,8 @@ describe('computeRangeBarAggregation', () => {
         it('should handle single data point', () => {
             const result = computeRangeBarAggregation([0, 1], [0], [50], [25], {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -258,6 +284,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 10000], xValues, highValues, lowValues, {
                 smallestKeyInterval: 10,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -287,6 +315,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -299,6 +329,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -311,6 +343,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -337,6 +371,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -349,6 +385,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 2400], xValues, highValues, lowValues, {
                 smallestKeyInterval: 2,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -364,6 +402,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -378,6 +418,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -397,6 +439,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -410,6 +454,8 @@ describe('computeRangeBarAggregation', () => {
 
             const result = computeRangeBarAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -438,6 +484,8 @@ describe('computeRangeBarAggregation', () => {
             // Use a subset of the data
             const result = computeRangeBarAggregation([500, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
