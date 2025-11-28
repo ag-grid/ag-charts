@@ -1,10 +1,9 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
+    LegendModule, ModuleRegistry,
     AnimationModule,
     ContextMenuModule,
-    CrosshairModule,
     PyramidSeriesModule,
 } from 'ag-charts-enterprise';
 
@@ -12,7 +11,6 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
-    CrosshairModule,
     LegendModule,
     PyramidSeriesModule,
     ContextMenuModule,
