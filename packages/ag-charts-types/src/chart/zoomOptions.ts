@@ -8,7 +8,7 @@ export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
 export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
-export type AgZoomOnDataChangeStrategy = 'preserveDomain' | 'reset' | 'resize' | 'preserveData';
+export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveRatios' | 'preserveData';
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
