@@ -656,8 +656,54 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     /**
+     * Creates a skeleton BarNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: BarSeriesNodeDatumContext,
+        params: NodeDatumParams,
+        phantom: boolean
+    ): BarNodeDatum {
+        // Note: prepareNodeDatumState has already been called and succeeded before this method is invoked,
+        // so params.nodeDatumScratch should have valid values, but we use safe defaults for TypeScript.
+        const scratch = params.nodeDatumScratch;
+        return {
+            series: this,
+            itemId: phantom ? createDatumId(ctx.yKey, phantom) : ctx.yKey,
+            datum: scratch.datum,
+            datumIndex: params.datumIndex,
+            cumulativeValue: 0, // Will be updated by updateNodeDatum
+            phantom,
+            xValue: scratch.xValue ?? '',
+            yValue: 0, // Will be updated by updateNodeDatum
+            yKey: ctx.yKey,
+            xKey: ctx.xKey,
+            capDefaults: {
+                lengthRatioMultiplier: 0, // Will be updated by updateNodeDatum
+                lengthMax: 0, // Will be updated by updateNodeDatum
+            },
+            x: 0, // Will be updated by updateNodeDatum
+            y: 0, // Will be updated by updateNodeDatum
+            width: 0, // Will be updated by updateNodeDatum
+            height: 0, // Will be updated by updateNodeDatum
+            midPoint: { x: 0, y: 0 }, // Required - updated in place by updateNodeDatum
+            opacity: params.opacity,
+            featherRatio: params.featherRatio,
+            topLeftCornerRadius: false, // Will be updated by updateNodeDatum
+            topRightCornerRadius: false, // Will be updated by updateNodeDatum
+            bottomRightCornerRadius: false, // Will be updated by updateNodeDatum
+            bottomLeftCornerRadius: false, // Will be updated by updateNodeDatum
+            clipBBox: undefined, // Will be created/updated by updateNodeDatum
+            crisp: ctx.crisp,
+            label: undefined, // Will be created/updated by updateNodeDatum
+            missing: false, // Will be updated by updateNodeDatum
+            focusable: !phantom,
+        };
+    }
+
+    /**
      * Creates a BarNodeDatum (and optionally a phantom node) for a single data point.
-     * This is the primary method for node creation, extracted from the inline handleDatum/nodeDatum functions.
+     * Creates skeleton nodes and uses updateNodeDatum to populate them with calculated values.
      */
     private createNodeDatum(ctx: BarSeriesNodeDatumContext, params: NodeDatumParams): CreateNodeDatumResult {
         const prepared = this.prepareNodeDatumState(
@@ -671,113 +717,15 @@ export class BarSeries extends AbstractBarSeries<
             return { nodeData: undefined, phantomNodeData: undefined };
         }
 
-        // Helper to build the actual BarNodeDatum
-        const buildNodeDatum = (
-            phantom: boolean,
-            currY: number,
-            prevY: number,
-            yValue: number,
-            cumulativeValue: number,
-            nodeYRange: number,
-            nodeLabelText: TextOrSegments | undefined,
-            crossScale: number | undefined
-        ): BarNodeDatum => {
-            const isUpward = prepared.precomputedIsUpward ?? prepared.isPositive !== ctx.yReversed;
-
-            const y = ctx.yScale.convert(currY);
-            const bottomY = prepared.precomputedBottomY ?? ctx.yScale.convert(prevY);
-            const bboxHeight = ctx.yScale.convert(nodeYRange);
-
-            const xOffset = params.width * 0.5 * (1 - (crossScale ?? 1));
-            const rectX = ctx.barAlongX ? Math.min(y, bottomY) : params.x + xOffset;
-            const rectY = ctx.barAlongX ? params.x + xOffset : Math.min(y, bottomY);
-            const rectWidth = ctx.barAlongX ? Math.abs(bottomY - y) : params.width * (crossScale ?? 1);
-            const rectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(bottomY - y);
-
-            const clipBBox = new BBox(rectX, rectY, rectWidth, rectHeight);
-
-            const barRectX = ctx.barAlongX ? Math.min(ctx.bboxBottom, bboxHeight) : params.x + xOffset;
-            const barRectY = ctx.barAlongX ? params.x + xOffset : Math.min(ctx.bboxBottom, bboxHeight);
-            const barRectWidth = ctx.barAlongX
-                ? Math.abs(ctx.bboxBottom - bboxHeight)
-                : params.width * (crossScale ?? 1);
-            const barRectHeight = ctx.barAlongX
-                ? params.width * (crossScale ?? 1)
-                : Math.abs(ctx.bboxBottom - bboxHeight);
-
-            const lengthRatioMultiplier = ctx.shouldFlipXY ? rectHeight : rectWidth;
-
-            return {
-                series: this,
-                itemId: phantom ? createDatumId(ctx.yKey, phantom) : ctx.yKey,
-                datum: prepared.datum,
-                datumIndex: params.datumIndex,
-                cumulativeValue,
-                phantom,
-                xValue: prepared.xValue,
-                yValue,
-                yKey: ctx.yKey,
-                xKey: ctx.xKey,
-                capDefaults: {
-                    lengthRatioMultiplier,
-                    lengthMax: lengthRatioMultiplier,
-                },
-                x: barRectX,
-                y: barRectY,
-                width: barRectWidth,
-                height: barRectHeight,
-                midPoint: { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 },
-                opacity: params.opacity,
-                featherRatio: params.featherRatio,
-                topLeftCornerRadius: ctx.barAlongX !== isUpward,
-                topRightCornerRadius: isUpward,
-                bottomRightCornerRadius: ctx.barAlongX === isUpward,
-                bottomLeftCornerRadius: !isUpward,
-                clipBBox,
-                crisp: ctx.crisp,
-                label:
-                    nodeLabelText == null
-                        ? undefined
-                        : {
-                              text: nodeLabelText,
-                              ...adjustLabelPlacement({
-                                  isUpward,
-                                  isVertical: !ctx.barAlongX,
-                                  placement: ctx.label.placement,
-                                  spacing: ctx.labelSpacing,
-                                  rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
-                              }),
-                          },
-                missing: isTooltipValueMissing(yValue),
-                focusable: !phantom,
-            };
-        };
-
-        // Create main node
-        const nodeData = buildNodeDatum(
-            false,
-            prepared.yFilterValue == null ? params.yEnd : params.yStart + prepared.yFilterValue,
-            params.yStart,
-            prepared.yFilterValue ?? prepared.yRawValue,
-            prepared.yFilterValue ?? params.yEnd,
-            Math.max(params.yStart + (prepared.yFilterValue ?? -Infinity), params.yRange),
-            prepared.labelText,
-            prepared.inset ? 0.6 : undefined
-        );
+        // Create skeleton main node and populate it
+        const nodeData = this.createSkeletonNodeDatum(ctx, params, false);
+        this.updateNodeDatum(ctx, nodeData, params, prepared);
 
         // Create phantom node if cross-filtering is active
         let phantomNodeData: BarNodeDatum | undefined;
         if (prepared.yFilterValue != null) {
-            phantomNodeData = buildNodeDatum(
-                true,
-                params.yEnd,
-                params.yStart,
-                prepared.yFilterValue,
-                prepared.yFilterValue,
-                params.yRange,
-                undefined,
-                undefined
-            );
+            phantomNodeData = this.createSkeletonNodeDatum(ctx, params, true);
+            this.updateNodeDatum(ctx, phantomNodeData, params);
         }
 
         return { nodeData, phantomNodeData };
@@ -788,8 +736,13 @@ export class BarSeries extends AbstractBarSeries<
      * This is more efficient than recreating the entire node when only data values change
      * but the structure (insertions/removals) remains the same.
      */
-    private updateNodeDatum(ctx: BarSeriesNodeDatumContext, node: BarNodeDatum, params: NodeDatumParams): void {
-        const prepared = this.prepareNodeDatumState(
+    private updateNodeDatum(
+        ctx: BarSeriesNodeDatumContext,
+        node: BarNodeDatum,
+        params: NodeDatumParams,
+        prepared?: PreparedBarNodeDatumState
+    ): void {
+        prepared ??= this.prepareNodeDatumState(
             ctx,
             params.nodeDatumScratch,
             params.datumIndex,
@@ -866,6 +819,11 @@ export class BarSeries extends AbstractBarSeries<
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = rectX + rectWidth / 2;
         mutableMidPoint.y = rectY + rectHeight / 2;
+
+        // Update capDefaults
+        const lengthRatioMultiplier = ctx.shouldFlipXY ? rectHeight : rectWidth;
+        mutableNode.capDefaults.lengthRatioMultiplier = lengthRatioMultiplier;
+        mutableNode.capDefaults.lengthMax = lengthRatioMultiplier;
 
         mutableNode.opacity = params.opacity;
         mutableNode.featherRatio = params.featherRatio;
@@ -987,7 +945,7 @@ export class BarSeries extends AbstractBarSeries<
                 }
                 nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
 
-                this.handleNodeDatum(ctx, nodeDatumParamsScratch);
+                this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
             }
         }
     }
@@ -1046,7 +1004,7 @@ export class BarSeries extends AbstractBarSeries<
                 nodeDatumParamsScratch.featherRatio = 0;
                 nodeDatumParamsScratch.opacity = 1;
 
-                this.handleNodeDatum(ctx, nodeDatumParamsScratch);
+                this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
             }
         }
     }
@@ -1088,7 +1046,7 @@ export class BarSeries extends AbstractBarSeries<
             nodeDatumParamsScratch.featherRatio = 0;
             nodeDatumParamsScratch.opacity = 1;
 
-            this.handleNodeDatum(ctx, nodeDatumParamsScratch);
+            this.upsertNodeDatum(ctx, nodeDatumParamsScratch);
         }
     }
 
@@ -1096,39 +1054,52 @@ export class BarSeries extends AbstractBarSeries<
      * Handles node creation/update - reuses existing nodes when possible for incremental updates.
      * This method decides whether to update existing nodes in-place or create new ones.
      */
-    private handleNodeDatum(ctx: BarSeriesNodeDatumContext, params: NodeDatumParams): void {
+    private upsertNodeDatum(ctx: BarSeriesNodeDatumContext, params: NodeDatumParams) {
         // Check if we can reuse existing nodes
         const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-        const canReusePhantom = ctx.canIncrementallyUpdate && ctx.phantomIndex < ctx.phantomNodes.length;
+        const needsPhantom = ctx.yFilterValues != null;
+        const canReusePhantom =
+            needsPhantom && ctx.canIncrementallyUpdate && ctx.phantomIndex < ctx.phantomNodes.length;
 
+        let nodeData: BarNodeDatum | undefined;
+        let phantomNodeData: BarNodeDatum | undefined;
         if (canReuseNode) {
             // Reuse existing main node by updating in place
-            this.updateNodeDatum(ctx, ctx.nodes[ctx.nodeIndex], params);
+            nodeData = ctx.nodes[ctx.nodeIndex];
+            this.updateNodeDatum(ctx, nodeData, params);
             // Update label reference (same node is used for labels)
-            if (ctx.nodeIndex < ctx.labels.length) {
-                ctx.labels[ctx.nodeIndex] = ctx.nodes[ctx.nodeIndex];
-            } else {
-                ctx.labels.push(ctx.nodes[ctx.nodeIndex]);
+            if (ctx.nodeIndex >= ctx.labels.length) {
+                ctx.labels.push(nodeData);
             }
-        }
-        if (canReusePhantom) {
-            // Reuse existing phantom node by updating in place
-            this.updateNodeDatum(ctx, ctx.phantomNodes[ctx.phantomIndex], params);
-        }
-        if (!canReuseNode || !canReusePhantom) {
-            // Need to create new node(s) - call createNodeDatum once
+        } else {
             const result = this.createNodeDatum(ctx, params);
-
-            if (!canReuseNode && result.nodeData) {
+            if (result.nodeData) {
                 ctx.nodes.push(result.nodeData);
                 ctx.labels.push(result.nodeData);
             }
-            if (!canReusePhantom && result.phantomNodeData) {
+            phantomNodeData = result.phantomNodeData;
+        }
+        ctx.nodeIndex++;
+
+        if (!needsPhantom) {
+            return { nodeData: ctx.nodes[ctx.nodeIndex] };
+        }
+
+        if (canReusePhantom) {
+            // Reuse existing phantom node by updating in place
+            phantomNodeData = ctx.phantomNodes[ctx.phantomIndex];
+            this.updateNodeDatum(ctx, phantomNodeData, params);
+        } else if (phantomNodeData) {
+            ctx.phantomNodes.push(phantomNodeData);
+        } else {
+            const result = this.createNodeDatum(ctx, params);
+            if (result.phantomNodeData) {
                 ctx.phantomNodes.push(result.phantomNodeData);
             }
         }
-        ctx.nodeIndex++;
         ctx.phantomIndex++;
+
+        return { nodeData, phantomNodeData };
     }
 
     createNodeData() {
