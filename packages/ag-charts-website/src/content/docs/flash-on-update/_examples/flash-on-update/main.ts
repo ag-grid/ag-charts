@@ -82,23 +82,13 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'left',
         },
     },
+    flashOnUpdate: {
+        enabled: true,
+    },
 };
 
 const chart = AgCharts.create(options);
 
-function flashChart() {
-    const chartBackground = document.querySelector('#myChart');
-    chartBackground.animate(
-        [
-            { background: '#cfeeff', offset: 0 },
-            { background: '#cfeeff', offset: 0.1 },
-            { background: 'transparent', offset: 1 },
-        ],
-        { duration: 1000, easing: 'ease-out' }
-    );
-}
-
 function randomize() {
     chart.updateDelta({ data: getRandomizedData() });
-    flashChart();
 }
