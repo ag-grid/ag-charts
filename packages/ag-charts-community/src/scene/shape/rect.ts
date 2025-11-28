@@ -1,5 +1,5 @@
-import type { AgDrawingMode } from 'ag-charts-community';
 import { type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
+import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { DeclaredSceneChangeDetection } from '../changeDetectable';
