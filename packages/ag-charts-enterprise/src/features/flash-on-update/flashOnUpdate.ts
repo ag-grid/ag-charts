@@ -28,12 +28,27 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
         super();
-        this.cleanup.register(
-            this.moduleContext.eventsHub.on('data:update', () => console.log('flashOnUpdate - placeholder'))
-        );
+        this.cleanup.register(this.moduleContext.eventsHub.on('data:update', () => this.onDataChange()));
     }
 
     destroy() {
         this.cleanup.flush();
+    }
+
+    private onDataChange(): void {
+        if (!this.enabled) return;
+
+        const chartEl = this.moduleContext.widgets.chartWidget.getElement();
+
+        const { flashDuration, fadeDuration } = this;
+        const duration = flashDuration + fadeDuration;
+        chartEl.animate(
+            [
+                { background: this.color, offset: 0 },
+                { background: this.color, offset: flashDuration / duration },
+                { background: 'transparent', offset: 1 },
+            ],
+            { duration, easing: 'ease-out' }
+        );
     }
 }
