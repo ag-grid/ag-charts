@@ -73,6 +73,7 @@ export const pluginOptionToModule = new Map([
     ['chartToolbar', 'ChartToolbarModule'],
     ['contextMenu', 'ContextMenuModule'],
     ['dataSource', 'DataSourceModule'],
+    ['flashOnUpdate', 'FlashOnUpdateModule'],
     ['gradientLegend', 'GradientLegendModule'],
     ['legend', 'LegendModule'],
     ['locale', 'LocaleModule'],
