@@ -60,9 +60,9 @@ These properties include `xKey` and `yKey` for cartesian charts, `colorKey` for 
 In this example:
 
 -   The `data` array contains the data for all series in the chart.
--   Series 1 visualizes the `women` field using `yKey: 'women'`.
--   Series 2 visualizes the `men` field using `yKey: 'men'`.
--   The `xKey: 'year'` is used by both series, determining the category labels.
+-   Series 1 visualizes the `women` field on the y axis using `yKey: 'women'`.
+-   Series 2 visualizes the `men` field on the y axis using `yKey: 'men'`.
+-   The `xKey: 'year'` is used by both series, determining the x axis categories.
 
 The `_Key` properties vary by series type - see the [Series Options](/options/#reference-AgChartOptions-series) for more details.
 
@@ -128,7 +128,7 @@ Use the `suppressFieldDotNotation` option to disable this feature if your field 
 ## Updating Data
 
 {% if isFramework("javascript") %}
-After chart creation, you can update the data by calling `AgChartInstance.update()` or `AgChartInstance.updateDelta()` with a new `data` array.
+After chart creation, data can be updated by calling the `AgChartInstance.update()` or `AgChartInstance.updateDelta()` with a new `data` array.
 
 ```js
 chart.updateDelta({
@@ -139,7 +139,7 @@ chart.updateDelta({
 {% /if %}
 
 {% if isNotJavascriptFramework() %}
-After chart creation, you can update the data by mutating the data object.
+After chart creation, data can be updated by mutating the data object.
 {% /if %}
 
 For details on update methods, see the [Create/Update API Reference](./api-create-update/).
@@ -160,7 +160,7 @@ chart.applyTransaction({
 For details on transaction operations, see [High-Frequency Data](./high-frequency-data/).
 
 <!--
-## Asynchronous Data
+Asynchronous Data
 
 The `dataSource` callback allows fetching data asynchronously as the user zooms and pans.
 
