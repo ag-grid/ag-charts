@@ -231,20 +231,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private findSeriesWithUserVisiblity(newUserOptions: T, deltaOptions: DeepPartial<T> | null | undefined) {
         for (const o of [newUserOptions, deltaOptions]) {
             const series = o?.series;
-            if (Array.isArray(series)) {
-                for (let index = 0; index < series.length; index++) {
-                    const s = series[index];
-                    if ('visible' in s) {
-                        this.seriesWithUserVisibility ??= {
-                            identifiers: new Set<string>(),
-                            indices: new Set<number>(),
-                        };
-                        if (s.id) {
-                            this.seriesWithUserVisibility.identifiers.add(s.id);
-                        } else {
-                            this.seriesWithUserVisibility.indices.add(index);
-                        }
-                    }
+            if (!Array.isArray(series)) continue;
+            for (let index = 0; index < series.length; index++) {
+                const s = series[index];
+                if (!('visible' in s)) continue;
+                this.seriesWithUserVisibility ??= {
+                    identifiers: new Set<string>(),
+                    indices: new Set<number>(),
+                };
+                if (s.id) {
+                    this.seriesWithUserVisibility.identifiers.add(s.id);
+                } else {
+                    this.seriesWithUserVisibility.indices.add(index);
                 }
             }
         }
