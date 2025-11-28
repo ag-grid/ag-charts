@@ -995,8 +995,6 @@ export class RangeAreaSeries extends BaseSeries {
         return this.properties.label.enabled;
     }
 
-    override onDataChange() {}
-
     protected nodeFactory() {
         return new Marker();
     }
