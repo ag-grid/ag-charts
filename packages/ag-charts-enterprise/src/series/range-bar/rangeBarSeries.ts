@@ -59,7 +59,7 @@ const {
     calculateSegments,
     toHighlightString,
     HighlightState,
-    DeferredExecutor,
+    AggregationManager,
 } = _ModuleSupport;
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
@@ -223,8 +223,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override properties = new RangeBarProperties();
 
-    private dataAggregationFilters: RangeBarSeriesDataAggregationFilter[] | undefined = undefined;
-    private readonly aggregationExecutor = new DeferredExecutor<RangeBarSeriesDataAggregationFilter[]>();
+    private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
@@ -279,7 +278,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -288,48 +287,30 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
+        this.aggregationManager.markStale();
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        // Cancel any pending deferred aggregation from previous data
-        this.aggregationExecutor.cancel();
-
-        // Estimate target range from current axis scale
         const targetRange = this.estimateTargetRange();
 
-        // Use partial computation if we have a valid target range
-        if (targetRange > 0) {
-            const partialResult = aggregateRangeBarDataFromDataModelPartial(
-                xAxis.scale.type,
-                dataModel,
-                processedData,
-                this,
-                targetRange,
-                this.dataAggregationFilters // Pass existing filters for array reuse
-            );
-
-            if (partialResult) {
-                const { immediate, computeRemaining } = partialResult;
-
-                if (computeRemaining) {
-                    // Schedule deferred computation of remaining levels
-                    this.aggregationExecutor.schedule(
-                        computeRemaining,
-                        (remaining: RangeBarSeriesDataAggregationFilter[]) => {
-                            this.mergeAggregationLevels(remaining);
-                        }
-                    );
-                }
-
-                return immediate;
-            }
-        }
-
-        // Fallback to full computation
-        return aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateRangeBarDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+            targetRange,
+        });
     }
 
     private estimateTargetRange(): number {
@@ -338,31 +319,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const [r0, r1] = xAxis.scale.range;
         return Math.abs(r1 - r0);
-    }
-
-    private ensureAggregationLevelForRange(range: number): void {
-        // Check if we have a level suitable for the given range
-        const hasLevel = this.dataAggregationFilters?.some((f) => f.maxRange > range);
-
-        if (!hasLevel && this.aggregationExecutor.isPending()) {
-            // Force immediate computation of deferred levels
-            const remaining = this.aggregationExecutor.demand();
-            if (remaining) {
-                this.mergeAggregationLevels(remaining);
-            }
-        }
-    }
-
-    private mergeAggregationLevels(deferredLevels: RangeBarSeriesDataAggregationFilter[]): void {
-        if (!this.dataAggregationFilters) {
-            this.dataAggregationFilters = deferredLevels;
-            return;
-        }
-
-        // Merge deferred levels with immediate levels, maintaining coarse-to-fine order
-        const allLevels = [...this.dataAggregationFilters, ...deferredLevels];
-        allLevels.sort((a, b) => a.maxRange - b.maxRange);
-        this.dataAggregationFilters = allLevels;
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -811,14 +767,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         // 4. Strategy selection - delegate to specialized methods
-        const { dataAggregationFilters } = this;
         const [r0, r1] = ctx.xScale.range;
         const range = Math.abs(r1 - r0);
 
         // Ensure we have the needed aggregation level (force deferred computation if necessary)
-        this.ensureAggregationLevelForRange(range);
+        this.aggregationManager.ensureLevelForRange(range);
 
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
         if (dataAggregationFilter != null) {
             this.createNodeDataWithAggregation(

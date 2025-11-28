@@ -1,16 +1,16 @@
-import { type ScaleType, simpleMemorize2 } from 'ag-charts-core';
-import { nextPowerOf2 } from 'ag-charts-core';
+import type { ScaleType } from 'ag-charts-core';
+import { nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
     AGGREGATION_MIN_RANGE,
-    AGGREGATION_SPAN,
     AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
+    getMidpointsForIndices,
 } from '../aggregation';
 
 export interface BarSeriesDataAggregationFilter {
@@ -34,28 +34,6 @@ export interface PartialBarAggregationResult {
 // ============================================================================
 // CORE LAYER: Pure, testable aggregation functions
 // ============================================================================
-
-/**
- * Extracts midpoint indices from aggregation index data.
- * For each bucket, calculates the midpoint between min and max X indices.
- *
- * The returned indices are inherently sorted because buckets are ordered by domain position
- * (bucket 0 covers the lowest domain range, bucket N-1 covers the highest). This ordering
- * enables binary search in visibleRangeIndices() for efficient visible range detection.
- *
- * @param maxRange - Number of aggregation buckets
- * @param indexData - Aggregation index data (TypedArray)
- * @returns Array of midpoint indices representing each bucket, sorted by domain position
- */
-function getIndices(maxRange: number, indexData: Uint32Array) {
-    const indices = new Uint32Array(maxRange);
-    for (let i = 0, offset = 0; i < maxRange; i += 1, offset += AGGREGATION_SPAN) {
-        const xMin = indexData[offset + AGGREGATION_INDEX_X_MIN];
-        const xMax = indexData[offset + AGGREGATION_INDEX_X_MAX];
-        indices[i] = (xMin + xMax) >> 1; // truncating midpoint
-    }
-    return indices;
-}
 
 /**
  * Computes multi-level aggregation filters for bar chart data.
@@ -129,8 +107,22 @@ export function computeBarAggregation(
         throw new Error('Negative aggregation data missing in split mode');
     }
 
-    let positiveIndices = getIndices(maxRange, positiveIndexData);
-    let negativeIndices = getIndices(maxRange, negativeIndexData);
+    let positiveIndices = getMidpointsForIndices(
+        maxRange,
+        positiveIndexData,
+        undefined,
+        undefined,
+        undefined,
+        existingFilter?.positiveIndices
+    );
+    let negativeIndices = getMidpointsForIndices(
+        maxRange,
+        negativeIndexData,
+        undefined,
+        undefined,
+        undefined,
+        existingFilter?.negativeIndices
+    );
 
     const filters: BarSeriesDataAggregationFilter[] = [
         {
@@ -164,11 +156,29 @@ export function computeBarAggregation(
 
         positiveIndexData = positiveCompacted.indexData;
         positiveValueData = positiveCompacted.valueData;
-        positiveIndices = positiveCompacted.midpointData ?? getIndices(maxRange, positiveIndexData);
+        positiveIndices =
+            positiveCompacted.midpointData ??
+            getMidpointsForIndices(
+                maxRange,
+                positiveIndexData,
+                undefined,
+                undefined,
+                undefined,
+                nextExistingFilter?.positiveIndices
+            );
 
         negativeIndexData = negativeCompacted.indexData;
         negativeValueData = negativeCompacted.valueData;
-        negativeIndices = negativeCompacted.midpointData ?? getIndices(maxRange, negativeIndexData);
+        negativeIndices =
+            negativeCompacted.midpointData ??
+            getMidpointsForIndices(
+                maxRange,
+                negativeIndexData,
+                undefined,
+                undefined,
+                undefined,
+                nextExistingFilter?.negativeIndices
+            );
 
         filters.push({
             maxRange,
@@ -252,10 +262,24 @@ export function computeBarAggregationPartial(
 
     const immediateLevel: BarSeriesDataAggregationFilter = {
         maxRange: targetMaxRange,
-        positiveIndices: getIndices(targetMaxRange, positiveIndexData),
+        positiveIndices: getMidpointsForIndices(
+            targetMaxRange,
+            positiveIndexData,
+            undefined,
+            undefined,
+            undefined,
+            existingFilter?.positiveIndices
+        ),
         positiveIndexData,
         positiveValueData,
-        negativeIndices: getIndices(targetMaxRange, negativeIndexData),
+        negativeIndices: getMidpointsForIndices(
+            targetMaxRange,
+            negativeIndexData,
+            undefined,
+            undefined,
+            undefined,
+            existingFilter?.negativeIndices
+        ),
         negativeIndexData,
         negativeValueData,
     };
@@ -316,19 +340,21 @@ const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
 /**
  * High-level aggregation function for series integration.
- * Handles data extraction from DataModel and delegates to memoized aggregation.
+ * Handles data extraction from DataModel and delegates to aggregation.
  *
  * @param scale - The X-axis scale type
  * @param dataModel - Data model containing the processed data
  * @param processedData - Processed data to aggregate
  * @param series - Series context for data model queries
+ * @param existingFilters - Optional existing filters for array reuse
  * @returns Aggregation filters or undefined if aggregation not needed
  */
 export function aggregateBarDataFromDataModel(
     scale: ScaleType,
-    dataModel: any,
-    processedData: any,
-    series: any
+    dataModel: DataModel<any, any, any>,
+    processedData: ProcessedData<any>,
+    series: ScopeProvider,
+    existingFilters?: BarSeriesDataAggregationFilter[]
 ): BarSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
@@ -347,6 +373,17 @@ export function aggregateBarDataFromDataModel(
         isStacked ? 'yValue-end' : 'yValue-raw',
         processedData
     );
+
+    // When existingFilters provided, bypass memoization to enable array reuse
+    if (existingFilters) {
+        const [d0, d1] = aggregationDomain(scale, domain);
+        return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
+            smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
+    }
 
     return memoizedAggregateBarData(
         scale,
@@ -374,9 +411,9 @@ export function aggregateBarDataFromDataModel(
  */
 export function aggregateBarDataFromDataModelPartial(
     scale: ScaleType,
-    dataModel: any,
-    processedData: any,
-    series: any,
+    dataModel: DataModel<any, any, any>,
+    processedData: ProcessedData<any>,
+    series: ScopeProvider,
     targetRange: number,
     existingFilters?: BarSeriesDataAggregationFilter[]
 ): PartialBarAggregationResult | undefined {
