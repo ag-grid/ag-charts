@@ -5,8 +5,6 @@ import { OhlcSeriesBase } from './ohlcSeriesBase';
 import type { OhlcNodeDatum } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-const { applyShapeStyle } = _ModuleSupport;
-
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
@@ -63,7 +61,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 
-            applyShapeStyle(node, style);
+            node.setStyleProperties(style);
 
             node.strokeAlignment = baseStyle.strokeWidth;
         });

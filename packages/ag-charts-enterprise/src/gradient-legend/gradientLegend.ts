@@ -230,7 +230,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     private updateContainer(bbox: _ModuleSupport.BBox) {
         const containerStyles = this.getContainerStyles();
 
-        _ModuleSupport.applyShapeStyle(this.containerNode, containerStyles);
+        this.containerNode.setStyleProperties(containerStyles);
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
 
         this.containerNode.x = bbox.x;

@@ -1,7 +1,7 @@
 import { Logger, assignIfNotStrictlyEqual, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
 import { BBox } from './bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
+import { DeclaredSceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
@@ -128,8 +128,9 @@ export abstract class Node<TDatum = unknown> {
      */
     protected isContainerNode: boolean = false;
 
-    @SceneChangeDetection<Node>()
+    @DeclaredSceneChangeDetection()
     visible: boolean = true;
+    declare __visible: boolean; // optimised field accessor
 
     @SceneObjectChangeDetection<Node>({
         equals: objectsEqual,

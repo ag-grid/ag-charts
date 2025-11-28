@@ -36,7 +36,6 @@ const {
     Rect,
     PointerEvents,
     motion,
-    applyShapeStyle,
     areScalingEqual,
     processedDataIsAnimatable,
     AGGREGATION_SPAN,
@@ -668,7 +667,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

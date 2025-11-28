@@ -10,8 +10,7 @@ import {
 } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
-import { type GradientParams } from '../../scene/gradient/gradient';
-import type { Shape, ShapeColor } from '../../scene/shape/shape';
+import type { Shape } from '../../scene/shape/shape';
 
 export type ShapeStyle = Partial<
     Pick<
@@ -133,36 +132,4 @@ export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
         ...style,
         fill: getShapeFill(style.fill, defaultGradient, defaultPattern, defaultImage),
     };
-}
-
-export function applyShapeFillBBox(
-    shape: Shape,
-    fill: ShapeColor | undefined,
-    fillBBox?: ShapeFillBBox,
-    fillParams?: GradientParams
-) {
-    if (fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item') {
-        shape.fillBBox = undefined;
-    } else {
-        shape.fillBBox = fillBBox[fill.bounds];
-    }
-    shape.fillParams = fillParams;
-}
-
-export function applyShapeStyle(
-    shape: Shape,
-    style?: ShapeStyle,
-    fillBBox?: ShapeFillBBox,
-    fillParams?: GradientParams
-) {
-    // Opacity is managed by animation - so don't set it on the shape
-    const opacity = style?.opacity ?? 1;
-    shape.fill = style?.fill;
-    applyShapeFillBBox(shape, shape.fill, fillBBox, fillParams);
-    shape.fillOpacity = (style?.fillOpacity ?? 1) * opacity;
-    shape.stroke = style?.stroke;
-    shape.strokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
-    shape.strokeWidth = style?.strokeWidth ?? 0;
-    shape.lineDash = style?.lineDash;
-    shape.lineDashOffset = style?.lineDashOffset ?? 0;
 }

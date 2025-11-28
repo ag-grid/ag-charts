@@ -29,6 +29,8 @@ export class ExtendedPath2D {
     private previousClosedPath: boolean = false;
     commands: Command[] = [];
     params: number[] = [];
+    private commandsLength: number = 0;
+    private paramsLength: number = 0;
 
     cx = Number.NaN;
     cy = Number.NaN;
@@ -38,16 +40,16 @@ export class ExtendedPath2D {
     closedPath: boolean = false;
 
     isEmpty() {
-        return this.commands.length === 0;
+        return this.commandsLength === 0;
     }
 
     isDirty() {
         return (
             this.closedPath !== this.previousClosedPath ||
-            this.previousCommands.length !== this.commands.length ||
-            this.previousParams.length !== this.params.length ||
-            this.previousCommands.toString() !== this.commands.toString() ||
-            this.previousParams.toString() !== this.params.toString()
+            this.previousCommands.length !== this.commandsLength ||
+            this.previousParams.length !== this.paramsLength ||
+            this.previousCommands.toString() !== this.commands.slice(0, this.commandsLength).toString() ||
+            this.previousParams.toString() !== this.params.slice(0, this.paramsLength).toString()
         );
     }
 
@@ -62,8 +64,9 @@ export class ExtendedPath2D {
         this.cx = x;
         this.cy = y;
         this.path2d.moveTo(x, y);
-        this.commands.push(Command.Move);
-        this.params.push(x, y);
+        this.commands[this.commandsLength++] = Command.Move;
+        this.params[this.paramsLength++] = x;
+        this.params[this.paramsLength++] = y;
     }
 
     lineTo(x: number, y: number) {
@@ -71,8 +74,9 @@ export class ExtendedPath2D {
             this.cx = x;
             this.cy = y;
             this.path2d.lineTo(x, y);
-            this.commands.push(Command.Line);
-            this.params.push(x, y);
+            this.commands[this.commandsLength++] = Command.Line;
+            this.params[this.paramsLength++] = x;
+            this.params[this.paramsLength++] = y;
         } else {
             this.moveTo(x, y);
         }
@@ -83,8 +87,13 @@ export class ExtendedPath2D {
             this.moveTo(cx1, cy1);
         }
         this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
-        this.commands.push(Command.Curve);
-        this.params.push(cx1, cy1, cx2, cy2, x, y);
+        this.commands[this.commandsLength++] = Command.Curve;
+        this.params[this.paramsLength++] = cx1;
+        this.params[this.paramsLength++] = cy1;
+        this.params[this.paramsLength++] = cx2;
+        this.params[this.paramsLength++] = cy2;
+        this.params[this.paramsLength++] = x;
+        this.params[this.paramsLength++] = y;
     }
 
     closePath() {
@@ -94,7 +103,7 @@ export class ExtendedPath2D {
             this.sx = Number.NaN;
             this.sy = Number.NaN;
             this.path2d.closePath();
-            this.commands.push(Command.ClosePath);
+            this.commands[this.commandsLength++] = Command.ClosePath;
             this.openedPath = false;
             this.closedPath = true;
         }
@@ -423,16 +432,18 @@ export class ExtendedPath2D {
 
     clear(trackChanges?: boolean) {
         if (trackChanges) {
-            this.previousCommands = this.commands;
-            this.previousParams = this.params;
+            this.previousCommands = this.commands.slice(0, this.commandsLength);
+            this.previousParams = this.params.slice(0, this.paramsLength);
             this.previousClosedPath = this.closedPath;
             // Create new arrays since previous now holds references to the old ones
             this.commands = [];
             this.params = [];
+            this.commandsLength = 0;
+            this.paramsLength = 0;
         } else {
-            // Safe to clear in place when not tracking changes
-            this.commands.length = 0;
-            this.params.length = 0;
+            // Reset length fields instead of clearing arrays
+            this.commandsLength = 0;
+            this.paramsLength = 0;
         }
         this.path2d = new Path2D();
         this.openedPath = false;
@@ -442,7 +453,7 @@ export class ExtendedPath2D {
     isPointInPath(x: number, y: number): boolean {
         const commands = this.commands;
         const params = this.params;
-        const cn = commands.length;
+        const cn = this.commandsLength;
         // Hit testing using ray casting method, where the ray's origin is some point
         // outside the path. In this case, an offscreen point that is remote enough, so that
         // even if the path itself is large and is partially offscreen, the ray's origin
@@ -510,7 +521,7 @@ export class ExtendedPath2D {
         let best = Infinity;
         const commands = this.commands;
         const params = this.params;
-        const cn = commands.length;
+        const cn = this.commandsLength;
         // the starting point of the  current path
         let sx: number = Number.NaN;
         let sy: number = Number.NaN;
@@ -567,7 +578,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (const command of commands) {
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            const command = commands[ci];
             switch (command) {
                 case Command.Move:
                     addCommand('M', 2);
@@ -604,7 +616,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (const command of commands) {
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            const command = commands[ci];
             switch (command) {
                 case Command.Move:
                     joinPoint(params[pi++], params[pi++]);

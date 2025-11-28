@@ -58,7 +58,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
-import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
+import { getShapeStyle } from '../series/shapeUtil';
 import { FONT_SIZE } from '../themes/constants';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
@@ -588,12 +588,12 @@ export class Legend extends BaseProperties {
             marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
             marker.size = itemMarker.size;
             // Clone the marker symbol styles to prevent mutations affecting the series.
-            applyShapeStyle(marker, this.getMarkerStyles(deepClone(symbol)));
+            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol)));
         }
 
         line.visible = anyLineEnabled;
         if (line.visible) {
-            applyShapeStyle(line, this.getLineStyles(symbol));
+            line.setStyleProperties(this.getLineStyles(symbol));
         }
 
         markerLabel.length = markerWidth;
@@ -610,7 +610,7 @@ export class Legend extends BaseProperties {
         this.containerNode.width = 0;
         this.containerNode.height = 0;
 
-        applyShapeStyle(this.containerNode, containerStyles);
+        this.containerNode.setStyleProperties(containerStyles);
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
 
         // Shrink the desired legend size by the container, since the items layout is constrained by the inner

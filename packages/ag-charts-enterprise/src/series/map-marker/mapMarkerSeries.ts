@@ -36,7 +36,6 @@ const {
     Selection,
     Text,
     Marker,
-    applyShapeStyle,
     getLabelStyles,
     LonLatBBox,
 } = _ModuleSupport;
@@ -811,7 +810,7 @@ export class MapMarkerSeries
             marker.shape = style.shape;
             marker.size = style.size;
 
-            applyShapeStyle(marker, style, fillBBox);
+            marker.setStyleProperties(style, fillBBox);
 
             marker.x = point.x;
             marker.y = point.y;

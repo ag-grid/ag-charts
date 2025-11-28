@@ -25,12 +25,26 @@ type SeriesType = 'line' | 'bar' | 'ohlc' | 'candlestick';
 
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
-const UPDATE_INTERVAL_MS = 200;
+let UPDATE_INTERVAL_MS = 200;
+let UPDATE_FREQUENCY_MODE: 'raf' | number = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
+// Initialize frequency from persisted value
+const persistedFrequency = getPersistedFrequency();
+if (persistedFrequency === 'raf') {
+    UPDATE_FREQUENCY_MODE = 'raf';
+} else {
+    const intervalMs = parseInt(persistedFrequency, 10);
+    if (!isNaN(intervalMs) && intervalMs > 0) {
+        UPDATE_FREQUENCY_MODE = intervalMs;
+        UPDATE_INTERVAL_MS = intervalMs;
+    }
+}
+
 const STORAGE_KEY = 'high-freq-high-volume-series-type';
 const UPDATES_STATE_KEY = 'high-freq-high-volume-updates-running';
+const FREQUENCY_KEY = 'high-freq-high-volume-frequency';
 
 function getSeriesTypeFromHash(): SeriesType | null {
     try {
@@ -132,6 +146,62 @@ function persistUpdatesState(running: boolean) {
             const hash = window.location.hash.slice(1);
             const params = new URLSearchParams(hash);
             params.set('updatesRunning', String(running));
+            const newHash = params.toString();
+            // Use replaceState to avoid page reload
+            history.replaceState(null, '', `#${newHash}`);
+        }
+        // In iframe, rely on sessionStorage (can't reliably update parent hash)
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
+function getFrequencyFromHash(): string | null {
+    try {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return null;
+        const params = new URLSearchParams(hash);
+        const frequency = params.get('frequency');
+        if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
+            return frequency;
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+    return null;
+}
+
+function getFrequencyFromStorage(): string | null {
+    try {
+        const stored = sessionStorage.getItem(FREQUENCY_KEY);
+        if (stored && (stored === 'raf' || ['50', '100', '200', '500', '1000'].includes(stored))) {
+            return stored;
+        }
+    } catch {
+        // Ignore storage errors (e.g., in private browsing)
+    }
+    return null;
+}
+
+function getPersistedFrequency(): string {
+    return getFrequencyFromHash() || getFrequencyFromStorage() || '200';
+}
+
+function persistFrequency(frequency: string) {
+    try {
+        // Always update sessionStorage as fallback
+        sessionStorage.setItem(FREQUENCY_KEY, frequency);
+    } catch {
+        // Ignore storage errors (e.g., private browsing)
+    }
+
+    try {
+        // Try to update URL hash (works in full-screen mode, not in iframes)
+        if (window.parent === window) {
+            // Not in iframe, can update hash directly
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            params.set('frequency', frequency);
             const newHash = params.toString();
             // Use replaceState to avoid page reload
             history.replaceState(null, '', `#${newHash}`);
@@ -322,8 +392,11 @@ const chart = AgCharts.create(options);
 let currentUpdateMethod: 'applyTransaction' | 'updateDelta' = 'applyTransaction';
 let isRunning = false;
 let intervalId: ReturnType<typeof setInterval> | undefined;
+let rafId: number | undefined;
 let updateInFlight = false;
 let cpuUsageHistory: number[] = [];
+let fpsHistory: number[] = [];
+let lastFrameTime: number | undefined;
 let methodSelect: HTMLSelectElement | null = null;
 let seriesTypeUpdateInProgress = false;
 
@@ -358,8 +431,66 @@ function resetCpuIndicator() {
     }
 }
 
+function resetFpsCounter() {
+    fpsHistory = [];
+    lastFrameTime = undefined;
+    const fpsElement = document.getElementById('fpsCounter');
+    if (fpsElement) {
+        fpsElement.textContent = 'FPS: 0';
+        fpsElement.style.color = '';
+    }
+}
+
+function recordFps() {
+    const now = performance.now();
+
+    if (lastFrameTime !== undefined) {
+        const frameTime = now - lastFrameTime;
+        const fps = 1000 / frameTime;
+        fpsHistory.push(fps);
+
+        // Keep only last 60 frames for smooth average
+        if (fpsHistory.length > 60) {
+            fpsHistory.shift();
+        }
+
+        const averageFps = fpsHistory.reduce((sum, value) => sum + value, 0) / fpsHistory.length;
+        const fpsElement = document.getElementById('fpsCounter');
+        if (fpsElement) {
+            fpsElement.textContent = `FPS: ${averageFps.toFixed(1)}`;
+
+            // Color code based on FPS
+            if (UPDATE_FREQUENCY_MODE === 'raf') {
+                // For requestAnimationFrame, expect ~60fps
+                if (averageFps >= 55) {
+                    fpsElement.style.color = 'green';
+                } else if (averageFps >= 30) {
+                    fpsElement.style.color = 'orange';
+                } else {
+                    fpsElement.style.color = 'red';
+                }
+            } else {
+                // For fixed intervals, calculate expected FPS
+                const expectedFps = 1000 / UPDATE_INTERVAL_MS;
+                const tolerance = expectedFps * 0.1; // 10% tolerance
+                if (averageFps >= expectedFps - tolerance) {
+                    fpsElement.style.color = 'green';
+                } else if (averageFps >= expectedFps * 0.7) {
+                    fpsElement.style.color = 'orange';
+                } else {
+                    fpsElement.style.color = 'red';
+                }
+            }
+        }
+    }
+
+    lastFrameTime = now;
+}
+
 function recordCpuUsage(elapsedMs: number) {
-    const cpuUsage = (elapsedMs / UPDATE_INTERVAL_MS) * 100;
+    // For requestAnimationFrame, use 16.67ms (60fps) as baseline
+    const baselineMs = UPDATE_FREQUENCY_MODE === 'raf' ? 16.67 : UPDATE_INTERVAL_MS;
+    const cpuUsage = (elapsedMs / baselineMs) * 100;
     cpuUsageHistory.push(cpuUsage);
     if (cpuUsageHistory.length > 100) {
         cpuUsageHistory.shift();
@@ -434,6 +565,9 @@ async function runAutoUpdate() {
 
     updateInFlight = true;
     try {
+        // Record FPS before update
+        recordFps();
+
         // Maintain a rolling window by appending and removing batch-sized chunks.
         const remove = data.slice(0, BATCH_SIZE);
         const append = createBatch(BATCH_SIZE);
@@ -443,20 +577,37 @@ async function runAutoUpdate() {
     } finally {
         updateInFlight = false;
     }
+
+    // Schedule next update if using requestAnimationFrame
+    if (isRunning && UPDATE_FREQUENCY_MODE === 'raf') {
+        rafId = requestAnimationFrame(() => {
+            void runAutoUpdate();
+        });
+    }
 }
 
 function startUpdates() {
     if (isRunning) {
         return;
     }
-    intervalId = setInterval(() => {
-        void runAutoUpdate();
-    }, UPDATE_INTERVAL_MS);
     isRunning = true;
     persistUpdatesState(true);
     const button = document.getElementById('toggleBtn');
     if (button) {
         button.textContent = 'Stop Updates';
+    }
+
+    if (UPDATE_FREQUENCY_MODE === 'raf') {
+        // Use requestAnimationFrame for smooth 60fps updates
+        rafId = requestAnimationFrame(() => {
+            void runAutoUpdate();
+        });
+    } else {
+        // Use setInterval for fixed interval updates
+        UPDATE_INTERVAL_MS = UPDATE_FREQUENCY_MODE;
+        intervalId = setInterval(() => {
+            void runAutoUpdate();
+        }, UPDATE_INTERVAL_MS);
     }
 }
 
@@ -465,9 +616,14 @@ function stopUpdates() {
         clearInterval(intervalId);
         intervalId = undefined;
     }
+    if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = undefined;
+    }
 
     isRunning = false;
     persistUpdatesState(false);
+    resetFpsCounter();
     const button = document.getElementById('toggleBtn');
     if (button) {
         button.textContent = 'Start Updates';
@@ -493,6 +649,37 @@ function setUpdateMethod(method: string) {
     }
 
     resetCpuIndicator();
+}
+
+function setUpdateFrequency(frequency: string) {
+    const wasRunning = isRunning;
+
+    // Stop current updates if running
+    if (wasRunning) {
+        stopUpdates();
+    }
+
+    // Parse frequency value
+    if (frequency === 'raf') {
+        UPDATE_FREQUENCY_MODE = 'raf';
+    } else {
+        const intervalMs = parseInt(frequency, 10);
+        if (!isNaN(intervalMs) && intervalMs > 0) {
+            UPDATE_FREQUENCY_MODE = intervalMs;
+            UPDATE_INTERVAL_MS = intervalMs;
+        }
+    }
+
+    // Persist the frequency selection
+    persistFrequency(frequency);
+
+    // Restart updates if they were running
+    if (wasRunning) {
+        startUpdates();
+    }
+
+    resetCpuIndicator();
+    resetFpsCounter();
 }
 
 function updateButtonLabels() {
@@ -587,12 +774,19 @@ async function setSeriesType(newSeriesType: SeriesType) {
 }
 
 resetCpuIndicator();
+resetFpsCounter();
 updateDataCountDisplay();
 updateButtonLabels();
 
 methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
 if (methodSelect) {
     methodSelect.value = currentUpdateMethod;
+}
+
+// Initialize frequency selector with persisted value
+const frequencySelect = document.getElementById('frequencySelect') as HTMLSelectElement | null;
+if (frequencySelect) {
+    frequencySelect.value = persistedFrequency;
 }
 
 // Initialize series type selector with persisted value
@@ -620,6 +814,11 @@ window.addEventListener('hashchange', () => {
             stopUpdates();
         }
     }
+    const persistedFrequency = getPersistedFrequency();
+    const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
+    if (persistedFrequency !== currentFrequency) {
+        setUpdateFrequency(persistedFrequency);
+    }
 });
 
 (window as any).toggleUpdates = () => {
@@ -627,6 +826,9 @@ window.addEventListener('hashchange', () => {
 };
 (window as any).updateMethod = (method: string) => {
     setUpdateMethod(method);
+};
+(window as any).updateFrequency = (frequency: string) => {
+    setUpdateFrequency(frequency);
 };
 (window as any).updateBatchSize = (size: string) => {
     setBatchSize(parseInt(size, 10));

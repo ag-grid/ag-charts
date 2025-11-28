@@ -45,7 +45,6 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { type AreaSeriesDataAggregationFilter, aggregateAreaDataFromDataModel } from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
@@ -913,8 +912,7 @@ export class AreaSeries extends CartesianSeries<
         });
         strokePaths.datum = segments;
 
-        applyShapeStyle(
-            fillPaths,
+        fillPaths.setStyleProperties(
             {
                 fill,
                 stroke: undefined,

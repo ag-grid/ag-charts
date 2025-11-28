@@ -1,15 +1,65 @@
-import { SceneChangeDetection } from '../changeDetectable';
+import type { AgDrawingMode } from 'ag-charts-types';
+
+import { DeclaredSceneChangeDetection } from '../changeDetectable';
+import type { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
-export class BarShape<D = any> extends Rect<D> {
-    @SceneChangeDetection()
-    direction: 'x' | 'y' = 'x';
+export const FEATHERED_THRESHOLD = 1e-3;
 
-    @SceneChangeDetection()
+export class BarShape<D = any> extends Rect<D> {
+    @DeclaredSceneChangeDetection()
+    direction: 'x' | 'y' = 'x';
+    declare __direction: 'x' | 'y'; // optimised field accessor
+
+    @DeclaredSceneChangeDetection()
     featherRatio: number = 0;
+    declare __featherRatio: number; // optimised field accessor
+
+    /**
+     * High-performance static property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setStaticProperties(
+        drawingMode: AgDrawingMode,
+        topLeftCornerRadius: number,
+        topRightCornerRadius: number,
+        bottomRightCornerRadius: number,
+        bottomLeftCornerRadius: number,
+        visible: boolean,
+        direction: 'x' | 'y',
+        featherRatio: number,
+        crisp: boolean,
+        fillShadow: DropShadow | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__drawingMode = drawingMode;
+        this.__topLeftCornerRadius = topLeftCornerRadius;
+        this.__topRightCornerRadius = topRightCornerRadius;
+        this.__bottomRightCornerRadius = bottomRightCornerRadius;
+        this.__bottomLeftCornerRadius = bottomLeftCornerRadius;
+        this.__visible = visible;
+        this.__direction = direction;
+        this.__featherRatio = featherRatio;
+        this.__crisp = crisp;
+        this.__fillShadow = fillShadow;
+
+        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
 
     private get feathered() {
-        return Math.abs(this.featherRatio) > 1e-6;
+        return Math.abs(this.featherRatio) > FEATHERED_THRESHOLD;
     }
 
     override isPointInPath(x: number, y: number): boolean {
@@ -27,7 +77,16 @@ export class BarShape<D = any> extends Rect<D> {
             return;
         }
 
-        const { path, borderPath, x, y, width, height, direction, featherRatio } = this;
+        const {
+            path,
+            borderPath,
+            __direction: direction,
+            __featherRatio: featherRatio,
+            __x: x,
+            __y: y,
+            __width: width,
+            __height: height,
+        } = this;
         path.clear();
         borderPath.clear();
 
@@ -76,11 +135,18 @@ export class BarShape<D = any> extends Rect<D> {
             return;
         }
 
-        const { stroke, strokeWidth } = this;
+        const {
+            __stroke: stroke,
+            __strokeWidth: strokeWidth,
+            __lineDash: lineDash,
+            __lineDashOffset: lineDashOffset,
+            __lineCap: lineCap,
+            __lineJoin: lineJoin,
+            path,
+        } = this;
 
         if (stroke && strokeWidth) {
             const { globalAlpha } = ctx;
-            const { lineDash, lineDashOffset, lineCap, lineJoin, path } = this;
 
             this.applyStrokeAndAlpha(ctx);
             ctx.lineWidth = strokeWidth;

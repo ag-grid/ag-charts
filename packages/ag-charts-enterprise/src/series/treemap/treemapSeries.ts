@@ -36,7 +36,6 @@ const {
     Selection,
     Text,
     Transformable,
-    applyShapeStyle,
     getLabelStyles,
     HierarchyHighlightState,
     toHierarchyHighlightString,
@@ -649,7 +648,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             rect.crisp = true;
 
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];

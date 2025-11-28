@@ -2,7 +2,7 @@ import type { DistantObject } from 'ag-charts-core';
 import { boxesEqual, isNumberEqual } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
+import { DeclaredSceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -244,29 +244,37 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     readonly borderPath = new ExtendedPath2D();
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     x: number = 0;
+    declare __x: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     y: number = 0;
+    declare __y: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     width: number = 10;
+    declare __width: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     height: number = 10;
+    declare __height: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     topLeftCornerRadius: number = 0;
+    declare __topLeftCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     topRightCornerRadius: number = 0;
+    declare __topRightCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     bottomRightCornerRadius: number = 0;
+    declare __bottomRightCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     bottomLeftCornerRadius: number = 0;
+    declare __bottomLeftCornerRadius: number; // optimised field accessor
 
     set cornerRadius(cornerRadius: number) {
         this.topLeftCornerRadius = cornerRadius;
@@ -275,29 +283,31 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @SceneObjectChangeDetection({ equals: boxesEqual })
+    @DeclaredSceneChangeDetection({ equals: boxesEqual })
     clipBBox?: BBox = undefined;
+    declare __clipBBox: BBox | undefined; // optimised field accessor
 
     /**
      * If `true`, the rect is aligned to the pixel grid for crisp looking lines.
      * Animated rects may not look nice with this option enabled, for example
      * when a rect is translated by a sub-pixel value on each frame.
      */
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     crisp: boolean = false;
+    declare __crisp: boolean; // optimised field accessor
 
     private borderClipPath?: ExtendedPath2D;
 
-    private lastUpdatePathStrokeWidth: number = this.strokeWidth;
+    private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
     protected override isDirtyPath() {
         return (
-            this.lastUpdatePathStrokeWidth !== this.strokeWidth ||
+            this.lastUpdatePathStrokeWidth !== this.__strokeWidth ||
             Boolean(this.path.isDirty() || this.borderPath.isDirty())
         );
     }
 
-    private effectiveStrokeWidth: number = this.strokeWidth;
+    private effectiveStrokeWidth: number = this.__strokeWidth;
 
     private hittester = super.isPointInPath.bind(this);
     private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
@@ -313,13 +323,13 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         const {
             path,
             borderPath,
-            crisp,
-            topLeftCornerRadius: topLeft,
-            topRightCornerRadius: topRight,
-            bottomRightCornerRadius: bottomRight,
-            bottomLeftCornerRadius: bottomLeft,
+            __crisp: crisp,
+            __topLeftCornerRadius: topLeft,
+            __topRightCornerRadius: topRight,
+            __bottomRightCornerRadius: bottomRight,
+            __bottomLeftCornerRadius: bottomLeft,
         } = this;
-        let { x, y, width: w, height: h, strokeWidth, clipBBox } = this;
+        let { __x: x, __y: y, __width: w, __height: h, __strokeWidth: strokeWidth, __clipBBox: clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
@@ -437,7 +447,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
     }
 
     protected override computeBBox(): BBox {
-        const { x, y, width, height, clipBBox } = this;
+        const { __x: x, __y: y, __width: width, __height: height, __clipBBox: clipBBox } = this;
         return clipBBox?.clone() ?? new BBox(x, y, width, height);
     }
 
@@ -446,7 +456,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
     }
 
     get midPoint(): { x: number; y: number } {
-        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+        return { x: this.__x + this.__width / 2, y: this.__y + this.__height / 2 };
     }
 
     /**
@@ -468,16 +478,13 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         clipBBox: BBox | undefined
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
-        // Convention: __propertyName (from changeDetectable.ts)
-        const self = this as any;
-        self.__x = x;
-        self.__y = y;
-        self.__width = width;
-        self.__height = height;
-        self.__opacity = opacity;
-
-        self.__clipBBox = clipBBox;
-        self._dirtyPath = true;
+        this.__x = x;
+        this.__y = y;
+        this.__width = width;
+        this.__height = height;
+        this.__opacity = opacity;
+        this.__clipBBox = clipBBox;
+        this.dirtyPath = true;
 
         // Single dirty notification for the batch
         this.markDirty();

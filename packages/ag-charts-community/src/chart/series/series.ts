@@ -74,7 +74,7 @@ import type {
     SeriesNodeEventTypes,
 } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
-import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
+import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -1127,7 +1127,7 @@ export abstract class Series<
         const { shape, size = 0 } = style;
         const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
-        applyShapeStyle(markerNode, style, fillBBox);
+        markerNode.setStyleProperties(style, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
