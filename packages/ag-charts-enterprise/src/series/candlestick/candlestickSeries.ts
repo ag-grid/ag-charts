@@ -5,7 +5,6 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickNode,
     AgCandlestickSeriesOptions,
