@@ -38,6 +38,7 @@ import {
     ratio,
     required,
     shapeHighlightOptionsDef,
+    strictUnion,
     string,
     strokeOptionsDef,
     typeUnion,
@@ -61,6 +62,7 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
+    type AgFlashOnUpdateItem,
     type AgInterpolationType,
     type AgRangesButton,
     type AgSeriesMarkerOptions,
@@ -474,6 +476,14 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     locale: {
         localeText: object,
         getLocaleText: callbackOf(string),
+    },
+    flashOnUpdate: {
+        enabled: boolean,
+        item: strictUnion<AgFlashOnUpdateItem>()('chart', 'category'),
+        color: color,
+        opacity: ratio,
+        flashDuration: positiveNumber,
+        fadeDuration: positiveNumber,
     },
     background: {
         visible: boolean,
