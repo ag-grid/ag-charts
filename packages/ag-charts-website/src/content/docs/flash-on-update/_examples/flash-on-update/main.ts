@@ -13,8 +13,7 @@ import {
     FlashOnUpdateModule,
 } from 'ag-charts-enterprise';
 
-import { type ContextType, makeContext } from './context';
-import { type DataType, getData } from './data';
+import { type DataType, getRandomizedData } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -26,16 +25,13 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
 ]);
 
-const context: ContextType = makeContext();
-
-const options: AgCartesianChartOptions<DataType, ContextType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    context,
     animation: {
         enabled: false,
     },
     background: { fill: 'transparent' },
-    data: context.randomizeData(),
+    data: getRandomizedData(),
     series: [
         {
             type: 'bar',
@@ -103,6 +99,6 @@ function flashChart() {
 }
 
 function randomize() {
-    chart.updateDelta({ data: options.context!.randomizeData() });
+    chart.updateDelta({ data: getRandomizedData() });
     flashChart();
 }

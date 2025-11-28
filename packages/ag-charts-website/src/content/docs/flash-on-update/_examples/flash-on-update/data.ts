@@ -7,28 +7,33 @@ export interface DataType {
     five: number;
 }
 
+let seed = 1234;
+const START = [120, 150, 130, 140, 80] as const;
+const VARIANCE = 20;
+const LENGTH = 8;
+
+function random() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+}
+
 // Create a set of data with predicatable "randomness"
-export function getData(
-    start: readonly [number, number, number, number, number],
-    variance: number,
-    length: number,
-    random: () => number
-): DataType[] {
+export function getRandomizedData(): DataType[] {
     // Vary the datum by a random proportion of the variance +ve or -ve
-    const vary = (n) => Math.max(0, n + variance * random() * 2 - variance);
+    const vary = (n) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
 
     const startYear = 2025;
     const data: DataType[] = [
         {
             year: `${startYear}`,
-            one: vary(start[0]),
-            two: vary(start[1]),
-            three: vary(start[2]),
-            four: vary(start[3]),
-            five: vary(start[4]),
+            one: vary(START[0]),
+            two: vary(START[1]),
+            three: vary(START[2]),
+            four: vary(START[3]),
+            five: vary(START[4]),
         },
     ];
-    for (let i = 1; i < length; i++) {
+    for (let i = 1; i < LENGTH; i++) {
         data.push({
             year: `${startYear + i}`,
             one: vary(data[i - 1].one),
