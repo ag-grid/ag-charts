@@ -88,7 +88,7 @@ const barOptions = {
     ],
 };
 
-let options = {
+let options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: false,
@@ -101,7 +101,7 @@ let options = {
 // Create chart
 const chart = AgCharts.create(options);
 
-function getGeneratedData() {
+function getGeneratedData(): DataType[] {
     return getData(start, variance, offset, length, seed);
 }
 
