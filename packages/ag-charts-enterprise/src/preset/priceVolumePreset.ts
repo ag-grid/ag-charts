@@ -238,11 +238,13 @@ export function priceVolume(
                     bar: {
                         series: {
                             fillOpacity: 0.5,
+                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
                         },
                     },
                     line: {
                         series: {
                             marker: { enabled: false },
+                            highlight: { unhighlightedSeries: { opacity: 1 } },
                             ...inlineSwitch(chartType, {
                                 hlc: {
                                     stroke: { $palette: 'altNeutral.stroke' },
@@ -260,6 +262,7 @@ export function priceVolume(
                     },
                     candlestick: {
                         series: {
+                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
                             ...inlineSwitch(chartType, {
                                 'hollow-candlestick': {
                                     item: {
@@ -269,10 +272,16 @@ export function priceVolume(
                             }),
                         },
                     },
+                    ohlc: {
+                        series: {
+                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
+                        },
+                    },
                     'range-area': {
                         series: {
                             fillOpacity: 0.3,
                             strokeWidth: 2,
+                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
                             ...inlineSwitch(chartType, {
                                 hlc: {
                                     fill: {
@@ -295,6 +304,11 @@ export function priceVolume(
                     },
                     'range-bar': {
                         series: {
+                            highlight: {
+                                unhighlightedItem: { opacity: 1 },
+                                unhighlightedSeries: { opacity: 1 },
+                                unhighlightedSeries: { opacity: 1 },
+                            },
                             ...inlineSwitch(chartType, {
                                 'high-low': {
                                     fill: { $palette: 'neutral.fill' },
@@ -375,7 +389,7 @@ function createVolumeSeries(
             },
             // @ts-expect-error undocumented option
             focusPriority: 1,
-            highlight: { enabled: false },
+            highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,
     ];
 }
@@ -447,7 +461,6 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
             type: 'ohlc',
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            highlight: { enabled: false },
             ...common,
             ...keys,
         } satisfies AgOhlcSeriesOptions,
@@ -460,7 +473,6 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
             type: 'line',
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            highlight: { enabled: false },
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -477,7 +489,6 @@ function createPriceSeriesHLC(
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: highKey,
@@ -487,7 +498,6 @@ function createPriceSeriesHLC(
             type: RANGE_AREA_TYPE,
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: closeKey,
@@ -495,7 +505,6 @@ function createPriceSeriesHLC(
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: 'line',
-            highlight: { enabled: false },
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -506,7 +515,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
     return [
         {
             type: 'range-bar',
-            highlight: { enabled: false },
             ...common,
             xKey,
             yHighKey: highKey,
@@ -524,7 +532,6 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
             type: 'candlestick',
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            highlight: { enabled: false },
             ...common,
             ...keys,
         } satisfies AgCandlestickSeriesOptions,
