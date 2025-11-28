@@ -1,6 +1,6 @@
 /* @ag-options-extract */
 import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule, NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -11,6 +11,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     TimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 
 (window as any).agChartsDebug = 'scene:stats:verbose';

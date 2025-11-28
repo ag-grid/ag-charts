@@ -1,8 +1,10 @@
 import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
+    AgChartOptions,
+    AgCharts,
     BandHighlightModule,
     CandlestickSeriesModule,
+    ContextMenuModule,
     CrosshairModule,
     OrdinalTimeAxisModule,
     ZoomModule,

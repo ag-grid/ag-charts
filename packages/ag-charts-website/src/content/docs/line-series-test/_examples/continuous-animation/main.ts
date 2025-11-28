@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

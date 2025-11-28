@@ -1,4 +1,4 @@
-import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 // (window as any).agChartsDebug = ['scene:stats', 'data-model', 'data-ref'];

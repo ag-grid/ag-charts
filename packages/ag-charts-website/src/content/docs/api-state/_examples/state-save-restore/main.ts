@@ -1,6 +1,11 @@
 import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartState, AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
-import { FinancialChartModule } from 'ag-charts-enterprise';
+import {
+    AgChartState,
+    AgCharts,
+    AgFinancialChartOptions,
+    ContextMenuModule,
+    FinancialChartModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

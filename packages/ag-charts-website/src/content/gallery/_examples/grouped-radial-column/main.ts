@@ -1,6 +1,12 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
-import { AngleCategoryAxisModule, RadialColumnSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    RadialColumnSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

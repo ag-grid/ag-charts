@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 

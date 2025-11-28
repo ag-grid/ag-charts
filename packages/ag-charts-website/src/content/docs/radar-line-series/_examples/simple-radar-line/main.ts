@@ -4,10 +4,10 @@ import {
     AgCharts,
     AngleCategoryAxisModule,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
     RadarLineSeriesModule,
     RadiusNumberAxisModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -17,9 +17,9 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     RadarLineSeriesModule,
-    ZoomModule,
     AngleCategoryAxisModule,
     RadiusNumberAxisModule,
+    ContextMenuModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

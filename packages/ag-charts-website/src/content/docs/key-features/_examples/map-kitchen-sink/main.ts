@@ -1,6 +1,10 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
 import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
@@ -18,7 +22,7 @@ ModuleRegistry.registerModules([
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     MapShapeSeriesModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const currencyLayers: Record<string, { title: string; fill: string }> = {
     euro: { title: 'Euro', fill: '#3F51B5' },

@@ -1,4 +1,10 @@
-import { AgBoxPlotSeriesStyle, AgBoxPlotSeriesStylerParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgBoxPlotSeriesStyle,
+    AgBoxPlotSeriesStylerParams,
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

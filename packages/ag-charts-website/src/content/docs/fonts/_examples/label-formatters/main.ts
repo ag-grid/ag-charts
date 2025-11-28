@@ -5,7 +5,7 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AnimationModule, ContextMenuModule, CrosshairModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

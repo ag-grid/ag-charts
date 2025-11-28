@@ -9,6 +9,7 @@ import {
 import {
     AgCharts,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
     DataSourceModule,
     NavigatorModule,
@@ -27,6 +28,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     TimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

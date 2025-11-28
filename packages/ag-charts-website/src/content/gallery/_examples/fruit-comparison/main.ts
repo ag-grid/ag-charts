@@ -12,10 +12,9 @@ import {
     AgCharts,
     AgContextMenuItem,
     AnimationModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
-import { ContextMenuModule } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getPersistentMutableData } from './data';
@@ -28,7 +27,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
 ]);
 
 const markingStyle: AgBarSeriesStyle = {

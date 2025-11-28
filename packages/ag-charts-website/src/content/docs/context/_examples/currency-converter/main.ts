@@ -1,6 +1,12 @@
 import { LegendModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { CandlestickSeriesModule, ContextMenuModule } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+} from 'ag-charts-enterprise';
 
 import type { CurrencyConverter } from './currencyConverter';
 import { Currency, makeCurrencyConverter } from './currencyConverter';
@@ -14,7 +20,6 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     TimeAxisModule,
-    ZoomModule,
 ]);
 const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),

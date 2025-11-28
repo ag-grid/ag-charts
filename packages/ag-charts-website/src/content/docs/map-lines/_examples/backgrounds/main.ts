@@ -1,6 +1,13 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { MapLineBackgroundSeriesModule, MapShapeBackgroundSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    MapLineBackgroundSeriesModule,
+    MapShapeBackgroundSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { topology } from './topology';
@@ -11,7 +18,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     MapLineBackgroundSeriesModule,
     MapShapeBackgroundSeriesModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

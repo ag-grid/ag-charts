@@ -5,6 +5,7 @@ import {
     AgRadarAreaSeriesStylerParams,
     AgRadarSeriesItemStylerParams,
     AgSeriesMarkerStyle,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

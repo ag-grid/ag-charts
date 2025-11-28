@@ -1,6 +1,5 @@
 import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
-import { AnimationModule } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions, AnimationModule, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

@@ -1,6 +1,13 @@
 import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnnotationsModule, CrosshairModule } from 'ag-charts-enterprise';
-import { CandlestickSeriesModule, OrdinalTimeAxisModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnnotationsModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -11,6 +18,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
+    ContextMenuModule,
 ]);
 
 const options: AgChartOptions = {

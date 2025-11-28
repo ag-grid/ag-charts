@@ -18,13 +18,15 @@ import {
     AgCharts,
     AnimationModule,
     CandlestickSeriesModule,
+    ContextMenuModule,
     CrosshairModule,
+    NavigatorModule,
     OhlcSeriesModule,
     OrdinalTimeAxisModule,
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -48,6 +50,7 @@ ModuleRegistry.registerModules([
     TimeAxisModule,
     ZoomModule,
     CategoryAxisModule,
+    ContextMenuModule,
 ]);
 
 let dataLabel = '1K';

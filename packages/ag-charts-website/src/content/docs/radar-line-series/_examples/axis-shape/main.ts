@@ -1,6 +1,14 @@
 import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgCharts, AgPolarChartOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { AngleCategoryAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -11,7 +19,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     RadarLineSeriesModule,
     RadiusNumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
