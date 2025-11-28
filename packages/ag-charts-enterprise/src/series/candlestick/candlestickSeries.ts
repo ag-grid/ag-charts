@@ -56,22 +56,18 @@ export class CandlestickSeries extends OhlcSeriesBase<
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 
-            node.centerX = centerX;
-            node.width = width;
-            node.y = y;
-            node.height = height;
-            node.yOpen = yOpen;
-            node.yClose = yClose;
-            node.crisp = crisp;
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
             node.setStyleProperties(style, this.getShapeFillBBox());
 
             const styleWick = style?.wick;
-            node.wickStroke = styleWick?.stroke;
-            node.wickStrokeWidth = styleWick?.strokeWidth;
-            node.wickStrokeOpacity = styleWick?.strokeOpacity;
-            node.wickLineDash = styleWick?.lineDash;
-            node.wickLineDashOffset = styleWick?.lineDashOffset;
+            node.setWickProperties(
+                styleWick?.stroke,
+                styleWick?.strokeWidth,
+                styleWick?.strokeOpacity,
+                styleWick?.lineDash,
+                styleWick?.lineDashOffset
+            );
 
             node.wickStrokeAlignment = baseStyle.wick.strokeWidth ?? baseStyle.strokeWidth;
         });

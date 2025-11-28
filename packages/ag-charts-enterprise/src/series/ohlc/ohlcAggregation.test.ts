@@ -9,6 +9,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -21,6 +23,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -38,6 +42,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -60,6 +66,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 5000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -77,6 +85,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 3000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -92,6 +102,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -106,6 +118,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([500, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -122,6 +136,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -172,6 +188,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -195,6 +213,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -218,6 +238,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -243,6 +265,8 @@ describe('computeOhlcAggregation', () => {
         it('should handle empty data', () => {
             const result = computeOhlcAggregation([0, 0], [], [], [], {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -251,6 +275,8 @@ describe('computeOhlcAggregation', () => {
         it('should handle single data point', () => {
             const result = computeOhlcAggregation([0, 1], [0], [50], [25], {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeUndefined();
@@ -263,6 +289,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 10000], xValues, highValues, lowValues, {
                 smallestKeyInterval: 10,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -292,6 +320,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -304,6 +334,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -318,6 +350,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -330,6 +364,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 2400], xValues, highValues, lowValues, {
                 smallestKeyInterval: 2,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -345,6 +381,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -359,6 +397,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -378,6 +418,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -391,6 +433,8 @@ describe('computeOhlcAggregation', () => {
 
             const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();
@@ -419,6 +463,8 @@ describe('computeOhlcAggregation', () => {
             // Use a subset of the data
             const result = computeOhlcAggregation([500, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
             });
 
             expect(result).toBeDefined();

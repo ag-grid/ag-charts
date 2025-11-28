@@ -162,6 +162,8 @@ export * as easing from './motion/easing';
 export const motion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
 
+export { DeferredExecutor } from './util/deferredExecutor';
+
 export { Caption } from './chart/caption';
 export { BBox } from './scene/bbox';
 export { Group, TranslatableGroup, ScalableGroup, RotatableGroup, TransformableGroup } from './scene/group';

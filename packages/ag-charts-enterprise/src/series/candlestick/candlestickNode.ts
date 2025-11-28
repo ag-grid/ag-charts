@@ -2,31 +2,69 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
-const { SceneArrayChangeDetection, SceneChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
+const { SceneArrayChangeDetection, DeclaredSceneChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode extends OhlcBaseNode {
     private readonly wickPath = new ExtendedPath2D();
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     wickStroke: string | undefined = undefined;
+    declare __wickStroke: string | undefined;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     wickStrokeWidth: number | undefined = undefined;
+    declare __wickStrokeWidth: number | undefined;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     wickStrokeOpacity: number | undefined = undefined;
+    declare __wickStrokeOpacity: number | undefined;
 
     @SceneArrayChangeDetection()
     wickLineDash: readonly number[] | undefined;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     wickLineDashOffset: number | undefined;
+    declare __wickLineDashOffset: number | undefined;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     wickStrokeAlignment: number = 0;
+    declare __wickStrokeAlignment: number;
+
+    /**
+     * High-performance wick property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setWickProperties(
+        wickStroke: string | undefined,
+        wickStrokeWidth: number | undefined,
+        wickStrokeOpacity: number | undefined,
+        wickLineDash: readonly number[] | undefined,
+        wickLineDashOffset: number | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__wickStroke = wickStroke;
+        this.__wickStrokeWidth = wickStrokeWidth;
+        this.__wickStrokeOpacity = wickStrokeOpacity;
+        this.wickLineDash = wickLineDash; // Array detection decorator doesn't have backing field
+        this.__wickLineDashOffset = wickLineDashOffset;
+
+        // Mark path as dirty since wick properties affect path rendering
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
 
     protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
-        const { width, centerX, yOpen, yClose } = this;
+        const { __width: width, __centerX: centerX, __yOpen: yOpen, __yClose: yClose } = this;
 
         const boxTop = Math.min(yOpen, yClose);
         const boxBottom = Math.max(yOpen, yClose);
@@ -46,15 +84,16 @@ export class CandlestickNode extends OhlcBaseNode {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            wickStroke,
-            wickStrokeWidth,
-            wickStrokeOpacity,
+            __wickStroke: wickStroke,
+            __wickStrokeWidth: wickStrokeWidth,
+            __wickStrokeOpacity: wickStrokeOpacity,
             wickLineDash,
-            wickLineDashOffset,
+            __wickLineDashOffset: wickLineDashOffset,
         } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const wickStrokeAlignment = this.wickStrokeAlignment > 0 ? (pixelRatio / this.wickStrokeAlignment / 2) % 1 : 0;
+        const wickStrokeAlignment =
+            this.__wickStrokeAlignment > 0 ? (pixelRatio / this.__wickStrokeAlignment / 2) % 1 : 0;
 
         this.path.clear();
         this.wickPath.clear();
@@ -111,11 +150,11 @@ export class CandlestickNode extends OhlcBaseNode {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            wickStroke = stroke,
-            wickStrokeWidth = strokeWidth,
-            wickStrokeOpacity = strokeOpacity,
+            __wickStroke: wickStroke = stroke,
+            __wickStrokeWidth: wickStrokeWidth = strokeWidth,
+            __wickStrokeOpacity: wickStrokeOpacity = strokeOpacity,
             wickLineDash = lineDash,
-            wickLineDashOffset = lineDashOffset,
+            __wickLineDashOffset: wickLineDashOffset = lineDashOffset,
         } = this;
 
         if (wickStrokeWidth === 0) return;

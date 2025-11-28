@@ -1,32 +1,76 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { DistantObject } from 'ag-charts-core';
 
-const { Path, SceneChangeDetection, BBox } = _ModuleSupport;
+const { Path, DeclaredSceneChangeDetection, BBox } = _ModuleSupport;
 
 export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     centerX: number = 0;
+    declare __centerX: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     y: number = 0;
+    declare __y: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     width: number = 0;
+    declare __width: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     height: number = 0;
+    declare __height: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     yOpen: number = 0;
+    declare __yOpen: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     yClose: number = 0;
+    declare __yClose: number;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     crisp: boolean = false;
+    declare __crisp: boolean;
+
+    /**
+     * High-performance static property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setStaticProperties(
+        centerX: number,
+        width: number,
+        y: number,
+        height: number,
+        yOpen: number,
+        yClose: number,
+        crisp: boolean
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__centerX = centerX;
+        this.__width = width;
+        this.__y = y;
+        this.__height = height;
+        this.__yOpen = yOpen;
+        this.__yClose = yClose;
+        this.__crisp = crisp;
+
+        // Mark path as dirty since crisp affects path rendering
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
 
     protected override computeBBox(): _ModuleSupport.BBox | undefined {
-        const { centerX, y, width, height } = this;
+        const { __centerX: centerX, __y: y, __width: width, __height: height } = this;
         return new BBox(centerX - width / 2, y, width, height);
     }
 
@@ -39,13 +83,13 @@ export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
     }
 
     get midPoint(): { x: number; y: number } {
-        return { x: this.centerX, y: this.y + this.height / 2 };
+        return { x: this.__centerX, y: this.__y + this.__height / 2 };
     }
 
     protected alignedCoordinates() {
-        const { y, width, height, crisp } = this;
+        const { __y: y, __width: width, __height: height, __crisp: crisp } = this;
 
-        let { centerX, yOpen, yClose } = this;
+        let { __centerX: centerX, __yOpen: yOpen, __yClose: yClose } = this;
 
         let x0 = centerX - width / 2;
         let x1 = centerX + width / 2;
@@ -76,7 +120,7 @@ export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
     }
 
     protected override executeStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
-        const { width, strokeWidth } = this;
+        const { __width: width, strokeWidth } = this;
         if (width < strokeWidth) {
             ctx.lineWidth = width;
         }
@@ -85,14 +129,15 @@ export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
 }
 
 export class OhlcNode extends OhlcBaseNode {
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     strokeAlignment: number = 0;
+    declare __strokeAlignment: number;
 
     override updatePath() {
         const { path } = this;
         const { centerX, x0, x1, y0, y1, yOpen, yClose } = this.alignedCoordinates();
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const strokeAlignment = this.strokeAlignment > 0 ? (pixelRatio / this.strokeAlignment / 2) % 1 : 0;
+        const strokeAlignment = this.__strokeAlignment > 0 ? (pixelRatio / this.__strokeAlignment / 2) % 1 : 0;
 
         path.clear();
 
