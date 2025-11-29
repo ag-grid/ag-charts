@@ -1,4 +1,4 @@
-import type { CallbackParamRules, Point, RequireOptional, SizedPoint } from 'ag-charts-core';
+import type { CallbackParamRules, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
 import { extent, isContinuous, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -30,6 +30,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
 import {
     animationValidation,
+    createDatumId,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
@@ -41,12 +42,17 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
-import { type AreaSeriesDataAggregationFilter, aggregateAreaDataFromDataModel } from './areaAggregation';
+import {
+    type AreaSeriesDataAggregationFilter,
+    aggregateAreaDataFromDataModel,
+    aggregateAreaDataFromDataModelPartial,
+} from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -71,6 +77,7 @@ import {
     markerSwipeScaleInAnimation,
     resetMarkerFn,
     resetMarkerPositionFn,
+    resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
@@ -98,6 +105,69 @@ interface AreaSeriesStackContext {
     strokeSpans: LinePathSpan[];
 }
 
+/**
+ * Context object caching expensive lookups for createNodeData().
+ * Created once per createNodeData() call and passed to helper methods.
+ */
+interface AreaSeriesCreateNodeDatumContext {
+    // Data arrays (from dataModel - cache once)
+    readonly rawData: any[];
+    readonly xValues: any[];
+    readonly yRawValues: any[];
+    readonly yCumulativeValues: any[];
+    readonly yFilterValues: any[] | undefined;
+    readonly invalidData: boolean[] | undefined;
+
+    // Scales (from axes - cache once)
+    readonly xScale: { convert: (v: any) => number; bandwidth?: number };
+    readonly yScale: { convert: (v: any) => number };
+
+    // Pre-computed offsets
+    readonly xOffset: number;
+
+    // Aggregation
+    readonly indices: Uint32Array | undefined;
+
+    // Pre-computed flags
+    readonly isContinuousY: boolean;
+    readonly labelsEnabled: boolean;
+    readonly normalizedTo: number | undefined;
+    readonly canIncrementallyUpdate: boolean;
+
+    // Property caches
+    readonly xKey: string;
+    readonly yKey: string;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly legendItemName: string | undefined;
+    readonly markerSize: number;
+    readonly markerFill: InternalAgColorType | undefined;
+    readonly markerStroke: string | undefined;
+    readonly markerStrokeWidth: number;
+    readonly yDomain: any[];
+
+    // Mutable state
+    markerData: MarkerSelectionDatum[];
+    labelData: LabelSelectionDatum[];
+    nodeIndex: number;
+    crossFiltering: boolean;
+}
+
+/**
+ * Scratch object for marker/label datum creation.
+ * Pre-allocated once and mutated in loops to avoid GC pressure.
+ */
+interface AreaNodeDatumScratch {
+    datum: any;
+    xDatum: any;
+    yDatum: any;
+    yCumulative: number;
+    selected: boolean | undefined;
+    x: number;
+    y: number;
+    validPoint: boolean;
+}
+
 export class AreaSeries extends CartesianSeries<
     Marker,
     AgAreaSeriesOptions,
@@ -114,7 +184,7 @@ export class AreaSeries extends CartesianSeries<
 
     override connectsToYAxis = true;
 
-    private dataAggregationFilters: AreaSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -271,7 +341,7 @@ export class AreaSeries extends CartesianSeries<
             groupByData: !stacked,
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -368,19 +438,48 @@ export class AreaSeries extends CartesianSeries<
         );
     }
 
-    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
+    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
+        this.aggregationManager.markStale();
+
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        return aggregateAreaDataFromDataModel(
-            xAxis.scale.type,
-            dataModel,
-            processedData,
-            this.yCumulativeKey(processedData),
-            this
-        );
+        const targetRange = this.estimateTargetRange();
+
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateAreaDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateAreaDataFromDataModel(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    existingFilters
+                ),
+            targetRange,
+        });
+    }
+
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale?.range) {
+            const [r0, r1] = xAxis.scale.range;
+            return Math.abs(r1 - r0);
+        }
+        return this.ctx.scene?.canvas?.width ?? 800;
     }
 
     private fillSpans: LinePathSpan[] = [];
@@ -694,7 +793,11 @@ export class AreaSeries extends CartesianSeries<
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
         if (dataAggregationFilter) {
             return this.stackAggregatedData(dataAggregationFilter);
@@ -703,13 +806,16 @@ export class AreaSeries extends CartesianSeries<
         }
     }
 
-    override createNodeData() {
-        const { axes, data, processedData, dataModel, dataAggregationFilters } = this;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xAxis || !yAxis || !data || !dataModel || !processedData) return;
+    /**
+     * Creates the context object with cached lookups for createNodeData().
+     * All expensive operations (data resolution, scale lookups) are performed once here.
+     */
+    private createNodeDatumContext(
+        xAxis: NonNullable<(typeof this.axes)[ChartAxisDirection.X]>,
+        yAxis: NonNullable<(typeof this.axes)[ChartAxisDirection.Y]>
+    ): AreaSeriesCreateNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
 
         const {
             xKey,
@@ -722,137 +828,237 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
+            normalizedTo,
         } = this.properties;
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-
         const stacked = processedData.type === 'grouped';
-
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yCumulativeValues = stacked
-            ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
-            : yRawValues;
-        const yFilterValues =
-            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, 'yFilterRaw', processedData);
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
-        const labelData: LabelSelectionDatum[] = [];
-        const markerData: MarkerSelectionDatum[] = [];
-        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-
-        let crossFiltering = false;
-        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        const invalidData = processedData.invalidData?.get(this.id);
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
-        let startIndex = 0;
-        let endIndex = 0;
-        const indices = dataAggregationFilter?.indices;
-        [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+
+        const existingNodeData = this.contextNodeData?.nodeData;
+        const canIncrementallyUpdate = processedData.changeDescription != null && existingNodeData != null;
+
+        return {
+            // Data arrays (resolved once)
+            rawData: processedData.dataSources.get(this.id)?.data ?? [],
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yCumulativeValues: stacked
+                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData)
+                : dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yFilterValues:
+                yFilterKey == null ? undefined : dataModel.resolveColumnById(this, 'yFilterRaw', processedData),
+            invalidData: processedData.invalidData?.get(this.id),
+
+            // Scales (cached)
+            xScale,
+            yScale,
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+
+            // Aggregation
+            indices: dataAggregationFilter?.indices,
+
+            // Pre-computed flags
+            isContinuousY,
+            labelsEnabled: label.enabled,
+            normalizedTo,
+            canIncrementallyUpdate,
+
+            // Property caches
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            markerSize: marker.size,
+            markerFill: marker.fill ?? seriesFill,
+            markerStroke: marker.stroke ?? seriesStroke,
+            markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+
+            // Mutable state
+            markerData: canIncrementallyUpdate ? existingNodeData : [],
+            labelData: [],
+            nodeIndex: 0,
+            crossFiltering: false,
+        };
+    }
+
+    /**
+     * Computes the marker coordinate for a datum.
+     * Uses cached context values to avoid repeated lookups.
+     */
+    private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
+        let currY: number | undefined;
+
+        // if not normalized, the invalid data points will be processed as `undefined` in processData()
+        // if normalized, the invalid data points will be processed as 0 rather than `undefined`
+        // check if unprocessed datum is valid as we only want to show markers for valid points
+        if (
+            isDefined(ctx.normalizedTo)
+                ? ctx.isContinuousY && isContinuous(scratch.yDatum)
+                : !Number.isNaN(scratch.yDatum)
+        ) {
+            currY = scratch.yCumulative;
+        }
+
+        scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
+        scratch.y = ctx.yScale.convert(currY);
+    }
+
+    /**
+     * Processes a single datum and updates the context's marker/label data.
+     * Uses scratch object to avoid allocations in tight loops.
+     */
+    private handleDatum(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        scratch: AreaNodeDatumScratch,
+        datumIndex: number
+    ): void {
+        // Populate scratch from context arrays
+        scratch.xDatum = ctx.xValues[datumIndex];
+        if (scratch.xDatum == null) return;
+
+        scratch.datum = ctx.rawData[datumIndex];
+        scratch.yDatum = ctx.yRawValues[datumIndex];
+        scratch.yCumulative = +ctx.yCumulativeValues[datumIndex];
+        scratch.validPoint = Number.isFinite(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
+
+        // Compute marker coordinates
+        this.computeMarkerCoordinate(ctx, scratch);
+
+        scratch.selected = ctx.yFilterValues == null ? undefined : ctx.yFilterValues[datumIndex] === scratch.yDatum;
+        if (scratch.selected === false) {
+            ctx.crossFiltering = true;
+        }
+
+        // Marker data
+        if (scratch.validPoint) {
+            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length;
+
+            if (canReuseNode) {
+                // Update existing node in place
+                const existingNode = ctx.markerData[ctx.nodeIndex] as {
+                    -readonly [K in keyof MarkerSelectionDatum]: MarkerSelectionDatum[K];
+                };
+                existingNode.datum = scratch.datum;
+                existingNode.datumIndex = datumIndex;
+                existingNode.midPoint = { x: scratch.x, y: scratch.y };
+                existingNode.cumulativeValue = scratch.yCumulative;
+                existingNode.yValue = scratch.yDatum;
+                existingNode.xValue = scratch.xDatum;
+                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
+                existingNode.selected = scratch.selected;
+            } else {
+                ctx.markerData.push({
+                    series: this,
+                    itemId: ctx.yKey,
+                    datum: scratch.datum,
+                    datumIndex,
+                    midPoint: { x: scratch.x, y: scratch.y },
+                    cumulativeValue: scratch.yCumulative,
+                    yValue: scratch.yDatum,
+                    xValue: scratch.xDatum,
+                    yKey: ctx.yKey,
+                    xKey: ctx.xKey,
+                    point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
+                    fill: ctx.markerFill,
+                    stroke: ctx.markerStroke,
+                    strokeWidth: ctx.markerStrokeWidth,
+                    selected: scratch.selected,
+                });
+            }
+            ctx.nodeIndex++;
+        }
+
+        // Label data (only if enabled - skip expensive getLabelText when disabled)
+        if (ctx.labelsEnabled && scratch.validPoint) {
+            const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
+                scratch.yDatum,
+                scratch.datum,
+                ctx.yKey,
+                'y',
+                ctx.yDomain,
+                this.properties.label,
+                {
+                    value: scratch.yDatum,
+                    datum: scratch.datum,
+                    xKey: ctx.xKey,
+                    yKey: ctx.yKey,
+                    xName: ctx.xName,
+                    yName: ctx.yName,
+                    legendItemName: ctx.legendItemName,
+                }
+            );
+
+            ctx.labelData.push({
+                series: this,
+                itemId: ctx.yKey,
+                datum: scratch.datum,
+                datumIndex,
+                x: scratch.x,
+                y: scratch.y,
+                labelText,
+            });
+        }
+    }
+
+    override createNodeData() {
+        const { axes, data, processedData } = this;
+
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!xAxis || !yAxis || !data || !processedData) return;
+
+        // Create context with cached lookups
+        const ctx = this.createNodeDatumContext(xAxis, yAxis);
+        if (!ctx) return;
+
+        // Pre-allocate scratch object for mutations
+        const scratch: AreaNodeDatumScratch = {
+            datum: undefined,
+            xDatum: undefined,
+            yDatum: undefined,
+            yCumulative: 0,
+            selected: undefined,
+            x: 0,
+            y: 0,
+            validPoint: false,
+        };
+
+        // Calculate visible range
+        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, ctx.indices);
         startIndex = Math.max(startIndex - 2, 0);
-        endIndex = Math.min(endIndex + 2, indices?.length ?? xValues.length);
+        endIndex = Math.min(endIndex + 2, ctx.indices?.length ?? ctx.xValues.length);
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3) {
             startIndex = 0;
             endIndex = processedData.input.count;
         }
 
-        const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
-            let currY;
-
-            // if not normalized, the invalid data points will be processed as `undefined` in processData()
-            // if normalized, the invalid data points will be processed as 0 rather than `undefined`
-            // check if unprocessed datum is valid as we only want to show markers for valid points
-            if (
-                isDefined(this.properties.normalizedTo)
-                    ? isContinuousY && isContinuous(rawYDatum)
-                    : !Number.isNaN(rawYDatum)
-            ) {
-                currY = yEnd;
-            }
-
-            return {
-                x: xScale.convert(xDatum) + xOffset,
-                y: yScale.convert(currY),
-                size: marker.size,
-            };
-        };
-
-        const handleDatum = (datumIndex: number) => {
-            const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
-
-            const seriesDatum = rawData[datumIndex];
-            const yDatum = yRawValues[datumIndex];
-            const yValueCumulative = yCumulativeValues[datumIndex];
-
-            const validPoint = Number.isFinite(yDatum) && invalidData?.[datumIndex] !== true;
-
-            // marker data
-            const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
-
-            const selected = yFilterValues == null ? undefined : yFilterValues[datumIndex] === yDatum;
-            if (selected === false) {
-                crossFiltering = true;
-            }
-
-            if (validPoint && marker) {
-                markerData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum: seriesDatum,
-                    datumIndex,
-                    midPoint: { x: point.x, y: point.y },
-                    cumulativeValue: +yValueCumulative,
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    yKey,
-                    xKey,
-                    point,
-                    fill: marker.fill ?? seriesFill,
-                    stroke: marker.stroke ?? seriesStroke,
-                    strokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
-                    selected,
-                });
-            }
-
-            // label data
-            if (label.enabled && validPoint) {
-                const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
-                    yDatum,
-                    seriesDatum,
-                    yKey,
-                    'y',
-                    yDomain,
-                    label,
-                    { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName, legendItemName }
-                );
-
-                labelData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum: seriesDatum,
-                    datumIndex,
-                    x: point.x,
-                    y: point.y,
-                    labelText,
-                });
-            }
-        };
-
+        // Process visible datums
         for (let i = startIndex; i < endIndex; i += 1) {
-            const datumIndex = indices?.[i] ?? i;
-            if (xValues[datumIndex] == null) continue;
-            handleDatum(datumIndex);
+            const datumIndex = ctx.indices?.[i] ?? i;
+            this.handleDatum(ctx, scratch, datumIndex);
         }
+
+        // Trim excess nodes from incremental updates
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
+            ctx.markerData.length = ctx.nodeIndex;
+        }
+
+        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
         const segments = calculateSegments(
             this.properties.segmentation,
@@ -864,16 +1070,16 @@ export class AreaSeries extends CartesianSeries<
         );
 
         const context: AreaSeriesNodeDataContext = {
-            itemId: yKey,
+            itemId: ctx.yKey,
             fillData: { spans: this.fillSpans, phantomSpans: this.phantomSpans },
             strokeData: { spans: this.strokeSpans },
-            labelData,
-            nodeData: markerData,
+            labelData: ctx.labelData,
+            nodeData: ctx.markerData,
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
-            crossFiltering,
-            styles: getMarkerStyles(this, this.properties, marker),
+            crossFiltering: ctx.crossFiltering,
+            styles: getMarkerStyles(this, this.properties, this.properties.marker),
             segments,
         };
 
@@ -991,7 +1197,14 @@ export class AreaSeries extends CartesianSeries<
             datumSelection.cleanup();
         }
 
-        return datumSelection.update(markersEnabled ? nodeData : []);
+        const data = markersEnabled ? nodeData : [];
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!animationEnabled) {
+            // Optimised update path, no need to match nodes by id
+            return datumSelection.update(data);
+        }
+        return datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
     protected override updateDatumStyles(opts: {
@@ -1268,6 +1481,11 @@ export class AreaSeries extends CartesianSeries<
                 hideInLegend: !showInLegend,
             },
         ];
+    }
+
+    protected override resetDatumAnimation(data: AreaAnimationData): void {
+        // Use direct reset for datum selection to bypass resetMotion callback overhead
+        resetMarkerSelectionsDirect([data.datumSelection]);
     }
 
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
