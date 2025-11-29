@@ -42,6 +42,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -52,11 +53,17 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { type LineSeriesDataAggregationFilter, aggregateLineDataFromDataModel } from './lineAggregation';
+import {
+    type LineSeriesDataAggregationFilter,
+    aggregateLineDataFromDataModel,
+    aggregateLineDataFromDataModelPartial,
+} from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
     type LineNodeDatum,
+    type LineNodeDatumScratch,
     type LinePathSpan,
+    type LineSeriesDatumContext,
     type LineSeriesNodeDataContext,
     type LineSpanPointDatum,
     interpolatePoints,
@@ -71,6 +78,7 @@ import {
     markerSwipeScaleInAnimation,
     resetMarkerFn,
     resetMarkerPositionFn,
+    resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
@@ -78,8 +86,6 @@ import { calculateSegments } from './util';
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
 type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
-
-type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
 export class LineSeries extends CartesianSeries<
     Marker,
@@ -94,7 +100,7 @@ export class LineSeries extends CartesianSeries<
 
     override properties = new LineSeriesProperties();
 
-    private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -205,7 +211,7 @@ export class LineSeries extends CartesianSeries<
             groupByData: !stacked,
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -301,154 +307,269 @@ export class LineSeries extends CartesianSeries<
         );
     }
 
-    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
+    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
+        this.aggregationManager.markStale();
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        return aggregateLineDataFromDataModel(
-            xAxis.scale.type,
-            dataModel,
-            processedData,
-            this.yCumulativeKey(processedData),
-            this
-        );
+        const targetRange = this.estimateTargetRange();
+
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateLineDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateLineDataFromDataModel(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    existingFilters
+                ),
+            targetRange,
+        });
     }
 
-    override createNodeData() {
-        const { dataModel, processedData, axes, dataAggregationFilters } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale?.range) {
+            const [r0, r1] = xAxis.scale.range;
+            return Math.abs(r1 - r0);
+        }
+        return this.ctx.scene?.canvas?.width ?? 800;
+    }
 
-        if (!dataModel || !processedData || !xAxis || !yAxis) return;
-
-        const {
-            xKey,
-            xName,
-            yFilterKey,
-            yKey,
-            yName,
-            marker,
-            label,
-            connectMissingData,
-            interpolation,
-            legendItemName,
-        } = this.properties;
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-        const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const size = marker.enabled ? marker.size : 0;
+    /**
+     * Creates the context object for efficient node datum creation.
+     * Caches expensive-to-compute values that are reused across all datum iterations
+     * to minimize memory allocations. Only caches values that are expensive to
+     * compute - cheap property lookups use `this` directly.
+     */
+    private createNodeDatumContext(
+        xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] },
+        yScale: { convert: (v: any) => number; bandwidth?: number }
+    ): LineSeriesDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
-        const selectionValues =
-            yFilterKey == null ? undefined : dataModel.resolveColumnById(this, `yFilterRaw`, processedData);
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
-        const capDefaults = {
-            lengthRatioMultiplier: this.properties.marker.getDiameter(),
-            lengthMax: Infinity,
-        };
-
-        const nodeData: LineNodeDatum[] = [];
-        const spanPoints: SpanPoints = [];
-        const handleDatum = (datumIndex: number) => {
-            const datum = rawData[datumIndex];
-            const xDatum = xValues[datumIndex];
-            const yDatum = yRawValues[datumIndex];
-            const yCumulative = yCumulativeValues[datumIndex];
-            const selected = selectionValues?.[datumIndex];
-
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yCumulative) + yOffset;
-
-            if (!Number.isFinite(x)) return;
-
-            if (yDatum != null) {
-                const labelText = label.enabled
-                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', yDomain, label, {
-                          value: yDatum,
-                          datum,
-                          xKey,
-                          yKey,
-                          xName,
-                          yName,
-                          legendItemName,
-                      })
-                    : undefined;
-
-                nodeData.push({
-                    series: this,
-                    datum,
-                    datumIndex,
-                    yKey,
-                    xKey,
-                    point: { x, y, size },
-                    midPoint: { x, y },
-                    cumulativeValue: yCumulative,
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    capDefaults,
-                    labelText,
-                    selected,
-                });
-            }
-
-            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
-            if (yDatum != null) {
-                const spanPoint: LineSpanPointDatum = {
-                    point: { x, y },
-                    xDatum,
-                    yDatum,
-                };
-
-                if (Array.isArray(currentSpanPoints)) {
-                    currentSpanPoints.push(spanPoint);
-                } else if (currentSpanPoints == null) {
-                    spanPoints.push([spanPoint]);
-                } else {
-                    currentSpanPoints.skip += 1;
-                    spanPoints.push([spanPoint]);
-                }
-            } else if (!connectMissingData) {
-                if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
-                    spanPoints.push({ skip: 0 });
-                } else {
-                    currentSpanPoints.skip += 1;
-                }
-            }
-        };
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
-        const indices = dataAggregationFilter?.indices;
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const canIncrementallyUpdate =
+            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+
+        return {
+            rawData,
+            xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
+            selectionValues: this.properties.yFilterKey
+                ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData)
+                : undefined,
+            xScale,
+            yScale,
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+            yOffset: (yScale.bandwidth ?? 0) / 2,
+            size: this.properties.marker.enabled ? this.properties.marker.size : 0,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            labelsEnabled: this.properties.label.enabled,
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+            canIncrementallyUpdate,
+            dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
+            range,
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            xName: this.properties.xName,
+            yName: this.properties.yName,
+            legendItemName: this.properties.legendItemName,
+            connectMissingData: this.properties.connectMissingData,
+            capDefaults: {
+                lengthRatioMultiplier: this.properties.marker.getDiameter(),
+                lengthMax: Infinity,
+            },
+            nodeData: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            spanPoints: [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Processes a single datum and updates the context's nodeData and spanPoints arrays.
+     * Uses the scratch object to avoid per-iteration allocations.
+     */
+    private handleDatum(ctx: LineSeriesDatumContext, scratch: LineNodeDatumScratch, datumIndex: number): void {
+        // Populate scratch from context arrays
+        scratch.datum = ctx.rawData[datumIndex];
+        scratch.xDatum = ctx.xValues[datumIndex];
+        scratch.yDatum = ctx.yRawValues[datumIndex];
+        scratch.yCumulative = ctx.yCumulativeValues[datumIndex];
+        scratch.selected = ctx.selectionValues?.[datumIndex];
+
+        scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
+        scratch.y = ctx.yScale.convert(scratch.yCumulative) + ctx.yOffset;
+
+        if (!Number.isFinite(scratch.x)) return;
+
+        if (scratch.yDatum != null) {
+            const labelText = ctx.labelsEnabled
+                ? this.getLabelText<AgLineSeriesLabelFormatterParams>(
+                      scratch.yDatum,
+                      scratch.datum,
+                      ctx.yKey,
+                      'y',
+                      ctx.yDomain,
+                      this.properties.label,
+                      {
+                          value: scratch.yDatum,
+                          datum: scratch.datum,
+                          xKey: ctx.xKey,
+                          yKey: ctx.yKey,
+                          xName: ctx.xName,
+                          yName: ctx.yName,
+                          legendItemName: ctx.legendItemName,
+                      }
+                  )
+                : undefined;
+
+            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
+
+            if (canReuseNode) {
+                // Update existing node datum in place
+                const existingNode = ctx.nodeData[ctx.nodeIndex];
+                (existingNode as any).datum = scratch.datum;
+                (existingNode as any).datumIndex = datumIndex;
+                (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
+                (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
+                (existingNode as any).cumulativeValue = scratch.yCumulative;
+                (existingNode as any).yValue = scratch.yDatum;
+                (existingNode as any).xValue = scratch.xDatum;
+                (existingNode as any).labelText = labelText;
+                (existingNode as any).selected = scratch.selected;
+            } else {
+                ctx.nodeData.push({
+                    series: this,
+                    datum: scratch.datum,
+                    datumIndex,
+                    yKey: ctx.yKey,
+                    xKey: ctx.xKey,
+                    point: { x: scratch.x, y: scratch.y, size: ctx.size },
+                    midPoint: { x: scratch.x, y: scratch.y },
+                    cumulativeValue: scratch.yCumulative,
+                    yValue: scratch.yDatum,
+                    xValue: scratch.xDatum,
+                    capDefaults: ctx.capDefaults,
+                    labelText,
+                    selected: scratch.selected,
+                });
+            }
+            ctx.nodeIndex++;
+        }
+
+        // Update span points for path rendering
+        this.updateSpanPoints(ctx, scratch);
+    }
+
+    /**
+     * Updates span points array based on current scratch values.
+     */
+    private updateSpanPoints(ctx: LineSeriesDatumContext, scratch: LineNodeDatumScratch): void {
+        const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined = ctx.spanPoints.at(-1);
+
+        if (scratch.yDatum != null) {
+            const spanPoint: LineSpanPointDatum = {
+                point: { x: scratch.x, y: scratch.y },
+                xDatum: scratch.xDatum,
+                yDatum: scratch.yDatum,
+            };
+
+            if (Array.isArray(currentSpanPoints)) {
+                currentSpanPoints.push(spanPoint);
+            } else if (currentSpanPoints == null) {
+                ctx.spanPoints.push([spanPoint]);
+            } else {
+                currentSpanPoints.skip += 1;
+                ctx.spanPoints.push([spanPoint]);
+            }
+        } else if (!ctx.connectMissingData) {
+            if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+                ctx.spanPoints.push({ skip: 0 });
+            } else {
+                currentSpanPoints.skip += 1;
+            }
+        }
+    }
+
+    override createNodeData() {
+        const { processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!processedData || !xAxis || !yAxis) return;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+
+        // Create context with all cached values
+        const ctx = this.createNodeDatumContext(xScale, yScale);
+        if (!ctx) return;
+
+        // Reusable scratch object to avoid per-datum allocations
+        const scratch: LineNodeDatumScratch = {
+            datum: undefined,
+            xDatum: undefined,
+            yDatum: undefined,
+            yCumulative: 0,
+            selected: undefined,
+            x: 0,
+            y: 0,
+        };
+
+        // Compute visible range and iterate
+        const indices = ctx.dataAggregationFilter?.indices;
         let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
         start = Math.max(start - 1, 0);
-        end = Math.min(end + 1, indices?.length ?? xValues.length);
+        end = Math.min(end + 1, indices?.length ?? ctx.xValues.length);
+
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3) {
             start = 0;
             end = processedData.input.count;
         }
+
         for (let i = start; i < end; i += 1) {
-            handleDatum(indices?.[i] ?? i);
+            this.handleDatum(ctx, scratch, indices?.[i] ?? i);
         }
 
-        const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
-            return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
+        // Cleanup incremental updates - trim nodeData if fewer nodes than before
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
+            ctx.nodeData.length = ctx.nodeIndex;
+        }
+
+        // Build stroke data from span points
+        const strokeSpans = ctx.spanPoints.flatMap((p): LinePathSpan[] => {
+            return Array.isArray(p) ? interpolatePoints(p, this.properties.interpolation) : [];
         });
-        const strokeData = { itemId: yKey, spans: strokeSpans };
+        const strokeData = { itemId: ctx.yKey, spans: strokeSpans };
 
         const crossFiltering =
-            selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
+            ctx.selectionValues?.some((selectionValue, index) => selectionValue === ctx.yRawValues[index]) ?? false;
 
         const segments = calculateSegments(
             this.properties.segmentation,
@@ -460,14 +581,14 @@ export class LineSeries extends CartesianSeries<
         );
 
         return {
-            itemId: yKey,
-            nodeData,
-            labelData: nodeData,
+            itemId: ctx.yKey,
+            nodeData: ctx.nodeData,
+            labelData: ctx.nodeData,
             strokeData,
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, this.properties, marker),
+            styles: getMarkerStyles(this, this.properties, this.properties.marker),
             segments,
         };
     }
@@ -531,6 +652,12 @@ export class LineSeries extends CartesianSeries<
             datumSelection.cleanup();
         }
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!animationEnabled) {
+            // Optimised update path, no need to match nodes by id
+            return datumSelection.update(nodeData);
+        }
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
@@ -829,6 +956,11 @@ export class LineSeries extends CartesianSeries<
         lineNode.path.clear();
         plotLinePathStroke(lineNode, spans);
         lineNode.markDirty('LineSeries');
+    }
+
+    protected override resetDatumAnimation(data: LineAnimationData): void {
+        // Use direct reset for datum selection to bypass resetMotion callback overhead
+        resetMarkerSelectionsDirect([data.datumSelection]);
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {

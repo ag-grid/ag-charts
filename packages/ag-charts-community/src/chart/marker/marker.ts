@@ -2,7 +2,11 @@ import type { Point } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
+import {
+    DeclaredSceneChangeDetection,
+    DeclaredSceneObjectChangeDetection,
+    TRIPLE_EQ,
+} from '../../scene/changeDetectable';
 import { type NodeOptions } from '../../scene/node';
 import { Path } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
@@ -10,17 +14,21 @@ import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { MARKER_SHAPES } from './shapes';
 
 class InternalMarker<D = any> extends Path<D> {
-    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
+    @DeclaredSceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'square';
+    declare __shape: AgMarkerShape; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     x: number = 0;
+    declare __x: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     y: number = 0;
+    declare __y: number; // optimised field accessor
 
-    @SceneChangeDetection({ convertor: Math.abs })
+    @DeclaredSceneChangeDetection({ convertor: Math.abs })
     size: number = 12;
+    declare __size: number; // optimised field accessor
 
     override isPointInPath(x: number, y: number): boolean {
         return this.distanceSquared(x, y) <= 0;
@@ -97,5 +105,38 @@ export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
         if (options?.shape != null) {
             this.shape = options.shape;
         }
+    }
+
+    /**
+     * Optimised reset for animation hot paths.
+     * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+     *
+     * This avoids per-property overhead from:
+     * - Equality checks (comparing old vs new values)
+     * - Change callbacks (triggering downstream updates)
+     * - Object.keys() iteration
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for animation hot paths where performance is critical.
+     */
+    resetAnimationProperties(
+        x: number,
+        y: number,
+        size: number,
+        opacity: number,
+        scalingX: number,
+        scalingY: number
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__x = x;
+        this.__y = y;
+        this.__size = size;
+        this.__opacity = opacity;
+        // Use encapsulated method for scaling properties from Scalable mixin
+        this.resetScalingProperties(scalingX, scalingY, x, y);
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
     }
 }

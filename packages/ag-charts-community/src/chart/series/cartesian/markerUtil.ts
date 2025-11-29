@@ -81,6 +81,35 @@ export function resetMarkerFn(_node: NodeWithOpacity & Node) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
+/**
+ * Optimised reset for marker selections that bypasses resetMotion callback overhead.
+ * Uses direct backing field writes via Marker.resetAnimationProperties().
+ *
+ * @param selections - Marker selections to reset
+ */
+export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
+    selections: { nodes(): Iterable<Marker>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetMarkerNodes() {
+            for (const node of nodes) {
+                const datum = node.datum as D | undefined;
+                if (datum?.point == null) continue;
+
+                const { x, y } = datum.point;
+                if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                // Preserves current size (node.size) to match original resetMotion behavior
+                node.resetAnimationProperties(x, y, node.size, 1, 1, 1);
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
+}
+
 export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
     return {
         x: datum.point?.x ?? Number.NaN,
