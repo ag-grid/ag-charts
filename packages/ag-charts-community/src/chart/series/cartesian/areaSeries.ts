@@ -441,7 +441,6 @@ export class AreaSeries extends CartesianSeries<
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
         this.aggregationManager.markStale();
 
-        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
