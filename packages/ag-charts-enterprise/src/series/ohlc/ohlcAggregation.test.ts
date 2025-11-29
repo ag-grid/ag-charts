@@ -1,13 +1,17 @@
-import { CLOSE, HIGH, LOW, OPEN, SPAN, computeOhlcAggregation } from './ohlcAggregation';
+import { _ModuleSupport } from 'ag-charts-community';
 
-describe('computeOhlcAggregation', () => {
+import { CLOSE, HIGH, LOW, OPEN, SPAN } from './ohlcAggregation';
+
+const { computeExtremesAggregation } = _ModuleSupport;
+
+describe('computeExtremesAggregation', () => {
     describe('threshold behavior', () => {
         it('should return undefined when data points below threshold', () => {
             const xValues = Array.from({ length: 500 }, (_, i) => i);
             const highValues = Array.from({ length: 500 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 500 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -21,7 +25,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
             const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
-            const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -40,7 +44,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 2000 }, (_, i) => 50 + i * 0.1);
             const lowValues = Array.from({ length: 2000 }, (_, i) => 50 - i * 0.1);
 
-            const result = computeOhlcAggregation([0, 2000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -64,7 +68,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 5000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 5000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 5000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 5000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -83,7 +87,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 3000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 3000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 3000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 3000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -100,7 +104,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 2000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 2000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -116,7 +120,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 3000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 3000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([500, 2500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([500, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -134,7 +138,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
             const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
 
-            const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -186,7 +190,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1500 }, (_, i) => i);
             const lowValues = Array.from({ length: 1500 }, () => 0);
 
-            const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -211,7 +215,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1500 }, () => 100);
             const lowValues = Array.from({ length: 1500 }, (_, i) => 100 - i);
 
-            const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -236,7 +240,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1200 }, () => 50);
             const lowValues = Array.from({ length: 1200 }, () => 50);
 
-            const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -263,7 +267,7 @@ describe('computeOhlcAggregation', () => {
 
     describe('edge cases', () => {
         it('should handle empty data', () => {
-            const result = computeOhlcAggregation([0, 0], [], [], [], {
+            const result = computeExtremesAggregation([0, 0], [], [], [], {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -273,7 +277,7 @@ describe('computeOhlcAggregation', () => {
         });
 
         it('should handle single data point', () => {
-            const result = computeOhlcAggregation([0, 1], [0], [50], [25], {
+            const result = computeExtremesAggregation([0, 1], [0], [50], [25], {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -287,7 +291,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 10000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 10000], xValues, highValues, lowValues, {
                 smallestKeyInterval: 10,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -318,7 +322,7 @@ describe('computeOhlcAggregation', () => {
                 lowValues.push(Math.random() * 100);
             }
 
-            const result = computeOhlcAggregation([0, 2500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 2500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -332,7 +336,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1000 }, () => 1e6);
             const lowValues = Array.from({ length: 1000 }, () => -1e6);
 
-            const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -348,7 +352,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -362,7 +366,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 2400], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 2400], xValues, highValues, lowValues, {
                 smallestKeyInterval: 2,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -379,7 +383,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -395,7 +399,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1500 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1500 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 1500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -416,7 +420,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 1000], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -431,7 +435,7 @@ describe('computeOhlcAggregation', () => {
             const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
             const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
 
-            const result = computeOhlcAggregation([0, 1200], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
@@ -461,7 +465,7 @@ describe('computeOhlcAggregation', () => {
             const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
 
             // Use a subset of the data
-            const result = computeOhlcAggregation([500, 1500], xValues, highValues, lowValues, {
+            const result = computeExtremesAggregation([500, 1500], xValues, highValues, lowValues, {
                 smallestKeyInterval: undefined,
                 xNeedsValueOf: false,
                 yNeedsValueOf: false,
