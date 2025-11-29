@@ -73,6 +73,7 @@ const {
     resetMarkerSelectionsDirect,
     AGGREGATION_INDEX_UNSET,
     createDatumId,
+    visibleRangeIndices,
 } = _ModuleSupport;
 
 type ResolvedLineStyleMixin = {
@@ -104,6 +105,9 @@ interface RangeAreaSeriesNodeDatumContext {
     // Scales (from axes - cache once)
     readonly xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] };
     readonly yScale: { convert: (v: any) => number };
+
+    // Axis range for visible range filtering
+    readonly xAxisRange: [number, number];
 
     // Pre-computed offsets
     readonly xOffset: number;
@@ -285,7 +289,8 @@ export class RangeAreaSeries extends BaseSeries {
      */
     private createNodeDatumContext(
         xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] },
-        yScale: { convert: (v: any) => number }
+        yScale: { convert: (v: any) => number },
+        xAxisRange: [number, number]
     ): RangeAreaSeriesNodeDatumContext | undefined {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
@@ -308,6 +313,7 @@ export class RangeAreaSeries extends BaseSeries {
             yLowValues: dataModel.resolveColumnById(this, 'yLowValue', processedData),
             xScale,
             yScale,
+            xAxisRange,
             xOffset: (xScale.bandwidth ?? 0) / 2,
             dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
             range,
@@ -505,7 +511,7 @@ export class RangeAreaSeries extends BaseSeries {
         if (!(data && xAxis && yAxis && processedData && this.chart?.seriesRect)) return;
 
         // Create context with all cached values
-        const ctx = this.createNodeDatumContext(xAxis.scale, yAxis.scale);
+        const ctx = this.createNodeDatumContext(xAxis.scale, yAxis.scale, xAxis.range);
         if (!ctx) return;
 
         // Reusable scratch object to avoid per-datum allocations
@@ -520,17 +526,38 @@ export class RangeAreaSeries extends BaseSeries {
             inverted: false,
         };
 
+        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
+
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3 || ctx.dataAggregationFilter == null) {
-            // No aggregation - iterate all data points
-            for (let datumIndex = 0; datumIndex < ctx.xValues.length; datumIndex += 1) {
+            // No aggregation - iterate only visible data points
+            let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
+                const x = xPosition(index);
+                return [x, x];
+            });
+            // @todo(AG-13575) Remove this if block
+            if (processedData.input.count < 1e3) {
+                start = 0;
+                end = processedData.input.count;
+            }
+            // Expand range by 1 on each side to ensure line continuity at edges
+            start = Math.max(start - 1, 0);
+            end = Math.min(end + 1, ctx.xValues.length);
+
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 this.handleDatumPoint(ctx, scratch, datumIndex);
             }
         } else {
-            // With aggregation - iterate buckets using indexData with offsets
+            // With aggregation - iterate only visible buckets
             const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
 
-            for (let bucketIndex = 0; bucketIndex < maxRange; bucketIndex += 1) {
+            const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
+                const midDatumIndex = midpointIndices[index];
+                if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
+                return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
+            });
+
+            for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
                 const midIndex = midpointIndices[bucketIndex];
                 if (midIndex === AGGREGATION_INDEX_UNSET) continue; // Empty bucket
 
