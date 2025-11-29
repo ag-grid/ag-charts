@@ -6,7 +6,19 @@ export const AGGREGATION_INDEX_Y_MIN = 2;
 export const AGGREGATION_INDEX_Y_MAX = 3;
 export const AGGREGATION_SPAN = 4;
 
+/**
+ * Threshold below which aggregation is not applied.
+ * Small datasets don't benefit from aggregation overhead.
+ */
 export const AGGREGATION_THRESHOLD = 1e3;
+
+/**
+ * Threshold below which visible range filtering is bypassed in createNodeData().
+ * When datasets are small, processing all datums is faster than range calculations.
+ * @see AG-13575 for tracking removal of this bypass
+ */
+export const AGGREGATION_BYPASS_THRESHOLD = 1e3;
+
 export const AGGREGATION_MAX_POINTS = 10;
 export const AGGREGATION_MIN_RANGE = 64;
 // Sentinel value for unvisited buckets in Uint32Array (cannot use -1, which becomes 0xFFFFFFFF)
@@ -671,6 +683,129 @@ export function collectAggregationLevels<T>(
     levels.reverse();
 
     return levels;
+}
+
+// INDICES AGGREGATION: Shared implementation for Area series
+// Produces flat indices + metaIndices for proper path segment closure
+
+/**
+ * Result interface for indices-based aggregation (Area series).
+ * Contains flat indices of extrema points and metaIndices tracking group boundaries.
+ */
+export interface IndicesAggregationResult {
+    indices: Uint32Array;
+    metaIndices: Uint32Array;
+}
+
+/**
+ * Determines the aggregation bucket index for a datum.
+ * Returns the bucket index if the datum is an extrema point, or -1 if not included.
+ *
+ * @param xValues - Array of X values
+ * @param d0 - Domain minimum
+ * @param d1 - Domain maximum
+ * @param indexData - Aggregation index data (TypedArray)
+ * @param maxRange - Current aggregation range
+ * @param datumIndex - Index to check
+ * @param xNeedsValueOf - Whether X values need valueOf() conversion
+ * @returns Bucket index if datum is extrema, -1 otherwise
+ */
+export function aggregationIndexType(
+    xValues: any[],
+    d0: number,
+    d1: number,
+    indexData: Uint32Array,
+    maxRange: number,
+    datumIndex: number,
+    xNeedsValueOf: boolean
+): number {
+    const xValue = xValues[datumIndex];
+    if (xValue == null) return -1;
+
+    const xRatio = Number.isFinite(d0)
+        ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
+        : aggregationXRatioForDatumIndex(datumIndex, xValues.length);
+    const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
+
+    if (
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MAX] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]
+    ) {
+        return aggIndex;
+    }
+
+    return -1;
+}
+
+/**
+ * Builds indices and metaIndices TypedArrays from aggregation data.
+ * metaIndices track group boundaries for proper area fill path closure.
+ * Uses two-pass approach: first count, then populate for TypedArray efficiency.
+ *
+ * @param xValues - Array of X values
+ * @param d0 - Domain minimum
+ * @param d1 - Domain maximum
+ * @param indexData - Aggregation bucket data
+ * @param maxRange - Number of aggregation buckets
+ * @param xNeedsValueOf - Whether X values need valueOf() conversion
+ * @param xValuesLength - Length of xValues array
+ * @param reuseIndices - Optional pre-allocated indices array to reuse
+ * @param reuseMetaIndices - Optional pre-allocated metaIndices array to reuse
+ * @returns Object containing indices and metaIndices TypedArrays
+ */
+export function buildIndicesFromAggregation(
+    xValues: any[],
+    d0: number,
+    d1: number,
+    indexData: Uint32Array,
+    maxRange: number,
+    xNeedsValueOf: boolean,
+    xValuesLength: number,
+    reuseIndices?: Uint32Array,
+    reuseMetaIndices?: Uint32Array
+): IndicesAggregationResult {
+    // First pass: count indices and metaIndices
+    let indicesCount = 0;
+    let metaIndicesCount = 0;
+    let currentGroup = -1;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+        if (group === -1) continue;
+
+        indicesCount++;
+        if (group !== currentGroup) {
+            metaIndicesCount++;
+            currentGroup = group;
+        }
+    }
+    metaIndicesCount++; // For the final closing index
+
+    // Allocate or reuse TypedArrays
+    const indices = reuseIndices?.length === indicesCount ? reuseIndices : new Uint32Array(indicesCount);
+    const metaIndices =
+        reuseMetaIndices?.length === metaIndicesCount ? reuseMetaIndices : new Uint32Array(metaIndicesCount);
+
+    // Second pass: populate arrays
+    let indicesIdx = 0;
+    let metaIndicesIdx = 0;
+    currentGroup = -1;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+        if (group === -1) continue;
+
+        if (group !== currentGroup) {
+            metaIndices[metaIndicesIdx++] = indicesIdx;
+            currentGroup = group;
+        }
+        indices[indicesIdx++] = datumIndex;
+    }
+    metaIndices[metaIndicesIdx] = indicesCount - 1; // Final closing index
+
+    return { indices, metaIndices };
 }
 
 // EXTREMES AGGREGATION: Shared implementation for OHLC and RangeBar

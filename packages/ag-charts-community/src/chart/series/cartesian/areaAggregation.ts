@@ -3,17 +3,12 @@ import { type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
     aggregationDomain,
-    aggregationIndexForXRatio,
+    aggregationIndexType,
     aggregationRangeFittingPoints,
-    aggregationXRatioForDatumIndex,
-    aggregationXRatioForXValue,
+    buildIndicesFromAggregation,
     compactAggregationIndices,
     createAggregationIndices,
 } from '../aggregation';
@@ -37,108 +32,12 @@ export interface PartialAreaAggregationResult {
 }
 
 // ============================================================================
-// CORE LAYER: Pure, testable aggregation functions
+// CORE LAYER: Pure aggregation functions (shared from ../aggregation.ts)
 // ============================================================================
 
-/**
- * Determines the aggregation bucket index for a datum.
- * Returns the bucket index if the datum is an extrema point, or -1 if not included.
- *
- * @param xValues - Array of X values
- * @param d0 - Domain minimum
- * @param d1 - Domain maximum
- * @param indexData - Aggregation index data (TypedArray)
- * @param maxRange - Current aggregation range
- * @param datumIndex - Index to check
- * @param xNeedsValueOf - Whether X values need valueOf() conversion
- * @returns Bucket index if datum is extrema, -1 otherwise
- */
-function aggregationIndexType(
-    xValues: any[],
-    d0: number,
-    d1: number,
-    indexData: Uint32Array,
-    maxRange: number,
-    datumIndex: number,
-    xNeedsValueOf: boolean
-): number {
-    const xValue = xValues[datumIndex];
-    if (xValue == null) return -1;
-
-    const xRatio = Number.isFinite(d0)
-        ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)
-        : aggregationXRatioForDatumIndex(datumIndex, xValues.length);
-    const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
-
-    if (
-        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MIN] ||
-        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MAX] ||
-        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] ||
-        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]
-    ) {
-        return aggIndex;
-    }
-
-    return -1;
-}
-
-/**
- * Builds indices and metaIndices TypedArrays from aggregation data.
- * metaIndices track group boundaries for proper area fill path closure.
- * Uses two-pass approach: first count, then populate for TypedArray efficiency.
- */
-function buildIndicesFromAggregation(
-    xValues: any[],
-    d0: number,
-    d1: number,
-    indexData: Uint32Array,
-    maxRange: number,
-    xNeedsValueOf: boolean,
-    xValuesLength: number,
-    reuseIndices?: Uint32Array,
-    reuseMetaIndices?: Uint32Array
-): { indices: Uint32Array; metaIndices: Uint32Array } {
-    // First pass: count indices and metaIndices
-    let indicesCount = 0;
-    let metaIndicesCount = 0;
-    let currentGroup = -1;
-
-    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
-        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
-        if (group === -1) continue;
-
-        indicesCount++;
-        if (group !== currentGroup) {
-            metaIndicesCount++;
-            currentGroup = group;
-        }
-    }
-    metaIndicesCount++; // For the final closing index
-
-    // Allocate or reuse TypedArrays
-    const indices = reuseIndices?.length === indicesCount ? reuseIndices : new Uint32Array(indicesCount);
-    const metaIndices =
-        reuseMetaIndices?.length === metaIndicesCount ? reuseMetaIndices : new Uint32Array(metaIndicesCount);
-
-    // Second pass: populate arrays
-    let indicesIdx = 0;
-    let metaIndicesIdx = 0;
-    currentGroup = -1;
-
-    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
-        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
-        if (group === -1) continue;
-
-        if (group !== currentGroup) {
-            metaIndices[metaIndicesIdx++] = indicesIdx;
-            currentGroup = group;
-        }
-        indices[indicesIdx++] = datumIndex;
-    }
-    metaIndices[metaIndicesIdx] = indicesCount - 1; // Final closing index
-
-    return { indices, metaIndices };
-}
+// AreaSeries uses IndicesAggregation pattern with metaIndices for path grouping.
+// The metaIndices track bucket boundaries enabling proper fill path closure.
+// See buildIndicesFromAggregation() and aggregationIndexType() in aggregation.ts.
 
 /**
  * Computes multi-level aggregation filters for area chart data.

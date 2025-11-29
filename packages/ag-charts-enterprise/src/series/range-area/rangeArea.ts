@@ -72,6 +72,7 @@ const {
     AggregationManager,
     resetMarkerSelectionsDirect,
     AGGREGATION_INDEX_UNSET,
+    AGGREGATION_BYPASS_THRESHOLD,
     createDatumId,
     visibleRangeIndices,
 } = _ModuleSupport;
@@ -502,6 +503,74 @@ export class RangeAreaSeries extends BaseSeries {
         }
     }
 
+    /**
+     * Processes datums using aggregation buckets for large datasets.
+     * Iterates visible buckets and uses extrema values from aggregation.
+     */
+    private createNodeDataWithAggregation(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        scratch: RangeAreaNodeDatumScratch
+    ): void {
+        const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter!;
+        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
+
+        const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
+            const midDatumIndex = midpointIndices[index];
+            if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
+            return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
+        });
+
+        for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
+            const midIndex = midpointIndices[bucketIndex];
+            if (midIndex === AGGREGATION_INDEX_UNSET) continue; // Empty bucket
+
+            const aggIndex = bucketIndex * SPAN;
+            const yHighDatumIndex = indexData[aggIndex + HIGH];
+            const yLowDatumIndex = indexData[aggIndex + LOW];
+
+            // Use high index for position (x coordinate), but get extreme values from respective datums
+            // In aggregated mode, the yHigh and yLow extrema may come from DIFFERENT data points in the bucket
+            this.handleDatumPoint(
+                ctx,
+                scratch,
+                yHighDatumIndex,
+                ctx.yHighValues[yHighDatumIndex],
+                ctx.yLowValues[yLowDatumIndex]
+            );
+        }
+    }
+
+    /**
+     * Processes datums directly without aggregation for small datasets.
+     * Iterates all data points in the visible range.
+     */
+    private createNodeDataSimple(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        scratch: RangeAreaNodeDatumScratch,
+        inputCount: number
+    ): void {
+        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
+
+        let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
+            const x = xPosition(index);
+            return [x, x];
+        });
+
+        // @todo(AG-13575) Remove this if block
+        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
+            start = 0;
+            end = inputCount;
+        }
+
+        // Expand range by 1 on each side to ensure line continuity at edges
+        start = Math.max(start - 1, 0);
+        end = Math.min(end + 1, ctx.xValues.length);
+
+        for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+            this.handleDatumPoint(ctx, scratch, datumIndex);
+        }
+    }
+
     override createNodeData() {
         const { data, processedData, axes } = this;
 
@@ -526,55 +595,11 @@ export class RangeAreaSeries extends BaseSeries {
             inverted: false,
         };
 
-        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
-
-        // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3 || ctx.dataAggregationFilter == null) {
-            // No aggregation - iterate only visible data points
-            let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
-                const x = xPosition(index);
-                return [x, x];
-            });
-            // @todo(AG-13575) Remove this if block
-            if (processedData.input.count < 1e3) {
-                start = 0;
-                end = processedData.input.count;
-            }
-            // Expand range by 1 on each side to ensure line continuity at edges
-            start = Math.max(start - 1, 0);
-            end = Math.min(end + 1, ctx.xValues.length);
-
-            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                this.handleDatumPoint(ctx, scratch, datumIndex);
-            }
+        // Process datums using appropriate strategy
+        if (ctx.dataAggregationFilter != null) {
+            this.createNodeDataWithAggregation(ctx, scratch);
         } else {
-            // With aggregation - iterate only visible buckets
-            const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
-
-            const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
-                const midDatumIndex = midpointIndices[index];
-                if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
-                return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
-            });
-
-            for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
-                const midIndex = midpointIndices[bucketIndex];
-                if (midIndex === AGGREGATION_INDEX_UNSET) continue; // Empty bucket
-
-                const aggIndex = bucketIndex * SPAN;
-                const yHighDatumIndex = indexData[aggIndex + HIGH];
-                const yLowDatumIndex = indexData[aggIndex + LOW];
-
-                // Use high index for position (x coordinate), but get extreme values from respective datums
-                // In aggregated mode, the yHigh and yLow extrema may come from DIFFERENT data points in the bucket
-                this.handleDatumPoint(
-                    ctx,
-                    scratch,
-                    yHighDatumIndex,
-                    ctx.yHighValues[yHighDatumIndex],
-                    ctx.yLowValues[yLowDatumIndex]
-                );
-            }
+            this.createNodeDataSimple(ctx, scratch, processedData.input.count);
         }
 
         // Cleanup incremental updates - trim markerData if fewer nodes than before

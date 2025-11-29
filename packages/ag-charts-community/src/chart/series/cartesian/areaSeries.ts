@@ -42,6 +42,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { AGGREGATION_BYPASS_THRESHOLD } from '../aggregation';
 import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -1012,6 +1013,63 @@ export class AreaSeries extends CartesianSeries<
         }
     }
 
+    /**
+     * Processes datums using aggregation indices for large datasets.
+     * Uses ctx.indices from the aggregation filter to iterate only extrema points.
+     */
+    private createNodeDataWithAggregation(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        scratch: AreaNodeDatumScratch,
+        xAxisRange: [number, number],
+        inputCount: number
+    ): void {
+        const indices = ctx.indices!;
+
+        // Calculate visible range within aggregation indices
+        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxisRange, indices);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, indices.length);
+
+        // @todo(AG-13575) Remove this if block
+        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
+            startIndex = 0;
+            endIndex = indices.length;
+        }
+
+        // Process visible datums via aggregation indices
+        for (let i = startIndex; i < endIndex; i += 1) {
+            const datumIndex = indices[i];
+            this.handleDatum(ctx, scratch, datumIndex);
+        }
+    }
+
+    /**
+     * Processes datums directly without aggregation for small datasets.
+     * Iterates through all data points in the visible range.
+     */
+    private createNodeDataSimple(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        scratch: AreaNodeDatumScratch,
+        xAxisRange: [number, number],
+        inputCount: number
+    ): void {
+        // Calculate visible range
+        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxisRange);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, ctx.xValues.length);
+
+        // @todo(AG-13575) Remove this if block
+        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
+            startIndex = 0;
+            endIndex = inputCount;
+        }
+
+        // Process visible datums directly
+        for (let i = startIndex; i < endIndex; i += 1) {
+            this.handleDatum(ctx, scratch, i);
+        }
+    }
+
     override createNodeData() {
         const { axes, data, processedData } = this;
 
@@ -1036,20 +1094,11 @@ export class AreaSeries extends CartesianSeries<
             validPoint: false,
         };
 
-        // Calculate visible range
-        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, ctx.indices);
-        startIndex = Math.max(startIndex - 2, 0);
-        endIndex = Math.min(endIndex + 2, ctx.indices?.length ?? ctx.xValues.length);
-        // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
-            startIndex = 0;
-            endIndex = processedData.input.count;
-        }
-
-        // Process visible datums
-        for (let i = startIndex; i < endIndex; i += 1) {
-            const datumIndex = ctx.indices?.[i] ?? i;
-            this.handleDatum(ctx, scratch, datumIndex);
+        // Process datums using appropriate strategy
+        if (ctx.indices != null) {
+            this.createNodeDataWithAggregation(ctx, scratch, xAxis.range, processedData.input.count);
+        } else {
+            this.createNodeDataSimple(ctx, scratch, xAxis.range, processedData.input.count);
         }
 
         // Trim excess nodes from incremental updates
