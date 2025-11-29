@@ -15,7 +15,7 @@ describe('range bar benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 224, expectedCanvasCount: 3, autoSnapshot: false },
+        { expectedRetainedSizeMB: 220, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
         },
