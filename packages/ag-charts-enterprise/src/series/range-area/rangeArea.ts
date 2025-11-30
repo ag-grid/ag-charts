@@ -72,9 +72,12 @@ const {
     AggregationManager,
     resetMarkerSelectionsDirect,
     AGGREGATION_INDEX_UNSET,
-    AGGREGATION_BYPASS_THRESHOLD,
     createDatumId,
     visibleRangeIndices,
+    computeScaleRange,
+    computeBandwidthOffset,
+    computeVisibleRangeWithBypass,
+    trimIncrementalNodes,
 } = _ModuleSupport;
 
 type ResolvedLineStyleMixin = {
@@ -297,9 +300,7 @@ export class RangeAreaSeries extends BaseSeries {
         if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
+        const range = computeScaleRange(xScale);
 
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
@@ -315,7 +316,7 @@ export class RangeAreaSeries extends BaseSeries {
             xScale,
             yScale,
             xAxisRange,
-            xOffset: (xScale.bandwidth ?? 0) / 2,
+            xOffset: computeBandwidthOffset(xScale),
             dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
             range,
             labelsEnabled: this.properties.label.enabled,
@@ -551,22 +552,14 @@ export class RangeAreaSeries extends BaseSeries {
     ): void {
         const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
 
-        let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
+        const visibleRange = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
             const x = xPosition(index);
             return [x, x];
         });
+        const [start, end] = computeVisibleRangeWithBypass(visibleRange, inputCount, 1);
+        const effectiveEnd = Math.min(end, ctx.xValues.length);
 
-        // @todo(AG-13575) Remove this if block
-        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
-            start = 0;
-            end = inputCount;
-        }
-
-        // Expand range by 1 on each side to ensure line continuity at edges
-        start = Math.max(start - 1, 0);
-        end = Math.min(end + 1, ctx.xValues.length);
-
-        for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+        for (let datumIndex = start; datumIndex < effectiveEnd; datumIndex += 1) {
             this.handleDatumPoint(ctx, scratch, datumIndex);
         }
     }
@@ -603,9 +596,7 @@ export class RangeAreaSeries extends BaseSeries {
         }
 
         // Cleanup incremental updates - trim markerData if fewer nodes than before
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
-            ctx.markerData.length = ctx.nodeIndex;
-        }
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.markerData, ctx.nodeIndex);
 
         // Build path spans from span points
         const highSpans = ctx.spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {

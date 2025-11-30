@@ -60,6 +60,8 @@ const {
     toHighlightString,
     HighlightState,
     AggregationManager,
+    computeVisibleRangeWithBypass,
+    trimIncrementalNodes,
 } = _ModuleSupport;
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
@@ -647,12 +649,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ): void {
         const invalidData = processedData.invalidData?.get(this.id);
-        let [start, end] = this.visibleRangeIndices('xValue', ctx.xAxis.range);
-        // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
-            start = 0;
-            end = processedData.input.count;
-        }
+        const visibleRange = this.visibleRangeIndices('xValue', ctx.xAxis.range);
+        const [start, end] = computeVisibleRangeWithBypass(visibleRange, processedData.input.count);
 
         for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
             if (invalidData?.[datumIndex] === true) continue;
@@ -791,11 +789,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         // 5. Trim excess nodes if we did incremental updates and have leftover nodes
-        if (ctx.canIncrementallyUpdate) {
-            if (ctx.nodeIndex < ctx.nodes.length) {
-                ctx.nodes.length = ctx.nodeIndex;
-            }
-        }
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.nodes, ctx.nodeIndex);
 
         // 6. Build label data from nodes
         for (const node of ctx.nodes) {

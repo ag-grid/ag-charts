@@ -39,6 +39,9 @@ const {
     BandScale,
     processedDataIsAnimatable,
     getItemStylesPerItemId,
+    computeScaleRange,
+    computeVisibleRangeWithBypass,
+    trimIncrementalNodes,
 } = _ModuleSupport;
 
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
@@ -305,8 +308,7 @@ export abstract class OhlcSeriesBase<
     private estimateTargetRange(): number {
         const xAxis = this.axes[ChartAxisDirection.X];
         if (!xAxis) return -1;
-        const [r0, r1] = xAxis.scale.range;
-        return Math.abs(r1 - r0);
+        return computeScaleRange(xAxis.scale);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
@@ -382,8 +384,7 @@ export abstract class OhlcSeriesBase<
         const effectiveBarWidth = barWidth >= 1 ? barWidth : groupScale.rawBandwidth;
         const applyWidthOffset = BandScale.is(xScale);
 
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
+        const range = computeScaleRange(xScale);
 
         // Ensure we have the aggregation level needed for the current range
         // This will force-compute deferred levels if necessary
@@ -646,16 +647,13 @@ export abstract class OhlcSeriesBase<
 
         if (ctx.dataAggregationFilter == null) {
             const invalidData = this.processedData!.invalidData?.get(this.id);
-            let [start, end] = visibleRangeIndices(1, ctx.rawData.length, ctx.xAxis.range, (index) => {
+            const [visStart, visEnd] = visibleRangeIndices(1, ctx.rawData.length, ctx.xAxis.range, (index) => {
                 const xOffset = ctx.applyWidthOffset ? 0 : -ctx.effectiveBarWidth / 2;
                 const x = xPosition(index) + xOffset;
                 return [x, x + ctx.effectiveBarWidth];
             });
-            // @todo(AG-13575) Remove this if block
-            if (this.processedData!.input.count < 1e3) {
-                start = 0;
-                end = this.processedData!.input.count;
-            }
+            // @todo(AG-13575) computeVisibleRangeWithBypass bypasses the visible range calculation for small datasets
+            const [start, end] = computeVisibleRangeWithBypass([visStart, visEnd], this.processedData!.input.count);
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
@@ -664,10 +662,7 @@ export abstract class OhlcSeriesBase<
                 this.upsertNodeDatum(ctx, datumIndex, centerX, ctx.effectiveBarWidth, ctx.crisp);
             }
 
-            // Trim excess nodes if data shrunk
-            if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
-                ctx.nodeData.length = ctx.nodeIndex;
-            }
+            trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.nodeData, ctx.nodeIndex);
         } else {
             const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
             const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxis.range, (index) => {
@@ -725,10 +720,7 @@ export abstract class OhlcSeriesBase<
                 ctx.nodeIndex++;
             }
 
-            // Trim excess nodes if data shrunk
-            if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
-                ctx.nodeData.length = ctx.nodeIndex;
-            }
+            trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.nodeData, ctx.nodeIndex);
         }
 
         return resultContext;

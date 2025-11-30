@@ -80,6 +80,12 @@ import {
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
 } from './markerUtil';
+import {
+    computeBandwidthOffset,
+    computeScaleRange,
+    computeVisibleRangeWithBypass,
+    trimIncrementalNodes,
+} from './nodeDataUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
@@ -365,9 +371,7 @@ export class LineSeries extends CartesianSeries<
         if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
+        const range = computeScaleRange(xScale);
 
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
@@ -385,8 +389,8 @@ export class LineSeries extends CartesianSeries<
                 : undefined,
             xScale,
             yScale,
-            xOffset: (xScale.bandwidth ?? 0) / 2,
-            yOffset: (yScale.bandwidth ?? 0) / 2,
+            xOffset: computeBandwidthOffset(xScale),
+            yOffset: computeBandwidthOffset(yScale),
             size: this.properties.marker.enabled ? this.properties.marker.size : 0,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
             labelsEnabled: this.properties.label.enabled,
@@ -543,24 +547,17 @@ export class LineSeries extends CartesianSeries<
 
         // Compute visible range and iterate
         const indices = ctx.dataAggregationFilter?.indices;
-        let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
-        start = Math.max(start - 1, 0);
-        end = Math.min(end + 1, indices?.length ?? ctx.xValues.length);
+        const visibleRange = this.visibleRangeIndices('xValue', xAxis.range, indices);
+        const totalCount = indices?.length ?? ctx.xValues.length;
+        const [start, end] = computeVisibleRangeWithBypass(visibleRange, processedData.input.count, 1);
+        const effectiveEnd = Math.min(end, totalCount);
 
-        // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
-            start = 0;
-            end = processedData.input.count;
-        }
-
-        for (let i = start; i < end; i += 1) {
+        for (let i = start; i < effectiveEnd; i += 1) {
             this.handleDatum(ctx, scratch, indices?.[i] ?? i);
         }
 
         // Cleanup incremental updates - trim nodeData if fewer nodes than before
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
-            ctx.nodeData.length = ctx.nodeIndex;
-        }
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.nodeData, ctx.nodeIndex);
 
         // Build stroke data from span points
         const strokeSpans = ctx.spanPoints.flatMap((p): LinePathSpan[] => {

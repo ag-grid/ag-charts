@@ -42,7 +42,6 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
-import { AGGREGATION_BYPASS_THRESHOLD } from '../aggregation';
 import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -80,6 +79,12 @@ import {
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
 } from './markerUtil';
+import {
+    computeBandwidthOffset,
+    computeScaleRange,
+    computeVisibleRangeWithBypass,
+    trimIncrementalNodes,
+} from './nodeDataUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
@@ -836,9 +841,7 @@ export class AreaSeries extends CartesianSeries<
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const stacked = processedData.type === 'grouped';
-
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
+        const range = computeScaleRange(xScale);
 
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
@@ -863,7 +866,7 @@ export class AreaSeries extends CartesianSeries<
             // Scales (cached)
             xScale,
             yScale,
-            xOffset: (xScale.bandwidth ?? 0) / 2,
+            xOffset: computeBandwidthOffset(xScale),
 
             // Aggregation
             indices: dataAggregationFilter?.indices,
@@ -1026,18 +1029,12 @@ export class AreaSeries extends CartesianSeries<
         const indices = ctx.indices!;
 
         // Calculate visible range within aggregation indices
-        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxisRange, indices);
-        startIndex = Math.max(startIndex - 2, 0);
-        endIndex = Math.min(endIndex + 2, indices.length);
-
-        // @todo(AG-13575) Remove this if block
-        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
-            startIndex = 0;
-            endIndex = indices.length;
-        }
+        const visibleRange = this.visibleRangeIndices('xValue', xAxisRange, indices);
+        const [startIndex, endIndex] = computeVisibleRangeWithBypass(visibleRange, inputCount, 2);
+        const effectiveEnd = Math.min(endIndex, indices.length);
 
         // Process visible datums via aggregation indices
-        for (let i = startIndex; i < endIndex; i += 1) {
+        for (let i = startIndex; i < effectiveEnd; i += 1) {
             const datumIndex = indices[i];
             this.handleDatum(ctx, scratch, datumIndex);
         }
@@ -1054,18 +1051,12 @@ export class AreaSeries extends CartesianSeries<
         inputCount: number
     ): void {
         // Calculate visible range
-        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxisRange);
-        startIndex = Math.max(startIndex - 2, 0);
-        endIndex = Math.min(endIndex + 2, ctx.xValues.length);
-
-        // @todo(AG-13575) Remove this if block
-        if (inputCount < AGGREGATION_BYPASS_THRESHOLD) {
-            startIndex = 0;
-            endIndex = inputCount;
-        }
+        const visibleRange = this.visibleRangeIndices('xValue', xAxisRange);
+        const [startIndex, endIndex] = computeVisibleRangeWithBypass(visibleRange, inputCount, 2);
+        const effectiveEnd = Math.min(endIndex, ctx.xValues.length);
 
         // Process visible datums directly
-        for (let i = startIndex; i < endIndex; i += 1) {
+        for (let i = startIndex; i < effectiveEnd; i += 1) {
             this.handleDatum(ctx, scratch, i);
         }
     }
@@ -1102,9 +1093,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         // Trim excess nodes from incremental updates
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
-            ctx.markerData.length = ctx.nodeIndex;
-        }
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.markerData, ctx.nodeIndex);
 
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 

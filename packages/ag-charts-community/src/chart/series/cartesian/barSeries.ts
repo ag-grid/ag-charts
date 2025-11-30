@@ -27,7 +27,7 @@ import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
-import type { PropertyDefinition } from '../../data/dataModelTypes';
+import type { GroupedData, PropertyDefinition } from '../../data/dataModelTypes';
 import {
     LARGEST_KEY_INTERVAL,
     SMALLEST_KEY_INTERVAL,
@@ -84,6 +84,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
+import { computeScaleRange, computeVisibleRangeWithBypass, trimIncrementalNodes } from './nodeDataUtil';
 import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
 
@@ -488,7 +489,7 @@ export class BarSeries extends AbstractBarSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
-        const range = Math.abs(xScale.range[1] - xScale.range[0]);
+        const range = computeScaleRange(xScale);
 
         // Ensure we have the aggregation level needed for the current range
         // This will force-compute deferred levels if necessary
@@ -914,7 +915,7 @@ export class BarSeries extends AbstractBarSeries<
         xPosition: (index: number) => number,
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
-        const processedData = this.processedData! as import('../../data/dataModelTypes').GroupedData<any>;
+        const processedData = this.processedData! as GroupedData<any>;
         const invalidData = processedData.invalidData?.get(this.id);
         const width = ctx.barWidth;
         const yRangeIndex = ctx.isStacked ? this.dataModel!.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
@@ -976,13 +977,7 @@ export class BarSeries extends AbstractBarSeries<
         const invalidData = this.processedData!.invalidData?.get(this.id);
         const width = ctx.barWidth;
         const visibleRange = this.visibleRangeIndices('xValue', ctx.xAxis.range);
-        let start = visibleRange[0];
-        let end = visibleRange[1];
-        // @todo(AG-13575) Remove this if block
-        if (this.processedData!.input.count < 1e3) {
-            start = 0;
-            end = this.processedData!.input.count;
-        }
+        const [start, end] = computeVisibleRangeWithBypass(visibleRange, this.processedData!.input.count);
 
         for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
             if (invalidData?.[datumIndex] === true) continue;
@@ -1103,17 +1098,11 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         // Trim excess nodes if we did incremental updates and have leftover nodes
-        if (ctx.canIncrementallyUpdate) {
-            if (ctx.nodeIndex < ctx.nodes.length) {
-                ctx.nodes.length = ctx.nodeIndex;
-            }
-            if (ctx.phantomIndex < ctx.phantomNodes.length) {
-                ctx.phantomNodes.length = ctx.phantomIndex;
-            }
-            // Labels array should match nodes array length
-            if (ctx.labels.length > ctx.nodes.length) {
-                ctx.labels.length = ctx.nodes.length;
-            }
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.nodes, ctx.nodeIndex);
+        trimIncrementalNodes(ctx.canIncrementallyUpdate, ctx.phantomNodes, ctx.phantomIndex);
+        // Labels array should match nodes array length
+        if (ctx.canIncrementallyUpdate && ctx.labels.length > ctx.nodes.length) {
+            ctx.labels.length = ctx.nodes.length;
         }
 
         const segments = calculateSegments(
