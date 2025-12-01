@@ -96,7 +96,8 @@ function formatFullSection(data, headers, headerLabels) {
     const labels = ['Test', ...(headerLabels || dataKeys)];
 
     // Calculate column widths
-    const maxWidth = 80;
+    // Reduced from 80 to 77 to fit within Slack attachment display width
+    const maxWidth = 77;
     const padding = 2; // Space between columns
     const colWidths = labels.map((h) => h.length);
     for (const row of rows) {
