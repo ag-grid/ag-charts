@@ -875,6 +875,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
+        let foundAlternatePositionAxis = false;
+
         for (const [key, axis] of entries(newAxes)) {
             if (!isPlainObject(axis)) continue;
             if ('type' in axis && 'position' in axis) continue;
@@ -890,11 +892,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const predictedType = this.predictAxisMissingTypeFromPosition(axis, defaultAxes);
             if (predictedType) continue;
 
-            // Pick the default type and position where the axis key is referenced by a series axis key.
-            this.predictAxisMissingTypeAndPositionFromSeries(
+            // Pick the default type and position where the axis key is referenced by a series axis key. For the first
+            // secondary axis in the y-direction with an unknown position, it will place it in the alternate
+            // position (i.e. right).
+            foundAlternatePositionAxis = this.predictAxisMissingTypeAndPositionFromSeries(
                 options,
                 directions,
                 directionAxisKeys,
+                foundAlternatePositionAxis,
                 key,
                 axis,
                 defaultAxes
@@ -936,6 +941,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options: T,
         directions: ChartAxisDirection[],
         directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
+        foundAlternatePositionAxis: boolean,
         axisKey: string,
         axis: PlainObject,
         defaultAxes: Record<string, PlainObject>
@@ -947,10 +953,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 if (seriesOptions[directionAxisKey] !== axisKey) continue;
 
                 axis.type ??= defaultAxes[direction].type;
-                axis.position ??= defaultAxes[direction].position;
-                return;
+
+                if (direction === ChartAxisDirection.Y && !foundAlternatePositionAxis) {
+                    axis.position ??= defaultAxes[direction].position === 'left' ? 'right' : 'left';
+                } else {
+                    axis.position ??= defaultAxes[direction].position;
+                }
+
+                return direction === ChartAxisDirection.Y;
             }
         }
+
+        return false;
     }
 
     private processMiniChartSeriesOptions(options: T) {

@@ -2645,7 +2645,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
                 });
             });
 
@@ -2709,7 +2709,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
                 });
             });
 
