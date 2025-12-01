@@ -11,8 +11,6 @@ import {
 import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
 
-type DataSet<T> = _ModuleSupport.DataSet<T>;
-
 export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgFlashOnUpdateOptions {
     static readonly className = 'FlashOnUpdate';
 
@@ -36,7 +34,6 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private readonly cleanup = new CleanupRegistry();
     private readonly element: Element;
-    private data: unknown[] = [];
     private animationTimeout?: ReturnType<typeof setTimeout>;
 
     constructor(protected ctx: _ModuleSupport.ModuleContext) {
@@ -45,15 +42,17 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.element.role = 'presentation';
 
         let firstUpdate = true;
-        const onDataUpdate = (e: DataSet<unknown> | undefined): void => {
-            if (firstUpdate && e?.data) {
-                this.data = e?.data;
+        const onDataUpdate = (ev: _ModuleSupport.DataSet<unknown> | undefined): void => {
+            if (firstUpdate) {
                 firstUpdate = false;
             } else {
-                this.onDataChange(e);
+                this.onDataUpdate(ev);
             }
         };
-        this.cleanup.register(this.ctx.eventsHub.on('data:update', onDataUpdate));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', onDataUpdate),
+            this.ctx.eventsHub.on('datamodel:diff', (e) => this.onDataModelDiff(e))
+        );
     }
 
     destroy() {
@@ -80,13 +79,10 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         );
     }
 
-    private flashCategoryBands(e: DataSet<unknown> | undefined): void {
-        const newData = e?.data;
-        if (!newData) return;
-
+    private flashCategoryBands(diff: _ModuleSupport.DataModelDiff): void {
         this.clearFlash();
 
-        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(newData);
+        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(diff);
         for (const bounds of flashBounds) {
             const e = createElement('div');
             setAttribute(e, 'role', 'presentation');
@@ -99,26 +95,18 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animationTimeout = setTimeout(() => this.clearFlash(), duration);
     }
 
-    private computeCategoryFlashBounds(newData: unknown[]): BoxBounds[] {
-        console.log({
-            diff: jsonDiff(this.data, newData),
-            reverseDiff: jsonDiff(newData, this.data),
-        });
-        this.data = newData;
+    private computeCategoryFlashBounds(diff: _ModuleSupport.DataModelDiff): BoxBounds[] {
+        console.log(diff);
         return [{ x: 20, y: 30, height: 100, width: 140 }];
     }
 
-    private onDataChange(e: DataSet<unknown> | undefined): void {
-        if (!this.enabled) return;
+    private onDataUpdate(ev: _ModuleSupport.DataSet<unknown> | undefined): void {
+        if (!this.enabled || this.item !== 'chart' || !ev) return;
+        this.flashElem(this.ctx.widgets.containerWidget.getElement());
+    }
 
-        switch (this.item) {
-            case 'chart':
-                return this.flashElem(this.ctx.widgets.containerWidget.getElement());
-            case 'category':
-                return this.flashCategoryBands(e);
-            default:
-                const unreachable = (a: never): never => a;
-                return unreachable(this.item);
-        }
+    private onDataModelDiff(ev: _ModuleSupport.DataModelDiffEvent): void {
+        if (!this.enabled || this.item !== 'category') return;
+        this.flashCategoryBands(ev.diff);
     }
 }
