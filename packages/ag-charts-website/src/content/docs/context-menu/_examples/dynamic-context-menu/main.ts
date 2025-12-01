@@ -61,7 +61,7 @@ const options: AgCartesianChartOptions<DatumType> = {
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
             if (params.showOn === 'series-node') {
-                const xName = params.datum[params.xKey];
+                const xName = params.datum[params.xKey!];
                 return [
                     'defaults',
                     'separator',
