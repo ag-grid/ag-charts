@@ -5,6 +5,7 @@ const SPAN = 2;
 export class RangeLookup {
     private readonly maxLevelSize: number;
     private readonly buffer: Float64Array;
+    private readonly dataLength: number;
 
     constructor(allValues: number[][]) {
         const dataLength = allValues.reduce((acc, v) => Math.max(acc, v.length), 0);
@@ -53,6 +54,85 @@ export class RangeLookup {
         }
 
         this.buffer = buffer;
+        this.dataLength = dataLength;
+    }
+
+    /**
+     * Update values at a specific data index - O(k log n) where k is number of columns.
+     * After updating the leaf, propagates changes up to the root.
+     *
+     * @param dataIndex - Index in the data array (0-based)
+     * @param newValues - New values for this index from all columns
+     */
+    updateValue(dataIndex: number, newValues: number[]): void {
+        const { maxLevelSize, buffer } = this;
+        const bufferIndex = maxLevelSize + dataIndex - 1;
+        const bufferMinIndex = Math.trunc(bufferIndex * SPAN) + MIN;
+        const bufferMaxIndex = Math.trunc(bufferIndex * SPAN) + MAX;
+
+        // Reset leaf to recalculate from new values
+        buffer[bufferMinIndex] = Number.NaN;
+        buffer[bufferMaxIndex] = Number.NaN;
+
+        // Apply new values
+        for (const value of newValues) {
+            const numValue = Number(value);
+            const prevMin = buffer[bufferMinIndex];
+            const prevMax = buffer[bufferMaxIndex];
+            if (!Number.isFinite(prevMin) || numValue < prevMin) {
+                buffer[bufferMinIndex] = numValue;
+            }
+            if (!Number.isFinite(prevMax) || numValue > prevMax) {
+                buffer[bufferMaxIndex] = numValue;
+            }
+        }
+
+        // Propagate changes to parent nodes
+        this.propagateUp(bufferIndex);
+    }
+
+    /**
+     * Batch update multiple values - O(k log n) per update.
+     * More efficient than individual updateValue calls when tracking dirty nodes.
+     *
+     * @param updates - Array of {index, values} pairs to update
+     */
+    updateValues(updates: Array<{ index: number; values: number[] }>): void {
+        for (const { index, values } of updates) {
+            this.updateValue(index, values);
+        }
+    }
+
+    /**
+     * Propagate min/max changes from a leaf up to the root.
+     * Each level recalculates its min/max from its children.
+     */
+    private propagateUp(bufferIndex: number): void {
+        const { buffer } = this;
+
+        // Move up from leaf to root, updating parent nodes
+        while (bufferIndex > 0) {
+            // Calculate parent index: parent of node i is floor((i-1)/2)
+            const parentIndex = Math.trunc((bufferIndex - 1) / 2);
+
+            // Calculate children indices
+            const leftChild = 2 * parentIndex + 1;
+            const rightChild = 2 * parentIndex + 2;
+
+            // Get children's min/max values
+            const leftMin = buffer[Math.trunc(leftChild * SPAN) + MIN];
+            const leftMax = buffer[Math.trunc(leftChild * SPAN) + MAX];
+            const rightMin = buffer[Math.trunc(rightChild * SPAN) + MIN];
+            const rightMax = buffer[Math.trunc(rightChild * SPAN) + MAX];
+
+            // Update parent's min/max
+            buffer[Math.trunc(parentIndex * SPAN) + MIN] =
+                !Number.isFinite(rightMin) || leftMin < rightMin ? leftMin : rightMin;
+            buffer[Math.trunc(parentIndex * SPAN) + MAX] =
+                !Number.isFinite(rightMax) || leftMax > rightMax ? leftMax : rightMax;
+
+            bufferIndex = parentIndex;
+        }
     }
 
     private computeRangeInto(
@@ -94,5 +174,10 @@ export class RangeLookup {
     get range(): [number, number] {
         const { buffer } = this;
         return [buffer[MIN], buffer[MAX]];
+    }
+
+    /** The number of data elements in the segment tree */
+    get length(): number {
+        return this.dataLength;
     }
 }

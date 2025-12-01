@@ -112,6 +112,85 @@ export function hasNoRemovals(indexMap: IndexTransformationMap): boolean {
 }
 
 /**
+ * Check if the change contains only in-place updates (no structural changes).
+ *
+ * **Optimization:** Update-only operations don't shift indices, so caches
+ * can be preserved if the updated values don't break invariants (like sort order).
+ *
+ * @param indexMap - The index transformation map to check
+ * @returns True if only value updates occurred (no adds/removes)
+ *
+ * @example
+ * ```typescript
+ * if (isUpdateOnly(changeDesc.indexMap)) {
+ *     // Sort order cache can be marked dirty instead of cleared
+ *     markSortOrdersDirty(processedData);
+ * }
+ * ```
+ */
+export function isUpdateOnly(indexMap: IndexTransformationMap): boolean {
+    return (
+        indexMap.removedIndices.size === 0 &&
+        indexMap.totalPrependCount === 0 &&
+        indexMap.totalAppendCount === 0 &&
+        indexMap.spliceOps.every((op) => op.insertCount === 0 && op.deleteCount === 0)
+    );
+}
+
+/**
+ * Check if removals are contiguous starting at index 0.
+ *
+ * **Optimization:** Contiguous removals at the start enable efficient
+ * index shifting without complex index remapping.
+ *
+ * @param indexMap - The index transformation map to check
+ * @returns True if all removals are contiguous starting from index 0
+ *
+ * @example
+ * ```typescript
+ * if (hasContiguousRemovalsAtStart(changeDesc.indexMap)) {
+ *     const shiftAmount = changeDesc.indexMap.removedIndices.size;
+ *     // All indices shift left by shiftAmount
+ * }
+ * ```
+ */
+export function hasContiguousRemovalsAtStart(indexMap: IndexTransformationMap): boolean {
+    const { removedIndices } = indexMap;
+    if (removedIndices.size === 0) return false;
+
+    const sorted = Array.from(removedIndices).sort((a, b) => a - b);
+    if (sorted[0] !== 0) return false;
+
+    for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i] !== i) return false;
+    }
+    return true;
+}
+
+/**
+ * Check for rolling window pattern: contiguous removals at start + appends at end.
+ *
+ * **Optimization:** Rolling window is a common pattern for streaming data
+ * where old items are removed from the start and new items added at the end.
+ * This enables efficient index shifting and cache updates.
+ *
+ * @param indexMap - The index transformation map to check
+ * @returns True if the change follows a rolling window pattern
+ *
+ * @example
+ * ```typescript
+ * if (isRollingWindow(changeDesc.indexMap)) {
+ *     // Indices shift left by removal count, then new items appended
+ *     const removeCount = changeDesc.indexMap.removedIndices.size;
+ *     const appendCount = changeDesc.indexMap.totalAppendCount;
+ * }
+ * ```
+ */
+export function isRollingWindow(indexMap: IndexTransformationMap): boolean {
+    return hasContiguousRemovalsAtStart(indexMap) && indexMap.totalAppendCount > 0 && indexMap.totalPrependCount === 0;
+}
+
+/**
  * Abstract description of changes to be applied to source data.
  * Provides precise index mapping for optimized incremental updates.
  *

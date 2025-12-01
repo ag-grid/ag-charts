@@ -85,6 +85,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             },
             partialValidDataCount,
             time: 0,
+            version: 0,
             [DOMAIN_RANGES]: new Map(),
             [KEY_SORT_ORDERS]: new Map(),
             [COLUMN_SORT_ORDERS]: new Map(),

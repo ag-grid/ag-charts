@@ -1,6 +1,6 @@
 import { first } from 'ag-charts-core';
 
-import { hasNoRemovals, isAppendOnly, isPrependOnly } from '../../dataChangeDescription';
+import { hasNoRemovals, isAppendOnly, isPrependOnly, isRollingWindow, isUpdateOnly } from '../../dataChangeDescription';
 import type {
     DataGroup,
     GroupedData,
@@ -139,10 +139,11 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
         }
 
-        this.updateProcessedDataMetadata(processedData);
+        this.updateProcessedDataMetadata(processedData, scopeChanges);
 
         const end = performance.now();
         processedData.time = end - start;
+        processedData.version += 1;
 
         // Collect optimization metadata for testing
         collectOptimizationMetadataFn(processedData, 'reprocess');
@@ -827,8 +828,12 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
     /**
      * Updates metadata after array transformations.
+     * Uses intelligent cache management based on change patterns.
      */
-    private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
+    private updateProcessedDataMetadata(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
         let maxDataLength = 0;
         for (const dataSet of processedData.dataSources.values()) {
             maxDataLength = Math.max(maxDataLength, dataSet.data.length);
@@ -853,11 +858,79 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         // Recompute invalidDataCount
         this.recountInvalid(processedData.invalidData, processedData.invalidDataCount);
 
-        // Clear cached data that depends on array positions
-        processedData[DOMAIN_RANGES].clear();
-        processedData[KEY_SORT_ORDERS].clear();
-        processedData[COLUMN_SORT_ORDERS].clear();
+        // Intelligent cache invalidation based on change patterns
+        this.invalidateCachesForChanges(processedData, scopeChanges);
+    }
+
+    /**
+     * Invalidates caches intelligently based on change patterns.
+     *
+     * OPTIMIZATION: Different change patterns allow different cache preservation strategies:
+     * - Update-only: RangeLookup values changed but indices stable. Clear DOMAIN_RANGES but
+     *   preserve sort orders (mark dirty for lazy recalculation).
+     * - Append-only: New items at end, existing indices unchanged. Sort orders stay valid.
+     * - Rolling window: Contiguous removals at start + appends at end. Full clear needed.
+     * - Complex patterns: Full invalidation for safety.
+     */
+    private invalidateCachesForChanges(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const changeDescs = uniqueChangeDescriptions(scopeChanges);
+
+        // Determine the most conservative strategy across all changes
+        let preserveSortOrders = true;
+        let preserveDomainRanges = true;
+
+        for (const changeDesc of changeDescs) {
+            const { indexMap } = changeDesc;
+
+            if (isUpdateOnly(indexMap)) {
+                // Update-only: Values changed but indices stable
+                // DOMAIN_RANGES must be cleared (values changed)
+                // Sort orders can be preserved if only values changed, not keys
+                preserveDomainRanges = false;
+                // Sort orders depend on values, so mark dirty but don't clear
+            } else if (isAppendOnly(indexMap)) {
+                // Append-only: New items at end, no index shifts
+                // DOMAIN_RANGES must be rebuilt to include new values
+                // Existing sort orders remain valid for their ranges
+                preserveDomainRanges = false;
+            } else {
+                // Rolling window: Indices shift predictably
+                // Complex pattern: Full invalidation for safety
+                // Both caches must be cleared
+                preserveSortOrders = false;
+                preserveDomainRanges = false;
+            }
+        }
+
+        // Apply invalidation strategy
+        if (!preserveDomainRanges) {
+            processedData[DOMAIN_RANGES].clear();
+        }
+
+        if (preserveSortOrders) {
+            // Mark sort orders as dirty for lazy recalculation
+            this.markSortOrdersDirty(processedData[KEY_SORT_ORDERS]);
+            this.markSortOrdersDirty(processedData[COLUMN_SORT_ORDERS]);
+        } else {
+            processedData[KEY_SORT_ORDERS].clear();
+            processedData[COLUMN_SORT_ORDERS].clear();
+        }
+
         // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
+    }
+
+    /**
+     * Marks all entries in a sort order map as dirty for lazy recalculation.
+     */
+    private markSortOrdersDirty(sortOrders: Map<unknown, unknown>): void {
+        for (const entry of sortOrders.values()) {
+            if (entry && typeof entry === 'object') {
+                (entry as { isDirty?: boolean }).isDirty = true;
+            }
+        }
     }
 
     /**

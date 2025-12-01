@@ -144,12 +144,14 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         sortOrders: Map<number, SortOrderEntry>,
         needsValueOf: boolean
     ): SortOrder {
-        let sortOrder = sortOrders.get(index);
-        if (sortOrder == null) {
-            sortOrder = { sortOrder: valuesSortOrder(values, needsValueOf) };
-            sortOrders.set(index, sortOrder);
+        const entry = sortOrders.get(index);
+        // Recalculate if missing or marked dirty by incremental cache management
+        if (entry == null || entry.isDirty) {
+            const newEntry: SortOrderEntry = { sortOrder: valuesSortOrder(values, needsValueOf) };
+            sortOrders.set(index, newEntry);
+            return newEntry.sortOrder;
         }
-        return sortOrder.sortOrder;
+        return entry.sortOrder;
     }
 
     getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {

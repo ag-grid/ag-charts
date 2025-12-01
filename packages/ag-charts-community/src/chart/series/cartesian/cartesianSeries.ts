@@ -205,6 +205,12 @@ export abstract class CartesianSeries<
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
+    private domainCache?: {
+        processedDataVersion: number | undefined;
+        visibleRangeIndices: Map<string, [number, number]>;
+        domainForVisibleRange: Map<string, [number, number]>;
+    };
+
     protected animationState: StateMachine<
         CartesianAnimationState,
         CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
@@ -337,6 +343,27 @@ export abstract class CartesianSeries<
 
     override updatedDomains(): void {
         this.animationState.transition('updateData');
+    }
+
+    /**
+     * Gets the domain cache, creating a new one if processedData has changed.
+     * This ensures cache consistency across processedData updates.
+     */
+    private getDomainCache() {
+        const { processedData } = this;
+
+        // Use processedData.version as a marker - it's a monotonically increasing
+        // counter that increments on every processing cycle (both full and incremental)
+        const currentVersion = processedData?.version;
+        if (this.domainCache?.processedDataVersion !== currentVersion) {
+            this.domainCache = {
+                processedDataVersion: currentVersion,
+                visibleRangeIndices: new Map(),
+                domainForVisibleRange: new Map(),
+            };
+        }
+
+        return this.domainCache;
     }
 
     protected attachPaths(paths: Path[]) {
@@ -814,6 +841,15 @@ export abstract class CartesianSeries<
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
+        // Only cache when indices are not provided (common zoom calculation case)
+        const cache = indices == null ? this.getDomainCache() : undefined;
+        const cacheKey = cache ? `${axisKey}:${visibleRange[0]}:${visibleRange[1]}` : undefined;
+
+        if (cacheKey && cache) {
+            const cached = cache.visibleRangeIndices.get(cacheKey);
+            if (cached) return cached;
+        }
+
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
             const { processedData, dataModel } = this;
@@ -835,7 +871,13 @@ export abstract class CartesianSeries<
             }
         );
 
-        return start < end ? [start, end] : [end, start];
+        const result: [number, number] = start < end ? [start, end] : [end, start];
+
+        if (cacheKey && cache) {
+            cache.visibleRangeIndices.set(cacheKey, result);
+        }
+
+        return result;
     }
 
     protected domainForVisibleRange(
@@ -845,35 +887,51 @@ export abstract class CartesianSeries<
         visibleRange: [any, any],
         indices?: number[]
     ) {
+        // Only cache when indices are not provided (common zoom calculation case)
+        const cache = indices == null ? this.getDomainCache() : undefined;
+        const cacheKey = cache
+            ? `${axisKeys.join(',')}:${crossAxisKey}:${visibleRange[0]}:${visibleRange[1]}`
+            : undefined;
+
+        if (cacheKey && cache) {
+            const cached = cache.domainForVisibleRange.get(cacheKey);
+            if (cached) return cached;
+        }
+
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
+        let result: [number, number];
         const sortOrder = this.sortOrder(crossAxisKey);
-        if (sortOrder != null) {
-            const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
-            return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
-        }
+        if (sortOrder == null) {
+            const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
 
-        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
+            let axisMin = Infinity;
+            let axisMax = -Infinity;
+            for (const [i, crossAxisValue] of crossAxisValues.entries()) {
+                const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
+                if (x1 < r0 || x0 > r1) continue;
 
-        let axisMin = Infinity;
-        let axisMax = -Infinity;
-        for (const [i, crossAxisValue] of crossAxisValues.entries()) {
-            const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
-            if (x1 < r0 || x0 > r1) continue;
-
-            for (let j = 0; j < axisKeys.length; j++) {
-                const axisValue = allAxisValues[j][i];
-                axisMin = Math.min(axisMin, axisValue);
-                axisMax = Math.max(axisMax, axisValue);
+                for (let j = 0; j < axisKeys.length; j++) {
+                    const axisValue = allAxisValues[j][i];
+                    axisMin = Math.min(axisMin, axisValue);
+                    axisMax = Math.max(axisMax, axisValue);
+                }
             }
+
+            result = axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
+        } else {
+            const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
+            result = dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
-        if (axisMin > axisMax) return [Number.NaN, Number.NaN];
+        if (cacheKey && cache) {
+            cache.domainForVisibleRange.set(cacheKey, result);
+        }
 
-        return [axisMin, axisMax];
+        return result;
     }
 
     protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
