@@ -114,7 +114,7 @@ describe('computeAreaAggregation', () => {
 
             for (const filter of result!) {
                 expect(filter.metaIndices).toBeDefined();
-                expect(Array.isArray(filter.metaIndices)).toBe(true);
+                expect(filter.metaIndices).toBeInstanceOf(Uint32Array);
                 expect(filter.metaIndices.length).toBeGreaterThan(0);
 
                 // metaIndices should be in ascending order
@@ -358,12 +358,16 @@ describe('computeAreaAggregation', () => {
                 expect(filter).toHaveProperty('maxRange');
                 expect(filter).toHaveProperty('metaIndices');
                 expect(filter).toHaveProperty('indices');
+                expect(filter).toHaveProperty('indexData');
+                expect(filter).toHaveProperty('valueData');
 
                 expect(typeof filter.maxRange).toBe('number');
                 expect(filter.maxRange).toBeGreaterThan(0);
 
-                expect(Array.isArray(filter.metaIndices)).toBe(true);
-                expect(Array.isArray(filter.indices)).toBe(true);
+                expect(filter.metaIndices).toBeInstanceOf(Uint32Array);
+                expect(filter.indices).toBeInstanceOf(Uint32Array);
+                expect(filter.indexData).toBeInstanceOf(Uint32Array);
+                expect(filter.valueData).toBeInstanceOf(Float64Array);
             }
         });
 

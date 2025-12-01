@@ -1174,6 +1174,156 @@ protected override resetDatumAnimation(data: YourAnimationData) {
 
 ---
 
+### 12a. Direct Animation Reset for Markers (`resetMarkerSelectionsDirect`)
+
+**Problem**: Line series and other marker-based series have the same `resetMotion()` overhead for marker nodes. Markers also use the `Scalable` mixin which requires special handling when bypassing decorators.
+
+**Solution**: Use `resetMarkerSelectionsDirect()` which handles markers correctly, including transform matrix invalidation.
+
+**LineSeries Pattern** (`lineSeries.ts`):
+
+```typescript
+// Animation reset function defined in constructor options
+animationResetFns: {
+    path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
+    label: resetLabelFn,
+    datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+}
+
+// Override to use direct reset
+protected override resetDatumAnimation(data: LineAnimationData): void {
+    // Use direct reset for datum selection to bypass resetMotion callback overhead
+    resetMarkerSelectionsDirect([data.datumSelection]);
+}
+```
+
+**resetMarkerSelectionsDirect Pattern** (`markerUtil.ts`):
+
+```typescript
+/**
+ * Optimised reset for marker selections that bypasses resetMotion callback overhead.
+ * Uses direct backing field writes via Marker.resetAnimationProperties().
+ *
+ * Equivalent to: resetMotion(selections, (node, datum) => ({
+ *   ...resetMarkerFn(node),        // { opacity: 1, scalingX: 1, scalingY: 1 }
+ *   ...resetMarkerPositionFn(node, datum)  // { x, y, scalingCenterX, scalingCenterY }
+ * }))
+ *
+ * Note: size is NOT reset - it preserves the current animated size.
+ */
+export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
+    selections: { nodes(): Iterable<Marker>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetMarkerNodes() {
+            for (const node of nodes) {
+                const datum = node.datum as D | undefined;
+                if (datum?.point == null) continue;
+
+                const { x, y } = datum.point;
+                if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                // Preserves current size (node.size) to match original resetMotion behavior
+                node.resetAnimationProperties(x, y, node.size, 1, 1, 1);
+            }
+            selection.cleanup();
+        });
+    }
+}
+```
+
+**Critical: Marker.resetAnimationProperties() Implementation** (`marker.ts`):
+
+```typescript
+resetAnimationProperties(
+    x: number,
+    y: number,
+    size: number,
+    opacity: number,
+    scalingX: number,
+    scalingY: number
+): void {
+    // Direct backing field writes bypass SceneChangeDetection decorators
+    this.__x = x;
+    this.__y = y;
+    this.__size = size;
+    this.__opacity = opacity;
+    // Use encapsulated method for scaling properties from Scalable mixin
+    this.resetScalingProperties(scalingX, scalingY, x, y);
+    this.dirtyPath = true;
+
+    // Single dirty notification for the batch
+    this.markDirty();
+}
+```
+
+**Critical: Scalable.resetScalingProperties() Must Trigger Transform Recalculation** (`transformable.ts`):
+
+```typescript
+/**
+ * Optimised reset for animation hot paths.
+ * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+ */
+resetScalingProperties(
+    scalingX: number,
+    scalingY: number,
+    scalingCenterX: number,
+    scalingCenterY: number
+): void {
+    this.__scalingX = scalingX;
+    this.__scalingY = scalingY;
+    this.__scalingCenterX = scalingCenterX;
+    this.__scalingCenterY = scalingCenterY;
+    // CRITICAL: Trigger transform matrix recalculation (sets _dirtyTransform = true)
+    this.onChangeDetection('scaling');
+}
+```
+
+**Why `onChangeDetection()` is Required**:
+
+The `MatrixTransformInternal` class (base for `Scalable`, `Rotatable`, `Translatable` mixins) uses a `_dirtyTransform` flag to track when the transform matrix needs recalculation:
+
+```typescript
+class MatrixTransformInternal {
+    private _dirtyTransform = true;
+
+    override onChangeDetection(property: string): void {
+        super.onChangeDetection(property);
+        this._dirtyTransform = true;  // CRITICAL: Sets flag for matrix recalc
+        // ...
+    }
+
+    computeTransformMatrix() {
+        if (!this._dirtyTransform) return;  // Early exit if not dirty
+        // ... recalculate matrix
+        this._dirtyTransform = false;
+    }
+}
+```
+
+Without calling `onChangeDetection()`, the `_dirtyTransform` flag won't be set, and `computeTransformMatrix()` will return early without recalculating the matrix. This causes incorrect marker positioning during animations.
+
+**Key Differences from Bar Reset**:
+
+| Aspect             | `resetBarSelectionsDirect`             | `resetMarkerSelectionsDirect`    |
+| ------------------ | -------------------------------------- | -------------------------------- |
+| Node type          | `Rect` (no transforms)                 | `Marker` (uses `Scalable` mixin) |
+| Size handling      | Set from `datum.width/height`          | Preserve current `node.size`     |
+| Transform handling | Not applicable                         | Must call `onChangeDetection()`  |
+| Properties reset   | x, y, width, height, opacity, clipBBox | x, y, size, opacity, scalingX/Y  |
+
+**Checklist for Marker-based Series**:
+
+-   [ ] Add `resetMarkerSelectionsDirect` import from `markerUtil.ts`
+-   [ ] Override `resetDatumAnimation()` to use `resetMarkerSelectionsDirect()`
+-   [ ] Ensure `Marker.resetAnimationProperties()` uses `resetScalingProperties()` (encapsulated)
+-   [ ] Ensure `Scalable.resetScalingProperties()` calls `onChangeDetection('scaling')`
+-   [ ] Verify animation tests pass (especially mid-animation snapshots)
+
+---
+
 ### 13. Skip Datum ID Computation When Animation Disabled
 
 **Problem**: The `updateDatumSelection()` method computes datum IDs via `getDatumId()` for every node to enable animated transitions between data states. When animation is disabled (common for high-frequency updates), this ID computation and lookup overhead is wasted.
@@ -1588,13 +1738,134 @@ private createNodeDatumContext(...): RangeBarSeriesNodeDatumContext {
 
 ---
 
-### Area Series
+### LineSeries
 
-**Focus areas**:
+**Current state** (optimizations applied):
 
--   Path point accumulation (avoid array reallocations)
--   Marker node updates (similar to bar nodes)
--   Context caching for fill/stroke coordinate calculations
+-   ✅ Uses `@DeclaredSceneChangeDetection()` decorators with `declare __fieldName` backing fields on Marker class
+-   ✅ Has context object caching (`LineSeriesDatumContext`)
+-   ✅ Has scratch object pattern (`LineNodeDatumScratch`)
+-   ✅ Has deferred aggregation computation via `AggregationManager`
+-   ✅ Has `createNodeData()` decomposition with `handleDatum()` method
+-   ✅ Overrides `resetDatumAnimation()` with `resetMarkerSelectionsDirect()` (marker animation hotspot fix)
+-   ✅ Marker class has `resetAnimationProperties()` for direct backing field writes
+-   ✅ Uses `resetScalingProperties()` to properly trigger transform matrix recalculation
+
+**Key implementation details**:
+
+1. **Marker transform handling** - Markers use `Scalable` mixin which requires special care:
+
+    ```typescript
+    // In Marker.resetAnimationProperties()
+    this.__x = x;
+    this.__y = y;
+    this.__size = size;
+    this.__opacity = opacity;
+    // Use encapsulated method that triggers onChangeDetection()
+    this.resetScalingProperties(scalingX, scalingY, x, y);
+    this.dirtyPath = true;
+    this.markDirty();
+    ```
+
+2. **Size preservation** - Original `resetMotion` behavior doesn't reset marker size, so `resetMarkerSelectionsDirect` must preserve `node.size`:
+
+    ```typescript
+    node.resetAnimationProperties(x, y, node.size, 1, 1, 1); // NOT datum.point.size
+    ```
+
+**Reference files**:
+
+-   `packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/lineUtil.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/markerUtil.ts`
+-   `packages/ag-charts-community/src/chart/marker/marker.ts`
+-   `packages/ag-charts-community/src/scene/transformable.ts`
+
+---
+
+### AreaSeries
+
+**Current state** (optimizations applied):
+
+-   ✅ Uses `setStyleProperties()` from Shape
+-   ✅ Has context object caching (`AreaSeriesCreateNodeDatumContext`)
+-   ✅ Has scratch object pattern (`AreaNodeDatumScratch`)
+-   ✅ Has `createNodeData()` decomposition (`createNodeDatumContext()`, `handleDatum()`, `computeMarkerCoordinate()`)
+-   ✅ Has incremental node updates (reuses existing marker data when structure unchanged)
+-   ✅ Overrides `resetDatumAnimation()` with `resetMarkerSelectionsDirect()` (marker animation hotspot fix)
+-   ✅ Overrides `updateDatumSelection()` to skip datum ID computation when animation disabled
+-   ✅ Skips label formatting when labels disabled (`ctx.labelsEnabled` check)
+-   ✅ Has deferred aggregation computation via `AggregationManager`
+-   ✅ Has partial aggregation function (`aggregateAreaDataFromDataModelPartial()`)
+
+**Key architectural differences from LineSeries**:
+
+1. **Stacking support**: AreaSeries has stacking via `seriesBelowStackContext`, similar to BarSeries
+2. **Dual paths**: Fill path + stroke path + phantom spans (for area fill closure)
+3. **Span generation lifecycle**: Spans are generated in `createStackContext()`, separate from `createNodeData()`
+4. **Full TypedArray aggregation**: All aggregation arrays use TypedArrays (`indices`, `metaIndices`, `indexData`, `valueData`)
+
+**Area-specific considerations**:
+
+-   **Phantom spans**: Define the "bottom" of the area fill, MUST be synchronized with fill spans
+-   **metaIndices**: Track aggregation bucket boundaries for proper fill path closure in `plotAreaPathFill()`
+-   **Stack context lifecycle**: `createStackContext()` runs BEFORE `createNodeData()`, so span arrays (`fillSpans`, `strokeSpans`, `phantomSpans`) are already populated
+-   **Full TypedArray reuse**: All filter arrays use TypedArrays (`Uint32Array` for `indices`, `metaIndices`, `indexData`; `Float64Array` for `valueData`)
+-   **Two-pass approach for indices/metaIndices**: Since these are built incrementally, uses count-then-populate pattern to enable TypedArray reuse
+
+**Key implementation pattern - two-pass for indices with reuse**:
+
+```typescript
+// In buildIndicesFromAggregation():
+function buildIndicesFromAggregation(
+    xValues,
+    d0,
+    d1,
+    indexData,
+    maxRange,
+    xNeedsValueOf,
+    xValuesLength,
+    reuseIndices?: Uint32Array,
+    reuseMetaIndices?: Uint32Array
+): { indices: Uint32Array; metaIndices: Uint32Array } {
+    // First pass: count indices and metaIndices
+    let indicesCount = 0;
+    let metaIndicesCount = 0;
+    let currentGroup = -1;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+        if (group === -1) continue;
+
+        indicesCount++;
+        if (group !== currentGroup) {
+            metaIndicesCount++;
+            currentGroup = group;
+        }
+    }
+    metaIndicesCount++; // For final closing index
+
+    // Allocate or reuse TypedArrays
+    const indices = reuseIndices?.length === indicesCount ? reuseIndices : new Uint32Array(indicesCount);
+    const metaIndices =
+        reuseMetaIndices?.length === metaIndicesCount ? reuseMetaIndices : new Uint32Array(metaIndicesCount);
+
+    // Second pass: populate arrays
+    // ... (same iteration, now populating instead of counting)
+
+    return { indices, metaIndices };
+}
+```
+
+**Reference files**:
+
+-   `packages/ag-charts-community/src/chart/series/cartesian/areaSeries.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/areaAggregation.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/areaUtil.ts`
+-   `packages/ag-charts-community/src/chart/series/cartesian/markerUtil.ts`
+
+---
 
 ### Histogram Series
 
@@ -1659,6 +1930,12 @@ Key metrics to track:
     - If you only store `indexData`, you can't reuse arrays during compaction
     - Both `indexData` AND `valueData` must be stored and passed for full reuse
 
+6a. **Verify `existingFilters` is actually being used**
+
+    - It's easy to add `existingFilters` to the parameter list but forget to pass it to the actual aggregation functions
+    - Check that `existingFilters` is passed to both `createAggregationIndices()` (via `reuseIndexData`/`reuseValueData`) AND `compactAggregationIndices()`
+    - Don't just mark it `void existingFilters` - trace the parameter through all aggregation paths
+
 7. **Don't default `xNeedsValueOf`/`yNeedsValueOf` to `true`**
 
     - Use `dataModel.resolveColumnNeedsValueOf()` to detect actual need
@@ -1669,43 +1946,81 @@ Key metrics to track:
     - Functions like `getMidpoints()` should accept optional reuse parameters
     - Check array size matches before reusing: `reuse && reuse.length === required`
 
+9. **Transform matrix dirty flag for Scalable/Rotatable/Translatable mixins**
+
+    - When bypassing decorators to write to `__scalingX`, `__scalingY`, etc., you MUST call `onChangeDetection()` afterward
+    - The `MatrixTransformInternal` class uses `_dirtyTransform` flag which is only set by `onChangeDetection()`
+    - Without this, `computeTransformMatrix()` will early-exit and the transform matrix won't be recalculated
+    - Symptom: incorrect marker/node positioning during animations (visible in snapshot tests)
+    - Solution: Encapsulate the reset in a method like `resetScalingProperties()` that calls `this.onChangeDetection('scaling')` after writing backing fields
+
+10. **Match original reset behavior when creating direct reset functions**
+
+    - When replacing `resetMotion(selections, callback)` with a direct reset function, ensure you reset the **same properties** in the **same way**
+    - Example: The original `resetMarkerFn` + `resetMarkerPositionFn` does NOT reset marker `size`, so `resetMarkerSelectionsDirect` must preserve `node.size`
+    - Check the `animationResetFns.datum` callback to see exactly what properties are being reset
+    - Mismatched behavior causes subtle animation bugs visible in mid-animation snapshot tests
+
+11. **Prefer TypedArrays with two-pass approach over regular arrays with push()**
+
+    - When building index arrays incrementally, use a two-pass approach instead of `push()`:
+        - First pass: count how many elements will be added
+        - Second pass: allocate correctly-sized TypedArray and populate it
+    - This enables TypedArray reuse (if sizes match) and reduces GC pressure
+    - Example: LineSeries and AreaSeries both use `Uint32Array` for `indices` and `metaIndices`
+    - The extra pass is negligible compared to allocation savings in high-frequency updates
+
 ---
 
 ## Quick Reference
 
 When implementing these optimizations, always refer to the BarSeries implementation as the canonical example:
 
-| Pattern              | Reference File                        | Key Methods/Patterns                                         |
-| -------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| Context Caching      | `barSeries.ts`                        | `createNodeDatumContext()`, `BarSeriesNodeDatumContext`      |
-| Scratch Objects      | `barSeries.ts`                        | `NodeDatumParams`, `PreparedBarNodeDatumState`               |
-| Backing Fields       | `shape.ts`, `barShape.ts`             | `declare __fieldName`, `setStyleProperties()`                |
-| Static Properties    | `barShape.ts`, `rect.ts`              | `setStaticProperties()`                                      |
-| Incremental Updates  | `barSeries.ts`                        | `upsertNodeDatum()`, `updateNodeDatum()`                     |
-| Decomposition        | `barSeries.ts`                        | `createNodeDataSimple()`, `createNodeDataWithAggregation()`  |
-| Deferred Aggregation | `barSeries.ts`, `deferredExecutor.ts` | `DeferredExecutor`, `aggregateBarDataFromDataModelPartial()` |
-| Data Aggregation     | `barAggregation.ts`                   | Aggregation filter patterns                                  |
-| TypedArray Reuse     | `barAggregation.ts`                   | `reuseIndexData`, `reuseValueData`, custom compaction loop   |
-| Shared Midpoints     | `aggregation.ts`                      | `getMidpointsForIndices()` - shared helper for all series    |
-| ValueOf Detection    | `barAggregation.ts`                   | `dataModel.resolveColumnNeedsValueOf()`, `xNeedsValueOf`     |
-| Animation Reset      | `barSeries.ts`, `barUtil.ts`          | `resetDatumAnimation()`, `resetBarSelectionsDirect()`        |
-| Datum ID Skip        | `barSeries.ts`, `rangeBarSeries.ts`   | `updateDatumSelection()`, `animationManager.isSkipped()`     |
-| Label Skip           | `barSeries.ts`, `rangeBarSeries.ts`   | `ctx.label.enabled`, early return in `updateLabelData()`     |
+| Pattern              | Reference File                             | Key Methods/Patterns                                          |
+| -------------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| Context Caching      | `barSeries.ts`                             | `createNodeDatumContext()`, `BarSeriesNodeDatumContext`       |
+| Scratch Objects      | `barSeries.ts`                             | `NodeDatumParams`, `PreparedBarNodeDatumState`                |
+| Backing Fields       | `shape.ts`, `barShape.ts`                  | `declare __fieldName`, `setStyleProperties()`                 |
+| Static Properties    | `barShape.ts`, `rect.ts`                   | `setStaticProperties()`                                       |
+| Incremental Updates  | `barSeries.ts`                             | `upsertNodeDatum()`, `updateNodeDatum()`                      |
+| Decomposition        | `barSeries.ts`                             | `createNodeDataSimple()`, `createNodeDataWithAggregation()`   |
+| Deferred Aggregation | `barSeries.ts`, `deferredExecutor.ts`      | `DeferredExecutor`, `aggregateBarDataFromDataModelPartial()`  |
+| Data Aggregation     | `barAggregation.ts`                        | Aggregation filter patterns                                   |
+| TypedArray Reuse     | `barAggregation.ts`                        | `reuseIndexData`, `reuseValueData`, custom compaction loop    |
+| Two-Pass Indices     | `lineAggregation.ts`, `areaAggregation.ts` | Count-then-populate for TypedArray `indices`/`metaIndices`    |
+| Shared Midpoints     | `aggregation.ts`                           | `getMidpointsForIndices()` - shared helper for all series     |
+| ValueOf Detection    | `barAggregation.ts`                        | `dataModel.resolveColumnNeedsValueOf()`, `xNeedsValueOf`      |
+| Animation Reset      | `barSeries.ts`, `barUtil.ts`               | `resetDatumAnimation()`, `resetBarSelectionsDirect()`         |
+| Marker Reset         | `lineSeries.ts`, `markerUtil.ts`           | `resetMarkerSelectionsDirect()`, `resetAnimationProperties()` |
+| Transform Reset      | `transformable.ts`, `marker.ts`            | `resetScalingProperties()`, `onChangeDetection()`             |
+| Datum ID Skip        | `barSeries.ts`, `rangeBarSeries.ts`        | `updateDatumSelection()`, `animationManager.isSkipped()`      |
+| Label Skip           | `barSeries.ts`, `rangeBarSeries.ts`        | `ctx.label.enabled`, early return in `updateLabelData()`      |
 
 **File locations**:
 
 ```
 packages/ag-charts-community/src/
-├── chart/series/
-│   ├── aggregation.ts            # Shared aggregation helpers (getMidpointsForIndices)
-│   └── cartesian/
-│       ├── barSeries.ts          # Main reference implementation
-│       ├── barAggregation.ts     # Bar-specific aggregation utilities
-│       └── barUtil.ts            # resetBarSelectionsDirect(), animation helpers
-├── scene/shape/
-│   ├── shape.ts                  # Base shape with setStyleProperties()
-│   ├── rect.ts                   # Rect with backing fields
-│   └── barShape.ts               # BarShape with setStaticProperties()
+├── chart/
+│   ├── marker/
+│   │   └── marker.ts             # Marker with resetAnimationProperties()
+│   └── series/
+│       ├── aggregation.ts        # Shared aggregation helpers (getMidpointsForIndices)
+│       └── cartesian/
+│           ├── barSeries.ts      # Main reference implementation
+│           ├── barAggregation.ts # Bar-specific aggregation utilities
+│           ├── barUtil.ts        # resetBarSelectionsDirect(), animation helpers
+│           ├── lineSeries.ts     # LineSeries with marker reset override
+│           ├── lineAggregation.ts # Line aggregation with two-pass indices
+│           ├── lineUtil.ts       # Line-specific utilities
+│           ├── areaSeries.ts     # AreaSeries with marker reset override
+│           ├── areaAggregation.ts # Area aggregation with two-pass indices/metaIndices
+│           └── markerUtil.ts     # resetMarkerSelectionsDirect(), marker helpers
+├── scene/
+│   ├── transformable.ts          # Scalable/Rotatable/Translatable mixins, resetScalingProperties()
+│   └── shape/
+│       ├── shape.ts              # Base shape with setStyleProperties()
+│       ├── rect.ts               # Rect with backing fields
+│       └── barShape.ts           # BarShape with setStaticProperties()
 ├── motion/
 │   └── resetMotion.ts            # Base resetMotion (slower, callback-based)
 └── util/

@@ -18,7 +18,14 @@ import type {
 } from 'ag-charts-core';
 import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
-import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaDataFromDataModel } from './rangeAreaAggregation';
+import {
+    HIGH,
+    LOW,
+    type RangeAreaSeriesDataAggregationFilter,
+    SPAN,
+    aggregateRangeAreaDataFromDataModel,
+    aggregateRangeAreaDataFromDataModelPartial,
+} from './rangeAreaAggregation';
 import { calculateIntersectionSegments, findRangeAreaIntersections } from './rangeAreaIntersection';
 import { type RangeAreaMarkerDatum, RangeAreaProperties, type RangeAreaSeriesParams } from './rangeAreaProperties';
 import {
@@ -62,6 +69,11 @@ const {
     calculateSegments,
     toHighlightString,
     HighlightState,
+    AggregationManager,
+    resetMarkerSelectionsDirect,
+    AGGREGATION_INDEX_UNSET,
+    createDatumId,
+    visibleRangeIndices,
 } = _ModuleSupport;
 
 type ResolvedLineStyleMixin = {
@@ -78,6 +90,65 @@ type ResolvedStyleMixin = {
 type PartialStylerResult = AgRangeAreaSeriesStyle & { opacity?: number };
 type StylerResult = DeepRequired<PartialStylerResult, 'fill'> & { topLevel: Required<AgRangeAreaSeriesLineStyle> };
 type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
+
+/**
+ * Context object for efficient node datum creation.
+ * Caches expensive-to-compute values that are reused across all datum iterations.
+ */
+interface RangeAreaSeriesNodeDatumContext {
+    // Data arrays (from dataModel - cache once)
+    readonly rawData: any[];
+    readonly xValues: any[];
+    readonly yHighValues: any[];
+    readonly yLowValues: any[];
+
+    // Scales (from axes - cache once)
+    readonly xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] };
+    readonly yScale: { convert: (v: any) => number };
+
+    // Axis range for visible range filtering
+    readonly xAxisRange: [number, number];
+
+    // Pre-computed offsets
+    readonly xOffset: number;
+
+    // Aggregation (using shared ExtremesAggregationFilter)
+    readonly dataAggregationFilter: RangeAreaSeriesDataAggregationFilter | undefined;
+    readonly range: number;
+
+    // Pre-computed flags
+    readonly labelsEnabled: boolean;
+    readonly canIncrementallyUpdate: boolean;
+
+    // Property caches
+    readonly xKey: string;
+    readonly yLowKey: string;
+    readonly yHighKey: string;
+    readonly item: RangeAreaProperties['item'];
+    readonly yDomain: any[];
+    readonly connectMissingData: boolean;
+    readonly interpolation: RangeAreaProperties['interpolation'];
+
+    // Mutable state for building node data
+    markerData: RangeAreaMarkerDatum[];
+    labelData: RangeAreaLabelDatum[];
+    spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }>;
+    nodeIndex: number;
+}
+
+/**
+ * Scratch object for per-datum processing to avoid allocations per iteration.
+ */
+interface RangeAreaNodeDatumScratch {
+    datum: any;
+    xValue: any;
+    yHighValue: number;
+    yLowValue: number;
+    x: number;
+    yHighCoordinate: number;
+    yLowCoordinate: number;
+    inverted: boolean;
+}
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -119,7 +190,7 @@ export class RangeAreaSeries extends BaseSeries {
 
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
-    private dataAggregationFilters: RangeAreaSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -168,7 +239,7 @@ export class RangeAreaSeries extends BaseSeries {
             ],
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -176,21 +247,90 @@ export class RangeAreaSeries extends BaseSeries {
     private aggregateData(
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
-    ) {
+    ): void {
+        this.aggregationManager.markStale();
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        return aggregateRangeAreaDataFromDataModel(
-            xAxis.scale.type,
-            dataModel,
-            processedData,
-            'yHighValue',
-            'yLowValue',
-            this
-        );
+        const targetRange = this.estimateTargetRange();
+
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateRangeAreaDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateRangeAreaDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+            targetRange,
+        });
+    }
+
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale?.range) {
+            const [r0, r1] = xAxis.scale.range;
+            return Math.abs(r1 - r0);
+        }
+        return this.ctx.scene?.canvas?.width ?? 800;
+    }
+
+    /**
+     * Creates the context object for efficient node datum creation.
+     * Caches expensive-to-compute values that are reused across all datum iterations.
+     */
+    private createNodeDatumContext(
+        xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] },
+        yScale: { convert: (v: any) => number },
+        xAxisRange: [number, number]
+    ): RangeAreaSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
+
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const existingMarkerData = this.contextNodeData?.nodeData;
+        const canIncrementallyUpdate = processedData.changeDescription != null && existingMarkerData != null;
+
+        return {
+            rawData,
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            yHighValues: dataModel.resolveColumnById(this, 'yHighValue', processedData),
+            yLowValues: dataModel.resolveColumnById(this, 'yLowValue', processedData),
+            xScale,
+            yScale,
+            xAxisRange,
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+            dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
+            range,
+            labelsEnabled: this.properties.label.enabled,
+            canIncrementallyUpdate,
+            xKey: this.properties.xKey,
+            yLowKey: this.properties.yLowKey,
+            yHighKey: this.properties.yHighKey,
+            item: this.properties.item,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            connectMissingData: this.properties.connectMissingData,
+            interpolation: this.properties.interpolation,
+            markerData: canIncrementallyUpdate ? existingMarkerData : [],
+            labelData: [],
+            spanPoints: [],
+            nodeIndex: 0,
+        };
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -230,140 +370,228 @@ export class RangeAreaSeries extends BaseSeries {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
+    /**
+     * Processes a single datum and updates the context's marker, label, and span arrays.
+     * Uses the scratch object to avoid per-iteration allocations.
+     *
+     * @param yHighValueOverride - Optional override for yHighValue, used in aggregation mode
+     *                             when the extreme values come from different data points
+     * @param yLowValueOverride - Optional override for yLowValue, used in aggregation mode
+     */
+    private handleDatumPoint(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        scratch: RangeAreaNodeDatumScratch,
+        datumIndex: number,
+        yHighValueOverride?: number,
+        yLowValueOverride?: number
+    ): void {
+        scratch.xValue = ctx.xValues[datumIndex];
+        if (scratch.xValue == null) return;
+
+        scratch.datum = ctx.rawData[datumIndex];
+        scratch.yHighValue = yHighValueOverride ?? ctx.yHighValues[datumIndex];
+        scratch.yLowValue = yLowValueOverride ?? ctx.yLowValues[datumIndex];
+
+        const currentSpanPoints = ctx.spanPoints.at(-1);
+
+        if (Number.isFinite(scratch.yHighValue) && Number.isFinite(scratch.yLowValue)) {
+            scratch.inverted = scratch.yLowValue > scratch.yHighValue;
+            scratch.x = ctx.xScale.convert(scratch.xValue) + ctx.xOffset;
+            scratch.yHighCoordinate = ctx.yScale.convert(scratch.yHighValue);
+            scratch.yLowCoordinate = ctx.yScale.convert(scratch.yLowValue);
+
+            // Create/update marker and label data for high boundary
+            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'high', scratch.yHighValue, scratch.yHighCoordinate);
+            // Create/update marker and label data for low boundary
+            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'low', scratch.yLowValue, scratch.yLowCoordinate);
+
+            // Update span points for path rendering
+            const spanPoint: RangeAreaSpanPointDatum = {
+                high: {
+                    point: { x: scratch.x, y: scratch.yHighCoordinate },
+                    xDatum: scratch.xValue,
+                    yDatum: scratch.yHighValue,
+                },
+                low: {
+                    point: { x: scratch.x, y: scratch.yLowCoordinate },
+                    xDatum: scratch.xValue,
+                    yDatum: scratch.yLowValue,
+                },
+            };
+
+            if (Array.isArray(currentSpanPoints)) {
+                currentSpanPoints.push(spanPoint);
+            } else if (currentSpanPoints == null) {
+                ctx.spanPoints.push([spanPoint]);
+            } else {
+                currentSpanPoints.skip += 1;
+                ctx.spanPoints.push([spanPoint]);
+            }
+        } else if (!ctx.connectMissingData) {
+            if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+                ctx.spanPoints.push({ skip: 0 });
+            } else {
+                currentSpanPoints.skip += 1;
+            }
+        }
+    }
+
+    /**
+     * Creates or updates marker datum for a single boundary (high or low).
+     * Supports incremental updates by reusing existing marker data objects when possible.
+     */
+    private upsertMarkerDatum(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        scratch: RangeAreaNodeDatumScratch,
+        datumIndex: number,
+        itemType: 'high' | 'low',
+        yValue: number,
+        y: number
+    ): void {
+        const { size } = ctx.item[itemType].marker;
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length;
+
+        if (canReuseNode) {
+            // Update existing marker datum in place to avoid allocation
+            const existingNode = ctx.markerData[ctx.nodeIndex] as {
+                -readonly [K in keyof RangeAreaMarkerDatum]: RangeAreaMarkerDatum[K];
+            };
+            existingNode.index = datumIndex;
+            existingNode.itemType = itemType;
+            existingNode.datum = scratch.datum;
+            existingNode.datumIndex = datumIndex;
+            existingNode.midPoint = { x: scratch.x, y };
+            existingNode.yHighValue = scratch.yHighValue;
+            existingNode.yLowValue = scratch.yLowValue;
+            existingNode.xValue = scratch.xValue;
+            existingNode.point = { x: scratch.x, y, size };
+        } else {
+            ctx.markerData.push({
+                index: datumIndex,
+                series: this,
+                itemType,
+                datum: scratch.datum,
+                datumIndex,
+                midPoint: { x: scratch.x, y },
+                yHighValue: scratch.yHighValue,
+                yLowValue: scratch.yLowValue,
+                xValue: scratch.xValue,
+                xKey: ctx.xKey,
+                yLowKey: ctx.yLowKey,
+                yHighKey: ctx.yHighKey,
+                point: { x: scratch.x, y, size },
+                enabled: true,
+            });
+        }
+        ctx.nodeIndex++;
+
+        // Skip label creation if labels are disabled
+        if (ctx.labelsEnabled) {
+            const labelDatum = this.createLabelData({
+                datumIndex,
+                point: { x: scratch.x, y },
+                value: yValue,
+                yLowValue: scratch.yLowValue,
+                yHighValue: scratch.yHighValue,
+                itemType,
+                inverted: scratch.inverted,
+                datum: scratch.datum,
+                series: this,
+            });
+            ctx.labelData.push(labelDatum);
+        }
+    }
+
     override createNodeData() {
-        const { data, dataModel, processedData, axes } = this;
+        const { data, processedData, axes } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && xAxis && yAxis && dataModel && processedData && this.chart?.seriesRect)) return;
+        if (!(data && xAxis && yAxis && processedData && this.chart?.seriesRect)) return;
 
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
+        // Create context with all cached values
+        const ctx = this.createNodeDatumContext(xAxis.scale, yAxis.scale, xAxis.range);
+        if (!ctx) return;
 
-        const { xKey, yLowKey, yHighKey, connectMissingData, interpolation, fill, fillOpacity, item } = this.properties;
-        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yHighValues = dataModel.resolveColumnById(this, 'yHighValue', processedData);
-        const yLowValues = dataModel.resolveColumnById(this, 'yLowValue', processedData);
-
-        const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
-
-        const labelData: RangeAreaLabelDatum[] = [];
-        const markerData: RangeAreaMarkerDatum[] = [];
-        const spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }> = [];
-
-        const handleDatumPoint = (datumIndex: number, yHighValue: number, yLowValue: number) => {
-            const datum = rawData[datumIndex];
-            const xValue = xValues[datumIndex];
-            if (xValue == null) return;
-
-            const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined = spanPoints.at(-1);
-            if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
-                const appendMarker = (itemType: 'high' | 'low', yValue: any, y: number) => {
-                    const { size } = item[itemType].marker;
-                    markerData.push({
-                        index: datumIndex,
-                        series: this,
-                        itemType,
-                        datum,
-                        datumIndex,
-                        midPoint: { x, y },
-                        yHighValue,
-                        yLowValue,
-                        xValue,
-                        xKey,
-                        yLowKey,
-                        yHighKey,
-                        point: { x, y, size },
-                        enabled: true,
-                    });
-                    const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
-                        datumIndex,
-                        point: { x, y },
-                        value: yValue,
-                        yLowValue,
-                        yHighValue,
-                        itemType,
-                        inverted,
-                        datum,
-                        series: this,
-                    });
-                    labelData.push(highLabelDatum);
-                };
-
-                const inverted = yLowValue > yHighValue;
-                const x = xPosition(datumIndex);
-                const yHighCoordinate = yScale.convert(yHighValue);
-                const yLowCoordinate = yScale.convert(yLowValue);
-
-                appendMarker('high', yHighValue, yHighCoordinate);
-                appendMarker('low', yLowValue, yLowCoordinate);
-
-                const spanPoint: RangeAreaSpanPointDatum = {
-                    high: {
-                        point: { x, y: yHighCoordinate },
-                        xDatum: xValue,
-                        yDatum: yHighValue,
-                    },
-                    low: {
-                        point: { x, y: yLowCoordinate },
-                        xDatum: xValue,
-                        yDatum: yLowValue,
-                    },
-                };
-
-                if (Array.isArray(currentSpanPoints)) {
-                    currentSpanPoints.push(spanPoint);
-                } else if (currentSpanPoints == null) {
-                    spanPoints.push([spanPoint]);
-                } else {
-                    currentSpanPoints.skip += 1;
-                    spanPoints.push([spanPoint]);
-                }
-            } else if (!connectMissingData) {
-                if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
-                    spanPoints.push({ skip: 0 });
-                } else {
-                    currentSpanPoints.skip += 1;
-                }
-            }
+        // Reusable scratch object to avoid per-datum allocations
+        const scratch: RangeAreaNodeDatumScratch = {
+            datum: undefined,
+            xValue: undefined,
+            yHighValue: 0,
+            yLowValue: 0,
+            x: 0,
+            yHighCoordinate: 0,
+            yLowCoordinate: 0,
+            inverted: false,
         };
 
-        const { dataAggregationFilters } = this;
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
+        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
 
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
-        const topIndices = dataAggregationFilter?.topIndices;
-        const bottomIndices = dataAggregationFilter?.bottomIndices;
-
-        let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, topIndices);
-        start = Math.max(start - 1, 0);
-        end = Math.min(end + 1, topIndices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
-            start = 0;
-            end = processedData.input.count;
-        }
-        for (let i = start; i < end; i += 1) {
-            const topDatumIndex = topIndices?.[i] ?? i;
-            const bottomDatumIndex = bottomIndices?.[i] ?? i;
-            handleDatumPoint(topDatumIndex, yHighValues[topDatumIndex], yLowValues[bottomDatumIndex]);
+        if (processedData.input.count < 1e3 || ctx.dataAggregationFilter == null) {
+            // No aggregation - iterate only visible data points
+            let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
+                const x = xPosition(index);
+                return [x, x];
+            });
+            // @todo(AG-13575) Remove this if block
+            if (processedData.input.count < 1e3) {
+                start = 0;
+                end = processedData.input.count;
+            }
+            // Expand range by 1 on each side to ensure line continuity at edges
+            start = Math.max(start - 1, 0);
+            end = Math.min(end + 1, ctx.xValues.length);
+
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                this.handleDatumPoint(ctx, scratch, datumIndex);
+            }
+        } else {
+            // With aggregation - iterate only visible buckets
+            const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
+
+            const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
+                const midDatumIndex = midpointIndices[index];
+                if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
+                return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
+            });
+
+            for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
+                const midIndex = midpointIndices[bucketIndex];
+                if (midIndex === AGGREGATION_INDEX_UNSET) continue; // Empty bucket
+
+                const aggIndex = bucketIndex * SPAN;
+                const yHighDatumIndex = indexData[aggIndex + HIGH];
+                const yLowDatumIndex = indexData[aggIndex + LOW];
+
+                // Use high index for position (x coordinate), but get extreme values from respective datums
+                // In aggregated mode, the yHigh and yLow extrema may come from DIFFERENT data points in the bucket
+                this.handleDatumPoint(
+                    ctx,
+                    scratch,
+                    yHighDatumIndex,
+                    ctx.yHighValues[yHighDatumIndex],
+                    ctx.yLowValues[yLowDatumIndex]
+                );
+            }
         }
 
-        const highSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
+        // Cleanup incremental updates - trim markerData if fewer nodes than before
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
+            ctx.markerData.length = ctx.nodeIndex;
+        }
+
+        // Build path spans from span points
+        const highSpans = ctx.spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
             if (!Array.isArray(p)) return [];
             const highPoints = p.map((d) => d.high);
-            return interpolatePoints(highPoints, interpolation);
+            return interpolatePoints(highPoints, ctx.interpolation);
         });
-        const lowSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
+        const lowSpans = ctx.spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
             if (!Array.isArray(p)) return [];
             const lowPoints = p.map((d) => d.low);
-            return interpolatePoints(lowPoints, interpolation);
+            return interpolatePoints(lowPoints, ctx.interpolation);
         });
 
         const segments = calculateSegments(
@@ -377,12 +605,12 @@ export class RangeAreaSeries extends BaseSeries {
 
         let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
         if (this.properties.invertedStyle.enabled) {
-            const startsInverted = yHighValues[0] < yLowValues[0];
+            const startsInverted = ctx.yHighValues[0] < ctx.yLowValues[0];
             const intersectionXValues = findRangeAreaIntersections(
                 highSpans,
                 lowSpans,
-                xScale.range[0],
-                xScale.range[1],
+                ctx.xScale.range[0],
+                ctx.xScale.range[1],
                 startsInverted
             );
             intersectionSegments = calculateIntersectionSegments(
@@ -394,6 +622,7 @@ export class RangeAreaSeries extends BaseSeries {
             );
         }
 
+        const { fill, fillOpacity, item } = this.properties;
         const getLowOrHighMarkerStyles = (lowOrHigh: 'low' | 'high') => {
             const line = item[lowOrHigh];
             const { stroke, strokeWidth, strokeOpacity } = line;
@@ -402,9 +631,9 @@ export class RangeAreaSeries extends BaseSeries {
         };
 
         const context: RangeAreaContext = {
-            itemId: `${yLowKey}-${yHighKey}`,
-            labelData,
-            nodeData: markerData,
+            itemId: `${ctx.yLowKey}-${ctx.yHighKey}`,
+            labelData: ctx.labelData,
+            nodeData: ctx.markerData,
             fillData: { itemType: 'high', spans: highSpans, phantomSpans: lowSpans },
             highStrokeData: { itemType: 'high', spans: highSpans },
             lowStrokeData: { itemType: 'low', spans: lowSpans },
@@ -601,6 +830,18 @@ export class RangeAreaSeries extends BaseSeries {
         highStroke.markDirty('RangeArea');
     }
 
+    protected override resetDatumAnimation(
+        data: _ModuleSupport.CartesianAnimationData<
+            _ModuleSupport.Marker,
+            RangeAreaMarkerDatum,
+            RangeAreaLabelDatum,
+            RangeAreaContext
+        >
+    ): void {
+        // Use direct reset for datum selection to bypass resetMotion callback overhead
+        resetMarkerSelectionsDirect([data.datumSelection]);
+    }
+
     protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
@@ -639,7 +880,16 @@ export class RangeAreaSeries extends BaseSeries {
             // No marker whatsoever.
             resolvedNodeData = [];
         }
-        return datumSelection.update(resolvedNodeData);
+
+        // Skip datum ID computation when animation is disabled for faster updates
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        if (!animationEnabled) {
+            return datumSelection.update(resolvedNodeData);
+        }
+        // Use xValue + itemType as unique ID since there are two markers per data point
+        return datumSelection.update(resolvedNodeData, undefined, (datum) =>
+            createDatumId(datum.xValue, datum.itemType)
+        );
     }
 
     protected override updateDatumStyles({
