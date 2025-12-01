@@ -76,7 +76,6 @@ export const barIgnoredMiniChartProperties: BarIgnoredProperties[] = [
     'errorBar',
     'label',
     'legendItemName',
-    'direction',
 ];
 export const boxPlotIngnoredMiniChartProperties: BoxPlotIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
