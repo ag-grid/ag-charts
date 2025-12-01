@@ -32,7 +32,6 @@ import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { ProcessedData } from '../../data/dataModel';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -206,13 +205,6 @@ export abstract class CartesianSeries<
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
-    private domainCache?: {
-        processedDataRef: ProcessedData<any> | undefined;
-        processedDataVersion: number | undefined;
-        visibleRangeIndices: Map<string, [number, number]>;
-        domainForVisibleRange: Map<string, [number, number]>;
-    };
-
     protected animationState: StateMachine<
         CartesianAnimationState,
         CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
@@ -345,27 +337,6 @@ export abstract class CartesianSeries<
 
     override updatedDomains(): void {
         this.animationState.transition('updateData');
-    }
-
-    /** Gets the domain cache, creating a new one if processedData has changed. */
-    private getDomainCache() {
-        const { processedData } = this;
-
-        // Invalidate cache on reference change (new data) or version change (incremental update)
-        const currentVersion = processedData?.version;
-        if (
-            this.domainCache?.processedDataRef !== processedData ||
-            this.domainCache?.processedDataVersion !== currentVersion
-        ) {
-            this.domainCache = {
-                processedDataRef: processedData,
-                processedDataVersion: currentVersion,
-                visibleRangeIndices: new Map(),
-                domainForVisibleRange: new Map(),
-            };
-        }
-
-        return this.domainCache;
     }
 
     protected attachPaths(paths: Path[]) {
@@ -843,20 +814,9 @@ export abstract class CartesianSeries<
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
-        // Only cache when indices are not provided (common zoom calculation case)
-        const cache = indices == null ? this.getDomainCache() : undefined;
-        // Cache key includes the axis visibleRange (zoom ratio) which changes when zooming.
-        // This is distinct from the visibleRange parameter (pixel coordinates) and scale properties.
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const axisVisibleRange = xAxis?.visibleRange;
-        const cacheKey = cache
-            ? `${axisKey}:${+visibleRange[0]}:${+visibleRange[1]}:${axisVisibleRange?.[0]}:${axisVisibleRange?.[1]}`
-            : undefined;
-
-        if (cacheKey && cache) {
-            const cached = cache.visibleRangeIndices.get(cacheKey);
-            if (cached) return cached;
-        }
+        // TODO(AG-16074): Caching disabled due to issues with zoom/axis state changes.
+        // The cache key needs to capture all state that affects xCoordinateRange() results,
+        // but determining the complete set of dependencies is complex. Revisit for optimization.
 
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
@@ -879,13 +839,7 @@ export abstract class CartesianSeries<
             }
         );
 
-        const result: [number, number] = start < end ? [start, end] : [end, start];
-
-        if (cacheKey && cache) {
-            cache.visibleRangeIndices.set(cacheKey, result);
-        }
-
-        return result;
+        return start < end ? [start, end] : [end, start];
     }
 
     protected domainForVisibleRange(
@@ -895,27 +849,15 @@ export abstract class CartesianSeries<
         visibleRange: [any, any],
         indices?: number[]
     ) {
-        // Only cache when indices are not provided (common zoom calculation case)
-        const cache = indices == null ? this.getDomainCache() : undefined;
-        // Cache key includes the axis visibleRange (zoom ratio) which changes when zooming.
-        // This is distinct from the visibleRange parameter (pixel coordinates) and scale properties.
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const axisVisibleRange = xAxis?.visibleRange;
-        const cacheKey = cache
-            ? `${axisKeys.join(',')}:${crossAxisKey}:${+visibleRange[0]}:${+visibleRange[1]}:${axisVisibleRange?.[0]}:${axisVisibleRange?.[1]}`
-            : undefined;
-
-        if (cacheKey && cache) {
-            const cached = cache.domainForVisibleRange.get(cacheKey);
-            if (cached) return cached;
-        }
+        // TODO(AG-16074): Caching disabled due to issues with zoom/axis state changes.
+        // The cache key needs to capture all state that affects xCoordinateRange() results,
+        // but determining the complete set of dependencies is complex. Revisit for optimization.
 
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
-        let result: [number, number];
         const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder == null) {
             const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
@@ -933,17 +875,11 @@ export abstract class CartesianSeries<
                 }
             }
 
-            result = axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
+            return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
         } else {
             const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
-            result = dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
+            return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
-
-        if (cacheKey && cache) {
-            cache.domainForVisibleRange.set(cacheKey, result);
-        }
-
-        return result;
     }
 
     protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
