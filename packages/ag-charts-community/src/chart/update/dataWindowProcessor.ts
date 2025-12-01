@@ -51,6 +51,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onUpdateComplete(event: UpdateCompleteEvent) {
         if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource) return;
+
+        // If the update was shortcut, skip the window update as we are expecting another update shortly.
+        if (event.wasShortcut) return;
+
         this.updateWindow(event);
     }
 

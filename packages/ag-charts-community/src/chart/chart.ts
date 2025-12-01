@@ -819,7 +819,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete(this.apiUpdate);
+            ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
