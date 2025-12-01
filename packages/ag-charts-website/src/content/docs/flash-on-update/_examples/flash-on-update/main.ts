@@ -13,7 +13,8 @@ import {
     FlashOnUpdateModule,
 } from 'ag-charts-enterprise';
 
-import { type DataType, getRandomizedData } from './data';
+import type { DataType } from './data';
+import { getRandomizedData } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -90,5 +91,6 @@ const options: AgCartesianChartOptions<DataType> = {
 const chart = AgCharts.create(options);
 
 function randomize() {
-    chart.updateDelta({ data: getRandomizedData() });
+    options.data = getRandomizedData();
+    chart.update(options);
 }
