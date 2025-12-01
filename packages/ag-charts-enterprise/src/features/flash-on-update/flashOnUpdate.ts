@@ -42,11 +42,11 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private onDataChange(): void {
         if (!this.enabled) return;
 
-        const chartEl = this.ctx.widgets.chartWidget.getElement();
+        const containerEl = this.ctx.widgets.containerWidget.getElement();
 
         const { flashDuration, fadeDuration } = this;
         const duration = flashDuration + fadeDuration;
-        chartEl.animate(
+        containerEl.animate(
             [
                 { background: this.color, offset: 0 },
                 { background: this.color, offset: flashDuration / duration },
