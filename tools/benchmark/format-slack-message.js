@@ -82,8 +82,90 @@ function formatSection(data, headers, headerLabels) {
     return table;
 }
 
+function formatPercentageChange(pctChange) {
+    if (pctChange === null || pctChange === undefined) {
+        return 'N/A';
+    }
+    return `${pctChange > 0 ? '+' : ''}${pctChange}%`;
+}
+
+function formatFullSection(data, headers, headerLabels) {
+    // Include all rows (no truncation)
+    const rows = data;
+    const dataKeys = ['test', ...headers];
+    const labels = ['Test', ...(headerLabels || dataKeys)];
+
+    // Calculate column widths
+    const maxWidth = 80;
+    const padding = 2; // Space between columns
+    const colWidths = labels.map((h) => h.length);
+    for (const row of rows) {
+        if (Object.keys(row).length > 0) {
+            dataKeys.forEach((key, i) => {
+                let val;
+                // Format percentage changes properly
+                if (key === 'pctTimeChange' || key === 'pctMemoryChange') {
+                    val = formatPercentageChange(row[key]);
+                } else {
+                    val = String(row[key] ?? '');
+                }
+                colWidths[i] = Math.max(colWidths[i], val.length);
+            });
+        }
+    }
+
+    // Adjust first column width to fit within max width
+    const otherColsWidth = colWidths.slice(1).reduce((sum, w) => sum + w, 0);
+    const spacingWidth = (labels.length - 1) * padding;
+    const maxFirstColWidth = maxWidth - otherColsWidth - spacingWidth;
+    colWidths[0] = Math.min(colWidths[0], maxFirstColWidth);
+
+    // Create header row
+    let table =
+        labels
+            .map((h, i) => {
+                const text = i === 0 ? h.slice(0, colWidths[0]) : h;
+                return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
+            })
+            .join('  ') + '\n';
+    table += labels.map((_, i) => '='.repeat(colWidths[i])).join('==') + '\n';
+
+    // Create data rows
+    for (const row of rows) {
+        table +=
+            dataKeys
+                .map((key, i) => {
+                    let val;
+                    // Format percentage changes properly
+                    if (key === 'pctTimeChange' || key === 'pctMemoryChange') {
+                        val = formatPercentageChange(row[key]);
+                    } else {
+                        val = String(row[key] ?? '');
+                    }
+                    const text =
+                        i === 0 ? (val.length > colWidths[0] ? val.slice(0, colWidths[0] - 3) + '...' : val) : val;
+                    return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
+                })
+                .join('  ') + '\n';
+    }
+
+    return table;
+}
+
+// Count improvements and regressions
+const timeImprovements = rankedByTime.filter((r) => r.pctTimeChange < 0).length;
+const timeRegressions = rankedByTime.filter((r) => r.pctTimeChange > 0).length;
+const memoryImprovements = rankedByMemory.filter((r) => r.pctMemoryChange !== null && r.pctMemoryChange < 0).length;
+const memoryRegressions = rankedByMemory.filter((r) => r.pctMemoryChange !== null && r.pctMemoryChange > 0).length;
+
 const blocks = [
-    { type: 'section', text: { type: 'mrkdwn', text: `Benchmark results for \`${base}\` vs \`${compare}\`.` } },
+    {
+        type: 'section',
+        text: {
+            type: 'mrkdwn',
+            text: `Benchmark results for \`${base}\` vs \`${compare}\`.\nTiming: ${timeImprovements} improved, ${timeRegressions} regressed | Memory: ${memoryImprovements} improved, ${memoryRegressions} regressed`,
+        },
+    },
     { type: 'divider' },
 ];
 
@@ -154,6 +236,20 @@ const slackMessage = {
     username,
     icon_url,
     blocks,
+    attachments: [
+        {
+            color: '#36a64f',
+            title: 'Full Timing Results',
+            text: `\`\`\`\n${formatFullSection(rankedByTime, ['pctTimeChange', 'beforeMs', 'afterMs'], ['%', 'Before (ms)', 'After (ms)'])}\`\`\``,
+            fallback: 'Full timing benchmark results',
+        },
+        {
+            color: '#2196F3',
+            title: 'Full Memory Results',
+            text: `\`\`\`\n${formatFullSection(rankedByMemory, ['pctMemoryChange', 'beforeMB', 'afterMB'], ['%', 'Before (MB)', 'After (MB)'])}\`\`\``,
+            fallback: 'Full memory benchmark results',
+        },
+    ],
 };
 
 console.log(JSON.stringify(slackMessage, null, 2));
