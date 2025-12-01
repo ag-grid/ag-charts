@@ -53,6 +53,12 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.cleanup.flush();
     }
 
+    private clearFlash(): void {
+        this.element.innerHTML = '';
+        clearTimeout(this.animationTimeout);
+        this.animationTimeout = undefined;
+    }
+
     private flashElem(el: Animatable): void {
         const { flashDuration, fadeDuration } = this;
         const duration = flashDuration + fadeDuration;
@@ -67,7 +73,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private flashCategoryBands(e: DataSet<unknown> | undefined): void {
-        clearTimeout(this.animationTimeout);
+        this.clearFlash();
 
         const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(e);
         for (const bounds of flashBounds) {
@@ -79,7 +85,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         }
 
         const duration = this.flashDuration + this.fadeDuration;
-        this.animationTimeout = setTimeout(() => (this.element.innerHTML = ''), duration);
+        this.animationTimeout = setTimeout(() => this.clearFlash(), duration);
     }
 
     private computeCategoryFlashBounds(e: DataSet<unknown> | undefined): BoxBounds[] {
