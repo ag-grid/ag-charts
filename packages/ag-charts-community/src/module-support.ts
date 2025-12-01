@@ -86,6 +86,7 @@ export * from './chart/series/topology/mercatorScale';
 export * from './chart/series/gaugeSeries';
 export * from './chart/series/shapeUtil';
 export * from './chart/series/aggregation';
+export * from './chart/series/aggregationManager';
 export * from './chart/axis/axis';
 export * from './chart/axis/axisInterval';
 export * from './chart/axis/axisLabel';

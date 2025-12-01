@@ -20,11 +20,11 @@ import {
     aggregateOhlcDataFromDataModel,
     aggregateOhlcDataFromDataModelPartial,
 } from './ohlcAggregation';
-import type { OhlcBaseNode } from './ohlcNode';
+import { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 
 const {
-    DeferredExecutor,
+    AggregationManager,
     fixNumericExtent,
     keyProperty,
     createDatumId,
@@ -162,6 +162,38 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
     styles: Record<'up' | 'down', _ModuleSupport.SeriesNodeStyleContext<OhlcCandleStickSeriesStyle>>;
 }
 
+/**
+ * High-performance direct reset for OHLC selections.
+ * Bypasses resetMotion callback pattern and decorator system entirely.
+ * Uses batchedUpdate to consolidate markDirty calls per selection.
+ */
+function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
+    selections: { nodes(): Iterable<OhlcBaseNode<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetOhlcNodes() {
+            for (const node of nodes) {
+                const datum = node.datum;
+                if (datum == null) continue;
+
+                // Direct method bypasses decorators - writes to __centerX, __y, etc.
+                node.setStaticProperties(
+                    datum.centerX,
+                    datum.width,
+                    datum.y,
+                    datum.height,
+                    datum.yOpen,
+                    datum.yClose,
+                    datum.crisp
+                );
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
+}
+
 export abstract class OhlcSeriesBase<
     TNode extends OhlcBaseNode,
     TOpts extends AgOhlcSeriesBaseOptions,
@@ -176,8 +208,7 @@ export abstract class OhlcSeriesBase<
 > {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
-    private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;
-    private readonly aggregationExecutor = new DeferredExecutor<OhlcSeriesDataAggregationFilter[]>();
+    private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -236,10 +267,7 @@ export abstract class OhlcSeriesBase<
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
-        this.dataAggregationFilters = this.aggregateData(
-            dataModel,
-            processedData as any as _ModuleSupport.UngroupedData<any>
-        );
+        this.aggregateData(dataModel, processedData as any as _ModuleSupport.UngroupedData<any>);
 
         this.animationState.transition('updateData');
     }
@@ -248,48 +276,30 @@ export abstract class OhlcSeriesBase<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
+        this.aggregationManager.markStale();
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        // Cancel any pending deferred aggregation from previous data
-        this.aggregationExecutor.cancel();
-
-        // Estimate target range from current axis scale
         const targetRange = this.estimateTargetRange();
 
-        // Use partial computation if we have a valid target range
-        if (targetRange > 0) {
-            const partialResult = aggregateOhlcDataFromDataModelPartial(
-                xAxis.scale.type,
-                dataModel,
-                processedData,
-                this,
-                targetRange,
-                this.dataAggregationFilters // Pass existing filters for array reuse
-            );
-
-            if (partialResult) {
-                const { immediate, computeRemaining } = partialResult;
-
-                if (computeRemaining) {
-                    // Schedule deferred computation of remaining levels
-                    this.aggregationExecutor.schedule(
-                        computeRemaining,
-                        (remaining: OhlcSeriesDataAggregationFilter[]) => {
-                            this.mergeAggregationLevels(remaining);
-                        }
-                    );
-                }
-
-                return immediate;
-            }
-        }
-
-        // Fallback to full computation
-        return aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this);
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateOhlcDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+            targetRange,
+        });
     }
 
     private estimateTargetRange(): number {
@@ -297,22 +307,6 @@ export abstract class OhlcSeriesBase<
         if (!xAxis) return -1;
         const [r0, r1] = xAxis.scale.range;
         return Math.abs(r1 - r0);
-    }
-
-    private ensureAggregationLevelForRange(range: number): void {
-        const hasLevel = this.dataAggregationFilters?.some((f) => f.maxRange > range);
-
-        if (!hasLevel && this.aggregationExecutor.isPending()) {
-            const remaining = this.aggregationExecutor.demand();
-            if (remaining) this.mergeAggregationLevels(remaining);
-        }
-    }
-
-    private mergeAggregationLevels(deferredLevels: OhlcSeriesDataAggregationFilter[]): void {
-        const allLevels = [...(this.dataAggregationFilters ?? []), ...deferredLevels];
-        allLevels.sort((a, b) => a.maxRange - b.maxRange);
-        this.dataAggregationFilters = allLevels;
-        this.nodeDataRefresh = true;
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
@@ -393,9 +387,9 @@ export abstract class OhlcSeriesBase<
 
         // Ensure we have the aggregation level needed for the current range
         // This will force-compute deferred levels if necessary
-        this.ensureAggregationLevelForRange(range);
+        this.aggregationManager.ensureLevelForRange(range);
 
-        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const crisp = dataAggregationFilter == null;
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
@@ -748,13 +742,26 @@ export abstract class OhlcSeriesBase<
         return false;
     }
 
+    protected override resetDatumAnimation(
+        data: _ModuleSupport.CartesianAnimationData<TNode, OhlcNodeDatum, OhlcNodeDatum, OhlcSeriesBaseNodeDataContext>
+    ) {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetOhlcSelectionsDirect([data.datumSelection]);
+    }
+
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
         datumSelection: _ModuleSupport.Selection<TNode, OhlcNodeDatum>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
-        return opts.datumSelection.update(data);
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!animationEnabled) {
+            // Optimised update path, no need to ensure we match up nodes by id.
+            return opts.datumSelection.update(data);
+        }
+        return opts.datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
     protected updateLabelNodes(_opts: {
