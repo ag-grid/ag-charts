@@ -383,7 +383,8 @@ export class DataSet<T = unknown> {
             survivingOriginalCount,
             effects.updateTracking,
             sortedRemoved?.asc,
-            effects.updatedOriginalIndices
+            effects.updatedOriginalIndices,
+            effects.trackedInsertions
         );
 
         const indexMap: IndexTransformationMap = {
@@ -760,7 +761,8 @@ export class DataSet<T = unknown> {
         survivingOriginalCount: number,
         updateTracking: UpdateIndexTracking | undefined,
         sortedRemovedAsc: number[] | undefined,
-        updatedOriginalIndices: Set<number>
+        updatedOriginalIndices: Set<number>,
+        trackedInsertions: TrackedInsertion<T>[]
     ): Set<number> {
         const updatedFinalIndices = new Set<number>();
 
@@ -782,7 +784,19 @@ export class DataSet<T = unknown> {
                 }
 
                 const removalsBeforeCount = sortedRemovedAsc ? removalPtr : 0;
-                const finalIdx = originalIdx + totalPrependCount - removalsBeforeCount;
+
+                // Count insertions that occur before this original's position in the virtual array.
+                // An original at index `originalIdx` has virtual index `originalIdx + totalPrependCount`.
+                // Insertions with virtualIndex <= that position shift the original forward.
+                const virtualPosOfOriginal = originalIdx + totalPrependCount;
+                let insertionsBeforeCount = 0;
+                for (const insertion of trackedInsertions) {
+                    if (insertion.virtualIndex <= virtualPosOfOriginal) {
+                        insertionsBeforeCount += insertion.items.length;
+                    }
+                }
+
+                const finalIdx = originalIdx + totalPrependCount - removalsBeforeCount + insertionsBeforeCount;
                 updatedFinalIndices.add(finalIdx);
             }
         }
@@ -793,14 +807,24 @@ export class DataSet<T = unknown> {
                 updatedFinalIndices.add(appendStartIdx + appendIdx);
             }
 
-            if (updateTracking.updatedInsertionsIndices.length > 0) {
-                let insertionOffset = 0;
-                const finalInsertionStartIdx = totalPrependCount;
+            // Handle updated insertions - need to calculate their actual final positions
+            if (updateTracking.updatedInsertionsIndices.length > 0 && trackedInsertions.length > 0) {
+                // Map from flat insertion index to the actual tracked insertion and offset within it
+                let flatIdx = 0;
+                for (const insertion of trackedInsertions) {
+                    const removalsBeforeInsertion = this.countRemovalsBeforeIndex(
+                        sortedRemovedAsc,
+                        totalPrependCount,
+                        insertion.virtualIndex
+                    );
+                    const insertionFinalIdx = insertion.virtualIndex - removalsBeforeInsertion;
 
-                for (const insertionIdx of updateTracking.updatedInsertionsIndices) {
-                    const finalIdx = finalInsertionStartIdx + insertionOffset + insertionIdx;
-                    updatedFinalIndices.add(finalIdx);
-                    insertionOffset++;
+                    for (let itemOffset = 0; itemOffset < insertion.items.length; itemOffset++) {
+                        if (updateTracking.updatedInsertionsIndices.includes(flatIdx)) {
+                            updatedFinalIndices.add(insertionFinalIdx + itemOffset);
+                        }
+                        flatIdx++;
+                    }
                 }
             }
         }

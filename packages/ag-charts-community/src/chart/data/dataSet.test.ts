@@ -843,6 +843,32 @@ describe('DataSet', () => {
                 expect(dataSet.data).toEqual([item0, item1, newItem, item2]);
                 expect(dataSet.data[1].x).toBe(100);
             });
+
+            test('should track correct updatedIndices when insertion is before updated original', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const item2 = { x: 2 };
+                const newItem = { x: 0.5 };
+
+                const dataSet = new DataSet([item0, item1, item2]);
+
+                // Update item2, insert newItem at index 1 (before item2)
+                item2.x = 200;
+                dataSet.addTransaction({ add: [newItem], addIndex: 1, update: [item2] });
+
+                const changeDesc = dataSet.getChangeDescription();
+                expect(changeDesc).toBeDefined();
+
+                // After insertion at index 1:
+                // [item0, newItem, item1, item2]
+                // item2 was at original index 2, now at final index 3
+                const updatedIndices = changeDesc!.getUpdatedIndices();
+                expect(updatedIndices).toEqual([3]);
+
+                dataSet.commitPendingTransactions();
+                expect(dataSet.data).toEqual([item0, newItem, item1, item2]);
+                expect(dataSet.data[3].x).toBe(200);
+            });
         });
     });
 
