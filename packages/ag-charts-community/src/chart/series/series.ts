@@ -1233,4 +1233,8 @@ export abstract class Series<
     minTimeInterval(): number | undefined {
         return;
     }
+
+    needsDataModelDiff(): boolean {
+        return !this.ctx.animationManager.isSkipped();
+    }
 }

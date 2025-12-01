@@ -198,7 +198,7 @@ export class LineSeries extends CartesianSeries<
             );
         }
 
-        if (animationEnabled) {
+        if (this.needsDataModelDiff()) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
                 props.push(diff(this.id, this.processedData));

@@ -223,7 +223,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         const extraProps = [];
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
+        if (this.needsDataModelDiff() && this.processedData) {
             extraProps.push(diff(this.id, this.processedData));
         }
         if (animationEnabled) {
