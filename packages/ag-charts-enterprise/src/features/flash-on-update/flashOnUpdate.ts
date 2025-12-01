@@ -1,7 +1,21 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, CleanupRegistry, Property, createElement, setAttribute, setElementBBox } from 'ag-charts-core';
+import {
+    BaseProperties,
+    CleanupRegistry,
+    Property,
+    createElement,
+    setAttribute,
+    setElementBBox,
+    setElementStyle,
+} from 'ag-charts-core';
 import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
+
+type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
+
+function findPrimaryCategoryAxisContext(ctx: _ModuleSupport.ModuleContext): AxisContext | undefined {
+    return ctx.axisManager.getAxisContext(_ModuleSupport.ChartAxisDirection.X)[0];
+}
 
 export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgFlashOnUpdateOptions {
     static readonly className = 'FlashOnUpdate';
@@ -72,12 +86,16 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private flashCategoryBands(diff: _ModuleSupport.DataModelDiff): void {
+        const axisCtx = findPrimaryCategoryAxisContext(this.ctx);
+        if (!axisCtx) return;
+
         this.clearFlash();
 
-        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(diff);
+        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(axisCtx, diff);
         for (const bounds of flashBounds) {
             const e = createElement('div');
             setAttribute(e, 'role', 'presentation');
+            setElementStyle(e, 'position', 'absolute');
             setElementBBox(e, bounds);
             this.element.appendChild(e);
             this.flashElem(e);
@@ -99,13 +117,37 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         return result;
     }
 
-    private computeCategoryFlashBounds(diff: _ModuleSupport.DataModelDiff): BoxBounds[] {
+    private computeCategoryFlashBounds(axisCtx: AxisContext, diff: _ModuleSupport.DataModelDiff): BoxBounds[] {
+        const seriesBounds = this.ctx.widgets.seriesWidget.getBounds();
+
+        const makeBox: (band: [number, number]) => BoxBounds =
+            axisCtx.direction === _ModuleSupport.ChartAxisDirection.X
+                ? ([start, end]) => {
+                      return {
+                          x: seriesBounds.x + start,
+                          y: seriesBounds.y,
+                          width: end - start,
+                          height: seriesBounds.height,
+                      };
+                  }
+                : ([start, end]) => {
+                      return {
+                          x: seriesBounds.x,
+                          y: seriesBounds.y + start,
+                          width: seriesBounds.width,
+                          height: end - start,
+                      };
+                  };
+
+        const result: BoxBounds[] = [];
         const categories: Set<string> = this.computeCategories(diff);
-        const axisCtx = this.ctx.axisManager.getAxisContext(_ModuleSupport.ChartAxisDirection.X)[0]; // TODO generalise this.
         for (const c of categories) {
-            console.log(axisCtx.measureBand(c));
+            const measurements = axisCtx.measureBand(c);
+            if (measurements?.band) {
+                result.push(makeBox(measurements.band));
+            }
         }
-        return [{ x: 20, y: 30, height: 100, width: 140 }];
+        return result;
     }
 
     private onDataUpdate(ev: _ModuleSupport.DataSet<unknown> | undefined): void {
