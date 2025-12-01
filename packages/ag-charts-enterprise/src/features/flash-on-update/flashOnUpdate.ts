@@ -45,7 +45,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.element.role = 'presentation';
 
         let firstUpdate = true;
-        const onFirstDataUpdate = (e: DataSet<unknown> | undefined): void => {
+        const onDataUpdate = (e: DataSet<unknown> | undefined): void => {
             if (firstUpdate && e?.data) {
                 this.data = e?.data;
                 firstUpdate = false;
@@ -53,7 +53,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                 this.onDataChange(e);
             }
         };
-        this.cleanup.register(ctx.eventsHub.on('data:update', onFirstDataUpdate));
+        this.cleanup.register(this.ctx.eventsHub.on('data:update', onDataUpdate));
     }
 
     destroy() {
