@@ -137,7 +137,6 @@ export class LineSeries extends CartesianSeries<
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;

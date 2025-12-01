@@ -1,13 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    BaseProperties,
-    CleanupRegistry,
-    Property,
-    createElement,
-    jsonDiff,
-    setAttribute,
-    setElementBBox,
-} from 'ag-charts-core';
+import { BaseProperties, CleanupRegistry, Property, createElement, setAttribute, setElementBBox } from 'ag-charts-core';
 import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
 
