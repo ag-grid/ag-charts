@@ -1,17 +1,15 @@
 import {
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    ScatterSeriesModule,
-} from 'ag-charts-community';
-import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     BoxPlotSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { getBoxPlotData, getOutliersData } from './data';

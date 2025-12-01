@@ -1,17 +1,15 @@
 // @ag-skip-fws
 import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, data1, data2 } from './data';

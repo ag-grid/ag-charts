@@ -1,22 +1,20 @@
 import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+    AnimationModule,
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
     DonutSeriesModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     PieSeriesModule,
-} from 'ag-charts-community';
-import {
-    AgCartesianChartOptions,
-    AgChartOptions,
-    AgCharts,
-    AgPolarChartOptions,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
 } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';

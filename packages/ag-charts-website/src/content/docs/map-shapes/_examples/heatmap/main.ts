@@ -1,4 +1,3 @@
-import { ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
@@ -7,6 +6,7 @@ import {
     CrosshairModule,
     GradientLegendModule,
     MapShapeSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';

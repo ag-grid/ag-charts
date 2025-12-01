@@ -1,18 +1,16 @@
 import {
-    BubbleSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    ScatterSeriesModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
+    BubbleSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
 

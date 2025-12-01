@@ -1,10 +1,11 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
     SunburstSeriesModule,
 } from 'ag-charts-enterprise';
 

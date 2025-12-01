@@ -1,10 +1,12 @@
-import { LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 import {
     AgCharts,
     AgPolarChartOptions,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    PieSeriesModule,
 } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([AnimationModule, ContextMenuModule, CrosshairModule, LegendModule, PieSeriesModule]);

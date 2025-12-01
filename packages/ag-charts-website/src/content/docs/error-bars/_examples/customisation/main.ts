@@ -1,17 +1,15 @@
 import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ErrorBarsModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
-} from 'ag-charts-community';
-import {
-    AgChartOptions,
-    AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
-    ErrorBarsModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

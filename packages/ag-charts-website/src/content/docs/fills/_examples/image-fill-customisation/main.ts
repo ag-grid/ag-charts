@@ -1,10 +1,13 @@
-import { BubbleSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
+    BubbleSeriesModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';

@@ -1,4 +1,3 @@
-import { ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
@@ -6,6 +5,7 @@ import {
     ContextMenuModule,
     CrosshairModule,
     GradientLegendModule,
+    ModuleRegistry,
     TreemapSeriesModule,
 } from 'ag-charts-enterprise';
 

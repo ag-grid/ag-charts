@@ -1,10 +1,12 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
     OhlcSeriesModule,
     OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';

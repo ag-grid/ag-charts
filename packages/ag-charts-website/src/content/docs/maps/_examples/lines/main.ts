@@ -1,13 +1,14 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';

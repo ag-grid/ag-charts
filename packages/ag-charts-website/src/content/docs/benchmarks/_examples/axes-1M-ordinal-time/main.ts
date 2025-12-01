@@ -1,11 +1,14 @@
 /* @ag-options-extract */
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
     AgOrdinalTimeAxisOptions,
     ContextMenuModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
     NavigatorModule,
+    NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
 } from 'ag-charts-enterprise';

@@ -1,12 +1,14 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
     GradientLegendModule,
     HeatmapSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';

@@ -1,11 +1,12 @@
 // Source: https://www.nationalgrideso.com/data-portal
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
     SankeySeriesModule,
 } from 'ag-charts-enterprise';
 

@@ -1,11 +1,12 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
     MapShapeSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { central, eastern, mountain, pacific } from './data';

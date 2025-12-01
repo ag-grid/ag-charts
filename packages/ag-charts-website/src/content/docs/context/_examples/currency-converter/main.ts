@@ -1,4 +1,3 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
@@ -6,6 +5,10 @@ import {
     CandlestickSeriesModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import type { CurrencyConverter } from './currencyConverter';

@@ -1,15 +1,4 @@
 import {
-    AreaSeriesModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    DonutSeriesModule,
-    LegendModule,
-    LineSeriesModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    PieSeriesModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
@@ -17,8 +6,17 @@ import {
     AgPolarChartOptions,
     AgTooltipRendererResult,
     AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
+    DonutSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    PieSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';

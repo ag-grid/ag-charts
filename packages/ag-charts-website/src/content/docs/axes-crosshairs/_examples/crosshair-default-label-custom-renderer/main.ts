@@ -1,17 +1,15 @@
 import {
-    HistogramSeriesModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    TimeAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCharts,
     AgCrosshairLabelRendererParams,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
