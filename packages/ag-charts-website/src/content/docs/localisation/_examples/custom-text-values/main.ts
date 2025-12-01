@@ -1,18 +1,16 @@
 import {
+    AG_CHARTS_LOCALE_EN_US,
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     LocaleModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
-import {
-    AG_CHARTS_LOCALE_EN_US,
-    AgChartOptions,
-    AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
 

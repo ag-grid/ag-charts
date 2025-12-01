@@ -1,9 +1,9 @@
-import { ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgFlowProportionChartOptions,
     AgSankeySeriesTooltipRendererParams,
     ContextMenuModule,
+    ModuleRegistry,
     SankeySeriesModule,
 } from 'ag-charts-enterprise';
 

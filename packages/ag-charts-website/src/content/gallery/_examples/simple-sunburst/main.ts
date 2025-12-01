@@ -1,5 +1,10 @@
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, ContextMenuModule, SunburstSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    ModuleRegistry,
+    SunburstSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 

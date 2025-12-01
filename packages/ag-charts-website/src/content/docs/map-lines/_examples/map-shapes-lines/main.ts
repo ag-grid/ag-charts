@@ -1,12 +1,13 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
     MapLineSeriesModule,
     MapShapeSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';

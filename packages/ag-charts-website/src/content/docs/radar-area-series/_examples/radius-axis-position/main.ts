@@ -1,4 +1,3 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
@@ -6,6 +5,8 @@ import {
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
     RadarAreaSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';

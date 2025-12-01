@@ -15,7 +15,7 @@ This automatic selection removes the need for explicit axis configuration in man
 Axes are referenced using a dictionary of axis definitions, where each axis is identified by a key.
 The default keys are `x` and `y` for cartesian axes, or `radial` and `angular` for polar axes.
 
-Only the configured chart axes and their `type` must be provided.
+Only the configured chart axes must be provided.It is recommended to provide the `type` to allow type-checking and improved options validation.
 
 {% chartExampleRunner title="Customising Axes" name="axis-configuration" type="generated" /%}
 

@@ -1,9 +1,10 @@
-import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
     ContextMenuModule,
     CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
     OhlcSeriesModule,
     OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';

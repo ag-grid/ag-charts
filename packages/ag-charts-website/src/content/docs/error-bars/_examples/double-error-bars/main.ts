@@ -1,4 +1,3 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
@@ -7,6 +6,10 @@ import {
     ContextMenuModule,
     CrosshairModule,
     ErrorBarsModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType } from './data';

@@ -1,12 +1,15 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
     BarSeriesModule,
     CategoryAxisModule,
+    ContextMenuModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, BandHighlightModule, ContextMenuModule } from 'ag-charts-enterprise';
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

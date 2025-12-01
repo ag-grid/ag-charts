@@ -1,5 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
-import 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 // Chart Options
 const options: AgChartOptions = {

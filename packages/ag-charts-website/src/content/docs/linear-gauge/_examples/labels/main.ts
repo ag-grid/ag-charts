@@ -1,4 +1,3 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgLinearGaugeLabelPlacement,
@@ -7,6 +6,8 @@ import {
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ContextMenuModule]);

@@ -1,12 +1,13 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { africaData, asiaData, europeData, northAmericaData, oceaniaData, southAmericaData } from './data';

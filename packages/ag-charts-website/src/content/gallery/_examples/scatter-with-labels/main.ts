@@ -1,4 +1,3 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
@@ -6,6 +5,10 @@ import {
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { NameData, getData } from './data';

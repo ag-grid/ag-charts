@@ -1,5 +1,4 @@
 // https://www.un.org/development/desa/pd/content/international-migrant-stock
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
@@ -7,6 +6,8 @@ import {
     ChordSeriesModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([AnimationModule, ChordSeriesModule, CrosshairModule, LegendModule, ContextMenuModule]);

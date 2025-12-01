@@ -1,17 +1,15 @@
 import {
-    AreaSeriesModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
+    AreaSeriesModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
     NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

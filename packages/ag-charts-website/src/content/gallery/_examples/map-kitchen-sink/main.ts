@@ -1,12 +1,13 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgTopologyChartOptions,
     ContextMenuModule,
+    LegendModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
     MapShapeSeriesModule,
+    ModuleRegistry,
     ZoomModule,
 } from 'ag-charts-enterprise';
 

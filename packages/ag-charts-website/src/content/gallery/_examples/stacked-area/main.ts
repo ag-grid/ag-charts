@@ -1,11 +1,13 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
     AreaSeriesModule,
+    ContextMenuModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

@@ -1,4 +1,3 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgFlowProportionChartOptions,
@@ -6,6 +5,8 @@ import {
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
     SankeySeriesModule,
 } from 'ag-charts-enterprise';
 

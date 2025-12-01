@@ -1,9 +1,12 @@
-import { LegendModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     CandlestickSeriesModule,
     ContextMenuModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
     OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';
 
