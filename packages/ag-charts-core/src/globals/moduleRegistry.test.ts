@@ -8,6 +8,7 @@ import {
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 import {
+    RegistryMode,
     getAxisModule,
     getChartModule,
     getPresetModule,
@@ -19,7 +20,6 @@ import {
     isUmd,
     listModules,
     listModulesByType,
-    RegistryMode,
     register,
     registerModules,
     reset,
