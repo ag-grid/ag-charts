@@ -53,3 +53,9 @@ The following example demonstrates high-frequency updates across multiple area c
 This example is tuned for high-volume datasets. It starts with 100,000 data points and can add or remove batches of 100 points at a time. Use the controls to compare the cost of full `updateDelta()` refreshes against incremental `applyTransaction()` updates while the data stream maintains a constant window size.
 
 {% chartExampleRunner title="High Frequency High Volume" name="high-freq-high-volume" type="generated" /%}
+
+## Random Updates
+
+This example investigates the performance of `applyTransaction()` with randomized updates on large datasets. Unlike append/remove operations, this tests in-place value mutations where random data points are updated each tick. Compare the cost of incremental `applyTransaction({ update })` against full `updateDelta()` refreshes.
+
+{% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" /%}

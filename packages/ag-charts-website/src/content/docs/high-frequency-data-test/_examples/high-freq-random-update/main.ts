@@ -1,9 +1,4 @@
-import {
-    type AgCartesianChartOptions,
-    type AgCartesianSeriesOptions,
-    AgCharts,
-    ContextMenuModule,
-} from 'ag-charts-enterprise';
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -47,11 +42,15 @@ const ALL_SERIES_TYPES: SeriesType[] = [
 ];
 
 const INITIAL_POINTS = 100_000;
-let BATCH_SIZE = 100;
+let UPDATE_COUNT = 100;
 let UPDATE_INTERVAL_MS = 200;
 let UPDATE_FREQUENCY_MODE: 'raf' | number = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
+
+const STORAGE_KEY = 'high-freq-random-update-series-type';
+const UPDATES_STATE_KEY = 'high-freq-random-update-updates-running';
+const FREQUENCY_KEY = 'high-freq-random-update-frequency';
 
 // Initialize frequency from persisted value
 const persistedFrequency = getPersistedFrequency();
@@ -64,10 +63,6 @@ if (persistedFrequency === 'raf') {
         UPDATE_INTERVAL_MS = intervalMs;
     }
 }
-
-const STORAGE_KEY = 'high-freq-high-volume-series-type';
-const UPDATES_STATE_KEY = 'high-freq-high-volume-updates-running';
-const FREQUENCY_KEY = 'high-freq-high-volume-frequency';
 
 function getSeriesTypeFromHash(): SeriesType | null {
     try {
@@ -102,24 +97,19 @@ function getPersistedSeriesType(): SeriesType {
 
 function persistSeriesType(seriesType: SeriesType) {
     try {
-        // Always update sessionStorage as fallback
         sessionStorage.setItem(STORAGE_KEY, seriesType);
     } catch {
         // Ignore storage errors (e.g., private browsing)
     }
 
     try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
         if (window.parent === window) {
-            // Not in iframe, can update hash directly
             const hash = window.location.hash.slice(1);
             const params = new URLSearchParams(hash);
             params.set('seriesType', seriesType);
             const newHash = params.toString();
-            // Use replaceState to avoid page reload
             history.replaceState(null, '', `#${newHash}`);
         }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
     } catch {
         // Ignore hash update errors
     }
@@ -156,24 +146,19 @@ function getPersistedUpdatesState(): boolean {
 
 function persistUpdatesState(running: boolean) {
     try {
-        // Always update sessionStorage as fallback
         sessionStorage.setItem(UPDATES_STATE_KEY, String(running));
     } catch {
         // Ignore storage errors (e.g., private browsing)
     }
 
     try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
         if (window.parent === window) {
-            // Not in iframe, can update hash directly
             const hash = window.location.hash.slice(1);
             const params = new URLSearchParams(hash);
             params.set('updatesRunning', String(running));
             const newHash = params.toString();
-            // Use replaceState to avoid page reload
             history.replaceState(null, '', `#${newHash}`);
         }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
     } catch {
         // Ignore hash update errors
     }
@@ -212,24 +197,19 @@ function getPersistedFrequency(): string {
 
 function persistFrequency(frequency: string) {
     try {
-        // Always update sessionStorage as fallback
         sessionStorage.setItem(FREQUENCY_KEY, frequency);
     } catch {
         // Ignore storage errors (e.g., private browsing)
     }
 
     try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
         if (window.parent === window) {
-            // Not in iframe, can update hash directly
             const hash = window.location.hash.slice(1);
             const params = new URLSearchParams(hash);
             params.set('frequency', frequency);
             const newHash = params.toString();
-            // Use replaceState to avoid page reload
             history.replaceState(null, '', `#${newHash}`);
         }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
     } catch {
         // Ignore hash update errors
     }
@@ -251,20 +231,16 @@ function generateValueDatum(index: number): ValueDatum {
 function generateOhlcDatum(index: number, previousClose?: number): { datum: OhlcDatum; basePrice: number } {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
 
-    // Use same baseline calculation as other series types for consistency
     const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
     const volatility = Math.sin(index / 15) * 5;
     const baseline = 1_000 + index * 0.02;
     const midPrice = baseline + trend + volatility;
 
-    // Open is previous close (or midPrice for first datum)
     const open = previousClose ?? midPrice;
 
-    // Close varies around midPrice
     const closeOffset = Math.sin(index / 7) * 2 + Math.cos(index / 11) * 1.5;
     const close = Number((midPrice + closeOffset).toFixed(2));
 
-    // High and low extend beyond open/close by a small random amount
     const range = 2 + Math.abs(Math.sin(index / 13)) * 3;
     const high = Number((Math.max(open, close) + range).toFixed(2));
     const low = Number((Math.min(open, close) - range).toFixed(2));
@@ -277,7 +253,7 @@ function generateOhlcDatum(index: number, previousClose?: number): { datum: Ohlc
             low,
             close,
         },
-        basePrice: close, // Pass close as next open
+        basePrice: close,
     };
 }
 
@@ -332,9 +308,51 @@ function createSeedData(
 
 const seedResult = createSeedData(INITIAL_POINTS);
 let data: Datum[] = seedResult.data;
-let nextIndex = data.length;
-// Track last base price for OHLC generation to maintain O(n) complexity
-let lastBasePrice: number | undefined = seedResult.lastBasePrice;
+
+// Mutation functions for each datum type
+// Large changes to make updates visually obvious
+function mutateValueDatum(item: ValueDatum) {
+    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    item.value = Number((item.value + change).toFixed(2));
+}
+
+function mutateOhlcDatum(item: OhlcDatum) {
+    const change = (Math.random() - 0.5) * 100; // ±50 on values ~1000
+    item.open = Number((item.open + change).toFixed(2));
+    item.close = Number((item.close + change).toFixed(2));
+    item.high = Number((Math.max(item.open, item.close) + Math.random() * 20).toFixed(2));
+    item.low = Number((Math.min(item.open, item.close) - Math.random() * 20).toFixed(2));
+}
+
+function mutateRangeDatum(item: RangeDatum) {
+    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    item.low = Number((item.low + change).toFixed(2));
+    item.high = Number((item.high + change).toFixed(2));
+    // Ensure low < high
+    if (item.low > item.high) {
+        const temp = item.low;
+        item.low = item.high;
+        item.high = temp;
+    }
+}
+
+function mutateBubbleDatum(item: BubbleDatum) {
+    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    item.value = Number((item.value + change).toFixed(2));
+    item.size = Math.max(1, item.size + (Math.random() - 0.5) * 10);
+}
+
+function mutateDatum(item: Datum) {
+    if (currentSeriesType === 'ohlc' || currentSeriesType === 'candlestick') {
+        mutateOhlcDatum(item as OhlcDatum);
+    } else if (currentSeriesType === 'range-bar' || currentSeriesType === 'range-area') {
+        mutateRangeDatum(item as RangeDatum);
+    } else if (currentSeriesType === 'bubble') {
+        mutateBubbleDatum(item as BubbleDatum);
+    } else {
+        mutateValueDatum(item as ValueDatum);
+    }
+}
 
 function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] {
     switch (seriesType) {
@@ -447,24 +465,6 @@ let lastFrameTime: number | undefined;
 let methodSelect: HTMLSelectElement | null = null;
 let seriesTypeUpdateInProgress = false;
 
-function createBatch(count: number): Datum[] {
-    const batch: Datum[] = [];
-    for (let i = 0; i < count; i++) {
-        if (currentSeriesType === 'ohlc' || currentSeriesType === 'candlestick') {
-            const { datum, basePrice: newBasePrice } = generateOhlcDatum(nextIndex++, lastBasePrice);
-            batch.push(datum);
-            lastBasePrice = newBasePrice;
-        } else if (currentSeriesType === 'range-bar' || currentSeriesType === 'range-area') {
-            batch.push(generateRangeDatum(nextIndex++));
-        } else if (currentSeriesType === 'bubble') {
-            batch.push(generateBubbleDatum(nextIndex++));
-        } else {
-            batch.push(generateValueDatum(nextIndex++));
-        }
-    }
-    return batch;
-}
-
 function updateDataCountDisplay() {
     const element = document.getElementById('dataCount');
     if (element) {
@@ -500,7 +500,6 @@ function recordFps() {
         const fps = 1000 / frameTime;
         fpsHistory.push(fps);
 
-        // Keep only last 60 frames for smooth average
         if (fpsHistory.length > 60) {
             fpsHistory.shift();
         }
@@ -510,9 +509,7 @@ function recordFps() {
         if (fpsElement) {
             fpsElement.textContent = `FPS: ${averageFps.toFixed(1)}`;
 
-            // Color code based on FPS
             if (UPDATE_FREQUENCY_MODE === 'raf') {
-                // For requestAnimationFrame, expect ~60fps
                 if (averageFps >= 55) {
                     fpsElement.style.color = 'green';
                 } else if (averageFps >= 30) {
@@ -521,9 +518,8 @@ function recordFps() {
                     fpsElement.style.color = 'red';
                 }
             } else {
-                // For fixed intervals, calculate expected FPS
                 const expectedFps = 1000 / UPDATE_INTERVAL_MS;
-                const tolerance = expectedFps * 0.1; // 10% tolerance
+                const tolerance = expectedFps * 0.1;
                 if (averageFps >= expectedFps - tolerance) {
                     fpsElement.style.color = 'green';
                 } else if (averageFps >= expectedFps * 0.7) {
@@ -539,7 +535,6 @@ function recordFps() {
 }
 
 function recordCpuUsage(elapsedMs: number) {
-    // For requestAnimationFrame, use 16.67ms (60fps) as baseline
     const baselineMs = UPDATE_FREQUENCY_MODE === 'raf' ? 16.67 : UPDATE_INTERVAL_MS;
     const cpuUsage = (elapsedMs / baselineMs) * 100;
     cpuUsageHistory.push(cpuUsage);
@@ -563,13 +558,19 @@ function recordCpuUsage(elapsedMs: number) {
     }
 }
 
-async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; remove?: Datum[] }) {
+function updateUpdateCountDisplay() {
+    const element = document.getElementById('updateCountDisplay');
+    if (element) {
+        element.textContent = `Updates: ${UPDATE_COUNT.toLocaleString()}`;
+    }
+}
+
+async function dispatchUpdate(itemsToUpdate: Datum[]) {
     const start = performance.now();
 
     if (currentUpdateMethod === 'applyTransaction') {
         await (chart as any).applyTransaction({
-            append: append.length ? append : undefined,
-            remove: remove.length ? remove : undefined,
+            update: itemsToUpdate,
         });
     } else {
         await chart.updateDelta({ data });
@@ -581,32 +582,22 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
     recordCpuUsage(elapsed);
 }
 
-async function addPoints(count: number) {
-    const append = createBatch(count);
-    data = data.concat(append);
-    await dispatchUpdate({ append });
-    updateDataCountDisplay();
-}
-
-async function removePoints(count: number) {
-    if (data.length <= count) {
-        return;
+async function updateRandomSubset() {
+    // Select random indices to update
+    const indicesToUpdate = new Set<number>();
+    while (indicesToUpdate.size < UPDATE_COUNT && indicesToUpdate.size < data.length) {
+        indicesToUpdate.add(Math.floor(Math.random() * data.length));
     }
-    const remove = data.slice(0, count);
-    data = data.slice(count);
-    await dispatchUpdate({ remove });
-    updateDataCountDisplay();
-}
 
-async function rollBatch() {
-    if (data.length <= BATCH_SIZE) {
-        return;
+    // Mutate and collect items to update
+    const itemsToUpdate: Datum[] = [];
+    for (const idx of indicesToUpdate) {
+        const item = data[idx];
+        mutateDatum(item);
+        itemsToUpdate.push(item);
     }
-    const remove = data.slice(0, BATCH_SIZE);
-    const append = createBatch(BATCH_SIZE);
-    data = data.slice(BATCH_SIZE).concat(append);
-    await dispatchUpdate({ append, remove });
-    updateDataCountDisplay();
+
+    await dispatchUpdate(itemsToUpdate);
 }
 
 async function runAutoUpdate() {
@@ -616,20 +607,12 @@ async function runAutoUpdate() {
 
     updateInFlight = true;
     try {
-        // Record FPS before update
         recordFps();
-
-        // Maintain a rolling window by appending and removing batch-sized chunks.
-        const remove = data.slice(0, BATCH_SIZE);
-        const append = createBatch(BATCH_SIZE);
-        data = data.slice(BATCH_SIZE).concat(append);
-        await dispatchUpdate({ append, remove });
-        updateDataCountDisplay();
+        await updateRandomSubset();
     } finally {
         updateInFlight = false;
     }
 
-    // Schedule next update if using requestAnimationFrame
     if (isRunning && UPDATE_FREQUENCY_MODE === 'raf') {
         rafId = requestAnimationFrame(() => {
             void runAutoUpdate();
@@ -649,12 +632,10 @@ function startUpdates() {
     }
 
     if (UPDATE_FREQUENCY_MODE === 'raf') {
-        // Use requestAnimationFrame for smooth 60fps updates
         rafId = requestAnimationFrame(() => {
             void runAutoUpdate();
         });
     } else {
-        // Use setInterval for fixed interval updates
         UPDATE_INTERVAL_MS = UPDATE_FREQUENCY_MODE;
         intervalId = setInterval(() => {
             void runAutoUpdate();
@@ -705,12 +686,10 @@ function setUpdateMethod(method: string) {
 function setUpdateFrequency(frequency: string) {
     const wasRunning = isRunning;
 
-    // Stop current updates if running
     if (wasRunning) {
         stopUpdates();
     }
 
-    // Parse frequency value
     if (frequency === 'raf') {
         UPDATE_FREQUENCY_MODE = 'raf';
     } else {
@@ -721,10 +700,8 @@ function setUpdateFrequency(frequency: string) {
         }
     }
 
-    // Persist the frequency selection
     persistFrequency(frequency);
 
-    // Restart updates if they were running
     if (wasRunning) {
         startUpdates();
     }
@@ -733,17 +710,9 @@ function setUpdateFrequency(frequency: string) {
     resetFpsCounter();
 }
 
-function updateButtonLabels() {
-    const rollBtn = document.getElementById('rollBtn');
-
-    if (rollBtn) {
-        rollBtn.textContent = `Roll ${BATCH_SIZE.toLocaleString()}`;
-    }
-}
-
-function setBatchSize(size: number) {
-    BATCH_SIZE = size;
-    updateButtonLabels();
+function setUpdateCount(count: number) {
+    UPDATE_COUNT = count;
+    updateUpdateCountDisplay();
 }
 
 async function setSeriesType(newSeriesType: SeriesType) {
@@ -755,21 +724,14 @@ async function setSeriesType(newSeriesType: SeriesType) {
     const wasRunning = isRunning;
 
     try {
-        // Stop updates temporarily
         if (isRunning) {
             stopUpdates();
         }
 
-        // Preserve data count and regenerate data for the new series type
         const dataCount = data.length;
         const seedResult = createSeedData(dataCount, newSeriesType);
         data = seedResult.data;
-        lastBasePrice = seedResult.lastBasePrice;
 
-        // Reset nextIndex to maintain continuity
-        nextIndex = data.length;
-
-        // Update chart with new series configuration using full update
         await chart.update({
             ...options,
             data,
@@ -778,21 +740,16 @@ async function setSeriesType(newSeriesType: SeriesType) {
 
         currentSeriesType = newSeriesType;
 
-        // Persist the selection
         persistSeriesType(currentSeriesType);
 
-        // Update selector if it exists
-        // The seriesTypeUpdateInProgress flag prevents recursive calls from onchange
         const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
         if (seriesTypeSelect && seriesTypeSelect.value !== currentSeriesType) {
             seriesTypeSelect.value = currentSeriesType;
         }
 
-        // Reset indicators
         resetCpuIndicator();
         updateDataCountDisplay();
 
-        // Resume updates if they were running before the switch
         if (wasRunning) {
             startUpdates();
         }
@@ -804,31 +761,27 @@ async function setSeriesType(newSeriesType: SeriesType) {
 resetCpuIndicator();
 resetFpsCounter();
 updateDataCountDisplay();
-updateButtonLabels();
+updateUpdateCountDisplay();
 
 methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
 if (methodSelect) {
     methodSelect.value = currentUpdateMethod;
 }
 
-// Initialize frequency selector with persisted value
 const frequencySelect = document.getElementById('frequencySelect') as HTMLSelectElement | null;
 if (frequencySelect) {
     frequencySelect.value = persistedFrequency;
 }
 
-// Initialize series type selector with persisted value
 const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
 if (seriesTypeSelect) {
     seriesTypeSelect.value = currentSeriesType;
 }
 
-// Restore updates state from persistence
 if (getPersistedUpdatesState()) {
     startUpdates();
 }
 
-// Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const persistedType = getPersistedSeriesType();
     if (persistedType !== currentSeriesType && !seriesTypeUpdateInProgress) {
@@ -842,10 +795,10 @@ window.addEventListener('hashchange', () => {
             stopUpdates();
         }
     }
-    const persistedFrequency = getPersistedFrequency();
+    const persistedFreq = getPersistedFrequency();
     const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
-    if (persistedFrequency !== currentFrequency) {
-        setUpdateFrequency(persistedFrequency);
+    if (persistedFreq !== currentFrequency) {
+        setUpdateFrequency(persistedFreq);
     }
 });
 
@@ -858,12 +811,14 @@ window.addEventListener('hashchange', () => {
 (window as any).updateFrequency = (frequency: string) => {
     setUpdateFrequency(frequency);
 };
-(window as any).updateBatchSize = (size: string) => {
-    setBatchSize(parseInt(size, 10));
+(window as any).updateUpdateCount = (count: string) => {
+    setUpdateCount(parseInt(count, 10));
 };
 (window as any).updateSeriesType = (seriesType: string) => {
     void setSeriesType(seriesType as SeriesType);
 };
-(window as any).rollBatch = rollBatch;
+(window as any).tickUpdate = () => {
+    void updateRandomSubset();
+};
 
 export {};
