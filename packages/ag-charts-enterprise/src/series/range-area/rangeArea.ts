@@ -881,9 +881,8 @@ export class RangeAreaSeries extends BaseSeries {
             resolvedNodeData = [];
         }
 
-        // Skip datum ID computation when animation is disabled for faster updates
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id
             return datumSelection.update(resolvedNodeData);
         }
         // Use xValue + itemType as unique ID since there are two markers per data point

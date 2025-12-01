@@ -755,9 +755,7 @@ export abstract class OhlcSeriesBase<
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to ensure we match up nodes by id.
             return opts.datumSelection.update(data);
         }

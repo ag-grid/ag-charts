@@ -652,9 +652,7 @@ export class LineSeries extends CartesianSeries<
             datumSelection.cleanup();
         }
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to match nodes by id
             return datumSelection.update(nodeData);
         }
