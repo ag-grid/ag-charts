@@ -20,22 +20,12 @@ export function getModuleMappingsSnippet({
 }): string | undefined {
     const { community, enterprise } = selectedModules;
     const allSelectedModules = community.concat(enterprise);
-
-    let communityImports = community;
-    let enterpriseImports = enterprise;
-    if (enterprise.length && !community.length) {
-        enterpriseImports = ['ModuleRegistry'].concat(enterprise);
-    } else {
-        communityImports = ['ModuleRegistry'].concat(community);
-    }
-
-    const imports = [formatImports(communityImports, 'community'), formatImports(enterpriseImports, 'enterprise')]
-        .filter(Boolean)
-        .join('\n');
-
+    const imports = formatImports(
+        ['ModuleRegistry'].concat(allSelectedModules),
+        enterprise.length ? 'enterprise' : 'community'
+    );
     const moduleList = allSelectedModules.length
         ? allSelectedModules.map(formatImportItem).join('\n')
         : '    // no modules selected';
-
     return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }

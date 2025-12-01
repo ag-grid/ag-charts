@@ -13,12 +13,6 @@ interface EnterpriseRegistryOptions {
     injectWatermark?: (domManager: any, text: string) => void;
     createBackground?: (ctx: any) => any;
     createForeground?: (ctx: any) => any;
-    isRegistered(): boolean;
 }
 
-export const enterpriseRegistry: EnterpriseRegistryOptions = {
-    isRegistered() {
-        // has siblings apart from the isRegistered method
-        return Object.keys(this).length > 1;
-    },
-};
+export const enterpriseRegistry: EnterpriseRegistryOptions = {};

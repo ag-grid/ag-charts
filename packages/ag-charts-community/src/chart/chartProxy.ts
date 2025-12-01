@@ -257,7 +257,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
         const userOptions = chart.getOptions();
 
-        if (ModuleRegistry.hasEnterpriseModules()) {
+        if (ModuleRegistry.isEnterprise()) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
 
