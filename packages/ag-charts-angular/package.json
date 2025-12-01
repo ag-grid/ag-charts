@@ -57,7 +57,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "ng-packagr": "^18.0.0",
-    "rxjs": "~7.5.0",
+    "rxjs": "~7.8.2",
     "typescript": "~5.4.5",
     "zone.js": "~0.14.10"
   },
