@@ -845,7 +845,13 @@ export abstract class CartesianSeries<
     ): [number, number] {
         // Only cache when indices are not provided (common zoom calculation case)
         const cache = indices == null ? this.getDomainCache() : undefined;
-        const cacheKey = cache ? `${axisKey}:${visibleRange[0]}:${visibleRange[1]}` : undefined;
+        // Cache key includes the axis visibleRange (zoom ratio) which changes when zooming.
+        // This is distinct from the visibleRange parameter (pixel coordinates) and scale properties.
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const axisVisibleRange = xAxis?.visibleRange;
+        const cacheKey = cache
+            ? `${axisKey}:${+visibleRange[0]}:${+visibleRange[1]}:${axisVisibleRange?.[0]}:${axisVisibleRange?.[1]}`
+            : undefined;
 
         if (cacheKey && cache) {
             const cached = cache.visibleRangeIndices.get(cacheKey);
@@ -891,8 +897,12 @@ export abstract class CartesianSeries<
     ) {
         // Only cache when indices are not provided (common zoom calculation case)
         const cache = indices == null ? this.getDomainCache() : undefined;
+        // Cache key includes the axis visibleRange (zoom ratio) which changes when zooming.
+        // This is distinct from the visibleRange parameter (pixel coordinates) and scale properties.
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const axisVisibleRange = xAxis?.visibleRange;
         const cacheKey = cache
-            ? `${axisKeys.join(',')}:${crossAxisKey}:${visibleRange[0]}:${visibleRange[1]}`
+            ? `${axisKeys.join(',')}:${crossAxisKey}:${+visibleRange[0]}:${+visibleRange[1]}:${axisVisibleRange?.[0]}:${axisVisibleRange?.[1]}`
             : undefined;
 
         if (cacheKey && cache) {
