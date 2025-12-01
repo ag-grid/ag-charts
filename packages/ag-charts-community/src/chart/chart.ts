@@ -1095,7 +1095,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
+        const dataController = new DataController(this.mode, this.suppressFieldDotNotation, this.ctx.eventsHub);
 
         const promises: Promise<void>[] = [];
         for (const series of this.series) {

@@ -174,7 +174,11 @@ export abstract class FlowProportionSeries<
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
-        const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
+        const nodesDataController = new DataController(
+            'standalone',
+            dataController.suppressFieldDotNotation,
+            this.ctx.eventsHub
+        );
         const nodesDataModelPromise =
             nodes == null
                 ? null
