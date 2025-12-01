@@ -60,18 +60,18 @@ const options: AgCartesianChartOptions<DatumType> = {
     ],
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
-            if (params.showOn === 'legend-item') {
+            if (params.showOn === 'series-node') {
+                const xName = params.datum[params.xKey!];
                 return [
-                    'download',
+                    'defaults',
                     'separator',
-                    // Custom implementation of 'toggle-series-visibility':
+                    // Dynamic Context Menu Item
                     {
                         type: 'action',
-                        showOn: 'legend-item',
-                        label: params.visible ? `Hide ${params.seriesId}` : `Show ${params.seriesId}`,
-                        action: () => updateVisibility(params.seriesId, !params.visible),
+                        showOn: 'series-node',
+                        label: `Log Datum "${params.seriesId} - ${xName}"`,
+                        action: () => console.log(params.datum),
                     },
-                    'toggle-other-series',
                 ];
             }
         },
