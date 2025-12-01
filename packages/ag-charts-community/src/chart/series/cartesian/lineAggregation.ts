@@ -80,7 +80,8 @@ function isIndexInAggregation(
 }
 
 /**
- * Builds a Uint32Array of indices from aggregation data with optional array reuse.
+ * Builds a Uint32Array of indices from aggregation data by scanning full dataset.
+ * Use only for the finest aggregation level.
  */
 function buildIndicesFromAggregation(
     xValues: any[],
@@ -106,6 +107,45 @@ function buildIndicesFromAggregation(
     // Second pass: populate indices
     let idx = 0;
     for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
+            indices[idx++] = datumIndex;
+        }
+    }
+
+    return indices;
+}
+
+/**
+ * Filters indices from a previous aggregation level to produce coarser level indices.
+ * Only iterates over prevIndices (O(m) where m << n), not the full dataset.
+ */
+function filterIndicesFromPrevious(
+    prevIndices: Uint32Array,
+    xValues: any[],
+    d0: number,
+    d1: number,
+    indexData: Uint32Array,
+    maxRange: number,
+    xNeedsValueOf: boolean,
+    xValuesLength: number,
+    reuseArray?: Uint32Array
+): Uint32Array {
+    // First pass: count valid indices from previous level
+    let count = 0;
+    for (let i = 0; i < prevIndices.length; i++) {
+        const datumIndex = prevIndices[i];
+        if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
+            count++;
+        }
+    }
+
+    // Reuse existing array if size matches, otherwise allocate new
+    const indices = reuseArray?.length === count ? reuseArray : new Uint32Array(count);
+
+    // Second pass: populate indices
+    let idx = 0;
+    for (let i = 0; i < prevIndices.length; i++) {
+        const datumIndex = prevIndices[i];
         if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
             indices[idx++] = datumIndex;
         }
@@ -191,7 +231,9 @@ export function computeLineAggregation(
         indexData = compacted.indexData;
         valueData = compacted.valueData;
 
-        indices = buildIndicesFromAggregation(
+        // Filter from previous level's indices (O(m)) instead of full dataset (O(n))
+        indices = filterIndicesFromPrevious(
+            indices,
             xValues,
             d0,
             d1,

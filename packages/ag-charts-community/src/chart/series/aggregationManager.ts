@@ -58,7 +58,7 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     }): TFilter[] | undefined {
         this.executor.cancel();
 
-        if (options.targetRange > 0 && options.computePartial) {
+        if (options.targetRange > 1 && options.computePartial) {
             const partialResult = options.computePartial(this._filters);
             if (partialResult) {
                 const { immediate, computeRemaining } = partialResult;
