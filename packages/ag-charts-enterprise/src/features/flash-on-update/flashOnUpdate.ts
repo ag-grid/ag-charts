@@ -87,8 +87,21 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animationTimeout = setTimeout(() => this.clearFlash(), duration);
     }
 
+    private computeCategories(diff: _ModuleSupport.DataModelDiff): Set<string> {
+        const result = new Set<string>;
+        for (const seriesId of Object.keys(diff)) {
+            for (const key of ['updated', 'added', 'moved'] as const) {
+                for (const value of diff[seriesId][key]) {
+                    result.add(value);
+                }
+            }
+        }
+        return result;
+    }
+
     private computeCategoryFlashBounds(diff: _ModuleSupport.DataModelDiff): BoxBounds[] {
-        console.log(diff);
+        const categories: Set<string> = this.computeCategories(diff);
+        console.log(categories);
         return [{ x: 20, y: 30, height: 100, width: 140 }];
     }
 
