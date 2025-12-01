@@ -1,9 +1,12 @@
-import { CategoryAxisModule, LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     BandHighlightModule,
+    CategoryAxisModule,
     ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
     WaterfallSeriesModule,
 } from 'ag-charts-enterprise';
 

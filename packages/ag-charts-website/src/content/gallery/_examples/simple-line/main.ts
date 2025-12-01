@@ -1,16 +1,14 @@
 import {
-    LegendModule,
-    LineSeriesModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCharts,
     BandHighlightModule,
     ContextMenuModule,
     ErrorBarsModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';

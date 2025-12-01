@@ -1,6 +1,5 @@
 // Source: https://survey.stackoverflow.co
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, ChordSeriesModule, ContextMenuModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ChordSeriesModule, ContextMenuModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

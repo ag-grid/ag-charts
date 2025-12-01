@@ -1,10 +1,11 @@
-import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgDonutSeriesOptions,
     AgPolarChartOptions,
     AnimationModule,
     ContextMenuModule,
+    DonutSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

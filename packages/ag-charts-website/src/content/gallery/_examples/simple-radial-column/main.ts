@@ -1,9 +1,9 @@
-import { ModuleRegistry } from 'ag-charts-community';
 import {
     AgChartOptions,
     AgCharts,
     AngleCategoryAxisModule,
     ContextMenuModule,
+    ModuleRegistry,
     RadialColumnSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';

@@ -1,10 +1,10 @@
-import { ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgTopologyChartOptions,
     ContextMenuModule,
     GradientLegendModule,
     MapShapeSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { data } from './data';

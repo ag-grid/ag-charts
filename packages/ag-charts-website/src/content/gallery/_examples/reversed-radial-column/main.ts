@@ -1,9 +1,10 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgPolarChartOptions,
     AngleCategoryAxisModule,
     ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
     RadialColumnSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';
