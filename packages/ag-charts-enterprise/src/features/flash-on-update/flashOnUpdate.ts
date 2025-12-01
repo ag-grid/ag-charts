@@ -26,9 +26,13 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
+    constructor(protected ctx: _ModuleSupport.ModuleContext) {
         super();
-        this.cleanup.register(this.moduleContext.eventsHub.on('data:update', () => this.onDataChange()));
+        const onFirstDraw = () => {
+            ctx.eventsHub.off('layout:complete', onFirstDraw);
+            this.cleanup.register(ctx.eventsHub.on('data:update', () => this.onDataChange()));
+        };
+        this.cleanup.register(ctx.eventsHub.on('layout:complete', onFirstDraw));
     }
 
     destroy() {
@@ -38,7 +42,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private onDataChange(): void {
         if (!this.enabled) return;
 
-        const chartEl = this.moduleContext.widgets.chartWidget.getElement();
+        const chartEl = this.ctx.widgets.chartWidget.getElement();
 
         const { flashDuration, fadeDuration } = this;
         const duration = flashDuration + fadeDuration;
