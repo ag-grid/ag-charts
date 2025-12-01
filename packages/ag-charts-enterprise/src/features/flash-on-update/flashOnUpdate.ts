@@ -88,7 +88,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private computeCategories(diff: _ModuleSupport.DataModelDiff): Set<string> {
-        const result = new Set<string>;
+        const result = new Set<string>();
         for (const seriesId of Object.keys(diff)) {
             for (const key of ['updated', 'added', 'moved'] as const) {
                 for (const value of diff[seriesId][key]) {
@@ -101,7 +101,10 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private computeCategoryFlashBounds(diff: _ModuleSupport.DataModelDiff): BoxBounds[] {
         const categories: Set<string> = this.computeCategories(diff);
-        console.log(categories);
+        const axisCtx = this.ctx.axisManager.getAxisContext(_ModuleSupport.ChartAxisDirection.X)[0]; // TODO generalise this.
+        for (const c of categories) {
+            console.log(axisCtx.measureBand(c));
+        }
         return [{ x: 20, y: 30, height: 100, width: 140 }];
     }
 
