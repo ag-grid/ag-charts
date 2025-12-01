@@ -20,6 +20,7 @@ import {
     SHARED_ZERO_INDICES,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
+import type { RangeLookup } from '../../rangeLookup';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
 import { ReducerManager } from '../reducers/reducerManager';
@@ -907,29 +908,27 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Apply invalidation strategy
         if (!preserveDomainRanges) {
-            processedData[DOMAIN_RANGES].clear();
+            this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
         }
 
-        if (preserveSortOrders) {
-            // Mark sort orders as dirty for lazy recalculation
-            this.markSortOrdersDirty(processedData[KEY_SORT_ORDERS]);
-            this.markSortOrdersDirty(processedData[COLUMN_SORT_ORDERS]);
-        } else {
+        if (!preserveSortOrders) {
+            // Complex patterns: Full invalidation needed
             processedData[KEY_SORT_ORDERS].clear();
             processedData[COLUMN_SORT_ORDERS].clear();
         }
+        // When preserveSortOrders is true (update-only, append-only):
+        // - Keys don't change, so KEY_SORT_ORDERS stays valid
+        // - Data positions don't change, so sort order is definitionally unchanged
 
         // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
     }
 
     /**
-     * Marks all entries in a sort order map as dirty for lazy recalculation.
+     * Marks all RangeLookup entries as dirty for lazy rebuild.
      */
-    private markSortOrdersDirty(sortOrders: Map<unknown, unknown>): void {
-        for (const entry of sortOrders.values()) {
-            if (entry && typeof entry === 'object') {
-                (entry as { isDirty?: boolean }).isDirty = true;
-            }
+    private markDomainRangesDirty(domainRanges: Map<string, RangeLookup>): void {
+        for (const rangeLookup of domainRanges.values()) {
+            rangeLookup.isDirty = true;
         }
     }
 
