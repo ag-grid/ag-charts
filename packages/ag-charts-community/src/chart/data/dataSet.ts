@@ -62,6 +62,8 @@ interface TransactionEffects<T> {
 export class DataSet<T = unknown> {
     private pendingTransactions: DataSetTransaction<T>[] = [];
     private cachedChangeDescription: DataChangeDescription | undefined;
+    // Lazy reverse index for O(1) item→index lookups during update operations
+    private itemToIndexCache: Map<T, number> | undefined;
 
     constructor(public data: T[]) {}
 
@@ -186,7 +188,118 @@ export class DataSet<T = unknown> {
 
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
+
+        // Maintain index cache incrementally where possible, otherwise invalidate.
+        this.updateItemToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
+
         return true;
+    }
+
+    /**
+     * Updates the item→index cache incrementally for common patterns, or invalidates for complex changes.
+     *
+     * Optimized patterns:
+     * - Update-only: Cache unchanged
+     * - Append-only: Add new items at end
+     * - Rolling window (contiguous removals at start + appends): Shift indices and update
+     * - Prepend-only: Shift all indices up, add new items at start
+     */
+    private updateItemToIndexCache(
+        changeDescription: DataChangeDescription,
+        appendedValues: T[],
+        prependedValues: T[],
+        insertionValues: T[]
+    ): void {
+        if (!this.itemToIndexCache) return;
+
+        const { indexMap } = changeDescription;
+        const { totalPrependCount, totalAppendCount, removedIndices } = indexMap;
+        const hasRemovals = removedIndices.size > 0;
+        const hasArbitraryInsertions = insertionValues.length > 0;
+
+        // Update-only: no changes to indices
+        if (!hasRemovals && totalPrependCount === 0 && totalAppendCount === 0 && !hasArbitraryInsertions) {
+            return;
+        }
+
+        // Arbitrary insertions are complex - invalidate cache
+        if (hasArbitraryInsertions) {
+            this.itemToIndexCache = undefined;
+            return;
+        }
+
+        // Check if removals are contiguous at the start (rolling window pattern)
+        let removalsAreContiguousAtStart = false;
+        let contiguousRemovalCount = 0;
+        if (hasRemovals) {
+            const sortedRemovals = Array.from(removedIndices).sort((a, b) => a - b);
+            removalsAreContiguousAtStart = sortedRemovals[0] === 0;
+            if (removalsAreContiguousAtStart) {
+                // Check if all removals are contiguous from 0
+                for (let i = 0; i < sortedRemovals.length; i++) {
+                    if (sortedRemovals[i] !== i) {
+                        removalsAreContiguousAtStart = false;
+                        break;
+                    }
+                }
+                if (removalsAreContiguousAtStart) {
+                    contiguousRemovalCount = sortedRemovals.length;
+                }
+            }
+        }
+
+        // Complex removal pattern - invalidate cache
+        if (hasRemovals && !removalsAreContiguousAtStart) {
+            this.itemToIndexCache = undefined;
+            return;
+        }
+
+        // At this point we have a pattern we can handle incrementally:
+        // - Possibly contiguous removals at start
+        // - Possibly prepends
+        // - Possibly appends
+        // - No arbitrary insertions
+
+        const cache = this.itemToIndexCache;
+        const indexShift = totalPrependCount - contiguousRemovalCount;
+
+        // If indices shift, update all existing entries
+        if (indexShift !== 0) {
+            // Remove items that were deleted and shift remaining indices
+            for (const [item, oldIndex] of cache) {
+                if (removedIndices.has(oldIndex)) {
+                    cache.delete(item);
+                } else {
+                    cache.set(item, oldIndex + indexShift);
+                }
+            }
+        } else if (hasRemovals) {
+            // No shift but still need to remove deleted items (shouldn't happen with contiguous at start)
+            for (const [item, oldIndex] of cache) {
+                if (removedIndices.has(oldIndex)) {
+                    cache.delete(item);
+                }
+            }
+        }
+
+        // Add prepended items (they go at indices 0..totalPrependCount-1)
+        for (let i = 0; i < prependedValues.length; i++) {
+            const item = prependedValues[i];
+            if (!cache.has(item)) {
+                cache.set(item, i);
+            }
+        }
+
+        // Add appended items (they go at the end of the new array)
+        // After the transformation: originalLength - removals + prepends + appends = finalLength
+        // Appended items start at: finalLength - appendCount
+        const appendStartIndex = indexMap.finalLength - totalAppendCount;
+        for (let i = 0; i < appendedValues.length; i++) {
+            const item = appendedValues[i];
+            if (!cache.has(item)) {
+                cache.set(item, appendStartIndex + i);
+            }
+        }
     }
 
     clearPendingTransactions(): number {
@@ -475,12 +588,31 @@ export class DataSet<T = unknown> {
         return updatedIndices;
     }
 
+    /**
+     * Returns a Map from item → index for O(1) lookups.
+     * Built lazily on first use, invalidated when data changes.
+     */
+    private getItemToIndexMap(): Map<T, number> {
+        if (this.itemToIndexCache === undefined) {
+            this.itemToIndexCache = new Map();
+            for (let i = 0; i < this.data.length; i++) {
+                // Only store first occurrence (matches original scan behavior)
+                if (!this.itemToIndexCache.has(this.data[i])) {
+                    this.itemToIndexCache.set(this.data[i], i);
+                }
+            }
+        }
+        return this.itemToIndexCache;
+    }
+
     private collectUpdatedOriginalIndices(toUpdate: Set<T>, state: TransactionCollectionState<T>): void {
-        for (let i = 0; i < this.data.length && toUpdate.size > 0; i++) {
-            const value = this.data[i];
-            if (toUpdate.has(value) && !state.removedOriginalIndices.has(i)) {
-                state.updatedOriginalIndices.add(i);
-                toUpdate.delete(value);
+        // Fast path: use index cache for O(m) lookups instead of O(n) scan
+        const indexMap = this.getItemToIndexMap();
+
+        for (const item of toUpdate) {
+            const idx = indexMap.get(item);
+            if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
+                state.updatedOriginalIndices.add(idx);
             }
         }
     }
