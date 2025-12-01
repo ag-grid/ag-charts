@@ -26,7 +26,6 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
         x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'] },
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RangeAreaSeries(ctx),

@@ -566,15 +566,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 : [ChartAxisDirection.X, ChartAxisDirection.Y];
 
         const directionAxisKeys = this.getAxisDirectionKeys(directions);
-        const directionValueKeys = this.getAxisDirectionValueKeys(directions);
 
         const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
-        const hasNonDefaultSeriesAxisKeys = this.hasNonDefaultSeriesAxisKeys(
-            options,
-            directions,
-            directionAxisKeys,
-            directionValueKeys
-        );
+        const hasNonDefaultSeriesAxisKeys = this.hasNonDefaultSeriesAxisKeys(options, directions, directionAxisKeys);
 
         const primarySeriesOptions = options.series?.[0];
         const seriesType = this.optionsType(options);
@@ -617,23 +611,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             unmappedAxisIds.set(toAxisId, fromAxisId);
         }
 
-        this.remapSeriesAxisIds(
-            options,
-            directions,
-            directionAxisKeys,
-            directionValueKeys,
-            newAxes,
-            remappedAxisIds,
-            defaultAxes
-        );
-        this.predictAxesMissingTypesAndPositions(
-            options,
-            directions,
-            directionAxisKeys,
-            directionValueKeys,
-            newAxes,
-            defaultAxes
-        );
+        this.remapSeriesAxisIds(options, directions, directionAxisKeys, newAxes, remappedAxisIds, defaultAxes);
+        this.predictAxesMissingTypesAndPositions(options, directions, directionAxisKeys, newAxes, defaultAxes);
 
         (options as any).axes = newAxes as any;
 
@@ -660,41 +639,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return directionAxisKeys;
     }
 
-    private getAxisDirectionValueKeys(directions: ChartAxisDirection[]) {
-        const directionValueKeys: Partial<Record<ChartAxisDirection, string[]>> = {};
-
-        for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
-            if (!seriesModule?.axisValueKeys) continue;
-
-            for (const direction of directions) {
-                directionValueKeys[direction] ??= [];
-                const seriesAxisValueKey = seriesModule.axisValueKeys[direction] as string | string[];
-                if (!seriesAxisValueKey) continue;
-                if (isArray(seriesAxisValueKey)) {
-                    directionValueKeys[direction]?.push(...seriesAxisValueKey);
-                } else {
-                    directionValueKeys[direction]?.push(seriesAxisValueKey);
-                }
-            }
-        }
-
-        for (const direction of directions) {
-            directionValueKeys[direction] = unique(directionValueKeys[direction]!);
-        }
-
-        return directionValueKeys;
-    }
-
     private hasNonDefaultSeriesAxisKeys(
         options: T,
         directions: ChartAxisDirection[],
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
-        directionValueKeys: Partial<Record<ChartAxisDirection, string[]>>
+        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>
     ) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                if (!directionValueKeys[direction]?.some((k) => Object.keys(seriesOptions).includes(k))) continue;
-
                 const directionAxisKey = directionAxisKeys[direction];
                 if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if ((seriesOptions[directionAxisKey] as string) === (direction as string)) continue;
@@ -822,23 +773,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options: T,
         directions: ChartAxisDirection[],
         directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
-        directionValueKeys: Partial<Record<ChartAxisDirection, string[]>>,
         newAxes: Record<string, unknown>,
         remappedAxisIds: Map<string, string>,
         defaultAxes: Record<string, unknown>
     ) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                if (!directionValueKeys[direction]?.some((k) => Object.keys(seriesOptions).includes(k))) continue;
-
-                // Ensure there is at least a default axis for each direction indirectly referenced by the series when
-                // the user has provided some axes.
-                newAxes[direction] ??= defaultAxes[direction];
-
-                // Remap the series axis key to match either the direction or the remapped axis id.
                 const directionAxisKey = directionAxisKeys[direction];
                 if (!directionAxisKey) continue;
 
+                // Ensure there is at least a default axis for each direction required by the series.
+                newAxes[direction] ??= defaultAxes[direction];
+
+                // Remap the series axis key to match either the direction or the remapped axis id.
                 let remappedSeriesAxisId: string = direction;
                 if (directionAxisKey in seriesOptions) {
                     const seriesAxisId: string = (seriesOptions as any)[directionAxisKey];
@@ -925,7 +872,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options: T,
         directions: ChartAxisDirection[],
         directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
-        directionValueKeys: Partial<Record<ChartAxisDirection, string[]>>,
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
@@ -949,7 +895,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 options,
                 directions,
                 directionAxisKeys,
-                directionValueKeys,
                 key,
                 axis,
                 defaultAxes
@@ -991,15 +936,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options: T,
         directions: ChartAxisDirection[],
         directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
-        directionValueKeys: Partial<Record<ChartAxisDirection, string[]>>,
         axisKey: string,
         axis: PlainObject,
         defaultAxes: Record<string, PlainObject>
     ) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                if (!directionValueKeys[direction]?.some((k) => Object.keys(seriesOptions).includes(k))) continue;
-
                 const directionAxisKey = directionAxisKeys[direction];
                 if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if (seriesOptions[directionAxisKey] !== axisKey) continue;

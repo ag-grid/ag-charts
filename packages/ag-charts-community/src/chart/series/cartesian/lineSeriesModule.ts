@@ -84,7 +84,6 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = {
         },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new LineSeries(ctx),

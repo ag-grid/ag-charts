@@ -71,7 +71,6 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
         },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new ScatterSeries(ctx),
