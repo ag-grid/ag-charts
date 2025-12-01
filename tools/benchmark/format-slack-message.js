@@ -232,6 +232,17 @@ blocks.push(
 // ```bash
 // SLACK_CHANNEL='a' SLACK_ICON='a' SLACK_USERNAME='a' ./tools/benchmark/format-slack-message.js | pbcopy
 // ```
+const fullTimingTable = formatFullSection(
+    rankedByTime,
+    ['pctTimeChange', 'beforeMs', 'afterMs'],
+    ['%', 'Before (ms)', 'After (ms)']
+);
+const fullMemoryTable = formatFullSection(
+    rankedByMemory,
+    ['pctMemoryChange', 'beforeMB', 'afterMB'],
+    ['%', 'Before (MB)', 'After (MB)']
+);
+
 const slackMessage = {
     channel,
     username,
@@ -240,15 +251,19 @@ const slackMessage = {
     attachments: [
         {
             color: '#36a64f',
-            title: 'Full Timing Results',
-            text: `\`\`\`\n${formatFullSection(rankedByTime, ['pctTimeChange', 'beforeMs', 'afterMs'], ['%', 'Before (ms)', 'After (ms)'])}\`\`\``,
+            title: `Full Timing Results (${rankedByTime.length} benchmarks)`,
+            text: `\`\`\`\n${fullTimingTable}\`\`\``,
             fallback: 'Full timing benchmark results',
+            mrkdwn_in: ['text'],
+            collapsed: true,
         },
         {
             color: '#2196F3',
-            title: 'Full Memory Results',
-            text: `\`\`\`\n${formatFullSection(rankedByMemory, ['pctMemoryChange', 'beforeMB', 'afterMB'], ['%', 'Before (MB)', 'After (MB)'])}\`\`\``,
+            title: `Full Memory Results (${rankedByMemory.length} benchmarks)`,
+            text: `\`\`\`\n${fullMemoryTable}\`\`\``,
             fallback: 'Full memory benchmark results',
+            mrkdwn_in: ['text'],
+            collapsed: true,
         },
     ],
 };
