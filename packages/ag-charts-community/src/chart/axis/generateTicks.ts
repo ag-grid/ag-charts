@@ -138,7 +138,9 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
-    if (CategoryScale.is(scale) || OrdinalTimeScale.is(scale)) {
+    // Ordinal scales with a large number of categories can be slow to generate ticks for.
+    // Therefore, we limit the number of ticks generated for such scales.
+    if (CategoryScale.is(scale) || (OrdinalTimeScale.is(scale) && domain.length < 1000)) {
         const maxTickCount = CategoryScale.is(scale)
             ? domain.length
             : Math.min(domain.length, Math.max(1, Math.floor(rangeExtent / (zoomExtent * defaultTickMinSpacing))));
