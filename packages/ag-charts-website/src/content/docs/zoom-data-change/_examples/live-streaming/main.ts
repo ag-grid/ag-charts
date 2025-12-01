@@ -77,6 +77,3 @@ function resetData() {
     options.data = data;
     chart.update(options);
 }
-
-// Start streaming by default
-startStreaming();
