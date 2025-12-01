@@ -167,7 +167,7 @@ describe('computeLineAggregation', () => {
 
             // For any filter level, verify that included indices are actually extrema
             const finestFilter = result![result!.length - 1];
-            const includedYValues = finestFilter.indices.map((i) => yValues[i]);
+            const includedYValues = Array.from(finestFilter.indices, (i) => yValues[i]);
 
             // The included points should represent the visual envelope
             // Check that we have both positive and negative extrema
@@ -313,7 +313,7 @@ describe('computeLineAggregation', () => {
             for (const filter of result!) {
                 expect(filter).toHaveProperty('indices');
                 expect(filter).toHaveProperty('maxRange');
-                expect(Array.isArray(filter.indices)).toBe(true);
+                expect(filter.indices instanceof Uint32Array).toBe(true);
                 expect(typeof filter.maxRange).toBe('number');
                 expect(filter.maxRange).toBeGreaterThan(0);
             }
