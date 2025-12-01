@@ -46,6 +46,7 @@ describe('DataExtractor', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -105,6 +106,7 @@ describe('DataExtractor', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -226,6 +228,7 @@ describe('DataExtractor', () => {
 
             expect(dataModel.processData(basicDataSet([]))).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
