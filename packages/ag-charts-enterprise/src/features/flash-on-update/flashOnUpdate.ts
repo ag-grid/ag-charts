@@ -24,7 +24,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     @Property
     fadeDuration: DurationMs = 900;
 
-    private cleanup = new CleanupRegistry();
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
         super();
