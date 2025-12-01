@@ -37,6 +37,7 @@ import { NonNullableStateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
+import type { UpdateService } from '../updateService';
 
 type CoreZoomEntry = ZoomState & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
@@ -152,6 +153,7 @@ export class ZoomManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
+        updateService: UpdateService,
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
@@ -166,7 +168,9 @@ export class ZoomManager extends BaseManager {
                 }
 
                 this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'layoutComplete', changes: {} });
-
+            }),
+            updateService.addListener('update-complete', ({ wasShortcut }) => {
+                if (wasShortcut) return;
                 if (this.didCompleteChange) {
                     this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
                     this.didCompleteChange = false;
