@@ -43,10 +43,32 @@ The full list of breaking changes across all features for version {% migrationVe
 
 {% expandingSection headerText="Breaking Changes" %}
 
-<!-- ### TODO: Breaking changes section Name -->
+This release includes the following breaking changes:
+
+{% if isFramework("angular") %}
+
+### Compatibility
+
+The minimum version of Angular you can use with AG Charts is now Angular 18
+
+{% /if %}
+
+## Axes Changes
+
+-   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
+-   `axes.keys` is removed. Use the series `_KeyAxes` properties to link to axes.
+
+## Highlight Changes
 
 -   `highlightStyle` is removed from `treemap` and `sunburst` series. Use `highlight` options and `itemStyler` callbacks instead.
 -   The `highlighted` boolean is removed from all callback params. Use `highlightedStyle` instead.
+
+## Miscellaneous
+
+-   All callbacks that used to return a `string` or `string | TextSegment[]`, now also support returning a `number` or `Date` value.
+-   `TextSegment`s now also support `string | number | Date` in the `text` field.
+-   `itemId` used in `waterfall`, `range-area`, `range-bar`, `candlestick` and `ohlc` series formatter, styler and renderers is removed and replaced by `itemType`
+-   `itemId` type in event parameters is updated from `string` to `string | number`.
 
 {% /expandingSection %}
 
@@ -64,12 +86,12 @@ This release includes the following behaviour changes:
 
 ### Axes
 
--   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
 -   `interval.placement` defaults to `'between'` instead of `'on'`.
 -   `min` and `max` are absolute values and not overridden by `nice`. Use `preferredMin` and `preferredMax` for more flexible options.
 
 ### Highlighting
 
+-   Default highlighting now de-emphasises unhighlighted items and series. Use the series `highlight` options to customise.
 -   `highlight.bringToFront` defaults to `true` for all series. Use `bringToFront: false` to disable.
 -   `highlight.drawingMode` defaults to `'cutout'` instead of `'overlay'`.
 -   Financial Charts have `highlight.enabled: false` on all series.
