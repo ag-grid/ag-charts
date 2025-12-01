@@ -129,6 +129,9 @@ export class MiniChart extends AbstractModuleInstance {
             Object.defineProperty(series.chart, 'isMiniChart', {
                 get: () => true,
             });
+            Object.defineProperty(series.chart, 'flashOnUpdateEnabled', {
+                get: () => false,
+            });
             Object.defineProperty(series.chart, 'seriesRect', {
                 get: () => this.seriesRect,
             });

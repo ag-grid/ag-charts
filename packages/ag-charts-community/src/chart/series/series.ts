@@ -309,6 +309,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
+        flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
     };
 
@@ -1235,6 +1236,6 @@ export abstract class Series<
     }
 
     needsDataModelDiff(): boolean {
-        return !this.ctx.animationManager.isSkipped();
+        return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
 }
