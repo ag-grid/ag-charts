@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, CleanupRegistry, Property, createElement, setAttribute, setElementBBox } from 'ag-charts-core';
+import {
+    BaseProperties,
+    CleanupRegistry,
+    Property,
+    createElement,
+    jsonDiff,
+    setAttribute,
+    setElementBBox,
+} from 'ag-charts-core';
 import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
 
@@ -73,9 +81,12 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private flashCategoryBands(e: DataSet<unknown> | undefined): void {
+        const newData = e?.data;
+        if (!newData) return;
+
         this.clearFlash();
 
-        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(e);
+        const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(newData);
         for (const bounds of flashBounds) {
             const e = createElement('div');
             setAttribute(e, 'role', 'presentation');
@@ -88,9 +99,12 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animationTimeout = setTimeout(() => this.clearFlash(), duration);
     }
 
-    private computeCategoryFlashBounds(e: DataSet<unknown> | undefined): BoxBounds[] {
-        e satisfies any;
-        this.data satisfies any;
+    private computeCategoryFlashBounds(newData: unknown[]): BoxBounds[] {
+        console.log({
+            diff: jsonDiff(this.data, newData),
+            reverseDiff: jsonDiff(newData, this.data),
+        });
+        this.data = newData;
         return [{ x: 20, y: 30, height: 100, width: 140 }];
     }
 
