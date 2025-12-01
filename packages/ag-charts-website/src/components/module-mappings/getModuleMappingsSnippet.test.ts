@@ -69,8 +69,6 @@ describe('getModuleMappingsSnippet', () => {
           "import {
               ModuleRegistry,
               AllCommunityModule,
-          } from 'ag-charts-community';
-          import {
               AllEnterpriseModules,
           } from 'ag-charts-enterprise';
 

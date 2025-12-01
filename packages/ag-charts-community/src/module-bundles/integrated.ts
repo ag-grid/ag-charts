@@ -15,6 +15,9 @@ export const AgChartsCommunityModule = {
     _Util,
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
-    setup: () => ModuleRegistry.registerModules(AllCommunityModule),
+    setup: () => {
+        ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Integrated);
+        ModuleRegistry.registerModules(AllCommunityModule);
+    },
     isEnterprise: false,
 } satisfies IntegratedModule;

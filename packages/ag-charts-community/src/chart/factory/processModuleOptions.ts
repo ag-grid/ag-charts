@@ -134,88 +134,51 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
 }
 
 export function processModuleOptions<T extends Partial<AgChartOptions>>(chartType: string | undefined, options: T) {
-    const initialSeriesType = options.series?.[0]?.type as string | undefined;
-    removeIncompatibleModuleOptions(chartType, options);
     const missingModules = removeUnregisteredModuleOptions(chartType, options);
 
     if (!missingModules.length) return;
 
-    let enterprisePackageName = 'ag-charts-enterprise';
-    let enterpriseReferenceUrl = 'https://www.ag-grid.com/charts/javascript/installation/';
-
-    if ((options as any).mode === 'integrated') {
-        enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";
-        enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
-    }
+    const installationReferenceUrl = ModuleRegistry.isIntegrated()
+        ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
+        : 'https://www.ag-grid.com/charts/r/module-registry/';
 
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
-    if (initialSeriesType === 'linear-gauge' || initialSeriesType === 'radial-gauge') {
-        missingOptions.enterprise?.unshift({
-            type: ModuleType.Plugin,
-            name: 'createGauge',
-            moduleId: 'AgCharts.createGauge',
-            enterprise: true,
-        });
-    }
-
-    const messages: string[] = [];
-
-    if (missingOptions.enterprise?.length) {
-        messages.push(
+    if (missingModules.length) {
+        const packageName =
+            ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
+        Logger.errorOnce(
             [
-                `AG Charts - required enterprise modules are missing or not registered:`,
+                'required modules are not registered. Check if you have registered the modules:',
                 '',
-                ...missingOptions.enterprise.map(formatMissingModuleName),
+                ModuleRegistry.isUmd()
+                    ? `Install and register 'ag-charts-enterprise' before creating the chart.`
+                    : createReigstrySnippet(missingModules.map(formatMissingModuleName), packageName),
                 '',
-                `Install and register '${enterprisePackageName}' before creating the chart.`,
-                `See: ${enterpriseReferenceUrl}`,
+                `See ${installationReferenceUrl} for more details.`,
             ].join('\n')
         );
-    }
-
-    if (missingOptions.community?.length) {
-        messages.push(
-            [
-                `AG Charts - required community modules are missing or not registered:`,
-                '',
-                ...missingOptions.community.map(formatMissingModuleName),
-                '',
-                `Call ModuleRegistry.registerModules([...]) with the listed modules before creating the chart.`,
-            ].join('\n')
-        );
-    }
-
-    if (messages.length) {
-        Logger.warnOnce(messages.join('\n\n'));
-    }
-}
-
-function mapModuleName(module: ModulePlaceholder): string {
-    switch (module.type) {
-        case 'axis':
-            return `axis[type=${module.name}]`;
-
-        case 'series':
-            return `series[type=${module.name}]`;
-
-        case 'axis:plugin':
-            return `axis.${module.name}`;
-
-        case 'series:plugin':
-            return `series.${module.name}`;
-
-        case 'plugin':
-        default:
-            return module.name;
     }
 }
 
 function formatMissingModuleName(module: ModulePlaceholder): string {
-    const moduleName = module.moduleId ?? module.name;
-    const optionName = mapModuleName(module);
+    return module.moduleId ?? module.name;
+}
 
-    return moduleName === optionName ? moduleName : `${moduleName} (${optionName})`;
+function formatImportItem(name: string) {
+    return `    ${name},`;
+}
+
+function formatImports(imports: string[], packageName: string) {
+    return imports.length
+        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
+        : null;
+}
+
+function createReigstrySnippet(moduleNames: string[], packageName: string): string {
+    const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
+    const moduleList = moduleNames.map(formatImportItem).join('\n');
+    return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }
 
 export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
@@ -277,8 +240,9 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
             case 'axis:plugin':
                 for (const axis of Object.values(optionsAxes)) {
-                    if (axis?.[module.name as keyof typeof axis]) {
-                        delete axis[module.name as keyof typeof axis];
+                    const axisModuleKey = module.name as keyof typeof axis;
+                    if (axis?.[axisModuleKey] && axis[axisModuleKey].enabled !== false) {
+                        delete axis[axisModuleKey];
                         addMissingModule(module);
                     }
                 }

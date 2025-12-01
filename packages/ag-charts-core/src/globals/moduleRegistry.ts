@@ -11,6 +11,13 @@ import {
     type SeriesPluginModuleDefinition,
 } from '../interfaces/moduleDefinition';
 
+export enum RegistryMode {
+    Enterprise = 'enterprise',
+    Integrated = 'integrated',
+    UMD = 'umd',
+}
+
+const registeredModes = new Set<RegistryMode>();
 const registeredModules: Map<string, ModuleDefinition> = new Map();
 
 function registerModuleDefinition(def: ModuleDefinition): void {
@@ -72,6 +79,7 @@ export function registerModules(definitions: Array<ModuleDefinition | ModuleDefi
 }
 
 export function reset(): void {
+    registeredModes.clear();
     registeredModules.clear();
 }
 
@@ -124,11 +132,20 @@ export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any>
     }
 }
 
-export function hasEnterpriseModules(): boolean {
-    for (const definition of registeredModules.values()) {
-        if (definition.enterprise) return true;
-    }
-    return false;
+export function setRegistryMode(registryFlag: RegistryMode): void {
+    registeredModes.add(registryFlag);
+}
+
+export function isEnterprise(): boolean {
+    return registeredModes.has(RegistryMode.Enterprise);
+}
+
+export function isIntegrated(): boolean {
+    return registeredModes.has(RegistryMode.Integrated);
+}
+
+export function isUmd(): boolean {
+    return registeredModes.has(RegistryMode.UMD);
 }
 
 export function isModuleType<T extends ModuleType>(

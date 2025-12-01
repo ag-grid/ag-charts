@@ -10,7 +10,6 @@ import {
     deepClone,
     deepFreeze,
     distribute,
-    enterpriseRegistry,
     entries,
     getDocument,
     getWindow,
@@ -47,7 +46,11 @@ import {
 
 import { ChartAxisDirection } from '../chart/chartAxisDirection';
 import { ExpectedModules } from '../chart/factory/expectedModules';
-import { processModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import {
+    processModuleOptions,
+    removeIncompatibleModuleOptions,
+    sanitizeThemeModules,
+} from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
@@ -331,7 +334,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // Must run before chart validation to cleanup invalid types.
-        processModuleOptions(undefined, options);
+        removeIncompatibleModuleOptions(undefined, options);
+
         this.validateSeriesOptions(options);
 
         const chartType = detectChartType(options);
@@ -373,6 +377,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
+        removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
         processModuleOptions(this.chartDef.name, processedOptions);
 
         this.validateSeriesOptions(processedOptions);
@@ -422,7 +427,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
             if (seriesDef == null) {
-                const isEnterprise = enterpriseRegistry.isRegistered();
+                const isEnterprise = ModuleRegistry.isEnterprise();
                 validSeriesTypes ??= joinFormatted(
                     Array.from(ExpectedModules.values())
                         .filter(
@@ -489,7 +494,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
-                const isEnterprise = enterpriseRegistry.isRegistered();
+                const isEnterprise = ModuleRegistry.isEnterprise();
                 validAxesTypes ??= joinFormatted(
                     Array.from(ExpectedModules.values())
                         .filter(

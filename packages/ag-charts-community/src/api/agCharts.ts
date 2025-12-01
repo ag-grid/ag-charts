@@ -175,8 +175,11 @@ class AgChartsInternal {
             throw new Error(
                 [
                     'AG Charts - No modules have been registered.',
+                    '',
                     'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
-                ].join(' ')
+                    '',
+                    'See https://www.ag-grid.com/charts/r/module-registry/ for more details.',
+                ].join('\n')
             );
         }
 

@@ -8,18 +8,22 @@ import {
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
 import {
+    RegistryMode,
     getAxisModule,
     getChartModule,
     getPresetModule,
     getSeriesModule,
-    hasEnterpriseModules,
     hasModule,
+    isEnterprise,
+    isIntegrated,
     isModuleType,
+    isUmd,
     listModules,
     listModulesByType,
     register,
     registerModules,
     reset,
+    setRegistryMode,
 } from './moduleRegistry';
 
 const everyModuleDefaults = {
@@ -183,15 +187,27 @@ describe('moduleRegistry', () => {
         });
     });
 
-    describe('hasEnterpriseModules', () => {
-        test('detects when any registered module is flagged as enterprise', () => {
-            register(createSeriesModule('community-module'));
+    describe('registry modes', () => {
+        test('isEnterprise() is false by default', () => {
+            expect(isEnterprise()).toBe(false);
+        });
 
-            expect(hasEnterpriseModules()).toBe(false);
+        test('setRegistryMode toggles enterprise mode', () => {
+            setRegistryMode(RegistryMode.Enterprise);
 
-            register(createSeriesModule('enterprise-module', { enterprise: true }));
+            expect(isEnterprise()).toBe(true);
+        });
 
-            expect(hasEnterpriseModules()).toBe(true);
+        test('setRegistryMode toggles integrated mode', () => {
+            setRegistryMode(RegistryMode.Integrated);
+
+            expect(isIntegrated()).toBe(true);
+        });
+
+        test('setRegistryMode toggles UMD mode', () => {
+            setRegistryMode(RegistryMode.UMD);
+
+            expect(isUmd()).toBe(true);
         });
     });
 
