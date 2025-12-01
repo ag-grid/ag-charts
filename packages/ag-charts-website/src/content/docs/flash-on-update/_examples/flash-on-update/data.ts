@@ -20,7 +20,7 @@ function random() {
 // Create a set of data with predicatable "randomness"
 export function getRandomizedData(): DataType[] {
     // Vary the datum by a random proportion of the variance +ve or -ve
-    const vary = (n) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
+    const vary = (n: number) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
 
     const startYear = 2025;
     const data: DataType[] = [
