@@ -70,10 +70,6 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
         x: { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: {
-        [ChartAxisDirection.X]: 'xKey',
-        [ChartAxisDirection.Y]: ['highKey', 'openKey', 'lowKey', 'closeKey'],
-    },
     themeTemplate,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new OhlcSeries(ctx),

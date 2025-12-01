@@ -24,7 +24,6 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
         x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate: HEATMAP_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new HeatmapSeries(ctx),

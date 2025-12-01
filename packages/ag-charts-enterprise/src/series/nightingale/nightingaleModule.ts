@@ -24,7 +24,6 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
     options: nightingaleSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.Angle]: 'angleKey', [ChartAxisDirection.Radius]: 'radiusKey' },
     themeTemplate: NIGHTINGALE_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new NightingaleSeries(ctx),

@@ -20,10 +20,6 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: {
-        [ChartAxisDirection.X]: 'xKey',
-        [ChartAxisDirection.Y]: ['minKey', 'q1Key', 'medianKey', 'q3Key', 'maxKey'],
-    },
     themeTemplate: BOX_PLOT_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),
