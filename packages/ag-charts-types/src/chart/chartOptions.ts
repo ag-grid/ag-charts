@@ -6,6 +6,7 @@ import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgFlashOnUpdateOptions } from './flashOnUpdateOptions';
 import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
@@ -238,6 +239,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     contextMenu?: AgContextMenuOptions<TDatum, TContext>;
     /** Context object to use in callbacks. */
     context?: TContext;
+    /** Configuration for visual flashes when data updates. */
+    flashOnUpdate?: AgFlashOnUpdateOptions;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */

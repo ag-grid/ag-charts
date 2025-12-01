@@ -490,6 +490,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             opacity: ratio,
         },
     },
+    flashOnUpdate: defined,
     styleNonce: string,
     sync: defined,
     zoom: defined,

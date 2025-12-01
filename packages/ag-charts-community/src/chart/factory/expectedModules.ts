@@ -419,6 +419,12 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             },
             {
                 type: 'plugin',
+                name: 'flashOnUpdate',
+                enterprise: true,
+                moduleId: 'FlashOnUpdateModule',
+            },
+            {
+                type: 'plugin',
                 name: 'gradientLegend',
                 enterprise: true,
                 moduleId: 'GradientLegendModule',

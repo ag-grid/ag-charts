@@ -16,6 +16,7 @@ export * from './chart/dataSourceOptions';
 export * from './chart/dataTransaction';
 export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';
+export * from './chart/flashOnUpdateOptions';
 export * from './chart/formatterOptions';
 export * from './chart/eventOptions';
 export * from './chart/gradientLegendOptions';
