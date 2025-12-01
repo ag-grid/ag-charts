@@ -589,10 +589,10 @@ export class RangeAreaSeries extends BaseSeries {
         };
 
         // Process datums using appropriate strategy
-        if (ctx.dataAggregationFilter != null) {
-            this.createNodeDataWithAggregation(ctx, scratch);
-        } else {
+        if (ctx.dataAggregationFilter == null) {
             this.createNodeDataSimple(ctx, scratch, processedData.input.count);
+        } else {
+            this.createNodeDataWithAggregation(ctx, scratch);
         }
 
         // Cleanup incremental updates - trim markerData if fewer nodes than before

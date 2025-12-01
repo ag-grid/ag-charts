@@ -1086,10 +1086,10 @@ export class AreaSeries extends CartesianSeries<
         };
 
         // Process datums using appropriate strategy
-        if (ctx.indices != null) {
-            this.createNodeDataWithAggregation(ctx, scratch, xAxis.range, processedData.input.count);
-        } else {
+        if (ctx.indices == null) {
             this.createNodeDataSimple(ctx, scratch, xAxis.range, processedData.input.count);
+        } else {
+            this.createNodeDataWithAggregation(ctx, scratch, xAxis.range, processedData.input.count);
         }
 
         // Trim excess nodes from incremental updates
