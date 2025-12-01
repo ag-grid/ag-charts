@@ -75,3 +75,24 @@ export function randomizeSomeElements(data: DataType[]): DataType[] {
 
     return result;
 }
+
+// Append a new randomized datum
+export function appendRandomizedElement(data: DataType[]): DataType[] {
+    if (data.length === 0) return data;
+
+    const vary = (n: number) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
+
+    const last = data[data.length - 1];
+    const nextYear = String(Number(last.year) + 1);
+
+    const newItem: DataType = {
+        year: nextYear,
+        one: vary(last.one),
+        two: vary(last.two),
+        three: vary(last.three),
+        four: vary(last.four),
+        five: vary(last.five),
+    };
+
+    return [...data, newItem];
+}

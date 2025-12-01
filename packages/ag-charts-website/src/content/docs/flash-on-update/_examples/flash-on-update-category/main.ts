@@ -14,7 +14,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import type { DataType } from './data';
-import { getRandomizedData, randomizeSomeElements } from './data';
+import { appendRandomizedElement, getRandomizedData, randomizeSomeElements } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -93,5 +93,10 @@ const chart = AgCharts.create(options);
 
 function randomize() {
     options.data = randomizeSomeElements(options.data!);
+    chart.update(options);
+}
+
+function append() {
+    options.data = appendRandomizedElement(options.data!);
     chart.update(options);
 }
