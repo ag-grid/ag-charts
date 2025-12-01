@@ -8,6 +8,7 @@ import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
 import { CrosshairModule } from '../features/crosshair/crosshairModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
+import { FlashOnUpdateModule } from '../features/flash-on-update/flashOnUpdateModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
@@ -29,6 +30,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     CrosshairModule,
     DataSourceModule,
     ErrorBarsModule,
+    FlashOnUpdateModule,
     GradientLegendModule,
     NavigatorModule,
     RangesModule,
