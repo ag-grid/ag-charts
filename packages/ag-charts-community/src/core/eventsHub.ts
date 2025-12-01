@@ -34,7 +34,7 @@ export interface SeriesAreaClickEvent {
     readonly sourceEvent: Event;
 }
 
-export interface DataModelDiff {
+export interface DataModelSeriesDiff {
     readonly changed: boolean;
     readonly added: Set<string>;
     readonly updated: Set<string>;
@@ -42,8 +42,10 @@ export interface DataModelDiff {
     readonly moved: Set<string>;
 }
 
+export type DataModelDiff = Record<string /* series-id */, DataModelSeriesDiff>;
+
 export interface DataModelDiffEvent {
-    readonly diff: Record<string, DataModelDiff>;
+    readonly diff: DataModelDiff;
 }
 
 // Event name convention is 'module:event-name'
