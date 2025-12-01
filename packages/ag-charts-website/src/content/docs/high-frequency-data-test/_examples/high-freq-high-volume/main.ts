@@ -20,8 +20,31 @@ type OhlcDatum = {
     close: number;
 };
 
-type Datum = ValueDatum | OhlcDatum;
-type SeriesType = 'line' | 'bar' | 'ohlc' | 'candlestick';
+type RangeDatum = {
+    timestamp: number;
+    low: number;
+    high: number;
+};
+
+type BubbleDatum = {
+    timestamp: number;
+    value: number;
+    size: number;
+};
+
+type Datum = ValueDatum | OhlcDatum | RangeDatum | BubbleDatum;
+type SeriesType = 'line' | 'area' | 'bar' | 'bubble' | 'ohlc' | 'candlestick' | 'range-bar' | 'range-area';
+
+const ALL_SERIES_TYPES: SeriesType[] = [
+    'line',
+    'area',
+    'bar',
+    'bubble',
+    'ohlc',
+    'candlestick',
+    'range-bar',
+    'range-area',
+];
 
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
@@ -52,7 +75,7 @@ function getSeriesTypeFromHash(): SeriesType | null {
         if (!hash) return null;
         const params = new URLSearchParams(hash);
         const seriesType = params.get('seriesType');
-        if (seriesType && ['line', 'bar', 'ohlc', 'candlestick'].includes(seriesType)) {
+        if (seriesType && ALL_SERIES_TYPES.includes(seriesType as SeriesType)) {
             return seriesType as SeriesType;
         }
     } catch {
@@ -64,7 +87,7 @@ function getSeriesTypeFromHash(): SeriesType | null {
 function getSeriesTypeFromStorage(): SeriesType | null {
     try {
         const stored = sessionStorage.getItem(STORAGE_KEY);
-        if (stored && ['line', 'bar', 'ohlc', 'candlestick'].includes(stored)) {
+        if (stored && ALL_SERIES_TYPES.includes(stored as SeriesType)) {
             return stored as SeriesType;
         }
     } catch {
@@ -225,43 +248,62 @@ function generateValueDatum(index: number): ValueDatum {
     };
 }
 
-function generateOhlcDatum(index: number, previousBasePrice?: number): { datum: OhlcDatum; basePrice: number } {
+function generateOhlcDatum(index: number, previousClose?: number): { datum: OhlcDatum; basePrice: number } {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
 
-    // Calculate base price incrementally from previous value (O(1) instead of O(n))
-    const drift = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
-    let basePrice: number;
-    if (previousBasePrice !== undefined) {
-        basePrice = Number((previousBasePrice + drift * 0.01).toFixed(2));
-    } else {
-        // Fallback: compute cumulative sum (O(n) but only for edge cases)
-        // This should rarely happen in practice as we maintain state
-        let computedBasePrice = 1_000;
-        for (let i = 0; i <= index; i++) {
-            const d = Math.sin(i / 240) * 40 + Math.cos(i / 80) * 25;
-            computedBasePrice = Number((computedBasePrice + d * 0.01).toFixed(2));
-        }
-        basePrice = computedBasePrice;
-    }
-
-    // Generate realistic OHLC data with volatility
-    const volatility = 0.5 + Math.sin(index / 20) * 0.3;
+    // Use same baseline calculation as other series types for consistency
     const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+    const volatility = Math.sin(index / 15) * 5;
     const baseline = 1_000 + index * 0.02;
-    const close = Number((baseline + trend + Math.sin(index / 15) * volatility).toFixed(2));
-    const open = basePrice;
-    const high = Number(Math.max(open, close, basePrice + Math.abs(Math.cos(index / 7)) * volatility * 2).toFixed(2));
-    const low = Number(Math.min(open, close, basePrice - Math.abs(Math.sin(index / 9)) * volatility * 2).toFixed(2));
+    const midPrice = baseline + trend + volatility;
+
+    // Open is previous close (or midPrice for first datum)
+    const open = previousClose ?? midPrice;
+
+    // Close varies around midPrice
+    const closeOffset = Math.sin(index / 7) * 2 + Math.cos(index / 11) * 1.5;
+    const close = Number((midPrice + closeOffset).toFixed(2));
+
+    // High and low extend beyond open/close by a small random amount
+    const range = 2 + Math.abs(Math.sin(index / 13)) * 3;
+    const high = Number((Math.max(open, close) + range).toFixed(2));
+    const low = Number((Math.min(open, close) - range).toFixed(2));
 
     return {
         datum: {
             timestamp,
-            open,
+            open: Number(open.toFixed(2)),
             high,
             low,
             close,
         },
-        basePrice,
+        basePrice: close, // Pass close as next open
+    };
+}
+
+function generateRangeDatum(index: number): RangeDatum {
+    const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
+    const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+    const volatility = Math.sin(index / 15) * 5;
+    const baseline = 1_000 + index * 0.02;
+    const midValue = baseline + trend + volatility;
+    const range = 10 + Math.abs(Math.sin(index / 30)) * 20;
+    return {
+        timestamp,
+        low: Number((midValue - range / 2).toFixed(2)),
+        high: Number((midValue + range / 2).toFixed(2)),
+    };
+}
+
+function generateBubbleDatum(index: number): BubbleDatum {
+    const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
+    const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+    const volatility = Math.sin(index / 15) * 5;
+    const baseline = 1_000 + index * 0.02;
+    return {
+        timestamp,
+        value: Number((baseline + trend + volatility).toFixed(2)),
+        size: 5 + Math.abs(Math.sin(index / 50)) * 20,
     };
 }
 
@@ -277,49 +319,15 @@ function createSeedData(
             const { datum, basePrice: newBasePrice } = generateOhlcDatum(i, basePrice);
             result.push(datum);
             basePrice = newBasePrice;
+        } else if (seriesType === 'range-bar' || seriesType === 'range-area') {
+            result.push(generateRangeDatum(i));
+        } else if (seriesType === 'bubble') {
+            result.push(generateBubbleDatum(i));
         } else {
             result.push(generateValueDatum(i));
         }
     }
     return { data: result, lastBasePrice: basePrice };
-}
-
-function isValueDatum(datum: Datum): datum is ValueDatum {
-    return 'value' in datum;
-}
-
-function isOhlcDatum(datum: Datum): datum is OhlcDatum {
-    return 'open' in datum && 'high' in datum && 'low' in datum && 'close' in datum;
-}
-
-function convertValueToOhlc(valueData: ValueDatum[]): OhlcDatum[] {
-    return valueData.map((datum, index) => {
-        const basePrice = datum.value;
-        const volatility = 0.5 + Math.sin(index / 20) * 0.3;
-        const close = basePrice;
-        const open = index > 0 ? (valueData[index - 1] as ValueDatum).value : basePrice;
-        const high = Number(
-            Math.max(open, close, basePrice + Math.abs(Math.cos(index / 7)) * volatility * 2).toFixed(2)
-        );
-        const low = Number(
-            Math.min(open, close, basePrice - Math.abs(Math.sin(index / 9)) * volatility * 2).toFixed(2)
-        );
-
-        return {
-            timestamp: datum.timestamp,
-            open,
-            high,
-            low,
-            close,
-        };
-    });
-}
-
-function convertOhlcToValue(ohlcData: OhlcDatum[]): ValueDatum[] {
-    return ohlcData.map((datum) => ({
-        timestamp: datum.timestamp,
-        value: datum.close,
-    }));
 }
 
 const seedResult = createSeedData(INITIAL_POINTS);
@@ -329,36 +337,74 @@ let nextIndex = data.length;
 let lastBasePrice: number | undefined = seedResult.lastBasePrice;
 
 function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] {
-    if (seriesType === 'ohlc' || seriesType === 'candlestick') {
-        return [
-            {
-                type: seriesType,
-                xKey: 'timestamp',
-                openKey: 'open',
-                highKey: 'high',
-                lowKey: 'low',
-                closeKey: 'close',
-            },
-        ];
-    } else if (seriesType === 'line') {
-        return [
-            {
-                type: 'line' as const,
-                xKey: 'timestamp',
-                yKey: 'value',
-                marker: { enabled: false },
-                strokeWidth: 1,
-            },
-        ];
-    } else {
-        // bar series
-        return [
-            {
-                type: 'bar' as const,
-                xKey: 'timestamp',
-                yKey: 'value',
-            },
-        ];
+    switch (seriesType) {
+        case 'ohlc':
+        case 'candlestick':
+            return [
+                {
+                    type: seriesType,
+                    xKey: 'timestamp',
+                    openKey: 'open',
+                    highKey: 'high',
+                    lowKey: 'low',
+                    closeKey: 'close',
+                },
+            ];
+        case 'line':
+            return [
+                {
+                    type: 'line',
+                    xKey: 'timestamp',
+                    yKey: 'value',
+                    marker: { enabled: false },
+                    strokeWidth: 1,
+                },
+            ];
+        case 'area':
+            return [
+                {
+                    type: 'area',
+                    xKey: 'timestamp',
+                    yKey: 'value',
+                    marker: { enabled: false },
+                    strokeWidth: 1,
+                },
+            ];
+        case 'bar':
+            return [
+                {
+                    type: 'bar',
+                    xKey: 'timestamp',
+                    yKey: 'value',
+                },
+            ];
+        case 'bubble':
+            return [
+                {
+                    type: 'bubble',
+                    xKey: 'timestamp',
+                    yKey: 'value',
+                    sizeKey: 'size',
+                },
+            ];
+        case 'range-bar':
+            return [
+                {
+                    type: 'range-bar',
+                    xKey: 'timestamp',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ];
+        case 'range-area':
+            return [
+                {
+                    type: 'range-area',
+                    xKey: 'timestamp',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ];
     }
 }
 
@@ -407,6 +453,10 @@ function createBatch(count: number): Datum[] {
             const { datum, basePrice: newBasePrice } = generateOhlcDatum(nextIndex++, lastBasePrice);
             batch.push(datum);
             lastBasePrice = newBasePrice;
+        } else if (currentSeriesType === 'range-bar' || currentSeriesType === 'range-area') {
+            batch.push(generateRangeDatum(nextIndex++));
+        } else if (currentSeriesType === 'bubble') {
+            batch.push(generateBubbleDatum(nextIndex++));
         } else {
             batch.push(generateValueDatum(nextIndex++));
         }
@@ -701,57 +751,29 @@ async function setSeriesType(newSeriesType: SeriesType) {
     }
 
     seriesTypeUpdateInProgress = true;
+    const wasRunning = isRunning;
 
     try {
-        // Stop updates if running
+        // Stop updates temporarily
         if (isRunning) {
             stopUpdates();
         }
 
-        const wasValueBased = currentSeriesType === 'line' || currentSeriesType === 'bar';
-        const isValueBased = newSeriesType === 'line' || newSeriesType === 'bar';
-        const wasOhlcBased = currentSeriesType === 'ohlc' || currentSeriesType === 'candlestick';
-        const isOhlcBased = newSeriesType === 'ohlc' || newSeriesType === 'candlestick';
-
-        // Preserve data count
+        // Preserve data count and regenerate data for the new series type
         const dataCount = data.length;
-
-        // Convert data if switching between incompatible types to maintain visual continuity
-        if (wasValueBased && isOhlcBased) {
-            // Convert value-based to OHLC
-            const valueData = data.filter(isValueDatum);
-            data = convertValueToOhlc(valueData);
-            // Calculate lastBasePrice by running generation up to last index (O(n) but only once)
-            if (data.length > 0) {
-                let computedBasePrice = 1_000;
-                for (let i = 0; i < data.length; i++) {
-                    const drift = Math.sin(i / 240) * 40 + Math.cos(i / 80) * 25;
-                    computedBasePrice = Number((computedBasePrice + drift * 0.01).toFixed(2));
-                }
-                lastBasePrice = computedBasePrice;
-            }
-        } else if (wasOhlcBased && isValueBased) {
-            // Convert OHLC to value-based
-            const ohlcData = data.filter(isOhlcDatum);
-            data = convertOhlcToValue(ohlcData);
-            lastBasePrice = undefined;
-        } else {
-            // Same category (value-based to value-based or OHLC to OHLC), regenerate for consistency
-            const seedResult = createSeedData(dataCount, newSeriesType);
-            data = seedResult.data;
-            lastBasePrice = seedResult.lastBasePrice;
-        }
+        const seedResult = createSeedData(dataCount, newSeriesType);
+        data = seedResult.data;
+        lastBasePrice = seedResult.lastBasePrice;
 
         // Reset nextIndex to maintain continuity
         nextIndex = data.length;
 
-        // Update chart with new series configuration
-        await chart.updateDelta({
+        // Update chart with new series configuration using full update
+        await chart.update({
+            ...options,
             data,
             series: createSeriesConfig(newSeriesType),
         });
-
-        await chart.waitForUpdate();
 
         currentSeriesType = newSeriesType;
 
@@ -768,6 +790,11 @@ async function setSeriesType(newSeriesType: SeriesType) {
         // Reset indicators
         resetCpuIndicator();
         updateDataCountDisplay();
+
+        // Resume updates if they were running before the switch
+        if (wasRunning) {
+            startUpdates();
+        }
     } finally {
         seriesTypeUpdateInProgress = false;
     }

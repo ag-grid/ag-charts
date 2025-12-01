@@ -991,8 +991,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return positive.label.enabled || negative.label.enabled || total.label.enabled;
     }
 
-    protected override onDataChange() {}
-
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }

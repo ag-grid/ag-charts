@@ -1449,10 +1449,10 @@ export class BarSeries extends AbstractBarSeries<
                 datum.bottomRightCornerRadius ? cornerRadius : 0,
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
-                direction,
-                datum.featherRatio,
                 datum.crisp,
-                shadow
+                shadow,
+                direction,
+                datum.featherRatio
             );
         }
 

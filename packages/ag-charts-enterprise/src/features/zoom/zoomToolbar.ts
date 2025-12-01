@@ -138,6 +138,8 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        if (!this.enabled) return;
+
         const { buttons, container } = this;
         const { rect } = event.series;
 

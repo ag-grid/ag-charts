@@ -1,8 +1,9 @@
-import type { DistantObject } from 'ag-charts-core';
-import { boxesEqual, isNumberEqual } from 'ag-charts-core';
+import { type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
+import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { DeclaredSceneChangeDetection } from '../changeDetectable';
+import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -334,8 +335,8 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
 
-        path.clear(true);
-        borderPath.clear(true);
+        path.clear();
+        borderPath.clear();
 
         if (w === 0 || h === 0) {
             this.effectiveStrokeWidth = 0;
@@ -412,7 +413,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
-                this.borderClipPath.clear(true);
+                this.borderClipPath.clear();
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
             }
@@ -457,6 +458,45 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     get midPoint(): { x: number; y: number } {
         return { x: this.__x + this.__width / 2, y: this.__y + this.__height / 2 };
+    }
+
+    /**
+     * High-performance static property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setStaticProperties(
+        drawingMode: AgDrawingMode,
+        topLeftCornerRadius: number,
+        topRightCornerRadius: number,
+        bottomRightCornerRadius: number,
+        bottomLeftCornerRadius: number,
+        visible: boolean,
+        crisp: boolean,
+        fillShadow: DropShadow | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__drawingMode = drawingMode;
+        this.__topLeftCornerRadius = topLeftCornerRadius;
+        this.__topRightCornerRadius = topRightCornerRadius;
+        this.__bottomRightCornerRadius = bottomRightCornerRadius;
+        this.__bottomLeftCornerRadius = bottomLeftCornerRadius;
+        this.__visible = visible;
+        this.__crisp = crisp;
+        this.__fillShadow = fillShadow;
+
+        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
     }
 
     /**

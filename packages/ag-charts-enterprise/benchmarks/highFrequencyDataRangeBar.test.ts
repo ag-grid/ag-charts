@@ -6,31 +6,28 @@ import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
 const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
 
-describeWhenSupported('high-frequency data candlestick benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-candlestick', { isEnterprise: true });
+describeWhenSupported('high-frequency data range-bar benchmark', () => {
+    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-range-bar', { isEnterprise: true });
 
     type Datum = {
         timestamp: number;
-        open: number;
-        high: number;
         low: number;
-        close: number;
-        volume: number;
+        high: number;
     };
 
     const INITIAL_POINTS = 100_000;
     const BATCH_SIZE = 100;
     const DATA_INTERVAL_MS = 250;
     const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
-    const BASE_PRICE = 100;
+    const BASE_VALUE = 50;
 
-    class HighFrequencyCandlestickGenerator {
+    class HighFrequencyRangeBarGenerator {
         private index = 0;
-        private price = BASE_PRICE;
+        private baseValue = BASE_VALUE;
 
         reset() {
             this.index = 0;
-            this.price = BASE_PRICE;
+            this.baseValue = BASE_VALUE;
         }
 
         take(count: number): Datum[] {
@@ -45,37 +42,31 @@ describeWhenSupported('high-frequency data candlestick benchmark', () => {
             const index = this.index++;
             const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
             const drift = Math.sin(index / 12) * 0.7 + Math.cos(index / 24) * 0.4;
-            this.price = Number((this.price + drift).toFixed(2));
+            this.baseValue = Number((this.baseValue + drift).toFixed(2));
 
-            // Generate realistic OHLC data with some volatility
-            const volatility = 0.5 + Math.sin(index / 20) * 0.3;
-            const open = this.price;
-            const close = Number((open + Math.sin(index / 5) * volatility).toFixed(2));
-            const high = Number(Math.max(open, close, open + Math.abs(Math.cos(index / 7)) * volatility).toFixed(2));
-            const low = Number(Math.min(open, close, open - Math.abs(Math.sin(index / 9)) * volatility).toFixed(2));
+            const spread = 5 + Math.abs(Math.sin(index / 20)) * 10;
+            const low = Number((this.baseValue - spread / 2).toFixed(2));
+            const high = Number((this.baseValue + spread / 2).toFixed(2));
 
             return {
                 timestamp,
-                open,
-                high,
                 low,
-                close,
-                volume: 600 + Math.round((Math.sin(index / 8) + 1) * 220),
+                high,
             };
         }
     }
 
-    const candlestickGenerator = new HighFrequencyCandlestickGenerator();
+    const rangeBarGenerator = new HighFrequencyRangeBarGenerator();
 
     let data: Datum[] = [];
 
     function createSeedData(count: number): Datum[] {
-        candlestickGenerator.reset();
-        return candlestickGenerator.take(count);
+        rangeBarGenerator.reset();
+        return rangeBarGenerator.take(count);
     }
 
     function createBatch(count: number): Datum[] {
-        return candlestickGenerator.take(count);
+        return rangeBarGenerator.take(count);
     }
 
     beforeEach(() => {

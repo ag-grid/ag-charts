@@ -22,9 +22,13 @@
         </select>
         <select id="seriesTypeSelect" onchange="updateSeriesType(this.value)">
             <option value="line" selected>Line</option>
+            <option value="area">Area</option>
             <option value="bar">Bar</option>
+            <option value="bubble">Bubble</option>
             <option value="ohlc">OHLC</option>
             <option value="candlestick">Candlestick</option>
+            <option value="range-bar">Range Bar</option>
+            <option value="range-area">Range Area</option>
         </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
         <span id="fpsCounter" style="margin-left: 10px">FPS: 0</span>

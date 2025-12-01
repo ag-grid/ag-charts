@@ -1,8 +1,7 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
-import { OhlcSeriesBase } from './ohlcSeriesBase';
-import type { OhlcNodeDatum } from './ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
