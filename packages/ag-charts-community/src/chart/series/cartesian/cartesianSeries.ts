@@ -347,18 +347,11 @@ export abstract class CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    /**
-     * Gets the domain cache, creating a new one if processedData has changed.
-     * This ensures cache consistency across processedData updates.
-     */
+    /** Gets the domain cache, creating a new one if processedData has changed. */
     private getDomainCache() {
         const { processedData } = this;
 
-        // Check both processedData reference and version to detect all changes:
-        // - Reference change: Detects when processedData is replaced with a new object
-        //   (e.g., when dataSource loads new data, creating a new ProcessedData instance)
-        // - Version change: Detects incremental updates to the same ProcessedData object
-        //   (e.g., when applyTransaction() modifies existing data)
+        // Invalidate cache on reference change (new data) or version change (incremental update)
         const currentVersion = processedData?.version;
         if (
             this.domainCache?.processedDataRef !== processedData ||
