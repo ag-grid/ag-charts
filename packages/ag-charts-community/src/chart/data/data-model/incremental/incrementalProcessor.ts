@@ -1,6 +1,6 @@
 import { first } from 'ag-charts-core';
 
-import { hasNoRemovals, isAppendOnly, isPrependOnly, isRollingWindow, isUpdateOnly } from '../../dataChangeDescription';
+import { hasNoRemovals, isAppendOnly, isPrependOnly, isUpdateOnly } from '../../dataChangeDescription';
 import type {
     DataGroup,
     GroupedData,

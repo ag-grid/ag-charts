@@ -32,6 +32,7 @@ import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { ProcessedData } from '../../data/dataModel';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -206,6 +207,7 @@ export abstract class CartesianSeries<
     protected quadtree?: QuadtreeNearest<TDatum>;
 
     private domainCache?: {
+        processedDataRef: ProcessedData<any> | undefined;
         processedDataVersion: number | undefined;
         visibleRangeIndices: Map<string, [number, number]>;
         domainForVisibleRange: Map<string, [number, number]>;
@@ -352,11 +354,18 @@ export abstract class CartesianSeries<
     private getDomainCache() {
         const { processedData } = this;
 
-        // Use processedData.version as a marker - it's a monotonically increasing
-        // counter that increments on every processing cycle (both full and incremental)
+        // Check both processedData reference and version to detect all changes:
+        // - Reference change: Detects when processedData is replaced with a new object
+        //   (e.g., when dataSource loads new data, creating a new ProcessedData instance)
+        // - Version change: Detects incremental updates to the same ProcessedData object
+        //   (e.g., when applyTransaction() modifies existing data)
         const currentVersion = processedData?.version;
-        if (this.domainCache?.processedDataVersion !== currentVersion) {
+        if (
+            this.domainCache?.processedDataRef !== processedData ||
+            this.domainCache?.processedDataVersion !== currentVersion
+        ) {
             this.domainCache = {
+                processedDataRef: processedData,
                 processedDataVersion: currentVersion,
                 visibleRangeIndices: new Map(),
                 domainForVisibleRange: new Map(),
