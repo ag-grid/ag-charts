@@ -73,6 +73,7 @@ export * from './chart/series/cartesian/markerUtil';
 export * from './chart/series/cartesian/pathUtil';
 export * from './chart/series/cartesian/quadtreeUtil';
 export * from './chart/series/cartesian/interpolationProperties';
+export * from './chart/series/cartesian/nodeDataUtil';
 export * from './chart/series/dataModelSeries';
 export * from './chart/series/polar/polarSeries';
 export * from './chart/series/polar/pieUtil';

@@ -17,11 +17,15 @@ type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
+// RangeArea uses shared ExtremesAggregation via computeExtremesAggregation().
+// Unlike AreaSeries which needs metaIndices for fill path grouping,
+// RangeArea draws from explicit yHigh/yLow values so simpler aggregation suffices.
+
 // Type aliases for RangeArea-specific usage
 export type RangeAreaSeriesDataAggregationFilter = _ModuleSupport.ExtremesAggregationFilter;
 export type RangeAreaPartialAggregationResult = _ModuleSupport.ExtremesPartialAggregationResult;
 
-// Semantic constants for Range Area data access
+// Semantic constants for Range Area data access (map to shared AGGREGATION_INDEX_* constants)
 export const START = AGGREGATION_INDEX_X_MIN;
 export const HIGH = AGGREGATION_INDEX_Y_MAX;
 export const LOW = AGGREGATION_INDEX_Y_MIN;
