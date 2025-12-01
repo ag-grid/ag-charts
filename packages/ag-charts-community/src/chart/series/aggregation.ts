@@ -609,19 +609,19 @@ export interface AggregationLevelState {
  *
  * @param maxRange - Number of aggregation buckets
  * @param indexData - Aggregation index data (TypedArray)
+ * @param reuseMidpointData - Optional pre-allocated array to reuse (must be correct size)
  * @param xMinOffset - Offset for the X min index within each bucket
  * @param xMaxOffset - Offset for the X max index within each bucket
  * @param invalidSentinel - Sentinel value indicating invalid/empty buckets (-1 or AGGREGATION_INDEX_UNSET)
- * @param reuseMidpointData - Optional pre-allocated array to reuse (must be correct size)
  * @returns Array of midpoint indices representing each bucket
  */
 export function getMidpointsForIndices(
     maxRange: number,
     indexData: Uint32Array,
+    reuseMidpointData?: Uint32Array,
     xMinOffset: number = AGGREGATION_INDEX_X_MIN,
     xMaxOffset: number = AGGREGATION_INDEX_X_MAX,
-    invalidSentinel: number = -1,
-    reuseMidpointData?: Uint32Array
+    invalidSentinel: number = -1
 ): Uint32Array {
     const midpoints =
         reuseMidpointData && reuseMidpointData.length === maxRange ? reuseMidpointData : new Uint32Array(maxRange);
@@ -738,14 +738,7 @@ export function computeExtremesAggregation(
         reuseIndexData: existingFilter?.indexData,
         reuseValueData: existingFilter?.valueData,
     });
-    let midpointIndices = getMidpointsForIndices(
-        maxRange,
-        indexData,
-        AGGREGATION_INDEX_X_MIN,
-        AGGREGATION_INDEX_X_MAX,
-        -1,
-        existingFilter?.midpointIndices
-    );
+    let midpointIndices = getMidpointsForIndices(maxRange, indexData, existingFilter?.midpointIndices);
 
     const filters: ExtremesAggregationFilter[] = [
         {
@@ -773,15 +766,7 @@ export function computeExtremesAggregation(
         indexData = compacted.indexData;
         valueData = compacted.valueData;
         midpointIndices =
-            compacted.midpointData ??
-            getMidpointsForIndices(
-                maxRange,
-                indexData,
-                AGGREGATION_INDEX_X_MIN,
-                AGGREGATION_INDEX_X_MAX,
-                -1,
-                nextExistingFilter?.midpointIndices
-            );
+            compacted.midpointData ?? getMidpointsForIndices(maxRange, indexData, nextExistingFilter?.midpointIndices);
 
         filters.push({
             maxRange,
@@ -844,14 +829,7 @@ export function computeExtremesAggregationPartial(
         reuseIndexData: existingFilter?.indexData,
         reuseValueData: existingFilter?.valueData,
     });
-    const midpointIndices = getMidpointsForIndices(
-        targetMaxRange,
-        indexData,
-        AGGREGATION_INDEX_X_MIN,
-        AGGREGATION_INDEX_X_MAX,
-        -1,
-        existingFilter?.midpointIndices
-    );
+    const midpointIndices = getMidpointsForIndices(targetMaxRange, indexData, existingFilter?.midpointIndices);
 
     const immediateLevel: ExtremesAggregationFilter = {
         maxRange: targetMaxRange,

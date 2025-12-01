@@ -107,22 +107,8 @@ export function computeBarAggregation(
         throw new Error('Negative aggregation data missing in split mode');
     }
 
-    let positiveIndices = getMidpointsForIndices(
-        maxRange,
-        positiveIndexData,
-        undefined,
-        undefined,
-        undefined,
-        existingFilter?.positiveIndices
-    );
-    let negativeIndices = getMidpointsForIndices(
-        maxRange,
-        negativeIndexData,
-        undefined,
-        undefined,
-        undefined,
-        existingFilter?.negativeIndices
-    );
+    let positiveIndices = getMidpointsForIndices(maxRange, positiveIndexData, existingFilter?.positiveIndices);
+    let negativeIndices = getMidpointsForIndices(maxRange, negativeIndexData, existingFilter?.negativeIndices);
 
     const filters: BarSeriesDataAggregationFilter[] = [
         {
@@ -158,27 +144,13 @@ export function computeBarAggregation(
         positiveValueData = positiveCompacted.valueData;
         positiveIndices =
             positiveCompacted.midpointData ??
-            getMidpointsForIndices(
-                maxRange,
-                positiveIndexData,
-                undefined,
-                undefined,
-                undefined,
-                nextExistingFilter?.positiveIndices
-            );
+            getMidpointsForIndices(maxRange, positiveIndexData, nextExistingFilter?.positiveIndices);
 
         negativeIndexData = negativeCompacted.indexData;
         negativeValueData = negativeCompacted.valueData;
         negativeIndices =
             negativeCompacted.midpointData ??
-            getMidpointsForIndices(
-                maxRange,
-                negativeIndexData,
-                undefined,
-                undefined,
-                undefined,
-                nextExistingFilter?.negativeIndices
-            );
+            getMidpointsForIndices(maxRange, negativeIndexData, nextExistingFilter?.negativeIndices);
 
         filters.push({
             maxRange,
@@ -262,24 +234,10 @@ export function computeBarAggregationPartial(
 
     const immediateLevel: BarSeriesDataAggregationFilter = {
         maxRange: targetMaxRange,
-        positiveIndices: getMidpointsForIndices(
-            targetMaxRange,
-            positiveIndexData,
-            undefined,
-            undefined,
-            undefined,
-            existingFilter?.positiveIndices
-        ),
+        positiveIndices: getMidpointsForIndices(targetMaxRange, positiveIndexData, existingFilter?.positiveIndices),
         positiveIndexData,
         positiveValueData,
-        negativeIndices: getMidpointsForIndices(
-            targetMaxRange,
-            negativeIndexData,
-            undefined,
-            undefined,
-            undefined,
-            existingFilter?.negativeIndices
-        ),
+        negativeIndices: getMidpointsForIndices(targetMaxRange, negativeIndexData, existingFilter?.negativeIndices),
         negativeIndexData,
         negativeValueData,
     };
