@@ -7,7 +7,7 @@ export interface DataType {
     five: number;
 }
 
-let seed = 1234;
+let seed = NaN;
 const START = [120, 150, 130, 140, 80] as const;
 const VARIANCE = 20;
 const LENGTH = 8;
@@ -19,6 +19,9 @@ function random() {
 
 // Create a set of data with predicatable "randomness"
 export function getRandomizedData(): DataType[] {
+    // Reset:
+    seed = 1234;
+
     // Vary the datum by a random proportion of the variance +ve or -ve
     const vary = (n: number) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
 

@@ -100,3 +100,8 @@ function append() {
     options.data = appendRandomizedElement(options.data!);
     chart.update(options);
 }
+
+function reset() {
+    options.data = getRandomizedData();
+    chart.update(options);
+}
