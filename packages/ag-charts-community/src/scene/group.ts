@@ -110,10 +110,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     override setScene(scene?: IScene) {
+        const previousScene = this.scene;
         super.setScene(scene);
 
-        if (this.layer) {
-            this.scene?.layersManager.removeLayer(this.layer);
+        if (this.layer && previousScene && previousScene !== scene) {
+            previousScene.layersManager.removeLayer(this.layer);
             this.layer = undefined;
         }
 
