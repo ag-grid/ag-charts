@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { BaseProperties, Logger, Property } from 'ag-charts-core';
 import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy, AgZoomRange } from 'ag-charts-types';
+import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
 
 import { definedZoomState } from './zoomUtils';
 
@@ -12,8 +12,20 @@ type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 type ZoomState = _ModuleSupport.ZoomState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
-type DateMinMax = { min: Date; max: Date };
-type DateVisibleMinMax = { visibleMin: Date; visibleMax: Date };
+// All axes scale-types can have their minimums & maximums represented as a number.
+// * For category-scales, it's indices.
+// * For time-scales, it's a timestamp.
+// * For continuous-scales, it's already a number
+// To keep the preserveDomain logic simple and axis-agnostic, we'll use that concept.
+//
+// * When data (unprocessed) is changed, we can interpolate the zoom.min and zoom.max ratios on these numeric scales to
+//   keep track of which part of the domain is visible (`toVisibleMinMax`).
+//
+// * Later on, after the data is process (i.e. axes scales are updated), we can use the inverse function
+//   `fromVisibleMinMax` to update the ratios such that same slice of the domain is visible.
+//
+type ScaleMinMax = { scaleMin: number; scaleMax: number };
+type VisibleMinMax = { axisId: AxisID; visibleMin: number; visibleMax: number };
 
 type NoDesiredChanges = {
     domain?: never;
@@ -21,16 +33,13 @@ type NoDesiredChanges = {
 };
 
 type DesiredDomains = {
-    domain: (
-        | { axisId: AxisID; range: AgZoomRange; dates?: never }
-        | { axisId: AxisID; range?: never; dates: DateVisibleMinMax }
-    )[];
+    domain: VisibleMinMax[];
     stickToEnd?: never;
 };
 
 type DesiredStickToEnd = {
     domain?: never;
-    stickToEnd: { axisId: AxisID; difference: number; type: 'number' | 'date' };
+    stickToEnd: { axisId: AxisID; difference: number };
 };
 
 type DesiredChanges = NoDesiredChanges | DesiredDomains | DesiredStickToEnd;
@@ -43,38 +52,26 @@ function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZ
     return properties.stickToEnd && zoom.x.max === 1;
 }
 
-function getDateMinMax(axisManager: ModuleContext['axisManager'], axisId: AxisID): DateMinMax | undefined {
-    const ctx = axisManager.getAxisIdContext(axisId);
-    if (!ctx) return;
-
-    if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale)) {
-        const min = ctx.scale.bands[0];
-        const max = ctx.scale.bands.at(-1);
-        if (max) {
-            return { min, max };
-        }
-    }
-}
-
-function toDateVisibleMinMax(dates: DateMinMax, ratios: ZoomState): DateVisibleMinMax {
-    const tmin = dates.min.getTime();
-    const tmax = dates.max.getTime();
-    const span = tmax - tmin;
-    const visibleMin = new Date(tmin + span * ratios.min);
-    const visibleMax = new Date(tmin + span * ratios.max);
-    return { visibleMin, visibleMax };
-}
-
-function fromDateVisibleMinMax(dates: DateMinMax, visibleDates: DateVisibleMinMax): ZoomState {
-    const tmin = dates.min.getTime();
-    const tmax = dates.max.getTime();
-    const span = tmax - tmin;
+function toVisibleMinMax(axisId: AxisID, scaleMinMax: ScaleMinMax, ratios: ZoomState): VisibleMinMax {
+    const { scaleMin, scaleMax } = scaleMinMax;
+    const span = scaleMax - scaleMin;
     return {
-        min: (visibleDates.visibleMin.getTime() - tmin) / span,
-        max: (visibleDates.visibleMax.getTime() - tmin) / span
+        axisId,
+        visibleMin: scaleMin + span * ratios.min,
+        visibleMax: scaleMin + span * ratios.max,
     };
 }
 
+function fromVisibleMinMax(scaleMinMax: ScaleMinMax, visibleMinMax: VisibleMinMax): ZoomStateDirection {
+    const { scaleMin, scaleMax } = scaleMinMax;
+    const { visibleMin, visibleMax } = visibleMinMax;
+    const span = scaleMax - scaleMin;
+    return {
+        direction: 'x',
+        min: Math.max(0, (visibleMin - scaleMin) / span),
+        max: Math.min(1, (visibleMax - scaleMin) / span),
+    };
+}
 
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
@@ -132,22 +129,30 @@ export class ZoomOnDataChange {
         }
     }
 
-    private calculateNewStickToEndRange(
-        axisId: AxisID,
-        difference: number
-    ): { start: number; end: number } | { start: Date; end: Date } | undefined {
-        const end = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 })?.end;
-        if (end === undefined || typeof end === 'string') return;
+    private computeScaleMinMax(axisId: AxisID): ScaleMinMax | undefined {
+        const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
+        if (!ctx) return;
 
-        if (end instanceof Date) {
-            return { start: new Date(end.getTime() - difference), end };
-        } else {
-            return { start: end - difference, end };
+        // FIXME: ZoomManager.getRange() appears to be buggy on ordinal-time scales
+        if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale)) {
+            const min = ctx.scale.bands[0];
+            const max = ctx.scale.bands.at(-1);
+            if (max !== undefined) {
+                return { scaleMin: min.getTime(), scaleMax: max.getTime() };
+            }
         }
-    }
 
-    private rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomState | undefined {
-        return this.ctx.zoomManager.rangeToRatio(axisId, range, { clampRanges: true });
+        const ratios = this.ctx.zoomManager.getRange(axisId, {min:0, max: 1});
+        if (ratios) {
+            const { start, end } = ratios;
+            if (typeof start === 'number' && typeof end === 'number') {
+                return {scaleMin:start, scaleMax:end};
+            } else if (end instanceof Date && start instanceof Date) {
+                return {scaleMin:start.getTime(), scaleMax:end.getTime()};
+            } else {
+                Logger.error(`Unexpected range types: start (${typeof start}), end (${typeof end})`);
+            }
+        }
     }
 
     private popDesiredChanges(): ZoomChangeState | undefined {
@@ -157,32 +162,23 @@ export class ZoomOnDataChange {
         if (desiredChanges.domain) {
             const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
             for (const entry of desiredChanges.domain) {
-                if (entry.range) {
-                    const ratio = this.rangeToRatio(entry.axisId, entry.range);
-                    if (ratio) {
-                        const { min, max } = ratio;
-                        changes[entry.axisId] = { direction: 'x', min, max };
-                    }
-                } else if (entry.dates) {
-                    const dateMinMax = getDateMinMax(this.ctx.axisManager, entry.axisId);
-                    if (dateMinMax){
-                        const ratio = fromDateVisibleMinMax(dateMinMax, entry.dates);
-                        const { min, max } = ratio;
-                        changes[entry.axisId] = { direction: 'x', min, max };
-                    }
+                const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(entry.axisId);
+                if (scaleMinMax) {
+                    changes[entry.axisId] = fromVisibleMinMax(scaleMinMax, entry);
                 }
             }
             return changes;
         } else if (desiredChanges.stickToEnd) {
             const { axisId, difference } = desiredChanges.stickToEnd;
-            const newRange = this.calculateNewStickToEndRange(axisId, difference);
-            if (newRange == undefined) return;
-
-            const newRatio = this.rangeToRatio(axisId, newRange);
-            if (newRatio == undefined) return;
-
-            const { min, max } = newRatio;
-            return { [axisId]: { direction: 'x', min, max } };
+            const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
+            if (scaleMinMax) {
+                const visibleMinMax: VisibleMinMax = {
+                    axisId,
+                    visibleMin: scaleMinMax.scaleMax - difference,
+                    visibleMax: scaleMinMax.scaleMax,
+                };
+                return { [axisId]: fromVisibleMinMax(scaleMinMax, visibleMinMax) };
+            }
         }
     }
 
@@ -214,17 +210,11 @@ export class ZoomOnDataChange {
         this.desiredChanges = { domain: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
-            const dateMinMax = getDateMinMax(this.ctx.axisManager, axisId);
-
-            if (dateMinMax) {
+            const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
+            if (scaleMinMax) {
                 const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
-                const dates = toDateVisibleMinMax(dateMinMax, ratios);
-                this.desiredChanges.domain.push({ axisId, dates });
-            } else {
-                const range = this.ctx.zoomManager.getCurrentRange(axisId);
-                if (range) {
-                    this.desiredChanges.domain.push({ axisId, range });
-                }
+                const entry = toVisibleMinMax(axisId, scaleMinMax, ratios);
+                this.desiredChanges.domain.push(entry);
             }
         }
     }
@@ -233,18 +223,11 @@ export class ZoomOnDataChange {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(ChartAxisDirection.X);
         if (!axisId) return;
 
-        const range = this.ctx.zoomManager.getCurrentRange(axisId);
-        if (!range) return;
-        const { start, end } = range;
+        const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
+        if (!scaleMinMax) return;
 
-        if (typeof end === 'number' && typeof start === 'number') {
-            const difference = end - start;
-            this.desiredChanges = { stickToEnd: { axisId, difference, type: 'number' } };
-        } else if (end instanceof Date && start instanceof Date) {
-            const difference = end.getTime() - start.getTime();
-            this.desiredChanges = { stickToEnd: { axisId, difference, type: 'date' } };
-        } else {
-            Logger.error(`Unexpected range types: start (${typeof start}), end (${typeof end})`);
-        }
+        const { scaleMin, scaleMax } = scaleMinMax;
+        const difference = scaleMax - scaleMin;
+        this.desiredChanges = { stickToEnd: { axisId, difference } };
     }
 }
