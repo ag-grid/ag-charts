@@ -881,7 +881,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Determine the most conservative strategy across all changes
         let preserveSortOrders = true;
-        let preserveDomainRanges = true;
 
         for (const changeDesc of changeDescs) {
             const { indexMap } = changeDesc;
@@ -890,26 +889,22 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 // Update-only: Values changed but indices stable
                 // DOMAIN_RANGES must be cleared (values changed)
                 // Sort orders can be preserved if only values changed, not keys
-                preserveDomainRanges = false;
                 // Sort orders depend on values, so mark dirty but don't clear
             } else if (isAppendOnly(indexMap)) {
                 // Append-only: New items at end, no index shifts
                 // DOMAIN_RANGES must be rebuilt to include new values
                 // Existing sort orders remain valid for their ranges
-                preserveDomainRanges = false;
             } else {
                 // Rolling window: Indices shift predictably
                 // Complex pattern: Full invalidation for safety
                 // Both caches must be cleared
                 preserveSortOrders = false;
-                preserveDomainRanges = false;
             }
         }
 
         // Apply invalidation strategy
-        if (!preserveDomainRanges) {
-            this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
-        }
+        // Domain ranges are always invalidated for all change types (update-only, append-only, rolling window)
+        this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
 
         if (!preserveSortOrders) {
             // Complex patterns: Full invalidation needed

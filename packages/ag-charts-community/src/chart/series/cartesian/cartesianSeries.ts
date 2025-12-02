@@ -851,27 +851,27 @@ export abstract class CartesianSeries<
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
         const sortOrder = this.sortOrder(crossAxisKey);
-        if (sortOrder == null) {
-            const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
-
-            let axisMin = Infinity;
-            let axisMax = -Infinity;
-            for (const [i, crossAxisValue] of crossAxisValues.entries()) {
-                const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
-                if (x1 < r0 || x0 > r1) continue;
-
-                for (let j = 0; j < axisKeys.length; j++) {
-                    const axisValue = allAxisValues[j][i];
-                    axisMin = Math.min(axisMin, axisValue);
-                    axisMax = Math.max(axisMax, axisValue);
-                }
-            }
-
-            return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
-        } else {
+        if (sortOrder != null) {
             const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
+
+        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
+
+        let axisMin = Infinity;
+        let axisMax = -Infinity;
+        for (const [i, crossAxisValue] of crossAxisValues.entries()) {
+            const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
+            if (x1 < r0 || x0 > r1) continue;
+
+            for (let j = 0; j < axisKeys.length; j++) {
+                const axisValue = allAxisValues[j][i];
+                axisMin = Math.min(axisMin, axisValue);
+                axisMax = Math.max(axisMax, axisValue);
+            }
+        }
+
+        return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
     }
 
     protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
