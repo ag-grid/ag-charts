@@ -57,7 +57,7 @@ export class ZoomOnDataChange {
         eventsCleanup: CleanupRegistry
     ) {
         // When calling `AgCharts.create`, the data:update event is emitted before the axes ranges/scales are fully
-        // initialised. This causes the 'preserveData' strategy to read an uninitialised (and incorrect) domain, and
+        // initialised. This causes the 'preserveDomain' strategy to read an uninitialised (and incorrect) domain, and
         // this uninitialised domain therefore incorrectly constrains the initial zoom:change-request event.
         // Fortunately, the ZoomOnDataChange class only needs to worry about data changes, not data initialisation.
         // Therefore, we'll wait for the initial layout:complete event to be emitted before starting to listen for
@@ -149,8 +149,6 @@ export class ZoomOnDataChange {
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':
                 return this.performPreserveDomain();
-            case 'preserveData':
-                return Logger.error(`unimplemented strategy: ${this.properties.strategy}`);
             default:
                 const unreachable = (a: never): never => a;
                 return unreachable(this.properties.strategy);
