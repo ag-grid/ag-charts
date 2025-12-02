@@ -499,8 +499,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 continue;
             }
 
-            const keyPath = `axes.${key}`;
-            const keyPathUser = `axes.${unmappedAxisIds?.get(key) ?? key}`;
+            const keyPath = `axes.${unmappedAxisIds?.get(key) ?? key}`;
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -521,13 +520,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const modulePlaceholder = ExpectedModules.get(axisOptions.type);
                 if (modulePlaceholder?.type !== ModuleType.Axis) {
                     Logger.warn(
-                        `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
+                        `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                     );
                 }
                 continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` at  \`${keyPathUser}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
+                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }
