@@ -226,8 +226,11 @@ export class ZoomOnDataChange {
         const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
         if (!scaleMinMax) return;
 
-        const { scaleMin, scaleMax } = scaleMinMax;
-        const difference = scaleMax - scaleMin;
+        const ratios: ZoomState = this.ctx.zoomManager.getAxisZoom(axisId);
+        if (!ratios) return;
+
+        const { visibleMin, visibleMax } = toVisibleMinMax(axisId, scaleMinMax, ratios);
+        const difference = visibleMax - visibleMin;
         this.desiredChanges = { stickToEnd: { axisId, difference } };
     }
 }
