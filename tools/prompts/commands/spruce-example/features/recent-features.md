@@ -531,20 +531,6 @@ axes: {
 }
 ```
 
-**Polar Series:**
-
-```typescript
-series: [
-    {
-        type: 'pie',
-        angleKey: 'category',
-        valueKey: 'value',
-        angleKeyAxis: 'angle', // Default: 'angle'
-        radiusKeyAxis: 'radius', // Default: 'radius'
-    },
-];
-```
-
 _Use for_: Multi-axis charts where different series need to be bound to different axes, or polar charts with multiple angle/radius axes.
 
 ## 🆕 Recently Added Features (Past 6 Months)

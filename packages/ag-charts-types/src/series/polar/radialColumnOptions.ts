@@ -1,5 +1,4 @@
 import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
-import type { AgBasePolarSeriesAxisOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -9,7 +8,6 @@ import type {
 
 export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
-        AgBasePolarSeriesAxisOptions,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {

@@ -8,7 +8,7 @@ import type {
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, Opacity } from '../../chart/types';
-import type { AgBasePolarSeriesAxisOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseSeriesOptions,
@@ -59,7 +59,6 @@ export interface AgBaseRadarSeriesOptions<
         TStyle
     >,
 > extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
-        AgBasePolarSeriesAxisOptions,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle, TStylerParams> {
