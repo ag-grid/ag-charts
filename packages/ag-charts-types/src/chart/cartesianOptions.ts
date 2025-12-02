@@ -137,7 +137,13 @@ export type AgCartesianAxesOptions<TContext = ContextDefault> = Record<string, A
 };
 
 export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
-    /** Axis configurations. */
+    /** Axis configurations.
+     *
+     * Axes are referenced using a dictionary of axis definitions, where each axis is identified by a key.
+     * The default keys are `x` and `y` for cartesian axes, or `radial` and `angular` for polar axes.
+     *
+     * See: [Axis Configuration](/r/axes-configuration/)
+     */
     axes?: AgCartesianAxesOptions<TContext>;
     /** Series configurations. */
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
