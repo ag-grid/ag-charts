@@ -9,6 +9,7 @@ const { ChartAxisDirection } = _ModuleSupport;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsHub' | 'zoomManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
+type ZoomState = _ModuleSupport.ZoomState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
 type NoDesiredChanges = {
@@ -106,6 +107,10 @@ export class ZoomOnDataChange {
         }
     }
 
+    private rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomState | undefined {
+        return this.ctx.zoomManager.rangeToRatio(axisId, range, { clampRanges: true });
+    }
+
     private popDesiredChanges(): ZoomChangeState | undefined {
         const { desiredChanges = {} } = this;
         this.desiredChanges = undefined;
@@ -113,7 +118,7 @@ export class ZoomOnDataChange {
         if (desiredChanges.ranges) {
             const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
             for (const entry of desiredChanges.ranges) {
-                const ratio = this.ctx.zoomManager.rangeToRatio(entry.axisId, entry.range);
+                const ratio = this.rangeToRatio(entry.axisId, entry.range);
                 if (ratio) {
                     const { min, max } = ratio;
                     changes[entry.axisId] = { direction: 'x', min, max };
@@ -125,7 +130,7 @@ export class ZoomOnDataChange {
             const newRange = this.calculateNewStickToEndRange(axisId, difference);
             if (newRange == undefined) return;
 
-            const newRatio = this.ctx.zoomManager.rangeToRatio(axisId, newRange);
+            const newRatio = this.rangeToRatio(axisId, newRange);
             if (newRatio == undefined) return;
 
             const { min, max } = newRatio;
