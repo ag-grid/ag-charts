@@ -5,25 +5,68 @@ export interface IDataDomain<D = any> {
     getDomain(): D[];
 }
 
+// Define sortable order type alias for clarity and reuse.
+type SortOrder = 1 | -1;
+
 export class DiscreteDomain implements IDataDomain {
+    // Set-based storage (default mode)
     private readonly domain = new Set();
     private readonly dateTimestamps = new Set<number>();
     private hasDateValues = false;
+
+    // Sorted array storage (optimized mode for sorted unique data)
+    private sortedTimestamps: number[] | null = null;
+    private sortedArray: unknown[] | null = null;
+    private sortOrder: SortOrder | undefined = undefined;
+    private isSortedUnique: boolean = false;
 
     static is(value: unknown): value is DiscreteDomain {
         return value instanceof DiscreteDomain;
     }
 
+    /**
+     * Configure domain for sorted unique mode.
+     * When enabled, uses arrays instead of Sets for O(1) append and O(n) merge.
+     * Call this before extending with data.
+     */
+    setSortedUniqueMode(sortOrder: 1 | -1, isUnique: boolean): void {
+        if (isUnique && sortOrder != null) {
+            this.isSortedUnique = true;
+            this.sortOrder = sortOrder;
+            this.sortedTimestamps = [];
+            this.sortedArray = [];
+        }
+    }
+
     extend(val: any) {
         if (val instanceof Date) {
             this.hasDateValues = true;
-            this.dateTimestamps.add(val.valueOf());
+            const ts = val.valueOf();
+
+            if (this.isSortedUnique && this.sortedTimestamps) {
+                // Optimized path: O(1) array push
+                this.sortedTimestamps.push(ts);
+            } else {
+                this.dateTimestamps.add(ts);
+            }
+        } else if (this.isSortedUnique && this.sortedArray) {
+            // Optimized path: O(1) array push
+            this.sortedArray.push(val);
         } else {
             this.domain.add(val);
         }
     }
 
     getDomain() {
+        if (this.isSortedUnique) {
+            // Optimized path: return arrays directly (no conversion needed)
+            if (this.hasDateValues && this.sortedTimestamps) {
+                return this.sortedTimestamps.map((ts) => new Date(ts));
+            }
+            return this.sortedArray ?? [];
+        }
+
+        // Default Set-based path
         if (this.hasDateValues) {
             return Array.from(this.dateTimestamps, (ts) => new Date(ts));
         }
@@ -35,19 +78,88 @@ export class DiscreteDomain implements IDataDomain {
         return this.hasDateValues;
     }
 
-    /** Merges another DiscreteDomain's values into this one (efficient, no object creation) */
+    /** Returns true if this domain is in sorted unique mode */
+    isSortedUniqueMode(): boolean {
+        return this.isSortedUnique;
+    }
+
+    /** Returns the sort order if in sorted mode, undefined otherwise */
+    getSortOrder(): SortOrder | undefined {
+        return this.sortOrder;
+    }
+
+    /** Merges another DiscreteDomain's values into this one */
     mergeFrom(other: DiscreteDomain): void {
+        // Fast path: both domains are in sorted unique mode with same sort order
+        if (
+            this.isSortedUnique &&
+            other.isSortedUnique &&
+            this.sortOrder === other.sortOrder &&
+            this.sortOrder !== undefined
+        ) {
+            if (other.hasDateValues && other.sortedTimestamps) {
+                this.hasDateValues = true;
+                this.sortedTimestamps ??= [];
+                // O(n) array concatenation instead of O(n log n) Set merge
+                this.sortedTimestamps.push(...other.sortedTimestamps);
+            }
+            if (other.sortedArray && other.sortedArray.length > 0) {
+                this.sortedArray ??= [];
+                this.sortedArray.push(...other.sortedArray);
+            }
+            return;
+        }
+
+        // Slow path: fall back to Set-based merge
+        // Convert both domains to Set mode if needed
+        this.convertToSetMode();
+
         if (other.hasDateValues) {
             this.hasDateValues = true;
-            for (const ts of other.dateTimestamps) {
-                this.dateTimestamps.add(ts);
+            if (other.isSortedUnique && other.sortedTimestamps) {
+                // Other is in sorted mode - iterate its array
+                for (const ts of other.sortedTimestamps) {
+                    this.dateTimestamps.add(ts);
+                }
+            } else {
+                // Other is in Set mode
+                for (const ts of other.dateTimestamps) {
+                    this.dateTimestamps.add(ts);
+                }
             }
         }
-        if (other.domain.size > 0) {
+
+        if (other.isSortedUnique && other.sortedArray && other.sortedArray.length > 0) {
+            for (const val of other.sortedArray) {
+                this.domain.add(val);
+            }
+        } else if (other.domain.size > 0) {
             for (const val of other.domain) {
                 this.domain.add(val);
             }
         }
+    }
+
+    /** Converts from sorted array mode to Set mode (one-way transition) */
+    private convertToSetMode(): void {
+        if (!this.isSortedUnique) return;
+
+        // Move sorted data to Sets
+        if (this.sortedTimestamps) {
+            for (const ts of this.sortedTimestamps) {
+                this.dateTimestamps.add(ts);
+            }
+            this.sortedTimestamps = null;
+        }
+        if (this.sortedArray) {
+            for (const val of this.sortedArray) {
+                this.domain.add(val);
+            }
+            this.sortedArray = null;
+        }
+
+        this.isSortedUnique = false;
+        this.sortOrder = undefined;
     }
 }
 
@@ -118,6 +230,10 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     private fullDomainCache: T[] | null = null;
     private readonly isDiscrete: boolean;
 
+    // Sort order metadata for optimization (set from KEY_SORT_ORDERS)
+    private sortOrder: 1 | -1 | undefined = undefined;
+    private isUnique: boolean = false;
+
     constructor(domainFactory: () => IDataDomain<T>, config: BandedDomainConfig = {}, isDiscrete: boolean = false) {
         super(config);
         this.domainFactory = domainFactory;
@@ -125,13 +241,32 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     }
 
     /**
+     * Set sort order metadata from KEY_SORT_ORDERS.
+     * When data is sorted and unique, enables fast array concatenation in getDomain().
+     */
+    setSortOrderMetadata(sortOrder: 1 | -1 | undefined, isUnique: boolean): void {
+        this.sortOrder = sortOrder;
+        this.isUnique = isUnique;
+    }
+
+    /**
      * Creates a new domain band with its own sub-domain instance.
+     * Configures sub-domain for sorted mode if applicable.
      */
     protected createBand(startIndex: number, endIndex: number): DomainBand<T> {
+        const subDomain = this.domainFactory();
+
+        // Configure sub-domain for sorted unique mode if metadata indicates it
+        if (this.isDiscrete && this.sortOrder !== undefined && this.isUnique) {
+            if (DiscreteDomain.is(subDomain)) {
+                subDomain.setSortedUniqueMode(this.sortOrder, this.isUnique);
+            }
+        }
+
         return {
             startIndex,
             endIndex,
-            subDomain: this.domainFactory(),
+            subDomain,
             isDirty: true,
         };
     }
@@ -232,6 +367,38 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     }
 
     /**
+     * Check if all sub-domains support fast sorted concatenation.
+     */
+    private canUseSortedConcatenation(): boolean {
+        if (!this.sortOrder || !this.isUnique || !this.isDiscrete) return false;
+
+        for (const band of this.bands) {
+            if (!DiscreteDomain.is(band.subDomain)) return false;
+            if (!band.subDomain.isSortedUniqueMode()) return false;
+            if (band.subDomain.getSortOrder() !== this.sortOrder) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Concatenate sorted domains efficiently.
+     * Only valid when canUseSortedConcatenation() returns true.
+     */
+    private concatenateSortedDomains(): T[] {
+        // Create a combined domain in sorted mode and merge all bands
+        const combined = new DiscreteDomain();
+        combined.setSortedUniqueMode(this.sortOrder!, this.isUnique);
+
+        for (const band of this.bands) {
+            if (DiscreteDomain.is(band.subDomain)) {
+                combined.mergeFrom(band.subDomain);
+            }
+        }
+
+        return combined.getDomain() as T[];
+    }
+
+    /**
      * Combines all band sub-domains to get the overall domain.
      */
     getDomain(): T[] {
@@ -252,18 +419,21 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
 
         // Combine domains from all bands
         if (this.isDiscrete) {
-            // For discrete domains, merge efficiently at the primitive level
-            // Since bands have non-overlapping index ranges, we can merge without
-            // expensive object-based Set operations
             const firstBand = this.bands[0].subDomain;
             if (DiscreteDomain.is(firstBand)) {
-                const combined = new DiscreteDomain();
-                for (const band of this.bands) {
-                    if (DiscreteDomain.is(band.subDomain)) {
-                        combined.mergeFrom(band.subDomain);
+                // Fast path: when all sub-domains are sorted unique, use array concatenation
+                if (this.canUseSortedConcatenation()) {
+                    this.fullDomainCache = this.concatenateSortedDomains();
+                } else {
+                    // Slow path: merge via DiscreteDomain.mergeFrom()
+                    const combined = new DiscreteDomain();
+                    for (const band of this.bands) {
+                        if (DiscreteDomain.is(band.subDomain)) {
+                            combined.mergeFrom(band.subDomain);
+                        }
                     }
+                    this.fullDomainCache = combined.getDomain() as T[];
                 }
-                this.fullDomainCache = combined.getDomain() as T[];
             } else {
                 // Fallback for non-DiscreteDomain sub-domains
                 const combined = new Set<T>();

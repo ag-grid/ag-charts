@@ -1,5 +1,5 @@
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition } from '../../dataModelTypes';
+import type { InternalDatumPropertyDefinition, SortOrderEntry } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 
 /**
@@ -14,10 +14,14 @@ export class DomainInitializer<K extends string> {
      * Returns a BandedDomain wrapping DiscreteDomain for category values,
      * or a BandedDomain wrapping ContinuousDomain for continuous values.
      * Falls back to non-banded domains when banding is disabled.
+     *
+     * @param sortOrderEntry Optional sort order metadata from KEY_SORT_ORDERS.
+     * When data is sorted and unique, enables fast array concatenation optimization.
      */
     setupDomainForDefinition(
         def: InternalDatumPropertyDefinition<K>,
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        sortOrderEntry?: SortOrderEntry
     ): IDataDomain {
         const isDiscrete = def.valueType === 'category';
 
@@ -29,6 +33,14 @@ export class DomainInitializer<K extends string> {
                 isDiscrete
             );
             bandedDomains.set(def, domain);
+        }
+
+        // Set sort order metadata for discrete domains to enable fast concatenation
+        if (domain && isDiscrete && sortOrderEntry) {
+            domain.setSortOrderMetadata(
+                sortOrderEntry.sortOrder as 1 | -1 | undefined,
+                sortOrderEntry.isUnique ?? false
+            );
         }
 
         if (domain) {

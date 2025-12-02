@@ -1,13 +1,19 @@
 import { first, iterate } from 'ag-charts-core';
 
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition, ProcessedData, ProcessedValue, ProcessorFn } from '../../dataModelTypes';
-import { DOMAIN_BANDS } from '../../dataModelTypes';
+import {
+    DOMAIN_BANDS,
+    type InternalDatumPropertyDefinition,
+    KEY_SORT_ORDERS,
+    type ProcessedData,
+    type ProcessedValue,
+    type ProcessorFn,
+    type SortOrderEntry,
+} from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 import type { ScopeCacheManager } from '../utils/scopeCache';
 import { DomainInitializer } from './domainInitializer';
-import { ProcessValueFactory } from './processValueFactory';
-import type { SpecializedProcessValueFn } from './processValueFactory';
+import { ProcessValueFactory, type SpecializedProcessValueFn } from './processValueFactory';
 
 /**
  * Manages domain computation and processing for the DataModel.
@@ -38,7 +44,9 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         const bandedDomains = processedData[DOMAIN_BANDS];
         let bandStats: { totalBands: number; dirtyBands: number; totalData: number } | undefined;
 
-        const keyDomains = this.setupDefinitionDomains(this.ctx.keys, bandedDomains);
+        // Pass KEY_SORT_ORDERS to key domain setup for sorted unique optimization
+        const keySortOrders = processedData[KEY_SORT_ORDERS];
+        const keyDomains = this.setupDefinitionDomains(this.ctx.keys, bandedDomains, keySortOrders);
         const valueDomains = this.setupDefinitionDomains(this.ctx.values, bandedDomains);
 
         // Initialize bands for key domains first (this determines band structure)
@@ -153,14 +161,18 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
     /**
      * Creates domain instances for the given definitions, reusing banded domains when available.
+     * For key definitions, passes KEY_SORT_ORDERS metadata to enable fast array concatenation.
      */
     private setupDefinitionDomains(
         defs: InternalDatumPropertyDefinition<K>[],
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        keySortOrders?: Map<number, SortOrderEntry>
     ): Map<InternalDatumPropertyDefinition<K>, IDataDomain> {
         const domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain> = new Map();
-        for (const def of defs) {
-            domains.set(def, this.initializer.setupDomainForDefinition(def, bandedDomains));
+        for (const [defIndex, def] of defs.entries()) {
+            // Look up sort order metadata for key definitions
+            const sortOrderEntry = keySortOrders?.get(defIndex);
+            domains.set(def, this.initializer.setupDomainForDefinition(def, bandedDomains, sortOrderEntry));
         }
         return domains;
     }

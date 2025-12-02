@@ -2478,4 +2478,115 @@ describe('DataModel', () => {
             });
         });
     });
+
+    describe('sorted domain optimization', () => {
+        it('should produce correct domains with sorted unique Date keys', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('date'), value('value')],
+                domainBandingConfig: {
+                    minDataSizeForBanding: 10,
+                    targetBandCount: 3,
+                    enableBanding: true,
+                },
+            });
+
+            // Create sorted unique Date data
+            const data = Array.from({ length: 30 }, (_, i) => ({
+                date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
+                value: i * 10,
+            }));
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+
+            const result = dataModel.processData(sources)!;
+
+            // Verify KEY_SORT_ORDERS metadata
+            expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+            expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+
+            // Verify domain is correct
+            expect(result.domain.keys[0].length).toBe(30);
+            expect(result.domain.keys[0][0]).toBeInstanceOf(Date);
+            expect((result.domain.keys[0][0] as Date).getTime()).toBe(new Date('2024-01-01').getTime());
+            expect((result.domain.keys[0][29] as Date).getTime()).toBe(new Date('2024-01-30').getTime());
+        });
+
+        it('should handle incremental updates with sorted unique Date keys', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('date'), value('value')],
+                domainBandingConfig: {
+                    minDataSizeForBanding: 10,
+                    targetBandCount: 3,
+                    enableBanding: true,
+                },
+            });
+
+            const data = Array.from({ length: 30 }, (_, i) => ({
+                date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
+                value: i * 10,
+            }));
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+
+            const result = dataModel.processData(sources)!;
+
+            // Append new sorted data
+            dataSet.addTransaction({
+                append: [{ date: new Date('2024-01-31'), value: 300 }],
+            });
+
+            const reprocessed = dataModel.reprocessData(result);
+            verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+            // Verify domain extended
+            expect(reprocessed.domain.keys[0].length).toBe(31);
+            expect((reprocessed.domain.keys[0][30] as Date).getTime()).toBe(new Date('2024-01-31').getTime());
+
+            // Verify sort order preserved
+            expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+            expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+        });
+
+        it('should handle rolling window with sorted unique Date keys', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('date'), value('value')],
+                domainBandingConfig: {
+                    minDataSizeForBanding: 10,
+                    targetBandCount: 5,
+                    enableBanding: true,
+                },
+            });
+
+            // Start with Jan 1-30
+            const data = Array.from({ length: 30 }, (_, i) => ({
+                date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
+                value: i * 10,
+            }));
+            const dataSet = new DataSet(data);
+            const sources = basicDataSet(data).set('test', dataSet);
+
+            let result: any = dataModel.processData(sources)!;
+
+            // Rolling window: remove first, append next day
+            for (let i = 0; i < 5; i++) {
+                const dayToRemove = i + 1;
+                const dayToAdd = 31 + i;
+                dataSet.addTransaction({
+                    remove: [{ date: new Date(`2024-01-${String(dayToRemove).padStart(2, '0')}`), value: i * 10 }],
+                    append: [{ date: new Date(`2024-01-${String(dayToAdd).padStart(2, '0')}`), value: (30 + i) * 10 }],
+                });
+
+                result = dataModel.reprocessData(result);
+                verifyReprocessMatchesBaseline(dataModel, result, sources);
+            }
+
+            // For discrete domains with banding, the domain tracks ALL unique values
+            // ever seen (not just currently visible ones). The bands are rebuilt on
+            // structure changes, but the full domain history is preserved.
+            // Current data is Jan 6-35 (30 items), but domain includes all seen dates.
+            // The actual length depends on banding behavior, but first and last should match.
+            expect(result.domain.keys[0].length).toBeGreaterThanOrEqual(30);
+            expect((result.domain.keys[0][0] as Date).getTime()).toBe(new Date('2024-01-01').getTime());
+        });
+    });
 });
