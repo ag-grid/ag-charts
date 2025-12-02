@@ -129,6 +129,10 @@ export class ZoomOnDataChange {
         }
     }
 
+    /**
+     * Convert ambiguous axes-scale (number | Date | string) into a strictly numerical scale, so that we can use
+     * interpolation to implement preserveDomain in an axes-scale agnostic way.
+     */
     private computeScaleMinMax(axisId: AxisID): ScaleMinMax | undefined {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
         if (!ctx) return;
@@ -142,13 +146,13 @@ export class ZoomOnDataChange {
             }
         }
 
-        const ratios = this.ctx.zoomManager.getRange(axisId, {min:0, max: 1});
+        const ratios = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 });
         if (ratios) {
             const { start, end } = ratios;
             if (typeof start === 'number' && typeof end === 'number') {
-                return {scaleMin:start, scaleMax:end};
+                return { scaleMin: start, scaleMax: end };
             } else if (end instanceof Date && start instanceof Date) {
-                return {scaleMin:start.getTime(), scaleMax:end.getTime()};
+                return { scaleMin: start.getTime(), scaleMax: end.getTime() };
             } else {
                 Logger.error(`Unexpected range types: start (${typeof start}), end (${typeof end})`);
             }
