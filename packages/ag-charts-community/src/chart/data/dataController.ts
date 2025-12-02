@@ -60,7 +60,7 @@ export class DataController {
     public constructor(
         private readonly mode: ChartMode,
         readonly suppressFieldDotNotation: boolean,
-        private readonly eventsHub: EventsHub
+        private readonly eventsHub: EventsHub | undefined
     ) {}
 
     public async request<
