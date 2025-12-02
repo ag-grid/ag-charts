@@ -62,6 +62,7 @@ interface TransactionEffects<T> {
 export class DataSet<T = unknown> {
     private pendingTransactions: DataSetTransaction<T>[] = [];
     private cachedChangeDescription: DataChangeDescription | undefined;
+    private itemToIndexCache: Map<T, number> | undefined;
 
     constructor(public data: T[]) {}
 
@@ -186,7 +187,92 @@ export class DataSet<T = unknown> {
 
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
+
+        // Maintain index cache incrementally where possible, otherwise invalidate.
+        this.updateItemToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
+
         return true;
+    }
+
+    /** Updates item→index cache incrementally, or invalidates for complex changes. */
+    private updateItemToIndexCache(
+        changeDescription: DataChangeDescription,
+        appendedValues: T[],
+        prependedValues: T[],
+        insertionValues: T[]
+    ): void {
+        if (!this.itemToIndexCache) return;
+
+        const { indexMap } = changeDescription;
+        const { totalPrependCount, totalAppendCount, removedIndices } = indexMap;
+        const hasRemovals = removedIndices.size > 0;
+        const hasArbitraryInsertions = insertionValues.length > 0;
+
+        if (!hasRemovals && totalPrependCount === 0 && totalAppendCount === 0 && !hasArbitraryInsertions) {
+            return; // Update-only: no index changes
+        }
+
+        if (hasArbitraryInsertions) {
+            this.itemToIndexCache = undefined;
+            return; // Arbitrary insertions are complex
+        }
+
+        let removalsAreContiguousAtStart = false;
+        let contiguousRemovalCount = 0;
+        if (hasRemovals) {
+            const sortedRemovals = Array.from(removedIndices).sort((a, b) => a - b);
+            removalsAreContiguousAtStart = sortedRemovals[0] === 0;
+            if (removalsAreContiguousAtStart) {
+                for (let i = 0; i < sortedRemovals.length; i++) {
+                    if (sortedRemovals[i] !== i) {
+                        removalsAreContiguousAtStart = false;
+                        break;
+                    }
+                }
+                if (removalsAreContiguousAtStart) {
+                    contiguousRemovalCount = sortedRemovals.length;
+                }
+            }
+        }
+
+        if (hasRemovals && !removalsAreContiguousAtStart) {
+            this.itemToIndexCache = undefined;
+            return; // Complex removal pattern
+        }
+
+        const cache = this.itemToIndexCache;
+        const indexShift = totalPrependCount - contiguousRemovalCount;
+
+        if (indexShift !== 0) {
+            for (const [item, oldIndex] of cache) {
+                if (removedIndices.has(oldIndex)) {
+                    cache.delete(item);
+                } else {
+                    cache.set(item, oldIndex + indexShift);
+                }
+            }
+        } else if (hasRemovals) {
+            for (const [item, oldIndex] of cache) {
+                if (removedIndices.has(oldIndex)) {
+                    cache.delete(item);
+                }
+            }
+        }
+
+        for (let i = 0; i < prependedValues.length; i++) {
+            const item = prependedValues[i];
+            if (!cache.has(item)) {
+                cache.set(item, i);
+            }
+        }
+
+        const appendStartIndex = indexMap.finalLength - totalAppendCount;
+        for (let i = 0; i < appendedValues.length; i++) {
+            const item = appendedValues[i];
+            if (!cache.has(item)) {
+                cache.set(item, appendStartIndex + i);
+            }
+        }
     }
 
     clearPendingTransactions(): number {
@@ -297,7 +383,8 @@ export class DataSet<T = unknown> {
             survivingOriginalCount,
             effects.updateTracking,
             sortedRemoved?.asc,
-            effects.updatedOriginalIndices
+            effects.updatedOriginalIndices,
+            effects.trackedInsertions
         );
 
         const indexMap: IndexTransformationMap = {
@@ -475,12 +562,26 @@ export class DataSet<T = unknown> {
         return updatedIndices;
     }
 
+    /** Lazy item→index map for O(1) lookups. */
+    private getItemToIndexMap(): Map<T, number> {
+        if (this.itemToIndexCache === undefined) {
+            this.itemToIndexCache = new Map();
+            for (let i = 0; i < this.data.length; i++) {
+                if (!this.itemToIndexCache.has(this.data[i])) {
+                    this.itemToIndexCache.set(this.data[i], i);
+                }
+            }
+        }
+        return this.itemToIndexCache;
+    }
+
     private collectUpdatedOriginalIndices(toUpdate: Set<T>, state: TransactionCollectionState<T>): void {
-        for (let i = 0; i < this.data.length && toUpdate.size > 0; i++) {
-            const value = this.data[i];
-            if (toUpdate.has(value) && !state.removedOriginalIndices.has(i)) {
-                state.updatedOriginalIndices.add(i);
-                toUpdate.delete(value);
+        const indexMap = this.getItemToIndexMap();
+
+        for (const item of toUpdate) {
+            const idx = indexMap.get(item);
+            if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
+                state.updatedOriginalIndices.add(idx);
             }
         }
     }
@@ -660,7 +761,8 @@ export class DataSet<T = unknown> {
         survivingOriginalCount: number,
         updateTracking: UpdateIndexTracking | undefined,
         sortedRemovedAsc: number[] | undefined,
-        updatedOriginalIndices: Set<number>
+        updatedOriginalIndices: Set<number>,
+        trackedInsertions: TrackedInsertion<T>[]
     ): Set<number> {
         const updatedFinalIndices = new Set<number>();
 
@@ -682,7 +784,19 @@ export class DataSet<T = unknown> {
                 }
 
                 const removalsBeforeCount = sortedRemovedAsc ? removalPtr : 0;
-                const finalIdx = originalIdx + totalPrependCount - removalsBeforeCount;
+
+                // Count insertions that occur before this original's position in the virtual array.
+                // An original at index `originalIdx` has virtual index `originalIdx + totalPrependCount`.
+                // Insertions with virtualIndex <= that position shift the original forward.
+                const virtualPosOfOriginal = originalIdx + totalPrependCount;
+                let insertionsBeforeCount = 0;
+                for (const insertion of trackedInsertions) {
+                    if (insertion.virtualIndex <= virtualPosOfOriginal) {
+                        insertionsBeforeCount += insertion.items.length;
+                    }
+                }
+
+                const finalIdx = originalIdx + totalPrependCount - removalsBeforeCount + insertionsBeforeCount;
                 updatedFinalIndices.add(finalIdx);
             }
         }
@@ -693,14 +807,24 @@ export class DataSet<T = unknown> {
                 updatedFinalIndices.add(appendStartIdx + appendIdx);
             }
 
-            if (updateTracking.updatedInsertionsIndices.length > 0) {
-                let insertionOffset = 0;
-                const finalInsertionStartIdx = totalPrependCount;
+            // Handle updated insertions - need to calculate their actual final positions
+            if (updateTracking.updatedInsertionsIndices.length > 0 && trackedInsertions.length > 0) {
+                // Map from flat insertion index to the actual tracked insertion and offset within it
+                let flatIdx = 0;
+                for (const insertion of trackedInsertions) {
+                    const removalsBeforeInsertion = this.countRemovalsBeforeIndex(
+                        sortedRemovedAsc,
+                        totalPrependCount,
+                        insertion.virtualIndex
+                    );
+                    const insertionFinalIdx = insertion.virtualIndex - removalsBeforeInsertion;
 
-                for (const insertionIdx of updateTracking.updatedInsertionsIndices) {
-                    const finalIdx = finalInsertionStartIdx + insertionOffset + insertionIdx;
-                    updatedFinalIndices.add(finalIdx);
-                    insertionOffset++;
+                    for (let itemOffset = 0; itemOffset < insertion.items.length; itemOffset++) {
+                        if (updateTracking.updatedInsertionsIndices.includes(flatIdx)) {
+                            updatedFinalIndices.add(insertionFinalIdx + itemOffset);
+                        }
+                        flatIdx++;
+                    }
                 }
             }
         }

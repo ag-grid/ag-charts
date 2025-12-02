@@ -42,6 +42,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -172,6 +173,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -268,6 +270,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -581,6 +584,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -689,6 +693,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -768,6 +773,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -792,6 +798,7 @@ describe('DataModel', () => {
             const result = dataModel.processData(data)!;
             expect(result).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
             expect(result.domain.aggValues).toEqual([[0, expect.closeTo(249.15)]]);
@@ -937,6 +944,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -1066,6 +1074,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -1084,6 +1093,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -1111,6 +1121,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -1136,6 +1147,7 @@ describe('DataModel', () => {
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });
@@ -1176,6 +1188,7 @@ describe('DataModel', () => {
             ]);
             expect(processedData).toMatchSnapshot({
                 time: expect.any(Number),
+                version: expect.any(Number),
                 optimizations: expect.any(Object),
             });
         });

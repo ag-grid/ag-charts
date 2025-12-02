@@ -384,6 +384,7 @@ export class DataModel<
 
         const end = performance.now();
         processedData.time = end - start;
+        processedData.version += 1;
 
         // Collect optimization metadata for testing
         this.collectOptimizationMetadata(processedData, 'full-process');

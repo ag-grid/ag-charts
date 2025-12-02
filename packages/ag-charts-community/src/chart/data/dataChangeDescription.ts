@@ -111,6 +111,35 @@ export function hasNoRemovals(indexMap: IndexTransformationMap): boolean {
     return indexMap.removedIndices.size === 0;
 }
 
+/** Check if only in-place updates occurred (no adds/removes). */
+export function isUpdateOnly(indexMap: IndexTransformationMap): boolean {
+    return (
+        indexMap.removedIndices.size === 0 &&
+        indexMap.totalPrependCount === 0 &&
+        indexMap.totalAppendCount === 0 &&
+        indexMap.spliceOps.every((op) => op.insertCount === 0 && op.deleteCount === 0)
+    );
+}
+
+/** Check if all removals are contiguous starting at index 0. */
+export function hasContiguousRemovalsAtStart(indexMap: IndexTransformationMap): boolean {
+    const { removedIndices } = indexMap;
+    if (removedIndices.size === 0) return false;
+
+    const sorted = Array.from(removedIndices).sort((a, b) => a - b);
+    if (sorted[0] !== 0) return false;
+
+    for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i] !== i) return false;
+    }
+    return true;
+}
+
+/** Check for rolling window pattern: contiguous removals at start + appends at end. */
+export function isRollingWindow(indexMap: IndexTransformationMap): boolean {
+    return hasContiguousRemovalsAtStart(indexMap) && indexMap.totalAppendCount > 0 && indexMap.totalPrependCount === 0;
+}
+
 /**
  * Abstract description of changes to be applied to source data.
  * Provides precise index mapping for optimized incremental updates.

@@ -27,6 +27,8 @@ import type { DataModelContext } from '../dataModelContext';
  * - Throws clear errors when definitions are not found
  */
 export class DataModelResolvers<D extends object, K extends keyof D & string> {
+    private readonly rangeBetweenBuffer: [number, number] = [0, 0];
+
     constructor(private readonly ctx: DataModelContext<D, K>) {}
 
     resolveMissingDataCount(scope: ScopeProvider): number {
@@ -127,15 +129,38 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         processedData: ProcessedData<K>
     ): [number, number] {
         const columnIndices = searchIds.map((searchId) => this.resolveProcessedDataIndexById(scope, searchId));
+
+        // Fast path: when range covers all data, use pre-computed domains directly
+        // This avoids building the RangeLookup segment tree for unzoomed views
+        const dataLength = processedData.input.count;
+        if (i0 <= 0 && i1 >= dataLength) {
+            const domains = processedData.domain.values;
+            let min = Infinity;
+            let max = -Infinity;
+            for (const columnIndex of columnIndices) {
+                const domain = domains[columnIndex] as [number, number] | undefined;
+                if (domain != null) {
+                    if (domain[0] < min) min = domain[0];
+                    if (domain[1] > max) max = domain[1];
+                }
+            }
+            this.rangeBetweenBuffer[0] = min;
+            this.rangeBetweenBuffer[1] = max;
+            return this.rangeBetweenBuffer;
+        }
+
         const cacheKey = columnIndices.join(':');
         const domainRanges = processedData[DOMAIN_RANGES];
+        const values = columnIndices.map((columnIndex) => processedData.columns[columnIndex]);
         let rangeLookup = domainRanges.get(cacheKey);
         if (rangeLookup == null) {
-            const values = columnIndices.map((columnIndex) => processedData.columns[columnIndex]);
             rangeLookup = new RangeLookup(values);
             domainRanges.set(cacheKey, rangeLookup);
+        } else if (rangeLookup.isDirty) {
+            rangeLookup.rebuild(values);
+            rangeLookup.isDirty = false;
         }
-        return rangeLookup.rangeBetween(i0, i1);
+        return rangeLookup.rangeBetween(i0, i1, this.rangeBetweenBuffer);
     }
 
     private getSortOrder(
@@ -144,12 +169,14 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         sortOrders: Map<number, SortOrderEntry>,
         needsValueOf: boolean
     ): SortOrder {
-        let sortOrder = sortOrders.get(index);
-        if (sortOrder == null) {
-            sortOrder = { sortOrder: valuesSortOrder(values, needsValueOf) };
-            sortOrders.set(index, sortOrder);
+        const entry = sortOrders.get(index);
+        // Recalculate if missing or marked dirty by incremental cache management
+        if (entry == null || entry.isDirty) {
+            const newEntry: SortOrderEntry = { sortOrder: valuesSortOrder(values, needsValueOf) };
+            sortOrders.set(index, newEntry);
+            return newEntry.sortOrder;
         }
-        return sortOrder.sortOrder;
+        return entry.sortOrder;
     }
 
     getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {

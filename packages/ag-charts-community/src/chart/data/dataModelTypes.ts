@@ -47,7 +47,7 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 export type ScopeId = string;
 
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
-export type SortOrderEntry = { sortOrder: SortOrder };
+export type SortOrderEntry = { sortOrder: SortOrder; isDirty?: boolean };
 export type ProcessedValueEntry = { value: any; valid: boolean };
 
 export interface GroupDatumIteratorOutput {
@@ -111,6 +111,8 @@ export interface CommonMetadata<D> {
     };
     partialValidDataCount: number;
     time: number;
+    /** Monotonically increasing version counter, incremented on every processing cycle */
+    version: number;
     optimizations?: OptimizationMetadata;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
     [KEY_SORT_ORDERS]: Map<number, SortOrderEntry>;
