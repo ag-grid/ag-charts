@@ -1926,4 +1926,87 @@ describe('BarSeries', () => {
             },
         });
     });
+
+    describe('horizontal bar with property-based formatter', () => {
+        it('should apply correct formatter to axis labels based on series orientation', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: "Apple's Revenue by Product Category",
+                },
+                subtitle: {
+                    text: 'In Billion U.S. Dollars',
+                },
+                data: [
+                    { quarter: 'Q1', iphone: 140.01 },
+                    { quarter: 'Q2', iphone: 124.32 },
+                    { quarter: 'Q3', iphone: 112.12 },
+                    { quarter: 'Q4', iphone: 96.39 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        yName: 'iPhone',
+                    },
+                ],
+                formatter: {
+                    x: ({ value }) => `x${value}x`,
+                    y: ({ value }) => `y${value}y`,
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('should apply correct formatter in combo chart with horizontal bars and line series', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: 'Revenue and Growth',
+                },
+                data: [
+                    { quarter: 'Q1', revenue: 140.01, growth: 15.5 },
+                    { quarter: 'Q2', revenue: 124.32, growth: 12.3 },
+                    { quarter: 'Q3', revenue: 112.12, growth: 8.7 },
+                    { quarter: 'Q4', revenue: 96.39, growth: 5.2 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'growth',
+                        yKey: 'quarter',
+                        yName: 'Growth %',
+                    },
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'quarter',
+                        yKey: 'revenue',
+                        yName: 'Revenue',
+                    },
+                ],
+                formatter: {
+                    x: ({ value }) => `x${value}x`,
+                    y: ({ value }) => `y${value}y`,
+                },
+                axes: {
+                    x: {
+                        type: 'number',
+                    },
+                    y: {
+                        type: 'category',
+                    },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
 });
