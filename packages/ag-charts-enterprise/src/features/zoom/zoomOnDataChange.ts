@@ -7,27 +7,33 @@ import { definedZoomState } from './zoomUtils';
 
 const { ChartAxisDirection } = _ModuleSupport;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
-type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsHub' | 'zoomManager'>;
+type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 type ZoomState = _ModuleSupport.ZoomState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
+type DateMinMax = { min: Date; max: Date };
+type DateVisibleMinMax = { visibleMin: Date; visibleMax: Date };
+
 type NoDesiredChanges = {
-    ranges?: never;
+    domain?: never;
     stickToEnd?: never;
 };
 
-type DesiredRanges = {
-    ranges: { axisId: AxisID; range: AgZoomRange }[];
+type DesiredDomains = {
+    domain: (
+        | { axisId: AxisID; range: AgZoomRange; dates?: never }
+        | { axisId: AxisID; range?: never; dates: DateVisibleMinMax }
+    )[];
     stickToEnd?: never;
 };
 
 type DesiredStickToEnd = {
-    ranges?: never;
+    domain?: never;
     stickToEnd: { axisId: AxisID; difference: number; type: 'number' | 'date' };
 };
 
-type DesiredChanges = NoDesiredChanges | DesiredRanges | DesiredStickToEnd;
+type DesiredChanges = NoDesiredChanges | DesiredDomains | DesiredStickToEnd;
 
 function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
     return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
@@ -36,6 +42,39 @@ function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
 function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZoomState): boolean {
     return properties.stickToEnd && zoom.x.max === 1;
 }
+
+function getDateMinMax(axisManager: ModuleContext['axisManager'], axisId: AxisID): DateMinMax | undefined {
+    const ctx = axisManager.getAxisIdContext(axisId);
+    if (!ctx) return;
+
+    if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale)) {
+        const min = ctx.scale.bands[0];
+        const max = ctx.scale.bands.at(-1);
+        if (max) {
+            return { min, max };
+        }
+    }
+}
+
+function toDateVisibleMinMax(dates: DateMinMax, ratios: ZoomState): DateVisibleMinMax {
+    const tmin = dates.min.getTime();
+    const tmax = dates.max.getTime();
+    const span = tmax - tmin;
+    const visibleMin = new Date(tmin + span * ratios.min);
+    const visibleMax = new Date(tmin + span * ratios.max);
+    return { visibleMin, visibleMax };
+}
+
+function fromDateVisibleMinMax(dates: DateMinMax, visibleDates: DateVisibleMinMax): ZoomState {
+    const tmin = dates.min.getTime();
+    const tmax = dates.max.getTime();
+    const span = tmax - tmin;
+    return {
+        min: (visibleDates.visibleMin.getTime() - tmin) / span,
+        max: (visibleDates.visibleMax.getTime() - tmin) / span
+    };
+}
+
 
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
@@ -115,13 +154,22 @@ export class ZoomOnDataChange {
         const { desiredChanges = {} } = this;
         this.desiredChanges = undefined;
 
-        if (desiredChanges.ranges) {
+        if (desiredChanges.domain) {
             const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
-            for (const entry of desiredChanges.ranges) {
-                const ratio = this.rangeToRatio(entry.axisId, entry.range);
-                if (ratio) {
-                    const { min, max } = ratio;
-                    changes[entry.axisId] = { direction: 'x', min, max };
+            for (const entry of desiredChanges.domain) {
+                if (entry.range) {
+                    const ratio = this.rangeToRatio(entry.axisId, entry.range);
+                    if (ratio) {
+                        const { min, max } = ratio;
+                        changes[entry.axisId] = { direction: 'x', min, max };
+                    }
+                } else if (entry.dates) {
+                    const dateMinMax = getDateMinMax(this.ctx.axisManager, entry.axisId);
+                    if (dateMinMax){
+                        const ratio = fromDateVisibleMinMax(dateMinMax, entry.dates);
+                        const { min, max } = ratio;
+                        changes[entry.axisId] = { direction: 'x', min, max };
+                    }
                 }
             }
             return changes;
@@ -163,12 +211,20 @@ export class ZoomOnDataChange {
     private performPreserveDomain(): void {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
-        this.desiredChanges = { ranges: [] };
+        this.desiredChanges = { domain: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
-            const range = this.ctx.zoomManager.getCurrentRange(axisId);
-            if (range) {
-                this.desiredChanges.ranges.push({ axisId, range });
+            const dateMinMax = getDateMinMax(this.ctx.axisManager, axisId);
+
+            if (dateMinMax) {
+                const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
+                const dates = toDateVisibleMinMax(dateMinMax, ratios);
+                this.desiredChanges.domain.push({ axisId, dates });
+            } else {
+                const range = this.ctx.zoomManager.getCurrentRange(axisId);
+                if (range) {
+                    this.desiredChanges.domain.push({ axisId, range });
+                }
             }
         }
     }
