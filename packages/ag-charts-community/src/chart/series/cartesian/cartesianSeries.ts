@@ -814,10 +814,6 @@ export abstract class CartesianSeries<
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
-        // TODO(AG-16074): Caching disabled due to issues with zoom/axis state changes.
-        // The cache key needs to capture all state that affects xCoordinateRange() results,
-        // but determining the complete set of dependencies is complex. Revisit for optimization.
-
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
             const { processedData, dataModel } = this;
@@ -849,10 +845,6 @@ export abstract class CartesianSeries<
         visibleRange: [any, any],
         indices?: number[]
     ) {
-        // TODO(AG-16074): Caching disabled due to issues with zoom/axis state changes.
-        // The cache key needs to capture all state that affects xCoordinateRange() results,
-        // but determining the complete set of dependencies is complex. Revisit for optimization.
-
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
