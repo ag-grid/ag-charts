@@ -14,7 +14,13 @@ import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs,
 type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
 
 function findPrimaryCategoryAxisContext(ctx: _ModuleSupport.ModuleContext): AxisContext | undefined {
-    return ctx.axisManager.getAxisContext(_ModuleSupport.ChartAxisDirection.X)[0];
+    for (const dir of [_ModuleSupport.ChartAxisDirection.X, _ModuleSupport.ChartAxisDirection.Y]) {
+        for (const axisCtx of ctx.axisManager.getAxisContext(dir)) {
+            if (_ModuleSupport.BandScale.is(axisCtx.scale)) {
+                return axisCtx;
+            }
+        }
+    }
 }
 
 export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgFlashOnUpdateOptions {
