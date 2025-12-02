@@ -29,6 +29,7 @@ type BubbleDatum = {
 
 type Datum = ValueDatum | OhlcDatum | RangeDatum | BubbleDatum;
 type SeriesType = 'line' | 'area' | 'bar' | 'bubble' | 'ohlc' | 'candlestick' | 'range-bar' | 'range-area';
+type AxisType = 'time' | 'ordinal-time';
 
 const ALL_SERIES_TYPES: SeriesType[] = [
     'line',
@@ -40,6 +41,7 @@ const ALL_SERIES_TYPES: SeriesType[] = [
     'range-bar',
     'range-area',
 ];
+const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time'];
 
 const INITIAL_POINTS = 100_000;
 let UPDATE_COUNT = 100;
@@ -51,6 +53,7 @@ const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 const STORAGE_KEY = 'high-freq-random-update-series-type';
 const UPDATES_STATE_KEY = 'high-freq-random-update-updates-running';
 const FREQUENCY_KEY = 'high-freq-random-update-frequency';
+const AXIS_TYPE_KEY = 'high-freq-random-update-axis-type';
 
 // Initialize frequency from persisted value
 const persistedFrequency = getPersistedFrequency();
@@ -215,7 +218,59 @@ function persistFrequency(frequency: string) {
     }
 }
 
+function getAxisTypeFromHash(): AxisType | null {
+    try {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return null;
+        const params = new URLSearchParams(hash);
+        const axisType = params.get('axisType');
+        if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
+            return axisType as AxisType;
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+    return null;
+}
+
+function getAxisTypeFromStorage(): AxisType | null {
+    try {
+        const stored = sessionStorage.getItem(AXIS_TYPE_KEY);
+        if (stored && ALL_AXIS_TYPES.includes(stored as AxisType)) {
+            return stored as AxisType;
+        }
+    } catch {
+        // Ignore storage errors (e.g., in private browsing)
+    }
+    return null;
+}
+
+function getPersistedAxisType(): AxisType {
+    return getAxisTypeFromHash() || getAxisTypeFromStorage() || 'time';
+}
+
+function persistAxisType(axisType: AxisType) {
+    try {
+        sessionStorage.setItem(AXIS_TYPE_KEY, axisType);
+    } catch {
+        // Ignore storage errors (e.g., private browsing)
+    }
+
+    try {
+        if (window.parent === window) {
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            params.set('axisType', axisType);
+            const newHash = params.toString();
+            history.replaceState(null, '', `#${newHash}`);
+        }
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
 let currentSeriesType: SeriesType = getPersistedSeriesType();
+let currentAxisType: AxisType = getPersistedAxisType();
 
 function generateValueDatum(index: number): ValueDatum {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
@@ -426,28 +481,33 @@ function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] 
     }
 }
 
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    data,
-    animation: { enabled: false },
-    zoom: { enabled: true },
-    axes: {
+function createAxesConfig(axisType: AxisType) {
+    return {
         x: {
-            type: 'time',
-            position: 'bottom',
+            type: axisType,
+            position: 'bottom' as const,
+            ...(axisType === 'time' ? { nice: false } : {}),
             nice: false,
             label: {
                 format: '%H:%M:%S',
             },
         },
         y: {
-            type: 'number',
-            position: 'left',
+            type: 'number' as const,
+            position: 'left' as const,
             title: {
                 text: 'Value',
             },
         },
-    },
+    };
+}
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data,
+    animation: { enabled: false },
+    zoom: { enabled: true },
+    axes: createAxesConfig(currentAxisType),
     series: createSeriesConfig(currentSeriesType),
     legend: { enabled: false },
 };
@@ -758,6 +818,47 @@ async function setSeriesType(newSeriesType: SeriesType) {
     }
 }
 
+let axisTypeUpdateInProgress = false;
+
+async function setAxisType(newAxisType: AxisType) {
+    if (newAxisType === currentAxisType || axisTypeUpdateInProgress) {
+        return;
+    }
+
+    axisTypeUpdateInProgress = true;
+    const wasRunning = isRunning;
+
+    try {
+        if (isRunning) {
+            stopUpdates();
+        }
+
+        await chart.update({
+            ...options,
+            data,
+            axes: createAxesConfig(newAxisType),
+            series: createSeriesConfig(currentSeriesType),
+        });
+
+        currentAxisType = newAxisType;
+
+        persistAxisType(currentAxisType);
+
+        const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
+        if (axisTypeSelect && axisTypeSelect.value !== currentAxisType) {
+            axisTypeSelect.value = currentAxisType;
+        }
+
+        resetCpuIndicator();
+
+        if (wasRunning) {
+            startUpdates();
+        }
+    } finally {
+        axisTypeUpdateInProgress = false;
+    }
+}
+
 resetCpuIndicator();
 resetFpsCounter();
 updateDataCountDisplay();
@@ -776,6 +877,11 @@ if (frequencySelect) {
 const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
 if (seriesTypeSelect) {
     seriesTypeSelect.value = currentSeriesType;
+}
+
+const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
+if (axisTypeSelect) {
+    axisTypeSelect.value = currentAxisType;
 }
 
 if (getPersistedUpdatesState()) {
@@ -800,6 +906,10 @@ window.addEventListener('hashchange', () => {
     if (persistedFreq !== currentFrequency) {
         setUpdateFrequency(persistedFreq);
     }
+    const persistedAxisType = getPersistedAxisType();
+    if (persistedAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
+        void setAxisType(persistedAxisType);
+    }
 });
 
 (window as any).toggleUpdates = () => {
@@ -816,6 +926,9 @@ window.addEventListener('hashchange', () => {
 };
 (window as any).updateSeriesType = (seriesType: string) => {
     void setSeriesType(seriesType as SeriesType);
+};
+(window as any).updateAxisType = (axisType: string) => {
+    void setAxisType(axisType as AxisType);
 };
 (window as any).tickUpdate = () => {
     void updateRandomSubset();
