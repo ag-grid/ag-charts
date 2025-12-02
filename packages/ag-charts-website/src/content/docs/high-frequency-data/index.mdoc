@@ -5,7 +5,7 @@ description: 'Efficiently update $framework chart data using the applyTransactio
 
 Efficiently update chart data in real-time scenarios using incremental transactions.
 
-High-frequency data updates occur when charts need to reflect rapidly changing data, such as live financial tickers, IoT sensor readings, or real-time analytics dashboards. The `applyTransaction()` API provides high-performance incremental updates that are 90%+ faster than full data replacement for small changes.
+High-frequency data updates occur when charts need to reflect rapidly changing data, such as live financial tickers, IoT sensor readings, or real-time analytics dashboards. The `applyTransaction()` API provides efficient incremental updates without replacing the entire dataset.
 
 ## Apply Transaction API
 
@@ -35,10 +35,9 @@ This example demonstrates using `applyTransaction()` to handle high-frequency up
 In this example:
 
 -   The chart starts with 50,000 data points to demonstrate scalability.
--   Updates occur every animation frame (typically 60 FPS) for smooth real-time streaming.
+-   Updates occur every animation frame for smooth real-time streaming.
 -   Each update removes 10 old points from the start and adds 10 new points to the end.
 -   The transaction combines both operations efficiently: `applyTransaction({ remove: [...], add: [...] })`.
--   Performance metrics (FPS and update count) demonstrate the efficiency of incremental updates.
 
 ## Transaction Operations
 
@@ -135,24 +134,15 @@ chart.applyTransaction({
 
 Operations are processed in order: remove, then update, then add.
 
-## Performance Considerations
+{% note %}
+The `applyTransaction()` method returns a `Promise` that resolves once the transaction has been applied and the chart has been rendered.
+{% /note %}
 
-The `applyTransaction()` API is optimized for high-frequency updates:
-
--   **Processing Speed**: 90%+ faster than full data refresh for small updates
--   **Update Frequency**: Supports 100+ updates per second
--   **Chart State**: Maintains zoom, pan, and selection state
--   **Animations**: Not supported during transactions to maximize performance
-
-For best performance:
+For best results:
 
 -   Batch multiple changes into a single transaction when possible
 -   Maintain references to data items if you need to remove or update them later
 -   Use `applyTransaction()` for incremental changes; use `update()` or `updateDelta()` for replacing the entire dataset
-
-{% note %}
-The `applyTransaction()` method returns a `Promise` that resolves once the transaction has been applied and the chart has been rendered.
-{% /note %}
 
 For full data replacement or configuration changes, see [Create/Update](./api-create-update/).
 
