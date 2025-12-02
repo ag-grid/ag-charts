@@ -1,23 +1,22 @@
 import { first } from 'ag-charts-core';
 
 import { hasNoRemovals, isAppendOnly, isPrependOnly, isUpdateOnly } from '../../dataChangeDescription';
-import type {
-    DataGroup,
-    GroupedData,
-    InsertionCache,
-    InsertionCacheValue,
-    InternalDatumPropertyDefinition,
-    ProcessedData,
-    ProcessedOutputDiff,
-    ProcessedValueEntry,
-    ScopeId,
-} from '../../dataModelTypes';
 import {
     COLUMN_SORT_ORDERS,
     DOMAIN_BANDS,
     DOMAIN_RANGES,
+    type DataGroup,
+    type GroupedData,
+    type InsertionCache,
+    type InsertionCacheValue,
+    type InternalDatumPropertyDefinition,
     KEY_SORT_ORDERS,
+    type ProcessedData,
+    type ProcessedOutputDiff,
+    type ProcessedValueEntry,
     SHARED_ZERO_INDICES,
+    type ScopeId,
+    type SortOrderEntry,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { RangeLookup } from '../../rangeLookup';
@@ -864,12 +863,86 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     }
 
     /**
+     * Updates sort order entry incrementally for appended values.
+     * Checks if new values maintain the existing ordering/uniqueness.
+     */
+    private updateSortOrderForAppend(
+        entry: SortOrderEntry,
+        lastExistingValue: unknown,
+        appendedValues: unknown[]
+    ): void {
+        if (appendedValues.length === 0) return;
+
+        // Convert to numeric for comparison
+        const toNumeric = (v: unknown): number | undefined => {
+            if (typeof v === 'number') return v;
+            if (v instanceof Date) return v.valueOf();
+            return undefined;
+        };
+
+        let lastValue = toNumeric(lastExistingValue);
+        const existingSortOrder = entry.sortOrder;
+
+        for (const value of appendedValues) {
+            const numericValue = toNumeric(value);
+            if (numericValue === undefined) continue;
+
+            if (lastValue === undefined) {
+                lastValue = numericValue;
+                continue;
+            }
+
+            const diff = numericValue - lastValue;
+
+            // Check uniqueness
+            if (diff === 0) {
+                entry.isUnique = false;
+            }
+
+            // Check ordering (only if still considered ordered)
+            if (entry.sortOrder !== undefined) {
+                let direction = 0;
+                if (diff > 0) {
+                    direction = 1;
+                } else if (diff < 0) {
+                    direction = -1;
+                }
+                if (direction !== 0 && direction !== existingSortOrder) {
+                    entry.sortOrder = undefined;
+                }
+            }
+
+            lastValue = numericValue;
+        }
+    }
+
+    /**
+     * Updates KEY_SORT_ORDERS incrementally after an append operation.
+     */
+    private updateKeySortOrdersForAppend(processedData: ProcessedData<D>, originalLength: number): void {
+        for (const [keyDefIndex, keysMap] of processedData.keys.entries()) {
+            const sortOrderEntry = processedData[KEY_SORT_ORDERS].get(keyDefIndex);
+            if (!sortOrderEntry) continue;
+
+            // Get any scope's keys array (they share the same data)
+            const keysArray = first(keysMap.values());
+            if (!keysArray || keysArray.length <= originalLength) continue;
+
+            // Get last existing value and appended values
+            const lastExistingValue = originalLength > 0 ? keysArray[originalLength - 1] : undefined;
+            const appendedValues = keysArray.slice(originalLength);
+
+            this.updateSortOrderForAppend(sortOrderEntry, lastExistingValue, appendedValues);
+        }
+    }
+
+    /**
      * Invalidates caches intelligently based on change patterns.
      *
      * OPTIMIZATION: Different change patterns allow different cache preservation strategies:
      * - Update-only: RangeLookup values changed but indices stable. Clear DOMAIN_RANGES but
      *   preserve sort orders (mark dirty for lazy recalculation).
-     * - Append-only: New items at end, existing indices unchanged. Sort orders stay valid.
+     * - Append-only: New items at end, existing indices unchanged. Update sort orders incrementally.
      * - Rolling window: Contiguous removals at start + appends at end. Full clear needed.
      * - Complex patterns: Full invalidation for safety.
      */
@@ -881,6 +954,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Determine the most conservative strategy across all changes
         let preserveSortOrders = true;
+        let hasAppendOnly = false;
+        let appendOriginalLength: number | undefined;
 
         for (const changeDesc of changeDescs) {
             const { indexMap } = changeDesc;
@@ -889,11 +964,12 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 // Update-only: Values changed but indices stable
                 // DOMAIN_RANGES must be cleared (values changed)
                 // Sort orders can be preserved if only values changed, not keys
-                // Sort orders depend on values, so mark dirty but don't clear
             } else if (isAppendOnly(indexMap)) {
                 // Append-only: New items at end, no index shifts
                 // DOMAIN_RANGES must be rebuilt to include new values
-                // Existing sort orders remain valid for their ranges
+                // Sort orders need incremental update for new values
+                hasAppendOnly = true;
+                appendOriginalLength = indexMap.originalLength;
             } else {
                 // Rolling window: Indices shift predictably
                 // Complex pattern: Full invalidation for safety
@@ -910,10 +986,12 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             // Complex patterns: Full invalidation needed
             processedData[KEY_SORT_ORDERS].clear();
             processedData[COLUMN_SORT_ORDERS].clear();
+        } else if (hasAppendOnly && appendOriginalLength !== undefined) {
+            // Append-only: Update sort orders incrementally
+            this.updateKeySortOrdersForAppend(processedData, appendOriginalLength);
         }
-        // When preserveSortOrders is true (update-only, append-only):
+        // When preserveSortOrders is true and not append-only (update-only):
         // - Keys don't change, so KEY_SORT_ORDERS stays valid
-        // - Data positions don't change, so sort order is definitionally unchanged
 
         // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
     }

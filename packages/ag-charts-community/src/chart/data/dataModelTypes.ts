@@ -47,7 +47,11 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 export type ScopeId = string;
 
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
-export type SortOrderEntry = { sortOrder: SortOrder; isDirty?: boolean };
+export type SortOrderEntry = {
+    sortOrder: SortOrder;
+    isUnique?: boolean; // true if no duplicate adjacent values detected
+    isDirty?: boolean;
+};
 export type ProcessedValueEntry = { value: any; valid: boolean };
 
 export interface GroupDatumIteratorOutput {

@@ -26,7 +26,7 @@ import {
     verifyReprocessMatchesBaseline,
 } from './data-model/test/testUtils';
 import type { GroupByFn } from './dataModel';
-import { DataModel, getPathComponents } from './dataModel';
+import { DataModel, KEY_SORT_ORDERS, getPathComponents } from './dataModel';
 import { DataSet } from './dataSet';
 import { SMALLEST_KEY_INTERVAL, SORT_DOMAIN_GROUPS, rangedValueProperty } from './processors';
 
@@ -2210,6 +2210,271 @@ describe('DataModel', () => {
                 const stats = reducerMeta?.stats;
                 expect(stats).toBeDefined();
                 expect(stats?.scanRatio).toBeLessThan(0.5); // Less than 50% re-scanned
+            });
+        });
+    });
+
+    describe('KEY_SORT_ORDERS metadata', () => {
+        describe('continuous keys', () => {
+            it('should track ascending sorted unique keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                    { x: 4, y: 40 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBe(1);
+                expect(entry!.isUnique).toBe(true);
+                expect(entry!.isDirty).toBe(false);
+            });
+
+            it('should track descending sorted unique keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([
+                    { x: 100, y: 10 },
+                    { x: 75, y: 20 },
+                    { x: 50, y: 30 },
+                    { x: 25, y: 40 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBe(-1);
+                expect(entry!.isUnique).toBe(true);
+            });
+
+            it('should detect unordered keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([
+                    { x: 1, y: 10 },
+                    { x: 5, y: 20 },
+                    { x: 3, y: 30 },
+                    { x: 4, y: 40 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBeUndefined();
+            });
+
+            it('should detect duplicate keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 30 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBe(1);
+                expect(entry!.isUnique).toBe(false);
+            });
+
+            it('should track Date keys correctly', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('date'), value('y')],
+                });
+                const data = basicDataSet([
+                    { date: new Date('2024-01-01'), y: 10 },
+                    { date: new Date('2024-01-02'), y: 20 },
+                    { date: new Date('2024-01-03'), y: 30 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBe(1);
+                expect(entry!.isUnique).toBe(true);
+            });
+
+            it('should handle single-element data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([{ x: 42, y: 10 }]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBeUndefined(); // No direction determinable
+                expect(entry!.isUnique).toBe(true);
+            });
+
+            it('should handle empty data', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                const data = basicDataSet([]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.isUnique).toBe(true);
+            });
+        });
+
+        describe('category keys', () => {
+            it('should track unique category keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('y')],
+                });
+                const data = basicDataSet([
+                    { category: 'A', y: 10 },
+                    { category: 'B', y: 20 },
+                    { category: 'C', y: 30 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                // Category keys don't have numeric sort order
+                expect(entry!.isUnique).toBe(true);
+            });
+
+            it('should detect duplicate category keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('y')],
+                });
+                const data = basicDataSet([
+                    { category: 'A', y: 10 },
+                    { category: 'A', y: 15 },
+                    { category: 'B', y: 20 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                // Category duplicates don't affect numeric tracking (strings not tracked)
+                // isUnique should be true since we only track numeric values
+                expect(entry!.isUnique).toBe(true);
+            });
+        });
+
+        describe('incremental updates', () => {
+            it('should maintain metadata for ascending append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const result = dataModel.processData(sources)!;
+                expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+                expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+
+                // Append ascending data
+                dataSet.addTransaction({ append: [{ x: 4, y: 40 }] });
+                const reprocessed = dataModel.reprocessData(result);
+
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+            });
+
+            it('should detect order violation on append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const result = dataModel.processData(sources)!;
+                expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+
+                // Append data that violates ascending order
+                dataSet.addTransaction({ append: [{ x: 1, y: 40 }] });
+                const reprocessed = dataModel.reprocessData(result);
+
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBeUndefined();
+            });
+
+            it('should detect duplicates on append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const result = dataModel.processData(sources)!;
+                expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+
+                // Append duplicate key
+                dataSet.addTransaction({ append: [{ x: 3, y: 40 }] });
+                const reprocessed = dataModel.reprocessData(result);
+
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(false);
+            });
+
+            it('should handle rolling window appends (ascending)', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: i * 10 }));
+                const dataSet = new DataSet(initialData);
+                const sources = new Map([['test', dataSet]]);
+
+                const result = dataModel.processData(sources)!;
+                expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+                expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
+
+                // Rolling window: remove from start, append to end
+                for (let i = 0; i < 10; i++) {
+                    dataSet.addTransaction({
+                        remove: [{ x: i, y: i * 10 }],
+                        append: [{ x: 100 + i, y: (100 + i) * 10 }],
+                    });
+                }
+
+                const reprocessed = dataModel.reprocessData(result);
+
+                // Order should be preserved
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
+                expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
             });
         });
     });

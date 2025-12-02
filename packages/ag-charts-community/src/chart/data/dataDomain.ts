@@ -7,17 +7,47 @@ export interface IDataDomain<D = any> {
 
 export class DiscreteDomain implements IDataDomain {
     private readonly domain = new Set();
+    private readonly dateTimestamps = new Set<number>();
+    private hasDateValues = false;
 
     static is(value: unknown): value is DiscreteDomain {
         return value instanceof DiscreteDomain;
     }
 
     extend(val: any) {
-        this.domain.add(val);
+        if (val instanceof Date) {
+            this.hasDateValues = true;
+            this.dateTimestamps.add(val.valueOf());
+        } else {
+            this.domain.add(val);
+        }
     }
 
     getDomain() {
+        if (this.hasDateValues) {
+            return Array.from(this.dateTimestamps, (ts) => new Date(ts));
+        }
         return Array.from(this.domain);
+    }
+
+    /** Returns true if this domain contains Date values stored as timestamps */
+    isDateDomain(): boolean {
+        return this.hasDateValues;
+    }
+
+    /** Merges another DiscreteDomain's values into this one (efficient, no object creation) */
+    mergeFrom(other: DiscreteDomain): void {
+        if (other.hasDateValues) {
+            this.hasDateValues = true;
+            for (const ts of other.dateTimestamps) {
+                this.dateTimestamps.add(ts);
+            }
+        }
+        if (other.domain.size > 0) {
+            for (const val of other.domain) {
+                this.domain.add(val);
+            }
+        }
     }
 }
 
@@ -222,15 +252,28 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
 
         // Combine domains from all bands
         if (this.isDiscrete) {
-            // For discrete domains, merge all unique values
-            const combined = new Set<T>();
-            for (const band of this.bands) {
-                const bandDomain = band.subDomain.getDomain();
-                for (const value of bandDomain) {
-                    combined.add(value);
+            // For discrete domains, merge efficiently at the primitive level
+            // Since bands have non-overlapping index ranges, we can merge without
+            // expensive object-based Set operations
+            const firstBand = this.bands[0].subDomain;
+            if (DiscreteDomain.is(firstBand)) {
+                const combined = new DiscreteDomain();
+                for (const band of this.bands) {
+                    if (DiscreteDomain.is(band.subDomain)) {
+                        combined.mergeFrom(band.subDomain);
+                    }
                 }
+                this.fullDomainCache = combined.getDomain() as T[];
+            } else {
+                // Fallback for non-DiscreteDomain sub-domains
+                const combined = new Set<T>();
+                for (const band of this.bands) {
+                    for (const value of band.subDomain.getDomain()) {
+                        combined.add(value);
+                    }
+                }
+                this.fullDomainCache = Array.from(combined);
             }
-            this.fullDomainCache = Array.from(combined);
         } else {
             // For continuous domains, find min and max across all bands
             let min: T | undefined;

@@ -11,24 +11,31 @@ export class DomainInitializer<K extends string> {
 
     /**
      * Sets up the appropriate domain type for a property definition.
-     * Returns a DiscreteDomain for category values, or a BandedDomain/ContinuousDomain
-     * for continuous values depending on configuration.
+     * Returns a BandedDomain wrapping DiscreteDomain for category values,
+     * or a BandedDomain wrapping ContinuousDomain for continuous values.
+     * Falls back to non-banded domains when banding is disabled.
      */
     setupDomainForDefinition(
         def: InternalDatumPropertyDefinition<K>,
         bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
     ): IDataDomain {
-        if (def.valueType === 'category') {
-            return new DiscreteDomain();
-        }
+        const isDiscrete = def.valueType === 'category';
 
         let domain = bandedDomains.get(def);
         if (!domain && this.ctx.bandingConfig?.enableBanding !== false) {
-            domain = new BandedDomain(() => new ContinuousDomain(), this.ctx.bandingConfig, false);
+            domain = new BandedDomain(
+                isDiscrete ? () => new DiscreteDomain() : () => new ContinuousDomain(),
+                this.ctx.bandingConfig,
+                isDiscrete
+            );
             bandedDomains.set(def, domain);
         }
 
-        return domain ?? new ContinuousDomain();
+        if (domain) {
+            return domain;
+        }
+
+        return isDiscrete ? new DiscreteDomain() : new ContinuousDomain();
     }
 
     /**

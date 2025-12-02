@@ -301,7 +301,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -628,7 +634,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -934,7 +946,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -1296,7 +1314,13 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -2172,7 +2196,13 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -2658,7 +2688,13 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -3180,7 +3216,13 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -3702,7 +3744,13 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -4182,7 +4230,13 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   "type": "grouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},
@@ -5020,7 +5074,13 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "type": "ungrouped",
   "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": 1,
+    },
+  },
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},

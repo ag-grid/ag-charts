@@ -415,9 +415,9 @@ const options: AgCartesianChartOptions = {
     zoom: { enabled: true },
     axes: {
         x: {
-            type: 'time',
+            type: 'ordinal-time',
             position: 'bottom',
-            nice: false,
+            // nice: false,
             label: {
                 format: '%H:%M:%S',
             },
