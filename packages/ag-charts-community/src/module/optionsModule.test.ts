@@ -416,6 +416,7 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
 describe('ChartOptions', () => {
     beforeEach(() => {
         console.warn = jest.fn();
+        console.error = jest.fn();
         Logger.reset();
     });
 
@@ -2115,8 +2116,8 @@ describe('ChartOptions', () => {
             );
 
             try {
-                expect(chartOptions.activeTheme.overrides?.common?.navigator).toBeUndefined();
-                expect(chartOptions.activeTheme.overrides?.common?.annotations).toBeUndefined();
+                expect(chartOptions.activeTheme.overrides?.common?.navigator?.enabled).toBe(true);
+                expect(chartOptions.activeTheme.overrides?.common?.annotations?.enabled).toBe(true);
                 expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
                 expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
                 expect(warnSpy).toHaveBeenCalledTimes(2);
@@ -2137,7 +2138,18 @@ describe('ChartOptions', () => {
                 overrides: {
                     value: {
                         ...(baseTheme.overrides ?? {}),
-                        common: { ...(baseTheme.overrides?.common ?? {}), navigator: { enabled: true } },
+                        common: {
+                            ...(baseTheme.overrides?.common ?? {}),
+                            navigator: { enabled: true },
+                            axes: {
+                                ...(baseTheme.overrides?.common?.axes ?? {}),
+                                number: {
+                                    ...(baseTheme.overrides?.common?.axes?.number ?? {}),
+                                    crosshair: { enabled: true },
+                                    bandHighlight: { enabled: false },
+                                },
+                            },
+                        },
                         'radial-bar': { series: { strokeWidth: 5 } },
                         line: { series: { errorBar: { enabled: true } } },
                     },
@@ -2153,7 +2165,9 @@ describe('ChartOptions', () => {
 
             expect(sanitizedTheme.config['radial-bar']).toBeUndefined();
             expect((sanitizedTheme.overrides as any)?.['radial-bar']).toBeUndefined();
-            expect((sanitizedTheme.overrides as any)?.common?.navigator).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.common?.navigator?.enabled).toBe(true);
+            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.crosshair?.enabled).toBe(true);
+            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.bandHighlight).toBeUndefined();
             expect((sanitizedTheme.overrides as any)?.line?.series?.errorBar).toBeUndefined();
             expect((sanitizedTheme.presets as any)?.['linear-gauge']).toBeUndefined();
         });

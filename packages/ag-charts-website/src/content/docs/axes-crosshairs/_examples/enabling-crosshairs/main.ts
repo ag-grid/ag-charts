@@ -28,7 +28,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `World Population`,
+        text: 'World Population',
     },
     series: [
         {
