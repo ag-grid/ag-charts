@@ -1037,7 +1037,7 @@ export abstract class Axis<
             return;
         }
 
-        const [_position, start, end] = computeBand(this.scale, this.range, value);
+        const [, start, end] = computeBand(this.scale, this.range, value);
         return { band: [start, end] };
     }
 
