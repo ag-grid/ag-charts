@@ -1,6 +1,6 @@
 import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 
-import type { EventsHub } from '../../module-support';
+import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {
