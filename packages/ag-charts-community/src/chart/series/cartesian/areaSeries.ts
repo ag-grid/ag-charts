@@ -1197,9 +1197,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const data = markersEnabled ? nodeData : [];
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to match nodes by id
             return datumSelection.update(data);
         }

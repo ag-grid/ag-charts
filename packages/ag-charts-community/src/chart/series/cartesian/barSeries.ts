@@ -1195,9 +1195,7 @@ export class BarSeries extends AbstractBarSeries<
         nodeData: BarNodeDatum[];
         datumSelection: Selection<BarShape, BarNodeDatum>;
     }) {
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to ensure we match up nodes by id.
             return opts.datumSelection.update(opts.nodeData);
         }

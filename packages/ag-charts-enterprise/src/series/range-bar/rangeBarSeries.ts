@@ -1036,9 +1036,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to ensure we match up nodes by id.
             return datumSelection.update(data);
         }

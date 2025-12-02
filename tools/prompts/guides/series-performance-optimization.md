@@ -1324,22 +1324,22 @@ Without calling `onChangeDetection()`, the `_dirtyTransform` flag won't be set, 
 
 ---
 
-### 13. Skip Datum ID Computation When Animation Disabled
+### 13. Skip Datum ID Computation When Animation Not Supported
 
-**Problem**: The `updateDatumSelection()` method computes datum IDs via `getDatumId()` for every node to enable animated transitions between data states. When animation is disabled (common for high-frequency updates), this ID computation and lookup overhead is wasted.
+**Problem**: The `updateDatumSelection()` method computes datum IDs via `getDatumId()` for every node to enable animated transitions between data states. When animation is not supported (e.g., datasets exceeding `MAX_ANIMATABLE_NODES` threshold), this ID computation and lookup overhead is wasted.
 
-**Solution**: Check if animation is enabled and skip the `getDatumId` callback when it's not needed.
+**Solution**: Check if the processed data is animatable using `processedDataIsAnimatable()` and skip the `getDatumId` callback when animation is not supported. This uses the same `MAX_ANIMATABLE_NODES = 1000` threshold that `processData()` uses for diff/animationValidation calculations, ensuring consistent behavior.
 
-**BarSeries Pattern** (`barSeries.ts:1238-1249`):
+**Important**: Do NOT use `animationManager.isSkipped()` for this check. `isSkipped()` can return `true` temporarily due to user interactions (zoom/pan) that short-circuit animations, but when animations resume, scene-graph nodes won't have matching IDs assigned, breaking subsequent animations. Always use `processedDataIsAnimatable()` to ensure consistent ID assignment based on data count.
+
+**BarSeries Pattern** (`barSeries.ts:1198-1205`):
 
 ```typescript
 protected override updateDatumSelection(opts: {
     nodeData: BarNodeDatum[];
     datumSelection: Selection<BarShape, BarNodeDatum>;
 }) {
-    const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-    if (!animationEnabled) {
+    if (!processedDataIsAnimatable(this.processedData!)) {
         // Optimised update path, no need to ensure we match up nodes by id.
         return opts.datumSelection.update(opts.nodeData);
     }
@@ -1356,11 +1356,20 @@ protected override updateDatumSelection(opts: {
 | Map lookup to match nodes         | Direct index-based update      |
 | Required for animated transitions | Sufficient for instant updates |
 
-**When Animation is Skipped**:
+**When Animation is Not Supported**:
 
--   High-frequency data updates (`applyTransaction()` in tight loops)
--   Initial chart render with `animation: { enabled: false }`
--   Programmatic updates where visual continuity isn't needed
+-   Datasets exceeding `MAX_ANIMATABLE_NODES` (1000) threshold
+-   Large datasets where animation performance would be poor
+-   Same threshold used by `processData()` for diff/animationValidation calculations
+
+**Why `processedDataIsAnimatable()` Instead of `animationManager.isSkipped()`**:
+
+| Aspect                      | `animationManager.isSkipped()`                  | `processedDataIsAnimatable()`                       |
+| --------------------------- | ----------------------------------------------- | --------------------------------------------------- |
+| **Consistency**             | Can change based on temporary user interactions | Based on stable data count threshold                |
+| **Scene-graph IDs**         | May omit IDs when animations resume             | Always assigns IDs when animation is supported      |
+| **Threshold**               | N/A (runtime state)                             | `MAX_ANIMATABLE_NODES = 1000` (matches processData) |
+| **User interaction impact** | Temporary skip breaks subsequent animations     | Unaffected by temporary animation skips             |
 
 **Measured Impact** (RangeBarSeries with 100k points):
 
@@ -1374,10 +1383,11 @@ protected override updateDatumSelection(opts: {
 **Checklist**:
 
 -   [ ] Override `updateDatumSelection()` in series class
--   [ ] Check `this.ctx.animationManager.isSkipped()`
--   [ ] Use simple `datumSelection.update(data)` when animation disabled
--   [ ] Use `datumSelection.update(data, undefined, getDatumId)` when animation enabled
+-   [ ] Check `!processedDataIsAnimatable(this.processedData!)` (NOT `animationManager.isSkipped()`)
+-   [ ] Use simple `datumSelection.update(data)` when animation not supported
+-   [ ] Use `datumSelection.update(data, undefined, getDatumId)` when animation is supported
 -   [ ] Verify animated transitions still work correctly
+-   [ ] Ensure `processedDataIsAnimatable` is imported (from `../../data/processors` or `_ModuleSupport`)
 
 ---
 
@@ -1629,22 +1639,22 @@ private createNodeDatumContext(...): RangeBarSeriesNodeDatumContext {
 
 #### Selection Update Optimization
 
--   [ ] **Skip datum ID computation when animation is disabled**
+-   [ ] **Skip datum ID computation when animation is not supported**
 
     ```typescript
     protected override updateDatumSelection(opts: {
         nodeData: YourNodeDatum[];
         datumSelection: Selection<YourNode, YourNodeDatum>;
     }) {
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        if (!animationEnabled) {
+        if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to match nodes by id.
             return opts.datumSelection.update(opts.nodeData);
         }
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
     ```
+
+    **Important**: Use `processedDataIsAnimatable()` NOT `animationManager.isSkipped()`. The former ensures consistent ID assignment based on data count threshold, while the latter can temporarily skip IDs during user interactions, breaking subsequent animations.
 
 #### Label Optimization
 
@@ -1993,7 +2003,7 @@ When implementing these optimizations, always refer to the BarSeries implementat
 | Animation Reset      | `barSeries.ts`, `barUtil.ts`               | `resetDatumAnimation()`, `resetBarSelectionsDirect()`         |
 | Marker Reset         | `lineSeries.ts`, `markerUtil.ts`           | `resetMarkerSelectionsDirect()`, `resetAnimationProperties()` |
 | Transform Reset      | `transformable.ts`, `marker.ts`            | `resetScalingProperties()`, `onChangeDetection()`             |
-| Datum ID Skip        | `barSeries.ts`, `rangeBarSeries.ts`        | `updateDatumSelection()`, `animationManager.isSkipped()`      |
+| Datum ID Skip        | `barSeries.ts`, `rangeBarSeries.ts`        | `updateDatumSelection()`, `processedDataIsAnimatable()`       |
 | Label Skip           | `barSeries.ts`, `rangeBarSeries.ts`        | `ctx.label.enabled`, early return in `updateLabelData()`      |
 
 **File locations**:
