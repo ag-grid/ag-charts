@@ -156,29 +156,37 @@ export class ZoomOnDataChange {
     }
 
     private popDesiredChanges(): ZoomChangeState | undefined {
-        const { desiredChanges = undefined } = this;
+        const { desiredChanges } = this;
+        if (!desiredChanges) return;
         this.desiredChanges = undefined;
 
-        if (desiredChanges?.type === 'domain') {
-            const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
-            for (const entry of desiredChanges.domains) {
-                const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(entry.axisId);
-                if (scaleMinMax) {
-                    changes[entry.axisId] = fromVisibleMinMax(scaleMinMax, entry);
+        switch (desiredChanges.type) {
+            case 'domain': {
+                const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
+                for (const entry of desiredChanges.domains) {
+                    const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(entry.axisId);
+                    if (scaleMinMax) {
+                        changes[entry.axisId] = fromVisibleMinMax(scaleMinMax, entry);
+                    }
                 }
+                return changes;
             }
-            return changes;
-        } else if (desiredChanges?.type === 'stickToEnd') {
-            const { axisId, difference } = desiredChanges;
-            const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
-            if (scaleMinMax) {
-                const visibleMinMax: VisibleMinMax = {
-                    axisId,
-                    visibleMin: scaleMinMax.scaleMax - difference,
-                    visibleMax: scaleMinMax.scaleMax,
-                };
-                return { [axisId]: fromVisibleMinMax(scaleMinMax, visibleMinMax) };
+            case 'stickToEnd': {
+                const { axisId, difference } = desiredChanges;
+                const scaleMinMax: ScaleMinMax | undefined = this.computeScaleMinMax(axisId);
+                if (scaleMinMax) {
+                    const visibleMinMax: VisibleMinMax = {
+                        axisId,
+                        visibleMin: scaleMinMax.scaleMax - difference,
+                        visibleMax: scaleMinMax.scaleMax,
+                    };
+                    return { [axisId]: fromVisibleMinMax(scaleMinMax, visibleMinMax) };
+                }
+                break;
             }
+            default:
+                const unreachable = (a: never): never => a;
+                return unreachable(desiredChanges);
         }
     }
 
