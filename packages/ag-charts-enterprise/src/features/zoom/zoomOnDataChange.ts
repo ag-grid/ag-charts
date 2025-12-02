@@ -3,7 +3,10 @@ import { BaseProperties, Logger, Property } from 'ag-charts-core';
 import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy, AgZoomRange } from 'ag-charts-types';
 
+import { definedZoomState } from './zoomUtils';
+
 const { ChartAxisDirection } = _ModuleSupport;
+type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsHub' | 'zoomManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
@@ -24,6 +27,14 @@ type DesiredStickToEnd = {
 };
 
 type DesiredChanges = NoDesiredChanges | DesiredRanges | DesiredStickToEnd;
+
+function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
+    return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
+}
+
+function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZoomState): boolean {
+    return properties.stickToEnd && zoom.x.max === 1;
+}
 
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
@@ -123,11 +134,12 @@ export class ZoomOnDataChange {
     }
 
     private performUpdateStrategy(): void {
-        if (this.properties.stickToEnd) {
-            const isAtEnd = this.ctx.zoomManager.getZoom()?.x?.max === 1;
-            if (isAtEnd) {
-                return this.performStickToEnd();
-            }
+        const zoom = definedZoomState(this.ctx.zoomManager.getZoom());
+
+        if (shouldIgnoreDataUpdate(zoom)) {
+            return;
+        } else if (shouldStickToEnd(this.properties, zoom)) {
+            return this.performStickToEnd();
         }
 
         switch (this.properties.strategy) {
