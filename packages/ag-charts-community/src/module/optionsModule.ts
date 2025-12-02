@@ -449,7 +449,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 }
 
                 Logger.warn(
-                    `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
+                    seriesOptions.type == null
+                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
+                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
