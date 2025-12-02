@@ -564,7 +564,7 @@ export abstract class Series<
         return out;
     }
 
-    protected resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
+    public resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
         return direction;
     }
 
