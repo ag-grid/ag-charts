@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { BandedDomain, ContinuousDomain, DiscreteDomain } from './dataDomain';
 
 describe('DiscreteDomain', () => {
-    describe('default Set-based mode', () => {
+    describe('default mode (non-unique/sorted)', () => {
         it('should store and retrieve values using Sets', () => {
             const domain = new DiscreteDomain();
             domain.extend('a');
@@ -252,7 +252,7 @@ describe('DiscreteDomain', () => {
             });
         });
 
-        describe('slow path (Set fallback)', () => {
+        describe('default mode (non-unique/sorted)', () => {
             it('should fall back to Set merge when sort orders differ', () => {
                 const domain1 = new DiscreteDomain();
                 domain1.setSortedUniqueMode(1, true);
