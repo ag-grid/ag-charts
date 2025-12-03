@@ -9,7 +9,9 @@ import {
     setElementStyle,
 } from 'ag-charts-core';
 import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
-import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
+import type { CssColor, DurationMs, Opacity } from 'ag-charts-types';
+
+import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdateTypes';
 
 type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
 
