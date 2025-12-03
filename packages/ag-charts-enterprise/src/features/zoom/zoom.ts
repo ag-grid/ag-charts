@@ -1015,7 +1015,8 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
-        zoomManager.updateAxisZoom(sourcing, axisId, axisZoom);
+        const { source, sourceDetail } = sourcing;
+        zoomManager.updateChanges({ source, sourceDetail, changes: { [axisId]: axisZoom } });
         return true;
     }
 

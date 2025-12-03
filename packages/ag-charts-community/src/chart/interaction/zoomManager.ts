@@ -335,11 +335,6 @@ export class ZoomManager extends BaseManager {
         return this.updateChanges({ source, sourceDetail, changes });
     }
 
-    public updateAxisZoom({ source, sourceDetail }: UpdateZoomSourcing, axisId: AxisID, newZoom?: ZoomState): boolean {
-        const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        return this.updateChanges({ source, sourceDetail, changes });
-    }
-
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
         const result: AxisID[] = [];
         const oldState = this.state;
