@@ -11,6 +11,7 @@ import {
     clamp,
     dateToNumber,
     extent,
+    extractDomain,
     formatValue,
     isArray,
     measureTextSegments,
@@ -245,7 +246,7 @@ export class BubbleSeries extends CartesianSeries<
 
         const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
-        const domain = dataModel.getDomain(this, id, 'value', processedData);
+        const domain = extractDomain(dataModel.getDomain(this, id, 'value', processedData));
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             const sortMetadata = dataModel.getKeySortMetadata(this, id, processedData);
             return { domain, sortMetadata };
@@ -323,14 +324,20 @@ export class BubbleSeries extends CartesianSeries<
                 xVisibleRange = rescaleVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `xValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData)).map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
             if (ContinuousScale.is(yScale)) {
                 yVisibleRange = rescaleVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `yValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    extractDomain(dataModel.getDomain(this, `yValue`, 'value', processedData)).map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
         }
@@ -385,7 +392,7 @@ export class BubbleSeries extends CartesianSeries<
         if (labelKey) {
             labelTextDomain = [];
         } else if (sizeKey) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            labelTextDomain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
         } else {
             labelTextDomain = [];
         }
@@ -888,7 +895,7 @@ export class BubbleSeries extends CartesianSeries<
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
             // Only add size row if value is not null/undefined
             if (value != null) {
-                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+                const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
                 const content = formatManager.format(this.callWithContext.bind(this), {
                     type: 'number',
                     value,

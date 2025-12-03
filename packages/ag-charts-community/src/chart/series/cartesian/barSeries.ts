@@ -384,16 +384,15 @@ export class BarSeries extends AbstractBarSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
-                return { domain: keys, sortMetadata };
+                return keys; // DomainInput with sortMetadata already attached
             }
-            return { domain: this.padBandExtent(keys) };
+            return { domain: this.padBandExtent(extractDomain(keys)) };
         }
 
         const yKey = this.yCumulativeKey(dataModel);
         let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
         const yFilterExtent = this.crossFilteringEnabled()
-            ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
+            ? extractDomain(dataModel.getDomain(this, `yFilterValue`, 'value', processedData))
             : undefined;
         if (yFilterExtent != null) {
             yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
@@ -1250,8 +1249,10 @@ export class BarSeries extends AbstractBarSeries<
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
+        const yDomain = extractDomain(
+            dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData)
+        );
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);

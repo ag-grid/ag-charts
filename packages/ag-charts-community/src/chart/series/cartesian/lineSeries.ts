@@ -245,7 +245,7 @@ export class LineSeries extends CartesianSeries<
 
         if (direction === ChartAxisDirection.X) {
             const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData));
             if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
                 // Attach sort metadata for discrete domains to enable scale optimization
                 const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
@@ -804,8 +804,10 @@ export class LineSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
+        const yDomain = extractDomain(
+            dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData)
+        );
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {

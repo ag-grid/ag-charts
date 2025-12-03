@@ -133,11 +133,9 @@ export abstract class RadialColumnSeriesBase<
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const domain = dataModel.getDomain(this, 'angleValue', 'key', processedData);
-            const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
-            return { domain, sortMetadata };
+            return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
-            const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
+            const yExtent = extractDomain(dataModel.getDomain(this, 'radiusValue-end', 'value', processedData));
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];

@@ -1,6 +1,13 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { PlacedLabel } from 'ag-charts-core';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    cachedTextMeasurer,
+    extractDomain,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -744,7 +751,7 @@ export class MapLineSeries extends TopologySeries<
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (sizeValue != null && sizeKey != null) {
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: sizeValue,
@@ -761,7 +768,7 @@ export class MapLineSeries extends TopologySeries<
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorValue != null && colorKey != null) {
-            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `colorValue`, 'value', processedData));
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,

@@ -6,6 +6,7 @@ import {
     type Point,
     type RequireOptional,
     type WrapOptions,
+    extractDomain,
     formatValue,
     isGradientFill,
     isStringFillArray,
@@ -1654,7 +1655,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
-        const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
+        const domain = extractDomain(dataModel.getDomain(this, `angleRaw`, 'value', processedData));
         const angleContent =
             formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',

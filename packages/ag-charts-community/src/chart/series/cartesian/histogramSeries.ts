@@ -4,6 +4,7 @@ import {
     type RequireOptional,
     createTicks,
     deepClone,
+    extractDomain,
     findMinMax,
     isDate,
     isNumber,
@@ -298,7 +299,7 @@ export class HistogramSeries extends CartesianSeries<
 
         if (!processedData || !dataModel || !this.calculatedBins.length) return { domain: [] };
 
-        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
+        const yDomain = extractDomain(dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData));
         const xDomainMin = this.calculatedBins[0].domain[0];
         const xDomainMax = this.calculatedBins[(this.calculatedBins?.length ?? 0) - 1].domain[1];
         if (direction === ChartAxisDirection.X) {

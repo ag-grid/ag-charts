@@ -119,13 +119,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
+            const xExtent = extractDomain(dataModel.getDomain(this, 'angleValue-end', 'value', processedData));
             const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
             return { domain: fixNumericExtent(fixedXExtent) };
         } else {
-            const domain = dataModel.getDomain(this, 'radiusValue', 'key', processedData);
-            const sortMetadata = dataModel.getKeySortMetadata(this, 'radiusValue', processedData);
-            return { domain, sortMetadata };
+            return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
         }
     }
 

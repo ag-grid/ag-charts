@@ -378,11 +378,10 @@ export class AreaSeries extends CartesianSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
-                return { domain: keys, sortMetadata };
+                return keys; // DomainInput with sortMetadata already attached
             }
 
-            return { domain: fixNumericExtent(extent(keys)) };
+            return { domain: fixNumericExtent(extent(extractDomain(keys))) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -1346,8 +1345,10 @@ export class AreaSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
+        const yDomain = extractDomain(
+            dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData)
+        );
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {

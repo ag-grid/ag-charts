@@ -9,6 +9,7 @@ import {
     type Scale,
     type ScaleType,
     type SeriesPluginModuleInstance,
+    extractDomain,
     isDefined,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -168,8 +169,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
             if (dataModel != null && processedData != null) {
                 const id = { x: xErrorsID, y: yErrorsID }[direction];
-                const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
-                const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
+                const lowerDomain = extractDomain(dataModel.getDomain(series, `${id}-lower`, 'value', processedData));
+                const upperDomain = extractDomain(dataModel.getDomain(series, `${id}-upper`, 'value', processedData));
                 const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
                 return fixNumericExtent(domain);
             }

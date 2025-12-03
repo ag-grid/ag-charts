@@ -135,11 +135,11 @@ export abstract class RadarSeries<
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const domain = dataModel.getDomain(this, `angleValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `angleValue`, 'value', processedData));
             const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
             return { domain, sortMetadata };
         } else {
-            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `radiusValue`, 'value', processedData));
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
             return { domain: fixNumericExtent(ext) };
         }
