@@ -12,6 +12,7 @@ import {
     type Point,
     type RequireOptional,
     type Scale,
+    areScalingEqual,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -48,7 +49,6 @@ const {
     Rect,
     PointerEvents,
     motion,
-    areScalingEqual,
     processedDataIsAnimatable,
     AGGREGATION_SPAN,
     AGGREGATION_INDEX_X_MAX,

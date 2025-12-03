@@ -76,4 +76,6 @@ export * as Vec4 from './utils/vector4';
 export * from './utils/fill';
 export * from './utils/bezier';
 export * from './utils/labelPlacement';
+export * from './utils/scaling';
+export * from './utils/lineInterpolation';
 export { ChangeDetectableProperties } from './utils/changeDetectableProperties';

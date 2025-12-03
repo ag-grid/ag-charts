@@ -1,4 +1,5 @@
 import type { InternalAgColorType, Point, SizedPoint } from 'ag-charts-core';
+import { SpanJoin, spanRange } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -7,7 +8,6 @@ import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { SpanJoin, spanRange } from './lineInterpolation';
 import { plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import {
@@ -17,7 +17,7 @@ import {
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
-import { isScaleValid } from './scaling';
+import { isScaleValid } from 'ag-charts-core';
 
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];

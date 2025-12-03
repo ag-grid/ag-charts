@@ -1,6 +1,6 @@
 import type { ProcessedData, ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { type Scaling, areScalingEqual } from './scaling';
+import { type Scaling, areScalingEqual } from 'ag-charts-core';
 
 export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
     seriesId: string,

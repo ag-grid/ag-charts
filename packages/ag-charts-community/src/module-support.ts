@@ -184,7 +184,6 @@ export type {
 } from './chart/series/seriesTypes';
 export { SeriesZIndexMap } from './chart/series/seriesZIndexMap';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices } from './chart/series/util';
-export { areScalingEqual, isScaleValid } from './chart/series/cartesian/scaling';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {
     AbstractBarSeriesAnimationData,
@@ -210,7 +209,6 @@ export {
 } from './chart/series/cartesian/lineUtil';
 export type { LinePathSpan, LineSpanPointDatum, SpanAnimation } from './chart/series/cartesian/lineUtil';
 export { CollapseMode, pairUpSpans } from './chart/series/cartesian/lineInterpolationUtil';
-export { spanRange } from './chart/series/cartesian/lineInterpolation';
 export {
     checkCrisp,
     collapsedStartingBarPosition,

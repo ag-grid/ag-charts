@@ -1,4 +1,4 @@
-import { clipSpanX } from './lineInterpolation';
+import { clipSpanX } from 'ag-charts-core';
 
 describe('lineInterpolation', () => {
     describe('clipSpanX', () => {

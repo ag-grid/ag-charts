@@ -1,4 +1,5 @@
 import type { Point } from 'ag-charts-core';
+import { type Span, SpanJoin, linearPoints, smoothPoints, spanRange, stepPoints } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
@@ -9,10 +10,9 @@ import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { InterpolationProperties } from './interpolationProperties';
-import { type Span, SpanJoin, linearPoints, smoothPoints, spanRange, stepPoints } from './lineInterpolation';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
-import { areScalingEqual, isScaleValid } from './scaling';
+import { areScalingEqual, isScaleValid } from 'ag-charts-core';
 
 export type LinePathSpan = {
     span: Span;

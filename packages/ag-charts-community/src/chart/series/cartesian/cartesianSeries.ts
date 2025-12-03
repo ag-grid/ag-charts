@@ -44,7 +44,7 @@ import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
-import type { Scaling } from './scaling';
+import type { Scaling } from 'ag-charts-core';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
     readonly xKey: string;
