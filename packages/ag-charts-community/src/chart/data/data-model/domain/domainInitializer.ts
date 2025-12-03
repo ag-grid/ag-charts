@@ -36,10 +36,11 @@ export class DomainInitializer<K extends string> {
         }
 
         // Set sort order metadata for discrete domains to enable fast concatenation
-        if (domain && isDiscrete && sortOrderEntry) {
+        // Always update metadata to handle cases where KEY_SORT_ORDERS was cleared (e.g., rolling window)
+        if (domain && isDiscrete) {
             domain.setSortOrderMetadata(
-                sortOrderEntry.sortOrder as 1 | -1 | undefined,
-                sortOrderEntry.isUnique ?? false
+                sortOrderEntry?.sortOrder as 1 | -1 | undefined,
+                sortOrderEntry?.isUnique ?? false
             );
         }
 

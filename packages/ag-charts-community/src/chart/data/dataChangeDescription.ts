@@ -121,6 +121,23 @@ export function isUpdateOnly(indexMap: IndexTransformationMap): boolean {
     );
 }
 
+/**
+ * Check if only removals occurred (no prepends, appends, or other insertions).
+ *
+ * **Optimization:** Removal-only operations preserve sort order and uniqueness:
+ * - Removing values can't create duplicates (only reduce them)
+ * - Removing values can't change ascending to descending order
+ * - KEY_SORT_ORDERS metadata can be preserved
+ */
+export function hasOnlyRemovals(indexMap: IndexTransformationMap): boolean {
+    return (
+        indexMap.removedIndices.size > 0 &&
+        indexMap.totalPrependCount === 0 &&
+        indexMap.totalAppendCount === 0 &&
+        indexMap.spliceOps.every((op) => op.insertCount === 0)
+    );
+}
+
 /** Check if all removals are contiguous starting at index 0. */
 export function hasContiguousRemovalsAtStart(indexMap: IndexTransformationMap): boolean {
     const { removedIndices } = indexMap;

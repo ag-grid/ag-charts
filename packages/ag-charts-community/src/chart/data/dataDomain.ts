@@ -61,7 +61,18 @@ export class DiscreteDomain implements IDataDomain {
         if (this.isSortedUnique) {
             // Optimized path: return arrays directly (no conversion needed)
             if (this.hasDateValues && this.sortedTimestamps) {
-                return this.sortedTimestamps.map((ts) => new Date(ts));
+                // Deduplicate NaN values (from invalid dates) since arrays don't auto-dedupe like Sets.
+                // Sets use SameValueZero comparison which treats NaN === NaN, but arrays don't.
+                let hasSeenNaN = false;
+                return this.sortedTimestamps
+                    .filter((ts) => {
+                        if (Number.isNaN(ts)) {
+                            if (hasSeenNaN) return false;
+                            hasSeenNaN = true;
+                        }
+                        return true;
+                    })
+                    .map((ts) => new Date(ts));
             }
             return this.sortedArray ?? [];
         }
@@ -333,8 +344,16 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
         for (const band of this.bands) {
             if (!band.isDirty) continue;
 
-            // Reset the band's domain
-            band.subDomain = this.domainFactory();
+            // Reset the band's domain with sorted mode configuration if applicable
+            // Note: During rolling window updates, sort orders are invalidated BEFORE
+            // domain recomputation, so sortOrder will be undefined and sorted mode won't be enabled.
+            const subDomain = this.domainFactory();
+            if (this.isDiscrete && this.sortOrder !== undefined && this.isUnique) {
+                if (DiscreteDomain.is(subDomain)) {
+                    subDomain.setSortedUniqueMode(this.sortOrder, this.isUnique);
+                }
+            }
+            band.subDomain = subDomain;
             const { startIndex, endIndex } = band;
 
             // Scan the band's range
