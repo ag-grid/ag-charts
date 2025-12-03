@@ -1,6 +1,8 @@
 import { getWindow } from 'ag-charts-core';
 
 export interface DeferredExecutorOptions {
+    /** Minimum time to wait before execution can begin (ms). Default: 0 */
+    minimumDelay?: number;
     /** Maximum time to wait before forcing execution (ms). Default: 100 */
     timeout?: number;
 }
@@ -17,11 +19,14 @@ interface PendingWork<T> {
  * Uses `requestIdleCallback` when available, falling back to `setTimeout`.
  */
 export class DeferredExecutor<T> {
+    private readonly minimumDelay: number;
     private readonly timeout: number;
     private pending?: PendingWork<T>;
-    private scheduledId?: number;
+    private delayTimeoutId?: number;
+    private idleCallbackId?: number;
 
     constructor(options?: DeferredExecutorOptions) {
+        this.minimumDelay = options?.minimumDelay ?? 50;
         this.timeout = options?.timeout ?? 100;
     }
 
@@ -34,12 +39,13 @@ export class DeferredExecutor<T> {
 
         this.pending = { computation, onComplete };
 
-        const window = getWindow();
-        if (typeof window.requestIdleCallback === 'function') {
-            this.scheduledId = window.requestIdleCallback(this.execute.bind(this), { timeout: this.timeout });
+        if (this.minimumDelay > 0) {
+            this.delayTimeoutId = setTimeout(() => {
+                this.delayTimeoutId = undefined;
+                this.scheduleIdleCallback();
+            }, this.minimumDelay) as unknown as number;
         } else {
-            // Fallback for environments without requestIdleCallback
-            this.scheduledId = setTimeout(() => this.execute(), this.timeout) as unknown as number;
+            this.scheduleIdleCallback();
         }
     }
 
@@ -71,18 +77,35 @@ export class DeferredExecutor<T> {
         return this.pending != null;
     }
 
+    private scheduleIdleCallback(): void {
+        const window = getWindow();
+        const remainingTimeout = Math.max(0, this.timeout - this.minimumDelay);
+        
+        if (typeof window.requestIdleCallback === 'function') {
+            this.idleCallbackId = window.requestIdleCallback(this.execute.bind(this), { timeout: remainingTimeout });
+        } else {
+            // Fallback for environments without requestIdleCallback
+            this.idleCallbackId = setTimeout(() => this.execute(), remainingTimeout) as unknown as number;
+        }
+    }
+
     private cancelScheduled(): void {
-        if (this.scheduledId == null) {
+        if (this.delayTimeoutId != null) {
+            clearTimeout(this.delayTimeoutId);
+            this.delayTimeoutId = undefined;
+        }
+
+        if (this.idleCallbackId == null) {
             return;
         }
 
         const window = getWindow();
         if (typeof window.cancelIdleCallback === 'function') {
-            window.cancelIdleCallback(this.scheduledId);
+            window.cancelIdleCallback(this.idleCallbackId);
         } else {
-            clearTimeout(this.scheduledId);
+            clearTimeout(this.idleCallbackId);
         }
-        this.scheduledId = undefined;
+        this.idleCallbackId = undefined;
     }
 
     private execute(): T | undefined {
@@ -92,7 +115,8 @@ export class DeferredExecutor<T> {
         }
 
         this.pending = undefined;
-        this.scheduledId = undefined;
+        this.delayTimeoutId = undefined;
+        this.idleCallbackId = undefined;
 
         const result = pending.computation();
         pending.onComplete(result);
