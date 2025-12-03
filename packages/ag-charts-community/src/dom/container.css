@@ -25,6 +25,10 @@
     pointer-events: none;
 }
 
+.ag-charts-canvas-background {
+    position: absolute;
+}
+
 .ag-charts-canvas-center {
     /* Width/height overridden by styles (may not be needed) */
     width: 100%;

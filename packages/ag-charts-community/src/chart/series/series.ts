@@ -309,6 +309,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
+        flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
     };
 
@@ -1232,5 +1233,9 @@ export abstract class Series<
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined {
         return;
+    }
+
+    needsDataModelDiff(): boolean {
+        return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
 }

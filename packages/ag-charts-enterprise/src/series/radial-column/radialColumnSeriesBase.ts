@@ -149,7 +149,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
-        if (animationEnabled && this.processedData) {
+        if (this.needsDataModelDiff() && this.processedData) {
             extraProps.push(diff(this.id, this.processedData));
         }
         if (animationEnabled) {

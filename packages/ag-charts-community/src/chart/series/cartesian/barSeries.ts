@@ -350,7 +350,7 @@ export class BarSeries extends AbstractBarSeries<
         if (isFiniteNumber(normalizedTo)) {
             props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
         }
-        if (animationEnabled && this.processedData) {
+        if (this.needsDataModelDiff() && this.processedData) {
             props.push(diff(this.id, this.processedData));
         }
         if (animationEnabled || !grouped) {

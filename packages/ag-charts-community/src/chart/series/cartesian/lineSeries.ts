@@ -137,7 +137,6 @@ export class LineSeries extends CartesianSeries<
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
         const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -198,7 +197,7 @@ export class LineSeries extends CartesianSeries<
             );
         }
 
-        if (animationEnabled) {
+        if (this.needsDataModelDiff()) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
                 props.push(diff(this.id, this.processedData));

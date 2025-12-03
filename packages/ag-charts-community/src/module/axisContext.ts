@@ -18,10 +18,13 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
     ): TextOrSegments | undefined;
 }
 
-export interface AxisBandDatum {
+export interface AxisBandMeasurement {
+    readonly band: [number, number];
+}
+
+export interface AxisBandDatum extends AxisBandMeasurement {
     readonly id: string;
     readonly value: any;
-    readonly band: [number, number];
     readonly position: number;
 }
 
@@ -46,4 +49,5 @@ export interface AxisContext {
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
     pickBand(point: Point): AxisBandDatum | undefined;
+    measureBand(value: string): AxisBandMeasurement | undefined;
 }

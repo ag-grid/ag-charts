@@ -952,6 +952,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             Object.defineProperty(series.chart, 'isMiniChart', {
                 get: () => false,
             });
+            Object.defineProperty(series.chart, 'flashOnUpdateEnabled', {
+                get: () => !!this.modulesManager.getModule('flashOnUpdate')?.enabled,
+            });
             Object.defineProperty(series.chart, 'seriesRect', {
                 get: () => this.seriesRect,
             });
@@ -1095,7 +1098,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
+        const dataController = new DataController(this.mode, this.suppressFieldDotNotation, this.ctx.eventsHub);
 
         const promises: Promise<void>[] = [];
         for (const series of this.series) {

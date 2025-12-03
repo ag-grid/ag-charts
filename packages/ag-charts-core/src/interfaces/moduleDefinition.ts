@@ -37,6 +37,7 @@ export interface ModuleInstance {
 export interface SeriesModuleInstance extends ModuleInstance {}
 
 export interface PluginModuleInstance extends ModuleInstance {
+    enabled?: boolean;
     processData?(dataController: any): Promise<void> | void;
 }
 
