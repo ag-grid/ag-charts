@@ -586,8 +586,22 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const processedArrays = new Set<boolean[]>();
 
         for (const [scope, changeDesc] of scopeChanges) {
-            const array = invalidityMap.get(scope);
-            if (!array) continue;
+            let array = invalidityMap.get(scope);
+
+            // If no array exists (all initial data was valid), check if we need to create one
+            // for new insertions that have invalid values
+            if (!array) {
+                const insertionCache = insertionCaches.get(scope);
+                const hasAnyInvalid = insertionCache && Array.from(insertionCache.values()).some(extractValue);
+                if (hasAnyInvalid) {
+                    // Create array sized to match the ORIGINAL data length before changes are applied.
+                    // applyToArray will transform this array to the final size via splice operations.
+                    array = createArray(changeDesc.indexMap.originalLength, false);
+                    invalidityMap.set(scope, array);
+                } else {
+                    continue;
+                }
+            }
 
             // Skip if this array has already been processed (shared between scopes)
             if (processedArrays.has(array)) continue;

@@ -56,12 +56,19 @@ export class DiscreteDomain implements IDataDomain {
     getDomain() {
         if (this.isSortedUnique && this.sortedValues) {
             // Sorted mode: return array directly - values stored as-is
-            // Deduplicate nulls (they represent invalid data and may appear from multiple bands)
-            let hasSeenNull = false;
+            // Deduplicate nulls and Invalid Dates (they represent invalid data and may appear from multiple bands)
+            let hasSeenInvalid = false;
             return this.sortedValues.filter((v) => {
+                // Check for null/undefined
                 if (v == null) {
-                    if (hasSeenNull) return false;
-                    hasSeenNull = true;
+                    if (hasSeenInvalid) return false;
+                    hasSeenInvalid = true;
+                    return true;
+                }
+                // Check for Invalid Date (Date object with NaN timestamp)
+                if (v instanceof Date && Number.isNaN(v.valueOf())) {
+                    if (hasSeenInvalid) return false;
+                    hasSeenInvalid = true;
                 }
                 return true;
             });
@@ -404,15 +411,22 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     }
 
     /**
-     * Deduplicate nulls in a domain result array.
-     * Nulls represent invalid data and may appear from multiple bands.
+     * Deduplicate nulls and Invalid Dates in a domain result array.
+     * These represent invalid data and may appear from multiple bands.
      */
     private deduplicateNulls(result: T[]): T[] {
-        let hasSeenNull = false;
+        let hasSeenInvalid = false;
         return result.filter((v) => {
+            // Check for null/undefined
             if (v == null) {
-                if (hasSeenNull) return false;
-                hasSeenNull = true;
+                if (hasSeenInvalid) return false;
+                hasSeenInvalid = true;
+                return true;
+            }
+            // Check for Invalid Date (Date object with NaN timestamp)
+            if (v instanceof Date && Number.isNaN(v.valueOf())) {
+                if (hasSeenInvalid) return false;
+                hasSeenInvalid = true;
             }
             return true;
         });
