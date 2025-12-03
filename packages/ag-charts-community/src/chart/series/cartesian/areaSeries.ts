@@ -1,5 +1,13 @@
 import type { CallbackParamRules, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
-import { extent, isContinuous, isDefined, mergeDefaults } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    SeriesContentZIndexMap,
+    SeriesZIndexMap,
+    extent,
+    isContinuous,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
@@ -23,7 +31,6 @@ import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -46,7 +53,6 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from 'ag-charts-core';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,

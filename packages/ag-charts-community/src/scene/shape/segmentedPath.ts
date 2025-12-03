@@ -1,6 +1,6 @@
+import { SceneRefChangeDetection } from 'ag-charts-core';
 import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
-import { SceneRefChangeDetection } from 'ag-charts-core';
 import { Path } from './path';
 
 export interface ClipRect {

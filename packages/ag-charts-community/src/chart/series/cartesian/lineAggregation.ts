@@ -1,7 +1,3 @@
-import { type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
-
-import type { DataModel } from '../../data/dataModel';
-import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -9,6 +5,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
+    type ScaleType,
     aggregationDomain,
     aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
@@ -16,7 +13,12 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
+    nextPowerOf2,
+    simpleMemorize2,
 } from 'ag-charts-core';
+
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 
 const MAX_POINTS = 10;
 

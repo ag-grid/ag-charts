@@ -1,32 +1,7 @@
 import {
-    Color,
-    ModuleRegistry,
-    ModuleType,
-    deepClone,
-    deepFreeze,
-    groupBy,
-    isArray,
-    jsonWalk,
-    mergeDefaults,
-} from 'ag-charts-core';
-import type {
-    AgChartTheme,
-    AgChartThemeOptions,
-    AgChartThemeOverrides,
-    AgChartThemePalette,
-    AgChartThemeParams,
-    AgPaletteColors,
-    AgPresetOverrides,
-    AgThemeOverrides,
-    CssColor,
-    WithThemeParams,
-} from 'ag-charts-types';
-
-import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import type { ChartType } from '../factory/expectedModules';
-import {
     BASE_FONT_SIZE,
     CARTESIAN_AXIS_TYPE,
+    Color,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
@@ -49,6 +24,8 @@ import {
     DEFAULT_TOOLBAR_POSITION,
     FONT_SIZE_RATIO,
     IS_DARK_THEME,
+    ModuleRegistry,
+    ModuleType,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -62,7 +39,28 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
     POLAR_AXIS_TYPE,
+    deepClone,
+    deepFreeze,
+    groupBy,
+    isArray,
+    jsonWalk,
+    mergeDefaults,
 } from 'ag-charts-core';
+import type {
+    AgChartTheme,
+    AgChartThemeOptions,
+    AgChartThemeOverrides,
+    AgChartThemePalette,
+    AgChartThemeParams,
+    AgPaletteColors,
+    AgPresetOverrides,
+    AgThemeOverrides,
+    CssColor,
+    WithThemeParams,
+} from 'ag-charts-types';
+
+import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
+import type { ChartType } from '../factory/expectedModules';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import { getSequentialColors } from './util';
 

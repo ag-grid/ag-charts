@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Logger, Property } from 'ag-charts-core';
 import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
+import { BaseProperties, Logger, Property } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy, AgZoomRange } from 'ag-charts-types';
 
 import { definedZoomState } from './zoomUtils';

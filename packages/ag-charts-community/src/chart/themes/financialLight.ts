@@ -1,6 +1,3 @@
-import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
-
-import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -8,6 +5,9 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
 } from 'ag-charts-core';
+import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+
+import { ChartTheme } from './chartTheme';
 import { getSequentialColors } from './util';
 
 const FINANCIAL_LIGHT_FILLS = {

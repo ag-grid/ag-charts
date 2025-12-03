@@ -1,3 +1,4 @@
+import type { ChartAnimationPhase, ChartAxisDirection } from 'ag-charts-core';
 import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
 import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
@@ -8,8 +9,6 @@ import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import type { ChartAnimationPhase } from 'ag-charts-core';
-import type { ChartAxisDirection } from 'ag-charts-core';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';

@@ -3,7 +3,9 @@ import {
     Border,
     type Callback,
     type CallbackParam,
+    ChartUpdateType,
     CleanupRegistry,
+    FONT_SIZE,
     type ITextMeasurer,
     LineSplitter,
     Logger,
@@ -12,11 +14,13 @@ import {
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
+    ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
     clamp,
     createId,
     deepClone,
+    expandLegendPosition,
     isImageFill,
     isPatternFill,
     isTextTruncated,
@@ -51,7 +55,6 @@ import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
-import { ChartUpdateType } from 'ag-charts-core';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
@@ -59,15 +62,12 @@ import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
-import { FONT_SIZE } from 'ag-charts-core';
 import { type TooltipMeta } from '../tooltip/tooltip';
-import { ZIndexMap } from 'ag-charts-core';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
-import { expandLegendPosition } from 'ag-charts-core';
 
 class LegendLabel extends BaseProperties {
     @Property

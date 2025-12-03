@@ -1,8 +1,8 @@
+import type { MementoOriginator } from 'ag-charts-core';
 import { CleanupRegistry, Debug } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { VERSION } from '../../version';
-import type { MementoOriginator } from 'ag-charts-core';
 
 interface HistoricalAction {
     label: string;

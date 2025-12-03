@@ -1,4 +1,5 @@
-import { StateMachine } from 'ag-charts-core';
+import type { ChartAnimationPhase } from 'ag-charts-core';
+import { ChartAxisDirection, PolarZIndexMap, StateMachine } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -10,8 +11,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import type { ChartAnimationPhase } from 'ag-charts-core';
-import { ChartAxisDirection } from 'ag-charts-core';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -21,7 +20,6 @@ import {
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { type SeriesProperties } from '../seriesProperties';
 import type { ShapeFillBBox } from '../shapeUtil';
-import { PolarZIndexMap } from 'ag-charts-core';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = {

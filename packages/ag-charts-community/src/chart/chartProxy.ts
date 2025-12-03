@@ -1,4 +1,13 @@
-import { ActionOnSet, Debug, type DeepPartial, type LicenseManager, ModuleRegistry, deepClone } from 'ag-charts-core';
+import type { MementoCaretaker, MementoOriginator } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    ChartUpdateType,
+    Debug,
+    type DeepPartial,
+    type LicenseManager,
+    ModuleRegistry,
+    deepClone,
+} from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -8,10 +17,8 @@ import type {
     ImageDataUrlOptions,
 } from 'ag-charts-types';
 
-import type { MementoCaretaker, MementoOriginator } from 'ag-charts-core';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
-import { ChartUpdateType } from 'ag-charts-core';
 import type { DataServiceRestoredData } from './data/dataService';
 
 const debug = Debug.create(true, 'opts');

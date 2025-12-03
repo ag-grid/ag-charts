@@ -1,4 +1,4 @@
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, FONT_SIZE, Property } from 'ag-charts-core';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisCaptionOptions,
@@ -9,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import { Caption } from '../caption';
-import { FONT_SIZE } from 'ag-charts-core';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     readonly caption = new Caption();

@@ -1,4 +1,3 @@
-import type { Operation } from 'ag-charts-types';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -34,6 +33,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from 'ag-charts-core';
+import type { Operation } from 'ag-charts-types';
 
 import { themes } from './chart/mapping/themes';
 import { ChartTheme } from './chart/themes/chartTheme';

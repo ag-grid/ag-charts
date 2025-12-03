@@ -1,6 +1,5 @@
-import { EventEmitter, type EventListener } from 'ag-charts-core';
+import { ChartUpdateType, EventEmitter, type EventListener } from 'ag-charts-core';
 
-import { ChartUpdateType } from 'ag-charts-core';
 import type { ISeries } from './series/seriesTypes';
 
 export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;

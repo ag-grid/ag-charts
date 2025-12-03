@@ -2,6 +2,8 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -9,20 +11,15 @@ import {
     number,
     positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     union,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from 'ag-charts-core';
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,

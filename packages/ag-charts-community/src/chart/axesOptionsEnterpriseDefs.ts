@@ -6,8 +6,10 @@ import {
     constant,
     fontOptionsDef,
     number,
+    numberFormatValidator,
     positiveNumber,
     ratio,
+    textOrSegments,
     union,
 } from 'ag-charts-core';
 import type {
@@ -32,7 +34,6 @@ import {
     continuousAxisOptions,
     discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
-import { numberFormatValidator, textOrSegments } from 'ag-charts-core';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,

@@ -1,5 +1,5 @@
-import { type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
 import type { Scaling } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import { CategoryScale } from '../../../scale/categoryScale';
@@ -8,7 +8,6 @@ import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';

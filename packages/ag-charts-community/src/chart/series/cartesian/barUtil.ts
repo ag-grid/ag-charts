@@ -1,5 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { isNegative } from 'ag-charts-core';
+import { ChartAxisDirection, isNegative } from 'ag-charts-core';
 
 import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
@@ -9,7 +9,6 @@ import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import type { DatumIndexType, ISeries } from '../seriesTypes';
 
 export function checkCrisp(

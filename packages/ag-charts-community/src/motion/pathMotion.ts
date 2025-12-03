@@ -1,6 +1,7 @@
+import { easeOut } from 'ag-charts-core';
+
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import { Path } from '../scene/shape/path';
-import { easeOut } from 'ag-charts-core';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from './fromToMotion';
 
 /**

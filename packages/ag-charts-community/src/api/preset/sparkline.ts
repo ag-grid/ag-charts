@@ -1,4 +1,11 @@
-import { isDate, isNumber, isString, simpleMemorize, toTextString } from 'ag-charts-core';
+import {
+    DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
+    isDate,
+    isNumber,
+    isString,
+    simpleMemorize,
+    toTextString,
+} from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -20,8 +27,6 @@ import type {
     AgTooltipRendererResult,
     WithThemeParams,
 } from 'ag-charts-types';
-
-import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from 'ag-charts-core';
 
 const commonAxisProperties = {
     title: {

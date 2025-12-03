@@ -1,4 +1,6 @@
+import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
+    ChartAxisDirection,
     Debug,
     type Point,
     Property,
@@ -9,7 +11,6 @@ import {
     findMinMax,
     isFiniteNumber,
 } from 'ag-charts-core';
-import type { Scaling } from 'ag-charts-core';
 import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -30,9 +31,7 @@ import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
-import type { ChartAnimationPhase } from 'ag-charts-core';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,

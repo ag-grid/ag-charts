@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from '../api/agCharts';
+import type { ChartOrProxy } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -9,7 +10,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
-import type { ChartOrProxy } from './test/utils';
 
 const INTEGRATED_THEME = {
     overrides: {

@@ -1,3 +1,30 @@
+import type {
+    AgGaugeColorStop,
+    AgLinearGaugePreset,
+    AgLinearGaugeTarget,
+    AgLinearGaugeThemeableOptions,
+    AgRadialGaugePreset,
+    AgRadialGaugeTarget,
+    AgRadialGaugeThemeableOptions,
+    FillsOptions,
+} from 'ag-charts-types';
+
+import {
+    autoSizedLabelOptionsDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
+    numberFormatValidator,
+    seriesLabelOptionsDefs,
+    tooltipOptionsDefs,
+} from '../../chart/commonOptionsDefs';
+import {
+    colorStopsOrderValidator,
+    fillOptionsDef,
+    fontOptionsDef,
+    lineDashOptionsDef,
+    strokeOptionsDef,
+} from '../../options/commonOptionsDefs';
+import { without } from '../../utils/object';
 import {
     type OptionsDefs,
     and,
@@ -20,33 +47,6 @@ import {
     undocumented,
     union,
 } from '../../utils/validation';
-import { without } from '../../utils/object';
-import {
-    colorStopsOrderValidator,
-    fillOptionsDef,
-    fontOptionsDef,
-    lineDashOptionsDef,
-    strokeOptionsDef,
-} from '../../options/commonOptionsDefs';
-import type {
-    AgGaugeColorStop,
-    AgLinearGaugePreset,
-    AgLinearGaugeTarget,
-    AgLinearGaugeThemeableOptions,
-    AgRadialGaugePreset,
-    AgRadialGaugeTarget,
-    AgRadialGaugeThemeableOptions,
-    FillsOptions,
-} from 'ag-charts-types';
-
-import {
-    autoSizedLabelOptionsDefs,
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    numberFormatValidator,
-    seriesLabelOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../chart/commonOptionsDefs';
 
 const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(

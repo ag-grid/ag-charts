@@ -1,7 +1,7 @@
+import type { MementoOriginator } from 'ag-charts-core';
 import { deepClone, isArray, mergeDefaults } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
-import type { MementoOriginator } from 'ag-charts-core';
 import type { EventsHub } from '../../core/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';

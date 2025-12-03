@@ -1,4 +1,4 @@
-import type { AxisID, Padding, Scale } from 'ag-charts-core';
+import type { AxisID, ChartAnimationPhase, ChartAxisDirection, Padding, Scale } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -23,8 +23,6 @@ import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
-import type { ChartAnimationPhase } from 'ag-charts-core';
-import type { ChartAxisDirection } from 'ag-charts-core';
 import type { CrossLine } from './crossline/crossLine';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 

@@ -1,6 +1,6 @@
+import type { LabelIcon } from 'ag-charts-core';
 import { createElement, getIconClassNames } from 'ag-charts-core';
 
-import type { LabelIcon } from 'ag-charts-core';
 import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
 import { MenuWidget } from '../../widget/menuWidget';

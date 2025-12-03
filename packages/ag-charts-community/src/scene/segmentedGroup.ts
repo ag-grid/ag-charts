@@ -1,4 +1,5 @@
 import { SceneRefChangeDetection } from 'ag-charts-core';
+
 import { TranslatableGroup } from './group';
 import { type RenderContext } from './node';
 import { Path } from './shape/path';

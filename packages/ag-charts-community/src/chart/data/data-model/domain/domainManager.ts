@@ -6,8 +6,8 @@ import { DOMAIN_BANDS } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 import type { ScopeCacheManager } from '../utils/scopeCache';
 import { DomainInitializer } from './domainInitializer';
-import { ProcessValueFactory } from './processValueFactory';
 import type { SpecializedProcessValueFn } from './processValueFactory';
+import { ProcessValueFactory } from './processValueFactory';
 
 /**
  * Manages domain computation and processing for the DataModel.

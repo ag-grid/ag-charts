@@ -1,5 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
-import { Property } from 'ag-charts-core';
+import { InterpolationProperties, Property } from 'ag-charts-core';
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
@@ -15,7 +15,6 @@ import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { InterpolationProperties } from 'ag-charts-core';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeriesOptions> {
     @Property

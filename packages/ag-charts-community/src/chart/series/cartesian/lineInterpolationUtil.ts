@@ -1,3 +1,4 @@
+import type { Scaling } from 'ag-charts-core';
 import {
     type Span,
     clipSpanX,
@@ -6,7 +7,6 @@ import {
     spanRange,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
-import type { Scaling } from 'ag-charts-core';
 
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 

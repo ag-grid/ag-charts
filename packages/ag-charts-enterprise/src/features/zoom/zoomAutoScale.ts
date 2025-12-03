@@ -1,5 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { AgZoomAutoScaling } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { DeepRequired } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -9,7 +10,6 @@ import {
     objectsEqual,
     strictObjectKeys,
 } from 'ag-charts-core';
-import type { DeepRequired } from 'ag-charts-core';
 
 const { ChartAxisDirection } = _ModuleSupport;
 type ZoomState = _ModuleSupport.ZoomState;

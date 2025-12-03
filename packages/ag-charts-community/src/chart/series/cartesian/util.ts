@@ -1,4 +1,15 @@
-import { type Size, isArray, isDate, isEmptyObject, isNumber, isObject, isString } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    type Size,
+    isArray,
+    isDate,
+    isEmptyObject,
+    isNumber,
+    isObject,
+    isString,
+} from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
     AgSeriesSegmentation,
@@ -9,8 +20,6 @@ import type {
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from 'ag-charts-core';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];

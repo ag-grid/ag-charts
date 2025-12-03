@@ -1,8 +1,9 @@
-import type { PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { ChartAnimationPhase, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
     type CallbackParam,
+    ChartAxisDirection,
     CleanupRegistry,
     type DistantObject,
     EventEmitter,
@@ -11,7 +12,9 @@ import {
     Logger,
     type Point,
     type RequireOptional,
+    SeriesContentZIndexMap,
     type SeriesPluginModuleInstance,
+    SeriesZIndexMap,
     callWithContext,
     createId,
     isEmptyObject,
@@ -51,9 +54,7 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import type { ChartAnimationPhase } from 'ag-charts-core';
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
@@ -73,7 +74,6 @@ import type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './seriesTypes';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from 'ag-charts-core';
 import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {

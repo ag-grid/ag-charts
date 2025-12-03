@@ -1,6 +1,7 @@
 import type { AgChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import * as examples from './examples';
+import type { ChartOrProxy, IMAGE_SNAPSHOT_DEFAULTS } from './utils';
 import {
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -10,7 +11,6 @@ import {
     polarChartAssertions,
     repeat,
 } from './utils';
-import type { ChartOrProxy, IMAGE_SNAPSHOT_DEFAULTS } from './utils';
 
 interface BaseTestCase<Options extends AgChartOptions | AgGaugeOptions> {
     options: Options;

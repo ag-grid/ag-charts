@@ -1,4 +1,5 @@
 import {
+    ChartAxisDirection,
     type ChartModuleDefinition,
     type CloneOptions,
     Debug,
@@ -44,7 +45,6 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { ChartAxisDirection } from 'ag-charts-core';
 import { ExpectedModules } from '../chart/factory/expectedModules';
 import {
     processModuleOptions,

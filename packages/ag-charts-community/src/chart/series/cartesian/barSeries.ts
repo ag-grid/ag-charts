@@ -1,5 +1,16 @@
 import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
-import { areScalingEqual, isFiniteNumber, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    ChartAxisDirection,
+    areScalingEqual,
+    isFiniteNumber,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -24,7 +35,6 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from 'ag-charts-core';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
@@ -50,14 +60,6 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
-import {
-    AGGREGATION_INDEX_UNSET,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_SPAN,
-} from 'ag-charts-core';
 import {
     AbstractBarSeries,
     type AbstractBarSeriesAnimationData,

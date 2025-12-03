@@ -1,8 +1,7 @@
-import { type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
-import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';

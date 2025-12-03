@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import {
     BaseProperties,
     CleanupRegistry,
@@ -8,7 +9,6 @@ import {
     setElementBBox,
     setElementStyle,
 } from 'ag-charts-core';
-import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
 
 type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];

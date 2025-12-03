@@ -1,7 +1,3 @@
-import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
-
-import { ChartTheme } from './chartTheme';
-import type { DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -17,6 +13,10 @@ import {
     DEFAULT_TEXT_ANNOTATION_COLOR,
     IS_DARK_THEME,
 } from 'ag-charts-core';
+import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+
+import { ChartTheme } from './chartTheme';
+import type { DefaultColors } from './defaultColors';
 import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts

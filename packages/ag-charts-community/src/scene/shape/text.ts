@@ -4,6 +4,7 @@ import {
     type FontOptions,
     LineSplitter,
     type RequireOptional,
+    SceneRefChangeDetection,
     type TextMetricsBox,
     cachedTextMeasurer,
     createSvgElement,
@@ -16,7 +17,6 @@ import {
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
-import { SceneRefChangeDetection } from 'ag-charts-core';
 import { Group } from '../group';
 import type { IScene, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';

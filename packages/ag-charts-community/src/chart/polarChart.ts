@@ -1,15 +1,13 @@
 import type { Scale } from 'ag-charts-core';
-import { Padding, iterate } from 'ag-charts-core';
+import { ChartAxisDirection, Padding, ZIndexMap, iterate } from 'ag-charts-core';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';
-import { ChartAxisDirection } from 'ag-charts-core';
 import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
-import { ZIndexMap } from 'ag-charts-core';
 
 export class PolarChart extends Chart {
     static readonly className = 'PolarChart';

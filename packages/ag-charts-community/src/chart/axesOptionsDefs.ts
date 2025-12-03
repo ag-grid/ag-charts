@@ -21,6 +21,7 @@ import {
     lessThan,
     lineDashOptionsDef,
     number,
+    numberFormatValidator,
     object,
     optionsDefs,
     or,
@@ -30,6 +31,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    textOrSegments,
     themeOperator,
     undocumented,
     union,
@@ -65,8 +67,6 @@ import type {
     AgTimeInterval,
     AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
-
-import { numberFormatValidator, textOrSegments } from 'ag-charts-core';
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
