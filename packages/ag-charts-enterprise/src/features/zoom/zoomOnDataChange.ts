@@ -142,9 +142,9 @@ export class ZoomOnDataChange {
             }
         }
 
-        const ratios = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 });
-        if (ratios) {
-            const { start, end } = ratios;
+        const range = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 });
+        if (range) {
+            const { start, end } = range;
             if (typeof start === 'number' && typeof end === 'number') {
                 return { scaleMin: start, scaleMax: end };
             } else if (end instanceof Date && start instanceof Date) {
