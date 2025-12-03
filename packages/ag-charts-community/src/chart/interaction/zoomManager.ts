@@ -125,6 +125,10 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
     return true;
 }
 
+export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D) {
+    return { source: 'user-interaction' as const, sourceDetail };
+}
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.

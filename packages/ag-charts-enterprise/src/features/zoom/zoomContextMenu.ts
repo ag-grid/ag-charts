@@ -1,4 +1,5 @@
-import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
@@ -15,6 +16,8 @@ import {
     translateZoom,
     unitZoomState,
 } from './zoomUtils';
+
+const { userInteraction } = _ModuleSupport;
 
 export class ZoomContextMenu {
     constructor(
@@ -83,7 +86,7 @@ export class ZoomContextMenu {
         const zoom = this.iterateFindNextZoomAtPoint(origin);
         if (zoom == null) return;
 
-        this.updateZoom({ source: 'user-interaction', sourceDetail: 'contextmenu-zoom-to-cursor' }, zoom);
+        this.updateZoom(userInteraction('contextmenu-zoom-to-cursor'), zoom);
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -108,10 +111,7 @@ export class ZoomContextMenu {
         newZoom = scaleZoomCenter(newZoom, scaleX, scaleY);
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
-        this.updateZoom(
-            { source: 'user-interaction', sourceDetail: 'contextmenu-pan-to-cursor' },
-            constrainZoom(newZoom)
-        );
+        this.updateZoom(userInteraction('contextmenu-pan-to-cursor'), constrainZoom(newZoom));
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {

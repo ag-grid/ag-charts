@@ -3,7 +3,7 @@ import { AbstractModuleInstance, PropertiesArray, Property } from 'ag-charts-cor
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { ChartAxisDirection, LayoutElement, Toolbar } = _ModuleSupport;
+const { ChartAxisDirection, LayoutElement, Toolbar, userInteraction } = _ModuleSupport;
 
 export class Ranges extends AbstractModuleInstance {
     @Property
@@ -73,10 +73,7 @@ export class Ranges extends AbstractModuleInstance {
 
         const { value } = button;
 
-        const sourcing: _ModuleSupport.UpdateZoomSourcing = {
-            source: 'user-interaction',
-            sourceDetail: `zoom-range-button-${index}`,
-        };
+        const sourcing = userInteraction(`zoom-range-button-${index}`);
         if (value == null) {
             zoomManager.resetZoom(sourcing.sourceDetail);
         } else if (typeof value === 'number') {

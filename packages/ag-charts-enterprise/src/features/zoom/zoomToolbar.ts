@@ -31,7 +31,7 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { ChartAxisDirection, NativeWidget, Toolbar, ToolbarButtonProperties } = _ModuleSupport;
+const { ChartAxisDirection, NativeWidget, Toolbar, ToolbarButtonProperties, userInteraction } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
     @Property
@@ -316,12 +316,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateAxisZoom(
-            { source: 'user-interaction', sourceDetail: `zoom-button-${event.value}` },
-            axisId,
-            direction,
-            constrainAxis(newZoom)
-        );
+        this.updateAxisZoom(userInteraction(`zoom-button-${event.value}`), axisId, direction, constrainAxis(newZoom));
     }
 
     private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
@@ -360,10 +355,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateZoom(
-            { source: 'user-interaction', sourceDetail: `zoom-button-${event.value}` },
-            constrainZoom(zoom)
-        );
+        this.updateZoom(userInteraction(`zoom-button-${event.value}`), constrainZoom(zoom));
     }
 
     private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {

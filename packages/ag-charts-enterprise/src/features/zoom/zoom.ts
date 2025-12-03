@@ -40,7 +40,7 @@ import {
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
 
-const { ChartAxisDirection, ChartUpdateType, InteractionState } = _ModuleSupport;
+const { ChartAxisDirection, ChartUpdateType, InteractionState, userInteraction } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 
@@ -486,10 +486,7 @@ export class Zoom extends AbstractModuleInstance {
                 if (selector.didUpdate()) {
                     const newZoom = selector.stop(this.seriesRect, this.paddedRect, this.getZoom());
                     if (newZoom) {
-                        this.updateZoom(
-                            { source: 'user-interaction', sourceDetail: 'zoom-seriesarea-selector' },
-                            newZoom
-                        );
+                        this.updateZoom(userInteraction('zoom-seriesarea-selector'), newZoom);
                     } else {
                         // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
                         this.ctx.updateService.update();
@@ -577,13 +574,11 @@ export class Zoom extends AbstractModuleInstance {
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(
-                { source: 'user-interaction', sourceDetail: 'zoom-axis-drag' },
+                userInteraction('zoom-axis-drag'),
                 axisId,
                 direction as _ModuleSupport.CartesianAxisDirection,
                 newZoom,
-                {
-                    directional: true,
-                }
+                { directional: true }
             );
         }
 
@@ -627,7 +622,7 @@ export class Zoom extends AbstractModuleInstance {
         event.widgetEvent.sourceEvent.preventDefault();
 
         this.updateZoom(
-            { source: 'user-interaction', sourceDetail: `keyboard(${event.delta})` },
+            userInteraction(`keyboard(${event.delta})`),
             scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom())
         );
     }
@@ -660,7 +655,7 @@ export class Zoom extends AbstractModuleInstance {
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        this.updateChanges({ source: 'user-interaction', sourceDetail: 'zoom-seriesarea-wheel' }, newZooms);
+        this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
@@ -705,10 +700,7 @@ export class Zoom extends AbstractModuleInstance {
 
         let updated = true;
 
-        const sourcing: _ModuleSupport.UpdateZoomSourcing = {
-            source: 'user-interaction',
-            sourceDetail: 'zoom-axis-wheel',
-        };
+        const sourcing = userInteraction('zoom-axis-wheel');
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, min, max }] of entries(newZooms)) {
@@ -758,10 +750,7 @@ export class Zoom extends AbstractModuleInstance {
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
         if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
-        this.updateZoom(
-            { source: 'user-interaction', sourceDetail: 'zoom-seriesarea-twofingers' },
-            constrainZoom(newZoom)
-        );
+        this.updateZoom(userInteraction('zoom-seriesarea-twofingers'), constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
@@ -820,7 +809,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-        this.updateChanges({ source: 'user-interaction', sourceDetail: 'zoom-seriesarea-panner' }, newZooms);
+        this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
         tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 
