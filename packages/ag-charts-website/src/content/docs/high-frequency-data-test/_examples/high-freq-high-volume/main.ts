@@ -1,9 +1,4 @@
-import {
-    type AgCartesianChartOptions,
-    type AgCartesianSeriesOptions,
-    AgCharts,
-    ContextMenuModule,
-} from 'ag-charts-enterprise';
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -34,6 +29,7 @@ type BubbleDatum = {
 
 type Datum = ValueDatum | OhlcDatum | RangeDatum | BubbleDatum;
 type SeriesType = 'line' | 'area' | 'bar' | 'bubble' | 'ohlc' | 'candlestick' | 'range-bar' | 'range-area';
+type AxisType = 'time' | 'ordinal-time';
 
 const ALL_SERIES_TYPES: SeriesType[] = [
     'line',
@@ -45,6 +41,7 @@ const ALL_SERIES_TYPES: SeriesType[] = [
     'range-bar',
     'range-area',
 ];
+const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time'];
 
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
@@ -68,6 +65,7 @@ if (persistedFrequency === 'raf') {
 const STORAGE_KEY = 'high-freq-high-volume-series-type';
 const UPDATES_STATE_KEY = 'high-freq-high-volume-updates-running';
 const FREQUENCY_KEY = 'high-freq-high-volume-frequency';
+const AXIS_TYPE_KEY = 'high-freq-high-volume-axis-type';
 
 function getSeriesTypeFromHash(): SeriesType | null {
     try {
@@ -235,7 +233,64 @@ function persistFrequency(frequency: string) {
     }
 }
 
+function getAxisTypeFromHash(): AxisType | null {
+    try {
+        const hash = window.location.hash.slice(1);
+        if (!hash) return null;
+        const params = new URLSearchParams(hash);
+        const axisType = params.get('axisType');
+        if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
+            return axisType as AxisType;
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+    return null;
+}
+
+function getAxisTypeFromStorage(): AxisType | null {
+    try {
+        const stored = sessionStorage.getItem(AXIS_TYPE_KEY);
+        if (stored && ALL_AXIS_TYPES.includes(stored as AxisType)) {
+            return stored as AxisType;
+        }
+    } catch {
+        // Ignore storage errors (e.g., in private browsing)
+    }
+    return null;
+}
+
+function getPersistedAxisType(): AxisType {
+    return getAxisTypeFromHash() || getAxisTypeFromStorage() || 'time';
+}
+
+function persistAxisType(axisType: AxisType) {
+    try {
+        // Always update sessionStorage as fallback
+        sessionStorage.setItem(AXIS_TYPE_KEY, axisType);
+    } catch {
+        // Ignore storage errors (e.g., private browsing)
+    }
+
+    try {
+        // Try to update URL hash (works in full-screen mode, not in iframes)
+        if (window.parent === window) {
+            // Not in iframe, can update hash directly
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            params.set('axisType', axisType);
+            const newHash = params.toString();
+            // Use replaceState to avoid page reload
+            history.replaceState(null, '', `#${newHash}`);
+        }
+        // In iframe, rely on sessionStorage (can't reliably update parent hash)
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
 let currentSeriesType: SeriesType = getPersistedSeriesType();
+let currentAxisType: AxisType = getPersistedAxisType();
 
 function generateValueDatum(index: number): ValueDatum {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
@@ -408,28 +463,32 @@ function createSeriesConfig(seriesType: SeriesType): AgCartesianSeriesOptions[] 
     }
 }
 
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    data,
-    animation: { enabled: false },
-    zoom: { enabled: true },
-    axes: {
+function createAxesConfig(axisType: AxisType) {
+    return {
         x: {
-            type: 'time',
-            position: 'bottom',
-            nice: false,
+            type: axisType,
+            position: 'bottom' as const,
+            ...(axisType === 'time' ? { nice: false } : {}),
             label: {
                 format: '%H:%M:%S',
             },
         },
         y: {
-            type: 'number',
-            position: 'left',
+            type: 'number' as const,
+            position: 'left' as const,
             title: {
                 text: 'Value',
             },
         },
-    },
+    };
+}
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data,
+    animation: { enabled: false },
+    zoom: { enabled: true },
+    axes: createAxesConfig(currentAxisType),
     series: createSeriesConfig(currentSeriesType),
     legend: { enabled: false },
 };
@@ -801,6 +860,53 @@ async function setSeriesType(newSeriesType: SeriesType) {
     }
 }
 
+let axisTypeUpdateInProgress = false;
+
+async function setAxisType(newAxisType: AxisType) {
+    if (newAxisType === currentAxisType || axisTypeUpdateInProgress) {
+        return;
+    }
+
+    axisTypeUpdateInProgress = true;
+    const wasRunning = isRunning;
+
+    try {
+        // Stop updates temporarily
+        if (isRunning) {
+            stopUpdates();
+        }
+
+        // Update chart with new axis configuration
+        await chart.update({
+            ...options,
+            data,
+            axes: createAxesConfig(newAxisType),
+            series: createSeriesConfig(currentSeriesType),
+        });
+
+        currentAxisType = newAxisType;
+
+        // Persist the selection
+        persistAxisType(currentAxisType);
+
+        // Update selector if it exists
+        const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
+        if (axisTypeSelect && axisTypeSelect.value !== currentAxisType) {
+            axisTypeSelect.value = currentAxisType;
+        }
+
+        // Reset indicators
+        resetCpuIndicator();
+
+        // Resume updates if they were running before the switch
+        if (wasRunning) {
+            startUpdates();
+        }
+    } finally {
+        axisTypeUpdateInProgress = false;
+    }
+}
+
 resetCpuIndicator();
 resetFpsCounter();
 updateDataCountDisplay();
@@ -821,6 +927,12 @@ if (frequencySelect) {
 const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
 if (seriesTypeSelect) {
     seriesTypeSelect.value = currentSeriesType;
+}
+
+// Initialize axis type selector with persisted value
+const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
+if (axisTypeSelect) {
+    axisTypeSelect.value = currentAxisType;
 }
 
 // Restore updates state from persistence
@@ -847,6 +959,10 @@ window.addEventListener('hashchange', () => {
     if (persistedFrequency !== currentFrequency) {
         setUpdateFrequency(persistedFrequency);
     }
+    const persistedAxisType = getPersistedAxisType();
+    if (persistedAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
+        void setAxisType(persistedAxisType);
+    }
 });
 
 (window as any).toggleUpdates = () => {
@@ -863,6 +979,9 @@ window.addEventListener('hashchange', () => {
 };
 (window as any).updateSeriesType = (seriesType: string) => {
     void setSeriesType(seriesType as SeriesType);
+};
+(window as any).updateAxisType = (axisType: string) => {
+    void setAxisType(axisType as AxisType);
 };
 (window as any).rollBatch = rollBatch;
 

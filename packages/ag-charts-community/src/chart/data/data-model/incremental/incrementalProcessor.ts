@@ -1,23 +1,29 @@
 import { first } from 'ag-charts-core';
 
-import { hasNoRemovals, isAppendOnly, isPrependOnly, isUpdateOnly } from '../../dataChangeDescription';
-import type {
-    DataGroup,
-    GroupedData,
-    InsertionCache,
-    InsertionCacheValue,
-    InternalDatumPropertyDefinition,
-    ProcessedData,
-    ProcessedOutputDiff,
-    ProcessedValueEntry,
-    ScopeId,
-} from '../../dataModelTypes';
+import {
+    hasNoRemovals,
+    hasOnlyRemovals,
+    isAppendOnly,
+    isPrependOnly,
+    isRollingWindow,
+    isUpdateOnly,
+} from '../../dataChangeDescription';
 import {
     COLUMN_SORT_ORDERS,
     DOMAIN_BANDS,
     DOMAIN_RANGES,
+    type DataGroup,
+    type GroupedData,
+    type InsertionCache,
+    type InsertionCacheValue,
+    type InternalDatumPropertyDefinition,
     KEY_SORT_ORDERS,
+    type ProcessedData,
+    type ProcessedOutputDiff,
+    type ProcessedValueEntry,
     SHARED_ZERO_INDICES,
+    type ScopeId,
+    type SortOrderEntry,
 } from '../../dataModelTypes';
 import type { DataChangeDescription, DataSet } from '../../dataSet';
 import type { RangeLookup } from '../../rangeLookup';
@@ -132,6 +138,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             }
         }
 
+        this.invalidateSortOrdersForChanges(processedData, scopeChanges);
+
         recomputeDomainsFn(processedData);
 
         this.reprocessProcessors(processedData);
@@ -140,7 +148,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
         }
 
-        this.updateProcessedDataMetadata(processedData, scopeChanges);
+        this.updateProcessedDataMetadata(processedData);
 
         const end = performance.now();
         processedData.time = end - start;
@@ -578,8 +586,22 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const processedArrays = new Set<boolean[]>();
 
         for (const [scope, changeDesc] of scopeChanges) {
-            const array = invalidityMap.get(scope);
-            if (!array) continue;
+            let array = invalidityMap.get(scope);
+
+            // If no array exists (all initial data was valid), check if we need to create one
+            // for new insertions that have invalid values
+            if (!array) {
+                const insertionCache = insertionCaches.get(scope);
+                const hasAnyInvalid = insertionCache && Array.from(insertionCache.values()).some(extractValue);
+                if (hasAnyInvalid) {
+                    // Create array sized to match the ORIGINAL data length before changes are applied.
+                    // applyToArray will transform this array to the final size via splice operations.
+                    array = createArray(changeDesc.indexMap.originalLength, false);
+                    invalidityMap.set(scope, array);
+                } else {
+                    continue;
+                }
+            }
 
             // Skip if this array has already been processed (shared between scopes)
             if (processedArrays.has(array)) continue;
@@ -831,10 +853,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
      * Updates metadata after array transformations.
      * Uses intelligent cache management based on change patterns.
      */
-    private updateProcessedDataMetadata(
-        processedData: ProcessedData<D>,
-        scopeChanges: Map<ScopeId, DataChangeDescription>
-    ): void {
+    private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
         let maxDataLength = 0;
         for (const dataSet of processedData.dataSources.values()) {
             maxDataLength = Math.max(maxDataLength, dataSet.data.length);
@@ -860,20 +879,93 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         this.recountInvalid(processedData.invalidData, processedData.invalidDataCount);
 
         // Intelligent cache invalidation based on change patterns
-        this.invalidateCachesForChanges(processedData, scopeChanges);
+        this.invalidateCachesForChanges(processedData);
     }
 
     /**
-     * Invalidates caches intelligently based on change patterns.
-     *
-     * OPTIMIZATION: Different change patterns allow different cache preservation strategies:
-     * - Update-only: RangeLookup values changed but indices stable. Clear DOMAIN_RANGES but
-     *   preserve sort orders (mark dirty for lazy recalculation).
-     * - Append-only: New items at end, existing indices unchanged. Sort orders stay valid.
-     * - Rolling window: Contiguous removals at start + appends at end. Full clear needed.
-     * - Complex patterns: Full invalidation for safety.
+     * Updates sort order entry incrementally for appended values.
+     * Checks if new values maintain the existing ordering/uniqueness.
      */
-    private invalidateCachesForChanges(
+    private updateSortOrderForAppend(
+        entry: SortOrderEntry,
+        lastExistingValue: unknown,
+        appendedValues: unknown[]
+    ): void {
+        if (appendedValues.length === 0) return;
+
+        // Convert to numeric for comparison
+        const toNumeric = (v: unknown): number | undefined => {
+            if (typeof v === 'number') return v;
+            if (v instanceof Date) return v.valueOf();
+            return undefined;
+        };
+
+        let lastValue = toNumeric(lastExistingValue);
+        const existingSortOrder = entry.sortOrder;
+
+        for (const value of appendedValues) {
+            const numericValue = toNumeric(value);
+            if (numericValue === undefined) continue;
+
+            if (lastValue === undefined) {
+                lastValue = numericValue;
+                continue;
+            }
+
+            const diff = numericValue - lastValue;
+
+            // Check uniqueness
+            if (diff === 0) {
+                entry.isUnique = false;
+            }
+
+            // Check ordering (only if still considered ordered)
+            if (entry.sortOrder !== undefined) {
+                let direction = 0;
+                if (diff > 0) {
+                    direction = 1;
+                } else if (diff < 0) {
+                    direction = -1;
+                }
+                if (direction !== 0 && direction !== existingSortOrder) {
+                    entry.sortOrder = undefined;
+                }
+            }
+
+            lastValue = numericValue;
+        }
+    }
+
+    /**
+     * Updates KEY_SORT_ORDERS incrementally after an append operation.
+     */
+    private updateKeySortOrdersForAppend(processedData: ProcessedData<D>, originalLength: number): void {
+        for (const [keyDefIndex, keysMap] of processedData.keys.entries()) {
+            const sortOrderEntry = processedData[KEY_SORT_ORDERS].get(keyDefIndex);
+            if (!sortOrderEntry) continue;
+
+            // Get any scope's keys array (they share the same data)
+            const keysArray = first(keysMap.values());
+            if (!keysArray || keysArray.length <= originalLength) continue;
+
+            // Get last existing value and appended values
+            const lastExistingValue = originalLength > 0 ? keysArray[originalLength - 1] : undefined;
+            const appendedValues = keysArray.slice(originalLength);
+
+            this.updateSortOrderForAppend(sortOrderEntry, lastExistingValue, appendedValues);
+        }
+    }
+
+    /**
+     * Invalidates sort order metadata BEFORE domain recomputation.
+     *
+     * This must be called BEFORE recomputeDomains() so that BandedDomain.setSortOrderMetadata()
+     * receives the correct (possibly cleared) metadata. Without this, rolling window operations
+     * would see stale sort order data and incorrectly configure sub-domains for sorted mode.
+     *
+     * @param anyKeyChanged - Whether any key values changed during update processing
+     */
+    private invalidateSortOrdersForChanges(
         processedData: ProcessedData<D>,
         scopeChanges: Map<ScopeId, DataChangeDescription>
     ): void {
@@ -881,6 +973,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Determine the most conservative strategy across all changes
         let preserveSortOrders = true;
+        let hasAppendOnly = false;
+        let hasRollingWindow = false;
+        let appendOriginalLength: number | undefined;
+        let rollingWindowInfo: { originalLength: number; removedCount: number } | undefined;
 
         for (const changeDesc of changeDescs) {
             const { indexMap } = changeDesc;
@@ -889,31 +985,85 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 // Update-only: Values changed but indices stable
                 // DOMAIN_RANGES must be cleared (values changed)
                 // Sort orders can be preserved if only values changed, not keys
-                // Sort orders depend on values, so mark dirty but don't clear
             } else if (isAppendOnly(indexMap)) {
                 // Append-only: New items at end, no index shifts
                 // DOMAIN_RANGES must be rebuilt to include new values
-                // Existing sort orders remain valid for their ranges
+                // Sort orders need incremental update for new values
+                hasAppendOnly = true;
+                appendOriginalLength = indexMap.originalLength;
+            } else if (hasOnlyRemovals(indexMap)) {
+                // Removal-only: Sort orders preserved (removals can't create duplicates or change order)
+            } else if (isRollingWindow(indexMap)) {
+                // Rolling window: Removals from start + appends at end
+                // Sort orders can be preserved if appended values maintain continuity
+                hasRollingWindow = true;
+                rollingWindowInfo = {
+                    originalLength: indexMap.originalLength,
+                    removedCount: indexMap.removedIndices.size,
+                };
             } else {
-                // Rolling window: Indices shift predictably
                 // Complex pattern: Full invalidation for safety
-                // Both caches must be cleared
                 preserveSortOrders = false;
             }
         }
 
-        // Apply invalidation strategy
-        // Domain ranges are always invalidated for all change types (update-only, append-only, rolling window)
-        this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
-
+        // Apply sort order invalidation strategy
         if (!preserveSortOrders) {
-            // Complex patterns: Full invalidation needed
             processedData[KEY_SORT_ORDERS].clear();
             processedData[COLUMN_SORT_ORDERS].clear();
+        } else if (hasAppendOnly && appendOriginalLength !== undefined) {
+            this.updateKeySortOrdersForAppend(processedData, appendOriginalLength);
+        } else if (hasRollingWindow && rollingWindowInfo) {
+            // Rolling window: Update sort orders for the appended values
+            // The "last existing value" is the last value that remains after removals
+            this.updateKeySortOrdersForRollingWindow(processedData, rollingWindowInfo);
         }
-        // When preserveSortOrders is true (update-only, append-only):
-        // - Keys don't change, so KEY_SORT_ORDERS stays valid
-        // - Data positions don't change, so sort order is definitionally unchanged
+        // When preserveSortOrders is true and not append-only: sort orders stay valid
+    }
+
+    /**
+     * Updates KEY_SORT_ORDERS incrementally after a rolling window operation.
+     * Rolling window = contiguous removals at start + appends at end.
+     */
+    private updateKeySortOrdersForRollingWindow(
+        processedData: ProcessedData<D>,
+        info: { originalLength: number; removedCount: number }
+    ): void {
+        const { originalLength, removedCount } = info;
+
+        for (const [keyDefIndex, keysMap] of processedData.keys.entries()) {
+            const sortOrderEntry = processedData[KEY_SORT_ORDERS].get(keyDefIndex);
+            if (!sortOrderEntry) continue;
+
+            // Get any scope's keys array (they share the same data)
+            const keysArray = first(keysMap.values());
+            if (!keysArray || keysArray.length === 0) continue;
+
+            // After rolling window, the keys array has been transformed:
+            // - Removed `removedCount` items from start
+            // - Appended new items at the end
+            // The new array length is: originalLength - removedCount + appendCount
+            // The appended items start at: originalLength - removedCount
+            const appendStartIndex = originalLength - removedCount;
+
+            // Get the last remaining value (just before append point)
+            const lastRemainingValue = appendStartIndex > 0 ? keysArray[appendStartIndex - 1] : undefined;
+            const appendedValues = keysArray.slice(appendStartIndex);
+
+            this.updateSortOrderForAppend(sortOrderEntry, lastRemainingValue, appendedValues);
+        }
+    }
+
+    /**
+     * Invalidates domain range caches after domain recomputation.
+     *
+     * Called AFTER recomputeDomains() to mark domain ranges as dirty for lazy rebuild.
+     * Sort order invalidation is handled separately by invalidateSortOrdersForChanges().
+     */
+    private invalidateCachesForChanges(processedData: ProcessedData<D>): void {
+        // Domain ranges are always invalidated for all change types
+        // Sort orders are handled by invalidateSortOrdersForChanges() before domain recomputation
+        this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
 
         // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
     }
