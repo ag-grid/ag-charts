@@ -232,6 +232,8 @@ export class DOMManager extends BaseManager {
     }
 
     public postRenderUpdate() {
+        this.updateStylesLocation();
+
         if (this.mode === 'minimal') return;
         if (this.pendingContainer == null || this.pendingContainer === this.container) return;
 
@@ -248,6 +250,22 @@ export class DOMManager extends BaseManager {
             }
         }
         DOMManager.batchedUpdateContainer.splice(0);
+    }
+
+    private updateStylesLocation() {
+        // Check if we transitioned from disconnected to connected
+        if (this.initiallyConnected === true || this.container?.isConnected === false) return;
+
+        this.documentRoot = this.getShadowDocumentRoot(this.container);
+        this.initiallyConnected = true;
+        // Remove styles from our DOM tree before re-adding to correct location
+        for (const id of this.rootElements['styles'].children.keys()) {
+            this.removeChild('styles', id);
+        }
+        // Re-add styles to correct location (shadow DOM vs head)
+        for (const [id, styles] of this.styles) {
+            this.addStyles(id, styles);
+        }
     }
 
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
