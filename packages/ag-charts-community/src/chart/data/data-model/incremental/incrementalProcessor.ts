@@ -988,9 +988,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     removedCount: indexMap.removedIndices.size,
                 };
             } else {
-                // Rolling window: Indices shift predictably
                 // Complex pattern: Full invalidation for safety
-                // Both caches must be cleared
                 preserveSortOrders = false;
             }
         }

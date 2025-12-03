@@ -30,7 +30,7 @@ export class DiscreteDomain implements IDataDomain {
      * Call this before extending with data.
      */
     setSortedUniqueMode(sortOrder: 1 | -1, isUnique: boolean): void {
-        if (isUnique && sortOrder != null) {
+        if (isUnique) {
             this.isSortedUnique = true;
             this.sortOrder = sortOrder;
             this.sortedTimestamps = [];
