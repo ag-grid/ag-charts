@@ -31,6 +31,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         this.invalid = true;
         this._domain = domain;
         this._bands = undefined;
+        this._numericBands = undefined;
         this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
@@ -41,6 +42,12 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     get bands() {
         this._bands ??= this.isReversed ? this.domain.slice().reverse() : this.domain;
         return this._bands;
+    }
+
+    private _numericBands: number[] | undefined;
+    protected override get numericBands(): number[] {
+        this._numericBands ??= this.bands.map((d) => d.valueOf());
+        return this._numericBands;
     }
 
     override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
@@ -54,8 +61,11 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
             // OPTIMIZATION: Use pre-computed metadata when available to skip O(n) datesSortOrder scan
             let sortOrder: 1 | -1 | undefined;
+            let isUnique = false;
+
             if (isDomainWithMetadata(input) && input.sortMetadata?.sortOrder !== undefined) {
                 sortOrder = input.sortMetadata.sortOrder;
+                isUnique = input.sortMetadata.isUnique ?? false;
             } else {
                 // Fallback to scanning when metadata not available
                 sortOrder = datesSortOrder(domain);
@@ -64,8 +74,12 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             if (sortOrder === -1) {
                 domain = domain.slice().reverse();
             } else if (sortOrder == null) {
-                domain = sortAndUniqueDates(domain.slice());
+                // Need to sort; skip deduplication if we know data is unique
+                domain = isUnique
+                    ? domain.slice().sort((a, b) => a.valueOf() - b.valueOf())
+                    : sortAndUniqueDates(domain.slice());
             }
+            // If sortOrder === 1, domain is already in ascending order - use as-is
             return { domain, animatable: true };
         }
 

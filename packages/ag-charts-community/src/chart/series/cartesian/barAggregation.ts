@@ -1,4 +1,4 @@
-import type { ScaleType } from 'ag-charts-core';
+import type { DomainInput, ScaleType } from 'ag-charts-core';
 import { nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
 import type { DataModel } from '../../data/dataModel';
@@ -273,12 +273,12 @@ function aggregateBarData(
     xValues: any[],
     yStartValues: any[] | undefined,
     yEndValues: any[],
-    domain: number[],
+    domainInput: DomainInput<number>,
     smallestKeyInterval: number | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BarSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
         smallestKeyInterval,
         xNeedsValueOf,

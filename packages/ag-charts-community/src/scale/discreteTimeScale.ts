@@ -24,6 +24,11 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return domain.length > 0 && domain[0].valueOf() > domain.at(-1)!.valueOf();
     }
 
+    /** Cached numeric band values for efficient binary search. Subclasses should override with a cached version. */
+    protected get numericBands(): number[] {
+        return this.bands.map((d) => d.valueOf());
+    }
+
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
@@ -95,11 +100,11 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     }
 
     override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
-        const { bands } = this;
+        const numericBands = this.numericBands;
         const target = value.valueOf();
         if (alignment === ScaleAlignment.Trailing) {
-            return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
+            return findMinIndex(0, numericBands.length - 1, (index) => numericBands[index] >= target);
         }
-        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
+        return findMaxIndex(0, numericBands.length - 1, (index) => numericBands[index] <= target);
     }
 }

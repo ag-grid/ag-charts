@@ -38,6 +38,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         this._domain = domain;
         this._bands = undefined;
+        this._numericBands = undefined;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -53,12 +54,19 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         this._interval = interval;
         this._bands = undefined;
+        this._numericBands = undefined;
     }
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {
         this._bands ??= this.calculateBands(this._domain, [0, 1]).bands;
         return this._bands;
+    }
+
+    private _numericBands: number[] | undefined;
+    protected override get numericBands(): number[] {
+        this._numericBands ??= this.bands.map((d) => d.valueOf());
+        return this._numericBands;
     }
 
     override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
