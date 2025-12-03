@@ -1,8 +1,11 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { CartesianAxisDirection } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
     type AxisID,
+    ChartAxisDirection,
+    ChartUpdateType,
     Property,
     ProxyProperty,
     debounce,
@@ -40,11 +43,11 @@ import {
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
 
-const { ChartAxisDirection, ChartUpdateType, InteractionState } = _ModuleSupport;
+const { InteractionState } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 
-type AxisHit = { axisId: AxisID; direction: _ModuleSupport.ChartAxisDirection };
+type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 const round = (value: number) => roundTo(value, 10);
 
@@ -515,7 +518,7 @@ export class Zoom extends AbstractModuleInstance {
         zoomManager.resetAxisZoom('zoom', id);
     }
 
-    private onAxisDragStart(direction: _ModuleSupport.ChartAxisDirection) {
+    private onAxisDragStart(direction: ChartAxisDirection) {
         const {
             axisDraggingMode,
             domProxy,
@@ -540,11 +543,7 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private onAxisDragMove(
-        axisId: AxisID,
-        direction: _ModuleSupport.ChartAxisDirection,
-        event: _Widget.DragWidgetEvent<'drag-move'>
-    ) {
+    private onAxisDragMove(axisId: AxisID, direction: ChartAxisDirection, event: _Widget.DragWidgetEvent<'drag-move'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -574,7 +573,7 @@ export class Zoom extends AbstractModuleInstance {
             const axisZoom = zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom, {
+            this.updateAxisZoom(axisId, direction as CartesianAxisDirection, newZoom, {
                 directional: true,
             });
         }
@@ -659,7 +658,7 @@ export class Zoom extends AbstractModuleInstance {
         this.handleWheelScrolling(event, isZoomCapped);
     }
 
-    private onAxisWheel(axisDirection: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
+    private onAxisWheel(axisDirection: ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
         if (!this.enableAxisScrolling) return;
         if (axisDirection !== ChartAxisDirection.X && axisDirection !== ChartAxisDirection.Y) {
             return;
@@ -884,11 +883,11 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private previousAxisZoomValid = {
-        [_ModuleSupport.ChartAxisDirection.X]: true,
-        [_ModuleSupport.ChartAxisDirection.Y]: true,
+        [ChartAxisDirection.X]: true,
+        [ChartAxisDirection.Y]: true,
     };
     private isAxisZoomValid(
-        direction: _ModuleSupport.CartesianAxisDirection,
+        direction: CartesianAxisDirection,
         axisZoom: _ModuleSupport.ZoomState,
         options?: { directional?: boolean }
     ) {
@@ -975,7 +974,7 @@ export class Zoom extends AbstractModuleInstance {
         this.updatePrimaryAxisZoom(zoom, ChartAxisDirection.Y);
     }
 
-    private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.CartesianAxisDirection) {
+    private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: CartesianAxisDirection) {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
         if (axisId == null) return;
         this.updateAxisZoom(axisId, direction, zoom[direction]);
@@ -983,7 +982,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private updateAxisZoom(
         axisId: AxisID,
-        direction: _ModuleSupport.CartesianAxisDirection,
+        direction: CartesianAxisDirection,
         axisZoom: _ModuleSupport.ZoomState | undefined,
         validOptions?: { directional?: boolean }
     ) {

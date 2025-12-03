@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import { BaseProperties, Logger, Property } from 'ag-charts-core';
+import { BaseProperties, ChartAxisDirection, Logger, Property } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy, AgZoomRange } from 'ag-charts-types';
 
 import { definedZoomState } from './zoomUtils';
 
-const { ChartAxisDirection } = _ModuleSupport;
+const {} = _ModuleSupport;
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'dataService' | 'eventsHub' | 'zoomManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;

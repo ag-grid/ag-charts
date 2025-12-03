@@ -1,5 +1,6 @@
 import { type AgLinearGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { FONT_SIZE, linearGaugeSeriesOptionsDef } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
@@ -68,7 +69,7 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: 2 },
-            minimumFontSize: _ModuleSupport.FONT_SIZE.SMALL,
+            minimumFontSize: FONT_SIZE.SMALL,
             spacing: 18,
             color: { $ref: 'chartBackgroundColor' },
         },
@@ -87,7 +88,7 @@ export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     dependencies: [GaugePresetModule],
     version: VERSION,
 
-    options: _ModuleSupport.linearGaugeSeriesOptionsDef,
+    options: linearGaugeSeriesOptionsDef,
     themeTemplate,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new LinearGaugeSeries(ctx),

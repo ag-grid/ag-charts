@@ -1,14 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { ExtensibleTheme } from 'ag-charts-types';
-
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
+import {
+    CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
-} = _ModuleSupport;
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
     series: {

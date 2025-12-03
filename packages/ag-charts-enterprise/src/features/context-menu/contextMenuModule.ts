@@ -1,5 +1,12 @@
-import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean, callbackOf, undocumented } from 'ag-charts-core';
+import { type AgContextMenuOptions, VERSION } from 'ag-charts-community';
+import {
+    IS_DARK_THEME,
+    type PluginModuleDefinition,
+    boolean,
+    callbackOf,
+    contextMenuItemsArray,
+    undocumented,
+} from 'ag-charts-core';
 
 import { ContextMenu } from './contextMenu';
 
@@ -11,12 +18,12 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
 
     options: {
         enabled: boolean,
-        items: _ModuleSupport.contextMenuItemsArray,
-        getItems: callbackOf(_ModuleSupport.contextMenuItemsArray, 'a menu items array'),
+        items: contextMenuItemsArray,
+        getItems: callbackOf(contextMenuItemsArray, 'a menu items array'),
     },
     themeTemplate: {
         enabled: true,
-        darkTheme: _ModuleSupport.ThemeSymbols.IS_DARK_THEME,
+        darkTheme: IS_DARK_THEME,
     },
 
     create: (ctx) => new ContextMenu(ctx),

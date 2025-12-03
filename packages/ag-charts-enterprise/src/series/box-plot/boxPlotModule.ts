@@ -1,11 +1,12 @@
 import { type AgBoxPlotSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import { BoxPlotSeries } from './boxPlotSeries';
 import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-const { DIRECTION_SWAP_AXES, ChartAxisDirection, predictCartesianNonPrimitiveAxis } = _ModuleSupport;
+const { DIRECTION_SWAP_AXES, predictCartesianNonPrimitiveAxis } = _ModuleSupport;
 
 export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
     type: 'series',

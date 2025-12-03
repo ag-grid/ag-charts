@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    ChartAxisDirection,
     type InternalAgColorType,
     Logger,
     type Point,
@@ -28,7 +29,6 @@ const {
     computeBarFocusBounds,
     getMissCount,
     valueProperty,
-    ChartAxisDirection,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     createDatumId,
@@ -202,7 +202,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return [y, y + height];
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
 
         if (!dataModel || !processedData) return [];
@@ -214,10 +214,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

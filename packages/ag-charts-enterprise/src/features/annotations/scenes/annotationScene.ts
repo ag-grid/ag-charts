@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { ZIndexMap, isObject } from 'ag-charts-core';
 
 import { Handle } from './handle';
 
-const { ZIndexMap } = _ModuleSupport;
+const {} = _ModuleSupport;
 
 export abstract class AnnotationScene extends _ModuleSupport.Group {
     static isCheck(value: unknown, type: string) {

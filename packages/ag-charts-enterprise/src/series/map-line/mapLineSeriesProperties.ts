@@ -9,7 +9,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { PointLabelDatum } from 'ag-charts-core';
-import { Property } from 'ag-charts-core';
+import { FeatureCollection, Geometry, Property } from 'ag-charts-core';
 
 const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapLineNodeLabelDatum extends PointLabelDatum {
@@ -24,13 +24,13 @@ export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
-    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    readonly projectedGeometry: Geometry | undefined;
     style: AgMapLineSeriesStyle;
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
     @Property
-    topology?: _ModuleSupport.FeatureCollection = undefined;
+    topology?: FeatureCollection = undefined;
 
     @Property
     title?: string;

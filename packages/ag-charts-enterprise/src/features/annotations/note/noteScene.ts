@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, type Point, calcLineHeight, clamp, wrapText } from 'ag-charts-core';
+import { type BoxBounds, type Point, ZIndexMap, calcLineHeight, clamp, wrapText } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -9,7 +9,7 @@ import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const { ZIndexMap } = _ModuleSupport;
+const {} = _ModuleSupport;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {

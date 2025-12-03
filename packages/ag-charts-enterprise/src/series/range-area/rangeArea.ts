@@ -16,7 +16,7 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import {
     HIGH,
@@ -38,7 +38,6 @@ import {
 const {
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     updateLabelNode,
     fixNumericExtent,
     buildResetPathFn,
@@ -343,7 +342,7 @@ export class RangeAreaSeries extends BaseSeries {
         return [y, y];
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -366,7 +365,7 @@ export class RangeAreaSeries extends BaseSeries {
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 

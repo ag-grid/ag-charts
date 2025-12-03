@@ -1,6 +1,7 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    ChartAxisDirection,
     Property,
     type Scale,
     type ScaleTickParams,
@@ -15,7 +16,7 @@ import {
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { ChartAxisDirection, Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
+const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
     text: TextOrSegments;
     x: number;

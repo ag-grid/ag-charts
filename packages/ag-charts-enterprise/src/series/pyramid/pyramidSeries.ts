@@ -6,6 +6,8 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    ChartAnimationPhase,
+    ChartAxisDirection,
     type Point,
     StateMachine,
     type Writeable,
@@ -145,7 +147,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return this.contextNodeData?.nodeData;
     }
 
-    override resetAnimation(phase: _ModuleSupport.ChartAnimationPhase): void {
+    override resetAnimation(phase: ChartAnimationPhase): void {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -708,10 +710,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return [Number.NaN, Number.NaN];
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

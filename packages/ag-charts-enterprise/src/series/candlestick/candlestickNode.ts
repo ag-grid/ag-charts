@@ -1,8 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { DeclaredSceneChangeDetection, SceneArrayChangeDetection } from 'ag-charts-core';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
-const { SceneArrayChangeDetection, DeclaredSceneChangeDetection, ExtendedPath2D, BBox } = _ModuleSupport;
+const { ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode extends OhlcBaseNode {
     private readonly wickPath = new ExtendedPath2D();

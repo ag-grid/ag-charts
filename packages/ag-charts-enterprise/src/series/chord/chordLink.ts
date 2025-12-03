@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { SceneChangeDetection } from 'ag-charts-core';
 
-const { Path, SceneChangeDetection } = _ModuleSupport;
+const { Path } = _ModuleSupport;
 
 export function bezierControlPoints({
     radius,

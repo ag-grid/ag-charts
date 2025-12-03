@@ -1,17 +1,17 @@
 import type { AgMapLineBackgroundOptions, AgMapLineSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property } from 'ag-charts-core';
+import { FeatureCollection, Geometry, Property } from 'ag-charts-core';
 
 const { SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
-    readonly projectedGeometry: _ModuleSupport.Geometry;
+    readonly projectedGeometry: Geometry;
     style: AgMapLineSeriesStyle;
 }
 
 export class MapLineBackgroundSeriesProperties extends SeriesProperties<AgMapLineBackgroundOptions> {
     @Property
-    topology?: _ModuleSupport.FeatureCollection = undefined;
+    topology?: FeatureCollection = undefined;
 
     @Property
     stroke: string = 'black';

@@ -1,8 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AxisID, Property, createId } from 'ag-charts-core';
+import type { AxisID, FeatureCollection, LonLatBBox, Position } from 'ag-charts-core';
+import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-const { Chart, MercatorScale, ChartAxisDirection } = _ModuleSupport;
+const { Chart, MercatorScale } = _ModuleSupport;
 function isTopologySeries(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
 ): series is _ModuleSupport.ITopology {
@@ -22,7 +23,7 @@ export class TopologyChart extends Chart {
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
     @Property
-    topology?: _ModuleSupport.FeatureCollection;
+    topology?: FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
@@ -59,7 +60,7 @@ export class TopologyChart extends Chart {
         this.animationRect = seriesRect;
 
         const mapSeries = this.series as _ModuleSupport.ITopology[];
-        const combinedBbox = mapSeries.reduce<_ModuleSupport.LonLatBBox | undefined>((combined, series) => {
+        const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
@@ -70,7 +71,7 @@ export class TopologyChart extends Chart {
         let scale: _ModuleSupport.MercatorScale | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
-            const domain: _ModuleSupport.Position[] = [
+            const domain: Position[] = [
                 [lon0, lat0],
                 [lon1, lat1],
             ];

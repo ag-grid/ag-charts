@@ -8,6 +8,7 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    ChartAxisDirection,
     type Mutable,
     type Point,
     type RequireOptional,
@@ -28,7 +29,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
@@ -321,7 +321,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return [];
 
@@ -342,7 +342,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 

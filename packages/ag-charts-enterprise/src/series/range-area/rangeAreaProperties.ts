@@ -13,7 +13,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, SizedPoint } from 'ag-charts-core';
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, InterpolationProperties, Property } from 'ag-charts-core';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly itemId?: never;
@@ -28,8 +28,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     style?: AgSeriesMarkerStyle;
 }
 
-const { CartesianSeriesProperties, InterpolationProperties, SeriesMarker, makeSeriesTooltip, DropShadow, Label } =
-    _ModuleSupport;
+const { CartesianSeriesProperties, SeriesMarker, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
 
 type RangeAreaSeriesItemOptions = NonNullable<AgRangeAreaSeriesOptions['item']>;
 type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRangeAreaSeriesItemType]>;
@@ -165,7 +164,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     lineDashOffset: number = 0;
 
     @Property
-    interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();
+    interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Property
     styler?: Styler<unknown, undefined>;

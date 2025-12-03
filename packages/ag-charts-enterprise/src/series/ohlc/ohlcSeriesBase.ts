@@ -8,7 +8,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, type Mutable, type Point, type Scale, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, Logger, type Mutable, type Point, type Scale, mergeDefaults } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -29,7 +29,6 @@ const {
     keyProperty,
     createDatumId,
     SeriesNodePickMode,
-    ChartAxisDirection,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
     diff,
@@ -309,7 +308,7 @@ export abstract class OhlcSeriesBase<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -326,7 +325,7 @@ export abstract class OhlcSeriesBase<
         return fixNumericExtent(yExtent);
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
     }
 

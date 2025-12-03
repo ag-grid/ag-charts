@@ -1,13 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { LonLatBBox, type Position } from 'ag-charts-core';
 
 import { lineSegmentDistanceToPointSquared } from './lineStringUtil';
 
-const { LonLatBBox } = _ModuleSupport;
-
-export function polygonBbox(
-    polygon: _ModuleSupport.Position[],
-    into: _ModuleSupport.LonLatBBox | undefined
-): _ModuleSupport.LonLatBBox | undefined {
+export function polygonBbox(polygon: Position[], into: LonLatBBox | undefined): LonLatBBox | undefined {
     for (const coordinates of polygon) {
         const [lon, lat] = coordinates;
         into = LonLatBBox.extend(into, lon, lat, lon, lat);
@@ -16,7 +11,7 @@ export function polygonBbox(
     return into;
 }
 
-export function polygonCentroid(polygon: _ModuleSupport.Position[]): _ModuleSupport.Position | undefined {
+export function polygonCentroid(polygon: Position[]): Position | undefined {
     if (polygon.length === 0) return;
 
     let x = 0;
@@ -40,7 +35,7 @@ export function polygonCentroid(polygon: _ModuleSupport.Position[]): _ModuleSupp
 
 /** Distance from a point to a polygon. Negative if inside the polygon. */
 
-export function polygonDistance(polygons: _ModuleSupport.Position[][], x: number, y: number) {
+export function polygonDistance(polygons: Position[][], x: number, y: number) {
     let inside = false;
     let minDistanceSquared = Infinity;
 

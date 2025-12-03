@@ -5,7 +5,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -14,7 +14,6 @@ import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseP
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     diff,
     fixNumericExtent,
@@ -121,7 +120,7 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

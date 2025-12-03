@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParam,
+    ChartAxisDirection,
     type Point,
     type RequireOptional,
     extent,
@@ -22,7 +23,6 @@ import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesPropert
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     SeriesNodePickMode,
     valueProperty,
@@ -128,7 +128,7 @@ export abstract class RadarSeries<
         return new Marker();
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 

@@ -1,4 +1,5 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType } from 'ag-charts-community';
+import type { MementoOriginator } from 'ag-charts-core';
 import { deepClone } from 'ag-charts-core';
 
 import {
@@ -37,7 +38,7 @@ type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignmen
 type DefaultLineTextPositions = Map<HasLineTextAnnotationType, LineTextPosition | ChannelTextPosition | undefined>;
 type DefaultFibonacciOptions = Map<FibonacciAnnotationType, FibonacciAnnotationToolbarOptionsType>;
 
-export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<DefaultsMemento> {
+export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
     mementoOriginatorKey = 'annotation-defaults' as const;
 
     private colors: DefaultColors = new Map(

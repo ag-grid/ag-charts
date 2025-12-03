@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ZIndexMap } from 'ag-charts-core';
 
 const VALID_COLOR = '#2196f3';
 const INVALID_COLOR = '#8a8a8a';
@@ -10,7 +11,7 @@ export class ZoomRect extends _ModuleSupport.Rect {
         super();
         this.fill = VALID_COLOR;
         this.fillOpacity = 0.2;
-        this.zIndex = _ModuleSupport.ZIndexMap.ZOOM_SELECTION;
+        this.zIndex = ZIndexMap.ZOOM_SELECTION;
     }
 
     public updateValid() {

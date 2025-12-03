@@ -1,9 +1,13 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { VERSION } from 'ag-charts-community';
 import {
     type OptionsDefs,
     type PresetModuleDefinition,
+    commonChartOptionsDefs,
     defined,
+    linearGaugeSeriesOptionsDef,
     positiveNumber,
+    radialGaugeSeriesOptionsDef,
+    tooltipOptionsDefs,
     typeUnion,
     undocumented,
     without,
@@ -12,9 +16,6 @@ import type { AgBaseGaugePresetOptions, AgChartTooltipOptions, AgGaugeOptions, A
 
 import { StandaloneChartModule } from '../charts/standaloneChartModule';
 import { createGauge } from './gaugePreset';
-
-const { commonChartOptionsDefs, tooltipOptionsDefs, linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } =
-    _ModuleSupport;
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
     // Valid pass-through options

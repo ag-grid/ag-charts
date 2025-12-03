@@ -1,11 +1,12 @@
 import { type AgRangeBarSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import { RangeBarSeries } from './rangeBarSeries';
 import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
-const { DIRECTION_SWAP_AXES, ChartAxisDirection, predictCartesianNonPrimitiveAxis } = _ModuleSupport;
+const { DIRECTION_SWAP_AXES, predictCartesianNonPrimitiveAxis } = _ModuleSupport;
 
 export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOptions> = {
     type: 'series',

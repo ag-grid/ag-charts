@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ScaleType } from 'ag-charts-core';
-import { simpleMemorize2 } from 'ag-charts-core';
+import { ExtremesAggregationFilter, ExtremesPartialAggregationResult, simpleMemorize2 } from 'ag-charts-core';
 
 const {
     AGGREGATION_SPAN,
@@ -18,8 +18,8 @@ type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
 // Type aliases for OHLC-specific usage
-export type OhlcSeriesDataAggregationFilter = _ModuleSupport.ExtremesAggregationFilter;
-export type OhlcPartialAggregationResult = _ModuleSupport.ExtremesPartialAggregationResult;
+export type OhlcSeriesDataAggregationFilter = ExtremesAggregationFilter;
+export type OhlcPartialAggregationResult = ExtremesPartialAggregationResult;
 
 // Semantic constants for OHLC data access
 export const OPEN = AGGREGATION_INDEX_X_MIN;

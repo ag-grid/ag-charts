@@ -1,5 +1,5 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition } from 'ag-charts-core';
+import { VERSION } from 'ag-charts-community';
+import { DEFAULT_CAPTION_LAYOUT_STYLE, type PluginModuleDefinition } from 'ag-charts-core';
 
 import { StatusBar } from './statusBar';
 
@@ -12,7 +12,7 @@ export const StatusBarModule: PluginModuleDefinition<never> = {
 
     themeTemplate: {
         enabled: false,
-        layoutStyle: _ModuleSupport.ThemeSymbols.DEFAULT_CAPTION_LAYOUT_STYLE,
+        layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
         title: {
             color: { $ref: 'textColor' },
             fontFamily: { $ref: 'fontFamily' },

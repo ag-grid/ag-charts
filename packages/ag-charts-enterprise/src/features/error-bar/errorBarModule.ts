@@ -1,5 +1,6 @@
-import { type AgErrorBarOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgErrorBarOptions, VERSION } from 'ag-charts-community';
 import type { SeriesPluginModuleDefinition } from 'ag-charts-core';
+import { errorBarOptionsDefs } from 'ag-charts-core';
 
 import { ErrorBars } from './errorBar';
 
@@ -11,7 +12,7 @@ export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = 
     enterprise: true,
     version: VERSION,
 
-    options: _ModuleSupport.errorBarOptionsDefs,
+    options: errorBarOptionsDefs,
     themeTemplate: {
         visible: true,
         stroke: { $ref: 'foregroundColor' },

@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ScaleType } from 'ag-charts-core';
-import { simpleMemorize2 } from 'ag-charts-core';
+import { ExtremesAggregationFilter, ExtremesPartialAggregationResult, simpleMemorize2 } from 'ag-charts-core';
 
 const {
     AGGREGATION_SPAN,
@@ -18,8 +18,8 @@ type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
 // Type aliases for RangeBar-specific usage
-export type RangeBarSeriesDataAggregationFilter = _ModuleSupport.ExtremesAggregationFilter;
-export type RangeBarPartialAggregationResult = _ModuleSupport.ExtremesPartialAggregationResult;
+export type RangeBarSeriesDataAggregationFilter = ExtremesAggregationFilter;
+export type RangeBarPartialAggregationResult = ExtremesPartialAggregationResult;
 
 // Semantic constants for Range Bar data access
 export const START = AGGREGATION_INDEX_X_MIN;

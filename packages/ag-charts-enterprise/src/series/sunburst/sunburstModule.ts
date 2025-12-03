@@ -1,12 +1,13 @@
 import { type AgSunburstSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { FONT_SIZE_RATIO } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const { BASE_FONT_SIZE, FONT_SIZE_RATIO } = _ModuleSupport;
+const { BASE_FONT_SIZE } = _ModuleSupport;
 
 const themeTemplate: ExtensibleTheme<'sunburst'> = {
     series: {

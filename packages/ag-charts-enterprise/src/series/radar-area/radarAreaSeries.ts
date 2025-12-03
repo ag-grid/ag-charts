@@ -6,11 +6,12 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { ChartAxisDirection, Group, HighlightState, Path, PointerEvents, Selection, toHighlightString } = _ModuleSupport;
+const { Group, HighlightState, Path, PointerEvents, Selection, toHighlightString } = _ModuleSupport;
 
 type S = AgRadarAreaSeriesStyle;
 type O = AgRadarAreaSeriesOptions;
@@ -93,7 +94,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     private getAreaPoints(): RadarPathPoint[] {
         const points: RadarPathPoint[] = this.getLinePoints();
 
-        const getPolarAxis = (direction: _ModuleSupport.ChartAxisDirection): _ModuleSupport.PolarAxis | undefined => {
+        const getPolarAxis = (direction: ChartAxisDirection): _ModuleSupport.PolarAxis | undefined => {
             const axis = this.axes[direction];
             return axis instanceof _ModuleSupport.PolarAxis ? axis : undefined;
         };

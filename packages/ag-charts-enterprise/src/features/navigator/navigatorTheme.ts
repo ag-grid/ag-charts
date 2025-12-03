@@ -1,9 +1,5 @@
-import {
-    type AgMiniChartSeriesOptions,
-    type AgNavigatorOptions,
-    type WithThemeParams,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgMiniChartSeriesOptions, type AgNavigatorOptions, type WithThemeParams } from 'ag-charts-community';
+import { FONT_SIZE_RATIO } from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -134,7 +130,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         enabled: false,
         label: {
             color: { $ref: 'textColor' },
-            fontSize: { $rem: _ModuleSupport.FONT_SIZE_RATIO.SMALLER },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
             fontFamily: { $ref: 'fontFamily' } as any,
             fontWeight: { $ref: 'fontWeight' },
             spacing: 5,

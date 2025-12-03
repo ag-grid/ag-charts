@@ -7,6 +7,7 @@ import {
     EventEmitter,
     PropertiesArray,
     Property,
+    ToolbarButtonProperties,
 } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
@@ -27,7 +28,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { FloatingToolbar, Menu, ToolbarButtonProperties, ToolbarButtonWidget } = _ModuleSupport;
+const { FloatingToolbar, Menu, ToolbarButtonWidget } = _ModuleSupport;
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };

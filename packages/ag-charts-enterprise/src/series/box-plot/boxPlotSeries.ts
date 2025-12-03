@@ -6,7 +6,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, DeepRequired } from 'ag-charts-core';
-import { deepClone, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -25,7 +25,6 @@ const {
     createDatumId,
     HighlightState,
     ContinuousScale,
-    ChartAxisDirection,
     motion,
     getItemStyles,
     calculateSegments,
@@ -124,7 +123,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
@@ -141,7 +140,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return fixNumericExtent(yExtent);
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange);
     }
 

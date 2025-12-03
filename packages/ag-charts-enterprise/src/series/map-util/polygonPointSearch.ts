@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { type LinkedList, insertListItemsSorted } from 'ag-charts-core';
+import { type LinkedList, Position, insertListItemsSorted } from 'ag-charts-core';
 
 import { polygonBbox, polygonCentroid, polygonDistance } from './polygonUtil';
 
@@ -14,10 +13,10 @@ interface LabelPlacement {
 }
 
 export function polygonPointSearch(
-    polygons: _ModuleSupport.Position[][],
+    polygons: Position[][],
     precision: number,
     valueFn: (
-        polygons: _ModuleSupport.Position[][],
+        polygons: Position[][],
         x: number,
         y: number,
         stride: number
