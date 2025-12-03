@@ -83,6 +83,18 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             this.debug(`Selection - update() called with pending garbage`, data);
         }
 
+        // Handle transition: switching TO ID mode with existing untracked nodes.
+        if (getDatumId && this._nodesMap.size === 0 && this._nodes.length > 0) {
+            for (const node of this._nodes) {
+                this.garbageBin.add(node);
+            }
+        }
+
+        // Handle transition: switching FROM ID mode to index-based mode.
+        if (!getDatumId && this._nodesMap.size > 0) {
+            this._nodesMap.clear();
+        }
+
         if (getDatumId) {
             const dataMap = new Map<ValidId, number>();
             const duplicateMap = new Map<ValidId, number>();
@@ -159,6 +171,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     clear() {
         this.update([]);
+        for (const node of this._nodesMap.keys()) {
+            this.garbageBin.add(node);
+        }
+        this._nodesMap.clear();
         return this;
     }
 
