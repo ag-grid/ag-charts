@@ -8,7 +8,6 @@ import {
     type Scale,
     ScaleAlignment,
     attachDescription,
-    clamp,
     deepClone,
     defined,
     isFiniteNumber,
@@ -88,10 +87,6 @@ export type UpdateZoomParams = {
     callerId: string;
     changes: UpdateZoomChanges;
     changeType: ZoomChangeType;
-};
-
-export type RangeToRatioOptions = {
-    clampRanges?: boolean;
 };
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -623,10 +618,6 @@ export class ZoomManager extends BaseManager {
         return changeAccepted;
     }
 
-    public getCurrentRange(axisId: AxisID): AgZoomRange | undefined {
-        return this.getRangeAxis(this.findAxis(axisId), this.state.stateValue()[axisId]);
-    }
-
     public getRange(axisId: AxisID, ratio: ZoomState): AgZoomRange | undefined {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
@@ -657,19 +648,15 @@ export class ZoomManager extends BaseManager {
         return { start, end };
     }
 
-    public rangeToRatio(axisId: AxisID, range: AgZoomRange, options?: RangeToRatioOptions): ZoomState | undefined {
-        return this.rangeToRatioAxis(this.findAxis(axisId), range, options);
+    public rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomState | undefined {
+        return this.rangeToRatioAxis(this.findAxis(axisId), range);
     }
 
     public rangeToRatioDirection(direction: CartesianAxisDirection, range: AgZoomRange): ZoomState | undefined {
-        return this.rangeToRatioAxis(this.getPrimaryAxis(direction), range, undefined);
+        return this.rangeToRatioAxis(this.getPrimaryAxis(direction), range);
     }
 
-    private rangeToRatioAxis(
-        axis: CartesianAxisLike | undefined,
-        range: AgZoomRange,
-        options?: RangeToRatioOptions
-    ): ZoomState | undefined {
+    private rangeToRatioAxis(axis: CartesianAxisLike | undefined, range: AgZoomRange): ZoomState | undefined {
         if (!axis) return;
 
         const extents = this.getDomainPixelExtents(axis);
@@ -685,30 +672,25 @@ export class ZoomManager extends BaseManager {
             start,
             end
         );
-        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
-        let r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
+        const r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
+        const r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
         const [dMin, dMax] = [Math.min(d0, d1), Math.max(d0, d1)];
 
-        if (options?.clampRanges) {
-            r0 = clamp(dMin, r0, dMax);
-            r1 = clamp(dMin, r1, dMax);
-        } else {
-            if (r0 < dMin || r0 > dMax) {
-                Logger.warnOnce(
-                    `Invalid range start [${start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
-                );
-                return;
-            }
+        if (r0 < dMin || r0 > dMax) {
+            Logger.warnOnce(
+                `Invalid range start [${start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
+            );
+            return;
+        }
 
-            if (r1 < dMin || r1 > dMax) {
-                Logger.warnOnce(
-                    `Invalid range end [${end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
-                );
-                return;
-            }
+        if (r1 < dMin || r1 > dMax) {
+            Logger.warnOnce(
+                `Invalid range end [${end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
+            );
+            return;
         }
 
         const diff = d1 - d0;

@@ -1,3 +1,5 @@
+import type { AxisID } from 'ag-charts-core';
+
 import type { EventsHub } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
@@ -85,6 +87,14 @@ export class AxisManager {
         }
 
         this.eventsHub.emit('axis:change', null);
+    }
+
+    getAxisIdContext(id: AxisID): AxisContext | undefined {
+        for (const [, contextsInThisDir] of this.axes) {
+            for (const ctx of contextsInThisDir) {
+                if (ctx.axisId === id) return ctx;
+            }
+        }
     }
 
     getAxisContext(direction: ChartAxisDirection) {
