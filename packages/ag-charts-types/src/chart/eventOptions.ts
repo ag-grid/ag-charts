@@ -68,6 +68,7 @@ export type AgZoomEventSource = 'user-interaction' | 'reset' | 'chart-update' | 
 
 export interface AgZoomEvent<TContext = ContextDefault> {
     type: 'zoom';
+    source: AgZoomEventSource;
     rangeX?: AgZoomEventRange;
     rangeY?: AgZoomEventRange;
     ratioX: AgZoomEventRatio;

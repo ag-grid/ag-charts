@@ -139,7 +139,7 @@ export class ZoomManager extends BaseManager {
     private state: CoreZoomStateSafeRetrieval = {};
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
-    private didCompleteChange = false;
+    private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
@@ -174,9 +174,10 @@ export class ZoomManager extends BaseManager {
             }),
             updateService.addListener('update-complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
-                if (this.didCompleteChange) {
-                    this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
-                    this.didCompleteChange = false;
+                if (this.pendingZoomEventSource) {
+                    const source = this.pendingZoomEventSource;
+                    this.fireChartEvent<AgZoomEvent>({ type: 'zoom', source, ...this.getMementoRanges() });
+                    this.pendingZoomEventSource = undefined;
                 }
             })
         );
@@ -606,7 +607,7 @@ export class ZoomManager extends BaseManager {
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
-            this.didCompleteChange = true; // emit API AgZoomEvent when the redraw completes
+            this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;
     }
