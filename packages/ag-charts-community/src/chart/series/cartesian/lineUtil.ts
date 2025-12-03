@@ -135,13 +135,15 @@ export function interpolatePoints(
             spans = stepPoints(pointsIter, interpolation.position);
             break;
     }
-    return spans.map((span, i) => ({
-        span,
-        xValue0: points[i].xDatum,
-        yValue0: points[i].yDatum,
-        xValue1: points[i + 1].xDatum,
-        yValue1: points[i + 1].yDatum,
-    }));
+    return spans.map(function spanToLinePathSpan(span, i) {
+        return {
+            span,
+            xValue0: points[i].xDatum,
+            yValue0: points[i].yDatum,
+            xValue1: points[i + 1].xDatum,
+            yValue1: points[i + 1].yDatum,
+        };
+    });
 }
 
 export function pointsEq(a: Point, b: Point, delta = 1e-3) {
