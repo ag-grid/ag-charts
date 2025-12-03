@@ -1,5 +1,4 @@
 import {
-    ChartAxisDirection,
     type ChartModuleDefinition,
     type CloneOptions,
     Debug,
@@ -45,7 +44,8 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { ExpectedModules } from '../chart/factory/expectedModules';
+import { ChartAxisDirection } from '../chart/chartAxisDirection';
+import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
 import {
     processModuleOptions,
     removeIncompatibleModuleOptions,
@@ -336,7 +336,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must run before chart validation to cleanup invalid types.
         removeIncompatibleModuleOptions(undefined, options);
 
-        this.validateSeriesOptions(options);
+        const missingSeriesModules = this.validateSeriesOptions(options);
 
         const chartType = detectChartType(options);
 
@@ -378,7 +378,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        processModuleOptions(this.chartDef.name, processedOptions);
+        processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules);
 
         this.validateSeriesOptions(processedOptions);
 
@@ -415,10 +415,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private validateSeriesOptions(options: T): void {
+    private validateSeriesOptions(options: T): ModulePlaceholder[] {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
+        const missingModules: ModulePlaceholder[] = [];
 
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
@@ -440,6 +441,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     'or',
                     stringFormat
                 );
+
+                const modulePlaceholder = ExpectedModules.get(seriesOptions.type);
+                if (seriesOptions.type != null && modulePlaceholder?.type === ModuleType.Series) {
+                    missingModules.push(modulePlaceholder);
+                    continue;
+                }
+
                 Logger.warn(
                     seriesOptions.type == null
                         ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
@@ -470,6 +478,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
         options.series = validatedSeriesOptions;
+
+        return missingModules;
     }
 
     private validateAxesOptions(options: T, unmappedAxisIds?: Map<string, string>) {
@@ -508,9 +518,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
 
-                Logger.warn(
-                    `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
-                );
+                const modulePlaceholder = ExpectedModules.get(axisOptions.type);
+                if (modulePlaceholder?.type !== ModuleType.Axis) {
+                    Logger.warn(
+                        `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
+                    );
+                }
                 continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(

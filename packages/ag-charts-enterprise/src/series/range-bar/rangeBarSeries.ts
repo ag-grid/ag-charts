@@ -7,18 +7,13 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_SPAN,
     type CallbackParamRules,
-    ChartAxisDirection,
+    type DomainInput,
     type Mutable,
     type Point,
     type RequireOptional,
     type Scale,
-    areScalingEqual,
+    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -34,6 +29,7 @@ const {
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
+    ChartAxisDirection,
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
@@ -54,7 +50,13 @@ const {
     Rect,
     PointerEvents,
     motion,
+    areScalingEqual,
     processedDataIsAnimatable,
+    AGGREGATION_SPAN,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
     getItemStyles,
     calculateSegments,
     toHighlightString,
@@ -321,9 +323,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -332,17 +334,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue');
             const fixedYExtent = findMinMax(yExtent);
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
@@ -874,7 +877,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const datumIndex = params.datumIndex;
 
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
 
         const yLowText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
             yLowValue,

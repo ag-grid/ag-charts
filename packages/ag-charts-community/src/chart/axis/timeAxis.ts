@@ -5,6 +5,7 @@ import {
     Property,
     ProxyPropertyOnWrite,
     dateTruncationForDomain,
+    extractDomain,
     intervalEpoch,
     intervalFloor,
     intervalMilliseconds,
@@ -198,7 +199,7 @@ export function calculateDefaultUnit(
     for (const series of boundSeries) {
         if (!series.visible) continue;
 
-        const { extent: domain } = normalisedTimeExtentWithMetadata(series.getDomain(direction));
+        const { extent: domain } = normalisedTimeExtentWithMetadata(extractDomain(series.getDomain(direction)));
         if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();

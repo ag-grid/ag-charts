@@ -64,7 +64,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         },
     },
     gradientLegend: {
-        enabled: true,
+        enabled: { $if: [{ $path: '../series/0/colorKey' }, true, false] },
     },
 };
 

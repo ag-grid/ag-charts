@@ -24,7 +24,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
         itemPadding: 3,
         highlight: {
             unhighlightedItem: {
-                opacity: 0.4,
+                opacity: 0.6,
             },
         },
     },

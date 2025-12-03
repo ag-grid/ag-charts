@@ -1,3 +1,7 @@
+import { type ScaleType, extractDomain, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
+
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -5,7 +9,6 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
-    type ScaleType,
     aggregationDomain,
     aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
@@ -13,12 +16,7 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    nextPowerOf2,
-    simpleMemorize2,
-} from 'ag-charts-core';
-
-import type { DataModel } from '../../data/dataModel';
-import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+} from '../aggregation';
 
 const MAX_POINTS = 10;
 
@@ -388,7 +386,7 @@ export function aggregateLineDataFromDataModel(
 ): LineSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = dataModel.getDomain(series, 'xValue', 'value', processedData);
+    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'value', processedData));
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
@@ -430,7 +428,7 @@ export function aggregateLineDataFromDataModelPartial(
 ): PartialLineAggregationResult | undefined {
     const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = dataModel.getDomain(series, 'xValue', 'value', processedData);
+    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'value', processedData));
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);

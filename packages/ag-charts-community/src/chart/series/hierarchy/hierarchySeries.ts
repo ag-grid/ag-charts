@@ -286,7 +286,7 @@ export abstract class HierarchySeries<
     }
 
     override getSeriesDomain() {
-        return [Number.NaN, Number.NaN];
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {

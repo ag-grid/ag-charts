@@ -110,7 +110,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             },
         },
         gradientLegend: {
-            enabled: true,
+            enabled: { $if: [{ $path: '../series/0/colorKey' }, true, false] },
         },
     },
 

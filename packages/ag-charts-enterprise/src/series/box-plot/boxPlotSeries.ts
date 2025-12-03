@@ -125,19 +125,20 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
+        if (!(processedData && dataModel)) return { domain: [] };
 
         if (direction !== this.getBarDirection()) {
             const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = processedData.domain.keys[index];
             if (def.type === 'key' && def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         }
 
         const yExtent = this.domainForClippedRange(direction, ['minValue', 'maxValue'], 'xValue');
-        return fixNumericExtent(yExtent);
+        return { domain: fixNumericExtent(yExtent) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {

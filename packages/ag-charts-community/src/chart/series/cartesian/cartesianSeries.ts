@@ -6,6 +6,7 @@ import {
     Property,
     type Scale,
     StateMachine,
+    extractDomain,
     findMaxIndex,
     findMinIndex,
     findMinMax,
@@ -479,9 +480,9 @@ export abstract class CartesianSeries<
         const [axisX1, axisX2] = findMinMax(xAxis?.range ?? [0, 1]);
         const [axisY1, axisY2] = findMinMax(yAxis?.range ?? [0, 1]);
 
-        const xSeriesDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const xSeriesDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.X));
         const xSeriesRange = [xAxis?.scale.convert(xSeriesDomain.at(0)), xAxis?.scale.convert(xSeriesDomain.at(-1))];
-        const ySeriesDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const ySeriesDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
         const ySeriesRange = [yAxis?.scale.convert(ySeriesDomain.at(0)), yAxis?.scale.convert(ySeriesDomain.at(-1))];
         const [seriesX1, seriesX2] = findMinMax(xSeriesRange);
         const [seriesY1, seriesY2] = findMinMax(ySeriesRange);

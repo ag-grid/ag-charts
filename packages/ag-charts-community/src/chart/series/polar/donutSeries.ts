@@ -9,6 +9,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     type WrapOptions,
+    extractDomain,
     formatValue,
     isGradientFill,
     isStringFillArray,
@@ -269,11 +270,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         return sector;
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection) {
         if (direction === ChartAxisDirection.Angle) {
-            return this.angleScale.domain;
+            return { domain: this.angleScale.domain };
         } else {
-            return this.radiusScale.domain;
+            return { domain: this.radiusScale.domain };
         }
     }
 
@@ -1654,7 +1655,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
-        const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
+        const domain = extractDomain(dataModel.getDomain(this, `angleRaw`, 'value', processedData));
         const angleContent =
             formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',

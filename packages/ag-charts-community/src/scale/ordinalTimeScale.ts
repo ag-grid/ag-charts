@@ -1,9 +1,12 @@
 import {
+    type DomainInput,
     type NormalizedDomain,
     ScaleAlignment,
     type ScaleTickParams,
     type ScaleTickResult,
     datesSortOrder,
+    extractDomain,
+    isDomainWithMetadata,
     sortAndUniqueDates,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
@@ -40,14 +43,24 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return this._bands;
     }
 
-    override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
-        const sortedDomains = domains.filter((domain) => domain.length > 0);
+    override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
+        const nonEmptyDomains = domains.filter((d) => extractDomain(d).length > 0);
 
-        if (sortedDomains.length === 0) {
+        if (nonEmptyDomains.length === 0) {
             return { domain: [], animatable: false };
-        } else if (sortedDomains.length === 1) {
-            let domain = sortedDomains[0];
-            const sortOrder = datesSortOrder(domain);
+        } else if (nonEmptyDomains.length === 1) {
+            const input = nonEmptyDomains[0];
+            let domain = extractDomain(input);
+
+            // OPTIMIZATION: Use pre-computed metadata when available to skip O(n) datesSortOrder scan
+            let sortOrder: 1 | -1 | undefined;
+            if (isDomainWithMetadata(input) && input.sortMetadata?.sortOrder !== undefined) {
+                sortOrder = input.sortMetadata.sortOrder;
+            } else {
+                // Fallback to scanning when metadata not available
+                sortOrder = datesSortOrder(domain);
+            }
+
             if (sortOrder === -1) {
                 domain = domain.slice().reverse();
             } else if (sortOrder == null) {
@@ -56,8 +69,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             return { domain, animatable: true };
         }
 
+        // Multiple domains - must merge and sort, metadata not applicable
         return {
-            domain: sortAndUniqueDates(sortedDomains.flat()),
+            domain: sortAndUniqueDates(nonEmptyDomains.map(extractDomain).flat()),
             animatable: true,
         };
     }

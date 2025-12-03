@@ -6,8 +6,8 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, easeOut, isContinuous, mergeDefaults } from 'ag-charts-core';
+import type { DomainInput, Point, RequireOptional } from 'ag-charts-core';
+import { extractDomain, isContinuous, mergeDefaults } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -20,6 +20,7 @@ const {
     keyProperty,
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
+    ChartAxisDirection,
     createDatumId,
     checkCrisp,
     updateLabelNode,
@@ -202,9 +203,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -214,20 +215,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
             const isDirectionY = direction === ChartAxisDirection.Y;
             const isReversed = this.getCategoryAxis()!.isReversed();
-            return this.padBandExtent(keys, isReversed !== isDirectionY);
+            return { domain: this.padBandExtent(keys, isReversed !== isDirectionY) };
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 
@@ -276,7 +281,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
 
         const crisp = checkCrisp(
             categoryAxis?.scale,
@@ -855,7 +860,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startX,
             to: endX,
-            ease: easeOut,
+            ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointX) {
                 linePath.clear(true);
@@ -907,7 +912,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startY,
             to: endY,
-            ease: easeOut,
+            ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointY) {
                 linePath.clear(true);

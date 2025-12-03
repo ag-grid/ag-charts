@@ -1,6 +1,6 @@
 import {
     type CallbackParamRules,
-    ChartAxisDirection,
+    type DomainInput,
     type LabelPlacement,
     type MeasuredLabel,
     type PlacedLabel,
@@ -11,6 +11,7 @@ import {
     clamp,
     dateToNumber,
     extent,
+    extractDomain,
     formatValue,
     isArray,
     measureTextSegments,
@@ -45,6 +46,7 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
@@ -233,9 +235,9 @@ export class BubbleSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const dataValues: { [K in ChartAxisDirection]?: string } = {
             [ChartAxisDirection.X]: 'xValue',
@@ -244,16 +246,17 @@ export class BubbleSeries extends CartesianSeries<
 
         const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
-        const domain = dataModel.getDomain(this, id, 'value', processedData);
+        const domain = extractDomain(dataModel.getDomain(this, id, 'value', processedData));
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
-            return domain;
+            const sortMetadata = dataModel.getKeySortMetadata(this, id, processedData);
+            return { domain, sortMetadata };
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
         const crossId = dataValues[crossDirection]!;
 
         const ext = this.domainForClippedRange(direction, [id], crossId);
-        return fixNumericExtent(extent(ext));
+        return { domain: fixNumericExtent(extent(ext)) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
@@ -321,14 +324,20 @@ export class BubbleSeries extends CartesianSeries<
                 xVisibleRange = rescaleVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `xValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData)).map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
             if (ContinuousScale.is(yScale)) {
                 yVisibleRange = rescaleVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `yValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    extractDomain(dataModel.getDomain(this, `yValue`, 'value', processedData)).map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
         }
@@ -383,7 +392,7 @@ export class BubbleSeries extends CartesianSeries<
         if (labelKey) {
             labelTextDomain = [];
         } else if (sizeKey) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            labelTextDomain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
         } else {
             labelTextDomain = [];
         }
@@ -886,7 +895,7 @@ export class BubbleSeries extends CartesianSeries<
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
             // Only add size row if value is not null/undefined
             if (value != null) {
-                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+                const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
                 const content = formatManager.format(this.callWithContext.bind(this), {
                     type: 'number',
                     value,

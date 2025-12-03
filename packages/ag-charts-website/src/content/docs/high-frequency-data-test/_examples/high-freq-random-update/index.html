@@ -31,6 +31,10 @@
             <option value="range-bar">Range Bar</option>
             <option value="range-area">Range Area</option>
         </select>
+        <select id="axisTypeSelect" onchange="updateAxisType(this.value)">
+            <option value="time" selected>time</option>
+            <option value="ordinal-time">ordinal-time</option>
+        </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
         <span id="fpsCounter" style="margin-left: 10px">FPS: 0</span>
         <span id="dataCount" style="margin-left: 10px">Points: 100000</span>

@@ -1,5 +1,5 @@
-import type { ScaleType } from 'ag-charts-core';
 import {
+    type ScaleType,
     clamp,
     isContinuous,
     isFiniteNumber,
@@ -13,6 +13,7 @@ import {
     type DataGroup,
     type DatumPropertyDefinition,
     type GroupValueProcessorDefinition,
+    KEY_SORT_ORDERS,
     type ProcessedData,
     type ProcessedOutputDiff,
     type ProcessorFn,
@@ -388,20 +389,17 @@ export function normalisePropertyTo(
 
 const ANIMATION_VALIDATION_UNIQUE_KEYS = 0b01;
 const ANIMATION_VALIDATION_ORDERED_KEYS = 0b10;
-function animationValidationProcessKey(
-    count: number,
-    def: DatumPropertyDefinition<unknown>,
-    keyValues: any[],
-    column: any[]
-) {
+
+function animationValidationProcessValue(def: DatumPropertyDefinition<unknown>, domainValues: any[], column: any[]) {
     let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
     if (def.valueType === 'category') {
-        if (keyValues.length < count) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
-
+        // For category values, check if domain has fewer values than column (duplicates exist)
+        if (domainValues.length < column.length) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
         return validation;
     }
 
+    // For continuous values, scan the column
     let lastValue = column[0]?.valueOf();
     for (let d = 1; validation !== 0 && d < column.length; d++) {
         const keyValue = column[d]?.valueOf();
@@ -420,37 +418,47 @@ function buildAnimationValidationFn(valueKeyIds?: string[]) {
         const { keys: keysDefs, values: valuesDef } = result.defs;
         const {
             input,
-            domain: { keys: domainKeys, values: domainValues },
-            keys,
+            domain: { values: domainValues },
             columns,
-            invalidKeyCount,
         } = result;
 
-        let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
+        let uniqueKeys = true;
+        let orderedKeys = true;
 
         if (input.count !== 0) {
-            for (let i = 0; validation !== 0 && i < keysDefs.length; i++) {
-                for (const scope of keysDefs[i].scopes) {
-                    const column = keys[i].get(scope)!;
-                    const missingKeys = invalidKeyCount?.get(scope) ?? 0;
-                    const count = column.length - missingKeys;
-                    validation &= animationValidationProcessKey(count, keysDefs[i], domainKeys[i], column);
+            // Use pre-computed KEY_SORT_ORDERS metadata for keys (computed during extraction)
+            const keySortOrders = result[KEY_SORT_ORDERS];
+            for (let i = 0; (uniqueKeys || orderedKeys) && i < keysDefs.length; i++) {
+                const def = keysDefs[i];
+                const entry = keySortOrders.get(i);
+
+                if (def.valueType === 'category') {
+                    // For category keys, check uniqueness via domain size vs data size
+                    // (categories don't have a meaningful sort order)
+                    const domainSize = result.domain.keys[i]?.length ?? 0;
+                    const dataSize = result.keys[i]?.values().next().value?.length ?? 0;
+                    if (domainSize < dataSize) uniqueKeys = false;
+                } else if (entry) {
+                    // Use pre-computed metadata for continuous keys - no scanning needed!
+                    if (entry.isUnique === false) uniqueKeys = false;
+                    if (entry.sortOrder !== 1) orderedKeys = false;
                 }
             }
 
-            for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
-                const value = valuesDef[i];
-
-                if (!valueKeyIds?.includes(value.id as string)) continue;
-
-                validation &= animationValidationProcessKey(0 /* Count not used */, value, domainValues[i], columns[i]);
+            // Process value keys if specified (these don't have pre-computed metadata)
+            if (valueKeyIds && valueKeyIds.length > 0) {
+                let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
+                for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
+                    const value = valuesDef[i];
+                    if (!valueKeyIds.includes(value.id as string)) continue;
+                    validation &= animationValidationProcessValue(value, domainValues[i], columns[i]);
+                }
+                if ((validation & ANIMATION_VALIDATION_UNIQUE_KEYS) === 0) uniqueKeys = false;
+                if ((validation & ANIMATION_VALIDATION_ORDERED_KEYS) === 0) orderedKeys = false;
             }
         }
 
-        return {
-            uniqueKeys: (validation & ANIMATION_VALIDATION_UNIQUE_KEYS) !== 0,
-            orderedKeys: (validation & ANIMATION_VALIDATION_ORDERED_KEYS) !== 0,
-        };
+        return { uniqueKeys, orderedKeys };
     };
 }
 

@@ -12,6 +12,7 @@ import {
     isArray,
     isDefined,
     isObject,
+    unique,
 } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -39,7 +40,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
         const missingPlugins = missingModules.get(ModuleType.Plugin);
         if (!isObject(target) || !missingPlugins) return;
         for (const pluginName of missingPlugins) {
-            if (pluginName in target) {
+            if (pluginName in target && target[pluginName].enabled !== true) {
                 delete target[pluginName];
             }
         }
@@ -59,7 +60,7 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
         const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
         if (!isObject(target) || !missingAxisPlugins) return;
         for (const pluginName of missingAxisPlugins) {
-            if (pluginName in target) {
+            if (pluginName in target && target[pluginName].enabled !== true) {
                 delete target[pluginName];
             }
         }
@@ -133,8 +134,12 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     });
 }
 
-export function processModuleOptions<T extends Partial<AgChartOptions>>(chartType: string | undefined, options: T) {
-    const missingModules = removeUnregisteredModuleOptions(chartType, options);
+export function processModuleOptions<T extends Partial<AgChartOptions>>(
+    chartType: string | undefined,
+    options: T,
+    additionalMissingModules: ModulePlaceholder[]
+): void {
+    const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
 
     if (!missingModules.length) return;
 
@@ -153,7 +158,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(chartTyp
                 '',
                 ModuleRegistry.isUmd()
                     ? `Install and register 'ag-charts-enterprise' before creating the chart.`
-                    : createReigstrySnippet(missingModules.map(formatMissingModuleName), packageName),
+                    : createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName),
                 '',
                 `See ${installationReferenceUrl} for more details.`,
             ].join('\n')
@@ -175,7 +180,7 @@ function formatImports(imports: string[], packageName: string) {
         : null;
 }
 
-function createReigstrySnippet(moduleNames: string[], packageName: string): string {
+function createRegistrySnippet(moduleNames: string[], packageName: string): string {
     const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
     const moduleList = moduleNames.map(formatImportItem).join('\n');
     return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
@@ -241,9 +246,11 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             case 'axis:plugin':
                 for (const axis of Object.values(optionsAxes)) {
                     const axisModuleKey = module.name as keyof typeof axis;
-                    if (axis?.[axisModuleKey] && axis[axisModuleKey].enabled !== false) {
+                    if (axis?.[axisModuleKey]) {
+                        if (axis[axisModuleKey].enabled !== false) {
+                            addMissingModule(module);
+                        }
                         delete axis[axisModuleKey];
-                        addMissingModule(module);
                     }
                 }
                 break;

@@ -1,16 +1,5 @@
-import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
-import {
-    AGGREGATION_INDEX_UNSET,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_SPAN,
-    ChartAxisDirection,
-    areScalingEqual,
-    isFiniteNumber,
-    mergeDefaults,
-} from 'ag-charts-core';
+import type { CallbackParamRules, DomainInput, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
+import { extractDomain, isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -35,6 +24,7 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
@@ -61,6 +51,14 @@ import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
+    AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+} from './../aggregation';
+import {
     AbstractBarSeries,
     type AbstractBarSeriesAnimationData,
     type AbstractBarSeriesNodeDataContext,
@@ -86,6 +84,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
+import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
@@ -376,24 +375,24 @@ export class BarSeries extends AbstractBarSeries<
         return dataModel.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
 
-        if (dataModel == null || processedData == null) return [];
+        if (dataModel == null || processedData == null) return { domain: [] };
 
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
+                return keys; // DomainInput with sortMetadata already attached
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(extractDomain(keys)) };
         }
 
         const yKey = this.yCumulativeKey(dataModel);
         let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
         const yFilterExtent = this.crossFilteringEnabled()
-            ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
+            ? extractDomain(dataModel.getDomain(this, `yFilterValue`, 'value', processedData))
             : undefined;
         if (yFilterExtent != null) {
             yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
@@ -404,9 +403,9 @@ export class BarSeries extends AbstractBarSeries<
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         } else {
-            return fixNumericExtent(yExtent);
+            return { domain: fixNumericExtent(yExtent) };
         }
     }
 
@@ -542,7 +541,7 @@ export class BarSeries extends AbstractBarSeries<
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
         };
     }
 
@@ -1250,8 +1249,10 @@ export class BarSeries extends AbstractBarSeries<
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
+        const yDomain = extractDomain(
+            dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData)
+        );
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);

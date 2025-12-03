@@ -1,9 +1,8 @@
-import type { ChartAnimationPhase, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { DomainInput, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
     type CallbackParam,
-    ChartAxisDirection,
     CleanupRegistry,
     type DistantObject,
     EventEmitter,
@@ -12,11 +11,10 @@ import {
     Logger,
     type Point,
     type RequireOptional,
-    SeriesContentZIndexMap,
     type SeriesPluginModuleInstance,
-    SeriesZIndexMap,
     callWithContext,
     createId,
+    isDomainWithMetadata,
     isEmptyObject,
     isGradientFill,
     isPatternFill,
@@ -54,7 +52,9 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
+import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
@@ -74,6 +74,7 @@ import type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './seriesTypes';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {
@@ -570,11 +571,18 @@ export abstract class Series<
     }
 
     // The union of the series domain ('community') and series-option domains ('enterprise').
-    getDomain(direction: ChartAxisDirection): any[] {
-        const seriesDomain: any[] = this.getSeriesDomain(direction);
+    getDomain(direction: ChartAxisDirection): DomainInput<any> {
+        const seriesDomain = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
-        // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.length === 0 ? seriesDomain : seriesDomain.concat(moduleDomains);
+
+        if (moduleDomains.length === 0) {
+            // No module domains - preserve metadata from series domain
+            return seriesDomain;
+        }
+
+        // When merging with module domains, strip metadata (invalidated by merge)
+        const domain = isDomainWithMetadata(seriesDomain) ? seriesDomain.domain : seriesDomain;
+        return domain.concat(moduleDomains);
     }
 
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
@@ -600,7 +608,8 @@ export abstract class Series<
     abstract dataCount(): number;
 
     // Get the 'community' domain (excluding any additional data from series-option modules).
-    abstract getSeriesDomain(direction: ChartAxisDirection): any[];
+    // Returns DomainInput which may include sort metadata for optimization.
+    abstract getSeriesDomain(direction: ChartAxisDirection): DomainInput<any>;
 
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];

@@ -1,15 +1,15 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type {
-    ChartAnimationPhase,
-    Feature,
-    FeatureCollection,
-    Geometry,
-    ITextMeasurer,
-    PlacedLabel,
-    Point,
-    SizedPoint,
+import {
+    type ITextMeasurer,
+    Logger,
+    type PlacedLabel,
+    type Point,
+    type SizedPoint,
+    StateMachine,
+    cachedTextMeasurer,
+    extractDomain,
+    mergeDefaults,
 } from 'ag-charts-core';
-import { Logger, LonLatBBox, StateMachine, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -38,6 +38,7 @@ const {
     Text,
     Marker,
     getLabelStyles,
+    LonLatBBox,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -78,11 +79,11 @@ export class MapMarkerSeries
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: LonLatBBox | undefined;
+    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
 
     override properties = new MapMarkerSeriesProperties();
 
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     public override getNodeData(): MapMarkerNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -248,13 +249,13 @@ export class MapMarkerSeries
         const featureValues =
             idKey == null
                 ? undefined
-                : dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+                : dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData);
         const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
         const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         this.topologyBounds = processedData.dataSources
             .get(this.id)
-            ?.data.reduce<LonLatBBox | undefined>((current, _datum, datumIndex) => {
-                const feature: Feature | undefined = featureValues?.[datumIndex];
+            ?.data.reduce<_ModuleSupport.LonLatBBox | undefined>((current, _datum, datumIndex) => {
+                const feature: _ModuleSupport.Feature | undefined = featureValues?.[datumIndex];
                 const geometry = feature?.geometry;
                 if (geometry != null) {
                     current = geometryBbox(geometry, current);
@@ -382,7 +383,7 @@ export class MapMarkerSeries
 
         return {
             idValues: this.resolveColumn<string>(idKey, 'idValue', processedData),
-            featureValues: this.resolveColumn<Feature | undefined>(idKey, 'featureValue', processedData),
+            featureValues: this.resolveColumn<_ModuleSupport.Feature | undefined>(idKey, 'featureValue', processedData),
             latValues: hasLatLon ? this.resolveColumn<number>(latitudeKey, 'latValue', processedData) : undefined,
             lonValues: hasLatLon ? this.resolveColumn<number>(longitudeKey, 'lonValue', processedData) : undefined,
             labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
@@ -393,12 +394,12 @@ export class MapMarkerSeries
 
     private prepareProjectedGeometries(
         idValues: string[] | undefined,
-        featureValues: (Feature | undefined)[] | undefined,
+        featureValues: (_ModuleSupport.Feature | undefined)[] | undefined,
         processedData: _ModuleSupport.ProcessedData<any>
-    ): Map<string, Geometry> | undefined {
+    ): Map<string, _ModuleSupport.Geometry> | undefined {
         if (idValues == null || featureValues == null || this.scale == null) return undefined;
 
-        const projectedGeometries = new Map<string, Geometry>();
+        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
             const id = idValues[datumIndex];
             const geometry = featureValues[datumIndex]?.geometry;
@@ -466,7 +467,7 @@ export class MapMarkerSeries
     private createNodesFromGeometry(
         datum: any,
         datumIndex: number,
-        geometry: Geometry,
+        geometry: _ModuleSupport.Geometry,
         dataValues: MarkerDataValues,
         size: number,
         measurer: ITextMeasurer
@@ -502,8 +503,8 @@ export class MapMarkerSeries
         Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
-    private buildFeatureMap(topologyIdKey: string): Map<string, Feature> {
-        const featureById = new Map<string, Feature>();
+    private buildFeatureMap(topologyIdKey: string): Map<string, _ModuleSupport.Feature> {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
 
         for (const feature of this.topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
@@ -825,7 +826,7 @@ export class MapMarkerSeries
         return true;
     }
 
-    override resetAnimation(phase: ChartAnimationPhase): void {
+    override resetAnimation(phase: _ModuleSupport.ChartAnimationPhase): void {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -998,7 +999,7 @@ export class MapMarkerSeries
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (sizeKey != null && sizeValue != null) {
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: sizeValue,
@@ -1015,7 +1016,7 @@ export class MapMarkerSeries
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorKey != null && colorValue != null) {
-            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `colorValue`, 'value', processedData));
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,

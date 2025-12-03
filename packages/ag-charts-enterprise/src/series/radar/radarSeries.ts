@@ -9,10 +9,11 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParam,
-    ChartAxisDirection,
+    type DomainInput,
     type Point,
     type RequireOptional,
     extent,
+    extractDomain,
     isFiniteNumber,
     isNumberEqual,
     mergeDefaults,
@@ -23,6 +24,7 @@ import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesPropert
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
+    ChartAxisDirection,
     PolarAxis,
     SeriesNodePickMode,
     valueProperty,
@@ -128,16 +130,18 @@ export abstract class RadarSeries<
         return new Marker();
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            return dataModel.getDomain(this, `angleValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `angleValue`, 'value', processedData));
+            const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
+            return { domain, sortMetadata };
         } else {
-            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `radiusValue`, 'value', processedData));
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return fixNumericExtent(ext);
+            return { domain: fixNumericExtent(ext) };
         }
     }
 
@@ -207,7 +211,7 @@ export abstract class RadarSeries<
         const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
+        const radiusDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Radius));
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {

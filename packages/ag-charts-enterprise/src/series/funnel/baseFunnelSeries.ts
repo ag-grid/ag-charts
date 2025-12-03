@@ -4,8 +4,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
+import type { DomainInput, Point, RequireOptional } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -13,8 +12,10 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
+    SeriesZIndexMap,
     valueProperty,
     keyProperty,
+    ChartAxisDirection,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -216,14 +217,14 @@ export abstract class BaseFunnelSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const {
             processedData,
             dataModel,
             id: seriesId,
             ctx: { legendManager },
         } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -232,19 +233,24 @@ export abstract class BaseFunnelSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                if (!this.hasData) return [];
-                return keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
+                if (!this.hasData) return { domain: [] };
+                const domain = keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue');
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

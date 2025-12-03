@@ -6,12 +6,12 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    type ChartAnimationPhase,
-    ChartAxisDirection,
+    type DomainInput,
     type Point,
     StateMachine,
     type Writeable,
     cachedTextMeasurer,
+    extractDomain,
     isArray,
     measureTextSegments,
     mergeDefaults,
@@ -147,7 +147,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return this.contextNodeData?.nodeData;
     }
 
-    override resetAnimation(phase: ChartAnimationPhase): void {
+    override resetAnimation(phase: _ModuleSupport.ChartAnimationPhase): void {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -207,8 +207,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
-        const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData);
-        const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, 'xValue', 'value', processedData));
+        const yDomain = extractDomain(dataModel.getDomain(this, 'yValue', 'value', processedData));
 
         const textMeasurer = cachedTextMeasurer(stageLabel);
 
@@ -683,7 +683,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             'x',
-            dataModel.getDomain(this, 'xValue', 'value', processedData),
+            extractDomain(dataModel.getDomain(this, 'xValue', 'value', processedData)),
             this.properties.stageLabel,
             { datum, value: xValue, stageKey, valueKey }
         );
@@ -706,11 +706,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override getSeriesDomain(): any[] {
-        return [Number.NaN, Number.NaN];
+    override getSeriesDomain(): DomainInput<any> {
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 
