@@ -1,4 +1,5 @@
 import {
+    type DomainInput,
     type Point,
     type RequireOptional,
     createTicks,
@@ -292,19 +293,19 @@ export class HistogramSeries extends CartesianSeries<
         return [Number.NaN, Number.NaN];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.calculatedBins.length) return [];
+        if (!processedData || !dataModel || !this.calculatedBins.length) return { domain: [] };
 
         const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
         const xDomainMin = this.calculatedBins[0].domain[0];
         const xDomainMax = this.calculatedBins[(this.calculatedBins?.length ?? 0) - 1].domain[1];
         if (direction === ChartAxisDirection.X) {
-            return fixNumericExtent([xDomainMin, xDomainMax]);
+            return { domain: fixNumericExtent([xDomainMin, xDomainMax]) };
         }
 
-        return fixNumericExtent(yDomain);
+        return { domain: fixNumericExtent(yDomain) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {

@@ -6,6 +6,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type DomainInput,
     type Point,
     StateMachine,
     type Writeable,
@@ -704,8 +705,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override getSeriesDomain(): any[] {
-        return [Number.NaN, Number.NaN];
+    override getSeriesDomain(): DomainInput<any> {
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
     override getSeriesRange(

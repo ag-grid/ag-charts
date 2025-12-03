@@ -8,10 +8,12 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    type DomainInput,
     type Mutable,
     type Point,
     type RequireOptional,
     type Scale,
+    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -321,9 +323,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -332,13 +334,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue');
             const fixedYExtent = findMinMax(yExtent);
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
@@ -874,7 +877,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const datumIndex = params.datumIndex;
 
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
 
         const yLowText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
             yLowValue,

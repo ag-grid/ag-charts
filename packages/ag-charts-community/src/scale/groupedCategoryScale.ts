@@ -1,4 +1,4 @@
-import type { NormalizedDomain } from 'ag-charts-core';
+import type { DomainInput, NormalizedDomain } from 'ag-charts-core';
 
 import { CategoryScale } from './categoryScale';
 
@@ -7,7 +7,7 @@ export class GroupedCategoryScale<D, I = number> extends CategoryScale<D, I> {
         return value instanceof GroupedCategoryScale;
     }
 
-    override normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+    override normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D> {
         const { domain } = super.normalizeDomains(...domains);
         return { domain, animatable: false };
     }

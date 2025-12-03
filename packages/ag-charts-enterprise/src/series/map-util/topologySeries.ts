@@ -35,7 +35,7 @@ export abstract class TopologySeries<
     }
 
     override getSeriesDomain() {
-        return [Number.NaN, Number.NaN];
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
     override getSeriesRange(

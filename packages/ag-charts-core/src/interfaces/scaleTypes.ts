@@ -2,6 +2,43 @@ import type { AgTimeInterval } from 'ag-charts-types';
 
 export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
 
+/**
+ * Metadata about a domain's sort characteristics.
+ * Used to skip expensive sort order detection in scales.
+ */
+export interface DomainSortMetadata {
+    /** Sort order: 1 = ascending, -1 = descending, undefined = unsorted/unknown */
+    sortOrder: 1 | -1 | undefined;
+    /** True if all values are unique (no duplicates) */
+    isUnique?: boolean;
+}
+
+/**
+ * A domain array with optional metadata for optimization.
+ * When metadata is present, scales can skip expensive scans.
+ */
+export interface DomainWithMetadata<D> {
+    domain: D[];
+    sortMetadata?: DomainSortMetadata;
+}
+
+/** Input type for normalizeDomains - either a plain array or annotated domain. */
+export type DomainInput<D> = D[] | DomainWithMetadata<D>;
+
+/**
+ * Type guard to check if a domain has metadata attached.
+ */
+export function isDomainWithMetadata<D>(value: DomainInput<D>): value is DomainWithMetadata<D> {
+    return value != null && typeof value === 'object' && 'domain' in value && Array.isArray((value as any).domain);
+}
+
+/**
+ * Extract domain array from either plain array or annotated domain.
+ */
+export function extractDomain<D>(value: DomainInput<D>): D[] {
+    return isDomainWithMetadata(value) ? value.domain : value;
+}
+
 export interface ScaleTickParams<I> {
     nice: boolean[];
     interval: I | undefined;
@@ -40,7 +77,7 @@ export interface Scale<D, R, I = number> {
     readonly defaultTickCount: number;
     domain: D[];
     range: R[];
-    normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
+    normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     invert(value: R, exact?: boolean): D | undefined;

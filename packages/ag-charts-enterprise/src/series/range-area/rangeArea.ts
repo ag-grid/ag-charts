@@ -13,10 +13,11 @@ import type {
     CallbackParamRules,
     ConstructorReturnType,
     DeepRequired,
+    DomainInput,
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
+import { extent, extractDomain, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import {
     HIGH,
@@ -323,7 +324,7 @@ export class RangeAreaSeries extends BaseSeries {
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             item: this.properties.item,
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
             connectMissingData: this.properties.connectMissingData,
             interpolation: this.properties.interpolation,
             markerData: canIncrementallyUpdate ? existingMarkerData : [],
@@ -343,9 +344,9 @@ export class RangeAreaSeries extends BaseSeries {
         return [y, y];
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
+        if (!(processedData && dataModel)) return { domain: [] };
 
         const {
             domain: {
@@ -356,13 +357,14 @@ export class RangeAreaSeries extends BaseSeries {
         if (direction === ChartAxisDirection.X) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return fixNumericExtent(extent(keys));
+            return { domain: fixNumericExtent(extent(keys)) };
         } else {
             const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue');
             const fixedYExtent = findMinMax(yExtent);
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
@@ -682,7 +684,7 @@ export class RangeAreaSeries extends BaseSeries {
                 ? -1
                 : 1;
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
 
         return {
             x: point.x,

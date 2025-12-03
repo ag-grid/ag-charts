@@ -1,5 +1,5 @@
-import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
-import { clamp, dateToNumber, previousPowerOf2 } from 'ag-charts-core';
+import type { DomainInput, NormalizedDomain, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import { clamp, dateToNumber, extractDomain, previousPowerOf2 } from 'ag-charts-core';
 
 import { BandScale } from './bandScale';
 import { filterVisibleTicks } from './scaleUtil';
@@ -40,12 +40,13 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return this._domain;
     }
 
-    override normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+    override normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D> {
         let normalizedDomain: D[] | undefined = undefined;
         const seenDomains = new Set<D[]>();
 
         let animatable = true;
-        for (const domain of domains) {
+        for (const input of domains) {
+            const domain = extractDomain(input);
             if (seenDomains.has(domain)) continue;
             seenDomains.add(domain);
 

@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type DomainInput,
     type InternalAgColorType,
     Logger,
     type Point,
@@ -202,15 +203,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return [y, y + height];
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
 
-        if (!dataModel || !processedData) return [];
+        if (!dataModel || !processedData) return { domain: [] };
 
         if (direction === ChartAxisDirection.X) {
-            return dataModel.getDomain(this, `xValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+            return { domain };
         } else {
-            return dataModel.getDomain(this, `yValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `yValue`, 'value', processedData);
+            return { domain };
         }
     }
 

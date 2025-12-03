@@ -1204,7 +1204,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     override getSeriesDomain() {
         // Not used - required to be set to a finite for animations
-        return [0, 1];
+        return { domain: [0, 1] };
     }
 
     override dataCount(): number {

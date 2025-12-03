@@ -5,7 +5,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, angleBetween, isDefined, isGradientFill } from 'ag-charts-core';
+import { type DomainInput, type Point, angleBetween, extractDomain, isDefined, isGradientFill } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -114,16 +114,18 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return new Sector();
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData);
             const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
-            return fixNumericExtent(fixedXExtent);
+            return { domain: fixNumericExtent(fixedXExtent) };
         } else {
-            return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
+            const domain = dataModel.getDomain(this, 'radiusValue', 'key', processedData);
+            const sortMetadata = dataModel.getKeySortMetadata(this, 'radiusValue', processedData);
+            return { domain, sortMetadata };
         }
     }
 
@@ -261,7 +263,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const angleDomain = this.getSeriesDomain(ChartAxisDirection.Angle);
+        const angleDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Angle));
 
         const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 

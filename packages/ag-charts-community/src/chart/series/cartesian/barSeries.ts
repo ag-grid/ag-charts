@@ -1,5 +1,5 @@
-import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
-import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainInput, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
+import { extractDomain, isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -375,18 +375,19 @@ export class BarSeries extends AbstractBarSeries<
         return dataModel.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
 
-        if (dataModel == null || processedData == null) return [];
+        if (dataModel == null || processedData == null) return { domain: [] };
 
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         }
 
         const yKey = this.yCumulativeKey(dataModel);
@@ -403,9 +404,9 @@ export class BarSeries extends AbstractBarSeries<
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         } else {
-            return fixNumericExtent(yExtent);
+            return { domain: fixNumericExtent(yExtent) };
         }
     }
 
@@ -541,7 +542,7 @@ export class BarSeries extends AbstractBarSeries<
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
         };
     }
 

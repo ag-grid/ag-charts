@@ -186,6 +186,17 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS], true) : undefined;
     }
 
+    getKeySortEntry(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: ProcessedData<K>
+    ): SortOrderEntry | undefined {
+        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
+        const entry = processedData[KEY_SORT_ORDERS].get(columnIndex);
+        // Return undefined if entry is dirty (needs recalculation)
+        return entry?.isDirty ? undefined : entry;
+    }
+
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
         // Use columnNeedValueOf metadata to determine if valueOf() is needed

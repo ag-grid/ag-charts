@@ -1,5 +1,6 @@
 import {
     type CallbackParamRules,
+    type DomainInput,
     type LabelPlacement,
     type MeasuredLabel,
     type PlacedLabel,
@@ -233,9 +234,9 @@ export class BubbleSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const dataValues: { [K in ChartAxisDirection]?: string } = {
             [ChartAxisDirection.X]: 'xValue',
@@ -246,14 +247,15 @@ export class BubbleSeries extends CartesianSeries<
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
         const domain = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
-            return domain;
+            const sortMetadata = dataModel.getKeySortMetadata(this, id, processedData);
+            return { domain, sortMetadata };
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
         const crossId = dataValues[crossDirection]!;
 
         const ext = this.domainForClippedRange(direction, [id], crossId);
-        return fixNumericExtent(extent(ext));
+        return { domain: fixNumericExtent(extent(ext)) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {

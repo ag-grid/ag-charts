@@ -269,11 +269,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         return sector;
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection) {
         if (direction === ChartAxisDirection.Angle) {
-            return this.angleScale.domain;
+            return { domain: this.angleScale.domain };
         } else {
-            return this.radiusScale.domain;
+            return { domain: this.radiusScale.domain };
         }
     }
 

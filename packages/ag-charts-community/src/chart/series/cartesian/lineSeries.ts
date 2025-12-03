@@ -1,5 +1,5 @@
-import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
-import { extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainInput, RequireOptional } from 'ag-charts-core';
+import { extent, extractDomain, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -237,9 +237,9 @@ export class LineSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData, axes } = this;
-        if (!dataModel || !processedData) return [];
+        if (!dataModel || !processedData) return { domain: [] };
 
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -247,10 +247,12 @@ export class LineSeries extends CartesianSeries<
             const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
             if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
-                return domain;
+                // Attach sort metadata for discrete domains to enable scale optimization
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain, sortMetadata };
             }
 
-            return fixNumericExtent(extent(domain));
+            return { domain: fixNumericExtent(extent(domain)) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -263,9 +265,9 @@ export class LineSeries extends CartesianSeries<
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         } else {
-            return fixNumericExtent(yExtent);
+            return { domain: fixNumericExtent(yExtent) };
         }
     }
 
@@ -387,7 +389,7 @@ export class LineSeries extends CartesianSeries<
             xOffset: (xScale.bandwidth ?? 0) / 2,
             yOffset: (yScale.bandwidth ?? 0) / 2,
             size: this.properties.marker.enabled ? this.properties.marker.size : 0,
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
             labelsEnabled: this.properties.label.enabled,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,

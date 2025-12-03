@@ -5,7 +5,14 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
+import {
+    type DomainInput,
+    type Point,
+    extractDomain,
+    isDefined,
+    isGradientFill,
+    normalizeAngle360,
+} from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -121,18 +128,20 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            return dataModel.getDomain(this, 'angleValue', 'key', processedData);
+            const domain = dataModel.getDomain(this, 'angleValue', 'key', processedData);
+            const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
+            return { domain, sortMetadata };
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
@@ -276,7 +285,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 
-        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
+        const radiusDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Radius));
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,

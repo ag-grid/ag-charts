@@ -341,6 +341,22 @@ export class DataModel<
         return this.resolvers.getColumnSortOrder(scope, searchId, processedData);
     }
 
+    /**
+     * Get sort metadata for a key column if available.
+     * Returns undefined if metadata is not available, is dirty, or data is unsorted.
+     */
+    getKeySortMetadata(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: ProcessedData<K>
+    ): { sortOrder: 1 | -1 | undefined; isUnique?: boolean } | undefined {
+        const entry = this.resolvers.getKeySortEntry(scope, searchId, processedData);
+        if (entry?.sortOrder != null) {
+            return { sortOrder: entry.sortOrder, isUnique: entry.isUnique };
+        }
+        return undefined;
+    }
+
     processData(
         sources: Map<string, DataSet<unknown>>
     ): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {

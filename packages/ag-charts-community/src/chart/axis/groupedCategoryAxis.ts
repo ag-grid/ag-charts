@@ -7,6 +7,7 @@ import {
     angularPadding,
     createIdsGenerator,
     extent,
+    extractDomain,
     getMaxInnerRectSize,
     inRange,
     isArray,
@@ -543,7 +544,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     override processData() {
         const { direction } = this;
-        const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
+        const flatDomains = this.boundSeries
+            .filter((s) => s.visible)
+            .flatMap((series) => extractDomain(series.getDomain(direction)));
 
         this.dataDomain = { domain: extent(flatDomains) ?? this.filterDuplicateArrays(flatDomains), clipped: false };
         if (this.isReversed()) {

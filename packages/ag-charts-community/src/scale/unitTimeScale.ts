@@ -1,4 +1,4 @@
-import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import type { DomainInput, NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import {
     Logger,
     findMaxIndex,
@@ -61,7 +61,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._bands;
     }
 
-    override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
+    override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
         return normalizeContinuousDomains(...domains);
     }
 
