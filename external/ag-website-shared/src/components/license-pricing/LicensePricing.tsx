@@ -272,11 +272,17 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
                             <p>
                                 Read our documentation on{' '}
                                 {defaultSelection === 'grid' ? (
-                                    <a href={gridUrlWithPrefix({ framework, url: './license-install' })}>
+                                    <a
+                                        id="licence-install-cta"
+                                        href={gridUrlWithPrefix({ framework, url: './license-install' })}
+                                    >
                                         Installing Your Licence Key
                                     </a>
                                 ) : (
-                                    <a href={chartsUrlWithPrefix({ framework, url: './license-install' })}>
+                                    <a
+                                        id="licence-install-cta"
+                                        href={chartsUrlWithPrefix({ framework, url: './license-install' })}
+                                    >
                                         Installing Your Licence Key
                                     </a>
                                 )}
@@ -286,6 +292,7 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
 
                         <div className={styles.videoPrompt}>
                             <a
+                                id="licence-explainer-video-thumbnail"
                                 href="https://www.youtube.com/watch?v=VPr__OKxH50"
                                 target="_blank"
                                 className={styles.thumbnail}
@@ -299,7 +306,11 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
                             <div>
                                 <h3>Which licences do I need?</h3>
                                 <p>
-                                    <a href="https://www.youtube.com/watch?v=VPr__OKxH50" target="_blank">
+                                    <a
+                                        id="licence-explainer-video-text"
+                                        href="https://www.youtube.com/watch?v=VPr__OKxH50"
+                                        target="_blank"
+                                    >
                                         <span className="icon"></span>
                                         Watch our short explainer video
                                     </a>
