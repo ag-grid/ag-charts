@@ -80,7 +80,7 @@ export class DeferredExecutor<T> {
     private scheduleIdleCallback(): void {
         const window = getWindow();
         const remainingTimeout = Math.max(0, this.timeout - this.minimumDelay);
-        
+
         if (typeof window.requestIdleCallback === 'function') {
             this.idleCallbackId = window.requestIdleCallback(this.execute.bind(this), { timeout: remainingTimeout });
         } else {
