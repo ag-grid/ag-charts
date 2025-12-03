@@ -184,7 +184,6 @@ export type ZoomChangeState = {
 };
 
 export interface ZoomChangeRequestEvent {
-    readonly callerId: string;
     readonly changeType: ZoomChangeType;
     readonly changedAxes: readonly AxisID[];
     readonly state: ZoomChangeState;

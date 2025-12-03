@@ -512,7 +512,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        zoomManager.resetAxisZoom('zoom', id);
+        zoomManager.resetAxisZoom(id);
     }
 
     private onAxisDragStart(direction: _ModuleSupport.ChartAxisDirection) {
@@ -778,7 +778,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.callerId !== 'zoom') {
+        if (event.sourceDetail !== 'zoom-drag-panner') {
             this.panner.stopInteractions();
         }
 
@@ -924,7 +924,7 @@ export class Zoom extends AbstractModuleInstance {
     private resetZoom() {
         this.previousZoomValid = true;
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        this.ctx.zoomManager.resetZoom('zoom');
+        this.ctx.zoomManager.resetZoom();
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
@@ -963,9 +963,9 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if (this.isSyncing) {
-            this.ctx.zoomManager.syncZoom('zoom', zoom);
+            this.ctx.zoomManager.syncZoom(zoom);
         } else {
-            this.ctx.zoomManager.updateZoom('zoom', zoom);
+            this.ctx.zoomManager.updateZoom(zoom);
         }
         return true;
     }
@@ -1004,9 +1004,9 @@ export class Zoom extends AbstractModuleInstance {
         if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
         if (this.isSyncing) {
-            zoomManager.syncAxisZoom('zoom', axisId, axisZoom);
+            zoomManager.syncAxisZoom(axisId, axisZoom);
         } else {
-            zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+            zoomManager.updateAxisZoom(axisId, axisZoom);
         }
         return true;
     }

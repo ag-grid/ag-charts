@@ -78,7 +78,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
 
     onChange(opts: ZoomAutoScalingOpts): void {
         if (opts.enabled) {
-            this.zoomManager.updateChanges('zoom-auto-scaler', this.autoScaleYZoom() ?? {});
+            this.zoomManager.updateChanges(this.autoScaleYZoom() ?? {});
         }
     }
 

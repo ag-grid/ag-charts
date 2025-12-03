@@ -33,7 +33,6 @@ import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
-import { NonNullableStateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
@@ -84,7 +83,6 @@ function validateChanges(changes: UpdateZoomChanges): void {
 
 export type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
 export type UpdateZoomParams = {
-    callerId: string;
     changes: UpdateZoomChanges;
     changeType: ZoomChangeType;
 };
@@ -131,7 +129,7 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
 export class ZoomManager extends BaseManager {
     public mementoOriginatorKey = 'zoom' as const;
 
-    private readonly state = new NonNullableStateTracker<CoreZoomStateSafeRetrieval>({}, 'initial');
+    private state: CoreZoomStateSafeRetrieval = {};
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
     private didCompleteChange = false;
@@ -181,7 +179,7 @@ export class ZoomManager extends BaseManager {
     public toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
-        const state = this.state.stateValue();
+        const { state } = this;
 
         if (this.independentAxes) {
             const xId = this.getPrimaryAxisId(ChartAxisDirection.X);
@@ -280,7 +278,7 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
-        this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'restoreMemento', changes });
+        this.applyUpdateZoom({ changeType: 'restoreMemento', changes });
     }
 
     private findAxis(axisId: AxisID): CartesianAxisLike | undefined {
@@ -302,13 +300,12 @@ export class ZoomManager extends BaseManager {
             }
         }
 
-        const callerId = this.state.stateId();
-        const oldState = this.state.stateValue();
+        const oldState = this.state;
         const changes = refreshCoreState(nextAxes, oldState);
-        this.state.set(callerId, changes);
+        this.state = changes;
         this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
 
-        this.applyUpdateZoom({ callerId, changeType: 'setAxes', changes });
+        this.applyUpdateZoom({ changeType: 'setAxes', changes });
     }
 
     public setIndependentAxes(independent = true) {
@@ -331,36 +328,36 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public refreshZoom(callerId: string): boolean {
-        return this.applyUpdateZoom({ callerId, changeType: 'refresh', changes: {} });
+    public refreshZoom(): boolean {
+        return this.applyUpdateZoom({ changeType: 'refresh', changes: {} });
     }
 
-    public updateZoom(callerId: string, newZoom?: AxisZoomState): boolean {
-        return this.updateChanges(callerId, this.toCoreZoomState(newZoom ?? {}));
+    public updateZoom(newZoom?: AxisZoomState): boolean {
+        return this.updateChanges(this.toCoreZoomState(newZoom ?? {}));
     }
 
-    public updateAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState): boolean {
+    public updateAxisZoom(axisId: AxisID, newZoom?: ZoomState): boolean {
         const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        return this.updateChanges(callerId, changes);
+        return this.updateChanges(changes);
     }
 
-    public updateChanges(callerId: string, changes: UpdateZoomChanges): boolean {
-        return this.applyUpdateZoom({ callerId, changeType: 'update', changes });
+    public updateChanges(changes: UpdateZoomChanges): boolean {
+        return this.applyUpdateZoom({ changeType: 'update', changes });
     }
 
-    public syncZoom(callerId: string, newZoom?: AxisZoomState): boolean {
+    public syncZoom(newZoom?: AxisZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? this.getZoom() ?? {});
-        return this.applyUpdateZoom({ callerId, changeType: 'sync', changes });
+        return this.applyUpdateZoom({ changeType: 'sync', changes });
     }
 
-    public syncAxisZoom(callerId: string, axisId: AxisID, newZoom?: ZoomState): boolean {
+    public syncAxisZoom(axisId: AxisID, newZoom?: ZoomState): boolean {
         const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        return this.applyUpdateZoom({ callerId, changeType: 'sync', changes });
+        return this.applyUpdateZoom({ changeType: 'sync', changes });
     }
 
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
         const result: AxisID[] = [];
-        const oldState = this.state.stateValue();
+        const oldState = this.state;
         for (const id of strictObjectKeys(newState)) {
             const newAxisState = newState[id] ?? { min: 0, max: 1 };
             const oldAxisState = oldState[id];
@@ -375,11 +372,11 @@ export class ZoomManager extends BaseManager {
         return result;
     }
 
-    private applyUpdateZoom({ callerId, changeType, changes }: UpdateZoomParams): boolean {
+    private applyUpdateZoom({ changeType, changes }: UpdateZoomParams): boolean {
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
-        const newState: CoreZoomStateSafeRetrieval = deepClone(this.state.stateValue());
+        const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         for (const id of changedAxes) {
             const axis = newState[id];
             if (axis != undefined) {
@@ -387,20 +384,20 @@ export class ZoomManager extends BaseManager {
                 axis.max = changes[id]?.max ?? 1;
             }
         }
-        this.state.set(callerId, newState);
+        this.state = newState;
 
-        return this.dispatch(callerId, changeType, changedAxes);
+        return this.dispatch(changeType, changedAxes);
     }
 
-    public resetZoom(callerId: string) {
-        this.applyUpdateZoom({ callerId, changeType: 'reset', changes: this.getRestoredZoom() });
+    public resetZoom() {
+        this.applyUpdateZoom({ changeType: 'reset', changes: this.getRestoredZoom() });
     }
 
-    public resetAxisZoom(callerId: string, axisId: AxisID) {
-        this.applyUpdateZoom({ callerId, changeType: 'reset', changes: { [axisId]: this.getRestoredZoom()[axisId] } });
+    public resetAxisZoom(axisId: AxisID) {
+        this.applyUpdateZoom({ changeType: 'reset', changes: { [axisId]: this.getRestoredZoom()[axisId] } });
     }
 
-    public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
+    public panToBBox(seriesRect: BBox, target: BoxBounds): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
         const zoom = this.getZoom();
@@ -418,19 +415,19 @@ export class ZoomManager extends BaseManager {
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
-        return this.applyUpdateZoom({ callerId, changeType: 'panToBBox', changes });
+        return this.applyUpdateZoom({ changeType: 'panToBBox', changes });
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
-    public fireZoomPanStartEvent(callerId: string) {
+    public fireZoomPanStartEvent(callerId: 'navigator' | 'zoom') {
         this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
-    public extendToEnd(callerId: string, direction: CartesianAxisDirection, extent: number) {
-        return this.extendWith(callerId, direction, (end) => Number(end) - extent);
+    public extendToEnd(direction: CartesianAxisDirection, extent: number) {
+        return this.extendWith(direction, (end) => Number(end) - extent);
     }
 
-    public extendWith(callerId: string, direction: CartesianAxisDirection, fn: (end: Date | number) => Date | number) {
+    public extendWith(direction: CartesianAxisDirection, fn: (end: Date | number) => Date | number) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
@@ -443,11 +440,10 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start });
         if (!ratio) return;
 
-        this.updateZoom(callerId, { [direction]: ratio });
+        this.updateZoom({ [direction]: ratio });
     }
 
     public updateWith(
-        callerId: string,
         direction: CartesianAxisDirection,
         fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]
     ) {
@@ -463,23 +459,23 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start, end });
         if (!ratio) return;
 
-        this.updateZoom(callerId, { [direction]: ratio });
+        this.updateZoom({ [direction]: ratio });
     }
 
     public getZoom(): AxisZoomState | undefined {
-        return this.toAxisZoomState(this.state.stateValue());
+        return this.toAxisZoomState(this.state);
     }
 
     public getAxisZoom(axisId: AxisID): ZoomState {
-        return this.state.stateValue()[axisId] ?? { min: 0, max: 1 };
+        return this.state[axisId] ?? { min: 0, max: 1 };
     }
 
     public getAxisZooms(): CoreZoomStateSafeRetrieval {
-        return this.state.stateValue();
+        return this.state;
     }
 
     public getCoreZoom(): CoreZoomStateSafeRetrieval {
-        return this.state.stateValue();
+        return this.state;
     }
 
     public getRestoredZoom(): CoreZoomStateSafeRetrieval {
@@ -575,13 +571,12 @@ export class ZoomManager extends BaseManager {
         return memento;
     }
 
-    private dispatch(callerId: string, changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
+    private dispatch(changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
         const { x, y } = this.getZoom() ?? {};
-        const state = this.state.stateValue();
+        const state = this.state;
         let constrainedState: typeof state | undefined;
 
         const event = {
-            callerId,
             changeType,
             changedAxes,
             state,
@@ -606,7 +601,7 @@ export class ZoomManager extends BaseManager {
         let wasChangeConstrained: boolean;
         if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
             wasChangeConstrained = true;
-            this.state.set(callerId, constrainedState);
+            this.state = constrainedState;
         } else {
             wasChangeConstrained = false;
         }

@@ -4,7 +4,6 @@ import { AbstractModuleInstance, PropertiesArray, Property } from 'ag-charts-cor
 import { RangesButtonProperties } from './rangesButtonProperties';
 
 const { ChartAxisDirection, LayoutElement, Toolbar } = _ModuleSupport;
-const ZOOM_ID = 'ranges';
 
 export class Ranges extends AbstractModuleInstance {
     @Property
@@ -75,13 +74,13 @@ export class Ranges extends AbstractModuleInstance {
         const { value } = button;
 
         if (value == null) {
-            zoomManager.resetZoom(ZOOM_ID);
+            zoomManager.resetZoom();
         } else if (typeof value === 'number') {
-            zoomManager.extendToEnd(ZOOM_ID, ChartAxisDirection.X, value);
+            zoomManager.extendToEnd(ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {
-            zoomManager.updateWith(ZOOM_ID, ChartAxisDirection.X, () => value);
+            zoomManager.updateWith(ChartAxisDirection.X, () => value);
         } else if (typeof value === 'function') {
-            zoomManager.updateWith(ZOOM_ID, ChartAxisDirection.X, value);
+            zoomManager.updateWith(ChartAxisDirection.X, value);
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);
