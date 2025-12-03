@@ -4,7 +4,7 @@ import type { Selection } from '../scene/selection';
 import type { Interpolating } from '../util/interpolating';
 import type { AnimationPhase, AnimationValue } from './animation';
 import { deconstructSelectionsOrNodes } from './animation';
-import * as easing from './easing';
+import { easeOut } from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'no-op';
 
@@ -145,7 +145,7 @@ export function fromToMotion<
                 delay: delay ?? toDelay,
                 from: from as unknown as T,
                 to: to as unknown as T,
-                ease: easing.easeOut,
+                ease: easeOut,
                 collapsable,
                 onPlay: () => {
                     const startProps = { ...start, ...toStart, ...from } as unknown as T;
@@ -188,7 +188,7 @@ export function fromToMotion<
             phase: 'end',
             from: 0,
             to: 1,
-            ease: easing.easeOut,
+            ease: easeOut,
             onStop() {
                 selection.cleanup();
             },
@@ -238,7 +238,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
         phase: phase ?? 'update',
         from,
         to,
-        ease: easing.easeOut,
+        ease: easeOut,
         onPlay: () => {
             if (!start) return;
 
