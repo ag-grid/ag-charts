@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DomainInput, ScaleType } from 'ag-charts-core';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import { simpleMemorize2 } from 'ag-charts-core';
 
 const {
@@ -37,7 +37,7 @@ function aggregateRangeBarData(
     xValues: any[],
     highValues: any[],
     lowValues: any[],
-    domainInput: DomainInput<number>,
+    domainInput: DomainWithMetadata<number>,
     smallestKeyInterval: number | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
@@ -67,8 +67,7 @@ export function aggregateRangeBarDataFromDataModel(
     const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
     const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
 
-    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
-    const domain = processedData.domain.keys[index];
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
@@ -77,7 +76,7 @@ export function aggregateRangeBarDataFromDataModel(
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domain);
+        const [d0, d1] = aggregationDomain(scale, domainInput);
         return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
@@ -91,7 +90,7 @@ export function aggregateRangeBarDataFromDataModel(
         xValues,
         highValues,
         lowValues,
-        domain,
+        domainInput,
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -110,15 +109,14 @@ export function aggregateRangeBarDataFromDataModelPartial(
     const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
     const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
 
-    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
-    const domain = processedData.domain.keys[index];
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeExtremesAggregationPartial([d0, d1], xValues, highValues, lowValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
         targetRange,

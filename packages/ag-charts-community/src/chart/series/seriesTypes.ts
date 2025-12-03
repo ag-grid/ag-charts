@@ -1,4 +1,4 @@
-import type { DomainInput, PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
+import type { DomainWithMetadata, PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -52,7 +52,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
-    getDomain(direction: ChartAxisDirection): DomainInput<any>;
+    getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
     getZoomRangeFittingItems(
         xVisibleRange: [number, number],

@@ -882,7 +882,7 @@ export abstract class CartesianSeries<
         const crossAxisRange = axisExtent(axes[crossDirection]!);
 
         if (!crossAxisRange) {
-            return axisKeys.flatMap((axisKey) => dataModel!.getDomain(this, axisKey, 'value', processedData!));
+            return axisKeys.flatMap((axisKey) => dataModel!.getDomain(this, axisKey, 'value', processedData!).domain);
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);

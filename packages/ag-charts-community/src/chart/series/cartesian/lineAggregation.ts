@@ -1,4 +1,4 @@
-import { type DomainInput, type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
+import { type DomainWithMetadata, type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
@@ -346,7 +346,7 @@ function aggregateLineData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domainInput: DomainInput<any>,
+    domainInput: DomainWithMetadata<any>,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): LineSeriesDataAggregationFilter[] | undefined {

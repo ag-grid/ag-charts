@@ -1,12 +1,10 @@
 import {
-    type DomainInput,
+    type DomainWithMetadata,
     type NormalizedDomain,
     ScaleAlignment,
     type ScaleTickParams,
     type ScaleTickResult,
     datesSortOrder,
-    extractDomain,
-    isDomainWithMetadata,
     sortAndUniqueDates,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
@@ -73,25 +71,25 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return checkUniformityBySampling(bands, startIdx, endIdx);
     }
 
-    override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
-        const nonEmptyDomains = domains.filter((d) => extractDomain(d).length > 0);
+    override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {
+        const nonEmptyDomains = domains.filter((d) => d.domain.length > 0);
 
         if (nonEmptyDomains.length === 0) {
             return { domain: [], animatable: false };
         } else if (nonEmptyDomains.length === 1) {
             const input = nonEmptyDomains[0];
-            let domain = extractDomain(input);
+            let domain = input.domain;
 
             // OPTIMIZATION: Use pre-computed metadata when available to skip O(n) datesSortOrder scan
             let sortOrder: 1 | -1 | undefined;
             let isUnique = false;
 
-            if (isDomainWithMetadata(input) && input.sortMetadata?.sortOrder !== undefined) {
-                sortOrder = input.sortMetadata.sortOrder;
-                isUnique = input.sortMetadata.isUnique ?? false;
-            } else {
+            if (input.sortMetadata?.sortOrder === undefined) {
                 // Fallback to scanning when metadata not available
                 sortOrder = datesSortOrder(domain);
+            } else {
+                sortOrder = input.sortMetadata.sortOrder;
+                isUnique = input.sortMetadata.isUnique ?? false;
             }
 
             if (sortOrder === -1) {
@@ -108,7 +106,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         // Multiple domains - must merge and sort, metadata not applicable
         return {
-            domain: sortAndUniqueDates(nonEmptyDomains.map(extractDomain).flat()),
+            domain: sortAndUniqueDates(nonEmptyDomains.map((d) => d.domain).flat()),
             animatable: true,
         };
     }

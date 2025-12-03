@@ -1,4 +1,4 @@
-import type { DomainInput, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
@@ -14,7 +14,6 @@ import {
     type SeriesPluginModuleInstance,
     callWithContext,
     createId,
-    isDomainWithMetadata,
     isEmptyObject,
     isGradientFill,
     isPatternFill,
@@ -571,7 +570,7 @@ export abstract class Series<
     }
 
     // The union of the series domain ('community') and series-option domains ('enterprise').
-    getDomain(direction: ChartAxisDirection): DomainInput<any> {
+    getDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const seriesDomain = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
 
@@ -580,9 +579,8 @@ export abstract class Series<
             return seriesDomain;
         }
 
-        // When merging with module domains, strip metadata (invalidated by merge)
-        const domain = isDomainWithMetadata(seriesDomain) ? seriesDomain.domain : seriesDomain;
-        return domain.concat(moduleDomains);
+        // When merging with module domains, metadata is invalidated
+        return { domain: seriesDomain.domain.concat(moduleDomains) };
     }
 
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
@@ -608,8 +606,8 @@ export abstract class Series<
     abstract dataCount(): number;
 
     // Get the 'community' domain (excluding any additional data from series-option modules).
-    // Returns DomainInput which may include sort metadata for optimization.
-    abstract getSeriesDomain(direction: ChartAxisDirection): DomainInput<any>;
+    // Returns DomainWithMetadata which may include sort metadata for optimization.
+    abstract getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
 
     // Needed for auto-scaling zoom
     abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];

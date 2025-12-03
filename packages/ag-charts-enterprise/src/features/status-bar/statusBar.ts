@@ -1,12 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    BaseProperties,
-    Property,
-    cachedTextMeasurer,
-    calcLineHeight,
-    extractDomain,
-} from 'ag-charts-core';
+import { AbstractModuleInstance, BaseProperties, Property, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 const { ZIndexMap, LayoutElement, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
@@ -279,7 +272,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             const { id, key } = label;
             const datumKey = this[key];
             if (datumKey != null) {
-                label.domain = extractDomain(dataModel.getDomain(this, id, 'value', processedData));
+                label.domain = dataModel.getDomain(this, id, 'value', processedData).domain;
             }
         }
     }

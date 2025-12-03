@@ -1,4 +1,4 @@
-import { type DomainInput, type ScaleType, extractDomain, isDomainWithMetadata, nextPowerOf2 } from 'ag-charts-core';
+import { type DomainWithMetadata, type ScaleType, nextPowerOf2 } from 'ag-charts-core';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -132,9 +132,8 @@ export function aggregationRangeFittingPoints(
     }
 }
 
-export function aggregationDomain(scale: ScaleType, domainInput: DomainInput<any>): [number, number] {
-    const domain = extractDomain(domainInput);
-    const sortMetadata = isDomainWithMetadata(domainInput) ? domainInput.sortMetadata : undefined;
+export function aggregationDomain(scale: ScaleType, domainInput: DomainWithMetadata<any>): [number, number] {
+    const { domain, sortMetadata } = domainInput;
 
     switch (scale) {
         case 'category':

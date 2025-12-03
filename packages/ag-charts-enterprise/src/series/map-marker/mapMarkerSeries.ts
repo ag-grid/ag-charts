@@ -7,7 +7,6 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
-    extractDomain,
     mergeDefaults,
 } from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
@@ -999,7 +998,7 @@ export class MapMarkerSeries
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (sizeKey != null && sizeValue != null) {
-            const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: sizeValue,
@@ -1016,7 +1015,7 @@ export class MapMarkerSeries
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorKey != null && colorValue != null) {
-            const domain = extractDomain(dataModel.getDomain(this, `colorValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,

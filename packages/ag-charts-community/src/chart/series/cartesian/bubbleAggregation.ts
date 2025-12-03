@@ -1,4 +1,4 @@
-import type { DomainInput, ScaleType } from 'ag-charts-core';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import { clamp } from 'ag-charts-core';
 
 import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
@@ -289,8 +289,8 @@ function aggregateBubbleData(
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,
-    xDomainInput: DomainInput<any>,
-    yDomainInput: DomainInput<any>,
+    xDomainInput: DomainWithMetadata<any>,
+    yDomainInput: DomainWithMetadata<any>,
     sizeDomain: number[],
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean

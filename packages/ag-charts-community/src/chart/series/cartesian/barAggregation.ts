@@ -1,4 +1,4 @@
-import type { DomainInput, ScaleType } from 'ag-charts-core';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import { nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
 import type { DataModel } from '../../data/dataModel';
@@ -273,7 +273,7 @@ function aggregateBarData(
     xValues: any[],
     yStartValues: any[] | undefined,
     yEndValues: any[],
-    domainInput: DomainInput<number>,
+    domainInput: DomainWithMetadata<number>,
     smallestKeyInterval: number | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
@@ -322,8 +322,7 @@ export function aggregateBarDataFromDataModel(
         ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
         : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
 
-    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
-    const domain = processedData.domain.keys[index];
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
@@ -334,7 +333,7 @@ export function aggregateBarDataFromDataModel(
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domain);
+        const [d0, d1] = aggregationDomain(scale, domainInput);
         return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
@@ -348,7 +347,7 @@ export function aggregateBarDataFromDataModel(
         xValues,
         yStartValues,
         yEndValues,
-        domain,
+        domainInput,
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -383,8 +382,7 @@ export function aggregateBarDataFromDataModelPartial(
         ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
         : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
 
-    const { index } = dataModel.resolveProcessedDataDefById(series, 'xValue');
-    const domain = processedData.domain.keys[index];
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
@@ -393,7 +391,7 @@ export function aggregateBarDataFromDataModelPartial(
         processedData
     );
 
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     // TODO: Use memoized version of computeBarAggregationPartial
     return computeBarAggregationPartial([d0, d1], xValues, yStartValues, yEndValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,

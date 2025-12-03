@@ -1,5 +1,5 @@
-import type { DomainInput, NormalizedDomain } from 'ag-charts-core';
-import { extractDomain, findMinMax } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
+import { findMinMax } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 
@@ -57,7 +57,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     abstract override toDomain(value: number): D;
 
-    normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D> {
+    normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D> {
         return normalizeContinuousDomains(...domains);
     }
 
@@ -155,14 +155,16 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 }
 
-export function normalizeContinuousDomains<D extends number | Date>(...domains: DomainInput<D>[]): NormalizedDomain<D> {
+export function normalizeContinuousDomains<D extends number | Date>(
+    ...domains: DomainWithMetadata<D>[]
+): NormalizedDomain<D> {
     let min: D | undefined;
     let minValue = Infinity;
     let max: D | undefined;
     let maxValue = -Infinity;
 
     for (const input of domains) {
-        const domain = extractDomain(input);
+        const domain = input.domain;
         for (const d of domain) {
             const value = d.valueOf();
             if (value < minValue) {

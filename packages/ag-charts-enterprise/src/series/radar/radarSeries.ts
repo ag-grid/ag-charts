@@ -9,11 +9,10 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParam,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
     type RequireOptional,
     extent,
-    extractDomain,
     isFiniteNumber,
     isNumberEqual,
     mergeDefaults,
@@ -130,16 +129,16 @@ export abstract class RadarSeries<
         return new Marker();
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const domain = extractDomain(dataModel.getDomain(this, `angleValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `angleValue`, 'value', processedData).domain;
             const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
             return { domain, sortMetadata };
         } else {
-            const domain = extractDomain(dataModel.getDomain(this, `radiusValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData).domain;
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
             return { domain: fixNumericExtent(ext) };
         }
@@ -211,7 +210,7 @@ export abstract class RadarSeries<
         const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const radiusDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Radius));
+        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {

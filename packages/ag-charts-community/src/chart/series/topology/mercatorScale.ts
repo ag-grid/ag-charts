@@ -1,5 +1,4 @@
-import type { DomainInput, NormalizedDomain } from 'ag-charts-core';
-import { extractDomain } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
 
 import { AbstractScale } from '../../../scale/abstractScale';
 import { BBox } from '../../../scene/bbox';
@@ -55,14 +54,14 @@ export class MercatorScale extends AbstractScale<Position, XY> {
         return;
     }
 
-    override normalizeDomains(...domains: DomainInput<Position>[]): NormalizedDomain<Position> {
+    override normalizeDomains(...domains: DomainWithMetadata<Position>[]): NormalizedDomain<Position> {
         let x0 = -Infinity;
         let x1 = Infinity;
         let y0 = -Infinity;
         let y1 = Infinity;
 
         for (const input of domains) {
-            const domain = extractDomain(input);
+            const domain = input.domain;
             for (const [x, y] of domain) {
                 x0 = Math.min(x, x0);
                 x1 = Math.max(x, x1);

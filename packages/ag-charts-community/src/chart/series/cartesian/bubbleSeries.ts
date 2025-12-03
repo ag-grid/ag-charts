@@ -1,6 +1,6 @@
 import {
     type CallbackParamRules,
-    type DomainInput,
+    type DomainWithMetadata,
     type LabelPlacement,
     type MeasuredLabel,
     type PlacedLabel,
@@ -11,7 +11,6 @@ import {
     clamp,
     dateToNumber,
     extent,
-    extractDomain,
     formatValue,
     isArray,
     measureTextSegments,
@@ -235,7 +234,7 @@ export class BubbleSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
@@ -246,10 +245,9 @@ export class BubbleSeries extends CartesianSeries<
 
         const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
-        const domain = extractDomain(dataModel.getDomain(this, id, 'value', processedData));
+        const domainData = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
-            const sortMetadata = dataModel.getKeySortMetadata(this, id, processedData);
-            return { domain, sortMetadata };
+            return { domain: domainData.domain };
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
@@ -324,7 +322,7 @@ export class BubbleSeries extends CartesianSeries<
                 xVisibleRange = rescaleVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
-                    extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData)).map(dateToNumber) as [
+                    dataModel.getDomain(this, `xValue`, 'value', processedData).domain.map(dateToNumber) as [
                         number,
                         number,
                     ]
@@ -334,7 +332,7 @@ export class BubbleSeries extends CartesianSeries<
                 yVisibleRange = rescaleVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
-                    extractDomain(dataModel.getDomain(this, `yValue`, 'value', processedData)).map(dateToNumber) as [
+                    dataModel.getDomain(this, `yValue`, 'value', processedData).domain.map(dateToNumber) as [
                         number,
                         number,
                     ]
@@ -392,7 +390,7 @@ export class BubbleSeries extends CartesianSeries<
         if (labelKey) {
             labelTextDomain = [];
         } else if (sizeKey) {
-            labelTextDomain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
+            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
         } else {
             labelTextDomain = [];
         }
@@ -895,7 +893,7 @@ export class BubbleSeries extends CartesianSeries<
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
             // Only add size row if value is not null/undefined
             if (value != null) {
-                const domain = extractDomain(dataModel.getDomain(this, `sizeValue`, 'value', processedData));
+                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
                 const content = formatManager.format(this.callWithContext.bind(this), {
                     type: 'number',
                     value,

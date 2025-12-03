@@ -8,12 +8,11 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
-    type DomainInput,
+    type DomainWithMetadata,
     type Mutable,
     type Point,
     type RequireOptional,
     type Scale,
-    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -323,7 +322,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
@@ -877,7 +876,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const datumIndex = params.datumIndex;
 
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
-        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
         const yLowText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
             yLowValue,

@@ -5,14 +5,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    type DomainInput,
-    type Point,
-    extractDomain,
-    isDefined,
-    isGradientFill,
-    normalizeAngle360,
-} from 'ag-charts-core';
+import { type DomainWithMetadata, type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -128,14 +121,14 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
-            const yExtent = extractDomain(dataModel.getDomain(this, 'radiusValue-end', 'value', processedData));
+            const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
@@ -283,7 +276,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 
-        const radiusDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Radius));
+        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
