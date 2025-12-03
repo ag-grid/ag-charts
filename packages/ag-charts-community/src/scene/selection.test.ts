@@ -209,4 +209,87 @@ describe('Selection', () => {
             expectSelectionToMatchData(selection, changedData);
         });
     });
+
+    describe('mode transitions', () => {
+        it('should handle transition from index-based to ID-based mode', () => {
+            const selection = new Selection(new TestNode(), TestNode, false);
+            const data = [
+                { key: 'a', value: 0 },
+                { key: 'b', value: 1 },
+                { key: 'c', value: 2 },
+            ];
+
+            // Start with index-based mode (no getDatumId)
+            selection.update(data);
+            expectSelectionToMatchData(selection, data);
+
+            // Transition to ID-based mode
+            const changedData = [
+                { key: 'a', value: 0 },
+                { key: 'c', value: 2 },
+            ];
+            selection.update(changedData, undefined, (datum) => datum.key);
+
+            // Old nodes should be marked for garbage, new nodes created
+            // After cleanup, should only have the new data
+            selection.cleanup();
+            expectSelectionToMatchData(selection, changedData);
+        });
+
+        it('should handle transition from ID-based to index-based mode', () => {
+            const selection = new Selection(new TestNode(), TestNode, false);
+            const data = [
+                { key: 'a', value: 0 },
+                { key: 'b', value: 1 },
+                { key: 'c', value: 2 },
+            ];
+
+            // Start with ID-based mode
+            selection.update(data, undefined, (datum) => datum.key);
+            expectSelectionToMatchData(selection, data);
+
+            // Transition to index-based mode (no getDatumId)
+            const changedData = [
+                { key: 'a', value: 0 },
+                { key: 'c', value: 2 },
+            ];
+            selection.update(changedData);
+
+            // Should work correctly with index-based matching
+            selection.cleanup();
+            expectSelectionToMatchData(selection, changedData);
+        });
+
+        it('should handle multiple transitions back and forth', () => {
+            const selection = new Selection(new TestNode(), TestNode, false);
+            const data1 = [
+                { key: 'a', value: 0 },
+                { key: 'b', value: 1 },
+            ];
+            const data2 = [
+                { key: 'a', value: 0 },
+                { key: 'b', value: 1 },
+                { key: 'c', value: 2 },
+            ];
+
+            // Index-based
+            selection.update(data1);
+            expectSelectionToMatchData(selection, data1);
+
+            // ID-based
+            selection.update(data2, undefined, (datum) => datum.key);
+            selection.cleanup();
+            expectSelectionToMatchData(selection, data2);
+
+            // Back to index-based
+            selection.update(data1);
+            selection.cleanup();
+            expectSelectionToMatchData(selection, data1);
+
+            // Back to ID-based
+            selection.update(data2, undefined, (datum) => datum.key);
+            selection.cleanup();
+            expectSelectionToMatchData(selection, data2);
+        });
+    });
 });
