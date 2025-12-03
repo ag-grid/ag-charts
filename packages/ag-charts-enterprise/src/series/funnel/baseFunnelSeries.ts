@@ -180,6 +180,12 @@ export abstract class BaseFunnelSeries<
         return new FunnelConnector();
     }
 
+    override getKeyAxis(direction: _ModuleSupport.ChartAxisDirection): string | undefined {
+        // Do not flip series axis keys for funnel series
+        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const { stageKey, valueKey } = this.properties;
         const { visible, id: seriesId } = this;

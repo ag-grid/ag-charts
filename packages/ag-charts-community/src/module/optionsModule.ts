@@ -586,7 +586,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const isFlipped =
             isObject(primarySeriesOptions) &&
             'direction' in primarySeriesOptions &&
-            primarySeriesOptions.direction === 'horizontal';
+            primarySeriesOptions.direction === 'horizontal' &&
+            ModuleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
 
         const directionAxisKeys = this.getAxisDirectionKeys(options, directions, isFlipped);
 
@@ -598,7 +599,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         );
         const hasNonDefaultSeriesAxisKeys = nonDefaultSeriesAxisKeysCount > 0;
         const hasExtraImplicitDefaultSeriesAxisKeys =
-            nonDefaultSeriesAxisKeysCount > 0 && nonDefaultSeriesAxisKeysCount < (options?.series?.length ?? 0);
+            hasNonDefaultSeriesAxisKeys && nonDefaultSeriesAxisKeysCount < (options?.series?.length ?? 0);
 
         const seriesType = this.optionsType(options);
         const defaultAxes: Record<string, PlainObject> =
