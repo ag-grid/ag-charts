@@ -14,7 +14,7 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from 'ag-charts-core';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 

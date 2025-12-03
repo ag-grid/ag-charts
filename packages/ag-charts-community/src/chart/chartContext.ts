@@ -22,7 +22,7 @@ import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
-import { ChartUpdateType } from './chartUpdateType';
+import { ChartUpdateType } from 'ag-charts-core';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';

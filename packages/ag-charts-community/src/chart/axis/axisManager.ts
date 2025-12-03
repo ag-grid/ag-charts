@@ -2,8 +2,8 @@ import type { EventsHub } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Node } from '../../scene/node';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-import { ZIndexMap } from '../zIndexMap';
+import type { ChartAxisDirection } from 'ag-charts-core';
+import { ZIndexMap } from 'ag-charts-core';
 
 interface AxisNodes {
     axisNode: Node;

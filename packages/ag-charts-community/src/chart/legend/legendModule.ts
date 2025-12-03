@@ -16,8 +16,8 @@ import {
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
 import { VERSION } from '../../version';
-import { legendPositionValidator, shapeValidator } from '../commonOptionsDefs';
-import { CARTESIAN_POSITION, FONT_SIZE_RATIO } from '../themes/constants';
+import { legendPositionValidator, shapeValidator } from 'ag-charts-core';
+import { CARTESIAN_POSITION, FONT_SIZE_RATIO } from 'ag-charts-core';
 import { LEGEND_CONTAINER_THEME } from '../themes/util';
 import { Legend } from './legend';
 

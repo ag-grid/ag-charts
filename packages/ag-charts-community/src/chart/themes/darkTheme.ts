@@ -16,7 +16,7 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     IS_DARK_THEME,
-} from './symbols';
+} from 'ag-charts-core';
 import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts

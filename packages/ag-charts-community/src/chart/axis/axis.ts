@@ -44,14 +44,14 @@ import { type TextBoxingProperties, type TextSizeProperties, TransformableText }
 import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
-import { ZIndexMap } from '../zIndexMap';
+import { ZIndexMap } from 'ag-charts-core';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';

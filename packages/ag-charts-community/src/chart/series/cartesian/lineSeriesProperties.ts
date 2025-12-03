@@ -13,7 +13,7 @@ import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { InterpolationProperties } from './interpolationProperties';
+import { InterpolationProperties } from 'ag-charts-core';
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Property

@@ -16,7 +16,7 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-} from '../aggregation';
+} from 'ag-charts-core';
 
 const MAX_POINTS = 10;
 

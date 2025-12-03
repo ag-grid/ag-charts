@@ -17,6 +17,26 @@ export * from './modules/format';
 // Options
 export * from './options/commonOptionsDefs';
 
+// API
+export * from './api/preset/gaugeOptionsDefs';
+export * from './api/state/memento';
+
+// Chart
+export * from './chart/chartAnimationPhase';
+export * from './chart/chartAxisDirection';
+export * from './chart/chartUpdateType';
+export * from './chart/commonOptionsDefs';
+export * from './chart/legend/legendUtil';
+export * from './chart/series/aggregation';
+export * from './chart/series/cartesian/interpolationProperties';
+export * from './chart/series/polar/polarZIndexMap';
+export * from './chart/series/seriesZIndexMap';
+export * from './chart/series/topology/geojson';
+export * from './chart/series/topology/lonLatBbox';
+export * from './chart/themes/constants';
+export * from './chart/themes/symbols';
+export * from './chart/zIndexMap';
+
 // Utils
 export * from './utils/callbackCache';
 export * from './utils/decorator';
@@ -79,3 +99,15 @@ export * from './utils/labelPlacement';
 export * from './utils/scaling';
 export * from './utils/lineInterpolation';
 export { ChangeDetectableProperties } from './utils/changeDetectableProperties';
+
+// Components
+export * from './components/toolbar/toolbarButtonProperties';
+
+// DOM
+export * from './dom/elements';
+
+// Motion
+export * from './motion/easing';
+
+// Scene
+export * from './scene/changeDetectable';

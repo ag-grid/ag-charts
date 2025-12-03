@@ -35,7 +35,7 @@ import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { NonNullableStateTracker } from '../../util/stateTracker';
-import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
+import { type CartesianAxisDirection, ChartAxisDirection } from 'ag-charts-core';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';

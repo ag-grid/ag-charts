@@ -1,7 +1,7 @@
 import { type AreExact, Logger, isArray } from 'ag-charts-core';
 import type { AgInitialStateLegendOptions as DefectAgInitialStateLegendOptions } from 'ag-charts-types';
 
-import type { MementoOriginator } from '../../api/state/memento';
+import type { MementoOriginator } from 'ag-charts-core';
 import type { EventsHub } from '../../core/eventsHub';
 import type { CategoryLegendDatum } from './legendDatum';
 

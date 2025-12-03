@@ -26,7 +26,7 @@ import {
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
+} from 'ag-charts-core';
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 

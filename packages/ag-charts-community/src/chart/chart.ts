@@ -54,16 +54,16 @@ import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TimeAxis } from './axis/timeAxis';
 import { Background } from './background/background';
 import { Caption } from './caption';
-import type { ChartAnimationPhase } from './chartAnimationPhase';
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
-import { ChartUpdateType } from './chartUpdateType';
+import { ChartUpdateType } from 'ag-charts-core';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -90,7 +90,7 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
-import { ZIndexMap } from './zIndexMap';
+import { ZIndexMap } from 'ag-charts-core';
 
 const debug = Debug.create(true, 'opts');
 

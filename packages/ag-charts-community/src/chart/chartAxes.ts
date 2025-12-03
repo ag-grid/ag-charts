@@ -3,7 +3,7 @@ import { every, isObject } from 'ag-charts-core';
 import type { CartesianAxis } from './axis/cartesianAxis';
 import type { PolarAxis } from './axis/polarAxis';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 export class ChartAxes<T extends ChartAxis = ChartAxis> extends Array<T> {
     destroy() {

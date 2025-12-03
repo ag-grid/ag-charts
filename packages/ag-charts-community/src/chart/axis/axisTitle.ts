@@ -9,7 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import { Caption } from '../caption';
-import { FONT_SIZE } from '../themes/constants';
+import { FONT_SIZE } from 'ag-charts-core';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     readonly caption = new Caption();

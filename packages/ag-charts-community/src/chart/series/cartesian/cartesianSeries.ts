@@ -30,9 +30,9 @@ import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,

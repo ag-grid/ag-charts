@@ -22,7 +22,7 @@ import {
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
+} from 'ag-charts-core';
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,

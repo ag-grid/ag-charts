@@ -26,7 +26,7 @@ import {
     SceneArrayChangeDetection,
     SceneObjectChangeDetection,
     TRIPLE_EQ,
-} from '../changeDetectable';
+} from 'ag-charts-core';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';

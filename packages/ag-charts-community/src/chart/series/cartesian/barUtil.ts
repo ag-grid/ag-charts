@@ -9,7 +9,7 @@ import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { DatumIndexType, ISeries } from '../seriesTypes';
 
 export function checkCrisp(

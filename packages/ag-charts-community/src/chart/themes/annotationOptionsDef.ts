@@ -46,7 +46,7 @@ import type {
     LineOptions,
 } from 'ag-charts-types';
 
-import { toolbarButtonOptionsDefs } from '../commonOptionsDefs';
+import { toolbarButtonOptionsDefs } from 'ag-charts-core';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
     lineStyle: union('solid', 'dashed', 'dotted'),

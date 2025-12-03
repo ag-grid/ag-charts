@@ -7,7 +7,7 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
-} from './symbols';
+} from 'ag-charts-core';
 import { getSequentialColors } from './util';
 
 const FINANCIAL_LIGHT_FILLS = {

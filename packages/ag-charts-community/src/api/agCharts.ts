@@ -24,7 +24,7 @@ import { detectChartType } from '../chart/mapping/types';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
-import { MementoCaretaker } from './state/memento';
+import { MementoCaretaker } from 'ag-charts-core';
 
 const debug = Debug.create(true, 'opts');
 

@@ -21,7 +21,7 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from '../../chart/themes/symbols';
+import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from 'ag-charts-core';
 
 const commonAxisProperties = {
     title: {

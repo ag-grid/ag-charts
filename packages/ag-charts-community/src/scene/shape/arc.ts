@@ -1,7 +1,7 @@
 import { isNumberEqual, normalizeAngle360 } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import { SceneChangeDetection } from '../changeDetectable';
+import { SceneChangeDetection } from 'ag-charts-core';
 import { Path } from './path';
 
 enum ArcType {

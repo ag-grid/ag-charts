@@ -1,5 +1,5 @@
 import type { Point, Scale, SizedPoint } from 'ag-charts-core';
-import { clamp, findRangeExtent } from 'ag-charts-core';
+import { clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
@@ -15,7 +15,6 @@ import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
-import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 type NodeWithOpacity = Node & { opacity: number };
@@ -64,7 +63,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         //
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
-        let delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
+        let delay = clamp(0, inverseEaseOut(x / seriesWidth), 1);
         if (Number.isNaN(delay)) {
             delay = 0;
         }

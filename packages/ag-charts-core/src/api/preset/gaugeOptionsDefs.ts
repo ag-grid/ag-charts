@@ -7,13 +7,9 @@ import {
     boolean,
     callback,
     color,
-    colorStopsOrderValidator,
     constant,
-    fillOptionsDef,
-    fontOptionsDef,
     greaterThan,
     lessThan,
-    lineDashOptionsDef,
     number,
     optionsDefs,
     or,
@@ -21,11 +17,17 @@ import {
     ratio,
     required,
     string,
-    strokeOptionsDef,
     undocumented,
     union,
-    without,
-} from 'ag-charts-core';
+} from '../../utils/validation';
+import { without } from '../../utils/object';
+import {
+    colorStopsOrderValidator,
+    fillOptionsDef,
+    fontOptionsDef,
+    lineDashOptionsDef,
+    strokeOptionsDef,
+} from '../../options/commonOptionsDefs';
 import type {
     AgGaugeColorStop,
     AgLinearGaugePreset,
@@ -92,6 +94,7 @@ export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
 };
 
 export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThemeableOptions> = {
+    ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
     direction: union('horizontal', 'vertical'),
     cornerMode: union('container', 'item'),
     cornerRadius: positiveNumber,
@@ -132,12 +135,11 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
         ),
     },
     tooltip: tooltipOptionsDefs,
-    ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
 };
 
 export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
-    ...linearGaugeSeriesThemeableOptionsDef,
     ...without(commonSeriesOptionsDefs, ['listeners']),
+    ...linearGaugeSeriesThemeableOptionsDef,
     type: required(constant('linear-gauge')),
     value: required(number),
     scale: {
@@ -179,12 +181,14 @@ linearGaugeSeriesOptionsDef.defaultTarget = undocumented({
         spacing: number,
     },
 });
+
 // @ts-expect-error undocumented option
 linearGaugeSeriesOptionsDef.defaultScale = undocumented(linearGaugeSeriesOptionsDef.scale);
 // @ts-expect-error undocumented option
 linearGaugeSeriesOptionsDef.scale.defaultFill = undocumented(color);
 
 export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThemeableOptions> = {
+    ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
     outerRadius: positiveNumber,
     innerRadius: positiveNumber,
     outerRadiusRatio: ratio,
@@ -250,12 +254,11 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         ...autoSizedLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
 };
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
+    ...without(commonSeriesOptionsDefs, ['listeners']),
     ...radialGaugeSeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
     type: required(constant('radial-gauge')),
     value: required(number),
     targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),

@@ -4,7 +4,7 @@ import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
-import { linear } from './easing';
+import { linear } from 'ag-charts-core';
 
 export type AnimationMetadata = {
     animationDuration: number;

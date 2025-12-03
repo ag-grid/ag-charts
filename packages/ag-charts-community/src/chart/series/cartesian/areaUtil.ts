@@ -1,6 +1,5 @@
 import type { InternalAgColorType, Point, SizedPoint } from 'ag-charts-core';
-import { SpanJoin, spanRange } from 'ag-charts-core';
-import { isScaleValid } from 'ag-charts-core';
+import { SpanJoin, isScaleValid, spanRange } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';

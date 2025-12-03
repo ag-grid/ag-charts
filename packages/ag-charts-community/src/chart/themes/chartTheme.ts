@@ -24,9 +24,9 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import type { ChartType } from '../factory/expectedModules';
-import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
-import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
+    BASE_FONT_SIZE,
+    CARTESIAN_AXIS_TYPE,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
@@ -47,6 +47,7 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    FONT_SIZE_RATIO,
     IS_DARK_THEME,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
@@ -60,7 +61,9 @@ import {
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
-} from './symbols';
+    POLAR_AXIS_TYPE,
+} from 'ag-charts-core';
+import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts

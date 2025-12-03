@@ -26,7 +26,7 @@ import {
     markerStyleOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
+} from 'ag-charts-core';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
 

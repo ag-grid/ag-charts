@@ -19,7 +19,7 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { ChartAxisDirection } from 'ag-charts-core';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';

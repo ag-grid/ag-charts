@@ -19,7 +19,7 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { commonChartOptionsDefs } from './commonOptionsDefs';
+import { commonChartOptionsDefs } from 'ag-charts-core';
 
 // These options are being validated by other modules
 const commonChartOptions = {

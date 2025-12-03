@@ -2,7 +2,7 @@ import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 import { ChangeDetectableProperties, Property, objectsEqual } from 'ag-charts-core';
 import type { AgMarkerShape, AgSeriesMarkerStyle, AgSeriesMarkerStylerParams, Styler } from 'ag-charts-types';
 
-import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
+import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from 'ag-charts-core';
 
 export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property

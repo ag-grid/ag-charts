@@ -1,12 +1,12 @@
 import { Logger, assignIfNotStrictlyEqual, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
 import { BBox } from './bbox';
-import { DeclaredSceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
+import { DeclaredSceneChangeDetection, SceneObjectChangeDetection } from 'ag-charts-core';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
 
-export { SceneChangeDetection } from './changeDetectable';
+export { SceneChangeDetection } from 'ag-charts-core';
 
 export enum PointerEvents {
     All,

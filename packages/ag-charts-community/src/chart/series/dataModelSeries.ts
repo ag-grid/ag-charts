@@ -4,7 +4,7 @@ import { type Point, clamp, objectsEqual } from 'ag-charts-core';
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { BBox } from '../../scene/bbox';
 import type { Path } from '../../scene/shape/path';
-import { ChartAxisDirection } from '../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';

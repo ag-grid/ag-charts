@@ -42,8 +42,7 @@ import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { ChartUpdateType } from '../../chartUpdateType';
+import { ChartAxisDirection, ChartUpdateType } from 'ag-charts-core';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -76,7 +75,7 @@ import {
     type PolarAnimationData,
     PolarSeries,
 } from './polarSeries';
-import { PolarZIndexMap } from './polarZIndexMap';
+import { PolarZIndexMap } from 'ag-charts-core';
 
 class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
     PieDonutNodeDatum,

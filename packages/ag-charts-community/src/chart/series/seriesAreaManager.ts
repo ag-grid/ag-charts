@@ -29,7 +29,7 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import { ChartUpdateType } from '../chartUpdateType';
+import { ChartUpdateType } from 'ag-charts-core';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';

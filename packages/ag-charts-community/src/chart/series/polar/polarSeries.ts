@@ -10,8 +10,8 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { ChartAnimationPhase } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -21,7 +21,7 @@ import {
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { type SeriesProperties } from '../seriesProperties';
 import type { ShapeFillBBox } from '../shapeUtil';
-import { PolarZIndexMap } from './polarZIndexMap';
+import { PolarZIndexMap } from 'ag-charts-core';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = {

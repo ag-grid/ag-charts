@@ -51,9 +51,9 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
@@ -73,7 +73,7 @@ import type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './seriesTypes';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from 'ag-charts-core';
 import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {

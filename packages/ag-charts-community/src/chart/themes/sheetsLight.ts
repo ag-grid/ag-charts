@@ -2,7 +2,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-} from './symbols';
+} from 'ag-charts-core';
 import { getSequentialColors } from './util';
 
 const SHEETS_LIGHT_FILLS = {

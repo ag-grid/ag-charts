@@ -1,4 +1,4 @@
-import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from '../aggregation';
+import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from 'ag-charts-core';
 import { computeBarAggregation, computeBarAggregationPartial } from './barAggregation';
 
 // Sentinel value for empty buckets in Uint32Array (-1 as unsigned)

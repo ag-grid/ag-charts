@@ -32,7 +32,7 @@ import {
     continuousAxisOptions,
     discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
-import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
+import { numberFormatValidator, textOrSegments } from 'ag-charts-core';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,

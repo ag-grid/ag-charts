@@ -2,7 +2,7 @@ import { Logger } from 'ag-charts-core';
 import type { AgFinancialChartOptions, AgInitialStateChartType } from 'ag-charts-types';
 
 import type { ChartService } from '../../chart/chartService';
-import type { MementoOriginator } from '../state/memento';
+import type { MementoOriginator } from 'ag-charts-core';
 
 type ChartTypeMemento = AgInitialStateChartType;
 

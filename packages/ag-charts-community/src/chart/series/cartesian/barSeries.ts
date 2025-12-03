@@ -1,6 +1,5 @@
 import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
-import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
-import { areScalingEqual } from 'ag-charts-core';
+import { areScalingEqual, isFiniteNumber, mergeDefaults } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -25,7 +24,7 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
@@ -58,7 +57,7 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
-} from './../aggregation';
+} from 'ag-charts-core';
 import {
     AbstractBarSeries,
     type AbstractBarSeriesAnimationData,

@@ -10,7 +10,7 @@ import type {
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Group } from '../../scene/group';
-import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { ChartAxisDirection } from 'ag-charts-core';
 
 export type CrossLineType = 'line' | 'range';
 

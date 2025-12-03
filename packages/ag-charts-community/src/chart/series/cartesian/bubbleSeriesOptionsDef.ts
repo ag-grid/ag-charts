@@ -26,7 +26,7 @@ import {
     markerOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
+} from 'ag-charts-core';
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,

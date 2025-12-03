@@ -1,4 +1,4 @@
-import { arraysEqual } from 'ag-charts-core';
+import { arraysEqual } from '../utils/arrays';
 
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 

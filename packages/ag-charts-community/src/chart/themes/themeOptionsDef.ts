@@ -43,7 +43,7 @@ import {
     linearGaugeTargetOptionsDef,
     radialGaugeSeriesThemeableOptionsDef,
     radialGaugeTargetOptionsDef,
-} from '../../api/preset/gaugeOptionsDefs';
+} from 'ag-charts-core';
 import {
     cartesianCrossLineOptionsDefs,
     categoryAxisOptionsDefs,
@@ -62,7 +62,7 @@ import {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from '../axesOptionsEnterpriseDefs';
-import { commonChartOptionsDefs, numberFormatValidator, textOrSegments } from '../commonOptionsDefs';
+import { commonChartOptionsDefs, numberFormatValidator, textOrSegments } from 'ag-charts-core';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';

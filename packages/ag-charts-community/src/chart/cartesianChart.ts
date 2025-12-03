@@ -21,7 +21,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartAxisDirection } from 'ag-charts-core';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import type { LayoutContext } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';

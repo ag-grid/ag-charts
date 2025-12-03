@@ -1,7 +1,7 @@
 import { cachedTextMeasurer } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
-import { ChartUpdateType } from '../chartUpdateType';
+import { ChartUpdateType } from 'ag-charts-core';
 import type { UpdateService } from '../updateService';
 
 export class FontManager {

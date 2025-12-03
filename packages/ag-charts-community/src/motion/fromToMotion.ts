@@ -4,7 +4,7 @@ import type { Selection } from '../scene/selection';
 import type { Interpolating } from '../util/interpolating';
 import type { AnimationPhase, AnimationValue } from './animation';
 import { deconstructSelectionsOrNodes } from './animation';
-import { easeOut } from './easing';
+import { easeOut } from 'ag-charts-core';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'no-op';
 

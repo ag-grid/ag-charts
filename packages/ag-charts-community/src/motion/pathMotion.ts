@@ -1,6 +1,6 @@
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import { Path } from '../scene/shape/path';
-import * as easing from './easing';
+import { easeOut } from 'ag-charts-core';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from './fromToMotion';
 
 /**
@@ -34,7 +34,7 @@ export function pathMotion(
             groupId,
             from: collapsable ? 1 : 0,
             to: 1,
-            ease: easing.easeOut,
+            ease: easeOut,
             collapsable,
             onUpdate(ratio, preInit) {
                 if (preInit && phase !== 'removed') return;

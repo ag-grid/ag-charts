@@ -4,7 +4,7 @@ import * as resetMotion from './motion/resetMotion';
 export { Chart } from './chart/chart';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
-export { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from './api/preset/gaugeOptionsDefs';
+export { linearGaugeSeriesOptionsDef, radialGaugeSeriesOptionsDef } from 'ag-charts-core';
 export {
     commonChartOptionsDefs,
     commonSeriesOptionsDefs,
@@ -15,7 +15,7 @@ export {
     textOrSegments,
     toolbarButtonOptionsDefs,
     tooltipOptionsDefs,
-} from './chart/commonOptionsDefs';
+} from 'ag-charts-core';
 export {
     angleCategoryAxisOptionsDefs,
     angleNumberAxisOptionsDefs,
@@ -102,9 +102,9 @@ export { ChartOptions } from './module/optionsModule';
 export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
 export type { ModuleContext, ModuleContextWithParent, SeriesContext } from './module/moduleContext';
 export { Background } from './chart/background/background';
-export type { ChartAnimationPhase } from './chart/chartAnimationPhase';
-export { ChartAxisDirection } from './chart/chartAxisDirection';
-export type { CartesianAxisDirection } from './chart/chartAxisDirection';
+export type { ChartAnimationPhase } from 'ag-charts-core';
+export { ChartAxisDirection } from 'ag-charts-core';
+export type { CartesianAxisDirection } from 'ag-charts-core';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';
 export type { TickDatum } from './chart/axis/axisUtil';
@@ -151,7 +151,7 @@ export { InteractionManager, InteractionState } from './chart/interaction/intera
 export { TooltipManager } from './chart/interaction/tooltipManager';
 export { ZoomManager } from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
-export { ZIndexMap } from './chart/zIndexMap';
+export { ZIndexMap } from 'ag-charts-core';
 export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
 export type {
     PickFocusInputs,
@@ -182,7 +182,7 @@ export type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
-export { SeriesZIndexMap } from './chart/series/seriesZIndexMap';
+export { SeriesZIndexMap } from 'ag-charts-core';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices } from './chart/series/util';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {
@@ -238,7 +238,7 @@ export {
 } from './chart/series/cartesian/pathUtil';
 export { addHitTestersToQuadtree, findQuadtreeMatch } from './chart/series/cartesian/quadtreeUtil';
 export type { QuadtreeCompatibleNode } from './chart/series/cartesian/quadtreeUtil';
-export { InterpolationProperties } from './chart/series/cartesian/interpolationProperties';
+export { InterpolationProperties } from 'ag-charts-core';
 export { DataModelSeries } from './chart/series/dataModelSeries';
 export type {
     DataModelSeriesConstructorOpts,
@@ -251,7 +251,7 @@ export {
     PolarSeries,
 } from './chart/series/polar/polarSeries';
 export type { PolarAnimationData } from './chart/series/polar/polarSeries';
-export { PolarZIndexMap } from './chart/series/polar/polarZIndexMap';
+export { PolarZIndexMap } from 'ag-charts-core';
 export { HierarchyNode, HierarchySeries } from './chart/series/hierarchy/hierarchySeries';
 export {
     HierarchyHighlightState,
@@ -259,8 +259,8 @@ export {
     toHierarchyHighlightString,
 } from './chart/series/hierarchy/hierarchySeriesProperties';
 export type { ITopology } from './chart/series/topologySeries';
-export type { Feature, FeatureCollection, Geometry, Position } from './chart/series/topology/geojson';
-export { LonLatBBox } from './chart/series/topology/lonLatBbox';
+export type { Feature, FeatureCollection, Geometry, Position } from 'ag-charts-core';
+export { LonLatBBox } from 'ag-charts-core';
 export { MercatorScale } from './chart/series/topology/mercatorScale';
 export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
@@ -275,8 +275,8 @@ export {
     aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
-} from './chart/series/aggregation';
-export type { ExtremesAggregationFilter, ExtremesPartialAggregationResult } from './chart/series/aggregation';
+} from 'ag-charts-core';
+export type { ExtremesAggregationFilter, ExtremesPartialAggregationResult } from 'ag-charts-core';
 export { AggregationManager } from './chart/series/aggregationManager';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
@@ -293,7 +293,7 @@ export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
-export { expandLegendPosition } from './chart/legend/legendUtil';
+export { expandLegendPosition } from 'ag-charts-core';
 export type {
     CategoryLegendDatum,
     ChartLegendDatum,
@@ -304,17 +304,17 @@ export type { LegendSymbolOptions } from './chart/legend/legendSymbol';
 export { isTooltipValueMissing } from './chart/tooltip/tooltip';
 export type { TooltipContent, TooltipContentDataRow } from './chart/tooltip/tooltip';
 export type { AnimationPhase, AnimationValue } from './motion/animation';
-export * as Motion from './motion/easing';
+export * as Motion from 'ag-charts-core';
 export { resetMotion } from './motion/resetMotion';
 export { fromToMotion, NODE_UPDATE_STATE_TO_PHASE_MAPPING } from './motion/fromToMotion';
 export type { ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
-export { createButton, createCheckbox, createSelect, createTextArea } from './dom/elements';
-export type { CheckboxOptions, SelectOptions, TextAreaOptions } from './dom/elements';
-export { BASE_FONT_SIZE, FONT_SIZE, FONT_SIZE_RATIO } from './chart/themes/constants';
-export { ChartUpdateType } from './chart/chartUpdateType';
-export { type MementoOriginator } from './api/state/memento';
+export { createButton, createCheckbox, createSelect, createTextArea } from 'ag-charts-core';
+export type { CheckboxOptions, SelectOptions, TextAreaOptions } from 'ag-charts-core';
+export { BASE_FONT_SIZE, FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
+export { ChartUpdateType } from 'ag-charts-core';
+export { type MementoOriginator } from 'ag-charts-core';
 export { QuadtreeNearest } from './scene/util/quadtree';
 export { UnitTimeScale } from './scale/unitTimeScale';
 export { LogScale } from './scale/logScale';
@@ -332,7 +332,7 @@ export {
     SceneArrayChangeDetection,
     SceneChangeDetection,
     SceneObjectChangeDetection,
-} from './scene/changeDetectable';
+} from 'ag-charts-core';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
@@ -353,7 +353,7 @@ export { drawMarkerUnitPolygon } from './chart/marker/shapes';
 export { SectorBox } from './scene/sectorBox';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';
-export * as easing from './motion/easing';
+export * as easing from 'ag-charts-core';
 
 export const motion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
@@ -400,9 +400,11 @@ export {
     SEGMENTATION_DEFAULTS,
     singleSeriesHighlightStyle,
 } from './chart/themes/util';
-export * as ThemeSymbols from './chart/themes/symbols';
-export * as ThemeConstants from './chart/themes/constants';
-export { NativeWidget, SliderWidget, ToolbarWidget } from './widget/exports';
+export * as ThemeSymbols from 'ag-charts-core';
+export * as ThemeConstants from 'ag-charts-core';
+export { NativeWidget } from './widget/nativeWidget';
+export { SliderWidget } from './widget/sliderWidget';
+export { ToolbarWidget } from './widget/toolbarWidget';
 export type {
     DragWidgetEvent,
     HoverLikeEvent,
@@ -410,14 +412,14 @@ export type {
     MouseWidgetEvent,
     WheelWidgetEvent,
     WidgetEvent,
-} from './widget/exports';
+} from './widget/widgetEvents';
 export { Menu } from './components/menu/menu';
 export type { MenuItem } from './components/menu/menu';
 export { AnchoredPopover } from './components/popover/anchoredPopover';
 export type { AnchoredPopoverOptions } from './components/popover/anchoredPopover';
 export { DraggablePopover } from './components/popover/draggablePopover';
 export type { PopoverConstructorOptions, PopoverOptions } from './components/popover/popover';
-export { ToolbarButtonProperties } from './components/toolbar/toolbarButtonProperties';
+export { ToolbarButtonProperties } from 'ag-charts-core';
 export { ToolbarButtonWidget } from './components/toolbar/toolbarButtonWidget';
 export { BaseToolbar, Toolbar } from './components/toolbar/toolbar';
 export type { ToolbarButtonOptions, ToolbarEventMap } from './components/toolbar/toolbar';

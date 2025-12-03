@@ -4,9 +4,9 @@ import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } f
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
-import { ChartUpdateType } from '../chartUpdateType';
+import { ChartUpdateType } from 'ag-charts-core';
 import { Marker } from '../marker/marker';
-import { FONT_SIZE } from '../themes/constants';
+import { FONT_SIZE } from 'ag-charts-core';
 
 class PaginationLabel extends BaseProperties {
     @Property

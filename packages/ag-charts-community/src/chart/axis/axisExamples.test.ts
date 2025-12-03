@@ -9,8 +9,8 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { ChartUpdateType } from '../chartUpdateType';
+import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartUpdateType } from 'ag-charts-core';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import {

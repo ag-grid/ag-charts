@@ -1,6 +1,13 @@
-import type { Point } from 'ag-charts-core';
-import { type Span, SpanJoin, linearPoints, smoothPoints, spanRange, stepPoints } from 'ag-charts-core';
-import { areScalingEqual, isScaleValid } from 'ag-charts-core';
+import type { InterpolationProperties, Point, Span } from 'ag-charts-core';
+import {
+    SpanJoin,
+    areScalingEqual,
+    isScaleValid,
+    linearPoints,
+    smoothPoints,
+    spanRange,
+    stepPoints,
+} from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
@@ -10,22 +17,21 @@ import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import type { InterpolationProperties } from './interpolationProperties';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 
-export type LinePathSpan = {
+export interface LinePathSpan {
     span: Span;
     xValue0: any;
     yValue0: any;
     xValue1: any;
     yValue1: any;
-};
+}
 
-export type LineStrokePathDatum = {
+export interface LineStrokePathDatum {
     readonly spans: LinePathSpan[];
     readonly itemId: string;
-};
+}
 
 export interface SpanAnimation {
     added: SpanInterpolation[];
@@ -33,11 +39,11 @@ export interface SpanAnimation {
     removed: SpanInterpolation[];
 }
 
-export type LineSpanPointDatum = {
+export interface LineSpanPointDatum {
     point: Point;
     xDatum: any;
     yDatum: any;
-};
+}
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly itemId?: never;
@@ -122,11 +128,10 @@ export function interpolatePoints(
     points: LineSpanPointDatum[],
     interpolation: InterpolationProperties
 ): LinePathSpan[] {
-    let spans: Span[];
     const pointsIter = points.map((point) => point.point);
+    let spans: Span[] = linearPoints(pointsIter);
     switch (interpolation.type) {
         case 'linear':
-            spans = linearPoints(pointsIter);
             break;
         case 'smooth':
             spans = smoothPoints(pointsIter, interpolation.tension);

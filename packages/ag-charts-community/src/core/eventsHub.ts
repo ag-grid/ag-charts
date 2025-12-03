@@ -10,7 +10,7 @@ import type {
     AgZoomRatio,
 } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { ChartAxisDirection } from 'ag-charts-core';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';

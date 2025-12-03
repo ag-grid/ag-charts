@@ -11,7 +11,7 @@ import {
     compactAggregationIndices,
     createAggregationIndices,
     getMidpointsForIndices,
-} from '../aggregation';
+} from 'ag-charts-core';
 
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;

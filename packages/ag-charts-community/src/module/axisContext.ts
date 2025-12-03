@@ -1,7 +1,7 @@
 import type { AxisID, BoxBounds, Point, Scale } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { ChartAxisDirection } from 'ag-charts-core';
 import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (

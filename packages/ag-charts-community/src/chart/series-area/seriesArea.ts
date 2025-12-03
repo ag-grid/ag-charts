@@ -5,7 +5,7 @@ import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
-import { ZIndexMap } from '../zIndexMap';
+import { ZIndexMap } from 'ag-charts-core';
 
 export class SeriesArea extends BaseProperties {
     protected readonly node: Group;
