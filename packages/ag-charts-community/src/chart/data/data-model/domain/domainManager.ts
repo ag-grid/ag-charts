@@ -16,6 +16,43 @@ import { DomainInitializer } from './domainInitializer';
 import { ProcessValueFactory, type SpecializedProcessValueFn } from './processValueFactory';
 
 /**
+ * Checks if two scope arrays overlap (have any common elements).
+ * If either array is empty or undefined, they are considered universal (match everything).
+ */
+function scopesOverlap(scopes1?: string[], scopes2?: string[]): boolean {
+    if (!scopes1 || !scopes2 || scopes1.length === 0 || scopes2.length === 0) {
+        return true;
+    }
+    return scopes1.some((s) => scopes2.includes(s));
+}
+
+/**
+ * Finds a key definition that matches a value definition for domain sharing.
+ * A match occurs when:
+ * - Same property name
+ * - Same valueType ('category' for discrete domains)
+ * - Overlapping scopes
+ * - Same validation function (if present)
+ */
+function findMatchingKeyDef<K extends string>(
+    valueDef: InternalDatumPropertyDefinition<K>,
+    keyDefs: InternalDatumPropertyDefinition<K>[]
+): InternalDatumPropertyDefinition<K> | undefined {
+    // Only match discrete/category domains (continuous domains don't benefit from sharing)
+    if (valueDef.valueType !== 'category') return undefined;
+
+    for (const keyDef of keyDefs) {
+        if (keyDef.property !== valueDef.property) continue;
+        if (keyDef.valueType !== valueDef.valueType) continue;
+        if (!scopesOverlap(keyDef.scopes, valueDef.scopes)) continue;
+        // Don't share if validation functions differ
+        if (keyDef.validation !== valueDef.validation) continue;
+        return keyDef;
+    }
+    return undefined;
+}
+
+/**
  * Manages domain computation and processing for the DataModel.
  * Handles both discrete and continuous domains, including banded domain optimization
  * and value processing during data transformation.
@@ -38,6 +75,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
     /**
      * Recomputes all domains from processed data.
      * Uses BandedDomain optimization for continuous domains to avoid full rescans.
+     * Shares domains between keys and values when they reference the same property.
      */
     recomputeDomains(processedData: ProcessedData<D>): void {
         const startTime = this.ctx.debug.check() ? performance.now() : 0;
@@ -47,7 +85,32 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         // Pass KEY_SORT_ORDERS to key domain setup for sorted unique optimization
         const keySortOrders = processedData[KEY_SORT_ORDERS];
         const keyDomains = this.setupDefinitionDomains(this.ctx.keys, bandedDomains, keySortOrders);
-        const valueDomains = this.setupDefinitionDomains(this.ctx.values, bandedDomains);
+
+        // Build map of value defs that should share domains with key defs
+        const valueToKeyDef = new Map<InternalDatumPropertyDefinition<K>, InternalDatumPropertyDefinition<K>>();
+        for (const valueDef of this.ctx.values) {
+            const matchingKeyDef = findMatchingKeyDef(valueDef, this.ctx.keys);
+            if (matchingKeyDef) {
+                valueToKeyDef.set(valueDef, matchingKeyDef);
+            }
+        }
+
+        // Setup value domains, reusing key domains where property matches
+        const valueDomains = this.setupValueDomainsWithSharing(
+            this.ctx.values,
+            bandedDomains,
+            keyDomains,
+            valueToKeyDef
+        );
+
+        // Track which domains are shared (already extended via key processing)
+        const sharedDomains = new Set<IDataDomain>();
+        for (const [, keyDef] of valueToKeyDef) {
+            const sharedDomain = keyDomains.get(keyDef);
+            if (sharedDomain) {
+                sharedDomains.add(sharedDomain);
+            }
+        }
 
         // Initialize bands for key domains first (this determines band structure)
         // Only initialize if bands don't exist yet or if data size has changed significantly
@@ -103,13 +166,14 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             (scope) => processedData.invalidKeys?.get(scope)
         );
 
-        // Extend value domains from columns arrays
+        // Extend value domains from columns arrays (skip shared domains - already extended via keys)
         this.extendDomainsFromData(
             this.ctx.values,
             valueDomains,
             (defIndex, _scope) => processedData.columns[defIndex],
             (def) => [first(def.scopes)],
-            (scope) => processedData.invalidData?.get(scope)
+            (scope) => processedData.invalidData?.get(scope),
+            sharedDomains
         );
 
         processedData.domain.keys = this.ctx.keys.map(function mapDomainKeys(keyDef) {
@@ -197,17 +261,22 @@ export class DomainManager<D extends object, K extends keyof D & string> {
 
     /**
      * Extends domains from data sources using a shared traversal.
+     * @param skipDomains Optional set of domains to skip (already extended via shared key processing)
      */
     private extendDomainsFromData(
         defs: InternalDatumPropertyDefinition<K>[],
         domains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
         getData: (defIndex: number, scope: string) => any[] | undefined,
         getScopes: (def: InternalDatumPropertyDefinition<K>) => string[],
-        getInvalid: (scope: string) => boolean[] | undefined
+        getInvalid: (scope: string) => boolean[] | undefined,
+        skipDomains?: Set<IDataDomain>
     ): void {
         for (const [defIndex, def] of defs.entries()) {
             const domain = domains.get(def);
             if (!domain) continue;
+
+            // Skip domains that are shared with keys (already extended)
+            if (skipDomains?.has(domain)) continue;
 
             for (const scope of getScopes(def)) {
                 if (!scope) continue;
@@ -221,9 +290,39 @@ export class DomainManager<D extends object, K extends keyof D & string> {
     }
 
     /**
+     * Sets up value domains, reusing key domains where properties match.
+     * This avoids duplicate domain computation for properties that appear as both key and value.
+     */
+    private setupValueDomainsWithSharing(
+        defs: InternalDatumPropertyDefinition<K>[],
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        keyDomains: Map<InternalDatumPropertyDefinition<K>, IDataDomain>,
+        valueToKeyDef: Map<InternalDatumPropertyDefinition<K>, InternalDatumPropertyDefinition<K>>
+    ): Map<InternalDatumPropertyDefinition<K>, IDataDomain> {
+        const domains = new Map<InternalDatumPropertyDefinition<K>, IDataDomain>();
+
+        for (const def of defs) {
+            const matchingKeyDef = valueToKeyDef.get(def);
+            if (matchingKeyDef) {
+                // Reuse key domain - no new domain creation needed
+                const keyDomain = keyDomains.get(matchingKeyDef);
+                if (keyDomain) {
+                    domains.set(def, keyDomain);
+                    continue;
+                }
+            }
+
+            // Create new domain as before (no sort order metadata for non-shared values)
+            domains.set(def, this.initializer.setupDomainForDefinition(def, bandedDomains));
+        }
+        return domains;
+    }
+
+    /**
      * Initializes domain processor for value processing during data transformation.
      * Returns domain maps and processing functions used during data extraction.
      * Uses specialized functions per property definition to eliminate branching in hot paths.
+     * Shares domains between keys and values when they reference the same property.
      */
     initDataDomainProcessor(domainMode: 'extend' | 'skip') {
         const { keys: keyDefs, values: valueDefs } = this.ctx;
@@ -241,7 +340,27 @@ export class DomainManager<D extends object, K extends keyof D & string> {
         let allScopesHaveSameDefs = true;
 
         const initDataDomain = () => {
-            for (const def of iterate(keyDefs, valueDefs)) {
+            // First, create domains for key definitions
+            for (const def of keyDefs) {
+                if (def.valueType === 'category') {
+                    dataDomain.set(def, new DiscreteDomain());
+                } else {
+                    dataDomain.set(def, new ContinuousDomain());
+                }
+            }
+
+            // Then, create domains for value definitions (reusing key domains where matching)
+            for (const def of valueDefs) {
+                const matchingKeyDef = findMatchingKeyDef(def, keyDefs);
+                if (matchingKeyDef) {
+                    const keyDomain = dataDomain.get(matchingKeyDef);
+                    if (keyDomain) {
+                        dataDomain.set(def, keyDomain);
+                        allScopesHaveSameDefs &&= (def.scopes?.length ?? 0) === scopes.size;
+                        continue;
+                    }
+                }
+
                 if (def.valueType === 'category') {
                     dataDomain.set(def, new DiscreteDomain());
                 } else {
