@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
+import type { UpdateZoomSourcing } from '../module-support';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
@@ -293,7 +294,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
         await cloneProxy.setState(state);
 
         // sync zoom
-        cloneProxy.chart?.ctx.zoomManager.updateZoom(chart.ctx.zoomManager.getZoom());
+        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'prepareResizedChart' };
+        cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.zoomManager.getZoom());
 
         // sync legend
         cloneProxy.chart?.ctx.legendManager.clearData();

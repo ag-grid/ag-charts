@@ -6,6 +6,7 @@ import type {
     AgContextMenuItemShowOn,
     AgTimeInterval,
     AgTimeIntervalUnit,
+    AgZoomEventSource,
     AgZoomRange,
     AgZoomRatio,
 } from 'ag-charts-types';
@@ -177,14 +178,13 @@ export interface ZoomLoadMementoEvent {
     readonly zoomModule: boolean;
 }
 
-export type ZoomChangeType = 'panToBBox' | 'refresh' | 'reset' | 'restoreMemento' | 'setAxes' | 'sync' | 'update';
-
 export type ZoomChangeState = {
     readonly [K in AxisID]: Readonly<ZoomStateDirection> | undefined;
 };
 
 export interface ZoomChangeRequestEvent {
-    readonly changeType: ZoomChangeType;
+    readonly source: AgZoomEventSource;
+    readonly sourceDetail: string | undefined;
     readonly changedAxes: readonly AxisID[];
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;
@@ -193,7 +193,8 @@ export interface ZoomChangeRequestEvent {
 }
 
 export interface ZoomChangeCompleteEvent {
-    readonly changeType: ZoomChangeType;
+    readonly source: AgZoomEventSource;
+    readonly sourceDetail: string | undefined;
     readonly x?: Readonly<ZoomState>;
 }
 

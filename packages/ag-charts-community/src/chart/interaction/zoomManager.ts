@@ -15,7 +15,7 @@ import {
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
-import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
     AxisZoomState,
@@ -23,7 +23,6 @@ import type {
     EventsHub,
     ZoomChangeRequestEvent,
     ZoomChangeState,
-    ZoomChangeType,
     ZoomMemento,
     ZoomState,
 } from '../../core/eventsHub';
@@ -81,10 +80,13 @@ function validateChanges(changes: UpdateZoomChanges): void {
     }
 }
 
+export type UpdateZoomSourcing = {
+    source: AgZoomEventSource;
+    sourceDetail?: string;
+};
 export type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
-export type UpdateZoomParams = {
+export type UpdateZoomParams = UpdateZoomSourcing & {
     changes: UpdateZoomChanges;
-    changeType: ZoomChangeType;
 };
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -278,7 +280,7 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
-        this.applyUpdateZoom({ changeType: 'restoreMemento', changes });
+        this.updateChanges({ source: 'user-interaction', sourceDetail: 'restoreMemento', changes });
     }
 
     private findAxis(axisId: AxisID): CartesianAxisLike | undefined {
@@ -305,7 +307,7 @@ export class ZoomManager extends BaseManager {
         this.state = changes;
         this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
 
-        this.applyUpdateZoom({ changeType: 'setAxes', changes });
+        this.updateChanges({ source: 'chart-update', sourceDetail: 'setAxes', changes });
     }
 
     public setIndependentAxes(independent = true) {
@@ -328,31 +330,18 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public refreshZoom(): boolean {
-        return this.applyUpdateZoom({ changeType: 'refresh', changes: {} });
+    public refreshZoom({ source, sourceDetail }: UpdateZoomSourcing): boolean {
+        return this.updateChanges({ source, sourceDetail, changes: {} });
     }
 
-    public updateZoom(newZoom?: AxisZoomState): boolean {
-        return this.updateChanges(this.toCoreZoomState(newZoom ?? {}));
+    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
+        const changes = this.toCoreZoomState(newZoom ?? {});
+        return this.updateChanges({ source, sourceDetail, changes });
     }
 
-    public updateAxisZoom(axisId: AxisID, newZoom?: ZoomState): boolean {
+    public updateAxisZoom({ source, sourceDetail }: UpdateZoomSourcing, axisId: AxisID, newZoom?: ZoomState): boolean {
         const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        return this.updateChanges(changes);
-    }
-
-    public updateChanges(changes: UpdateZoomChanges): boolean {
-        return this.applyUpdateZoom({ changeType: 'update', changes });
-    }
-
-    public syncZoom(newZoom?: AxisZoomState): boolean {
-        const changes = this.toCoreZoomState(newZoom ?? this.getZoom() ?? {});
-        return this.applyUpdateZoom({ changeType: 'sync', changes });
-    }
-
-    public syncAxisZoom(axisId: AxisID, newZoom?: ZoomState): boolean {
-        const changes = { [axisId]: newZoom ?? this.getAxisZoom(axisId) };
-        return this.applyUpdateZoom({ changeType: 'sync', changes });
+        return this.updateChanges({ source, sourceDetail, changes });
     }
 
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
@@ -372,7 +361,8 @@ export class ZoomManager extends BaseManager {
         return result;
     }
 
-    private applyUpdateZoom({ changeType, changes }: UpdateZoomParams): boolean {
+    public updateChanges(params: UpdateZoomParams): boolean {
+        const { source, sourceDetail, changes } = params;
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
@@ -386,15 +376,17 @@ export class ZoomManager extends BaseManager {
         }
         this.state = newState;
 
-        return this.dispatch(changeType, changedAxes);
+        return this.dispatch(source, sourceDetail, changedAxes);
     }
 
-    public resetZoom() {
-        this.applyUpdateZoom({ changeType: 'reset', changes: this.getRestoredZoom() });
+    public resetZoom(sourcing?: Pick<UpdateZoomSourcing, 'sourceDetail'>) {
+        const { sourceDetail } = sourcing ?? {};
+        this.updateChanges({ source: 'reset', sourceDetail, changes: this.getRestoredZoom() });
     }
 
-    public resetAxisZoom(axisId: AxisID) {
-        this.applyUpdateZoom({ changeType: 'reset', changes: { [axisId]: this.getRestoredZoom()[axisId] } });
+    public resetAxisZoom(axisId: AxisID, sourcing?: Pick<UpdateZoomSourcing, 'sourceDetail'>) {
+        const { sourceDetail } = sourcing ?? {};
+        this.updateChanges({ source: 'reset', sourceDetail, changes: { [axisId]: this.getRestoredZoom()[axisId] } });
     }
 
     public panToBBox(seriesRect: BBox, target: BoxBounds): boolean {
@@ -415,7 +407,7 @@ export class ZoomManager extends BaseManager {
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
-        return this.applyUpdateZoom({ changeType: 'panToBBox', changes });
+        return this.updateChanges({ source: 'user-interaction', sourceDetail: 'panToBBox', changes });
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
@@ -423,11 +415,15 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
-    public extendToEnd(direction: CartesianAxisDirection, extent: number) {
-        return this.extendWith(direction, (end) => Number(end) - extent);
+    public extendToEnd(sourcing: UpdateZoomSourcing, direction: CartesianAxisDirection, extent: number) {
+        return this.extendWith(sourcing, direction, (end) => Number(end) - extent);
     }
 
-    public extendWith(direction: CartesianAxisDirection, fn: (end: Date | number) => Date | number) {
+    public extendWith(
+        { source, sourceDetail }: UpdateZoomSourcing,
+        direction: CartesianAxisDirection,
+        fn: (end: Date | number) => Date | number
+    ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
@@ -440,10 +436,11 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start });
         if (!ratio) return;
 
-        this.updateZoom({ [direction]: ratio });
+        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio } });
     }
 
     public updateWith(
+        { source, sourceDetail }: UpdateZoomSourcing,
         direction: CartesianAxisDirection,
         fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]
     ) {
@@ -459,7 +456,7 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start, end });
         if (!ratio) return;
 
-        this.updateZoom({ [direction]: ratio });
+        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio } });
     }
 
     public getZoom(): AxisZoomState | undefined {
@@ -571,13 +568,18 @@ export class ZoomManager extends BaseManager {
         return memento;
     }
 
-    private dispatch(changeType: ZoomChangeType, changedAxes: readonly AxisID[]): boolean {
+    private dispatch(
+        source: AgZoomEventSource,
+        sourceDetail: string | undefined,
+        changedAxes: readonly AxisID[]
+    ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
         let constrainedState: typeof state | undefined;
 
         const event = {
-            changeType,
+            source,
+            sourceDetail,
             changedAxes,
             state,
             x,
@@ -609,7 +611,7 @@ export class ZoomManager extends BaseManager {
         const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
-            this.eventsHub.emit('zoom:change-complete', { changeType, x: acceptedZoom.x });
+            this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
             this.didCompleteChange = true; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;

@@ -73,14 +73,18 @@ export class Ranges extends AbstractModuleInstance {
 
         const { value } = button;
 
+        const sourcing: _ModuleSupport.UpdateZoomSourcing = {
+            source: 'user-interaction',
+            sourceDetail: `zoom-range-button-${index}`,
+        };
         if (value == null) {
             zoomManager.resetZoom();
         } else if (typeof value === 'number') {
-            zoomManager.extendToEnd(ChartAxisDirection.X, value);
+            zoomManager.extendToEnd(sourcing, ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {
-            zoomManager.updateWith(ChartAxisDirection.X, () => value);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, () => value);
         } else if (typeof value === 'function') {
-            zoomManager.updateWith(ChartAxisDirection.X, value);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, value);
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);
