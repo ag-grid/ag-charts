@@ -18,7 +18,6 @@ import type {
 } from './annotationTypes';
 import type { PointType } from './utils/scale';
 
-const {} = _ModuleSupport;
 /**************
  * Components *
  **************/

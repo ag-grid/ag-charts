@@ -5,8 +5,6 @@ import { FONT_SIZE_RATIO, radialGaugeSeriesOptionsDef } from 'ag-charts-core';
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
-const {} = _ModuleSupport;
-
 export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
     name: 'radial-gauge',

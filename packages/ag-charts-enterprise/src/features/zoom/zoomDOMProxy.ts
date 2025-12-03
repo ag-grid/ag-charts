@@ -1,8 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type AxisID, type BaseStyleTypeMap, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
 
-const {} = _ModuleSupport;
-
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type AxesHandlers = {

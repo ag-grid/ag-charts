@@ -8,20 +8,34 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { ChartAxisDirection, Logger, type Mutable, type Point, type Scale, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    ChartAxisDirection,
+    Logger,
+    type Mutable,
+    type Point,
+    type Scale,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import {
-    CLOSE,
-    HIGH,
-    LOW,
-    OPEN,
     type OhlcSeriesDataAggregationFilter,
-    SPAN,
     aggregateOhlcDataFromDataModel,
     aggregateOhlcDataFromDataModelPartial,
 } from './ohlcAggregation';
 import { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
+
+// Semantic constants for OHLC data access
+const OPEN = AGGREGATION_INDEX_X_MIN;
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const CLOSE = AGGREGATION_INDEX_X_MAX;
+const SPAN = AGGREGATION_SPAN;
 
 const {
     AggregationManager,

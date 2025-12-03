@@ -1,6 +1,18 @@
-import { computeExtremesAggregation } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    computeExtremesAggregation,
+} from 'ag-charts-core';
 
-import { END, HIGH, LOW, SPAN, START } from './rangeBarAggregation';
+// Semantic constants for Range Bar data access
+const START = AGGREGATION_INDEX_X_MIN;
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const END = AGGREGATION_INDEX_X_MAX;
+const SPAN = AGGREGATION_SPAN;
 
 describe('computeExtremesAggregation', () => {
     describe('threshold behavior', () => {

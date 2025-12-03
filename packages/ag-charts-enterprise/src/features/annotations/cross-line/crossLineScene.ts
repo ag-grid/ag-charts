@@ -13,8 +13,6 @@ import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
-const {} = _ModuleSupport;
-
 export class CrossLineScene extends AnnotationScene {
     static override is(value: unknown): value is CrossLineScene {
         return AnnotationScene.isCheck(value, 'cross-line');

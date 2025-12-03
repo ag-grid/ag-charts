@@ -10,7 +10,6 @@ import {
 
 import { Image } from '../image/image';
 
-const {} = _ModuleSupport;
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Property
     @ActionOnSet<Foreground>({

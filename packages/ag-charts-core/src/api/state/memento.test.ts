@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Logger, MementoCaretaker, isPlainObject } from 'ag-charts-core';
 import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
-import type { MementoOriginator } from './memento';
+import { Logger } from '../../globals';
+import { isPlainObject } from '../../utils/typeGuards';
+import { MementoCaretaker, type MementoOriginator } from './memento';
 
 describe('Memento Caretaker', () => {
     setupMockConsole(undefined, { includeAllLevels: false });

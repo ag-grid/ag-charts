@@ -6,8 +6,6 @@ import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
-const {} = _ModuleSupport;
-
 export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
     name: 'treemap',

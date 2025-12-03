@@ -10,6 +10,9 @@ import {
 } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
     type AreExact,
     type CallbackParamRules,
     ChartAxisDirection,
@@ -25,10 +28,7 @@ import {
 } from 'ag-charts-core';
 
 import {
-    HIGH,
-    LOW,
     type RangeAreaSeriesDataAggregationFilter,
-    SPAN,
     aggregateRangeAreaDataFromDataModel,
     aggregateRangeAreaDataFromDataModelPartial,
 } from './rangeAreaAggregation';
@@ -40,6 +40,11 @@ import {
     type RangeAreaLabelDatum,
     prepareRangeAreaPathAnimation,
 } from './rangeAreaUtil';
+
+// Semantic constants for Range Area data access
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const SPAN = AGGREGATION_SPAN;
 
 const {
     valueProperty,

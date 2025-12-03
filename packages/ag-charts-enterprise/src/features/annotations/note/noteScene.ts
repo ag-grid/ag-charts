@@ -9,8 +9,6 @@ import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const {} = _ModuleSupport;
-
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
         return AnnotationScene.isCheck(value, AnnotationType.Note);

@@ -1,11 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
 import {
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_SPAN,
     aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
@@ -19,13 +14,6 @@ type DataModel = _ModuleSupport.DataModel<any, any, any>;
 // Type aliases for RangeBar-specific usage
 export type RangeBarSeriesDataAggregationFilter = ExtremesAggregationFilter;
 export type RangeBarPartialAggregationResult = ExtremesPartialAggregationResult;
-
-// Semantic constants for Range Bar data access
-export const START = AGGREGATION_INDEX_X_MIN;
-export const HIGH = AGGREGATION_INDEX_Y_MAX;
-export const LOW = AGGREGATION_INDEX_Y_MIN;
-export const END = AGGREGATION_INDEX_X_MAX;
-export const SPAN = AGGREGATION_SPAN;
 
 // ============================================================================
 // ADAPTER LAYER: Scale integration
