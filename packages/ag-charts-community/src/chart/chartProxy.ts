@@ -294,7 +294,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         await cloneProxy.setState(state);
 
         // sync zoom
-        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'prepareResizedChart' };
+        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
         cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.zoomManager.getZoom());
 
         // sync legend

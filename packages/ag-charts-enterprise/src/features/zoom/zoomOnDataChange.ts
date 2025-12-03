@@ -189,7 +189,7 @@ export class ZoomOnDataChange {
 
         switch (this.properties.strategy) {
             case 'reset':
-                return this.ctx.zoomManager.resetZoom();
+                return this.ctx.zoomManager.resetZoom('onDataChange-reset');
             case 'preserveRatios':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':

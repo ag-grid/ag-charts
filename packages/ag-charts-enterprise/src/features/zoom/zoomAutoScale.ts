@@ -80,7 +80,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         if (opts.enabled) {
             this.zoomManager.updateChanges({
                 source: 'chart-update',
-                sourceDetail: 'zoom-auto-scale',
+                sourceDetail: 'internal-autoScaling',
                 changes: this.autoScaleYZoom() ?? {},
             });
         }

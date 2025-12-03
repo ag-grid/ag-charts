@@ -78,7 +78,7 @@ export class Ranges extends AbstractModuleInstance {
             sourceDetail: `zoom-range-button-${index}`,
         };
         if (value == null) {
-            zoomManager.resetZoom();
+            zoomManager.resetZoom(sourcing.sourceDetail);
         } else if (typeof value === 'number') {
             zoomManager.extendToEnd(sourcing, ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {

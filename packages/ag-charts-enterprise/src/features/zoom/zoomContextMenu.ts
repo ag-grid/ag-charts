@@ -83,7 +83,7 @@ export class ZoomContextMenu {
         const zoom = this.iterateFindNextZoomAtPoint(origin);
         if (zoom == null) return;
 
-        this.updateZoom({ source: 'user-interaction', sourceDetail: 'context-menu-zoom-to-cursor' }, zoom);
+        this.updateZoom({ source: 'user-interaction', sourceDetail: 'contextmenu-zoom-to-cursor' }, zoom);
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -109,13 +109,13 @@ export class ZoomContextMenu {
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
         this.updateZoom(
-            { source: 'user-interaction', sourceDetail: 'context-menu-pan-to-cursor' },
+            { source: 'user-interaction', sourceDetail: 'contextmenu-pan-to-cursor' },
             constrainZoom(newZoom)
         );
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
-        this.zoomManager.resetZoom({ sourceDetail: 'context-menu-reset' });
+        this.zoomManager.resetZoom('contextmenu-reset');
     }
 
     private iterateFindNextZoomAtPoint(origin: Point) {

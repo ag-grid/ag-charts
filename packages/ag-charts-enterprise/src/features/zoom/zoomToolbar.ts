@@ -96,7 +96,7 @@ export class ZoomToolbar extends BaseProperties {
             direction: _ModuleSupport.CartesianAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
-        private readonly resetZoom: () => void,
+        private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
         super();
@@ -332,7 +332,7 @@ export class ZoomToolbar extends BaseProperties {
 
         switch (event.value) {
             case 'reset':
-                this.resetZoom();
+                this.resetZoom('zoom-button-reset');
                 return;
 
             case 'pan-start':

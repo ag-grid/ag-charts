@@ -285,7 +285,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableDoubleClickToReset) return;
         if (event?.preventZoomDblClick || !this.isState(InteractionState.ZoomClickable)) return;
 
-        this.resetZoom();
+        this.resetZoom('zoom-seriesarea-dblclick');
     }
 
     private onSeriesAreaHoverEvent(event: SeriesAreaHoverEvent) {
@@ -486,7 +486,10 @@ export class Zoom extends AbstractModuleInstance {
                 if (selector.didUpdate()) {
                     const newZoom = selector.stop(this.seriesRect, this.paddedRect, this.getZoom());
                     if (newZoom) {
-                        this.updateZoom({ source: 'user-interaction', sourceDetail: 'zoom-selector' }, newZoom);
+                        this.updateZoom(
+                            { source: 'user-interaction', sourceDetail: 'zoom-seriesarea-selector' },
+                            newZoom
+                        );
                     } else {
                         // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
                         this.ctx.updateService.update();
@@ -511,7 +514,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        zoomManager.resetAxisZoom(id);
+        zoomManager.resetAxisZoom('zoom-axis-dblclick', id);
     }
 
     private onAxisDragStart(direction: _ModuleSupport.ChartAxisDirection) {
@@ -624,7 +627,7 @@ export class Zoom extends AbstractModuleInstance {
         event.widgetEvent.sourceEvent.preventDefault();
 
         this.updateZoom(
-            { source: 'user-interaction', sourceDetail: `keyboard({event.delta})` },
+            { source: 'user-interaction', sourceDetail: `keyboard(${event.delta})` },
             scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom())
         );
     }
@@ -657,7 +660,7 @@ export class Zoom extends AbstractModuleInstance {
         event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        this.updateChanges({ source: 'user-interaction', sourceDetail: 'wheel' }, newZooms);
+        this.updateChanges({ source: 'user-interaction', sourceDetail: 'zoom-seriesarea-wheel' }, newZooms);
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
@@ -702,7 +705,10 @@ export class Zoom extends AbstractModuleInstance {
 
         let updated = true;
 
-        const sourcing: _ModuleSupport.UpdateZoomSourcing = { source: 'user-interaction', sourceDetail: 'axis-wheel' };
+        const sourcing: _ModuleSupport.UpdateZoomSourcing = {
+            source: 'user-interaction',
+            sourceDetail: 'zoom-axis-wheel',
+        };
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, min, max }] of entries(newZooms)) {
@@ -752,7 +758,10 @@ export class Zoom extends AbstractModuleInstance {
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
         if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
-        this.updateZoom({ source: 'user-interaction', sourceDetail: 'zoom-touch-two-fingers' }, constrainZoom(newZoom));
+        this.updateZoom(
+            { source: 'user-interaction', sourceDetail: 'zoom-seriesarea-twofingers' },
+            constrainZoom(newZoom)
+        );
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
@@ -787,7 +796,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.sourceDetail !== 'zoom-panner') {
+        if (event.sourceDetail !== 'zoom-seriesarea-panner') {
             this.panner.stopInteractions();
         }
 
@@ -811,7 +820,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-        this.updateChanges({ source: 'user-interaction', sourceDetail: 'zoom-panner' }, newZooms);
+        this.updateChanges({ source: 'user-interaction', sourceDetail: 'zoom-seriesarea-panner' }, newZooms);
         tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 
@@ -930,14 +939,14 @@ export class Zoom extends AbstractModuleInstance {
         return valid;
     }
 
-    private resetZoom() {
+    private resetZoom(sourceDetail: _ModuleSupport.ZoomEventSourceDetail) {
         this.previousZoomValid = true;
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        this.ctx.zoomManager.resetZoom();
+        this.ctx.zoomManager.resetZoom(sourceDetail);
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
-        this.updateZoom({ source: 'sync' }, zoom);
+        this.updateZoom({ source: 'sync', sourceDetail: 'internal-updateSyncZoom' }, zoom);
     }
 
     private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
