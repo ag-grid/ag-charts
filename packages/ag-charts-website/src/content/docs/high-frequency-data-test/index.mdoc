@@ -59,3 +59,25 @@ This example is tuned for high-volume datasets. It starts with 100,000 data poin
 This example investigates the performance of `applyTransaction()` with randomized updates on large datasets. Unlike append/remove operations, this tests in-place value mutations where random data points are updated each tick. Compare the cost of incremental `applyTransaction({ update })` against full `updateDelta()` refreshes.
 
 {% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" /%}
+
+## Financial Charts
+
+The following examples demonstrate high-frequency updates using the Financial Charts API (`AgCharts.createFinancialChart`). This uses the simplified financial chart options with built-in features like volume, navigator, range buttons, status bar, and zoom.
+
+### Real-Time Data Feed
+
+This example simulates a real-time data feed updating a financial chart with new datums.
+
+{% chartExampleRunner title="High Frequency Financial Chart" name="high-freq-financial-chart" type="generated" /%}
+
+### High Volume Financial Chart
+
+This example tests high-volume datasets with 100,000 data points using the Financial Charts API. Compare the performance of `applyTransaction()` vs `updateDelta()` for rolling window updates.
+
+{% chartExampleRunner title="High Volume Financial Chart" name="high-freq-financial-high-volume" type="generated" /%}
+
+### Random Updates
+
+This example investigates the performance of randomized updates on large financial chart datasets. Random datums are mutated each tick to test in-place value updates.
+
+{% chartExampleRunner title="Financial Chart Random Updates" name="high-freq-financial-random-update" type="generated" /%}
