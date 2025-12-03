@@ -672,8 +672,8 @@ export class ZoomManager extends BaseManager {
             start,
             end
         );
-        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
-        let r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
+        const r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
+        const r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
