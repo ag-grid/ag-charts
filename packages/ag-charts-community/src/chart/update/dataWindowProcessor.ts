@@ -51,6 +51,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onUpdateComplete(event: UpdateCompleteEvent) {
         if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource) return;
+
+        // If the update was shortcut, skip the window update as we are expecting another update shortly.
+        if (event.wasShortcut) return;
+
         this.updateWindow(event);
     }
 
@@ -68,11 +72,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
         if (axis) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
-
-            if (zoom.min !== 0 || zoom.max !== 1) {
-                window = this.getAxisWindow(axis, zoom);
-            }
-
+            window = this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
 

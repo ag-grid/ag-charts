@@ -269,7 +269,8 @@ export class SeriesAreaManager extends BaseManager {
 
     private preSceneRender() {
         if (this.highlight.stashedHoverEvent != null) {
-            this.highlight.pendingHoverEvent = this.highlight.stashedHoverEvent;
+            // Use more up-to-date hover event if available.
+            this.highlight.pendingHoverEvent = this.tooltip.lastHover ?? this.highlight.stashedHoverEvent;
             this.highlight.stashedHoverEvent = undefined;
             this.handleHoverHighlight(true);
         }

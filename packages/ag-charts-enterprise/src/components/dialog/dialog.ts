@@ -375,9 +375,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private reposition() {
         const { seriesRect, ctx } = this;
-        const clientRect = ctx.domManager.getBoundingClientRect();
         const popover = this.getPopoverElement();
         if (!seriesRect || !popover) return;
+
+        // Avoid triggering a layout change when getting the client rect unless absolutely necessary..
+        const clientRect = ctx.domManager.getBoundingClientRect();
 
         // Position the dialog relative to the series rect height, to cater for the range buttons and other
         // paraphernalia at the bottom of the chart, but relative to the client width so the dialog

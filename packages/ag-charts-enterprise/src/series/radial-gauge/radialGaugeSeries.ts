@@ -64,7 +64,6 @@ const {
     SectorBox,
     Text,
     Marker,
-    applyShapeStyle,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -877,7 +876,7 @@ export class RadialGaugeSeries
                 ? _ModuleSupport.PointerEvents.All
                 : _ModuleSupport.PointerEvents.None;
 
-            applyShapeStyle(sector, datum.style, fillBBox);
+            sector.setStyleProperties(datum.style, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -934,7 +933,7 @@ export class RadialGaugeSeries
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
 
-            applyShapeStyle(sector, datum.style, fillBBox);
+            sector.setStyleProperties(datum.style, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -970,7 +969,7 @@ export class RadialGaugeSeries
 
             needle.d = RadialGaugeNeedle.defaultPathData;
 
-            applyShapeStyle(needle, {
+            needle.setStyleProperties({
                 fill,
                 fillOpacity,
                 stroke,
@@ -1018,7 +1017,7 @@ export class RadialGaugeSeries
         targetSelection.each((target, datum) => {
             const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
 
-            applyShapeStyle(target, datum.style);
+            target.setStyleProperties(datum.style);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;

@@ -35,6 +35,39 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
     },
+    BAR_SERIES: {
+        options: {
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    HORIZONTAL_BAR_SERIES: {
+        options: {
+            series: [
+                {
+                    type: 'bar',
+                    direction: 'horizontal',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'category' }, seriesTypes: ['bar'] }),
+    },
     MINI_CHART_WITH_CROSSLINES: {
         options: {
             series: [

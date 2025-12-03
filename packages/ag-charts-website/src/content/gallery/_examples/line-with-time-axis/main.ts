@@ -1,12 +1,16 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     UnitTimeAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { BandHighlightModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

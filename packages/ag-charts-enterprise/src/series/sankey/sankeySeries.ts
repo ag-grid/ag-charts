@@ -34,8 +34,7 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { Transformable, applyShapeStyle, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } =
-    _ModuleSupport;
+const { Transformable, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
@@ -865,7 +864,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
 
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
         });
     }
 
@@ -974,7 +973,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.height = datum.height;
             link.elbows = datum.elbows;
 
-            applyShapeStyle(link, style, fillBBox);
+            link.setStyleProperties(style, fillBBox);
 
             link.inset = link.strokeWidth / 2;
         });

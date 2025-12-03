@@ -1,6 +1,15 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { RangeAreaSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -11,7 +20,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     RangeAreaSeriesModule,
     UnitTimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

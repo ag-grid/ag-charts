@@ -74,7 +74,7 @@ import type {
     SeriesNodeEventTypes,
 } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
-import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
+import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -309,6 +309,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
+        flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
     };
 
@@ -564,7 +565,7 @@ export abstract class Series<
         return out;
     }
 
-    protected resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
+    public resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
         return direction;
     }
 
@@ -1127,7 +1128,7 @@ export abstract class Series<
         const { shape, size = 0 } = style;
         const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
-        applyShapeStyle(markerNode, style, fillBBox);
+        markerNode.setStyleProperties(style, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
@@ -1232,5 +1233,9 @@ export abstract class Series<
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined {
         return;
+    }
+
+    needsDataModelDiff(): boolean {
+        return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
 }

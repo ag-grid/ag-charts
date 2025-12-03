@@ -4,6 +4,7 @@ import {
     AgCategoryAxisOptions,
     AgCharts,
     AgNumberAxisOptions,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';

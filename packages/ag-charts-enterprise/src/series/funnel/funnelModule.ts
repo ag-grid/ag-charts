@@ -5,8 +5,6 @@ import { FunnelSeries } from './funnelSeries';
 import { funnelSeriesOptionsDef } from './funnelSeriesOptionsDef';
 import { FUNNEL_SERIES_AXES, FUNNEL_SERIES_THEME } from './funnelThemes';
 
-const { ChartAxisDirection } = _ModuleSupport;
-
 export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> = {
     type: 'series',
     name: 'funnel',
@@ -18,7 +16,6 @@ export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> =
 
     options: funnelSeriesOptionsDef,
     defaultAxes: FUNNEL_SERIES_AXES,
-    axisValueKeys: { [ChartAxisDirection.X]: 'valueKey', [ChartAxisDirection.Y]: 'stageKey' },
     themeTemplate: FUNNEL_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new FunnelSeries(ctx),

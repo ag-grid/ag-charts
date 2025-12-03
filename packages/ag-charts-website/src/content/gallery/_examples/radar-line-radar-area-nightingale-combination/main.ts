@@ -1,7 +1,9 @@
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
+    AgChartOptions,
+    AgCharts,
     AngleCategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
     NightingaleSeriesModule,
     RadarAreaSeriesModule,
     RadarLineSeriesModule,

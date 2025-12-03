@@ -4,4 +4,5 @@ import { AllEnterpriseModule } from './module-bundles/all';
 
 export * from './main';
 
+ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
 ModuleRegistry.registerModules(AllEnterpriseModule);

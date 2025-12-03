@@ -18,7 +18,8 @@ describe('zoom-large-dataset benchmark', () => {
         { expectedRetainedSizeMB: 174, expectedCanvasCount: 5, autoSnapshot: false },
         async () => {
             await ctx.create();
-        }
+        },
+        20_000
     );
 
     describe('after load', () => {

@@ -1,7 +1,5 @@
 // Source: https://medbrane.com/how-many-medical-students-graduate-each-year/
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { SankeySeriesModule } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule, ModuleRegistry, SankeySeriesModule } from 'ag-charts-enterprise';
 
 ModuleRegistry.registerModules([SankeySeriesModule]);
 const options: AgChartOptions = {

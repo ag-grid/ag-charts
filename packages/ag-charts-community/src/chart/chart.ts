@@ -495,7 +495,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
-    private refreshSeriesUserVisibility(outdatedOptions: ChartOptions, seriesWithUserVisibility: Set<string>): void {
+    private refreshSeriesUserVisibility(
+        outdatedOptions: ChartOptions,
+        seriesWithUserVisibility: NonNullable<ChartOptions['seriesWithUserVisibility']>
+    ): void {
         // AG-16360 The preferred mechanism to update the series visibility is to use the `chart.setState` API. However,
         // the `series[].visible` property pre-dates the `initialState`, `getState`, `setState' APIs. As a consequence,
         // the `series[].visible` property is an unusual state where it is treated like both the "initial" state and the
@@ -506,8 +509,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             type TDst = { visible: boolean } | object | undefined;
             const src: TSrc = this.series[i];
             const dst: TDst = outdatedOptions.processedOptions.series?.[i];
-            if (seriesWithUserVisibility.has(src.id) && dst !== undefined && 'visible' in dst) {
-                dst.visible = src.visible;
+            if (seriesWithUserVisibility.identifiers.has(src.id) || seriesWithUserVisibility.indices.has(i)) {
+                if (dst !== undefined && 'visible' in dst) {
+                    dst.visible = src.visible;
+                }
             }
         }
     }
@@ -814,7 +819,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete(this.apiUpdate);
+            ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
@@ -946,6 +951,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
             Object.defineProperty(series.chart, 'isMiniChart', {
                 get: () => false,
+            });
+            Object.defineProperty(series.chart, 'flashOnUpdateEnabled', {
+                get: () => !!this.modulesManager.getModule('flashOnUpdate')?.enabled,
             });
             Object.defineProperty(series.chart, 'seriesRect', {
                 get: () => this.seriesRect,
@@ -1090,7 +1098,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
+        const dataController = new DataController(this.mode, this.suppressFieldDotNotation, this.ctx.eventsHub);
 
         const promises: Promise<void>[] = [];
         for (const series of this.series) {

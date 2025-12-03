@@ -1,5 +1,11 @@
-import { BubbleSeriesModule, CategoryAxisModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { days, getData } from './data';
 

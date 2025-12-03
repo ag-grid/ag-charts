@@ -8,7 +8,7 @@ export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
 export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
-export type AgZoomOnDataChangeStrategy = 'preserveDomain' | 'reset' | 'resize' | 'preserveData';
+export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveRatios';
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
@@ -67,6 +67,14 @@ export interface AgZoomOnDataChange {
      * Default: `'preserveDomain'`
      */
     strategy?: AgZoomOnDataChangeStrategy;
+    /**
+     * When `true`, the zoom will be adjusted to ensure that newly appended data is in the viewport. This behavior only
+     * happens if the chart's X-zoom is pan all the way to the very end of data range; otherwise the current `strategy`
+     * is used instead.
+     *
+     * Default: `true`
+     */
+    stickToEnd?: boolean;
 }
 
 export interface AgZoomOptions {

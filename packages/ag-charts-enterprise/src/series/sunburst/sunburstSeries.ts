@@ -29,7 +29,6 @@ const {
     Selection,
     TransformableText,
     BBox,
-    applyShapeStyle,
     getLabelStyles,
     toHierarchyHighlightString,
 } = _ModuleSupport;
@@ -474,7 +473,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const strokeWidth = style.strokeWidth;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
-            applyShapeStyle(sector, style, fillBBox);
+            sector.setStyleProperties(style, fillBBox);
             sector.centerX = 0;
             sector.centerY = 0;
             sector.innerRadius = depth * radiusScale;

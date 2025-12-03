@@ -9,7 +9,7 @@ describe('DataController', () => {
     let data: Record<string, number>[];
 
     beforeEach(() => {
-        controller = new DataController('standalone', false);
+        controller = new DataController('standalone', false, undefined);
         data = [];
     });
 

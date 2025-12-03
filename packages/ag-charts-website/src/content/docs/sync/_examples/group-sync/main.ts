@@ -1,12 +1,18 @@
 import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgChartOptions, AgCharts, AnimationModule } from 'ag-charts-enterprise';
-import { CrosshairModule, SyncModule, ZoomModule } from 'ag-charts-enterprise';
+    SyncModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
@@ -19,6 +25,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     SyncModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 const commonOptions: AgCartesianChartOptions = {
     minWidth: 0,

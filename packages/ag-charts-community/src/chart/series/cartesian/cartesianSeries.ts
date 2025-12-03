@@ -871,9 +871,7 @@ export abstract class CartesianSeries<
             }
         }
 
-        if (axisMin > axisMax) return [Number.NaN, Number.NaN];
-
-        return [axisMin, axisMax];
+        return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
     }
 
     protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {

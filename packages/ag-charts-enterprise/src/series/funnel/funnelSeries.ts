@@ -24,7 +24,6 @@ const {
     createDatumId,
     Rect,
     motion,
-    applyShapeStyle,
 } = _ModuleSupport;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
@@ -154,7 +153,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         datumSelection.each((rect, datum) => {
             const style = this.getItemStyle(datum, isHighlight);
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;

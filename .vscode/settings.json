@@ -20,5 +20,5 @@
     "**/node_modules/**": true
   },
   "image-diff.viewer.showDiffByDefault": true,
-  "cSpell.words": ["ultrathink"]
+  "cSpell.words": ["ultrathink", "unhighlighted"]
 }

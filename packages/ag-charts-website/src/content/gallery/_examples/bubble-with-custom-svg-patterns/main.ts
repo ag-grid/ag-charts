@@ -1,5 +1,11 @@
-import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { asteroid, getData } from './data';
 

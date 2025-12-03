@@ -1,12 +1,16 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    AgPath,
+    BandHighlightModule,
+    ContextMenuModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
     UnitTimeAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
-import { BandHighlightModule } from 'ag-charts-enterprise';
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

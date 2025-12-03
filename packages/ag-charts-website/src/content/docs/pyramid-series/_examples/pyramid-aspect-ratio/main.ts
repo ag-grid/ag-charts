@@ -1,17 +1,17 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
 import {
     AgCharts,
     AgPyramidSeriesOptions,
     AgStandaloneChartOptions,
     AnimationModule,
-    CrosshairModule,
-    ZoomModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    PyramidSeriesModule,
 } from 'ag-charts-enterprise';
-import { PyramidSeriesModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, PyramidSeriesModule, ZoomModule]);
+ModuleRegistry.registerModules([AnimationModule, LegendModule, PyramidSeriesModule, ContextMenuModule]);
 const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

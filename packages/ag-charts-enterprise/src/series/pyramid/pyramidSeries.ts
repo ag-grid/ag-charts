@@ -30,7 +30,6 @@ const {
     Selection,
     Text,
     PointerEvents,
-    applyShapeStyle,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,
@@ -577,7 +576,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
-            applyShapeStyle(connector, nodeDatum.style, fillBBox);
+            connector.setStyleProperties(nodeDatum.style, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

@@ -1,7 +1,21 @@
-import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 import type { AgCartesianChartOptions, AgContextMenuItem } from 'ag-charts-types';
 
-ModuleRegistry.registerModules([AllEnterpriseModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    NumberAxisModule,
+    CategoryAxisModule,
+    LegendModule,
+    ContextMenuModule,
+]);
 
 type DatumType = { sector: string; nyse: number; lse: number; tyo: number };
 
@@ -46,18 +60,18 @@ const options: AgCartesianChartOptions<DatumType> = {
     ],
     contextMenu: {
         getItems: (params): AgContextMenuItem[] | undefined => {
-            if (params.showOn === 'legend-item') {
+            if (params.showOn === 'series-node') {
+                const xName = params.datum[params.xKey!];
                 return [
-                    'download',
+                    'defaults',
                     'separator',
-                    // Custom implementation of 'toggle-series-visibility':
+                    // Dynamic Context Menu Item
                     {
                         type: 'action',
-                        showOn: 'legend-item',
-                        label: params.visible ? `Hide ${params.seriesId}` : `Show ${params.seriesId}`,
-                        action: () => updateVisibility(params.seriesId, !params.visible),
+                        showOn: 'series-node',
+                        label: `Log Datum "${params.seriesId} - ${xName}"`,
+                        action: () => console.log(params.datum),
                     },
-                    'toggle-other-series',
                 ];
             }
         },
@@ -72,5 +86,5 @@ function updateVisibility(seriesId: string, visible: boolean) {
             series.visible = visible;
         }
     }
-    chart.updateDelta(options);
+    chart.update(options);
 }

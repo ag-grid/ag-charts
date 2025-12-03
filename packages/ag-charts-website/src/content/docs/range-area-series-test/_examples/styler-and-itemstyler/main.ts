@@ -5,6 +5,7 @@ import {
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     type AgSeriesMarkerStylerParams,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';

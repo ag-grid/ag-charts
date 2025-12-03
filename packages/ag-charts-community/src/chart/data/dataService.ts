@@ -70,8 +70,9 @@ export class DataService<D extends object> {
 
         if (
             pendingData != null &&
-            pendingData.params.windowStart?.valueOf() === params.windowStart?.valueOf() &&
-            pendingData.params.windowEnd?.valueOf() === params.windowEnd?.valueOf()
+            ((pendingData.params.windowStart == null && pendingData.params.windowEnd == null) ||
+                (pendingData.params.windowStart?.valueOf() === params.windowStart?.valueOf() &&
+                    pendingData.params.windowEnd?.valueOf() === params.windowEnd?.valueOf()))
         ) {
             const id = this.requestCounter++;
 

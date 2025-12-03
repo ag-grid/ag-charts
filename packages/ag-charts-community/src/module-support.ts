@@ -86,6 +86,7 @@ export * from './chart/series/topology/mercatorScale';
 export * from './chart/series/gaugeSeries';
 export * from './chart/series/shapeUtil';
 export * from './chart/series/aggregation';
+export * from './chart/series/aggregationManager';
 export * from './chart/axis/axis';
 export * from './chart/axis/axisInterval';
 export * from './chart/axis/axisLabel';
@@ -161,6 +162,8 @@ export * as easing from './motion/easing';
 
 export const motion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
+
+export { DeferredExecutor } from './util/deferredExecutor';
 
 export { Caption } from './chart/caption';
 export { BBox } from './scene/bbox';

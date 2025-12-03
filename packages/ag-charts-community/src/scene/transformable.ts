@@ -215,6 +215,16 @@ export type ScalableType<T> = MatrixTransformType<
         scalingY: number;
         scalingCenterX: number | null;
         scalingCenterY: number | null;
+        /**
+         * Optimised reset for animation hot paths.
+         * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+         */
+        resetScalingProperties(
+            scalingX: number,
+            scalingY: number,
+            scalingCenterX: number,
+            scalingCenterY: number
+        ): void;
     }
 >;
 
@@ -235,12 +245,16 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
 
         @SceneChangeDetection()
         scalingX: number = 1;
+        declare __scalingX: number; // optimised field accessor
         @SceneChangeDetection()
         scalingY: number = 1;
+        declare __scalingY: number; // optimised field accessor
         @SceneChangeDetection()
         scalingCenterX: number = 0;
+        declare __scalingCenterX: number; // optimised field accessor
         @SceneChangeDetection()
         scalingCenterY: number = 0;
+        declare __scalingCenterY: number; // optimised field accessor
 
         override updateMatrix(matrix: Matrix) {
             super.updateMatrix(matrix);
@@ -254,6 +268,24 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
             });
 
             matrix.multiplySelf(this[SCALABLE_MATRIX]);
+        }
+
+        /**
+         * Optimised reset for animation hot paths.
+         * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+         */
+        resetScalingProperties(
+            scalingX: number,
+            scalingY: number,
+            scalingCenterX: number,
+            scalingCenterY: number
+        ): void {
+            this.__scalingX = scalingX;
+            this.__scalingY = scalingY;
+            this.__scalingCenterX = scalingCenterX;
+            this.__scalingCenterY = scalingCenterY;
+            // Trigger transform matrix recalculation (sets _dirtyTransform = true)
+            this.onChangeDetection('scaling');
         }
     }
     return ScalableInternal as unknown as Constructor<ScalableType<N>>;

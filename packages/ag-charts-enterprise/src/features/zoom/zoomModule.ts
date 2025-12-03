@@ -46,7 +46,8 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
             padding: ratio,
         },
         onDataChange: {
-            strategy: strictUnion<AgZoomOnDataChangeStrategy>()('preserveDomain', 'reset', 'resize', 'preserveData'),
+            strategy: strictUnion<AgZoomOnDataChangeStrategy>()('reset', 'preserveDomain', 'preserveRatios'),
+            stickToEnd: boolean,
         },
         buttons: {
             enabled: boolean,
@@ -84,7 +85,8 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
             padding: 0.05,
         },
         onDataChange: {
-            strategy: 'resize', // TODO(olegat): change default to 'preserveDomain'
+            strategy: 'preserveRatios', // TODO(olegat): change default to 'preserveDomain'
+            stickToEnd: false, // TODO(olegat): change default to 'true'
         },
         anchorPointX: 'end',
         anchorPointY: 'middle',

@@ -1,4 +1,10 @@
-import { AgCharts, AgMarkerShapeFn, AgPolarChartOptions, AgRadarLineSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgMarkerShapeFn,
+    AgPolarChartOptions,
+    AgRadarLineSeriesOptions,
+    ContextMenuModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

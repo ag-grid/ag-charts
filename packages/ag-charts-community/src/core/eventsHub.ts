@@ -34,6 +34,20 @@ export interface SeriesAreaClickEvent {
     readonly sourceEvent: Event;
 }
 
+export interface DataModelSeriesDiff {
+    readonly changed: boolean;
+    readonly added: Set<string>;
+    readonly updated: Set<string>;
+    readonly removed: Set<string>;
+    readonly moved: Set<string>;
+}
+
+export type DataModelDiff = Record<string /* series-id */, DataModelSeriesDiff>;
+
+export interface DataModelDiffEvent {
+    readonly diff: DataModelDiff;
+}
+
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'annotations:restore': AnnotationsRestoreEvent;
@@ -45,6 +59,7 @@ export interface EventsHubMap {
     'data:error': null;
     'data:update': DataSet | undefined;
     'data:source-change': null;
+    'datamodel:diff': DataModelDiffEvent;
     'dom:container-change': null;
     'dom:hidden': null;
     'dom:resize': null;

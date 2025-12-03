@@ -1,5 +1,13 @@
-import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AgMarkerShapeFnParams, CrosshairModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 

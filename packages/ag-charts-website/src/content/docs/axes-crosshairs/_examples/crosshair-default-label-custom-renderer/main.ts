@@ -1,17 +1,15 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgCrosshairLabelRendererParams,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
     HistogramSeriesModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     TimeAxisModule,
-} from 'ag-charts-community';
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AgCrosshairLabelRendererParams,
-    AnimationModule,
-    CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -23,7 +21,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     TimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const crosshairLabelRenderer = ({ value }: AgCrosshairLabelRendererParams) => {
     return {

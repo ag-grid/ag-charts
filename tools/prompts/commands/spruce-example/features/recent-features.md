@@ -451,17 +451,16 @@ _New Nov 2024 • Apply: 3 minutes • Impact: MEDIUM_
 zoom: {
     enabled: true,
     onDataChange: {
-        strategy: 'preserveDomain', // 'preserveDomain' | 'reset' | 'resize' | 'preserveData'
+        strategy: 'preserveDomain', // 'reset' | 'preserveDomain' | 'preserveRatios'
     },
 }
 ```
 
 **Strategy Options:**
 
--   `'preserveDomain'` (default): Keep current zoom domain when data changes
 -   `'reset'`: Reset zoom to show all data when data changes
--   `'resize'`: Adjust zoom to fit new data range while maintaining zoom level
--   `'preserveData'`: Keep zoom focused on existing data points
+-   `'preserveDomain'` (default): Keep current zoom domain when data changes
+-   `'preserveRatios'`: Adjust zoom to fit new data range while maintaining zoom level
 
 _Use for_: Live data updates where you want to control how zoom behaves when new data arrives.
 

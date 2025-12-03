@@ -96,7 +96,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         let d0: number = this.d0Cache;
         let d1: number = this.d1Cache;
         // Conditional valueOf() for input value based on domain type detection
-        let x = this.domainNeedsValueOf ? (value as Date).valueOf() : (value as unknown as number);
+        let x = typeof value === 'number' ? value : value.valueOf();
         if (this.transform) {
             d0 = this.transform(d0);
             d1 = this.transform(d1);

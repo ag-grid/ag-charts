@@ -1,30 +1,30 @@
 import {
-    AreaSeriesModule,
-    BarSeriesModule,
-    BubbleSeriesModule,
-    CategoryAxisModule,
-    HistogramSeriesModule,
-    LegendModule,
-    LineSeriesModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    ScatterSeriesModule,
-    TimeAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
     CandlestickSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
     CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
     OhlcSeriesModule,
     OrdinalTimeAxisModule,
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -48,6 +48,7 @@ ModuleRegistry.registerModules([
     TimeAxisModule,
     ZoomModule,
     CategoryAxisModule,
+    ContextMenuModule,
 ]);
 
 let dataLabel = '1K';

@@ -56,6 +56,68 @@ export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContex
     segments?: Segment[];
 }
 
+/**
+ * Context object for efficient node datum creation.
+ * Caches expensive-to-compute values that are reused across all datum iterations
+ * to minimize memory allocations. Only caches values that are expensive to
+ * compute - cheap property lookups use `this` directly in methods.
+ */
+export interface LineSeriesDatumContext {
+    // Data arrays (resolved from dataModel - worth caching)
+    readonly rawData: any[];
+    readonly xValues: any[];
+    readonly yRawValues: any[];
+    readonly yCumulativeValues: any[];
+    readonly selectionValues: any[] | undefined;
+
+    // Scales (axis lookups - worth caching)
+    readonly xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] };
+    readonly yScale: { convert: (v: any) => number; bandwidth?: number };
+
+    // Pre-computed offsets (involves scale property access)
+    readonly xOffset: number;
+    readonly yOffset: number;
+
+    // Pre-computed values (computed once, reused for all datums)
+    readonly size: number;
+    readonly yDomain: any[];
+    readonly labelsEnabled: boolean;
+    readonly animationEnabled: boolean;
+    readonly canIncrementallyUpdate: boolean;
+    readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
+    readonly range: number;
+
+    // Property lookups (constant across all datums - worth caching)
+    readonly xKey: string;
+    readonly yKey: string;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly legendItemName: string | undefined;
+    readonly connectMissingData: boolean;
+
+    // Cap defaults for error bounds
+    readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
+
+    // Mutable working state (arrays and counters that change during node creation)
+    nodeData: LineNodeDatum[];
+    spanPoints: Array<LineSpanPointDatum[] | { skip: number }>;
+    nodeIndex: number;
+}
+
+/**
+ * Scratch object for temporary datum state during node creation.
+ * Reused across iterations to avoid per-datum allocations.
+ */
+export interface LineNodeDatumScratch {
+    datum: any;
+    xDatum: any;
+    yDatum: any;
+    yCumulative: number;
+    selected: boolean | undefined;
+    x: number;
+    y: number;
+}
+
 export function interpolatePoints(
     points: LineSpanPointDatum[],
     interpolation: InterpolationProperties

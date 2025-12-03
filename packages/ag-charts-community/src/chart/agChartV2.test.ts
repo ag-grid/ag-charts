@@ -9,6 +9,7 @@ import type { ChartTestCase } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -192,6 +193,61 @@ describe('AgChartV2', () => {
 
             chart = AgCharts.create(options);
             await compareImageDataUrl();
+        });
+    });
+
+    describe('AG-16360', () => {
+        beforeEach(async () => {
+            const options: AgChartOptions = {
+                legend: {},
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                    { x: 'c', y: 3 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            prepareTestOptions(options, container);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hide series by clicking the legend item
+            await clickAction(405, 572)(chart);
+            await waitForChartStability(chart);
+            const state = chart.getState();
+            expect(state.legend).toHaveLength(1);
+            expect(state.legend![0].visible).toBe(false);
+        });
+
+        afterEach(async () => {
+            // Check that update/updateDelta has reset series `visible: true`.
+            const state = chart.getState();
+            expect(state.legend).toHaveLength(1);
+            expect(state.legend![0].visible).toBe(true);
+            await compare();
+        });
+
+        it('update', async () => {
+            const options: AgChartOptions = {
+                legend: {},
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                    { x: 'c', y: 3 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            prepareTestOptions(options, container);
+            await chart.update(options);
+            await waitForChartStability(chart);
+        });
+
+        it('updateDelta', async () => {
+            const options: AgChartOptions = {
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            await chart.updateDelta(options);
+            await waitForChartStability(chart);
         });
     });
 });

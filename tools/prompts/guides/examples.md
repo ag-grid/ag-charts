@@ -36,33 +36,69 @@ Example paths are mapped from repo paths:
         </div>
         <div id="myChart"></div>
         ```
+    -   **Important**: Controls should be placed BEFORE the chart div, wrapped in `class="example-controls"` with `class="controls-row"` for each row of controls.
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
     -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
 -   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
 
+## Event Handlers and Functions
+
+Functions called from HTML event handlers (onclick, onchange, etc.) should be declared as top-level functions in `main.ts`. The framework generator automatically handles making these functions available to the HTML.
+
+**Correct Pattern:**
+
+```typescript
+const chart = AgCharts.create(options);
+
+function toggleFeature() {
+    options.someOption = !options.someOption;
+    chart.update(options);
+}
+```
+
+```html
+<button onclick="toggleFeature()">Toggle</button>
+```
+
+**Anti-Pattern - Do NOT use:**
+
+```typescript
+// ❌ WRONG: Do not assign functions to window
+(window as any).toggleFeature = toggleFeature;
+
+// ❌ WRONG: Do not use window assignments
+window.toggleFeature = toggleFeature;
+```
+
+The framework generator handles function exposure automatically. Using `window` assignments breaks framework transformation and is unnecessary.
+
 ## Module Registration
 
 _New Nov 2024 • Required for all examples_
 
-Examples must explicitly register the modules they use. This ensures proper tree-shaking and module loading:
+Examples must explicitly register the modules they use with `ModuleRegistry` **before** creating any charts. This ensures proper tree-shaking and module loading. See the [Module Registry documentation](../docs/module-registry/) for full details.
+
+### Enterprise Examples - Single Package Import
+
+**For Enterprise examples, import everything from `ag-charts-enterprise` in a single import statement.** The enterprise package re-exports all community modules, so you never need to mix imports from both packages.
 
 ```typescript
-import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { AnimationModule, BandHighlightModule } from 'ag-charts-enterprise';
+// ✅ CORRECT: Single import from ag-charts-enterprise
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-// Register all required modules BEFORE creating the chart
-ModuleRegistry.registerModules([
-    AnimationModule,
-    BandHighlightModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    NumberAxisModule,
-]);
+ModuleRegistry.registerModules([AnimationModule, BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -73,36 +109,97 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 ```
 
-**Common Modules:**
+```typescript
+// ❌ WRONG: Mixing imports from community and enterprise
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AnimationModule, BandHighlightModule } from 'ag-charts-enterprise';
+```
 
-**From `ag-charts-community`:**
+### Community Examples
+
+For Community-only examples, import from `ag-charts-community`:
+
+```typescript
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
+
+import { getData } from './data';
+
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    // ... rest of options
+};
+
+const chart = AgCharts.create(options);
+```
+
+### Financial Charts
+
+Financial charts use `FinancialChartModule` and `AgCharts.createFinancialChart()`:
+
+```typescript
+import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
+
+ModuleRegistry.registerModules([FinancialChartModule]);
+
+const options: AgFinancialChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    volume: true,
+    navigator: true,
+    // ... rest of options
+};
+
+const chart = AgCharts.createFinancialChart(options);
+```
+
+### Common Modules
+
+**Series Modules:**
 
 -   `BarSeriesModule`, `LineSeriesModule`, `AreaSeriesModule`, `ScatterSeriesModule`
--   `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`
 -   `PieSeriesModule`, `DonutSeriesModule`, `RadarSeriesModule`
--   `ChartModule` (if using standalone chart types)
+-   `CandlestickSeriesModule`, `OhlcSeriesModule` (enterprise)
+-   `WaterfallSeriesModule`, `BoxPlotSeriesModule`, `HeatmapSeriesModule` (enterprise)
 
-**From `ag-charts-enterprise`:**
+**Axis Modules:**
 
--   `AnimationModule` (for animations)
--   `BandHighlightModule` (for axis band highlighting)
--   `ZoomModule` (for zoom functionality)
--   `NavigatorModule` (for navigator mini-chart)
--   Enterprise series modules (e.g., `WaterfallSeriesModule`, `BoxPlotSeriesModule`)
+-   `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`, `LogAxisModule`
+-   `OrdinalTimeAxisModule` (enterprise)
 
-**Best Practices:**
+**Feature Modules:**
 
+-   `AnimationModule` - Chart animations (enterprise)
+-   `ZoomModule` - Zoom functionality (enterprise)
+-   `NavigatorModule` - Navigator mini-chart (enterprise)
+-   `CrosshairModule` - Crosshair tooltip (enterprise)
+-   `FinancialChartModule` - Financial chart preset (enterprise)
+
+### Best Practices
+
+-   ✅ Use a **single import statement** from the appropriate package
+-   ✅ Import everything from `ag-charts-enterprise` for enterprise examples (never mix packages)
 -   ✅ Register modules at the top of `main.ts`, before chart creation
 -   ✅ Only import and register modules actually used by the example
--   ✅ Group community and enterprise imports separately for clarity
--   ✅ Use specific series/axis modules rather than importing everything
+-   ✅ List modules alphabetically in both import and registration for consistency
 
-**Why This Matters:**
+### Why This Matters
 
 -   Enables proper tree-shaking in production builds
 -   Ensures modules are loaded before chart creation
 -   Prevents runtime errors from missing module registrations
 -   Improves bundle size by only including used modules
+-   Single-package imports avoid potential version mismatch issues
 
 ## Framework Generation
 

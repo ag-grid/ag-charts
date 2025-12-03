@@ -139,7 +139,7 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
                     return System.import('${startFile}');
                 })
                 .catch(function(err) {
-                    console.error(err);
+                    console.error(err.originalErr ?? err);
                 });
         `,
                 }}

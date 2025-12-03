@@ -1,8 +1,11 @@
-import { ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
+    AgCartesianChartOptions,
+    AgCharts,
     AnimationModule,
     BandHighlightModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
     OrdinalTimeAxisModule,
     RangeBarSeriesModule,
 } from 'ag-charts-enterprise';

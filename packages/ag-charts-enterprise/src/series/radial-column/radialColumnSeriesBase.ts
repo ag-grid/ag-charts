@@ -30,7 +30,6 @@ const {
     SeriesNodePickMode,
     CategoryScale,
     motion,
-    applyShapeStyle,
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
@@ -150,7 +149,7 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
-        if (animationEnabled && this.processedData) {
+        if (this.needsDataModelDiff() && this.processedData) {
             extraProps.push(diff(this.id, this.processedData));
         }
         if (animationEnabled) {
@@ -463,7 +462,7 @@ export abstract class RadialColumnSeriesBase<
 
                 this.updateItemPath(node, nodeDatum, isHighlight);
 
-                applyShapeStyle(node, style, fillBBox, fillParams);
+                node.setStyleProperties(style, fillBBox, fillParams);
 
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';

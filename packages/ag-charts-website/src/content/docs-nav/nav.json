@@ -257,6 +257,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Flash On Update",
+                            "path": "flash-on-update",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Navigator",
                             "path": "navigator",
                             "isEnterprise": true

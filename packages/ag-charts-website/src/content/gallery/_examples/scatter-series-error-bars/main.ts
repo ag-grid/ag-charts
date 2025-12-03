@@ -1,6 +1,13 @@
-import { CategoryAxisModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { ErrorBarsModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ErrorBarsModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

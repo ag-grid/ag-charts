@@ -1,5 +1,6 @@
 import { Debug, Logger, first } from 'ag-charts-core';
 
+import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
 import { Aggregator } from './data-model/aggregation/aggregator';
 import type { DataModelContext } from './data-model/dataModelContext';
@@ -108,7 +109,8 @@ export class DataModel<
     public constructor(
         private readonly opts: DataModelOptions<K, Grouped, true>,
         private readonly mode: ChartMode = 'standalone',
-        private readonly suppressFieldDotNotation: boolean = false
+        private readonly suppressFieldDotNotation: boolean = false,
+        private readonly eventsHub?: EventsHub
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
@@ -384,6 +386,7 @@ export class DataModel<
 
         const end = performance.now();
         processedData.time = end - start;
+        processedData.version += 1;
 
         // Collect optimization metadata for testing
         this.collectOptimizationMetadata(processedData, 'full-process');
@@ -609,6 +612,11 @@ export class DataModel<
                 processedData,
                 processedData.reduced[def.property]
             ) as any;
+        }
+
+        const { diff } = processedData.reduced;
+        if (diff) {
+            this.eventsHub?.emit('datamodel:diff', { diff });
         }
     }
 

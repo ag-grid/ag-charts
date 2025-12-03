@@ -1,5 +1,4 @@
-import type { ScaleType } from 'ag-charts-core';
-import { nextPowerOf2 } from 'ag-charts-core';
+import { type ScaleType, nextPowerOf2 } from 'ag-charts-core';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -601,6 +600,39 @@ export interface AggregationLevelState {
     midpointData?: Uint32Array;
 }
 
+/**
+ * Computes midpoint indices from aggregation index data.
+ * For each bucket, calculates the midpoint between min and max X indices.
+ *
+ * This generic helper consolidates the `getMidpoints()` functions from
+ * rangeBarAggregation and ohlcAggregation, and `getIndices()` from barAggregation.
+ *
+ * @param maxRange - Number of aggregation buckets
+ * @param indexData - Aggregation index data (TypedArray)
+ * @param reuseMidpointData - Optional pre-allocated array to reuse (must be correct size)
+ * @param xMinOffset - Offset for the X min index within each bucket
+ * @param xMaxOffset - Offset for the X max index within each bucket
+ * @param invalidSentinel - Sentinel value indicating invalid/empty buckets (-1 or AGGREGATION_INDEX_UNSET)
+ * @returns Array of midpoint indices representing each bucket
+ */
+export function getMidpointsForIndices(
+    maxRange: number,
+    indexData: Uint32Array,
+    reuseMidpointData?: Uint32Array,
+    xMinOffset: number = AGGREGATION_INDEX_X_MIN,
+    xMaxOffset: number = AGGREGATION_INDEX_X_MAX,
+    invalidSentinel: number = -1
+): Uint32Array {
+    const midpoints =
+        reuseMidpointData && reuseMidpointData.length === maxRange ? reuseMidpointData : new Uint32Array(maxRange);
+    for (let i = 0, offset = 0; i < maxRange; i += 1, offset += AGGREGATION_SPAN) {
+        const xMin = indexData[offset + xMinOffset];
+        const xMax = indexData[offset + xMaxOffset];
+        midpoints[i] = xMin === invalidSentinel ? invalidSentinel : (xMin + xMax) >> 1;
+    }
+    return midpoints;
+}
+
 export function collectAggregationLevels<T>(
     state: AggregationLevelState,
     {
@@ -639,4 +671,185 @@ export function collectAggregationLevels<T>(
     levels.reverse();
 
     return levels;
+}
+
+// EXTREMES AGGREGATION: Shared implementation for OHLC and RangeBar
+
+/**
+ * Filter interface for extremes-based aggregation (OHLC, RangeBar).
+ * Tracks indices that represent extrema values within each aggregation bucket.
+ */
+export interface ExtremesAggregationFilter {
+    indexData: Uint32Array;
+    valueData: Float64Array;
+    maxRange: number;
+    midpointIndices: Uint32Array;
+}
+
+/**
+ * Result type for partial extremes aggregation with deferred computation.
+ */
+export interface ExtremesPartialAggregationResult {
+    /** Levels computed immediately (includes the target level) */
+    immediate: ExtremesAggregationFilter[];
+    /** Function to compute remaining coarser levels, or undefined if all levels computed */
+    computeRemaining?: () => ExtremesAggregationFilter[];
+}
+
+/**
+ * Computes multi-level aggregation filters for extremes-based chart data (OHLC, RangeBar).
+ *
+ * Creates progressively coarser aggregation levels for efficient rendering
+ * of large datasets. Tracks extrema values (min/max for both X and Y) as indices
+ * within each aggregation bucket.
+ *
+ * @param domain - Numeric domain bounds [min, max] for X values
+ * @param xValues - X coordinate values (typically time/date)
+ * @param highValues - High/max Y values for each data point
+ * @param lowValues - Low/min Y values for each data point
+ * @param options - Configuration options
+ * @returns Array of aggregation filters from coarse to fine resolution, or undefined if below threshold
+ */
+export function computeExtremesAggregation(
+    domain: [number, number],
+    xValues: any[],
+    highValues: any[],
+    lowValues: any[],
+    options: {
+        smallestKeyInterval: number | undefined;
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        existingFilters?: ExtremesAggregationFilter[];
+    }
+): ExtremesAggregationFilter[] | undefined {
+    if (xValues.length < AGGREGATION_THRESHOLD) return;
+
+    const [d0, d1] = domain;
+    const { smallestKeyInterval, xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
+
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
+
+    // Find existing filter at finest level for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === maxRange);
+
+    let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
+    });
+    let midpointIndices = getMidpointsForIndices(maxRange, indexData, existingFilter?.midpointIndices);
+
+    const filters: ExtremesAggregationFilter[] = [
+        {
+            maxRange,
+            indexData,
+            valueData,
+            midpointIndices,
+        },
+    ];
+
+    // Build coarser aggregation levels with array reuse
+    while (maxRange > AGGREGATION_MIN_RANGE) {
+        const currentMaxRange = maxRange;
+        const nextMaxRange = Math.trunc(currentMaxRange / 2);
+
+        // Find existing filter at target level for array reuse
+        const nextExistingFilter = existingFilters?.find((f) => f.maxRange === nextMaxRange);
+
+        const compacted = compactAggregationIndices(indexData, valueData, currentMaxRange, {
+            reuseIndexData: nextExistingFilter?.indexData,
+            reuseValueData: nextExistingFilter?.valueData,
+        });
+
+        maxRange = compacted.maxRange;
+        indexData = compacted.indexData;
+        valueData = compacted.valueData;
+        midpointIndices =
+            compacted.midpointData ?? getMidpointsForIndices(maxRange, indexData, nextExistingFilter?.midpointIndices);
+
+        filters.push({
+            maxRange,
+            indexData,
+            valueData,
+            midpointIndices,
+        });
+    }
+
+    filters.reverse();
+
+    return filters;
+}
+
+/**
+ * Computes extremes aggregation with deferred full recomputation.
+ *
+ * For real-time data updates, this computes only the single aggregation level
+ * needed for the current zoom, deferring a full recomputation of all levels
+ * to idle time.
+ *
+ * @param domain - Numeric domain bounds [min, max] for X values
+ * @param xValues - X coordinate values
+ * @param highValues - High/max Y values
+ * @param lowValues - Low/min Y values
+ * @param options - Configuration options including targetRange
+ * @returns Partial result with the immediate level and a function to compute all levels
+ */
+export function computeExtremesAggregationPartial(
+    domain: [number, number],
+    xValues: any[],
+    highValues: any[],
+    lowValues: any[],
+    options: {
+        smallestKeyInterval: number | undefined;
+        targetRange: number;
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        existingFilters?: ExtremesAggregationFilter[];
+    }
+): ExtremesPartialAggregationResult | undefined {
+    if (xValues.length < AGGREGATION_THRESHOLD) return;
+
+    const [d0, d1] = domain;
+    const { smallestKeyInterval, targetRange, xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
+
+    // Calculate the finest level bucket count (based on data density)
+    const finestMaxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval, xNeedsValueOf });
+
+    // Calculate target bucket count: next power of 2 >= targetRange, clamped to valid range
+    const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
+
+    // Find existing filter at matching maxRange for array reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === targetMaxRange);
+
+    // Create aggregation at exactly the target level - single O(n) scan
+    const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, targetMaxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
+    });
+    const midpointIndices = getMidpointsForIndices(targetMaxRange, indexData, existingFilter?.midpointIndices);
+
+    const immediateLevel: ExtremesAggregationFilter = {
+        maxRange: targetMaxRange,
+        indexData,
+        valueData,
+        midpointIndices,
+    };
+
+    // Defer full recomputation of all levels to idle time
+    function computeRemaining(): ExtremesAggregationFilter[] {
+        const allLevels = computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
+            smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
+
+        // Filter out the immediate level (already computed) to avoid duplicates
+        return allLevels?.filter((level) => level.maxRange !== targetMaxRange) ?? [];
+    }
+
+    return { immediate: [immediateLevel], computeRemaining };
 }

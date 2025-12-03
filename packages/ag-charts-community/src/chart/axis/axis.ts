@@ -25,11 +25,12 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
+    FormatterPropertyType,
     TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisBandDatum, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
+import type { AxisBandDatum, AxisBandMeasurement, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
@@ -134,6 +135,23 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
         a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
         a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
     );
+}
+
+function computeBand<D, I>(
+    scale: BandScale<D, I>,
+    range: readonly [number, number],
+    value: D
+): [number, number, number] {
+    const bandwidth = scale.bandwidth ?? 0;
+    const step = scale.step ?? 0;
+    const offset = (step - bandwidth) / 2;
+
+    const position = scale.convert(value);
+
+    const start = position - offset;
+    const end = position + bandwidth + offset;
+
+    return [position, clampArray(start, range), clampArray(end, range)];
 }
 
 /**
@@ -778,7 +796,7 @@ export abstract class Axis<
             legendItemName: undefined,
             key: undefined,
             source: 'axis-label',
-            property: this.direction,
+            property: this.getFormatterProperty(),
             domain,
             boundSeries,
         };
@@ -851,7 +869,7 @@ export abstract class Axis<
     ): TextOrSegments {
         if (input == null) return '';
 
-        const { moduleCtx, direction, dataDomain } = this;
+        const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
         const boundSeries = this.formatterBoundSeries.get();
@@ -881,7 +899,7 @@ export abstract class Axis<
                 seriesId,
                 legendItemName,
                 key,
-                property: direction,
+                property: this.getFormatterProperty(),
                 domain,
                 boundSeries,
             },
@@ -926,6 +944,20 @@ export abstract class Axis<
         const { direction, boundSeries } = this;
         return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
     });
+
+    private getFormatterProperty(): FormatterPropertyType {
+        const { direction, boundSeries } = this;
+        let resolvedDirection = direction;
+        for (const series of boundSeries) {
+            const seriesResolvedDirection = series.resolveKeyDirection(direction);
+            if (seriesResolvedDirection !== direction) {
+                resolvedDirection = seriesResolvedDirection;
+                break;
+            }
+        }
+
+        return resolvedDirection;
+    }
 
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
@@ -999,6 +1031,7 @@ export abstract class Axis<
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
+            measureBand: (value) => this.measureBand(value),
         };
     }
 
@@ -1007,25 +1040,20 @@ export abstract class Axis<
             return;
         }
 
-        const { scale, range } = this;
+        const { scale, range, id } = this;
 
         const value = scale.invert(this.isVertical() ? point.y : point.x, true);
+        const [position, start, end] = computeBand(scale, range, value);
+        return { id, value, band: [start, end], position };
+    }
 
-        const bandwidth = scale.bandwidth ?? 0;
-        const step = scale.step ?? 0;
-        const offset = (step - bandwidth) / 2;
+    measureBand(value: string): AxisBandMeasurement | undefined {
+        if (!BandScale.is(this.scale)) {
+            return;
+        }
 
-        const position = scale.convert(value);
-
-        const start = position - offset;
-        const end = position + bandwidth + offset;
-
-        return {
-            id: this.id,
-            value,
-            band: [clampArray(start, range), clampArray(end, range)],
-            position,
-        };
+        const [, start, end] = computeBand(this.scale, this.range, value);
+        return { band: [start, end] };
     }
 
     private isVertical() {

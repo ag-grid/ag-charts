@@ -1,5 +1,15 @@
-import { AreaSeriesModule, LegendModule, ModuleRegistry, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
-import { AgCharts, AgSparklineOptions, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgSparklineOptions,
+    AnimationModule,
+    AreaSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -10,7 +20,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     TimeAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 
 const options: AgSparklineOptions = {

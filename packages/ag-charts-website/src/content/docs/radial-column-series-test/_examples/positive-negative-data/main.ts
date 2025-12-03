@@ -1,4 +1,4 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getBaseData, getMixedSignData, getNegativeData } from './data';
 

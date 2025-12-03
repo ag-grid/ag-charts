@@ -81,14 +81,14 @@ export interface AgTooltipRendererDataRow {
 }
 
 export interface AgTooltipRendererSymbolMarker extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Enabled rendering the symbol marker. */
+    /** Whether to show the symbol marker. */
     enabled?: boolean;
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
+    /** The shape to use for the markers.*/
     shape?: AgMarkerShape;
 }
 
 export interface AgTooltipRendererSymbolLine extends StrokeOptions, LineDashOptions {
-    /** Enabled rendering the symbol line. */
+    /** Whether to show the symbol line. */
     enabled?: boolean;
 }
 

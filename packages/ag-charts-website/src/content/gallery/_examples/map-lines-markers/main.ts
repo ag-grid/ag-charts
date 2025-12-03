@@ -1,10 +1,13 @@
-import { LegendModule, ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    LegendModule,
     MapLineBackgroundSeriesModule,
     MapLineSeriesModule,
     MapMarkerSeriesModule,
     MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { cycleCounterData } from './cycleCounterData';

@@ -21,7 +21,6 @@ export const RadarLineSeriesModule: SeriesModuleDefinition<AgRadarLineSeriesOpti
     options: radarLineSeriesOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
     axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.Angle]: 'angleKey', [ChartAxisDirection.Radius]: 'radiusKey' },
     themeTemplate: RADAR_LINE_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new RadarLineSeries(ctx),

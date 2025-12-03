@@ -48,6 +48,23 @@ export function SceneArrayChangeDetection<T extends Target = any>(opts?: SceneAr
     return SceneChangeDetection<T>(opts);
 }
 
+export function DeclaredSceneChangeDetection<V>(opts?: SceneChangeDetectionOptions) {
+    return function <K extends string, T extends Target & { [P in `__${K}`]: V }>(target: T, key: K): void {
+        const privateKey = `__${key}`;
+        if (target[key as keyof T]) return;
+        prepareGetSet(target, key, privateKey, opts);
+    };
+}
+
+// eslint-disable-next-line sonarjs/no-identical-functions
+export function DeclaredSceneObjectChangeDetection<V>(opts?: SceneObjectChangeDetectionOptions) {
+    return function <K extends string, T extends Target & { [P in `__${K}`]: V }>(target: T, key: K): void {
+        const privateKey = `__${key}`;
+        if (target[key as keyof T]) return;
+        prepareGetSet(target, key, privateKey, opts);
+    };
+}
+
 function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
     const { changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
     const requiredOpts = { changeCb, checkDirtyOnAssignment, convertor };

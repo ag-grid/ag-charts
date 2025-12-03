@@ -1,11 +1,8 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
-import { OhlcSeriesBase } from './ohlcSeriesBase';
-import type { OhlcNodeDatum } from './ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
-
-const { applyShapeStyle } = _ModuleSupport;
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
@@ -45,25 +42,20 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = properties.item;
 
-        datumSelection.each((node, datum) => {
+        const series = this;
+        datumSelection.each(function updateOhlcNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
 
-            node.centerX = centerX;
-            node.width = width;
-            node.y = y;
-            node.height = height;
-            node.yOpen = yOpen;
-            node.yClose = yClose;
-            node.crisp = crisp;
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
             const style =
                 datum.style ??
                 contextNodeData.styles[datum.itemType][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                    series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 
-            applyShapeStyle(node, style);
+            node.setStyleProperties(style);
 
             node.strokeAlignment = baseStyle.strokeWidth;
         });

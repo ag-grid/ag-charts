@@ -1,4 +1,10 @@
-import { AgChartOptions, AgCharts, AgRadialSeriesStyle, AgRadialSeriesStylerParams } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
+    ContextMenuModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

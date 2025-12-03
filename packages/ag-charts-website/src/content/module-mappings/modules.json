@@ -351,6 +351,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "FlashOnUpdateModule",
+                    "name": "Flash On Update",
+                    "path": "flash-on-update",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "NavigatorModule",
                     "name": "Navigator",
                     "path": "navigator",

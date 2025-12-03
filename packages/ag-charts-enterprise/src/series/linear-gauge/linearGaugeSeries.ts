@@ -59,7 +59,6 @@ const {
     generateTicks,
     NiceMode,
     easing,
-    applyShapeStyle,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -864,7 +863,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, datum.style, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
@@ -929,7 +928,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, datum.style, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
 
             rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             rect.topLeftCornerRadius = topLeftCornerRadius;
@@ -958,7 +957,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { x, y, shape, size, rotation } = datum;
 
             const style = this.getTargetStyle(isHighlight, datum);
-            applyShapeStyle(target, style);
+            target.setStyleProperties(style);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;

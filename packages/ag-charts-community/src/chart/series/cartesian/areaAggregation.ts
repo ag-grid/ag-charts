@@ -1,10 +1,14 @@
-import { type ScaleType, simpleMemorize2 } from 'ag-charts-core';
+import { type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_MIN_RANGE,
+    AGGREGATION_THRESHOLD,
     aggregationDomain,
     aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
@@ -14,13 +18,22 @@ import {
     createAggregationIndices,
 } from '../aggregation';
 
-const AGGREGATION_THRESHOLD = 1e3;
 const MAX_POINTS = 10;
 
 export interface AreaSeriesDataAggregationFilter {
-    metaIndices: number[];
-    indices: number[];
+    metaIndices: Uint32Array;
+    indices: Uint32Array;
     maxRange: number;
+    indexData: Uint32Array;
+    valueData: Float64Array;
+    stale?: boolean;
+}
+
+export interface PartialAreaAggregationResult {
+    /** Levels computed immediately (includes the target level) */
+    immediate: AreaSeriesDataAggregationFilter[];
+    /** Function to compute remaining coarser levels, or undefined if all levels computed */
+    computeRemaining?: () => AreaSeriesDataAggregationFilter[];
 }
 
 // ============================================================================
@@ -70,6 +83,64 @@ function aggregationIndexType(
 }
 
 /**
+ * Builds indices and metaIndices TypedArrays from aggregation data.
+ * metaIndices track group boundaries for proper area fill path closure.
+ * Uses two-pass approach: first count, then populate for TypedArray efficiency.
+ */
+function buildIndicesFromAggregation(
+    xValues: any[],
+    d0: number,
+    d1: number,
+    indexData: Uint32Array,
+    maxRange: number,
+    xNeedsValueOf: boolean,
+    xValuesLength: number,
+    reuseIndices?: Uint32Array,
+    reuseMetaIndices?: Uint32Array
+): { indices: Uint32Array; metaIndices: Uint32Array } {
+    // First pass: count indices and metaIndices
+    let indicesCount = 0;
+    let metaIndicesCount = 0;
+    let currentGroup = -1;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+        if (group === -1) continue;
+
+        indicesCount++;
+        if (group !== currentGroup) {
+            metaIndicesCount++;
+            currentGroup = group;
+        }
+    }
+    metaIndicesCount++; // For the final closing index
+
+    // Allocate or reuse TypedArrays
+    const indices = reuseIndices?.length === indicesCount ? reuseIndices : new Uint32Array(indicesCount);
+    const metaIndices =
+        reuseMetaIndices?.length === metaIndicesCount ? reuseMetaIndices : new Uint32Array(metaIndicesCount);
+
+    // Second pass: populate arrays
+    let indicesIdx = 0;
+    let metaIndicesIdx = 0;
+    currentGroup = -1;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+        if (group === -1) continue;
+
+        if (group !== currentGroup) {
+            metaIndices[metaIndicesIdx++] = indicesIdx;
+            currentGroup = group;
+        }
+        indices[indicesIdx++] = datumIndex;
+    }
+    metaIndices[metaIndicesIdx] = indicesCount - 1; // Final closing index
+
+    return { indices, metaIndices };
+}
+
+/**
  * Computes multi-level aggregation filters for area chart data.
  *
  * Creates progressively coarser aggregation levels for efficient rendering
@@ -83,6 +154,7 @@ function aggregationIndexType(
  * @param options - Configuration options
  * @param options.xNeedsValueOf - Whether X values need valueOf() conversion
  * @param options.yNeedsValueOf - Whether Y values need valueOf() conversion
+ * @param options.existingFilters - Optional existing filters for TypedArray reuse
  * @returns Array of aggregation filters from coarse to fine resolution, or undefined if below threshold
  *
  * @complexity O(n * log(levels)) where n is data points and levels ≈ log2(maxRange/64)
@@ -104,63 +176,196 @@ export function computeAreaAggregation(
     options: {
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
+        existingFilters?: AreaSeriesDataAggregationFilter[];
     }
 ): AreaSeriesDataAggregationFilter[] | undefined {
-    if (xValues.length < AGGREGATION_THRESHOLD) return;
+    const xValuesLength = xValues.length;
+    if (xValuesLength < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = domain;
-    const { xNeedsValueOf, yNeedsValueOf } = options;
+    const { xNeedsValueOf, yNeedsValueOf, existingFilters } = options;
 
     let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
 
-    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
+    // Find existing filter at finest level for TypedArray reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === maxRange);
+
+    let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange, {
         xNeedsValueOf,
         yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
     });
 
-    let metaIndices: number[] = [];
-    let indices: number[] = [];
-    let currentGroup = -1;
-    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
-        const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
-        if (group === -1) continue;
+    let { indices, metaIndices } = buildIndicesFromAggregation(
+        xValues,
+        d0,
+        d1,
+        indexData,
+        maxRange,
+        xNeedsValueOf,
+        xValuesLength,
+        existingFilter?.indices,
+        existingFilter?.metaIndices
+    );
 
-        const newGroupIndex = indices.push(datumIndex) - 1;
-        if (group !== currentGroup) {
-            metaIndices.push(newGroupIndex);
-            currentGroup = group;
-        }
-    }
-    metaIndices.push(indices.length - 1);
+    const filters: AreaSeriesDataAggregationFilter[] = [{ maxRange, metaIndices, indices, indexData, valueData }];
 
-    const filters: AreaSeriesDataAggregationFilter[] = [{ maxRange, metaIndices, indices }];
+    while (indices.length > MAX_POINTS && maxRange > AGGREGATION_MIN_RANGE) {
+        const currentMaxRange = maxRange;
+        const nextMaxRange = Math.trunc(currentMaxRange / 2);
 
-    while (indices.length > MAX_POINTS && maxRange > 64) {
-        ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
+        // Find existing filter at target level for TypedArray reuse
+        const nextExistingFilter = existingFilters?.find((f) => f.maxRange === nextMaxRange);
 
+        const compacted = compactAggregationIndices(indexData, valueData, currentMaxRange, {
+            reuseIndexData: nextExistingFilter?.indexData,
+            reuseValueData: nextExistingFilter?.valueData,
+        });
+
+        maxRange = compacted.maxRange;
+        indexData = compacted.indexData;
+        valueData = compacted.valueData;
+
+        // Rebuild indices from the previous level's indices using two-pass approach
         const previousIndices = indices;
 
-        metaIndices = [];
-        indices = [];
-        currentGroup = -1;
-        for (const datumIndex of previousIndices) {
+        // First pass: count how many indices will be retained
+        let indicesCount = 0;
+        let metaIndicesCount = 0;
+        let currentGroup = -1;
+
+        for (let i = 0; i < previousIndices.length; i++) {
+            const datumIndex = previousIndices[i];
             const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
             if (group === -1) continue;
 
-            const newGroupIndex = indices.push(datumIndex) - 1;
+            indicesCount++;
             if (group !== currentGroup) {
-                metaIndices.push(newGroupIndex);
+                metaIndicesCount++;
                 currentGroup = group;
             }
         }
-        metaIndices.push(indices.length - 1);
+        metaIndicesCount++; // For final closing index
 
-        filters.push({ maxRange, metaIndices, indices });
+        // Allocate or reuse TypedArrays
+        const newIndices =
+            nextExistingFilter?.indices?.length === indicesCount
+                ? nextExistingFilter.indices
+                : new Uint32Array(indicesCount);
+        const newMetaIndices =
+            nextExistingFilter?.metaIndices?.length === metaIndicesCount
+                ? nextExistingFilter.metaIndices
+                : new Uint32Array(metaIndicesCount);
+
+        // Second pass: populate arrays
+        let indicesIdx = 0;
+        let metaIndicesIdx = 0;
+        currentGroup = -1;
+
+        for (let i = 0; i < previousIndices.length; i++) {
+            const datumIndex = previousIndices[i];
+            const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
+            if (group === -1) continue;
+
+            if (group !== currentGroup) {
+                newMetaIndices[metaIndicesIdx++] = indicesIdx;
+                currentGroup = group;
+            }
+            newIndices[indicesIdx++] = datumIndex;
+        }
+        newMetaIndices[metaIndicesIdx] = indicesCount - 1; // Final closing index
+
+        indices = newIndices;
+        metaIndices = newMetaIndices;
+        filters.push({ maxRange, metaIndices, indices, indexData, valueData });
     }
 
     filters.reverse();
 
     return filters;
+}
+
+/**
+ * Computes area aggregation with deferred full recomputation.
+ *
+ * For real-time data updates, this computes only the single aggregation level
+ * needed for the current zoom, deferring a full recomputation of all levels
+ * to idle time.
+ *
+ * @param domain - Numeric domain bounds [min, max] for X values
+ * @param xValues - X coordinate values
+ * @param yValues - Y coordinate values
+ * @param options - Configuration options including targetRange
+ * @returns Partial result with the immediate level and a function to compute all levels
+ */
+export function computeAreaAggregationPartial(
+    domain: [number, number],
+    xValues: any[],
+    yValues: any[],
+    options: {
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+        targetRange: number;
+        existingFilters?: AreaSeriesDataAggregationFilter[];
+    }
+): PartialAreaAggregationResult | undefined {
+    const xValuesLength = xValues.length;
+    if (xValuesLength < AGGREGATION_THRESHOLD) return;
+
+    const [d0, d1] = domain;
+    const { xNeedsValueOf, yNeedsValueOf, targetRange, existingFilters } = options;
+
+    // Calculate the finest level bucket count (based on data density)
+    const finestMaxRange = aggregationRangeFittingPoints(xValues, d0, d1, { xNeedsValueOf });
+
+    // Calculate target bucket count: next power of 2 >= targetRange, clamped to valid range
+    const targetMaxRange = Math.min(finestMaxRange, nextPowerOf2(Math.max(targetRange, AGGREGATION_MIN_RANGE)));
+
+    // Find existing filter at matching maxRange for TypedArray reuse
+    const existingFilter = existingFilters?.find((f) => f.maxRange === targetMaxRange);
+
+    // Create aggregation at exactly the target level - single O(n) scan
+    const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, targetMaxRange, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        reuseIndexData: existingFilter?.indexData,
+        reuseValueData: existingFilter?.valueData,
+    });
+
+    const { indices, metaIndices } = buildIndicesFromAggregation(
+        xValues,
+        d0,
+        d1,
+        indexData,
+        targetMaxRange,
+        xNeedsValueOf,
+        xValuesLength,
+        existingFilter?.indices,
+        existingFilter?.metaIndices
+    );
+
+    const immediateLevel: AreaSeriesDataAggregationFilter = {
+        maxRange: targetMaxRange,
+        indices,
+        metaIndices,
+        indexData,
+        valueData,
+    };
+
+    // Defer full recomputation of all levels to idle time
+    function computeRemaining(): AreaSeriesDataAggregationFilter[] {
+        const allLevels = computeAreaAggregation([d0, d1], xValues, yValues, {
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
+
+        // Filter out the immediate level (already computed) to avoid duplicates
+        return allLevels?.filter((level) => level.maxRange !== targetMaxRange) ?? [];
+    }
+
+    return { immediate: [immediateLevel], computeRemaining };
 }
 
 // ============================================================================
@@ -204,14 +409,16 @@ const memoizedAggregateAreaData = simpleMemorize2(aggregateAreaData);
  * @param processedData - Processed data to aggregate
  * @param yKey - The Y value key to use (e.g., 'yValue', 'yValueCumulative')
  * @param series - Series context for data model queries
+ * @param existingFilters - Optional existing filters for TypedArray reuse
  * @returns Aggregation filters or undefined if aggregation not needed
  */
 export function aggregateAreaDataFromDataModel(
     scale: ScaleType,
-    dataModel: any,
-    processedData: any,
+    dataModel: DataModel<any, any, any>,
+    processedData: ProcessedData<any>,
     yKey: string,
-    series: any
+    series: ScopeProvider,
+    existingFilters?: AreaSeriesDataAggregationFilter[]
 ): AreaSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
@@ -220,5 +427,53 @@ export function aggregateAreaDataFromDataModel(
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
+    // When existingFilters provided, bypass memoization to enable TypedArray reuse
+    if (existingFilters) {
+        const [d0, d1] = aggregationDomain(scale, domain);
+        return computeAreaAggregation([d0, d1], xValues, yValues, {
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
+    }
+
     return memoizedAggregateAreaData(scale, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
+}
+
+/**
+ * High-level partial aggregation function for series integration.
+ * Computes immediate levels for the target range and defers coarser levels.
+ *
+ * @param scale - The X-axis scale type
+ * @param dataModel - Data model containing the processed data
+ * @param processedData - Processed data to aggregate
+ * @param yKey - The Y value key to use (e.g., 'yValue', 'yValueCumulative')
+ * @param series - Series context for data model queries
+ * @param targetRange - Current pixel range for determining which levels to compute immediately
+ * @param existingFilters - Optional existing filters for TypedArray reuse
+ * @returns Partial aggregation result with immediate levels and deferred computation function
+ */
+export function aggregateAreaDataFromDataModelPartial(
+    scale: ScaleType,
+    dataModel: DataModel<any, any, any>,
+    processedData: ProcessedData<any>,
+    yKey: string,
+    series: ScopeProvider,
+    targetRange: number,
+    existingFilters?: AreaSeriesDataAggregationFilter[]
+): PartialAreaAggregationResult | undefined {
+    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const yValues = dataModel.resolveColumnById(series, yKey, processedData);
+    const domain = dataModel.getDomain(series, 'xValue', 'key', processedData);
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
+
+    const [d0, d1] = aggregationDomain(scale, domain);
+    return computeAreaAggregationPartial([d0, d1], xValues, yValues, {
+        xNeedsValueOf,
+        yNeedsValueOf,
+        targetRange,
+        existingFilters,
+    });
 }

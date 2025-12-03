@@ -1,19 +1,18 @@
 import {
-    BubbleSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    ScatterSeriesModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -26,6 +25,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     ScatterSeriesModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 // @ts-expect-error Undocumented option
 window.agChartsDebug = 'scene:stats';

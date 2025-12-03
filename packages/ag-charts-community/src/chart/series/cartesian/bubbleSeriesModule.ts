@@ -72,7 +72,6 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
         },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisValueKeys: { [ChartAxisDirection.X]: 'xKey', [ChartAxisDirection.Y]: 'yKey' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new BubbleSeries(ctx),

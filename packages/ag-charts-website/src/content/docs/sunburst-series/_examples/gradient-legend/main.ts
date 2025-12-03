@@ -1,6 +1,13 @@
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { GradientLegendModule, SunburstSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    GradientLegendModule,
+    ModuleRegistry,
+    SunburstSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -9,7 +16,7 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     GradientLegendModule,
     SunburstSeriesModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const gdpFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,

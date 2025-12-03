@@ -49,6 +49,13 @@ describe('DOMManager', () => {
             
         <div
           aria-hidden="true"
+          class="ag-charts-canvas-background"
+          role="presentation"
+        />
+        
+            
+        <div
+          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -150,6 +157,13 @@ describe('DOMManager', () => {
             
         <div
           aria-hidden="true"
+          class="ag-charts-canvas-background"
+          role="presentation"
+        />
+        
+            
+        <div
+          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -247,6 +261,13 @@ describe('DOMManager', () => {
         class="ag-charts-canvas-container"
         role="presentation"
       >
+        
+            
+        <div
+          aria-hidden="true"
+          class="ag-charts-canvas-background"
+          role="presentation"
+        />
         
             
         <div

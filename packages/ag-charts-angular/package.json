@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "12.3.1-beta.20251126",
+  "version": "12.3.1-beta.20251130",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -33,21 +33,21 @@
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
-    "ag-charts-community": "12.3.1-beta.20251126",
+    "ag-charts-community": "12.3.1-beta.20251130",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.0.0",
-    "@angular/cli": "^17.0.0",
-    "@angular/compiler-cli": "^17.0.0",
-    "@angular/animations": "^17.0.0",
-    "@angular/common": "^17.0.0",
-    "@angular/compiler": "^17.0.0",
-    "@angular/core": "^17.0.0",
-    "@angular/forms": "^17.0.0",
-    "@angular/platform-browser": "^17.0.0",
-    "@angular/platform-browser-dynamic": "^17.0.0",
-    "@angular/router": "^17.0.0",
+    "@angular-devkit/build-angular": "^18.0.7",
+    "@angular/cli": "^18.0.7",
+    "@angular/compiler-cli": "^18.0.7",
+    "@angular/animations": "^18.0.7",
+    "@angular/common": "^18.0.7",
+    "@angular/compiler": "^18.0.7",
+    "@angular/core": "^18.0.7",
+    "@angular/forms": "^18.0.7",
+    "@angular/platform-browser": "^18.0.7",
+    "@angular/platform-browser-dynamic": "^18.0.7",
+    "@angular/router": "^18.0.7",
     "@types/jasmine": "~4.6.5",
     "@types/node": "^18.18.10",
     "jasmine-core": "~4.6.1",
@@ -56,13 +56,13 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "ng-packagr": "^17.3.0",
+    "ng-packagr": "^18.0.0",
     "rxjs": "~7.5.0",
-    "typescript": "~5.2.2",
+    "typescript": "~5.4.5",
     "zone.js": "~0.14.10"
   },
   "peerDependencies": {
-    "@angular/common": ">= 17.0.0",
-    "@angular/core": ">= 17.0.0"
+    "@angular/common": ">= 18.0.0",
+    "@angular/core": ">= 18.0.0"
   }
 }

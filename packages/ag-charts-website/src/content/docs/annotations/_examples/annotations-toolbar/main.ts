@@ -1,12 +1,17 @@
 import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    AnnotationsModule,
     CategoryAxisModule,
+    ChartToolbarModule,
+    ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AnimationModule, CrosshairModule, ZoomModule } from 'ag-charts-enterprise';
-import { AnnotationsModule, ChartToolbarModule } from 'ag-charts-enterprise';
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -19,7 +24,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

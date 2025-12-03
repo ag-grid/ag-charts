@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import { type AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 // Configuration
 let refreshRateInMilliseconds = 50;

@@ -1,5 +1,6 @@
 import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 
+import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
 import {
@@ -58,7 +59,8 @@ export class DataController {
 
     public constructor(
         private readonly mode: ChartMode,
-        readonly suppressFieldDotNotation: boolean
+        readonly suppressFieldDotNotation: boolean,
+        private readonly eventsHub: EventsHub | undefined
     ) {}
 
     public async request<
@@ -129,7 +131,12 @@ export class DataController {
 
             const fullReprocess = () => {
                 try {
-                    const dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
+                    const dataModel = new DataModel<any>(
+                        opts,
+                        this.mode,
+                        this.suppressFieldDotNotation,
+                        this.eventsHub
+                    );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const processedData = dataModel.processData(sources);
                     resolveResult(dataModel, processedData);
@@ -156,7 +163,12 @@ export class DataController {
 
                 // DEBUG: Compare incremental update with full reprocess baseline
                 if (Debug.check('data-model:reprocess-diff')) {
-                    const baselineModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
+                    const baselineModel = new DataModel<any>(
+                        opts,
+                        this.mode,
+                        this.suppressFieldDotNotation,
+                        this.eventsHub
+                    );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const baselineData = baselineModel.processData(sources);
 

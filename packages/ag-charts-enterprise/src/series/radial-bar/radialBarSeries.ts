@@ -34,7 +34,6 @@ const {
     Sector,
     SectorBox,
     motion,
-    applyShapeStyle,
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
@@ -140,10 +139,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
+        if (this.needsDataModelDiff() && this.processedData) {
+            extraProps.push(diff(this.id, this.processedData));
+        }
         if (animationEnabled) {
-            if (this.processedData) {
-                extraProps.push(diff(this.id, this.processedData));
-            }
             extraProps.push(animationValidation());
         }
 
@@ -425,7 +424,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const fillParams: _ModuleSupport.GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
-                applyShapeStyle(node, style, fillBBox, fillParams);
+                node.setStyleProperties(style, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;

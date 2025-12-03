@@ -1,21 +1,18 @@
 import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-import {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgCartesianChartOptions,
     AgCharts,
     AgContextMenuItem,
     AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
-import { ContextMenuModule } from 'ag-charts-enterprise';
 
 import type { DatumType } from './data';
 import { getPersistentMutableData } from './data';
@@ -28,7 +25,6 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
 ]);
 
 const markingStyle: AgBarSeriesStyle = {

@@ -1,17 +1,15 @@
 import {
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-import {
     AgCartesianChartOptions,
     AgChartTheme,
     AgCharts,
     AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
     CrosshairModule,
-    ZoomModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -23,7 +21,7 @@ ModuleRegistry.registerModules([
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 const paperTheme: AgChartTheme = {
     palette: {

@@ -1,23 +1,21 @@
 import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+    AnimationModule,
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
     DonutSeriesModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     PieSeriesModule,
-} from 'ag-charts-community';
-import {
-    AgCartesianChartOptions,
-    AgChartOptions,
-    AgCharts,
-    AgPolarChartOptions,
-    CrosshairModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
-import { AnimationModule } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -34,7 +32,7 @@ ModuleRegistry.registerModules([
     LineSeriesModule,
     NumberAxisModule,
     PieSeriesModule,
-    ZoomModule,
+    ContextMenuModule,
 ]);
 let start = [120, 150, 130, 140, 80];
 let variance = 20;

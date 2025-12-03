@@ -1,17 +1,16 @@
 import {
     AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DataSourceModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
+    NavigatorModule,
     NumberAxisModule,
     TimeAxisModule,
-} from 'ag-charts-community';
-import {
-    AgCharts,
-    AnimationModule,
-    CrosshairModule,
-    DataSourceModule,
-    NavigatorModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
 
@@ -27,12 +26,13 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     TimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     dataSource: {
         getData: ({ windowStart, windowEnd }) => {
-            // Request the data from the server, this is an asynchronous call which may take up to 500ms. In your
+            // Request the data from the server, this is an asynchronous call which may take up to 2500ms. In your
             // application, replace this with a call to your server api.
             return FakeServer.get({ windowStart, windowEnd });
         },

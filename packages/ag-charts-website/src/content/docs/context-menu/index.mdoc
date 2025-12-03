@@ -167,18 +167,18 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 {
     contextMenu: {
         getItems: (params) => {
-            if (params.showOn === 'legend-item') {
+            if (params.showOn === 'series-node') {
+                const xName = params.datum[params.xKey];
                 return [
-                    'download',
+                    'defaults',
                     'separator',
-                    // Custom implementation of 'toggle-series-visibility':
+                    // Dynamic Context Menu Item
                     {
                         type: 'action',
-                        showOn: 'legend-item',
-                        label: params.visible ? `Hide ${params.seriesId}` : `Show ${params.seriesId}`,
-                        action: () => updateVisibility(params.seriesId, !params.visible),
+                        showOn: 'series-node',
+                        label: `Log Datum "${params.seriesId} - ${xName}"`,
+                        action: () => console.log(params.datum),
                     },
-                    'toggle-other-series',
                 ];
             }
         },
@@ -188,8 +188,8 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 
 In this example:
 
--   The Legend Context Menu includes a `Show ${text}` Menu Item if the Series is hidden.
--   The Legend Context Menu includes a `Hide ${text}` Menu Item if the Series is visible.
+-   The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
+    whose text is dynamically derived from the Context Menu Event parameters.
 
 ## API Reference
 

@@ -1,12 +1,17 @@
-import { LegendModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 import {
     AgCartesianChartOptions,
     AgCharts,
     AgTouchOptions,
     AnimationModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
     CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
-import { CandlestickSeriesModule, OrdinalTimeAxisModule, ZoomModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,6 +23,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 
 const options: AgCartesianChartOptions = {

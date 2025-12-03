@@ -1,0 +1,108 @@
+---
+title: 'Zoom Data Change Strategies'
+description: 'Control how $framework chart zoom behaves when data is updated dynamically.'
+enterprise: true
+---
+
+When chart data is updated dynamically, you may want to control how the zoom behaves. AG Charts provides several strategies to handle this through the `zoom.onDataChange` option.
+
+{% chartExampleRunner title="Zoom Data Change Strategies" name="data-change-strategies" type="generated" /%}
+
+Use the strategy selector and buttons to add data at the start, middle, or end of the dataset while zoomed in to observe how each strategy behaves differently.
+
+## Strategies
+
+The `zoom.onDataChange.strategy` option controls how the zoom adjusts when chart data changes:
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'preserveDomain',
+        },
+    },
+    navigator: {
+        enabled: true,
+        miniChart: {
+            enabled: true,
+        },
+    },
+}
+```
+
+### Reset
+
+When using `strategy: 'reset'`, the zoom is reset to show all data whenever the data changes.
+
+**Use case:** Dashboards where users should always see the complete data range after updates.
+
+### Preserve Ratios
+
+When using `strategy: 'preserveRatios'`, the zoom ratios remain unchanged while the data is adjusted to fit within the current viewport.
+
+**Use case:** When you want to maintain the same zoom percentage regardless of data changes.
+
+### Preserve Domain
+
+When using `strategy: 'preserveDomain'` (the default), the current axis domain (the actual values on the axis) is preserved when data changes.
+
+**Use case:** Financial charts where users are analyzing a specific time period and don't want their view disrupted by new data arriving.
+
+## Comparing Strategies
+
+The table below summarizes how each strategy behaves:
+
+| Strategy         | Zoom Ratio     | Visible Domain   | Best For               |
+| ---------------- | -------------- | ---------------- | ---------------------- |
+| `reset`          | Resets to 100% | Shows all data   | Dashboards, overviews  |
+| `preserveRatios` | Unchanged      | Shifts with data | Maintaining zoom level |
+| `preserveDomain` | May change     | Unchanged        | Time-based analysis    |
+
+## Live Streaming Data
+
+For charts displaying live streaming data, you'll typically want to use `strategy: 'preserveRatios'` or `strategy: 'preserveDomain'` to prevent the view from jumping around as new data arrives.
+
+{% chartExampleRunner title="Live Streaming" name="live-streaming" type="generated" /%}
+
+In the example above:
+
+-   New data points are added every second
+-   The chart maintains the current view while new data streams in
+-   Use the navigator's mini chart to see where you are in the full data range
+
+## Stick to End
+
+The `stickToEnd` option ensures that newly appended data stays visible when the user has panned to the very end of the data range. This is enabled by default (`true`).
+
+{% chartExampleRunner title="Stick to End" name="stick-to-end" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'preserveDomain',
+            stickToEnd: true,
+        },
+    },
+}
+```
+
+How it works:
+
+1. When the chart is panned to the end of the data range and new data arrives, the view automatically scrolls to keep the new data visible
+2. If the user has panned away from the end, the current `strategy` behaviour is used instead
+3. Set `stickToEnd: false` to disable this behaviour and always use the strategy
+
+**Use case:** Real-time monitoring dashboards where users want to follow the latest data as it arrives, but can also pan back to examine historical data without being interrupted.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgZoomOnDataChange" label="Data Change Options" %}
+{% apiReference id="AgZoomOnDataChange" /%}
+{% /tabItem %}
+
+{% /tabs %}

@@ -1,12 +1,17 @@
 import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
+    NavigatorModule,
     NumberAxisModule,
     UnitTimeAxisModule,
-} from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AnimationModule, CrosshairModule } from 'ag-charts-enterprise';
-import { NavigatorModule, ZoomModule } from 'ag-charts-enterprise';
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -19,6 +24,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     UnitTimeAxisModule,
     ZoomModule,
+    ContextMenuModule,
 ]);
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
     day: 'numeric',

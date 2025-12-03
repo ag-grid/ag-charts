@@ -1,6 +1,12 @@
-import { ModuleRegistry } from 'ag-charts-community';
-import { AgChartOptions, AgCharts, AngleCategoryAxisModule } from 'ag-charts-enterprise';
-import { NightingaleSeriesModule, RadiusNumberAxisModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
