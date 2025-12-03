@@ -148,7 +148,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected override onGridVisibilityChange(): void {
-      // Do nothing, the grid lines and fills are updated in the update method.
+        // Do nothing, the grid lines and fills are updated in the update method.
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
