@@ -6,9 +6,9 @@ import {
     spanRange,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
+import type { Scaling } from 'ag-charts-core';
 
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import type { Scaling } from 'ag-charts-core';
 
 const MAX_CATEGORIES = 1000;
 

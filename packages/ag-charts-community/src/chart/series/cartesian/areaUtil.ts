@@ -1,5 +1,6 @@
 import type { InternalAgColorType, Point, SizedPoint } from 'ag-charts-core';
 import { SpanJoin, spanRange } from 'ag-charts-core';
+import { isScaleValid } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -17,7 +18,6 @@ import {
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
-import { isScaleValid } from 'ag-charts-core';
 
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];

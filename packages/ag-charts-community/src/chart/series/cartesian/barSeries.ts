@@ -1,5 +1,6 @@
 import type { CallbackParamRules, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
 import { isFiniteNumber, mergeDefaults } from 'ag-charts-core';
+import { areScalingEqual } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -84,7 +85,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
-import { areScalingEqual } from 'ag-charts-core';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
