@@ -315,6 +315,10 @@ export abstract class CartesianSeries<
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (this.shouldFlipXY()) {
+            if (direction === ChartAxisDirection.X) return this.properties.yKeyAxis;
+            if (direction === ChartAxisDirection.Y) return this.properties.xKeyAxis;
+        }
         if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
         if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
     }

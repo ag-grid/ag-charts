@@ -2786,6 +2786,54 @@ describe('ChartOptions', () => {
                     y: { type: 'category', position: 'right' },
                 });
             });
+
+            it('should flip axes when a series is horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal' }],
+                    axes: {
+                        x: { type: 'category', position: 'left' },
+                        y: { type: 'number', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x',
+                });
+            });
+
+            it('should flip axes when a series is horizontal and no axes are provided', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal', yKeyAxis: 'myAxis1' },
+                        { type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal', yKeyAxis: 'myAxis2' },
+                    ],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' }, // myAxis1
+                    y: { type: 'category', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'bottom' }, // myAxis2
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x', // myAxis1
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis2
+                });
+            });
         });
     });
 });

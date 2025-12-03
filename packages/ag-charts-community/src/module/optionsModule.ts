@@ -582,18 +582,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
                 : [ChartAxisDirection.X, ChartAxisDirection.Y];
 
-        const directionAxisKeys = this.getAxisDirectionKeys(directions);
+        const primarySeriesOptions = options.series?.[0];
+        const isFlipped =
+            isObject(primarySeriesOptions) &&
+            'direction' in primarySeriesOptions &&
+            primarySeriesOptions.direction === 'horizontal';
+
+        const directionAxisKeys = this.getAxisDirectionKeys(options, directions, isFlipped);
 
         const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
         const hasNonDefaultSeriesAxisKeys = this.hasNonDefaultSeriesAxisKeys(options, directions, directionAxisKeys);
 
-        const primarySeriesOptions = options.series?.[0];
         const seriesType = this.optionsType(options);
         const defaultAxes: Record<string, PlainObject> =
             this.predictAxes(seriesType, directions, primarySeriesOptions, options.data) ??
             this.cloneDefaultAxes(seriesType);
 
-        if (!hasAxes && !hasNonDefaultSeriesAxisKeys) {
+        if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isFlipped) {
             (options as any).axes = defaultAxes;
             return;
         }
@@ -636,14 +641,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return unmappedAxisIds;
     }
 
-    private getAxisDirectionKeys(directions: ChartAxisDirection[]) {
+    private getAxisDirectionKeys(options: T, directions: ChartAxisDirection[], isFlipped: boolean) {
         const directionAxisKeys: Partial<Record<ChartAxisDirection, string>> = {};
 
-        for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+        if (!options.series || options.series.length === 0) return directionAxisKeys;
+
+        for (const series of options.series) {
+            const seriesModule = ModuleRegistry.getSeriesModule(series.type);
             if (!seriesModule?.axisKeys) continue;
 
             for (const direction of directions) {
-                const seriesAxisKey = seriesModule.axisKeys[direction];
+                const seriesAxisKey =
+                    isFlipped && seriesModule.axisKeysFlipped
+                        ? seriesModule.axisKeysFlipped[direction]
+                        : seriesModule.axisKeys[direction];
                 if (!seriesAxisKey) continue;
                 directionAxisKeys[direction] ??= seriesAxisKey;
             }

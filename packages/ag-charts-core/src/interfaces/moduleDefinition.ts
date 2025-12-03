@@ -120,7 +120,7 @@ export interface SeriesModuleDefinition<TOptions>
     ) => SeriesPredictAxis<SeriesType> | undefined;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     axisKeys?: Partial<Record<string /* ChartAxisDirection */, string>>;
-    axisValueKeys?: Partial<Record<string /* ChartAxisDirection */, keyof TOptions | (keyof TOptions)[]>>;
+    axisKeysFlipped?: Partial<Record<string /* ChartAxisDirection */, string>>;
 
     options: OptionsDefs<TOptions>;
 }
