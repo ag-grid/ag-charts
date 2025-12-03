@@ -281,7 +281,11 @@ export function priceVolume(
                         series: {
                             fillOpacity: 0.3,
                             strokeWidth: 2,
-                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
+                            highlight: {
+                                bringToFront: false,
+                                unhighlightedItem: { opacity: 1 },
+                                unhighlightedSeries: { opacity: 1 },
+                            },
                             ...inlineSwitch(chartType, {
                                 hlc: {
                                     fill: {
