@@ -133,7 +133,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
         const { showOn } = event;
         const { context } = this.ctx.chartService; // TODO: callWithContext
-        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(this.items, this.ctx.contextMenuRegistry);
+        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, this.items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':

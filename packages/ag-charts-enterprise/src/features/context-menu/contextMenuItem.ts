@@ -63,21 +63,27 @@ function expandBuiltin(
 }
 
 export function expandBuiltinLists(
+    showing: AgContextMenuItemShowOn,
     items: readonly Readonly<AgContextMenuItem>[],
     registry: _ModuleSupport.ContextMenuRegistry
 ): AgContextMenuItem_NoLists[] {
-    const result: AgContextMenuItem_NoLists[] = [];
+    const unfiltered: AgContextMenuItem_NoLists[] = [];
     const { builtins } = registry;
     for (const it of items) {
         if (typeof it === 'string' && isKeyOf(it, builtins.lists)) {
             for (const listItem of builtins.lists[it]) {
-                result.push(listItem);
+                unfiltered.push(listItem);
             }
         } else {
-            result.push(it);
+            unfiltered.push(it);
         }
     }
-    return result;
+
+    return unfiltered.filter((it) => {
+        const showOn: AgContextMenuItemShowOn | undefined =
+            typeof it === 'string' ? registry.builtins.items[it].showOn : it.showOn;
+        return showsFor(showOn ?? 'always', showing);
+    });
 }
 
 export function expandItems(
