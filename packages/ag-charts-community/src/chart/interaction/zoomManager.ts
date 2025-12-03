@@ -330,10 +330,6 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public refreshZoom({ source, sourceDetail }: UpdateZoomSourcing): boolean {
-        return this.updateChanges({ source, sourceDetail, changes: {} });
-    }
-
     public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
         return this.updateChanges({ source, sourceDetail, changes });
