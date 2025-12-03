@@ -2,13 +2,14 @@ import { describe, expect, it } from '@jest/globals';
 
 import { EventEmitter, getDocument } from 'ag-charts-core';
 
-import { EventsHub } from '../core/eventsHub';
+import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {
     beforeEach(() => {
         // Prevent bleed of state between tests.
         getDocument().head.innerHTML = '';
+        (DOMManager as any).headStyles?.clear?.();
     });
 
     const eventsHub: EventsHub = new EventEmitter();
@@ -331,6 +332,45 @@ describe('DOMManager', () => {
 </div>
 `);
             expect(doc.head).toMatchInlineSnapshot(`<head />`);
+        });
+    });
+
+    describe('when connecting after initialisation', () => {
+        it('should move styles to head when the container is attached to the document', () => {
+            const doc = getDocument();
+            const container = doc.createElement('div');
+
+            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, container);
+            dm.addStyles('late-test', '.test { width: 100% }');
+
+            expect(container.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+
+            doc.body.append(container);
+            dm.postRenderUpdate();
+
+            expect(container.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+        });
+
+        it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
+            const doc = getDocument();
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+
+            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, container);
+            dm.addStyles('late-test', '.test { width: 100% }');
+
+            shadow.appendChild(container);
+            dm.postRenderUpdate();
+
+            expect(shadow.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(shadow.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).toBeNull();
         });
     });
 });

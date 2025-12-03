@@ -53,9 +53,9 @@ For ease of use, the formatter can also be an object keyed by property, providin
 
 In this configuration:
 
--   `x` formats the x-axis values as a either a full date for the tooltip and crosshair, or year for the axis labels. It does this based on the `unit` value.
--   `y` formats the y-axis values as values on the Richter scale, with one decimal place of precision.
--   `size` formats the size values as a decimal number with no fractional digits.
+-   `x` formats the `xKey` values as a either a full date for the tooltip and crosshair, or year for the axis labels. It does this based on the `unit` value.
+-   `y` formats the `yKey` values as values on the Richter scale, with one decimal place of precision.
+-   `size` formats the `sizeKey` values as a decimal number with no fractional digits.
 -   `label` formats the label values removing additional information when it is a series label, otherwise returns the value as-is for the tooltip. It does this based on the `source` value.
 
 The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`. These mirror the `_Key` properties

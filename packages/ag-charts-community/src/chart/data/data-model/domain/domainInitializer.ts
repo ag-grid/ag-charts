@@ -1,5 +1,5 @@
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition } from '../../dataModelTypes';
+import type { InternalDatumPropertyDefinition, SortOrderEntry } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 
 /**
@@ -11,24 +11,44 @@ export class DomainInitializer<K extends string> {
 
     /**
      * Sets up the appropriate domain type for a property definition.
-     * Returns a DiscreteDomain for category values, or a BandedDomain/ContinuousDomain
-     * for continuous values depending on configuration.
+     * Returns a BandedDomain wrapping DiscreteDomain for category values,
+     * or a BandedDomain wrapping ContinuousDomain for continuous values.
+     * Falls back to non-banded domains when banding is disabled.
+     *
+     * @param sortOrderEntry Optional sort order metadata from KEY_SORT_ORDERS.
+     * When data is sorted and unique, enables fast array concatenation optimization.
      */
     setupDomainForDefinition(
         def: InternalDatumPropertyDefinition<K>,
-        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>
+        bandedDomains: Map<InternalDatumPropertyDefinition<any>, BandedDomain>,
+        sortOrderEntry?: SortOrderEntry
     ): IDataDomain {
-        if (def.valueType === 'category') {
-            return new DiscreteDomain();
-        }
+        const isDiscrete = def.valueType === 'category';
 
         let domain = bandedDomains.get(def);
         if (!domain && this.ctx.bandingConfig?.enableBanding !== false) {
-            domain = new BandedDomain(() => new ContinuousDomain(), this.ctx.bandingConfig, false);
+            domain = new BandedDomain(
+                isDiscrete ? () => new DiscreteDomain() : () => new ContinuousDomain(),
+                this.ctx.bandingConfig,
+                isDiscrete
+            );
             bandedDomains.set(def, domain);
         }
 
-        return domain ?? new ContinuousDomain();
+        // Set sort order metadata for discrete domains to enable fast concatenation
+        // Always update metadata to handle cases where KEY_SORT_ORDERS was cleared (e.g., rolling window)
+        if (domain && isDiscrete) {
+            domain.setSortOrderMetadata(
+                sortOrderEntry?.sortOrder as 1 | -1 | undefined,
+                sortOrderEntry?.isUnique ?? false
+            );
+        }
+
+        if (domain) {
+            return domain;
+        }
+
+        return isDiscrete ? new DiscreteDomain() : new ContinuousDomain();
     }
 
     /**

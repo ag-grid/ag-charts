@@ -1,13 +1,66 @@
 import { Logger, first, iterate } from 'ag-charts-core';
 
 import { ContinuousDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition, ScopeId, UngroupedData } from '../../dataModelTypes';
-import { COLUMN_SORT_ORDERS, DOMAIN_BANDS, DOMAIN_RANGES, KEY_SORT_ORDERS, REDUCER_BANDS } from '../../dataModelTypes';
+import {
+    COLUMN_SORT_ORDERS,
+    DOMAIN_BANDS,
+    DOMAIN_RANGES,
+    type InternalDatumPropertyDefinition,
+    KEY_SORT_ORDERS,
+    REDUCER_BANDS,
+    type ScopeId,
+    type SortOrderEntry,
+    type UngroupedData,
+} from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
 import { createArray } from '../utils/helpers';
+
+/** Tracks ordering/uniqueness during key extraction */
+interface KeyExtractionTracker {
+    lastValue: number | undefined;
+    sortOrder: 1 | -1 | 0; // 0 = undetermined, 1 = ascending, -1 = descending
+    isUnique: boolean;
+    isOrdered: boolean;
+}
+
+function createKeyTracker(): KeyExtractionTracker {
+    return { lastValue: undefined, sortOrder: 0, isUnique: true, isOrdered: true };
+}
+
+function updateKeyTracker(tracker: KeyExtractionTracker, value: unknown): void {
+    // Only track numeric values (including Date.valueOf())
+    const numericValue = typeof value === 'number' ? value : (value as Date)?.valueOf?.();
+    if (typeof numericValue !== 'number' || !Number.isFinite(numericValue)) return;
+
+    if (tracker.lastValue === undefined) {
+        tracker.lastValue = numericValue;
+        return;
+    }
+
+    const diff = numericValue - tracker.lastValue;
+    if (diff === 0) {
+        tracker.isUnique = false;
+    } else if (tracker.isOrdered) {
+        const direction = diff > 0 ? 1 : -1;
+        if (tracker.sortOrder === 0) {
+            tracker.sortOrder = direction;
+        } else if (tracker.sortOrder !== direction) {
+            tracker.isOrdered = false;
+        }
+    }
+    tracker.lastValue = numericValue;
+}
+
+function trackerToSortOrderEntry(tracker: KeyExtractionTracker): SortOrderEntry {
+    return {
+        sortOrder: tracker.isOrdered && tracker.sortOrder !== 0 ? tracker.sortOrder : undefined,
+        isUnique: tracker.isUnique,
+        isDirty: false,
+    };
+}
 
 /**
  * DataExtractor handles data extraction from DataSet sources.
@@ -35,11 +88,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
         const { keys: keyDefs, values: valueDefs } = this.ctx;
 
-        const { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings } = this.extractKeys(
-            keyDefs,
-            sources,
-            getProcessValue
-        );
+        const { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings, keySortOrders } =
+            this.extractKeys(keyDefs, sources, getProcessValue);
 
         const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
@@ -87,7 +137,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             time: 0,
             version: 0,
             [DOMAIN_RANGES]: new Map(),
-            [KEY_SORT_ORDERS]: new Map(),
+            [KEY_SORT_ORDERS]: keySortOrders,
             [COLUMN_SORT_ORDERS]: new Map(),
             [DOMAIN_BANDS]: new Map(),
             [REDUCER_BANDS]: new Map(),
@@ -104,6 +154,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const invalidKeyCount = new Map<ScopeId, number>();
         const invalidDataCount = new Map<ScopeId, number>();
         const allKeys = new Map<(typeof keyDefs)[number], Map<ScopeId, unknown[]>>();
+        const keySortOrders = new Map<number, SortOrderEntry>();
 
         let keyDefKeys: Map<ScopeId, unknown[]>;
         let scopeDataProcessed: Map<unknown[], ScopeId>;
@@ -127,6 +178,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             scopeDataProcessed = new Map<unknown[], ScopeId>();
 
             allKeys.set(keyDef, keyDefKeys);
+
+            // Track ordering/uniqueness for this key definition
+            const tracker = createKeyTracker();
 
             for (const scope of keyScopes ?? []) {
                 const data = sources.get(scope)?.data ?? [];
@@ -158,6 +212,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                     if (result.valid) {
                         keys.push(result.value);
+                        // Track ordering/uniqueness for valid keys
+                        updateKeyTracker(tracker, result.value);
                         continue;
                     }
 
@@ -178,8 +234,11 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     invalidDataCount.set(scope, missingKeys);
                 }
             }
+
+            // Store the computed sort order entry for this key definition
+            keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
         }
-        return { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings: allKeys };
+        return { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings: allKeys, keySortOrders };
     }
 
     private readonly markScopeDatumInvalid = function (
