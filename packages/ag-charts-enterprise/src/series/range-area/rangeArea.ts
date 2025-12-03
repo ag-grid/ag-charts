@@ -178,9 +178,9 @@ const BaseSeries = _ModuleSupport.CartesianSeries<
     RangeAreaLabelDatum,
     RangeAreaContext
 >;
-type BaseSeries = ConstructorReturnType<typeof BaseSeries>;
+type IBaseSeries = ConstructorReturnType<typeof BaseSeries>;
 
-type GetMarkerStyleArg<I extends number> = Parameters<BaseSeries['getMarkerStyle']>[I];
+type GetMarkerStyleArg<I extends number> = Parameters<IBaseSeries['getMarkerStyle']>[I];
 
 export class RangeAreaSeries extends BaseSeries {
     static readonly className = 'RangeAreaSeries';
@@ -1386,9 +1386,9 @@ export class RangeAreaSeries extends BaseSeries {
         opts?: GetMarkerStyleArg<3>,
         defaultOverrideStyle?: GetMarkerStyleArg<4>,
         inheritedStyle?: GetMarkerStyleArg<5>
-    ): ReturnType<BaseSeries['getMarkerStyle']> {
+    ): ReturnType<IBaseSeries['getMarkerStyle']> {
         type P1 = Parameters<RangeAreaSeries['getMarkerStyle']>;
-        type P2 = Parameters<BaseSeries['getMarkerStyle']>;
+        type P2 = Parameters<IBaseSeries['getMarkerStyle']>;
         true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
 
         // Override the item.(low|high).marker.itemStyler callback property:

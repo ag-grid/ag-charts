@@ -43,7 +43,7 @@ export const sonarjsConfig = [
         files: ['**/*.{js,ts}'],
         rules: {
             // Rules moved from sonarjs to @typescript-eslint.
-            '@typescript-eslint/no-redeclare': 1,
+            '@typescript-eslint/no-redeclare': 2,
 
             // Make these warnings only; ideally only shown in IDE and PRs - but unused rule errors happen otherwise if not enabled.
             'sonarjs/cognitive-complexity': 1,

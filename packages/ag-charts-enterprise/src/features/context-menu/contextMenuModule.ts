@@ -1,6 +1,5 @@
 import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { callbackOf } from 'ag-charts-core';
-import { type PluginModuleDefinition, boolean, undocumented } from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, callbackOf, undocumented } from 'ag-charts-core';
 
 import { ContextMenu } from './contextMenu';
 
