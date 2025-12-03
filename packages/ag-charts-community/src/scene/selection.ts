@@ -171,6 +171,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     clear() {
         this.update([]);
+        for (const node of this._nodesMap.keys()) {
+            this.garbageBin.add(node);
+        }
+        this._nodesMap.clear();
         return this;
     }
 
