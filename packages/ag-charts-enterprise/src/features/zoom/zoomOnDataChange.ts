@@ -133,25 +133,14 @@ export class ZoomOnDataChange {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
         if (!ctx) return;
 
-        // FIXME: ZoomManager.getRange() appears to be buggy on some time scales
-        if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale) || _ModuleSupport.UnitTimeScale.is(ctx.scale)) {
-            const min = ctx.scale.bands[0];
-            const max = ctx.scale.bands.at(-1);
-            if (max !== undefined) {
-                return { scaleMin: min.getTime(), scaleMax: max.getTime() };
-            }
-        }
-
-        const range = this.ctx.zoomManager.getRange(axisId, { min: 0, max: 1 });
-        if (range) {
-            const { start, end } = range;
-            if (typeof start === 'number' && typeof end === 'number') {
-                return { scaleMin: start, scaleMax: end };
-            } else if (end instanceof Date && start instanceof Date) {
-                return { scaleMin: start.getTime(), scaleMax: end.getTime() };
-            } else {
-                Logger.error(`Unexpected range types: start (${typeof start}), end (${typeof end})`);
-            }
+        const min: unknown = ctx.scale.domain.at(0);
+        const max: unknown = ctx.scale.domain.at(-1);
+        if (typeof min === 'number' && typeof max === 'number') {
+            return { scaleMin: min, scaleMax: max };
+        } else if (min instanceof Date && max instanceof Date) {
+            return { scaleMin: min.getTime(), scaleMax: max.getTime() };
+        } else {
+            Logger.error(`Unexpected range types: start (${typeof min}), end (${typeof max})`);
         }
     }
 
