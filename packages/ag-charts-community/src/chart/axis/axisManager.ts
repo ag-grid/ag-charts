@@ -1,11 +1,10 @@
-import type { AxisID } from 'ag-charts-core';
+import type { AxisID, ChartAxisDirection } from 'ag-charts-core';
+import { ZIndexMap } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Node } from '../../scene/node';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-import { ZIndexMap } from '../zIndexMap';
 
 interface AxisNodes {
     axisNode: Node;

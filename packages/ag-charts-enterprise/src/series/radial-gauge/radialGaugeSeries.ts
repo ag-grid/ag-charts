@@ -12,7 +12,6 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
-    ChartAxisDirection,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -1279,7 +1278,7 @@ export class RadialGaugeSeries
         return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

@@ -1,9 +1,8 @@
-import type { DomainInput, NormalizedDomain } from 'ag-charts-core';
+import type { DomainInput, NormalizedDomain, Position } from 'ag-charts-core';
 import { extractDomain } from 'ag-charts-core';
 
 import { AbstractScale } from '../../../scale/abstractScale';
 import { BBox } from '../../../scene/bbox';
-import type { Position } from './geojson';
 
 type XY = [x: number, y: number];
 

@@ -1,5 +1,12 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject, DomainInput, InternalAgColorType, Point } from 'ag-charts-core';
+import type {
+    ChartAnimationPhase,
+    ChartAxisDirection,
+    DistantObject,
+    DomainInput,
+    InternalAgColorType,
+    Point,
+} from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -591,7 +598,7 @@ export abstract class FlowProportionSeries<
         isHighlight: boolean;
     }): void;
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
+    override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {
         // Does not reset any animations
     }
 
@@ -599,14 +606,11 @@ export abstract class FlowProportionSeries<
         return Number.NaN; // Not used
     }
 
-    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(_direction: ChartAxisDirection): DomainInput<any> {
         return { domain: [] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

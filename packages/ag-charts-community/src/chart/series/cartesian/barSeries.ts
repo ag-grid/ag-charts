@@ -1,5 +1,17 @@
 import type { CallbackParamRules, DomainInput, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
-import { extractDomain, isFiniteNumber, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    ChartAxisDirection,
+    areScalingEqual,
+    extractDomain,
+    isFiniteNumber,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
@@ -24,7 +36,6 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
@@ -51,14 +62,6 @@ import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
-    AGGREGATION_INDEX_UNSET,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    AGGREGATION_SPAN,
-} from './../aggregation';
-import {
     AbstractBarSeries,
     type AbstractBarSeriesAnimationData,
     type AbstractBarSeriesNodeDataContext,
@@ -84,7 +87,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
-import { areScalingEqual } from './scaling';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {

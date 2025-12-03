@@ -6,8 +6,16 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DomainInput, Point, RequireOptional } from 'ag-charts-core';
-import { extractDomain, isContinuous, mergeDefaults } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DomainInput,
+    type Point,
+    type RequireOptional,
+    easeOut,
+    extractDomain,
+    isContinuous,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -20,7 +28,6 @@ const {
     keyProperty,
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
-    ChartAxisDirection,
     createDatumId,
     checkCrisp,
     updateLabelNode,
@@ -203,7 +210,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
@@ -229,10 +236,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 
@@ -860,7 +864,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startX,
             to: endX,
-            ease: _ModuleSupport.Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointX) {
                 linePath.clear(true);
@@ -912,7 +916,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startY,
             to: endY,
-            ease: _ModuleSupport.Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointY) {
                 linePath.clear(true);

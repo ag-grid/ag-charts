@@ -5,7 +5,15 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type DomainInput, type Point, angleBetween, extractDomain, isDefined, isGradientFill } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DomainInput,
+    type Point,
+    angleBetween,
+    extractDomain,
+    isDefined,
+    isGradientFill,
+} from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -17,7 +25,6 @@ import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } 
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     diff,
     groupAccumulativeValueProperty,
@@ -114,7 +121,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return new Sector();
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, ChartAxisDirection } from 'ag-charts-core';
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
 import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
@@ -289,7 +289,7 @@ export abstract class HierarchySeries<
         return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

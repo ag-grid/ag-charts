@@ -6,6 +6,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    ChartAxisDirection,
     type DomainInput,
     type Point,
     extractDomain,
@@ -21,7 +22,6 @@ import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseP
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     diff,
     fixNumericExtent,
@@ -128,7 +128,7 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

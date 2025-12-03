@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
-import { extractDomain, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, extractDomain, mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -16,15 +16,8 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
-const {
-    ChartAxisDirection,
-    resetBarSelectionsFn,
-    prepareBarAnimationFunctions,
-    midpointStartingBarPosition,
-    createDatumId,
-    Rect,
-    motion,
-} = _ModuleSupport;
+const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } =
+    _ModuleSupport;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
     static readonly className = 'FunnelSeries';

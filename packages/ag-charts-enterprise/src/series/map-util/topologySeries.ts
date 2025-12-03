@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection } from 'ag-charts-core';
 
 interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     legendItemName?: string;
@@ -39,7 +38,7 @@ export abstract class TopologySeries<
         return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

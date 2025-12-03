@@ -10,7 +10,6 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
-    ChartAxisDirection,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -1213,7 +1212,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return Number.NaN; // Not used
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 
