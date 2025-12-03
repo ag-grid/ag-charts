@@ -15,8 +15,7 @@ export class DiscreteDomain implements IDataDomain {
     private hasDateValues = false;
 
     // Sorted array storage (optimized mode for sorted unique data)
-    private sortedTimestamps: number[] | null = null;
-    private sortedArray: unknown[] | null = null;
+    private sortedValues: unknown[] | null = null;
     private sortOrder: SortOrder | undefined = undefined;
     private isSortedUnique: boolean = false;
 
@@ -26,73 +25,51 @@ export class DiscreteDomain implements IDataDomain {
 
     /**
      * Configure domain for sorted unique mode.
-     * When enabled, uses arrays instead of Sets for O(1) append and O(n) merge.
+     * When enabled, uses a single array for O(1) append.
      * Call this before extending with data.
      */
     setSortedUniqueMode(sortOrder: 1 | -1, isUnique: boolean): void {
         if (isUnique) {
             this.isSortedUnique = true;
             this.sortOrder = sortOrder;
-            this.sortedTimestamps = [];
-            this.sortedArray = [];
+            this.sortedValues = [];
         }
     }
 
     extend(val: any) {
-        if (val instanceof Date) {
+        if (this.isSortedUnique && this.sortedValues) {
+            // Sorted unique mode: store values directly without conversion
+            // Null deduplication is handled in getDomain()
+            this.sortedValues.push(val);
+            if (val instanceof Date) {
+                this.hasDateValues = true;
+            }
+        } else if (val instanceof Date) {
+            // Set mode: convert Date to timestamp for proper deduplication
             this.hasDateValues = true;
-            const ts = val.valueOf();
-
-            if (this.isSortedUnique && this.sortedTimestamps) {
-                // If we already have non-date values, we have mixed types - fall back to Set mode
-                if (this.sortedArray && this.sortedArray.length > 0) {
-                    this.convertToSetMode();
-                    this.dateTimestamps.add(ts);
-                } else {
-                    // Optimized path: O(1) array push
-                    this.sortedTimestamps.push(ts);
-                }
-            } else {
-                this.dateTimestamps.add(ts);
-            }
-        } else if (this.isSortedUnique && this.sortedArray) {
-            // If we already have date values, we have mixed types - fall back to Set mode
-            if (this.hasDateValues) {
-                this.convertToSetMode();
-                this.domain.add(val);
-            } else {
-                // Optimized path: O(1) array push
-                this.sortedArray.push(val);
-            }
+            this.dateTimestamps.add(val.valueOf());
         } else {
             this.domain.add(val);
         }
     }
 
     getDomain() {
-        if (this.isSortedUnique) {
-            // Optimized path: return arrays directly (no conversion needed)
-            if (this.hasDateValues && this.sortedTimestamps) {
-                // Deduplicate NaN values (from invalid dates) since arrays don't auto-dedupe like Sets.
-                // Sets use SameValueZero comparison which treats NaN === NaN, but arrays don't.
-                let hasSeenNaN = false;
-                return this.sortedTimestamps
-                    .filter((ts) => {
-                        if (Number.isNaN(ts)) {
-                            if (hasSeenNaN) return false;
-                            hasSeenNaN = true;
-                        }
-                        return true;
-                    })
-                    .map((ts) => new Date(ts));
-            }
-            return this.sortedArray ?? [];
+        if (this.isSortedUnique && this.sortedValues) {
+            // Sorted mode: return array directly - values stored as-is
+            // Deduplicate nulls (they represent invalid data and may appear from multiple bands)
+            let hasSeenNull = false;
+            return this.sortedValues.filter((v) => {
+                if (v == null) {
+                    if (hasSeenNull) return false;
+                    hasSeenNull = true;
+                }
+                return true;
+            });
         }
 
-        // Default Set-based path
+        // Set-based path: convert timestamps back to Date objects
         if (this.hasDateValues) {
             const dates = Array.from(this.dateTimestamps, (ts) => new Date(ts));
-            // If we also have non-date values (mixed types), combine them
             if (this.domain.size > 0) {
                 return [...dates, ...Array.from(this.domain)];
             }
@@ -123,45 +100,39 @@ export class DiscreteDomain implements IDataDomain {
             this.isSortedUnique &&
             other.isSortedUnique &&
             this.sortOrder === other.sortOrder &&
-            this.sortOrder !== undefined
+            this.sortOrder !== undefined &&
+            other.sortedValues
         ) {
-            if (other.hasDateValues && other.sortedTimestamps) {
+            if (other.hasDateValues) {
                 this.hasDateValues = true;
-                this.sortedTimestamps ??= [];
-                // O(n) array concatenation instead of O(n log n) Set merge
-                this.sortedTimestamps.push(...other.sortedTimestamps);
             }
-            if (other.sortedArray && other.sortedArray.length > 0) {
-                this.sortedArray ??= [];
-                this.sortedArray.push(...other.sortedArray);
-            }
+            this.sortedValues ??= [];
+            // O(n) array concatenation - null deduplication is handled in getDomain()
+            this.sortedValues.push(...other.sortedValues);
             return;
         }
 
         // Slow path: fall back to Set-based merge
-        // Convert both domains to Set mode if needed
         this.convertToSetMode();
 
         if (other.hasDateValues) {
             this.hasDateValues = true;
-            if (other.isSortedUnique && other.sortedTimestamps) {
-                // Other is in sorted mode - iterate its array
-                for (const ts of other.sortedTimestamps) {
-                    this.dateTimestamps.add(ts);
-                }
-            } else {
-                // Other is in Set mode
-                for (const ts of other.dateTimestamps) {
-                    this.dateTimestamps.add(ts);
-                }
-            }
         }
 
-        if (other.isSortedUnique && other.sortedArray && other.sortedArray.length > 0) {
-            for (const val of other.sortedArray) {
-                this.domain.add(val);
+        if (other.isSortedUnique && other.sortedValues) {
+            // Other is in sorted mode - add values to appropriate Sets
+            for (const val of other.sortedValues) {
+                if (val instanceof Date) {
+                    this.dateTimestamps.add(val.valueOf());
+                } else {
+                    this.domain.add(val);
+                }
             }
-        } else if (other.domain.size > 0) {
+        } else {
+            // Other is in Set mode
+            for (const ts of other.dateTimestamps) {
+                this.dateTimestamps.add(ts);
+            }
             for (const val of other.domain) {
                 this.domain.add(val);
             }
@@ -172,18 +143,16 @@ export class DiscreteDomain implements IDataDomain {
     private convertToSetMode(): void {
         if (!this.isSortedUnique) return;
 
-        // Move sorted data to Sets
-        if (this.sortedTimestamps) {
-            for (const ts of this.sortedTimestamps) {
-                this.dateTimestamps.add(ts);
+        // Move sorted values to appropriate Sets
+        if (this.sortedValues) {
+            for (const val of this.sortedValues) {
+                if (val instanceof Date) {
+                    this.dateTimestamps.add(val.valueOf());
+                } else {
+                    this.domain.add(val);
+                }
             }
-            this.sortedTimestamps = null;
-        }
-        if (this.sortedArray) {
-            for (const val of this.sortedArray) {
-                this.domain.add(val);
-            }
-            this.sortedArray = null;
+            this.sortedValues = null;
         }
 
         this.isSortedUnique = false;
@@ -435,6 +404,21 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
     }
 
     /**
+     * Deduplicate nulls in a domain result array.
+     * Nulls represent invalid data and may appear from multiple bands.
+     */
+    private deduplicateNulls(result: T[]): T[] {
+        let hasSeenNull = false;
+        return result.filter((v) => {
+            if (v == null) {
+                if (hasSeenNull) return false;
+                hasSeenNull = true;
+            }
+            return true;
+        });
+    }
+
+    /**
      * Combines all band sub-domains to get the overall domain.
      */
     getDomain(): T[] {
@@ -447,9 +431,10 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
             return [];
         }
 
-        // For a single band, return its domain directly
+        // For a single band, return its domain directly (with null deduplication for sorted mode)
         if (this.bands.length === 1) {
-            this.fullDomainCache = this.bands[0].subDomain.getDomain();
+            const result = this.bands[0].subDomain.getDomain();
+            this.fullDomainCache = this.isDiscrete ? this.deduplicateNulls(result) : result;
             return this.fullDomainCache;
         }
 
@@ -459,7 +444,7 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
             if (DiscreteDomain.is(firstBand)) {
                 // Fast path: when all sub-domains are sorted unique, use array concatenation
                 if (this.canUseSortedConcatenation()) {
-                    this.fullDomainCache = this.concatenateSortedDomains();
+                    this.fullDomainCache = this.deduplicateNulls(this.concatenateSortedDomains());
                 } else {
                     // Slow path: merge via DiscreteDomain.mergeFrom()
                     const combined = new DiscreteDomain();
@@ -468,7 +453,7 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
                             combined.mergeFrom(band.subDomain);
                         }
                     }
-                    this.fullDomainCache = combined.getDomain() as T[];
+                    this.fullDomainCache = this.deduplicateNulls(combined.getDomain() as T[]);
                 }
             } else {
                 // Fallback for non-DiscreteDomain sub-domains

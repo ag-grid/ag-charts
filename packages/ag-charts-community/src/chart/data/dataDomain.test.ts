@@ -133,42 +133,50 @@ describe('DiscreteDomain', () => {
     });
 
     describe('mixed type handling in sorted mode', () => {
-        it('should fall back to Set mode when dates are mixed with strings', () => {
+        it('should handle dates mixed with strings in sorted mode', () => {
             const domain = new DiscreteDomain();
             domain.setSortedUniqueMode(1, true);
 
             // Simulate waterfall data: dates followed by string total label
-            domain.extend(new Date('2023-10-17'));
-            domain.extend(new Date('2023-10-18'));
-            domain.extend(new Date('2023-10-19'));
+            const date1 = new Date('2023-10-17');
+            const date2 = new Date('2023-10-18');
+            const date3 = new Date('2023-10-19');
+            domain.extend(date1);
+            domain.extend(date2);
+            domain.extend(date3);
             domain.extend('Monthly Net'); // Total label - string type
 
-            // Should have fallen back to Set mode
-            expect(domain.isSortedUniqueMode()).toBe(false);
+            // Should remain in sorted mode - single array stores all values
+            expect(domain.isSortedUniqueMode()).toBe(true);
 
             const result = domain.getDomain();
             expect(result).toHaveLength(4);
-            // First 3 should be dates
-            expect(result[0]).toBeInstanceOf(Date);
-            expect(result[1]).toBeInstanceOf(Date);
-            expect(result[2]).toBeInstanceOf(Date);
-            // Last should be string
+            // Values stored directly - same object references
+            expect(result[0]).toBe(date1);
+            expect(result[1]).toBe(date2);
+            expect(result[2]).toBe(date3);
             expect(result[3]).toBe('Monthly Net');
         });
 
-        it('should fall back to Set mode when strings are mixed with dates', () => {
+        it('should handle strings mixed with dates in sorted mode', () => {
             const domain = new DiscreteDomain();
             domain.setSortedUniqueMode(1, true);
 
+            const date = new Date('2023-10-17');
             domain.extend('Category A');
             domain.extend('Category B');
-            domain.extend(new Date('2023-10-17')); // Mixed type
+            domain.extend(date);
 
-            expect(domain.isSortedUniqueMode()).toBe(false);
-            expect(domain.getDomain()).toHaveLength(3);
+            // Stays in sorted mode
+            expect(domain.isSortedUniqueMode()).toBe(true);
+            const result = domain.getDomain();
+            expect(result).toHaveLength(3);
+            expect(result[0]).toBe('Category A');
+            expect(result[1]).toBe('Category B');
+            expect(result[2]).toBe(date);
         });
 
-        it('should preserve data order when falling back to Set mode', () => {
+        it('should preserve insertion order in sorted mode', () => {
             const domain = new DiscreteDomain();
             domain.setSortedUniqueMode(1, true);
 
@@ -180,9 +188,9 @@ describe('DiscreteDomain', () => {
 
             const result = domain.getDomain();
             expect(result).toHaveLength(3);
-            // Dates should be preserved as Date objects
-            expect((result[0] as Date).getTime()).toBe(date1.getTime());
-            expect((result[1] as Date).getTime()).toBe(date2.getTime());
+            // Values stored directly - same object references
+            expect(result[0]).toBe(date1);
+            expect(result[1]).toBe(date2);
             expect(result[2]).toBe('Total');
         });
     });
