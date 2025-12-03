@@ -34,14 +34,6 @@ const options: AgChartOptions = {
         },
         { type: 'bar', xKey: 'station', yKey: 'evening', yName: 'Evening', stacked: true, normalizedTo: 100 },
     ],
-    axes: {
-        y: {
-            type: 'number',
-            label: {
-                format: '#{.0f}%',
-            },
-        },
-    },
 };
 
 AgCharts.create(options);
