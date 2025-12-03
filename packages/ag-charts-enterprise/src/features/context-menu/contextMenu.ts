@@ -13,12 +13,11 @@ import {
     callWithContext,
     clamp,
     createElement,
-    deepClone,
     getIconClassNames,
     toPlainText,
 } from 'ag-charts-core';
 
-import { ContextMenuItem, expandItems } from './contextMenuItem';
+import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
@@ -134,7 +133,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
         const { showOn } = event;
         const { context } = this.ctx.chartService; // TODO: callWithContext
-        const defaultItems: AgContextMenuItem[] = deepClone([...this.items]);
+        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(this.items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':

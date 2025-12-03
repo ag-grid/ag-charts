@@ -8,6 +8,7 @@ import type {
 import { isKeyOf } from 'ag-charts-core';
 
 type Options = Partial<_ModuleSupport.ContextMenuItemContractNonRecursive>;
+type AgContextMenuItem_NoLists = Exclude<AgContextMenuItem, keyof _ModuleSupport.ContextMenuBuiltins['lists']>;
 
 function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemShowOn): boolean {
     if (showOn === 'always') return true;
@@ -59,6 +60,24 @@ function expandBuiltin(
     } else {
         appendBuiltinItem(showing, registry, keyword, result);
     }
+}
+
+export function expandBuiltinLists(
+    items: readonly Readonly<AgContextMenuItem>[],
+    registry: _ModuleSupport.ContextMenuRegistry
+): AgContextMenuItem_NoLists[] {
+    const result: AgContextMenuItem_NoLists[] = [];
+    const { builtins } = registry;
+    for (const it of items) {
+        if (typeof it === 'string' && isKeyOf(it, builtins.lists)) {
+            for (const listItem of builtins.lists[it]) {
+                result.push(listItem);
+            }
+        } else {
+            result.push(it);
+        }
+    }
+    return result;
 }
 
 export function expandItems(
