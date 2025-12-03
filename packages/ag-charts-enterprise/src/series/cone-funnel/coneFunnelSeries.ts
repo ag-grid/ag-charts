@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import { extractDomain } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -127,7 +128,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
             }
         }
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
         const text = this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(
             yDatum,
             datum,

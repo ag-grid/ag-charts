@@ -4,6 +4,7 @@ import {
     Logger,
     type Point,
     cachedTextMeasurer,
+    extractDomain,
     isArray,
     measureTextSegments,
     mergeDefaults,
@@ -802,7 +803,7 @@ export class MapShapeSeries
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (colorValue != null) {
-            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const domain = extractDomain(dataModel.getDomain(this, `colorValue`, 'value', processedData));
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,

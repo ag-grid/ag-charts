@@ -1,4 +1,4 @@
-import { type ScaleType, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
+import { type ScaleType, extractDomain, nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
 
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
@@ -422,7 +422,7 @@ export function aggregateAreaDataFromDataModel(
 ): AreaSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = dataModel.getDomain(series, 'xValue', 'key', processedData);
+    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'key', processedData));
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
@@ -464,7 +464,7 @@ export function aggregateAreaDataFromDataModelPartial(
 ): PartialAreaAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = dataModel.getDomain(series, 'xValue', 'key', processedData);
+    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'key', processedData));
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);

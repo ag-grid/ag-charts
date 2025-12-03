@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject, InternalAgColorType, Point } from 'ag-charts-core';
+import type { DistantObject, DomainInput, InternalAgColorType, Point } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -599,8 +599,8 @@ export abstract class FlowProportionSeries<
         return Number.NaN; // Not used
     }
 
-    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
-        return [];
+    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): DomainInput<any> {
+        return { domain: [] };
     }
 
     override getSeriesRange(

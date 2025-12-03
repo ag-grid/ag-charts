@@ -1,5 +1,5 @@
-import type { CallbackParamRules, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
-import { extent, isContinuous, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainInput, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
+import { extent, extractDomain, isContinuous, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
@@ -368,9 +368,9 @@ export class AreaSeries extends CartesianSeries<
         return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
         const { dataModel, processedData, axes } = this;
-        if (!dataModel || !processedData) return [];
+        if (!dataModel || !processedData) return { domain: [] };
 
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -378,10 +378,10 @@ export class AreaSeries extends CartesianSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
+                return keys; // DomainInput with sortMetadata already attached
             }
 
-            return fixNumericExtent(extent(keys));
+            return { domain: fixNumericExtent(extent(extractDomain(keys))) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -394,9 +394,9 @@ export class AreaSeries extends CartesianSeries<
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         } else {
-            return fixNumericExtent(yExtent);
+            return { domain: fixNumericExtent(yExtent) };
         }
     }
 
@@ -883,7 +883,7 @@ export class AreaSeries extends CartesianSeries<
             markerFill: marker.fill ?? seriesFill,
             markerStroke: marker.stroke ?? seriesStroke,
             markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
 
             // Mutable state
             markerData: canIncrementallyUpdate ? existingNodeData : [],
@@ -1345,8 +1345,10 @@ export class AreaSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
+        const yDomain = extractDomain(
+            dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData)
+        );
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {

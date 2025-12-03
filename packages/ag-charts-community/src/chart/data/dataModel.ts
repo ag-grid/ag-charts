@@ -1,4 +1,4 @@
-import { Debug, Logger, first } from 'ag-charts-core';
+import { Debug, type DomainInput, Logger, first } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
@@ -320,8 +320,17 @@ export class DataModel<
         searchId: string,
         type: PropertyDefinition<any>['type'],
         processedData: ProcessedData<K>
-    ): any[] | [number, number] | [] {
-        return this.resolvers.getDomain(scope, searchId, type, processedData);
+    ): DomainInput<any> {
+        const domain = this.resolvers.getDomain(scope, searchId, type, processedData);
+
+        // Attach sort metadata for key domains when available
+        if (type === 'key' && domain.length > 0) {
+            const sortMetadata = this.getKeySortMetadata(scope, searchId, processedData);
+            if (sortMetadata) {
+                return { domain, sortMetadata };
+            }
+        }
+        return domain;
     }
 
     getDomainBetweenRange(
@@ -339,6 +348,22 @@ export class DataModel<
 
     getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
         return this.resolvers.getColumnSortOrder(scope, searchId, processedData);
+    }
+
+    /**
+     * Get sort metadata for a key column if available.
+     * Returns undefined if metadata is not available, is dirty, or data is unsorted.
+     */
+    getKeySortMetadata(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: ProcessedData<K>
+    ): { sortOrder: 1 | -1 | undefined; isUnique?: boolean } | undefined {
+        const entry = this.resolvers.getKeySortEntry(scope, searchId, processedData);
+        if (entry?.sortOrder != null) {
+            return { sortOrder: entry.sortOrder, isUnique: entry.isUnique };
+        }
+        return undefined;
     }
 
     processData(
