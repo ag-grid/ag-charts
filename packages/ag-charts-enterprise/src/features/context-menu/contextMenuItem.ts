@@ -80,9 +80,12 @@ export function expandBuiltinLists(
     }
 
     return unfiltered.filter((it) => {
-        const showOn: AgContextMenuItemShowOn | undefined =
-            typeof it === 'string' ? registry.builtins.items[it].showOn : it.showOn;
-        return showsFor(showOn ?? 'always', showing);
+        if (typeof it === 'string') {
+            const showOn = registry.builtins.items[it].showOn ?? 'always';
+            return registry.isVisible(it) && showsFor(showOn, showing);
+        } else {
+            return showsFor(it.showOn ?? 'always', showing);
+        }
     });
 }
 
