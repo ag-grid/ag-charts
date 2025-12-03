@@ -16,7 +16,13 @@ import {
     lowestGranularityUnitForValue,
 } from 'ag-charts-core';
 
-const { OrdinalTimeScale, TimeAxisParentLevel, minimumTimeAxisDatumGranularity } = _ModuleSupport;
+const {
+    OrdinalTimeScale,
+    ApproximateOrdinalTimeScale,
+    APPROXIMATE_THRESHOLD,
+    TimeAxisParentLevel,
+    minimumTimeAxisDatumGranularity,
+} = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
@@ -24,6 +30,9 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
+
+    private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
+    private readonly approximateScale: _ModuleSupport.ApproximateOrdinalTimeScale;
 
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -34,7 +43,34 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
     }
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, new OrdinalTimeScale());
+        const accurateScale = new OrdinalTimeScale();
+        super(moduleCtx, accurateScale);
+        this.accurateScale = accurateScale;
+        this.approximateScale = new ApproximateOrdinalTimeScale();
+
+        // Set up delegation so approximate scale reads/writes go to accurate scale
+        this.approximateScale.setSourceScale(accurateScale);
+
+        // Override the readonly 'scale' property with a getter that returns the active scale.
+        // This enables automatic scale switching based on visible range and data uniformity.
+        Object.defineProperty(this, 'scale', {
+            get: () => this.getActiveScale(),
+            configurable: true,
+        });
+    }
+
+    /**
+     * Returns the active scale based on visible range and data uniformity.
+     * Use approximate scale when data is uniform and visible datum count is large.
+     */
+    getActiveScale(): _ModuleSupport.OrdinalTimeScale {
+        const visibleBandCount = this.accurateScale.bandCount(this.visibleRange);
+        const isUniform = this.accurateScale.getUniformityCache(this.visibleRange)?.isUniform ?? false;
+
+        if (isUniform && visibleBandCount >= APPROXIMATE_THRESHOLD) {
+            return this.approximateScale;
+        }
+        return this.accurateScale;
     }
 
     override processData(): void {

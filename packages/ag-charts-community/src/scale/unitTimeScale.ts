@@ -14,8 +14,10 @@ import {
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { normalizeContinuousDomains } from './continuousScale';
-import { DiscreteTimeScale } from './discreteTimeScale';
+import { DiscreteTimeScale, type UniformityCheck, checkUniformityBySampling } from './discreteTimeScale';
 import { visibleTickSliceIndices } from './scaleUtil';
+
+const APPROXIMATE_THRESHOLD = 1000;
 
 const MAX_BANDS = 50e6; // Max array length is ~4bn
 
@@ -33,12 +35,15 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     private _domain: Date[] = [];
+    private _uniformityCache: UniformityCheck | undefined;
+
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
         this._domain = domain;
         this._bands = undefined;
         this._numericBands = undefined;
+        this._uniformityCache = undefined;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -55,6 +60,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._interval = interval;
         this._bands = undefined;
         this._numericBands = undefined;
+        this._uniformityCache = undefined;
     }
 
     private _bands: Date[] | undefined = undefined;
@@ -67,6 +73,24 @@ export class UnitTimeScale extends DiscreteTimeScale {
     protected override get numericBands(): number[] {
         this._numericBands ??= this.bands.map((d) => d.valueOf());
         return this._numericBands;
+    }
+
+    override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
+        const { bands } = this;
+        const n = bands.length;
+
+        // For full range or no visible range, use cached whole-domain check
+        if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
+            if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
+                this._uniformityCache = checkUniformityBySampling(bands);
+            }
+            return this._uniformityCache;
+        }
+
+        // For partial visible range, sample within that range (no caching)
+        const startIdx = Math.floor(visibleRange[0] * n);
+        const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
+        return checkUniformityBySampling(bands, startIdx, endIdx);
     }
 
     override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {

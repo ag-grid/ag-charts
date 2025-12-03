@@ -3,6 +3,53 @@ import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
 
+/** Result of uniformity check via sampling */
+export interface UniformityCheck {
+    isUniform: boolean;
+    interval?: number; // Per-index interval in ms, only set if uniform
+}
+
+export const APPROXIMATE_THRESHOLD = 1000;
+const SAMPLE_POINTS = 20;
+
+/**
+ * Detect uniformity by sampling points from a range within the domain.
+ * Returns interval if data is uniformly spaced (within 1% tolerance).
+ */
+export function checkUniformityBySampling(
+    bands: readonly Date[],
+    startIdx: number = 0,
+    endIdx: number = bands.length - 1
+): UniformityCheck {
+    const n = endIdx - startIdx + 1;
+    if (n < 2) return { isUniform: false };
+
+    // Sample SAMPLE_POINTS points evenly spaced within the range
+    const indices = Array.from(
+        { length: SAMPLE_POINTS },
+        (_, i) => startIdx + Math.floor((i * (n - 1)) / (SAMPLE_POINTS - 1))
+    );
+    const samples = indices.map((i) => bands[i].valueOf());
+
+    // Calculate expected per-index interval
+    const expectedInterval = (samples.at(-1)! - samples[0]) / (n - 1);
+    if (!Number.isFinite(expectedInterval) || expectedInterval === 0) {
+        return { isUniform: false };
+    }
+
+    // Check if all sampled intervals match within 1% tolerance
+    const tolerance = Math.abs(expectedInterval * 0.01);
+    for (let i = 1; i < samples.length; i++) {
+        const indexGap = indices[i] - indices[i - 1];
+        const actualInterval = (samples[i] - samples[i - 1]) / indexGap;
+        if (Math.abs(actualInterval - expectedInterval) > tolerance) {
+            return { isUniform: false };
+        }
+    }
+
+    return { isUniform: true, interval: expectedInterval };
+}
+
 export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
         return value instanceof DiscreteTimeScale;
@@ -99,12 +146,24 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return bands[reversed ? bands.length - 1 - index : index];
     }
 
+    /** Override in subclass to provide cached uniformity check result */
+    getUniformityCache(_visibleRange?: [number, number]): UniformityCheck | undefined {
+        return undefined;
+    }
+
     override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
+        if (value == null) return undefined;
+
         const numericBands = this.numericBands;
+        const n = numericBands.length;
+
+        if (n === 0) return undefined;
+        if (n === 1) return 0;
+
         const target = value.valueOf();
         if (alignment === ScaleAlignment.Trailing) {
-            return findMinIndex(0, numericBands.length - 1, (index) => numericBands[index] >= target);
+            return findMinIndex(0, n - 1, (index) => numericBands[index] >= target);
         }
-        return findMaxIndex(0, numericBands.length - 1, (index) => numericBands[index] <= target);
+        return findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
     }
 }
