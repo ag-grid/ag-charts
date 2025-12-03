@@ -546,7 +546,7 @@ The `formatter` should be a function that receives the axis label data and retur
 const options = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -569,7 +569,7 @@ const options = {
 const [chartOptions, setChartOptions] = useState({
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -592,7 +592,7 @@ const [chartOptions, setChartOptions] = useState({
 this.chartOptions = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -615,7 +615,7 @@ this.chartOptions = {
 this.chartOptions = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -642,7 +642,7 @@ _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes/) API docs fo
 
 1. Format the left axis using `toLocaleString()`
 
-    _Hint: Add a formatter to the `axes.label` property_
+    _Hint: Add a formatter to the `axes.{key}.label` property_
 
 2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'.
 
