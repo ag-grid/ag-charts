@@ -147,8 +147,6 @@ export class SeriesAreaManager extends BaseManager {
         pendingHoverEvent: undefined as HoverLikeEvent | undefined,
         /** Last applied event. */
         appliedHoverEvent: undefined as HoverLikeEvent | undefined,
-        /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
-        stashedHoverEvent: undefined as HoverLikeEvent | undefined,
     };
 
     private readonly tooltip = {
@@ -259,7 +257,7 @@ export class SeriesAreaManager extends BaseManager {
         this.cachedTooltipContent = undefined;
 
         if (this.highlight.appliedHoverEvent) {
-            this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
+            this.tooltip.lastHover ??= this.highlight.appliedHoverEvent;
             this.clearHighlight();
         }
 
@@ -268,15 +266,19 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private preSceneRender() {
-        if (this.highlight.stashedHoverEvent != null) {
-            this.highlight.pendingHoverEvent = this.highlight.stashedHoverEvent;
-            this.highlight.stashedHoverEvent = undefined;
-            this.handleHoverHighlight(true);
+        // If set this is the freshest hover event we need to handle.
+        const { lastHover } = this.tooltip;
+
+        if (lastHover != null) {
+            // Apply any pending hover event. This takes higher priority than the stashed hover event.
+            this.handleHoverTooltip(lastHover, false);
+
+            this.highlight.pendingHoverEvent = lastHover;
+            this.handleHoverHighlight(false);
         }
 
-        if (this.tooltip.lastHover != null) {
-            this.handleHoverTooltip(this.tooltip.lastHover, true);
-        }
+        // Reset the last hover event to avoid processing it again.
+        this.tooltip.lastHover = undefined;
     }
 
     private updateComplete() {
@@ -822,7 +824,6 @@ export class SeriesAreaManager extends BaseManager {
             this.tooltip.lastHover = undefined;
             this.highlight.appliedHoverEvent = undefined;
             this.highlight.pendingHoverEvent = undefined;
-            this.highlight.stashedHoverEvent = undefined;
 
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
