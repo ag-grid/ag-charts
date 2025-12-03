@@ -44,14 +44,26 @@ export class DiscreteDomain implements IDataDomain {
             const ts = val.valueOf();
 
             if (this.isSortedUnique && this.sortedTimestamps) {
-                // Optimized path: O(1) array push
-                this.sortedTimestamps.push(ts);
+                // If we already have non-date values, we have mixed types - fall back to Set mode
+                if (this.sortedArray && this.sortedArray.length > 0) {
+                    this.convertToSetMode();
+                    this.dateTimestamps.add(ts);
+                } else {
+                    // Optimized path: O(1) array push
+                    this.sortedTimestamps.push(ts);
+                }
             } else {
                 this.dateTimestamps.add(ts);
             }
         } else if (this.isSortedUnique && this.sortedArray) {
-            // Optimized path: O(1) array push
-            this.sortedArray.push(val);
+            // If we already have date values, we have mixed types - fall back to Set mode
+            if (this.hasDateValues) {
+                this.convertToSetMode();
+                this.domain.add(val);
+            } else {
+                // Optimized path: O(1) array push
+                this.sortedArray.push(val);
+            }
         } else {
             this.domain.add(val);
         }
@@ -79,7 +91,12 @@ export class DiscreteDomain implements IDataDomain {
 
         // Default Set-based path
         if (this.hasDateValues) {
-            return Array.from(this.dateTimestamps, (ts) => new Date(ts));
+            const dates = Array.from(this.dateTimestamps, (ts) => new Date(ts));
+            // If we also have non-date values (mixed types), combine them
+            if (this.domain.size > 0) {
+                return [...dates, ...Array.from(this.domain)];
+            }
+            return dates;
         }
         return Array.from(this.domain);
     }
