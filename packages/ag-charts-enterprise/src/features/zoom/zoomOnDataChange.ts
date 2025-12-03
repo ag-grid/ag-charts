@@ -133,8 +133,8 @@ export class ZoomOnDataChange {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
         if (!ctx) return;
 
-        // FIXME: ZoomManager.getRange() appears to be buggy on ordinal-time scales
-        if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale)) {
+        // FIXME: ZoomManager.getRange() appears to be buggy on some time scales
+        if (_ModuleSupport.OrdinalTimeScale.is(ctx.scale) || _ModuleSupport.UnitTimeScale.is(ctx.scale)) {
             const min = ctx.scale.bands[0];
             const max = ctx.scale.bands.at(-1);
             if (max !== undefined) {
