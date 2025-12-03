@@ -9,7 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
-import type { UpdateZoomSourcing } from '../module-support';
+import type { UpdateZoomSourcing } from '../chart/interaction/zoomManager';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
