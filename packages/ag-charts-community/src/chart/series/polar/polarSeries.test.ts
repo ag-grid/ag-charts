@@ -1,13 +1,12 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { Point } from 'ag-charts-core';
+import { ChartUpdateType, type Point } from 'ag-charts-core';
 import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
 import { Transformable } from '../../../scene/transformable';
-import { ChartUpdateType } from '../../chartUpdateType';
 import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
     type Chart,

@@ -7,7 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Point, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, Motion, isContinuous, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, easeOut, isContinuous, mergeDefaults } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -855,7 +855,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startX,
             to: endX,
-            ease: Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointX) {
                 linePath.clear(true);
@@ -907,7 +907,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startY,
             to: endY,
-            ease: Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointY) {
                 linePath.clear(true);

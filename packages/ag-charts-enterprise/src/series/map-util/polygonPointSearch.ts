@@ -1,4 +1,5 @@
-import { type LinkedList, Position, insertListItemsSorted } from 'ag-charts-core';
+import type { LinkedList, Position } from 'ag-charts-core';
+import { insertListItemsSorted } from 'ag-charts-core';
 
 import { polygonBbox, polygonCentroid, polygonDistance } from './polygonUtil';
 

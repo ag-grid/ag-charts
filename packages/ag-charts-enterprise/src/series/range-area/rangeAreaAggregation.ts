@@ -1,17 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ScaleType } from 'ag-charts-core';
-import { ExtremesAggregationFilter, ExtremesPartialAggregationResult, simpleMemorize2 } from 'ag-charts-core';
-
-const {
-    AGGREGATION_SPAN,
+import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
+import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
     aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
-} = _ModuleSupport;
+    simpleMemorize2,
+} from 'ag-charts-core';
 
 type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;

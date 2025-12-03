@@ -9,11 +9,12 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    ChartAnimationPhase,
+    type ChartAnimationPhase,
     ChartAxisDirection,
     type Point,
     StateMachine,
     cachedTextMeasurer,
+    easeOut,
     findRangeExtent,
     isArray,
     measureTextSegments,
@@ -60,7 +61,6 @@ const {
     LinearScale,
     generateTicks,
     NiceMode,
-    easing,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -1173,7 +1173,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 from: { label: labelFrom },
                 to: { label: labelTo },
                 phase: params.phase ?? 'update',
-                ease: easing.easeOut,
+                ease: easeOut,
                 onUpdate: (datum) => this.formatLabelText(datum),
                 onStop: () => this.formatLabelText({ label: labelTo }),
             });

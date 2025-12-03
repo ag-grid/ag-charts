@@ -8,8 +8,14 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, LabelPlacement, PointLabelDatum, SizedPoint } from 'ag-charts-core';
-import { FeatureCollection, Property } from 'ag-charts-core';
+import type {
+    FeatureCollection,
+    InternalAgColorType,
+    LabelPlacement,
+    PointLabelDatum,
+    SizedPoint,
+} from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
 const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {

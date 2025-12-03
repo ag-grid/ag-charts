@@ -2,6 +2,7 @@ import { type AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-communit
 import {
     type OptionsDefs,
     boolean,
+    commonSeriesOptionsDefs,
     constant,
     number,
     required,
@@ -10,7 +11,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, rangeBarSeriesThemeableOptionsDef } = _ModuleSupport;
+const { rangeBarSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     ...commonSeriesOptionsDefs,

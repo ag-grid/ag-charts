@@ -1,15 +1,16 @@
 import { type AgRangeAreaSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { RangeAreaSeries } from './rangeArea';
 import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
-const {
-    ChartAxisDirection,
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-    predictCartesianNonPrimitiveAxis,
-} = _ModuleSupport;
+const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
 
 export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {
     type: 'series',

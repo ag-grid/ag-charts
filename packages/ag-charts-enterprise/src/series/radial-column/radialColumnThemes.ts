@@ -1,12 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { POLAR_AXIS_SHAPE, POLAR_AXIS_TYPE } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
-const {
-    ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
-    FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
-} = _ModuleSupport;
+const { FILL_GRADIENT_RADIAL_SERIES_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
 
 export const RADIAL_COLUMN_SERIES_THEME: ExtensibleTheme<'radial-column'> = {
     series: {

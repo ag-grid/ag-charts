@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject } from 'ag-charts-core';
-import { Geometry, Position, SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
+import type { DistantObject, Geometry, Position } from 'ag-charts-core';
+import { SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';

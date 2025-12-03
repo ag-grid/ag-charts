@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { MementoCaretaker, isPlainObject } from 'ag-charts-core';
+import { Logger, MementoCaretaker, isPlainObject } from 'ag-charts-core';
+import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
-import { expectWarningsCalls, setupMockConsole } from '../../chart/test/utils';
 import type { MementoOriginator } from './memento';
 
 describe('Memento Caretaker', () => {
-    setupMockConsole();
+    setupMockConsole(undefined, { includeAllLevels: false });
 
     class TestMemento {
         type = 'test';
@@ -43,6 +43,7 @@ describe('Memento Caretaker', () => {
     beforeEach(() => {
         originator = new TestOriginator();
         caretaker = new MementoCaretaker('10.0.0');
+        Logger.reset();
     });
 
     it('should save and restore data', () => {

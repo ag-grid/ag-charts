@@ -1,4 +1,4 @@
-import { Position } from 'ag-charts-core';
+import type { Position } from 'ag-charts-core';
 
 const delta = 1e-9;
 

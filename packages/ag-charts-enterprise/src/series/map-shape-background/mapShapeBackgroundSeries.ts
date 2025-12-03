@@ -1,5 +1,6 @@
 import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import { FeatureCollection, Logger, LonLatBBox } from 'ag-charts-core';
+import type { FeatureCollection } from 'ag-charts-core';
+import { Logger, LonLatBBox } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';

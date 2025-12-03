@@ -1,13 +1,8 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
 import {
-    Feature,
-    FeatureCollection,
-    Geometry,
-    type ITextMeasurer,
     Logger,
     LonLatBBox,
-    type Point,
-    Position,
     cachedTextMeasurer,
     isArray,
     measureTextSegments,

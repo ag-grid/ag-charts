@@ -1,8 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { computeExtremesAggregation } from 'ag-charts-core';
 
 import { CLOSE, HIGH, LOW, OPEN, SPAN } from './ohlcAggregation';
-
-const { computeExtremesAggregation } = _ModuleSupport;
 
 describe('computeExtremesAggregation', () => {
     describe('threshold behavior', () => {

@@ -8,8 +8,8 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
-import { FeatureCollection, Geometry, Property } from 'ag-charts-core';
+import type { FeatureCollection, Geometry, InternalAgColorType } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 

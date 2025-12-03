@@ -1,3 +1,4 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import { DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 

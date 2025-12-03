@@ -1,13 +1,13 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import {
-    CARTESIAN_AXIS_TYPE,
+import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
+
+const {
+    multiSeriesHighlightStyle,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
-} from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
-
-const { multiSeriesHighlightStyle } = _ModuleSupport;
+} = _ModuleSupport;
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {

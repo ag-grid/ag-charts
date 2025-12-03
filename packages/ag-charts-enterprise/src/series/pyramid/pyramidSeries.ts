@@ -6,7 +6,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    ChartAnimationPhase,
+    type ChartAnimationPhase,
     ChartAxisDirection,
     type Point,
     StateMachine,

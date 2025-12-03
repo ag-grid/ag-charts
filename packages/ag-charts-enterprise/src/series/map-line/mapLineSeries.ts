@@ -1,16 +1,6 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { PlacedLabel } from 'ag-charts-core';
-import {
-    Feature,
-    FeatureCollection,
-    Geometry,
-    type ITextMeasurer,
-    Logger,
-    LonLatBBox,
-    type Point,
-    cachedTextMeasurer,
-    mergeDefaults,
-} from 'ag-charts-core';
+import type { Feature, FeatureCollection, Geometry, ITextMeasurer, PlacedLabel, Point } from 'ag-charts-core';
+import { Logger, LonLatBBox, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';

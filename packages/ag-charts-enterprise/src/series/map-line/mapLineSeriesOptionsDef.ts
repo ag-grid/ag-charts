@@ -5,6 +5,7 @@ import {
     arrayLength,
     arrayOf,
     color,
+    commonSeriesOptionsDefs,
     constant,
     geoJson,
     required,
@@ -13,7 +14,7 @@ import {
     without,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, mapLineSeriesThemeableOptionsDef } = _ModuleSupport;
+const { mapLineSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

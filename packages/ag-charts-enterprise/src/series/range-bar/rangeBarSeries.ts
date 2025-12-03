@@ -7,6 +7,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
     type CallbackParamRules,
     ChartAxisDirection,
     type Mutable,
@@ -50,11 +55,6 @@ const {
     PointerEvents,
     motion,
     processedDataIsAnimatable,
-    AGGREGATION_SPAN,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
     getItemStyles,
     calculateSegments,
     toHighlightString,

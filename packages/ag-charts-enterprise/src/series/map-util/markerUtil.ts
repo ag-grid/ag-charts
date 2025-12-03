@@ -1,4 +1,4 @@
-import { Geometry, Position } from 'ag-charts-core';
+import type { Geometry, Position } from 'ag-charts-core';
 
 import { largestLineString, largestPolygon } from './geometryUtil';
 import { lineStringCenter } from './lineStringUtil';

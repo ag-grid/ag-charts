@@ -1,16 +1,16 @@
 import { type AgOhlcSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
-const {
-    ChartAxisDirection,
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-    multiSeriesHighlightStyle,
-    predictCartesianFinancialAxis,
-} = _ModuleSupport;
+const { multiSeriesHighlightStyle, predictCartesianFinancialAxis } = _ModuleSupport;
 
 const themeTemplate: ExtensibleTheme<'ohlc'> = {
     animation: { enabled: false },

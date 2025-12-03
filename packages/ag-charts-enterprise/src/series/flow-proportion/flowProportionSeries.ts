@@ -1,6 +1,6 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject, InternalAgColorType, Point } from 'ag-charts-core';
-import { ChartAnimationPhase, ChartAxisDirection } from 'ag-charts-core';
+import type { ChartAnimationPhase, DistantObject, InternalAgColorType, Point } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';

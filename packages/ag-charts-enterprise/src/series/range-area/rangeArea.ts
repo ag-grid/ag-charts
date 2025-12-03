@@ -16,7 +16,7 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection, extent, findMinMax, mergeDefaults } from 'ag-charts-core';
+import { AGGREGATION_INDEX_UNSET, ChartAxisDirection, extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import {
     HIGH,
@@ -70,7 +70,6 @@ const {
     HighlightState,
     AggregationManager,
     resetMarkerSelectionsDirect,
-    AGGREGATION_INDEX_UNSET,
     createDatumId,
     visibleRangeIndices,
 } = _ModuleSupport;
