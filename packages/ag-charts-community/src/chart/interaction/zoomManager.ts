@@ -331,6 +331,10 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
+    public refreshZoom(callerId: string): boolean {
+        return this.applyUpdateZoom({ callerId, changeType: 'refresh', changes: {} });
+    }
+
     public updateZoom(callerId: string, newZoom?: AxisZoomState): boolean {
         return this.updateChanges(callerId, this.toCoreZoomState(newZoom ?? {}));
     }
