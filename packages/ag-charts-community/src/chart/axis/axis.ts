@@ -25,6 +25,7 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
+    FormatterPropertyType,
     TextOrSegments,
 } from 'ag-charts-types';
 
@@ -795,7 +796,7 @@ export abstract class Axis<
             legendItemName: undefined,
             key: undefined,
             source: 'axis-label',
-            property: this.direction,
+            property: this.getFormatterProperty(),
             domain,
             boundSeries,
         };
@@ -868,7 +869,7 @@ export abstract class Axis<
     ): TextOrSegments {
         if (input == null) return '';
 
-        const { moduleCtx, direction, dataDomain } = this;
+        const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
         const boundSeries = this.formatterBoundSeries.get();
@@ -898,7 +899,7 @@ export abstract class Axis<
                 seriesId,
                 legendItemName,
                 key,
-                property: direction,
+                property: this.getFormatterProperty(),
                 domain,
                 boundSeries,
             },
@@ -943,6 +944,20 @@ export abstract class Axis<
         const { direction, boundSeries } = this;
         return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
     });
+
+    private getFormatterProperty(): FormatterPropertyType {
+        const { direction, boundSeries } = this;
+        let resolvedDirection = direction;
+        for (const series of boundSeries) {
+            const seriesResolvedDirection = series.resolveKeyDirection(direction);
+            if (seriesResolvedDirection !== direction) {
+                resolvedDirection = seriesResolvedDirection;
+                break;
+            }
+        }
+
+        return resolvedDirection;
+    }
 
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;

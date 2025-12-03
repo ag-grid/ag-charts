@@ -40,7 +40,7 @@ const options: AgChartOptions = {
         },
     ],
     formatter: {
-        x: '#{,.0f}',
+        y: '#{,.0f}',
     },
 };
 

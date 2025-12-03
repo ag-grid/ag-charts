@@ -73,6 +73,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     getFormatterContext(
         direction: ChartAxisDirection
     ): Array<{ seriesId: string; key: string; name: string | undefined }>;
+    resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection;
     datumMidPoint?<T extends SeriesNodeDatum<TDatumIndex>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
