@@ -21,7 +21,7 @@ type OhlcDatum = {
 };
 
 function generateOhlcDatum(index: number, previousClose?: number): { datum: OhlcDatum; basePrice: number } {
-    const date = new Date(START_DATE.getTime() + index * DATA_INTERVAL_MS);
+    const date = START_DATE.getTime() + index * DATA_INTERVAL_MS;
 
     const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
     const volatility = Math.sin(index / 15) * 5;
