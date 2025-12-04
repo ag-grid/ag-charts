@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     barHighlightOptionsDef,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -86,3 +87,5 @@ barSeriesOptionsDef.yFilterKey = undocumented(string);
 barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.focusPriority = undocumented(number);
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.simpleItemStyler = undocumented(callback);
