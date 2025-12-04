@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { ChartAxisDirection, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -41,10 +41,10 @@ export class ZoomScroller {
 
             const delta = scrollingStep * event.deltaY * (max - min);
 
-            if (direction === _ModuleSupport.ChartAxisDirection.X && isScalingX) {
+            if (direction === ChartAxisDirection.X && isScalingX) {
                 newZoom.max += delta;
                 newZoom = scaleZoomAxisWithAnchor(newZoom, value, anchorPointX, origin.x);
-            } else if (direction === _ModuleSupport.ChartAxisDirection.Y && isScalingY) {
+            } else if (direction === ChartAxisDirection.Y && isScalingY) {
                 newZoom.max += delta;
                 newZoom = scaleZoomAxisWithAnchor(newZoom, value, anchorPointY, origin.y);
             } else {

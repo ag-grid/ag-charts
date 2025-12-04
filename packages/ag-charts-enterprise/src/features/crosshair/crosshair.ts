@@ -1,10 +1,18 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, Property, createId, toPlainText } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Property,
+    ZIndexMap,
+    createId,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, InteractionState, ZIndexMap, ChartAxisDirection } = _ModuleSupport;
+const { Group, TranslatableGroup, Line, BBox, InteractionState } = _ModuleSupport;
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
@@ -69,7 +77,7 @@ export class Crosshair extends AbstractModuleInstance {
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.crosshairGroup.visible && !isSeriesAreaChild) {
                 this.hideCrosshairs();
-                this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT);
+                this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
             }
         });
 
@@ -201,13 +209,13 @@ export class Crosshair extends AbstractModuleInstance {
         this.updatePositions(this.getData(event));
         this.crosshairGroup.visible = true;
 
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private onMouseOut() {
         if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
         this.hideCrosshairs();
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private onKeyPress() {

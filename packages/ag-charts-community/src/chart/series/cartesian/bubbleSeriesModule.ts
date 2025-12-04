@@ -1,11 +1,10 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,

@@ -1,12 +1,10 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import { ChartAxisDirection } from '../../chartAxisDirection';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,

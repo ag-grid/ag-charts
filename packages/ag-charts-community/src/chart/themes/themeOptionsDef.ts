@@ -8,19 +8,26 @@ import {
     boolean,
     callbackOf,
     color,
+    commonChartOptionsDefs,
     constant,
     defined,
     fontOptionsDef,
     isFunction,
     isObject,
     isSymbol,
+    linearGaugeSeriesThemeableOptionsDef,
+    linearGaugeTargetOptionsDef,
     number,
+    numberFormatValidator,
     optionsDefs,
     or,
     positiveNumber,
+    radialGaugeSeriesThemeableOptionsDef,
+    radialGaugeTargetOptionsDef,
     ratio,
     required,
     string,
+    textOrSegments,
     themeOperator,
     undocumented,
     unionSymbol,
@@ -39,12 +46,6 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    linearGaugeSeriesThemeableOptionsDef,
-    linearGaugeTargetOptionsDef,
-    radialGaugeSeriesThemeableOptionsDef,
-    radialGaugeTargetOptionsDef,
-} from '../../api/preset/gaugeOptionsDefs';
-import {
     cartesianCrossLineOptionsDefs,
     categoryAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
@@ -62,7 +63,6 @@ import {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from '../axesOptionsEnterpriseDefs';
-import { commonChartOptionsDefs, numberFormatValidator, textOrSegments } from '../commonOptionsDefs';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';

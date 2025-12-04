@@ -1,5 +1,6 @@
 import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import type { FeatureCollection } from 'ag-charts-core';
+import { Logger, LonLatBBox } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -30,11 +31,11 @@ export class MapShapeBackgroundSeries
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapShapeBackgroundSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -110,7 +111,7 @@ export class MapShapeBackgroundSeries
     override processData() {
         const { topology } = this;
 
-        this.topologyBounds = topology?.features.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        this.topologyBounds = topology?.features.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);

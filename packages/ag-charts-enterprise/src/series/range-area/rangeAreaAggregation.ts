@@ -1,32 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ScaleType } from 'ag-charts-core';
-import { simpleMemorize2 } from 'ag-charts-core';
-
-const {
-    AGGREGATION_SPAN,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
+import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
+import {
     aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
-} = _ModuleSupport;
+    simpleMemorize2,
+} from 'ag-charts-core';
 
 type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
 type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
 // Type aliases for RangeArea-specific usage
-export type RangeAreaSeriesDataAggregationFilter = _ModuleSupport.ExtremesAggregationFilter;
-export type RangeAreaPartialAggregationResult = _ModuleSupport.ExtremesPartialAggregationResult;
-
-// Semantic constants for Range Area data access
-export const START = AGGREGATION_INDEX_X_MIN;
-export const HIGH = AGGREGATION_INDEX_Y_MAX;
-export const LOW = AGGREGATION_INDEX_Y_MIN;
-export const END = AGGREGATION_INDEX_X_MAX;
-export const SPAN = AGGREGATION_SPAN;
+export type RangeAreaSeriesDataAggregationFilter = ExtremesAggregationFilter;
+export type RangeAreaPartialAggregationResult = ExtremesPartialAggregationResult;
 
 // ============================================================================
 // ADAPTER LAYER: Scale integration

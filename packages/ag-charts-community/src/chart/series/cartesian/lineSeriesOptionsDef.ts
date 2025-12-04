@@ -2,31 +2,28 @@ import {
     type OptionsDefs,
     boolean,
     callbackDefs,
-    constant,
-    lineDashOptionsDef,
-    lineHighlightOptionsDef,
-    lineSegmentation,
-    multiSeriesHighlightOptionsDef,
-    number,
-    required,
-    shapeHighlightOptionsDef,
-    string,
-    strokeOptionsDef,
-    undocumented,
-} from 'ag-charts-core';
-import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
+    constant,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     interpolationOptionsDefs,
+    lineDashOptionsDef,
+    lineHighlightOptionsDef,
+    lineSegmentation,
     markerOptionsDefs,
     markerStyleOptionsDefs,
+    multiSeriesHighlightOptionsDef,
+    number,
+    required,
     seriesLabelOptionsDefs,
+    shapeHighlightOptionsDef,
+    string,
+    strokeOptionsDef,
     tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
+    undocumented,
+} from 'ag-charts-core';
+import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
 

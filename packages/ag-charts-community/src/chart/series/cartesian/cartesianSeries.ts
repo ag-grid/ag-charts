@@ -1,4 +1,6 @@
+import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
+    ChartAxisDirection,
     Debug,
     type Point,
     Property,
@@ -30,9 +32,7 @@ import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -45,7 +45,6 @@ import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
-import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
     readonly xKey: string;

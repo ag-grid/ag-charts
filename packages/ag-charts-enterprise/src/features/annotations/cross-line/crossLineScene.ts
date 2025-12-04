@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type Bounds4, ChartAxisDirection, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -12,8 +12,6 @@ import { updateLineText } from '../utils/lineWithText';
 import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
-
-const { ChartAxisDirection } = _ModuleSupport;
 
 export class CrossLineScene extends AnnotationScene {
     static override is(value: unknown): value is CrossLineScene {

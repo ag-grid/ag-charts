@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { DebugSelectors } from './sceneDebug';
-import { cleanupDebugStats, debugStats, getDebugStatsStateForTesting, registerDebugStatsConsumer } from './sceneDebug';
+import {
+    DebugSelectors,
+    cleanupDebugStats,
+    debugStats,
+    getDebugStatsStateForTesting,
+    registerDebugStatsConsumer,
+} from './sceneDebug';
 
 describe('sceneDebug stats lifecycle', () => {
     beforeEach(() => {

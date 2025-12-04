@@ -1,11 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type Geometry, LonLatBBox, type Position } from 'ag-charts-core';
 
 import { lineStringLength } from './lineStringUtil';
 import { polygonBbox } from './polygonUtil';
 
-const { LonLatBBox } = _ModuleSupport;
-
-function calculatePolygonArea(polygon: _ModuleSupport.Position[][]): number {
+function calculatePolygonArea(polygon: Position[][]): number {
     const bbox = polygonBbox(polygon[0], undefined);
     if (bbox == null) return 0;
     return Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
@@ -28,10 +27,7 @@ function findLargestByMetric<T>(items: T[], metric: (item: T) => number | undefi
     return maxItem;
 }
 
-export function geometryBbox(
-    geometry: _ModuleSupport.Geometry,
-    into: _ModuleSupport.LonLatBBox | undefined
-): _ModuleSupport.LonLatBBox | undefined {
+export function geometryBbox(geometry: Geometry, into: LonLatBBox | undefined): LonLatBBox | undefined {
     if (geometry.bbox != null) {
         const [lon0, lat0, lon1, lat1] = geometry.bbox;
         into = LonLatBBox.extend(into, lon0, lat0, lon1, lat1);
@@ -80,16 +76,14 @@ export function geometryBbox(
     return into;
 }
 
-export function largestPolygon(geometry: _ModuleSupport.Geometry): _ModuleSupport.Position[][] | undefined {
+export function largestPolygon(geometry: Geometry): Position[][] | undefined {
     switch (geometry.type) {
         case 'Polygon':
             return geometry.coordinates;
         case 'MultiPolygon':
             return findLargestByMetric(geometry.coordinates, calculatePolygonArea);
         case 'GeometryCollection': {
-            const polygons = geometry.geometries
-                .map(largestPolygon)
-                .filter((p): p is _ModuleSupport.Position[][] => p != null);
+            const polygons = geometry.geometries.map(largestPolygon).filter((p): p is Position[][] => p != null);
             return findLargestByMetric(polygons, calculatePolygonArea);
         }
         case 'MultiLineString':
@@ -100,16 +94,14 @@ export function largestPolygon(geometry: _ModuleSupport.Geometry): _ModuleSuppor
     }
 }
 
-export function largestLineString(geometry: _ModuleSupport.Geometry): _ModuleSupport.Position[] | undefined {
+export function largestLineString(geometry: Geometry): Position[] | undefined {
     switch (geometry.type) {
         case 'LineString':
             return geometry.coordinates;
         case 'MultiLineString':
             return findLargestByMetric(geometry.coordinates, lineStringLength);
         case 'GeometryCollection': {
-            const lineStrings = geometry.geometries
-                .map(largestLineString)
-                .filter((l): l is _ModuleSupport.Position[] => l != null);
+            const lineStrings = geometry.geometries.map(largestLineString).filter((l): l is Position[] => l != null);
             return findLargestByMetric(lineStrings, lineStringLength);
         }
         case 'MultiPolygon':
@@ -126,7 +118,7 @@ export enum GeometryType {
     Point = 0b100,
 }
 
-export function containsType(geometry: _ModuleSupport.Geometry | null, type: GeometryType): boolean {
+export function containsType(geometry: Geometry | null, type: GeometryType): boolean {
     if (geometry == null) return false;
 
     switch (geometry.type) {
@@ -144,10 +136,7 @@ export function containsType(geometry: _ModuleSupport.Geometry | null, type: Geo
     }
 }
 
-export function projectGeometry(
-    geometry: _ModuleSupport.Geometry,
-    scale: _ModuleSupport.MercatorScale
-): _ModuleSupport.Geometry {
+export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.MercatorScale): Geometry {
     switch (geometry.type) {
         case 'GeometryCollection':
             return {
@@ -187,23 +176,14 @@ export function projectGeometry(
     }
 }
 
-function projectMultiPolygon(
-    multiPolygon: _ModuleSupport.Position[][][],
-    scale: _ModuleSupport.MercatorScale
-): _ModuleSupport.Position[][][] {
+function projectMultiPolygon(multiPolygon: Position[][][], scale: _ModuleSupport.MercatorScale): Position[][][] {
     return multiPolygon.map((polygon) => projectPolygon(polygon, scale));
 }
 
-function projectPolygon(
-    polygon: _ModuleSupport.Position[][],
-    scale: _ModuleSupport.MercatorScale
-): _ModuleSupport.Position[][] {
+function projectPolygon(polygon: Position[][], scale: _ModuleSupport.MercatorScale): Position[][] {
     return polygon.map((lineString) => projectLineString(lineString, scale));
 }
 
-function projectLineString(
-    lineString: _ModuleSupport.Position[],
-    scale: _ModuleSupport.MercatorScale
-): _ModuleSupport.Position[] {
+function projectLineString(lineString: Position[], scale: _ModuleSupport.MercatorScale): Position[] {
     return lineString.map((lonLat) => scale.convert(lonLat));
 }

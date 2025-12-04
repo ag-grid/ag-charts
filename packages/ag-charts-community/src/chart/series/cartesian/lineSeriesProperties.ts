@@ -1,4 +1,4 @@
-import { Property } from 'ag-charts-core';
+import { InterpolationProperties, Property } from 'ag-charts-core';
 import type {
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesMarkerItemStylerParams,
@@ -13,7 +13,6 @@ import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { InterpolationProperties } from './interpolationProperties';
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Property

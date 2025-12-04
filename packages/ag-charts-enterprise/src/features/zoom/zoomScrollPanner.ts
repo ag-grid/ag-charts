@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { ChartAxisDirection, entries } from 'ag-charts-core';
 
 import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from './zoomUtils';
 
@@ -21,7 +21,7 @@ export class ZoomScrollPanner {
         const offsetX = deltaX < 0 ? -offset.x : offset.x;
 
         for (const [axisId, value] of entries(currentZooms)) {
-            if (value?.direction !== _ModuleSupport.ChartAxisDirection.X) continue;
+            if (value?.direction !== ChartAxisDirection.X) continue;
             const { direction, min, max } = value;
 
             let zoom = definedZoomState({ x: { min, max } });

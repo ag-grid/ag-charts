@@ -1,8 +1,5 @@
+import type { BaseAttributeTypeMap, BaseStyleTypeMap, BoxBounds, ElementID } from 'ag-charts-core';
 import {
-    type BaseAttributeTypeMap,
-    type BaseStyleTypeMap,
-    type BoxBounds,
-    type ElementID,
     attachListener,
     getAttribute,
     getElementBBox,

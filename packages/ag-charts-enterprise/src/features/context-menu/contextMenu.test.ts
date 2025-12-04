@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, test } from '@jest/globals';
 
-import { AgCharts } from 'ag-charts-community';
 import type { AgChartOptions, AgContextMenuItem } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     contextMenuAction,
     expectWarningsCalls,

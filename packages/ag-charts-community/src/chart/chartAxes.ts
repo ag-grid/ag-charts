@@ -1,9 +1,8 @@
-import { every, isObject } from 'ag-charts-core';
+import { ChartAxisDirection, every, isObject } from 'ag-charts-core';
 
 import type { CartesianAxis } from './axis/cartesianAxis';
 import type { PolarAxis } from './axis/polarAxis';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
 
 export class ChartAxes<T extends ChartAxis = ChartAxis> extends Array<T> {
     destroy() {

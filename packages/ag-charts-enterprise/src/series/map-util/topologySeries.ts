@@ -38,10 +38,7 @@ export abstract class TopologySeries<
         return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

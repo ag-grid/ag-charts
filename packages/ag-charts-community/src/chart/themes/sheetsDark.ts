@@ -1,8 +1,9 @@
-import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-} from './symbols';
+} from 'ag-charts-core';
+
+import { DarkTheme } from './darkTheme';
 import { getSequentialColors } from './util';
 
 const SHEETS_DARK_FILLS = {

@@ -5,7 +5,6 @@ import {
     HistogramSeriesModule,
     LineSeriesModule,
     ScatterSeriesModule,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -16,8 +15,10 @@ import {
     color,
     fontOptionsDef,
     number,
+    numberFormatValidator,
     positiveNumber,
     ratio,
+    textOrSegments,
     typeUnion,
     without,
 } from 'ag-charts-core';
@@ -45,8 +46,6 @@ import { OhlcSeriesModule } from '../../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
 import { WaterfallSeriesModule } from '../../series/waterfall/waterfallModule';
-
-const { numberFormatValidator, textOrSegments } = _ModuleSupport;
 
 export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,

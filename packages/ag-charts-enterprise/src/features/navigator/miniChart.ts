@@ -2,16 +2,18 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ActionOnSet,
+    ChartAxisDirection,
     Logger,
     Padding,
     Property,
     ProxyProperty,
+    ZIndexMap,
     calcLineHeight,
 } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const { ZIndexMap, CategoryAxis, Group, BBox, stackCartesianSeries } = _ModuleSupport;
+const { CategoryAxis, Group, BBox, stackCartesianSeries } = _ModuleSupport;
 class MiniChartPadding {
     @Property
     top: number = 0;
@@ -165,7 +167,7 @@ export class MiniChart extends AbstractModuleInstance {
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
-        const directionToAxesMap: { [K in _ModuleSupport.ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
+        const directionToAxesMap: { [K in ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
 
         for (const axis of this.axes) {
             const direction = axis.direction;

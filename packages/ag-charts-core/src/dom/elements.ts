@@ -1,12 +1,8 @@
-import {
-    type AttributeSet,
-    type InputAttributeSet,
-    createElement,
-    isButtonClickEvent,
-    setAttribute,
-    setAttributes,
-} from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
+
+import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../utils/attributeUtil';
+import { createElement } from '../utils/dom/domElements';
+import { isButtonClickEvent } from '../utils/keynavUtil';
 
 // These types force a compilation error if the developer tries to add an icon-only
 // menu item without an accessible text alternative.

@@ -1,7 +1,7 @@
 import { type AgRadarLineSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string } from 'ag-charts-core';
+import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, radarLineSeriesThemeableOptionsDef } = _ModuleSupport;
+const { radarLineSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
     ...commonSeriesOptionsDefs,

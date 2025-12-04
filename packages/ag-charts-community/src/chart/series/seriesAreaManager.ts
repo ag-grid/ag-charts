@@ -1,4 +1,4 @@
-import { type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
+import { ChartUpdateType, type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
@@ -29,7 +29,6 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';

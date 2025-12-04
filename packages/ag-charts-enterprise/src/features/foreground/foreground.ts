@@ -1,9 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ActionOnSet, type Placement, Property, ProxyPropertyOnWrite } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    ChartUpdateType,
+    type Placement,
+    Property,
+    ProxyPropertyOnWrite,
+    ZIndexMap,
+} from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
-const { ZIndexMap } = _ModuleSupport;
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Property
     @ActionOnSet<Foreground>({
@@ -42,7 +48,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     }
 
     protected onImageLoad() {
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private updateTextNode(placement: Placement) {

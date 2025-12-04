@@ -2,6 +2,7 @@ import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-ch
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    ChartAxisDirection,
     Logger,
     type PickNodeDatumResult,
     type Point,
@@ -19,7 +20,7 @@ import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 import { ErrorBarProperties } from './errorBarProperties';
 
-const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty, ChartAxisDirection } = _ModuleSupport;
+const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<
@@ -157,7 +158,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         this.processedData = event.processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection.X | _ModuleSupport.ChartAxisDirection.Y): any[] {
+    getDomain(direction: ChartAxisDirection.X | ChartAxisDirection.Y): any[] {
         const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
         const hasAxisErrors =
             direction === ChartAxisDirection.X
@@ -306,10 +307,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         return this.groupNode.nearestSquared(point.x, point.y);
     }
 
-    pickNodeMainAxisFirst(
-        point: Point,
-        majorDirection: _ModuleSupport.ChartAxisDirection
-    ): PickNodeDatumResult | undefined {
+    pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined {
         let closestDatum;
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];

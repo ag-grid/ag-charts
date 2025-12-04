@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject } from 'ag-charts-core';
-import { objectsEqual } from 'ag-charts-core';
+import type { DistantObject, Geometry, Position } from 'ag-charts-core';
+import { SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection } = _ModuleSupport;
+const { Path, ExtendedPath2D, BBox } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
@@ -15,7 +15,7 @@ export enum GeoGeometryRenderMode {
 
 export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     @SceneObjectChangeDetection({ equals: objectsEqual })
-    projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
+    projectedGeometry: Geometry | undefined = undefined;
 
     @SceneChangeDetection()
     renderMode: GeoGeometryRenderMode = GeoGeometryRenderMode.All;
@@ -64,7 +64,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
         return distance > 0 ? distance * distance : 0;
     }
 
-    private geometryDistance(geometry: _ModuleSupport.Geometry, x: number, y: number): number {
+    private geometryDistance(geometry: Geometry, x: number, y: number): number {
         const { renderMode, strokeWidth } = this;
         const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
         const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
@@ -114,7 +114,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     }
 
     private drawGeometryCollection(
-        geometries: _ModuleSupport.Geometry[],
+        geometries: Geometry[],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         for (const g of geometries) {
@@ -124,7 +124,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     }
 
     private drawMultiPolygon(
-        coordinates: _ModuleSupport.Position[][][],
+        coordinates: Position[][][],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (!this.shouldDrawPolygons()) return bbox;
@@ -136,7 +136,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     }
 
     private drawSinglePolygon(
-        coordinates: _ModuleSupport.Position[][],
+        coordinates: Position[][],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (!this.shouldDrawPolygons()) return bbox;
@@ -144,7 +144,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     }
 
     private drawMultiLineString(
-        coordinates: _ModuleSupport.Position[][],
+        coordinates: Position[][],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (!this.shouldDrawLines()) return bbox;
@@ -156,17 +156,14 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
     }
 
     private drawSingleLineString(
-        coordinates: _ModuleSupport.Position[],
+        coordinates: Position[],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (!this.shouldDrawLines()) return bbox;
         return this.drawLineString(this.strokePath, coordinates, bbox, false);
     }
 
-    private drawGeometry(
-        geometry: _ModuleSupport.Geometry,
-        bbox: _ModuleSupport.BBox | undefined
-    ): _ModuleSupport.BBox | undefined {
+    private drawGeometry(geometry: Geometry, bbox: _ModuleSupport.BBox | undefined): _ModuleSupport.BBox | undefined {
         switch (geometry.type) {
             case 'GeometryCollection':
                 return this.drawGeometryCollection(geometry.geometries, bbox);
@@ -186,7 +183,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
 
     private drawPolygon(
         path: _ModuleSupport.ExtendedPath2D,
-        polygons: _ModuleSupport.Position[][],
+        polygons: Position[][],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (polygons.length < 1) return bbox;
@@ -202,7 +199,7 @@ export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
 
     private drawLineString(
         path: _ModuleSupport.ExtendedPath2D,
-        coordinates: _ModuleSupport.Position[],
+        coordinates: Position[],
         bbox: _ModuleSupport.BBox | undefined,
         isClosed: boolean
     ): _ModuleSupport.BBox | undefined {

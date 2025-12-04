@@ -1,11 +1,12 @@
 import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { PolarZIndexMap } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector, SectorBox, PolarZIndexMap } = _ModuleSupport;
+const { Sector, SectorBox } = _ModuleSupport;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
     static readonly className = 'NightingaleSeries';

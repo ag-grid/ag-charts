@@ -6,6 +6,8 @@ import {
     callbackOf,
     color,
     colorUnion,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
     fontOptionsDef,
@@ -16,9 +18,12 @@ import {
     positiveNumber,
     ratio,
     required,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
+    textOrSegments,
+    tooltipOptionsDefs,
     undocumented,
     without,
 } from 'ag-charts-core';
@@ -29,14 +34,6 @@ import type {
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
 } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    shadowOptionsDefs,
-    textOrSegments,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 

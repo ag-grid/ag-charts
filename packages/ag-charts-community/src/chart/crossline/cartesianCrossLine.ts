@@ -1,4 +1,13 @@
-import { BaseProperties, Property, type Scale, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
+import {
+    BaseProperties,
+    FONT_SIZE,
+    Property,
+    type Scale,
+    clampArray,
+    createId,
+    findMinMax,
+    toRadians,
+} from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
@@ -14,7 +23,6 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { rangeAlignment } from '../rangeAlignment';
-import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 

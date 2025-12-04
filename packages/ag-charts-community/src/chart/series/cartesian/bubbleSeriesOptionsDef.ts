@@ -3,13 +3,18 @@ import {
     arrayOf,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
+    seriesLabelOptionsDefs,
     shapeHighlightOptionsDef,
     string,
+    tooltipOptionsDefs,
     undocumented,
     union,
     without,
@@ -19,14 +24,6 @@ import type {
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesThemeableOptions,
 } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    markerOptionsDefs,
-    seriesLabelOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,

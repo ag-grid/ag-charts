@@ -1,6 +1,7 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
     type ScaleTickParams,
+    ZIndexMap,
     cachedTextMeasurer,
     countFractionDigits,
     createId,
@@ -17,7 +18,7 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const { AxisInterval, AxisLabel, ZIndexMap, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
+const { AxisInterval, AxisLabel, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;

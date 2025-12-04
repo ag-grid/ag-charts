@@ -8,6 +8,7 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -17,7 +18,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { ChartOrProxy } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../../test/utils';

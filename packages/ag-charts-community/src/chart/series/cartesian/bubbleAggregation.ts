@@ -1,7 +1,5 @@
 import type { ScaleType } from 'ag-charts-core';
-import { clamp } from 'ag-charts-core';
-
-import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
+import { aggregationDomain, aggregationXRatioForXValue, clamp } from 'ag-charts-core';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;

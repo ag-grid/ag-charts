@@ -1,11 +1,13 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { AxisID, CartesianAxisDirection } from 'ag-charts-core';
 import {
     ActionOnSet,
-    type AxisID,
     BaseProperties,
+    ChartAxisDirection,
     CleanupRegistry,
     PropertiesArray,
     Property,
+    ToolbarButtonProperties,
     createElement,
     debounce,
     entries,
@@ -31,7 +33,7 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { ChartAxisDirection, NativeWidget, Toolbar, ToolbarButtonProperties, userInteraction } = _ModuleSupport;
+const { userInteraction, NativeWidget, Toolbar } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
     @Property
@@ -93,7 +95,7 @@ export class ZoomToolbar extends BaseProperties {
         private readonly updateAxisZoom: (
             sourcing: _ModuleSupport.UpdateZoomSourcing,
             axisId: AxisID,
-            direction: _ModuleSupport.CartesianAxisDirection,
+            direction: CartesianAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
@@ -272,7 +274,7 @@ export class ZoomToolbar extends BaseProperties {
         event: { value: AgZoomButtonValue },
         props: ZoomProperties,
         axisId: AxisID,
-        direction: _ModuleSupport.CartesianAxisDirection,
+        direction: CartesianAxisDirection,
         zoom: _ModuleSupport.ZoomState
     ) {
         const { isScalingX, isScalingY, scrollingStep } = props;

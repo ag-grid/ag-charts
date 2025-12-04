@@ -1,12 +1,14 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { VERSION } from 'ag-charts-community';
 import {
     type OptionsDefs,
     type PresetModuleDefinition,
     array,
     boolean,
+    commonChartOptionsDefs,
     defined,
     positiveNumber,
     string,
+    tooltipOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -21,8 +23,6 @@ import type {
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { priceVolume } from './priceVolumePreset';
-
-const { commonChartOptionsDefs, tooltipOptionsDefs } = _ModuleSupport;
 
 const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),

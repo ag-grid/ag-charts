@@ -1,4 +1,4 @@
-import type { AxisID, DeepReadonly, Scale } from 'ag-charts-core';
+import type { AxisID, ChartAxisDirection, DeepReadonly, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type {
     AgAnnotation,
@@ -11,7 +11,6 @@ import type {
     AgZoomRatio,
 } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';

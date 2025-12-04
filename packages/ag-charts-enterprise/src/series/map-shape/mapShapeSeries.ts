@@ -1,8 +1,8 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
 import {
-    type ITextMeasurer,
     Logger,
-    type Point,
+    LonLatBBox,
     cachedTextMeasurer,
     extractDomain,
     isArray,
@@ -56,13 +56,13 @@ interface ShapeDataValues {
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
-    geometry: _ModuleSupport.Geometry;
+    geometry: Geometry;
     labelText: TextOrSegments;
     aspectRatio: number;
     x: number;
     y: number;
     maxWidth: number;
-    fixedPolygon: _ModuleSupport.Position[][];
+    fixedPolygon: Position[][];
 }
 export class MapShapeSeries
     extends TopologySeries<
@@ -79,11 +79,11 @@ export class MapShapeSeries
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapShapeSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapShapeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -174,7 +174,7 @@ export class MapShapeSeries
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
-        const featureById = new Map<string, _ModuleSupport.Feature>();
+        const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
             if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
@@ -197,12 +197,8 @@ export class MapShapeSeries
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -242,7 +238,7 @@ export class MapShapeSeries
         datum: any,
         labelValue: string | undefined,
         measurer: ITextMeasurer,
-        geometry: _ModuleSupport.Geometry | undefined,
+        geometry: Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
         if (labelValue == null || geometry == null) return;
@@ -367,11 +363,7 @@ export class MapShapeSeries
 
         return {
             idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
-            featureValues: this.dataModel!.resolveColumnById<_ModuleSupport.Feature | undefined>(
-                this,
-                'featureValue',
-                processedData
-            ),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
             labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
             colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
         };

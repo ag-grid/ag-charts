@@ -1,12 +1,18 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type InternalAgColorType, Property, createId } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    type InternalAgColorType,
+    Property,
+    ZIndexMap,
+    createId,
+} from 'ag-charts-core';
 
 const {
     Range,
     TranslatableGroup,
     BBox,
-    ZIndexMap,
-    ChartAxisDirection,
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
@@ -71,7 +77,7 @@ export class BandHighlight extends AbstractModuleInstance {
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
                 this.hideBand();
-                this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT);
+                this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
             }
         });
 
@@ -209,7 +215,7 @@ export class BandHighlight extends AbstractModuleInstance {
             this.hideBand();
         }
 
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private updateBandPosition() {

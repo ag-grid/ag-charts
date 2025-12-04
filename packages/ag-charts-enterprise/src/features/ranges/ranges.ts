@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, PropertiesArray, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, PropertiesArray, Property } from 'ag-charts-core';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { ChartAxisDirection, LayoutElement, Toolbar, userInteraction } = _ModuleSupport;
+const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
 export class Ranges extends AbstractModuleInstance {
     @Property

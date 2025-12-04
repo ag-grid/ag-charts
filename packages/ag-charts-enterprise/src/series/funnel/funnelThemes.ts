@@ -1,10 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-    ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
-} = _ModuleSupport;
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
 

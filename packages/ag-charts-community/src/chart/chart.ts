@@ -1,7 +1,10 @@
+import type { ChartAnimationPhase } from 'ag-charts-core';
 import {
     ActionOnSet,
     AsyncAwaitQueue,
     type AxisID,
+    ChartAxisDirection,
+    ChartUpdateType,
     CleanupRegistry,
     Debug,
     Logger,
@@ -11,6 +14,7 @@ import {
     Padding,
     Property,
     ProxyProperty,
+    ZIndexMap,
     callWithContext,
     createId,
     enterpriseRegistry,
@@ -54,16 +58,13 @@ import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TimeAxis } from './axis/timeAxis';
 import { Background } from './background/background';
 import { Caption } from './caption';
-import type { ChartAnimationPhase } from './chartAnimationPhase';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
-import { ChartUpdateType } from './chartUpdateType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -90,7 +91,6 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
-import { ZIndexMap } from './zIndexMap';
 
 const debug = Debug.create(true, 'opts');
 

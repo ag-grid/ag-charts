@@ -1,14 +1,9 @@
 import { type AgRadarAreaSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
 import { RadarAreaSeries } from './radarAreaSeries';
 import { radarAreaSeriesOptionsDef } from './radarAreaSeriesOptionsDef';
-
-const {
-    ChartAxisDirection,
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
 
 export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions> = {
     type: 'series',

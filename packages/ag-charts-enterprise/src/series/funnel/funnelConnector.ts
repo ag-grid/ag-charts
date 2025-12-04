@@ -1,8 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { DistantObject } from 'ag-charts-core';
-import { lineDistanceSquared } from 'ag-charts-core';
+import { SceneChangeDetection, lineDistanceSquared } from 'ag-charts-core';
 
-const { BBox, Path, SceneChangeDetection } = _ModuleSupport;
+const { BBox, Path } = _ModuleSupport;
 
 const delta = 1e-6;
 function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) {

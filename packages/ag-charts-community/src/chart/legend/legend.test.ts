@@ -14,6 +14,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import * as examples from '../test/examples';
 import { seedRandom } from '../test/random';
+import type { AgChartProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -30,7 +31,6 @@ import {
     tapAction,
     waitForChartStability,
 } from '../test/utils';
-import type { AgChartProxy } from '../test/utils';
 
 function buildSeries(data: { x: number; y: number }): AgLineSeriesOptions {
     return {

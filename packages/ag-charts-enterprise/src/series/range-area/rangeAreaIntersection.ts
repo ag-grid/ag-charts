@@ -1,5 +1,5 @@
 import { type FillOptions, _ModuleSupport } from 'ag-charts-community';
-import type { Point, Size } from 'ag-charts-core';
+import { type Point, type Size, spanRange } from 'ag-charts-core';
 
 function getYValueAtX({ span }: _ModuleSupport.LinePathSpan, x: number): number {
     switch (span.type) {
@@ -48,7 +48,7 @@ function findSpanForX(
 ): { span: _ModuleSupport.LinePathSpan | null; index: number } {
     for (let i = startIndex; i < spans.length; i++) {
         const span = spans[i];
-        const [start, end] = _ModuleSupport.spanRange(span.span);
+        const [start, end] = spanRange(span.span);
 
         if (x >= start.x && x <= end.x) {
             return { span, index: i };

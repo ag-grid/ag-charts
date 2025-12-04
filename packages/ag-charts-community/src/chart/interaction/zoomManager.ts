@@ -1,6 +1,8 @@
 import {
     type AxisID,
     type BoxBounds,
+    type CartesianAxisDirection,
+    ChartAxisDirection,
     type DeepReadonly,
     Logger,
     type OptionsDefs,
@@ -33,7 +35,6 @@ import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
-import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';

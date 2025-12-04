@@ -1,11 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
+const { PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
     static readonly className = 'RadialColumnSeries';

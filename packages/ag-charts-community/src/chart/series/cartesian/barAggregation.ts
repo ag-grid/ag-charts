@@ -1,8 +1,4 @@
 import type { ScaleType } from 'ag-charts-core';
-import { nextPowerOf2, simpleMemorize2 } from 'ag-charts-core';
-
-import type { DataModel } from '../../data/dataModel';
-import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import {
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
@@ -11,7 +7,12 @@ import {
     compactAggregationIndices,
     createAggregationIndices,
     getMidpointsForIndices,
-} from '../aggregation';
+    nextPowerOf2,
+    simpleMemorize2,
+} from 'ag-charts-core';
+
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;

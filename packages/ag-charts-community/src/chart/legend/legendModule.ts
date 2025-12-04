@@ -1,4 +1,6 @@
 import {
+    CARTESIAN_POSITION,
+    FONT_SIZE_RATIO,
     type PluginModuleDefinition,
     boolean,
     borderOptionsDef,
@@ -6,18 +8,18 @@ import {
     colorUnion,
     fillOptionsDef,
     fontOptionsDef,
+    legendPositionValidator,
     number,
     padding,
     positiveNumber,
     ratio,
+    shapeValidator,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
 import { VERSION } from '../../version';
-import { legendPositionValidator, shapeValidator } from '../commonOptionsDefs';
-import { CARTESIAN_POSITION, FONT_SIZE_RATIO } from '../themes/constants';
 import { LEGEND_CONTAINER_THEME } from '../themes/util';
 import { Legend } from './legend';
 

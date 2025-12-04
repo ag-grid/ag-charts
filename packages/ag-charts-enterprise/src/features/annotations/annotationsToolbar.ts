@@ -3,10 +3,12 @@ import {
     ActionOnSet,
     BaseProperties,
     type BoxBounds,
+    ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
     PropertiesArray,
     Property,
+    ToolbarButtonProperties,
 } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
@@ -19,7 +21,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { LayoutElement, Menu, ToolbarButtonProperties, ChartAxisDirection } = _ModuleSupport;
+const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };

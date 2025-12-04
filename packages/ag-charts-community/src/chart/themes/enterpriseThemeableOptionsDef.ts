@@ -2,23 +2,32 @@ import {
     type OptionsDefs,
     and,
     arrayOf,
+    autoSizedLabelOptionsDefs,
     barHighlightOptionsDef,
     boolean,
     callbackDefs,
     color,
     colorUnion,
+    commonSeriesThemeableOptionsDefs,
     fillOptionsDef,
     highlightOptionsDef,
+    interpolationOptionsDefs,
     lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
+    numberFormatValidator,
     positiveNumber,
     ratio,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -76,17 +85,6 @@ import {
 } from 'ag-charts-types';
 
 import { commonAxisLabelOptionsDefs } from '../axesOptionsDefs';
-import {
-    autoSizedLabelOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    interpolationOptionsDefs,
-    markerOptionsDefs,
-    markerStyleOptionsDefs,
-    numberFormatValidator,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../commonOptionsDefs';
 
 const hierarchyHighlightStyleOptionsDef = {
     ...fillOptionsDef,

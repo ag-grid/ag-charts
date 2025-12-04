@@ -1,4 +1,5 @@
-import { type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
+import type { Scaling } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import { CategoryScale } from '../../../scale/categoryScale';
@@ -7,7 +8,6 @@ import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -18,7 +18,6 @@ import type {
 } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
-import type { Scaling } from './scaling';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
     @Property

@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, AgChartInstance, AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartInstance, AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { BAR_SHARED_Y_AXIS } from './test/examples';
@@ -40,7 +41,7 @@ describe('ChartSync', () => {
             for (const chart of charts) {
                 const { axes } = deproxy(chart);
 
-                const yAxes = axes.filter((a) => a.direction === _ModuleSupport.ChartAxisDirection.Y);
+                const yAxes = axes.filter((a) => a.direction === ChartAxisDirection.Y);
 
                 expect(yAxes).toHaveLength(1);
                 expect(yAxes[0].dataDomain.domain).toEqual([0, 5990]);
@@ -64,7 +65,7 @@ describe('ChartSync', () => {
             for (const chart of charts) {
                 const { axes } = deproxy(chart);
 
-                const yAxes = axes.filter((a) => a.direction === _ModuleSupport.ChartAxisDirection.Y);
+                const yAxes = axes.filter((a) => a.direction === ChartAxisDirection.Y);
 
                 expect(yAxes).toHaveLength(1);
                 expect(yAxes[0].dataDomain.domain).toEqual([0, 4898]);

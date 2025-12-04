@@ -2,30 +2,27 @@ import {
     type OptionsDefs,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    interpolationOptionsDefs,
-    markerOptionsDefs,
-    markerStyleOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 

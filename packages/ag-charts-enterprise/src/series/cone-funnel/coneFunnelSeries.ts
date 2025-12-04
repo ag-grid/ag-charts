@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
-import { extractDomain } from 'ag-charts-core';
+import { ChartAxisDirection, extractDomain } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -16,7 +16,7 @@ import {
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { Line, ChartAxisDirection } = _ModuleSupport;
+const { Line } = _ModuleSupport;
 
 export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgConeFunnelSeriesOptions> {
     static readonly className = 'ConeFunnelSeries';

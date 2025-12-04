@@ -8,7 +8,13 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType, LabelPlacement, PointLabelDatum, SizedPoint } from 'ag-charts-core';
+import type {
+    FeatureCollection,
+    InternalAgColorType,
+    LabelPlacement,
+    PointLabelDatum,
+    SizedPoint,
+} from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
@@ -38,7 +44,7 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
     @Property
-    topology: _ModuleSupport.FeatureCollection | undefined = undefined;
+    topology: FeatureCollection | undefined = undefined;
 
     @Property
     title?: string;

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from 'ag-charts-community';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -9,6 +8,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
 } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,

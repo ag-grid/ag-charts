@@ -1,4 +1,13 @@
-import { ActionOnSet, Debug, type DeepPartial, type LicenseManager, ModuleRegistry, deepClone } from 'ag-charts-core';
+import type { MementoCaretaker, MementoOriginator } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    ChartUpdateType,
+    Debug,
+    type DeepPartial,
+    type LicenseManager,
+    ModuleRegistry,
+    deepClone,
+} from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -8,12 +17,10 @@ import type {
     ImageDataUrlOptions,
 } from 'ag-charts-types';
 
-import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
-import type { UpdateZoomSourcing } from '../chart/interaction/zoomManager';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
-import { ChartUpdateType } from './chartUpdateType';
 import type { DataServiceRestoredData } from './data/dataService';
+import type { UpdateZoomSourcing } from './interaction/zoomManager';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';

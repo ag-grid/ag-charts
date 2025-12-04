@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { mapValues } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianAxisType,
@@ -9,10 +9,9 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { ChartUpdateType } from '../chartUpdateType';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
+import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -26,7 +25,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {

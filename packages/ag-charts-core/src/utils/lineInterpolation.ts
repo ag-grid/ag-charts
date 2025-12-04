@@ -1,15 +1,16 @@
-import { type Point, solveBezier, splitBezier2D } from 'ag-charts-core';
+import type { Point } from '../interfaces/sceneTypes';
+import { solveBezier, splitBezier2D } from './bezier';
 
-export type LinearSpan = {
+export interface LinearSpan {
     type: 'linear';
     moveTo: boolean;
     x0: number;
     y0: number;
     x1: number;
     y1: number;
-};
+}
 
-export type CubicSpan = {
+export interface CubicSpan {
     type: 'cubic';
     moveTo: boolean;
     cp0x: number;
@@ -20,9 +21,9 @@ export type CubicSpan = {
     cp2y: number;
     cp3x: number;
     cp3y: number;
-};
+}
 
-export type StepSpan = {
+export interface StepSpan {
     type: 'step';
     moveTo: boolean;
     x0: number;
@@ -30,9 +31,9 @@ export type StepSpan = {
     x1: number;
     y1: number;
     stepX: number;
-};
+}
 
-export type MultiLineSpan = {
+export interface MultiLineSpan {
     type: 'multi-line';
     moveTo: boolean;
     x0: number;
@@ -40,7 +41,7 @@ export type MultiLineSpan = {
     x1: number;
     y1: number;
     midPoints: Point[];
-};
+}
 
 export type Span = LinearSpan | CubicSpan | StepSpan | MultiLineSpan;
 
@@ -319,11 +320,11 @@ export function stepPoints(points: Iterable<Point>, position: number | keyof typ
     return spans;
 }
 
-const flatnessRatio = 0.05;
 export function smoothPoints(iPoints: Iterable<Point>, tension: number): Span[] {
     const points = Array.isArray(iPoints) ? iPoints : Array.from(iPoints);
     if (points.length <= 1) return [];
 
+    const flatnessRatio = 0.05;
     const gradients = points.map((c, i) => {
         const p = i === 0 ? c : points[i - 1];
         const n = i === points.length - 1 ? c : points[i + 1];

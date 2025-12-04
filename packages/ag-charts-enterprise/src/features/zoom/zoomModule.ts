@@ -1,4 +1,4 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { VERSION } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     arrayOfDefs,
@@ -8,6 +8,7 @@ import {
     ratio,
     strictUnion,
     string,
+    toolbarButtonOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -53,7 +54,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
             enabled: boolean,
             buttons: arrayOfDefs<AgZoomButton>(
                 {
-                    ..._ModuleSupport.toolbarButtonOptionsDefs,
+                    ...toolbarButtonOptionsDefs,
                     value: union('reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end'),
                     section: string,
                 },

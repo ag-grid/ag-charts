@@ -3,6 +3,7 @@ import {
     array,
     arrayOfDefs,
     boolean,
+    commonChartOptionsDefs,
     defined,
     geoJson,
     htmlElement,
@@ -18,8 +19,6 @@ import type {
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
-
-import { commonChartOptionsDefs } from './commonOptionsDefs';
 
 // These options are being validated by other modules
 const commonChartOptions = {

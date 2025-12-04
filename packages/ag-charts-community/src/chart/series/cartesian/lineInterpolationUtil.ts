@@ -1,8 +1,14 @@
-import { transformIntegratedCategoryValue } from 'ag-charts-core';
+import type { Scaling } from 'ag-charts-core';
+import {
+    type Span,
+    clipSpanX,
+    collapseSpanToPoint,
+    rescaleSpan,
+    spanRange,
+    transformIntegratedCategoryValue,
+} from 'ag-charts-core';
 
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
-import type { Scaling } from './scaling';
 
 const MAX_CATEGORIES = 1000;
 
