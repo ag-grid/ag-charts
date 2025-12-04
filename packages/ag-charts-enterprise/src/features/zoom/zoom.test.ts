@@ -776,8 +776,6 @@ describe('Zoom', () => {
             await waitForChartStability(chart);
             state = chart.getState();
             expect(state.zoom).toMatchObject(resetZoomState);
-
-            expect(false).toBe(true);
         });
     });
 });
