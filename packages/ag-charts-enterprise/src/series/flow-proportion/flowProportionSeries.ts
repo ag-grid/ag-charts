@@ -3,7 +3,6 @@ import type {
     ChartAnimationPhase,
     ChartAxisDirection,
     DistantObject,
-    DomainInput,
     DomainWithMetadata,
     InternalAgColorType,
     Point,
@@ -607,11 +606,7 @@ export abstract class FlowProportionSeries<
         return Number.NaN; // Not used
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(_direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(_direction: ChartAxisDirection): DomainWithMetadata<any> {
         return { domain: [] };
     }
 

@@ -7,10 +7,8 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
-    extractDomain,
     isDefined,
     isGradientFill,
     normalizeAngle360,
@@ -129,11 +127,7 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

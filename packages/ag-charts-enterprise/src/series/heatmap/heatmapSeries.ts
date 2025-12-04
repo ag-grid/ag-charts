@@ -11,7 +11,6 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type InternalAgColorType,
     Logger,
@@ -204,11 +203,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return [y, y + height];
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
 
         if (!dataModel || !processedData) return { domain: [] };

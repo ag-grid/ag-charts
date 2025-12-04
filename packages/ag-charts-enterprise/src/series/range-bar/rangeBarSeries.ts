@@ -14,14 +14,12 @@ import {
     AGGREGATION_SPAN,
     type CallbackParamRules,
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Mutable,
     type Point,
     type RequireOptional,
     type Scale,
     areScalingEqual,
-    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -324,11 +322,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

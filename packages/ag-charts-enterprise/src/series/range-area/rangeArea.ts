@@ -18,12 +18,10 @@ import {
     ChartAxisDirection,
     type ConstructorReturnType,
     type DeepRequired,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     type RequireOptional,
     extent,
-    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -353,11 +351,7 @@ export class RangeAreaSeries extends BaseSeries {
         return [y, y];
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return { domain: [] };
 

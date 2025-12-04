@@ -1,4 +1,11 @@
-import type { ChartAxisDirection, DomainInput, DomainWithMetadata, PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
+import type {
+    ChartAxisDirection,
+    DomainWithMetadata,
+    PlacedLabel,
+    Point,
+    PointLabelDatum,
+    SizedPoint,
+} from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';

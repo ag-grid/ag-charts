@@ -1,6 +1,5 @@
 import {
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     type RequireOptional,

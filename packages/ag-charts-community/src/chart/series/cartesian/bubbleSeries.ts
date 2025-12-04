@@ -1,7 +1,6 @@
 import {
     type CallbackParamRules,
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type LabelPlacement,
     type MeasuredLabel,

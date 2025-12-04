@@ -1,5 +1,5 @@
-import type { CallbackParamRules, DomainInput, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, extent, extractDomain, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,

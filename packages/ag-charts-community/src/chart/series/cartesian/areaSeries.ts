@@ -1,6 +1,5 @@
 import type {
     CallbackParamRules,
-    DomainInput,
     DomainWithMetadata,
     InternalAgColorType,
     Point,
@@ -11,7 +10,6 @@ import {
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     extent,
-    extractDomain,
     isContinuous,
     isDefined,
     mergeDefaults,

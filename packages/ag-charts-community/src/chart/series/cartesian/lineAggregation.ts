@@ -5,6 +5,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
+    type DomainWithMetadata,
     type ScaleType,
     aggregationDomain,
     aggregationIndexForXRatio,
@@ -13,7 +14,6 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    extractDomain,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';

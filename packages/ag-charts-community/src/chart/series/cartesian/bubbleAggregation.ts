@@ -1,4 +1,4 @@
-import type { ScaleType } from 'ag-charts-core';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import { aggregationDomain, aggregationXRatioForXValue, clamp } from 'ag-charts-core';
 
 const SIZE_QUANTIZATION = 3;

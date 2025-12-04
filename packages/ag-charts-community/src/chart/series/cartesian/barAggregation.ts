@@ -1,4 +1,4 @@
-import type { ScaleType } from 'ag-charts-core';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import {
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,

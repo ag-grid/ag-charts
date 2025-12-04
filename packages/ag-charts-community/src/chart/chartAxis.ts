@@ -1,4 +1,11 @@
-import type { AxisID, ChartAnimationPhase, ChartAxisDirection, DomainWithMetadata, Padding, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    ChartAnimationPhase,
+    ChartAxisDirection,
+    DomainWithMetadata,
+    Padding,
+    Scale,
+} from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,

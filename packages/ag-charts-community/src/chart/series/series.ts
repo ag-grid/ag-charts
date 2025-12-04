@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, DomainInput, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,

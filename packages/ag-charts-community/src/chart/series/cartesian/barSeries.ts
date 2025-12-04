@@ -1,4 +1,4 @@
-import type { CallbackParamRules, DomainInput, DomainWithMetadata, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
+import type { CallbackParamRules, DomainWithMetadata, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_UNSET,
     AGGREGATION_INDEX_X_MAX,
@@ -8,7 +8,6 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     areScalingEqual,
-    extractDomain,
     isFiniteNumber,
     mergeDefaults,
 } from 'ag-charts-core';

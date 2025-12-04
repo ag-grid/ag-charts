@@ -6,7 +6,6 @@ import {
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
-    extractDomain,
 } from 'ag-charts-core';
 
 const { LayoutElement, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;

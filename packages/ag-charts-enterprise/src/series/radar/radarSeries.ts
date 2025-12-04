@@ -10,7 +10,6 @@ import {
 import {
     type CallbackParam,
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     type RequireOptional,
@@ -130,11 +129,7 @@ export abstract class RadarSeries<
         return new Marker();
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

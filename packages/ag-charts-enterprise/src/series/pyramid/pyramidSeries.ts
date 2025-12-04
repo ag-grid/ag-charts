@@ -7,7 +7,6 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     StateMachine,

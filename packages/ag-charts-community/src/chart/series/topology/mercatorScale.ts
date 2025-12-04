@@ -1,5 +1,4 @@
-import type { DomainInput, DomainWithMetadata, NormalizedDomain, Position } from 'ag-charts-core';
-import { extractDomain } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain, Position } from 'ag-charts-core';
 
 import { AbstractScale } from '../../../scale/abstractScale';
 import { BBox } from '../../../scene/bbox';

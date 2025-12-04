@@ -1,5 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
+import type {
+    DomainWithMetadata,
+    ExtremesAggregationFilter,
+    ExtremesPartialAggregationResult,
+    ScaleType,
+} from 'ag-charts-core';
 import {
     aggregationDomain,
     computeExtremesAggregation,

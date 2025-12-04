@@ -7,11 +7,9 @@ import {
 } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     angleBetween,
-    extractDomain,
     isDefined,
     isGradientFill,
 } from 'ag-charts-core';
@@ -122,11 +120,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return new Sector();
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

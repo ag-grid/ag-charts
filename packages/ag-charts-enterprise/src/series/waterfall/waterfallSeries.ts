@@ -8,12 +8,10 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
     type DomainWithMetadata,
     type Point,
     type RequireOptional,
     easeOut,
-    extractDomain,
     isContinuous,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -211,11 +209,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
-<<<<<<< HEAD
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
-=======
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
->>>>>>> origin/latest
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

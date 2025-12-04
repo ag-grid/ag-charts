@@ -1,4 +1,4 @@
-import type { ScaleType } from '../../interfaces/scaleTypes';
+import type { DomainWithMetadata, ScaleType } from '../../interfaces/scaleTypes';
 import { nextPowerOf2 } from '../../utils/numberArray';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
