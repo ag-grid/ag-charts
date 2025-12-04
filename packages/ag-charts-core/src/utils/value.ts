@@ -33,3 +33,10 @@ export function transformIntegratedCategoryValue(value: unknown): any {
     }
     return value;
 }
+
+export function readIntegratedWrappedValue<D>(value: D): D {
+    if (isStringObject(value) && Object.hasOwn(value, 'value')) {
+        return value.value;
+    }
+    return value;
+}
