@@ -31,6 +31,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            enabled: true,
             fontFamily: { $ref: 'fontFamily' },
             fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
             minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
@@ -42,6 +43,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         },
         secondaryLabel: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            enabled: true,
             fontFamily: { $ref: 'fontFamily' },
             fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
             minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },

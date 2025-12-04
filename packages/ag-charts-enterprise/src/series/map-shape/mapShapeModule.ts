@@ -42,6 +42,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             padding: 2,
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

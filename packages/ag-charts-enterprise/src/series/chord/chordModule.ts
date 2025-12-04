@@ -25,6 +25,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                enabled: true,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
