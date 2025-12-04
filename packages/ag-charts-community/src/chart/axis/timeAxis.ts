@@ -1,11 +1,10 @@
-import type { ChartAxisDirection } from 'ag-charts-core';
+import type { ChartAxisDirection, DomainWithMetadata } from 'ag-charts-core';
 import {
     BaseProperties,
     Logger,
     Property,
     ProxyPropertyOnWrite,
     dateTruncationForDomain,
-    extractDomain,
     intervalEpoch,
     intervalFloor,
     intervalMilliseconds,
@@ -90,9 +89,9 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    override normaliseDataDomain(domain: Date[]) {
+    override normaliseDataDomain(d: DomainWithMetadata<Date>) {
         const { extent, clipped } = normalisedTimeExtentWithMetadata(
-            domain,
+            d,
             this.min,
             this.max,
             this.preferredMin,
@@ -199,7 +198,7 @@ export function calculateDefaultUnit(
     for (const series of boundSeries) {
         if (!series.visible) continue;
 
-        const { extent: domain } = normalisedTimeExtentWithMetadata(extractDomain(series.getDomain(direction)));
+        const { extent: domain } = normalisedTimeExtentWithMetadata(series.getDomain(direction));
         if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();

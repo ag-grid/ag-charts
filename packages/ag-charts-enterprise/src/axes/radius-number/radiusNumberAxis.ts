@@ -1,4 +1,5 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { DomainWithMetadata } from 'ag-charts-core';
 import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
@@ -53,9 +54,17 @@ export class RadiusNumberAxis extends RadiusAxis {
         return maxRadius - tickDatum.translation + minRadius;
     }
 
-    override normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: DomainWithMetadata<number>) {
         const { min, max, preferredMin, preferredMax } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
+        const { extent, clipped } = normalisedExtentWithMetadata(
+            d.domain,
+            min,
+            max,
+            preferredMin,
+            preferredMax,
+            undefined,
+            d.sortMetadata?.sortOrder
+        );
 
         return { domain: extent, clipped };
     }

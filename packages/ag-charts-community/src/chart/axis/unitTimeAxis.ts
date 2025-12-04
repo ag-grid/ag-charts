@@ -1,3 +1,4 @@
+import type { DomainWithMetadata } from 'ag-charts-core';
 import {
     Property,
     dateTruncationForDomain,
@@ -91,9 +92,9 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         this.scale.interval = this.unit ?? this.defaultUnit;
     }
 
-    override normaliseDataDomain(domain: Date[]) {
+    override normaliseDataDomain(d: DomainWithMetadata<Date>) {
         const { extent, clipped } = normalisedTimeExtentWithMetadata(
-            domain,
+            d,
             this.min,
             this.max,
             this.preferredMin,
