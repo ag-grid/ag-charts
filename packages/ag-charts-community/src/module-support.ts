@@ -80,6 +80,7 @@ export type {
     ZoomChangeCompleteEvent,
     ZoomChangeRequestEvent,
     ZoomChangeState,
+    ZoomEventSourceDetail,
     ZoomLoadMementoEvent,
     ZoomPanStartEvent,
     ZoomSaveMementoEvent,
@@ -126,6 +127,7 @@ export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
 export { ContextMenuRegistry } from './chart/interaction/contextMenuRegistry';
 export type {
+    ContextMenuBuiltins,
     ContextMenuCallback,
     ContextMenuItemContract,
     ContextMenuItemContractNonRecursive,
@@ -134,7 +136,7 @@ export type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from './
 export { HighlightManager } from './chart/interaction/highlightManager';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
-export { ZoomManager } from './chart/interaction/zoomManager';
+export { userInteraction, type UpdateZoomSourcing, ZoomManager } from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
 export type {

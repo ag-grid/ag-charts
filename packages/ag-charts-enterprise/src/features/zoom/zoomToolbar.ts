@@ -33,7 +33,7 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { NativeWidget, Toolbar } = _ModuleSupport;
+const { userInteraction, NativeWidget, Toolbar } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
     @Property

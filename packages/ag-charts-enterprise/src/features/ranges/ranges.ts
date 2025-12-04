@@ -3,7 +3,7 @@ import { AbstractModuleInstance, ChartAxisDirection, PropertiesArray, Property }
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { LayoutElement, Toolbar, userInteraction } = _ModuleSupport;
+const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
 export class Ranges extends AbstractModuleInstance {
     @Property

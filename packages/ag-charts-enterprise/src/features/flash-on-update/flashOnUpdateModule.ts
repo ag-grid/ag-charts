@@ -1,7 +1,6 @@
 import { VERSION } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 import { boolean, color, positiveNumber, ratio, strictUnion } from 'ag-charts-core';
-import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from 'ag-charts-types';
 
 import { FlashOnUpdate } from './flashOnUpdate';
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdateTypes';

@@ -43,7 +43,7 @@ import {
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
 
-const { InteractionState } = _ModuleSupport;
+const { userInteraction, InteractionState } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type SeriesAreaClickEvent = _ModuleSupport.SeriesAreaClickEvent;
 
@@ -575,7 +575,7 @@ export class Zoom extends AbstractModuleInstance {
             this.updateAxisZoom(
                 userInteraction('zoom-axis-drag'),
                 axisId,
-                direction as _ModuleSupport.CartesianAxisDirection,
+                direction as CartesianAxisDirection,
                 newZoom,
                 { directional: true }
             );
@@ -982,7 +982,7 @@ export class Zoom extends AbstractModuleInstance {
     private updatePrimaryAxisZoom(
         sourcing: _ModuleSupport.UpdateZoomSourcing,
         zoom: DefinedZoomState,
-        direction: _ModuleSupport.CartesianAxisDirection
+        direction: CartesianAxisDirection
     ) {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
         if (axisId == null) return;

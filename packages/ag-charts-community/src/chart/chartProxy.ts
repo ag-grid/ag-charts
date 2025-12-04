@@ -20,6 +20,7 @@ import type {
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
+import type { UpdateZoomSourcing } from './interaction/zoomManager';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
