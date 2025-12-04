@@ -20,7 +20,7 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     options: waterfallSeriesOptionsDef,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisKeysFlipped: { [ChartAxisDirection.Y]: 'xKeyAxis', [ChartAxisDirection.X]: 'yKeyAxis' },
+    axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate: WATERFALL_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new WaterfallSeries(ctx),

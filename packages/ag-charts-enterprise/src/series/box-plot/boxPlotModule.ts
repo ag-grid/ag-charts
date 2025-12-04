@@ -21,7 +21,7 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisKeysFlipped: { [ChartAxisDirection.Y]: 'xKeyAxis', [ChartAxisDirection.X]: 'yKeyAxis' },
+    axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate: BOX_PLOT_SERIES_THEME,
 
     create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),

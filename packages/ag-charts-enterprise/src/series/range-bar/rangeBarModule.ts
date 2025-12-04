@@ -21,7 +21,7 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisKeysFlipped: { [ChartAxisDirection.Y]: 'xKeyAxis', [ChartAxisDirection.X]: 'yKeyAxis' },
+    axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
     create: (ctx) => new RangeBarSeries(ctx),

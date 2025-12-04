@@ -81,7 +81,7 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
-    axisKeysFlipped: { [ChartAxisDirection.Y]: 'xKeyAxis', [ChartAxisDirection.X]: 'yKeyAxis' },
+    axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate,
 
     create: (ctx: ModuleContext) => new BarSeries(ctx),
