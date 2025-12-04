@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+import { Logger } from 'ag-charts-core';
 
 import { DataSet } from './dataSet';
 
@@ -1666,6 +1667,122 @@ describe('DataSet', () => {
                     // X should remain at position 1, Z should shift from 5 to 4
                     expected: ['A', x, 'B', 'C', z],
                 });
+            });
+        });
+    });
+
+    describe('warning behaviors', () => {
+        let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
+
+        beforeEach(() => {
+            Logger.reset();
+            consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            consoleWarnSpy.mockRestore();
+        });
+
+        describe('remove array validation', () => {
+            test('should warn when remove array contains string values', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ remove: ['id1', 'id2'] as any });
+                dataSet.commitPendingTransactions();
+
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('AG Charts - applyTransaction() remove array contains non-object values')
+                );
+                expect(dataSet.data).toEqual([item0, item1]); // No items removed
+            });
+
+            test('should warn when remove array contains number values', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ remove: [123, 456] as any });
+                dataSet.commitPendingTransactions();
+
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('AG Charts - applyTransaction() remove array contains non-object values')
+                );
+                expect(dataSet.data).toEqual([item0, item1]); // No items removed
+            });
+
+            test('should not warn when trying to remove non-existent object datum (rolling window pattern)', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const nonExistent = { x: 99 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ remove: [nonExistent] });
+                dataSet.commitPendingTransactions();
+
+                // Don't warn for objects that aren't found, as rolling window patterns
+                // legitimately use new object instances
+                expect(consoleWarnSpy).not.toHaveBeenCalled();
+                expect(dataSet.data).toEqual([item0, item1]); // No items removed
+            });
+
+            test('should not warn when removing newly added then removed items', () => {
+                const item0 = { x: 0 };
+                const newItem = { x: 1 };
+                const dataSet = new DataSet([item0]);
+
+                // Add and remove in same transaction - should not warn about not found
+                dataSet.addTransaction({ add: [newItem], remove: [newItem] });
+                dataSet.commitPendingTransactions();
+
+                // Should not warn about non-existent item since it was added in the same transaction
+                expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining('could not find'));
+                expect(dataSet.data).toEqual([item0]);
+            });
+
+            test('should warn only once for multiple non-object values', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ remove: ['id1', 'id2', 'id3'] as any });
+                dataSet.commitPendingTransactions();
+
+                // warnOnce should only be called once
+                expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+                expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('non-object values'));
+            });
+        });
+
+        describe('update array validation', () => {
+            test('should warn when update array contains string values', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ update: ['id1', 'id2'] as any });
+                dataSet.commitPendingTransactions();
+
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('AG Charts - applyTransaction() update array contains non-object values')
+                );
+                expect(dataSet.data).toEqual([item0, item1]);
+            });
+
+            test('should warn when trying to update non-existent datum', () => {
+                const item0 = { x: 0 };
+                const item1 = { x: 1 };
+                const nonExistent = { x: 99 };
+                const dataSet = new DataSet([item0, item1]);
+
+                dataSet.addTransaction({ update: [nonExistent] });
+                dataSet.commitPendingTransactions();
+
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('AG Charts - applyTransaction() could not find 1 item(s) to update')
+                );
+                expect(dataSet.data).toEqual([item0, item1]);
             });
         });
     });

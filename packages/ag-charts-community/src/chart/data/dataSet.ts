@@ -1,3 +1,5 @@
+import { Logger } from 'ag-charts-core';
+
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 
 export { DataChangeDescription } from './dataChangeDescription';
@@ -485,6 +487,15 @@ export class DataSet<T = unknown> {
             return;
         }
 
+        // Track which items are primitives (for warning purposes)
+        // Note: null is typeof 'object' in JavaScript but is a valid value, so we allow it
+        const primitiveItems = new Set<T>();
+        for (const item of remove) {
+            if (item !== null && typeof item !== 'object' && typeof item !== 'function') {
+                primitiveItems.add(item);
+            }
+        }
+
         const toRemove = new Set(remove);
 
         this.removeFromGroups(state.prependsList, toRemove);
@@ -511,11 +522,41 @@ export class DataSet<T = unknown> {
                 }
             }
         }
+
+        // Warn if any items were not found
+        // JIRA AG-16074 issue 5: Warn when string arrays (non-object values) are passed and not found
+        if (toRemove.size > 0) {
+            const unfoundPrimitives: T[] = [];
+            for (const item of toRemove) {
+                if (primitiveItems.has(item)) {
+                    unfoundPrimitives.push(item);
+                }
+            }
+
+            // Issue 5: Warn about primitives that weren't found
+            if (unfoundPrimitives.length > 0) {
+                const types = Array.from(new Set(unfoundPrimitives.map((v) => typeof v))).join(', ');
+                Logger.warnOnce(
+                    `applyTransaction() remove array contains non-object values. Expected object references, received: ${types}. These items will be ignored.`
+                );
+            }
+            // Note: We don't warn for objects that aren't found in remove operations,
+            // as rolling window patterns legitimately use new object instances
+        }
     }
 
     private applyUpdates(update: T[] | undefined, state: TransactionCollectionState<T>): void {
         if (!Array.isArray(update) || update.length === 0) {
             return;
+        }
+
+        // Track which items are primitives (for warning purposes)
+        // Note: null is typeof 'object' in JavaScript but is a valid value, so we allow it
+        const primitiveItems = new Set<T>();
+        for (const item of update) {
+            if (item !== null && typeof item !== 'object' && typeof item !== 'function') {
+                primitiveItems.add(item);
+            }
         }
 
         const toUpdate = new Set(update);
@@ -527,6 +568,38 @@ export class DataSet<T = unknown> {
 
         if (toUpdate.size > 0) {
             this.collectUpdatedOriginalIndices(toUpdate, state);
+        }
+
+        // Warn if any items were not found
+        // JIRA AG-16074 issue 5: Warn when string arrays (non-object values) are passed and not found
+        // JIRA AG-16074 issue 6: Warn-once when attempting to update a non-existent datum (object)
+        // Note: We check this after collectUpdatedOriginalIndices which removes found items from toUpdate
+        if (toUpdate.size > 0) {
+            const unfoundPrimitives: T[] = [];
+            const unfoundObjects: T[] = [];
+            for (const item of toUpdate) {
+                if (primitiveItems.has(item)) {
+                    unfoundPrimitives.push(item);
+                } else {
+                    unfoundObjects.push(item);
+                }
+            }
+
+            // Issue 5: Warn about primitives that weren't found
+            if (unfoundPrimitives.length > 0) {
+                const types = Array.from(new Set(unfoundPrimitives.map((v) => typeof v))).join(', ');
+                Logger.warnOnce(
+                    `applyTransaction() update array contains non-object values. Expected object references, received: ${types}. These items will be ignored.`
+                );
+            }
+
+            // Issue 6: Warn-once for objects that weren't found (non-existent datums)
+            // Only warn if we actually tried to update objects (not just primitives)
+            if (unfoundObjects.length > 0 && primitiveItems.size < update.length) {
+                Logger.warnOnce(
+                    `applyTransaction() could not find ${unfoundObjects.length} item(s) to update. Ensure you pass the same object references that exist in the data.`
+                );
+            }
         }
 
         state.updateTracking = {
@@ -582,6 +655,7 @@ export class DataSet<T = unknown> {
             const idx = indexMap.get(item);
             if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
                 state.updatedOriginalIndices.add(idx);
+                toUpdate.delete(item); // Remove found items from toUpdate set
             }
         }
     }
