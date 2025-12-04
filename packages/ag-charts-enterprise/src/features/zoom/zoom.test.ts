@@ -828,6 +828,9 @@ describe('Zoom', () => {
                 },
                 zoom: {
                     enabled: true,
+                    autoScaling: {
+                        enabled: true,
+                    },
                     onDataChange: {
                         strategy: 'preserveRatios',
                     },
