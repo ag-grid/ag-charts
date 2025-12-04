@@ -71,8 +71,7 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
-    // TODO(olegat): change default to 'preserveDomain'
-    strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
+    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
 
     @Property
     // TODO(olegat): change default to 'true'
