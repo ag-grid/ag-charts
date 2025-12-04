@@ -11,6 +11,7 @@ import {
     ScaleAlignment,
     attachDescription,
     deepClone,
+    deepFreeze,
     defined,
     isFiniteNumber,
     isObject,
@@ -287,6 +288,7 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
+        this.lastRestoredState = deepFreeze(deepClone(changes));
         this.updateChanges({ source: 'user-interaction', sourceDetail: 'internal-restoreMemento', changes });
     }
 
