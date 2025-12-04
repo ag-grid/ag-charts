@@ -81,6 +81,9 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
     @Property
+    simpleItemStyler?: (datum: unknown) => AgBarSeriesStyle | undefined;
+
+    @Property
     readonly shadow = new DropShadow();
 
     @Property

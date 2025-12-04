@@ -12,7 +12,7 @@ const DATA_INTERVAL_MS = 250;
 const START_DATE = new Date(Date.UTC(2024, 0, 1, 0, 0, 0));
 
 type OhlcDatum = {
-    date: Date;
+    date: number;
     open: number;
     high: number;
     low: number;
@@ -21,7 +21,7 @@ type OhlcDatum = {
 };
 
 function generateOhlcDatum(index: number, previousClose?: number): { datum: OhlcDatum; basePrice: number } {
-    const date = new Date(START_DATE.getTime() + index * DATA_INTERVAL_MS);
+    const date = START_DATE.getTime() + index * DATA_INTERVAL_MS;
 
     const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
     const volatility = Math.sin(index / 15) * 5;

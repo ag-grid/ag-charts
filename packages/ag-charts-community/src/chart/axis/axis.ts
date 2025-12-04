@@ -547,18 +547,21 @@ export abstract class Axis<
 
     protected animatable = true;
     setDomains(...domains: DomainWithMetadata<D>[]) {
-        let domain: D[];
+        let normalizedDomain: DomainWithMetadata<D>;
         let animatable: boolean;
         if (domains.length > 0) {
-            ({ domain, animatable } = this.scale.normalizeDomains(...domains));
+            const result = this.scale.normalizeDomains(...domains);
+            // After normalization, ordinal time domains are always sorted ascending
+            normalizedDomain = { domain: result.domain, sortMetadata: { sortOrder: 1 } };
+            animatable = result.animatable;
         } else {
             // Series (or all series in a group) hidden
             // There could be multiple axes, so we still consider this to be animatable
-            domain = [];
+            normalizedDomain = { domain: [] };
             animatable = true;
         }
 
-        this.dataDomain = this.normaliseDataDomain(domain);
+        this.dataDomain = this.normaliseDataDomain(normalizedDomain);
 
         if (this.reverse) {
             this.dataDomain.domain.reverse();
@@ -964,8 +967,8 @@ export abstract class Axis<
         return { domain, direction, boundSeries, defaultValue: this.title?.text };
     }
 
-    protected normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
-        return { domain: [...d], clipped: false };
+    protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {
+        return { domain: [...d.domain], clipped: false };
     }
 
     getLayoutState(): AxisLayout {

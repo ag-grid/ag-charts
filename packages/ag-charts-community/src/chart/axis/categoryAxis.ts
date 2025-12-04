@@ -1,3 +1,4 @@
+import type { DomainWithMetadata } from 'ag-charts-core';
 import { Property, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
@@ -49,8 +50,8 @@ export class CategoryAxis<
         return false;
     }
 
-    override normaliseDataDomain(domain: Array<string | object>) {
-        return { domain, clipped: false };
+    override normaliseDataDomain(d: DomainWithMetadata<string | object>) {
+        return { domain: d.domain, clipped: false };
     }
 
     protected override updateScale() {

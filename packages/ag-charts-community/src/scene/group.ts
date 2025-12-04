@@ -31,7 +31,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private static compareChildren(this: void, a: Node, b: Node) {
-        return compareZIndex(a.zIndex, b.zIndex) || a.serialNumber - b.serialNumber;
+        return compareZIndex(a.__zIndex, b.__zIndex) || a.serialNumber - b.serialNumber;
     }
 
     private readonly childNodes = new Set<Node>();

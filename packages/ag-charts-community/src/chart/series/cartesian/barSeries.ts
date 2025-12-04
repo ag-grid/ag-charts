@@ -1314,9 +1314,21 @@ export class BarSeries extends AbstractBarSeries<
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
-        const { itemStyler } = properties;
+        const { itemStyler, simpleItemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+
+        // Fast path: simpleItemStyler bypasses options graph resolution
+        if (simpleItemStyler && processedData != null && datumIndex != null) {
+            const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
+            const overrides = simpleItemStyler(datum);
+            return mergeDefaults(
+                overrides,
+                highlightStyle,
+                this.getStyle(false, highlightState)
+            ) as Required<AgBarSeriesStyle>;
+        }
+
         let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
@@ -1616,6 +1628,7 @@ export class BarSeries extends AbstractBarSeries<
         return (
             this.properties.styler != null ||
             this.properties.itemStyler != null ||
+            this.properties.simpleItemStyler != null ||
             this.properties.label.itemStyler != null
         );
     }

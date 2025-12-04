@@ -292,9 +292,10 @@ export function createAggregationIndices(
         }
     }
 
-    // Pre-compute domain range for continuous case
-    const domainRange = continuous ? d1 - d0 : 0;
-    const invDomainCount = 1 / domainCount;
+    // Pre-compute scale factors (multiplication is faster than division)
+    // For continuous: scaleFactor = maxRange / domainRange, so bucketIndex = floor((x - d0) * scaleFactor)
+    // For discrete: scaleFactor = maxRange / domainCount
+    const scaleFactor = continuous ? maxRange / (d1 - d0) : maxRange * (1 / domainCount);
 
     // Cache for current bucket to reduce array access overhead (Positive / Default)
     let lastAggIndex = -1;
@@ -352,22 +353,23 @@ export function createAggregationIndices(
             continue;
         }
 
-        // Optimize xRatio calculation with pre-computed values
-        let xRatio: number;
+        // Compute scaled x position in one multiplication (combines xRatio and bucket scaling)
+        // scaledX is in range [0, maxRange] for values within domain
+        let scaledX: number;
         if (continuous) {
             if (xNeedsValueOf) {
-                xRatio = (xValue.valueOf() - d0) / domainRange;
+                scaledX = (xValue.valueOf() - d0) * scaleFactor;
             } else {
-                xRatio = (xValue - d0) / domainRange;
+                scaledX = (xValue - d0) * scaleFactor;
             }
         } else {
-            xRatio = datumIndex * invDomainCount;
+            scaledX = datumIndex * scaleFactor;
         }
 
-        // Clamp to maxRange-1 to handle xRatio=1.0 edge case, then multiply by AGGREGATION_SPAN
+        // Clamp to maxRange-1 to handle scaledX=maxRange edge case
         // Note: Must use Math.floor (not |0) because |0 truncates toward zero, causing negative
-        // xRatio values (data below domain) to incorrectly map to bucket 0 instead of negative bucket
-        const bucketIndex = Math.floor(xRatio * maxRange);
+        // scaledX values (data below domain) to incorrectly map to bucket 0 instead of negative bucket
+        const bucketIndex = Math.floor(scaledX);
         const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) << 2;
 
         if (isPositiveDatum) {
@@ -403,9 +405,9 @@ export function createAggregationIndices(
             // Fast path: bucket is unset (first value in bucket)
             if (cachedXMinIndex === -1) {
                 cachedXMinIndex = datumIndex;
-                cachedXMinValue = xRatio;
+                cachedXMinValue = scaledX;
                 cachedXMaxIndex = datumIndex;
-                cachedXMaxValue = xRatio;
+                cachedXMaxValue = scaledX;
                 if (yMinValid) {
                     cachedYMinIndex = datumIndex;
                     cachedYMinValue = yMin;
@@ -416,13 +418,13 @@ export function createAggregationIndices(
                 }
             } else {
                 // Slow path: bucket has values, need comparisons
-                if (xRatio < cachedXMinValue) {
+                if (scaledX < cachedXMinValue) {
                     cachedXMinIndex = datumIndex;
-                    cachedXMinValue = xRatio;
+                    cachedXMinValue = scaledX;
                 }
-                if (xRatio > cachedXMaxValue) {
+                if (scaledX > cachedXMaxValue) {
                     cachedXMaxIndex = datumIndex;
-                    cachedXMaxValue = xRatio;
+                    cachedXMaxValue = scaledX;
                 }
                 if (yMinValid && yMin < cachedYMinValue) {
                     cachedYMinIndex = datumIndex;
@@ -462,9 +464,9 @@ export function createAggregationIndices(
 
             if (negCachedXMinIndex === -1) {
                 negCachedXMinIndex = datumIndex;
-                negCachedXMinValue = xRatio;
+                negCachedXMinValue = scaledX;
                 negCachedXMaxIndex = datumIndex;
-                negCachedXMaxValue = xRatio;
+                negCachedXMaxValue = scaledX;
                 if (yMinValid) {
                     negCachedYMinIndex = datumIndex;
                     negCachedYMinValue = yMin;
@@ -474,13 +476,13 @@ export function createAggregationIndices(
                     negCachedYMaxValue = yMax;
                 }
             } else {
-                if (xRatio < negCachedXMinValue) {
+                if (scaledX < negCachedXMinValue) {
                     negCachedXMinIndex = datumIndex;
-                    negCachedXMinValue = xRatio;
+                    negCachedXMinValue = scaledX;
                 }
-                if (xRatio > negCachedXMaxValue) {
+                if (scaledX > negCachedXMaxValue) {
                     negCachedXMaxIndex = datumIndex;
-                    negCachedXMaxValue = xRatio;
+                    negCachedXMaxValue = scaledX;
                 }
                 if (yMinValid && yMin < negCachedYMinValue) {
                     negCachedYMinIndex = datumIndex;

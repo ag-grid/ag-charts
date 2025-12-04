@@ -107,13 +107,15 @@ describe('extent module', () => {
     describe('normalisedTimeExtentWithMetadata', () => {
         test('expands extents to include min/max', () => {
             const result = normalisedTimeExtentWithMetadata(
-                [
-                    new Date(2019, 0, 1),
-                    new Date(2020, 0, 1),
-                    new Date(2021, 0, 1),
-                    new Date(2022, 0, 1),
-                    new Date(2023, 0, 1),
-                ],
+                {
+                    domain: [
+                        new Date(2019, 0, 1),
+                        new Date(2020, 0, 1),
+                        new Date(2021, 0, 1),
+                        new Date(2022, 0, 1),
+                        new Date(2023, 0, 1),
+                    ],
+                },
                 new Date(2018, 0, 1),
                 new Date(2024, 0, 1)
             );
@@ -123,13 +125,15 @@ describe('extent module', () => {
 
         test('expands extents to include preferredMin/preferredMax', () => {
             const result = normalisedTimeExtentWithMetadata(
-                [
-                    new Date(2019, 0, 1),
-                    new Date(2020, 0, 1),
-                    new Date(2021, 0, 1),
-                    new Date(2022, 0, 1),
-                    new Date(2023, 0, 1),
-                ],
+                {
+                    domain: [
+                        new Date(2019, 0, 1),
+                        new Date(2020, 0, 1),
+                        new Date(2021, 0, 1),
+                        new Date(2022, 0, 1),
+                        new Date(2023, 0, 1),
+                    ],
+                },
                 undefined,
                 undefined,
                 new Date(2018, 0, 1),
@@ -141,13 +145,15 @@ describe('extent module', () => {
 
         test('contracts extents when min/max within domain', () => {
             const result = normalisedTimeExtentWithMetadata(
-                [
-                    new Date(2019, 0, 1),
-                    new Date(2020, 0, 1),
-                    new Date(2021, 0, 1),
-                    new Date(2022, 0, 1),
-                    new Date(2023, 0, 1),
-                ],
+                {
+                    domain: [
+                        new Date(2019, 0, 1),
+                        new Date(2020, 0, 1),
+                        new Date(2021, 0, 1),
+                        new Date(2022, 0, 1),
+                        new Date(2023, 0, 1),
+                    ],
+                },
                 new Date(2019, 6, 1),
                 new Date(2022, 6, 1)
             );
@@ -157,13 +163,15 @@ describe('extent module', () => {
 
         test('does not contract extents when preferredMin/preferredMax within domain', () => {
             const result = normalisedTimeExtentWithMetadata(
-                [
-                    new Date(2019, 0, 1),
-                    new Date(2020, 0, 1),
-                    new Date(2021, 0, 1),
-                    new Date(2022, 0, 1),
-                    new Date(2023, 0, 1),
-                ],
+                {
+                    domain: [
+                        new Date(2019, 0, 1),
+                        new Date(2020, 0, 1),
+                        new Date(2021, 0, 1),
+                        new Date(2022, 0, 1),
+                        new Date(2023, 0, 1),
+                    ],
+                },
                 undefined,
                 undefined,
                 new Date(2019, 6, 1),
@@ -175,13 +183,15 @@ describe('extent module', () => {
 
         test('prioritises min/max over preferredMin/preferredMax', () => {
             const result = normalisedTimeExtentWithMetadata(
-                [
-                    new Date(2019, 0, 1),
-                    new Date(2020, 0, 1),
-                    new Date(2021, 0, 1),
-                    new Date(2022, 0, 1),
-                    new Date(2023, 0, 1),
-                ],
+                {
+                    domain: [
+                        new Date(2019, 0, 1),
+                        new Date(2020, 0, 1),
+                        new Date(2021, 0, 1),
+                        new Date(2022, 0, 1),
+                        new Date(2023, 0, 1),
+                    ],
+                },
                 new Date(2019, 6, 1),
                 new Date(2022, 6, 1),
                 new Date(2018, 0, 1),

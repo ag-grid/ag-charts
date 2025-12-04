@@ -1,4 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import type { DomainWithMetadata } from 'ag-charts-core';
 import {
     Property,
     type ScaleTickParams,
@@ -43,9 +44,17 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         return min != null && max != null && min < max;
     }
 
-    override normaliseDataDomain(d: number[]) {
+    override normaliseDataDomain(d: DomainWithMetadata<number>) {
         const { min, max, preferredMin, preferredMax } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max, preferredMin, preferredMax);
+        const { extent, clipped } = normalisedExtentWithMetadata(
+            d.domain,
+            min,
+            max,
+            preferredMin,
+            preferredMax,
+            undefined,
+            d.sortMetadata?.sortOrder
+        );
 
         return { domain: extent, clipped };
     }

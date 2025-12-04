@@ -76,7 +76,13 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         if (nonEmptyDomains.length === 0) {
             return { domain: [], animatable: false };
-        } else if (nonEmptyDomains.length === 1) {
+        }
+
+        // Check if all domains are the same array reference (common in Financial Charts)
+        const firstDomain = nonEmptyDomains[0].domain;
+        const allSame = nonEmptyDomains.every((d) => d.domain === firstDomain);
+
+        if (nonEmptyDomains.length === 1 || allSame) {
             const input = nonEmptyDomains[0];
             let domain = input.domain;
 

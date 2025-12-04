@@ -3,7 +3,6 @@ import { Logger, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
-    AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
@@ -385,11 +384,11 @@ function createVolumeSeries(
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
-            itemStyler({ datum }: AgBarSeriesItemStylerParams<any>) {
+            // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
+            simpleItemStyler(datum: any) {
                 const { up, down } = getTheme().palette;
                 return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
             },
-            // @ts-expect-error undocumented option
             focusPriority: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,

@@ -1,8 +1,21 @@
+import type { DomainWithMetadata } from '../interfaces/scaleTypes';
 import { isNumber } from './typeGuards';
 
-export function extent(values: Array<unknown>): [number, number] | null {
+export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, number] | null {
     if (values.length === 0) {
         return null;
+    }
+
+    // Fast path: if data is sorted, extent is trivially [first, last] or [last, first]
+    if (sortOrder !== undefined) {
+        const first = values.at(0);
+        const last = values.at(-1);
+        const v0 = first instanceof Date ? first.getTime() : first;
+        const v1 = last instanceof Date ? last.getTime() : last;
+
+        if (typeof v0 === 'number' && typeof v1 === 'number') {
+            return sortOrder === 1 ? [v0, v1] : [v1, v0];
+        }
     }
 
     let min = Infinity;
@@ -29,11 +42,12 @@ export function normalisedExtentWithMetadata<T>(
     max?: T,
     preferredMin?: T,
     preferredMax?: T,
-    toValue?: (x: number) => T
+    toValue?: (x: number) => T,
+    sortOrder?: 1 | -1
 ): { extent: T[]; clipped: boolean } {
     let clipped = false;
 
-    const domainExtentNumbers = extent(d);
+    const domainExtentNumbers = extent(d, sortOrder);
     const domainExtent =
         domainExtentNumbers && toValue
             ? [toValue(domainExtentNumbers[0]), toValue(domainExtentNumbers[1])]
@@ -70,19 +84,20 @@ export function normalisedExtentWithMetadata<T>(
 }
 
 export function normalisedTimeExtentWithMetadata(
-    d: Date[],
+    input: DomainWithMetadata<Date>,
     min?: Date | number,
     max?: Date | number,
     preferredMin?: Date | number,
     preferredMax?: Date | number
 ) {
     const { extent: e, clipped } = normalisedExtentWithMetadata(
-        d,
+        input.domain,
         isNumber(min) ? new Date(min) : min,
         isNumber(max) ? new Date(max) : max,
         isNumber(preferredMin) ? new Date(preferredMin) : preferredMin,
         isNumber(preferredMax) ? new Date(preferredMax) : preferredMax,
-        (x) => new Date(x)
+        (x) => new Date(x),
+        input.sortMetadata?.sortOrder
     );
 
     return { extent: e.map((x) => new Date(x)), clipped };
