@@ -12,7 +12,7 @@ const DATA_INTERVAL_MS = 250;
 const START_DATE = new Date(Date.UTC(2024, 0, 1, 0, 0, 0));
 
 type OhlcDatum = {
-    date: Date;
+    date: number;
     open: number;
     high: number;
     low: number;
