@@ -1,4 +1,4 @@
-import type { AxisID, ChartAnimationPhase, Scale } from 'ag-charts-core';
+import type { AxisID, ChartAnimationPhase, DomainWithMetadata, Scale } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
@@ -537,7 +537,7 @@ export abstract class Axis<
 
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
-        const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
+        const domains = visibleSeries.map((series) => series.getDomain(direction));
         this.setDomains(...domains);
     }
 
@@ -546,7 +546,7 @@ export abstract class Axis<
     }
 
     protected animatable = true;
-    setDomains(...domains: D[][]) {
+    setDomains(...domains: DomainWithMetadata<D>[]) {
         let domain: D[];
         let animatable: boolean;
         if (domains.length > 0) {

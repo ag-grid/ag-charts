@@ -4,7 +4,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DomainInput, Point, RequireOptional } from 'ag-charts-core';
+import type { DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -216,7 +216,7 @@ export abstract class BaseFunnelSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const {
             processedData,
             dataModel,

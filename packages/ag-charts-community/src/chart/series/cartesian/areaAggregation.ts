@@ -5,6 +5,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
+    type DomainWithMetadata,
     type ScaleType,
     aggregationDomain,
     aggregationIndexForXRatio,
@@ -13,7 +14,6 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    extractDomain,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -385,11 +385,11 @@ function aggregateAreaData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domain: any[],
+    domainInput: DomainWithMetadata<any>,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): AreaSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeAreaAggregation([d0, d1], xValues, yValues, { xNeedsValueOf, yNeedsValueOf });
 }
 
@@ -425,14 +425,14 @@ export function aggregateAreaDataFromDataModel(
 ): AreaSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'key', processedData));
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
     // When existingFilters provided, bypass memoization to enable TypedArray reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domain);
+        const [d0, d1] = aggregationDomain(scale, domainInput);
         return computeAreaAggregation([d0, d1], xValues, yValues, {
             xNeedsValueOf,
             yNeedsValueOf,
@@ -440,7 +440,7 @@ export function aggregateAreaDataFromDataModel(
         });
     }
 
-    return memoizedAggregateAreaData(scale, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
+    return memoizedAggregateAreaData(scale, xValues, yValues, domainInput, xNeedsValueOf, yNeedsValueOf);
 }
 
 /**
@@ -467,12 +467,12 @@ export function aggregateAreaDataFromDataModelPartial(
 ): PartialAreaAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'key', processedData));
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeAreaAggregationPartial([d0, d1], xValues, yValues, {
         xNeedsValueOf,
         yNeedsValueOf,

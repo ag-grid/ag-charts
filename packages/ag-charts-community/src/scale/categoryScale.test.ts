@@ -127,19 +127,22 @@ describe('CategoryScale', () => {
 
     describe('normalizeDomains', () => {
         test('de-duplicates categories', () => {
-            expect(new CategoryScale().normalizeDomains(['A', 'A'])).toEqual({ domain: ['A'], animatable: true });
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C', 'A'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'A'] })).toEqual({
+                domain: ['A'],
+                animatable: true,
+            });
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C', 'A'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: true,
             });
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C'] }, { domain: ['C'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: true,
             });
         });
 
         test('animatable', () => {
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C', 'B'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C'] }, { domain: ['C', 'B'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: false,
             });
@@ -147,7 +150,7 @@ describe('CategoryScale', () => {
 
         test('retains referential equality for a single, ordered domain', () => {
             const domain = ['A', 'B', 'C'];
-            expect(new CategoryScale().normalizeDomains(domain).domain).toBe(domain);
+            expect(new CategoryScale().normalizeDomains({ domain }).domain).toBe(domain);
         });
     });
 });

@@ -6,7 +6,6 @@ import {
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
-    extractDomain,
 } from 'ag-charts-core';
 
 const { LayoutElement, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
@@ -280,7 +279,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             const { id, key } = label;
             const datumKey = this[key];
             if (datumKey != null) {
-                label.domain = extractDomain(dataModel.getDomain(this, id, 'value', processedData));
+                label.domain = dataModel.getDomain(this, id, 'value', processedData).domain;
             }
         }
     }

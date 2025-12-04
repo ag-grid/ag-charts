@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, extractDomain, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -68,7 +68,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         if (!label.enabled) return;
 
-        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
         const text = this.getLabelText<AgFunnelSeriesLabelFormatterParams>(
             yDatum,
             datum,

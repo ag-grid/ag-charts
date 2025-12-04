@@ -1,4 +1,4 @@
-import type { ScaleType } from '../../interfaces/scaleTypes';
+import type { DomainWithMetadata, ScaleType } from '../../interfaces/scaleTypes';
 import { nextPowerOf2 } from '../../utils/numberArray';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
@@ -133,7 +133,9 @@ export function aggregationRangeFittingPoints(
     }
 }
 
-export function aggregationDomain(scale: ScaleType, domain: any[]): [number, number] {
+export function aggregationDomain(scale: ScaleType, domainInput: DomainWithMetadata<any>): [number, number] {
+    const { domain, sortMetadata } = domainInput;
+
     switch (scale) {
         case 'category':
             return [Number.NaN, Number.NaN];
@@ -141,6 +143,17 @@ export function aggregationDomain(scale: ScaleType, domain: any[]): [number, num
         case 'time':
         case 'ordinal-time':
         case 'unit-time': {
+            if (domain.length === 0) return [Infinity, -Infinity];
+
+            // Fast path: sorted data - O(1)
+            if (sortMetadata?.sortOrder === 1) {
+                return [Number(domain[0]), Number(domain.at(-1))];
+            }
+            if (sortMetadata?.sortOrder === -1) {
+                return [Number(domain.at(-1)), Number(domain[0])];
+            }
+
+            // Fallback: unsorted - O(n)
             let min = Infinity;
             let max = -Infinity;
             for (const d of domain) {

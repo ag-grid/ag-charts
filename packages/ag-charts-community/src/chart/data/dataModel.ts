@@ -1,4 +1,4 @@
-import { Debug, type DomainInput, Logger, first } from 'ag-charts-core';
+import { Debug, type DomainWithMetadata, Logger, first } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
@@ -320,17 +320,15 @@ export class DataModel<
         searchId: string,
         type: PropertyDefinition<any>['type'],
         processedData: ProcessedData<K>
-    ): DomainInput<any> {
+    ): DomainWithMetadata<any> {
         const domain = this.resolvers.getDomain(scope, searchId, type, processedData);
 
         // Attach sort metadata for key domains when available
         if (type === 'key' && domain.length > 0) {
             const sortMetadata = this.getKeySortMetadata(scope, searchId, processedData);
-            if (sortMetadata) {
-                return { domain, sortMetadata };
-            }
+            return { domain, sortMetadata };
         }
-        return domain;
+        return { domain };
     }
 
     getDomainBetweenRange(

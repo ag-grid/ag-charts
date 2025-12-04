@@ -1,4 +1,11 @@
-import type { AxisID, ChartAnimationPhase, ChartAxisDirection, Padding, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    ChartAnimationPhase,
+    ChartAxisDirection,
+    DomainWithMetadata,
+    Padding,
+    Scale,
+} from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -112,7 +119,7 @@ export interface ChartAxis {
     setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
-    setDomains(domain: unknown[]): void;
+    setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[];
     crossLines?: CrossLine[];

@@ -7,9 +7,8 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
-    extractDomain,
     isDefined,
     isGradientFill,
     normalizeAngle360,
@@ -128,14 +127,14 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
-            const yExtent = extractDomain(dataModel.getDomain(this, 'radiusValue-end', 'value', processedData));
+            const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
@@ -283,7 +282,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 
-        const radiusDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Radius));
+        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,

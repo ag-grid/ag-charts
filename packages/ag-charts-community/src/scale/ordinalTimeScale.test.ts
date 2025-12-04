@@ -521,8 +521,8 @@ describe('OrdinalTimeScale', () => {
 
     it('should sort domains', () => {
         const scale = new OrdinalTimeScale();
-        const { domain } = scale.normalizeDomains(
-            [
+        const { domain } = scale.normalizeDomains({
+            domain: [
                 new Date(2024, 1, 26),
                 new Date(2024, 1, 27),
                 new Date(2024, 1, 28),
@@ -531,8 +531,8 @@ describe('OrdinalTimeScale', () => {
                 new Date(2024, 2, 4),
                 new Date(2024, 2, 5),
                 new Date(2024, 2, 6),
-            ].reverse()
-        );
+            ].reverse(),
+        });
         expect(datesSortOrder(domain)).toBe(1);
     });
 

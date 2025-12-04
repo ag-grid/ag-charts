@@ -11,13 +11,12 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
+    type DomainWithMetadata,
     type InternalAgColorType,
     Logger,
     type Point,
     type SizedPoint,
     extent,
-    extractDomain,
     formatValue,
     mergeDefaults,
     toPlainText,
@@ -204,16 +203,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return [y, y + height];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
 
         if (!dataModel || !processedData) return { domain: [] };
 
         if (direction === ChartAxisDirection.X) {
-            const domain = extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData).domain;
             return { domain };
         } else {
-            const domain = extractDomain(dataModel.getDomain(this, `yValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `yValue`, 'value', processedData).domain;
             return { domain };
         }
     }
@@ -257,9 +256,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
-        const colorDomain = colorKey
-            ? extractDomain(dataModel.getDomain(this, 'colorValue', 'value', processedData))
-            : [];
+        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData).domain : [];
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -539,7 +536,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             fill = colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
-            const domain = extractDomain(dataModel.getDomain(this, `colorValue`, 'value', processedData));
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,

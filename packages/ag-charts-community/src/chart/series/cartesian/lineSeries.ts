@@ -1,5 +1,5 @@
-import type { CallbackParamRules, DomainInput, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, extent, extractDomain, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -236,7 +236,7 @@ export class LineSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData, axes } = this;
         if (!dataModel || !processedData) return { domain: [] };
 
@@ -244,14 +244,14 @@ export class LineSeries extends CartesianSeries<
 
         if (direction === ChartAxisDirection.X) {
             const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-            const domain = extractDomain(dataModel.getDomain(this, `xValue`, 'value', processedData));
+            const xDomain = dataModel.getDomain(this, `xValue`, 'value', processedData);
             if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
                 // Attach sort metadata for discrete domains to enable scale optimization
                 const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
-                return { domain, sortMetadata };
+                return { domain: xDomain.domain, sortMetadata };
             }
 
-            return { domain: fixNumericExtent(extent(domain)) };
+            return { domain: fixNumericExtent(extent(xDomain.domain)) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -388,7 +388,7 @@ export class LineSeries extends CartesianSeries<
             xOffset: (xScale.bandwidth ?? 0) / 2,
             yOffset: (yScale.bandwidth ?? 0) / 2,
             size: this.properties.marker.enabled ? this.properties.marker.size : 0,
-            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             labelsEnabled: this.properties.label.enabled,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -803,10 +803,8 @@ export class LineSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
-        const yDomain = extractDomain(
-            dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData)
-        );
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {

@@ -1,5 +1,5 @@
-import type { DomainInput, NormalizedDomain } from 'ag-charts-core';
-import { Color, Logger, clamp, extractDomain } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
+import { Color, Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
@@ -84,8 +84,8 @@ export class ColorScale extends AbstractScale<number, string> {
         this.parsedRange = this.range.map(convertColorStringToOklcha);
     }
 
-    override normalizeDomains(...domains: DomainInput<number>[]): NormalizedDomain<number> {
-        return { domain: domains.map(extractDomain).flat(), animatable: true };
+    override normalizeDomains(...domains: DomainWithMetadata<number>[]): NormalizedDomain<number> {
+        return { domain: domains.map((d) => d.domain).flat(), animatable: true };
     }
 
     override toDomain(): number | undefined {

@@ -1,19 +1,19 @@
 import {
-    type DomainInput,
+    type DomainWithMetadata,
     type NormalizedDomain,
     ScaleAlignment,
     type ScaleTickParams,
     type ScaleTickResult,
     datesSortOrder,
-    extractDomain,
-    isDomainWithMetadata,
     sortAndUniqueDates,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { ContinuousScale } from './continuousScale';
-import { DiscreteTimeScale } from './discreteTimeScale';
+import { DiscreteTimeScale, type UniformityCheck, checkUniformityBySampling } from './discreteTimeScale';
 import { getDateTicksForInterval } from './timeScale';
+
+const APPROXIMATE_THRESHOLD = 1000;
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
@@ -25,12 +25,16 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
     private _domain: Date[] = [];
     private isReversed: boolean = false;
+    private _uniformityCache: UniformityCheck | undefined;
+
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
         this.invalid = true;
         this._domain = domain;
         this._bands = undefined;
+        this._numericBands = undefined;
+        this._uniformityCache = undefined;
         this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
@@ -43,35 +47,66 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return this._bands;
     }
 
-    override normalizeDomains(...domains: DomainInput<Date>[]): NormalizedDomain<Date> {
-        const nonEmptyDomains = domains.filter((d) => extractDomain(d).length > 0);
+    private _numericBands: number[] | undefined;
+    protected override get numericBands(): number[] {
+        this._numericBands ??= this.bands.map((d) => d.valueOf());
+        return this._numericBands;
+    }
+
+    override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
+        const { bands } = this;
+        const n = bands.length;
+
+        // For full range or no visible range, use cached whole-domain check
+        if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
+            if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
+                this._uniformityCache = checkUniformityBySampling(bands);
+            }
+            return this._uniformityCache;
+        }
+
+        // For partial visible range, sample within that range (no caching)
+        const startIdx = Math.floor(visibleRange[0] * n);
+        const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
+        return checkUniformityBySampling(bands, startIdx, endIdx);
+    }
+
+    override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {
+        const nonEmptyDomains = domains.filter((d) => d.domain.length > 0);
 
         if (nonEmptyDomains.length === 0) {
             return { domain: [], animatable: false };
         } else if (nonEmptyDomains.length === 1) {
             const input = nonEmptyDomains[0];
-            let domain = extractDomain(input);
+            let domain = input.domain;
 
             // OPTIMIZATION: Use pre-computed metadata when available to skip O(n) datesSortOrder scan
             let sortOrder: 1 | -1 | undefined;
-            if (isDomainWithMetadata(input) && input.sortMetadata?.sortOrder !== undefined) {
-                sortOrder = input.sortMetadata.sortOrder;
-            } else {
+            let isUnique = false;
+
+            if (input.sortMetadata?.sortOrder === undefined) {
                 // Fallback to scanning when metadata not available
                 sortOrder = datesSortOrder(domain);
+            } else {
+                sortOrder = input.sortMetadata.sortOrder;
+                isUnique = input.sortMetadata.isUnique ?? false;
             }
 
             if (sortOrder === -1) {
                 domain = domain.slice().reverse();
             } else if (sortOrder == null) {
-                domain = sortAndUniqueDates(domain.slice());
+                // Need to sort; skip deduplication if we know data is unique
+                domain = isUnique
+                    ? domain.slice().sort((a, b) => a.valueOf() - b.valueOf())
+                    : sortAndUniqueDates(domain.slice());
             }
+            // If sortOrder === 1, domain is already in ascending order - use as-is
             return { domain, animatable: true };
         }
 
         // Multiple domains - must merge and sort, metadata not applicable
         return {
-            domain: sortAndUniqueDates(nonEmptyDomains.map(extractDomain).flat()),
+            domain: sortAndUniqueDates(nonEmptyDomains.map((d) => d.domain).flat()),
             animatable: true,
         };
     }

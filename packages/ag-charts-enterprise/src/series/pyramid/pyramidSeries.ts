@@ -7,12 +7,11 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
     StateMachine,
     type Writeable,
     cachedTextMeasurer,
-    extractDomain,
     isArray,
     measureTextSegments,
     mergeDefaults,
@@ -208,8 +207,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
-        const xDomain = extractDomain(dataModel.getDomain(this, 'xValue', 'value', processedData));
-        const yDomain = extractDomain(dataModel.getDomain(this, 'yValue', 'value', processedData));
+        const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
+        const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
         const textMeasurer = cachedTextMeasurer(stageLabel);
 
@@ -684,7 +683,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             'x',
-            extractDomain(dataModel.getDomain(this, 'xValue', 'value', processedData)),
+            dataModel.getDomain(this, 'xValue', 'value', processedData).domain,
             this.properties.stageLabel,
             { datum, value: xValue, stageKey, valueKey }
         );
@@ -707,7 +706,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override getSeriesDomain(): DomainInput<any> {
+    override getSeriesDomain(): DomainWithMetadata<any> {
         return { domain: [Number.NaN, Number.NaN] };
     }
 

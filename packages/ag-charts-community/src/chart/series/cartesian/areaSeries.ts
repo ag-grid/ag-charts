@@ -1,10 +1,15 @@
-import type { CallbackParamRules, DomainInput, InternalAgColorType, Point, RequireOptional } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DomainWithMetadata,
+    InternalAgColorType,
+    Point,
+    RequireOptional,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     extent,
-    extractDomain,
     isContinuous,
     isDefined,
     mergeDefaults,
@@ -375,7 +380,7 @@ export class AreaSeries extends CartesianSeries<
         return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData, axes } = this;
         if (!dataModel || !processedData) return { domain: [] };
 
@@ -385,10 +390,10 @@ export class AreaSeries extends CartesianSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys; // DomainInput with sortMetadata already attached
+                return keys;
             }
 
-            return { domain: fixNumericExtent(extent(extractDomain(keys))) };
+            return { domain: fixNumericExtent(extent(keys.domain)) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -890,7 +895,7 @@ export class AreaSeries extends CartesianSeries<
             markerFill: marker.fill ?? seriesFill,
             markerStroke: marker.stroke ?? seriesStroke,
             markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
-            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
 
             // Mutable state
             markerData: canIncrementallyUpdate ? existingNodeData : [],
@@ -1352,10 +1357,8 @@ export class AreaSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = extractDomain(dataModel.getDomain(this, `xValue`, 'key', processedData));
-        const yDomain = extractDomain(
-            dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData)
-        );
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {

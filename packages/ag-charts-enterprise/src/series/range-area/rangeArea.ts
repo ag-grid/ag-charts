@@ -18,11 +18,10 @@ import {
     ChartAxisDirection,
     type ConstructorReturnType,
     type DeepRequired,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
     type RequireOptional,
     extent,
-    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -332,7 +331,7 @@ export class RangeAreaSeries extends BaseSeries {
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             item: this.properties.item,
-            yDomain: extractDomain(this.getSeriesDomain(ChartAxisDirection.Y)),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             connectMissingData: this.properties.connectMissingData,
             interpolation: this.properties.interpolation,
             markerData: canIncrementallyUpdate ? existingMarkerData : [],
@@ -352,7 +351,7 @@ export class RangeAreaSeries extends BaseSeries {
         return [y, y];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return { domain: [] };
 
@@ -692,7 +691,7 @@ export class RangeAreaSeries extends BaseSeries {
                 ? -1
                 : 1;
 
-        const yDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Y));
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
         return {
             x: point.x,

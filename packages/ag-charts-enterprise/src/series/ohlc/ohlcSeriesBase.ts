@@ -324,19 +324,19 @@ export abstract class OhlcSeriesBase<
 
     override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
+        if (!(processedData && dataModel)) return { domain: [] };
 
         if (direction !== this.getBarDirection()) {
-            const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-            const keys = processedData.domain.keys[index];
+            const { def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (def.type === 'key' && def.valueType === 'category') {
                 return keys;
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys.domain) };
         }
 
         const yExtent = this.domainForClippedRange(direction, ['highValue', 'lowValue'], 'xValue');
-        return fixNumericExtent(yExtent);
+        return { domain: fixNumericExtent(yExtent) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {

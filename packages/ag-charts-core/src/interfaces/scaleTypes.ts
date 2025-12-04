@@ -22,21 +22,11 @@ export interface DomainWithMetadata<D> {
     sortMetadata?: DomainSortMetadata;
 }
 
-/** Input type for normalizeDomains - either a plain array or annotated domain. */
-export type DomainInput<D> = D[] | DomainWithMetadata<D>;
-
 /**
- * Type guard to check if a domain has metadata attached.
+ * Extract domain array from a domain with metadata.
  */
-export function isDomainWithMetadata<D>(value: DomainInput<D>): value is DomainWithMetadata<D> {
-    return value != null && typeof value === 'object' && 'domain' in value && Array.isArray((value as any).domain);
-}
-
-/**
- * Extract domain array from either plain array or annotated domain.
- */
-export function extractDomain<D>(value: DomainInput<D>): D[] {
-    return isDomainWithMetadata(value) ? value.domain : value;
+export function extractDomain<D>(value: DomainWithMetadata<D>): D[] {
+    return value.domain;
 }
 
 export interface ScaleTickParams<I> {
@@ -77,7 +67,7 @@ export interface Scale<D, R, I = number> {
     readonly defaultTickCount: number;
     domain: D[];
     range: R[];
-    normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D>;
+    normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     invert(value: R, exact?: boolean): D | undefined;

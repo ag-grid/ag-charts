@@ -7,10 +7,9 @@ import {
 } from 'ag-charts-community';
 import {
     ChartAxisDirection,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
     angleBetween,
-    extractDomain,
     isDefined,
     isGradientFill,
 } from 'ag-charts-core';
@@ -121,12 +120,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return new Sector();
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const xExtent = extractDomain(dataModel.getDomain(this, 'angleValue-end', 'value', processedData));
+            const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData).domain;
             const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
             return { domain: fixNumericExtent(fixedXExtent) };
         } else {
@@ -268,7 +267,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
-        const angleDomain = extractDomain(this.getSeriesDomain(ChartAxisDirection.Angle));
+        const angleDomain = this.getSeriesDomain(ChartAxisDirection.Angle).domain;
 
         const { angleKey, radiusKey, angleName, radiusName, legendItemName, label } = this.properties;
 

@@ -5,6 +5,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
+    type DomainWithMetadata,
     type ScaleType,
     aggregationDomain,
     aggregationIndexForXRatio,
@@ -13,7 +14,6 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    extractDomain,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -349,11 +349,11 @@ function aggregateLineData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domain: any[],
+    domainInput: DomainWithMetadata<any>,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): LineSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeLineAggregation([d0, d1], xValues, yValues, { xNeedsValueOf, yNeedsValueOf });
 }
 
@@ -389,14 +389,14 @@ export function aggregateLineDataFromDataModel(
 ): LineSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'value', processedData));
+    const domainInput = dataModel.getDomain(series, 'xValue', 'value', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domain);
+        const [d0, d1] = aggregationDomain(scale, domainInput);
         return computeLineAggregation([d0, d1], xValues, yValues, {
             xNeedsValueOf,
             yNeedsValueOf,
@@ -404,7 +404,7 @@ export function aggregateLineDataFromDataModel(
         });
     }
 
-    return memoizedAggregateLineData(scale, xValues, yValues, domain, xNeedsValueOf, yNeedsValueOf);
+    return memoizedAggregateLineData(scale, xValues, yValues, domainInput, xNeedsValueOf, yNeedsValueOf);
 }
 
 /**
@@ -431,12 +431,12 @@ export function aggregateLineDataFromDataModelPartial(
 ): PartialLineAggregationResult | undefined {
     const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
     const yValues = dataModel.resolveColumnById(series, yKey, processedData);
-    const domain = extractDomain(dataModel.getDomain(series, 'xValue', 'value', processedData));
+    const domainInput = dataModel.getDomain(series, 'xValue', 'value', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const [d0, d1] = aggregationDomain(scale, domain);
+    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeLineAggregationPartial([d0, d1], xValues, yValues, {
         xNeedsValueOf,
         yNeedsValueOf,

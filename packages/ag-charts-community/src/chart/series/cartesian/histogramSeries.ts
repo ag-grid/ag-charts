@@ -1,11 +1,10 @@
 import {
     ChartAxisDirection,
-    type DomainInput,
+    type DomainWithMetadata,
     type Point,
     type RequireOptional,
     createTicks,
     deepClone,
-    extractDomain,
     findMinMax,
     isDate,
     isNumber,
@@ -294,12 +293,12 @@ export class HistogramSeries extends CartesianSeries<
         return [Number.NaN, Number.NaN];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.calculatedBins.length) return { domain: [] };
 
-        const yDomain = extractDomain(dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData));
+        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData).domain;
         const xDomainMin = this.calculatedBins[0].domain[0];
         const xDomainMax = this.calculatedBins[(this.calculatedBins?.length ?? 0) - 1].domain[1];
         if (direction === ChartAxisDirection.X) {

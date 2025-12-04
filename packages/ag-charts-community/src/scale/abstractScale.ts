@@ -1,11 +1,18 @@
-import type { DomainInput, NormalizedDomain, Scale, ScaleAlignment, ScaleTickParams, ScaleType } from 'ag-charts-core';
+import type {
+    DomainWithMetadata,
+    NormalizedDomain,
+    Scale,
+    ScaleAlignment,
+    ScaleTickParams,
+    ScaleType,
+} from 'ag-charts-core';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract readonly type: ScaleType;
     abstract readonly defaultTickCount: number;
     abstract domain: D[];
     abstract range: R[];
-    abstract normalizeDomains(...domains: DomainInput<D>[]): NormalizedDomain<D>;
+    abstract normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D>;
     abstract toDomain(value: number): D | undefined;
     abstract convert(value: D, options: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;
