@@ -802,18 +802,18 @@ describe('Zoom', () => {
             const options: AgCartesianChartOptions<TDatum> = {
                 data: getData(),
                 series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'time',
                         position: 'bottom',
                         nice: false,
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: { text: 'Price' },
                     },
-                ],
+                },
                 zoom: {
                     enabled: true,
                 },
