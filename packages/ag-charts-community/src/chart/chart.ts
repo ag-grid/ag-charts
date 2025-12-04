@@ -44,6 +44,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
+import type { UpdateZoomSourcing } from '../module-support';
 import type { ModuleContext } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
@@ -1422,9 +1423,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const navigatorModule: any = this.modulesManager.getModule('navigator');
         const zoomModule: any = this.modulesManager.getModule('zoom');
 
+        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-applyOptions' };
         if (!navigatorModule?.enabled && !zoomModule?.enabled) {
             // reset zoom to initial state
-            this.ctx.zoomManager.updateZoom({ source: 'chart-update', sourceDetail: 'internal-applyOptions' });
+            this.ctx.zoomManager.updateZoom(sourcing);
+        } else {
+            // refresh zoom by deferring a 'zoom:change-request' event dispatch:
+            this.ctx.zoomManager.setDirty(sourcing);
         }
 
         const miniChart = navigatorModule?.miniChart;
