@@ -33,7 +33,7 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
-        maxRenderedItems: 10_000,
+        maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
