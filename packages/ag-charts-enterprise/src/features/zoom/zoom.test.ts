@@ -778,4 +778,57 @@ describe('Zoom', () => {
             expect(state.zoom).toMatchObject(resetZoomState);
         });
     });
+
+    describe('navigator-minichart-sync', () => {
+        type TDatum = { date: Date; price: number };
+
+        function getData(): TDatum[] {
+            const startDate = new Date('2024-01-01');
+            const data = [];
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                data.push({
+                    date,
+                    price: 100 + Math.sin(i / 5) * 20 + Math.random() * 10,
+                });
+            }
+
+            return data;
+        }
+
+        it('should stay in sync with series-area', async () => {
+            const options: AgCartesianChartOptions<TDatum> = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
+                axes: [
+                    {
+                        type: 'time',
+                        position: 'bottom',
+                        nice: false,
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                        title: { text: 'Price' },
+                    },
+                ],
+                zoom: {
+                    enabled: true,
+                },
+                navigator: {
+                    enabled: true,
+                    miniChart: {
+                        enabled: true,
+                    },
+                },
+            };
+            await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options);
+            options.data = options.data!.slice(4);
+
+            await chart.update(options);
+            await compare();
+        });
+    });
 });
