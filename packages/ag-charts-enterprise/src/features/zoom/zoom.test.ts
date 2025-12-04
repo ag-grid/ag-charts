@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    type AgChartOptions,
+    AgChartState,
+    AgCharts,
+    AgInitialStateZoomOptions,
+} from 'ag-charts-community';
 import {
     clickAction,
     delay,
@@ -20,6 +27,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -680,6 +688,96 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -2)(chart);
 
             await compare();
+        });
+    });
+
+    describe('AG-16394 reset to initialState', () => {
+        const resetZoomState = {
+            rangeX: {
+                end: { __type: 'date', value: '2022-06-30T23:00:00.000Z' },
+                start: { __type: 'date', value: '2021-01-01T00:00:00.000Z' },
+            },
+            rangeY: {
+                start: 0,
+                end: 193931.85,
+            },
+            ratioX: {
+                start: 0.8000000000000002,
+                end: 1,
+            },
+            ratioY: {
+                start: 0,
+                end: 0.9696592500000001,
+            },
+            autoScaledAxes: [],
+        } as const satisfies DeepReadonly<AgChartState['zoom']>;
+
+        beforeEach(async () => {
+            const initialState: AgInitialStateZoomOptions = {
+                rangeX: {
+                    start: {
+                        __type: 'date',
+                        value: new Date('2021-01-01').getTime(),
+                    },
+                },
+            };
+            const baseOptions: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2015, 0, 1), Cost: 103268 },
+                    { date: new Date(2015, 6, 1), Cost: 107487 },
+                    { date: new Date(2016, 0, 1), Cost: 107297 },
+                    { date: new Date(2016, 6, 1), Cost: 152988 },
+                    { date: new Date(2017, 0, 1), Cost: 129825 },
+                    { date: new Date(2017, 6, 1), Cost: 118553 },
+                    { date: new Date(2018, 0, 1), Cost: 150835 },
+                    { date: new Date(2018, 6, 1), Cost: 116414 },
+                    { date: new Date(2019, 0, 1), Cost: 102183 },
+                    { date: new Date(2019, 6, 1), Cost: 172169 },
+                    { date: new Date(2020, 0, 1), Cost: 195021 },
+                    { date: new Date(2020, 6, 1), Cost: 176255 },
+                    { date: new Date(2021, 0, 1), Cost: 118050 },
+                    { date: new Date(2021, 6, 1), Cost: 109300 },
+                    { date: new Date(2022, 0, 1), Cost: 107878 },
+                    { date: new Date(2022, 6, 1), Cost: 184697 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'date',
+                        yKey: 'Cost',
+                    },
+                ],
+                axes: {
+                    x: {
+                        type: 'unit-time',
+                        position: 'bottom',
+                    },
+                },
+                zoom: {
+                    enabled: true,
+                },
+            };
+            await prepareChart(undefined, initialState, baseOptions);
+            await compare();
+        });
+
+        test('dblclick', async () => {
+            let state: AgChartState;
+
+            state = chart.getState();
+            expect(state.zoom).toMatchObject(resetZoomState);
+
+            await scrollAction(cx, cy, -2)(chart);
+            await waitForChartStability(chart);
+            state = chart.getState();
+            expect(state.zoom).not.toMatchObject(resetZoomState);
+
+            await doubleClickAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            state = chart.getState();
+            expect(state.zoom).toMatchObject(resetZoomState);
+
+            expect(false).toBe(true);
         });
     });
 });
