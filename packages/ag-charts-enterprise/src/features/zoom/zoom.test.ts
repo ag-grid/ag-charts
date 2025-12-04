@@ -100,7 +100,7 @@ describe('Zoom', () => {
         zoomOptions?: AgChartOptions['zoom'],
         initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
         baseOptions = EXAMPLE_OPTIONS,
-        clickAfterCreate = true,
+        clickAfterCreate = true
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
