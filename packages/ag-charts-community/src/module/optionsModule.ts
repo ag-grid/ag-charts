@@ -30,6 +30,7 @@ import {
     mergeDefaults,
     setDocument,
     setWindow,
+    shallowClone,
     unique,
     validate,
 } from 'ag-charts-core';
@@ -622,7 +623,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const newAxes: Record<string, unknown> = {};
         const unmappedAxisKeys = new Map<string, string>();
         for (const [fromAxisKey, toAxisKey] of remappedAxisKeys) {
-            newAxes[toAxisKey] = 'axes' in options ? options.axes?.[fromAxisKey] : undefined;
+            newAxes[toAxisKey] = 'axes' in options ? shallowClone(options.axes?.[fromAxisKey]) : undefined;
             unmappedAxisKeys.set(toAxisKey, fromAxisKey);
         }
 
@@ -635,6 +636,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             hasExtraImplicitDefaultSeriesAxisKeys
         );
         this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
+        this.alternateSecondaryAxisPositions(options, newAxes, unmappedAxisKeys);
 
         (options as any).axes = newAxes as any;
 
@@ -835,7 +837,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 if (!directionAxisKey) continue;
 
                 // Ensure there is at least a default axis for each direction required by the series.
-                newAxes[direction] ??= defaultAxes[direction];
+                newAxes[direction] ??= shallowClone(defaultAxes[direction]);
 
                 // Remap the series axis key to match either the direction or the remapped axis id.
                 let remappedSeriesAxisKey: string = direction;
@@ -849,11 +851,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         // this series axis id.
                         remappedSeriesAxisKey = `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`;
                         remappedAxisKeys.set(seriesAxisKey, remappedSeriesAxisKey);
-                        newAxes[remappedSeriesAxisKey] = defaultAxes[direction];
+                        newAxes[remappedSeriesAxisKey] = shallowClone(defaultAxes[direction]);
                     }
                 } else if (remappedAxisKeys.has(direction) && hasExtraImplicitDefaultSeriesAxisKeys) {
                     remappedSeriesAxisKey = remappedAxisKeys.get(direction)!;
-                    newAxes[remappedSeriesAxisKey] ??= defaultAxes[direction];
+                    newAxes[remappedSeriesAxisKey] ??= shallowClone(defaultAxes[direction]);
                 }
 
                 (seriesOptions as any)[directionAxisKey] = remappedSeriesAxisKey;
@@ -934,8 +936,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
-        let foundAlternatePositionAxis = false;
-
         for (const [key, axis] of entries(newAxes)) {
             if (!isPlainObject(axis)) continue;
             if ('type' in axis && 'position' in axis) continue;
@@ -951,17 +951,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const predictedType = this.predictAxisMissingTypeFromPosition(axis, defaultAxes);
             if (predictedType) continue;
 
-            // Pick the default type and position where the axis key is referenced by a series axis key. For the first
-            // secondary axis in the y-direction with an unknown position, it will place it in the alternate
-            // position (i.e. right).
-            foundAlternatePositionAxis = this.predictAxisMissingTypeAndPositionFromSeries(
-                options,
-                directions,
-                foundAlternatePositionAxis,
-                key,
-                axis,
-                defaultAxes
-            );
+            // Pick the default type and position where the axis key is referenced by a series axis key.
+            this.predictAxisMissingTypeAndPositionFromSeries(options, directions, key, axis, defaultAxes);
 
             // Remove secondary axes that are not referenced and have no type.
             if (!('type' in axis)) {
@@ -998,7 +989,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private predictAxisMissingTypeAndPositionFromSeries(
         options: T,
         directions: ChartAxisDirection[],
-        foundAlternatePositionAxis: boolean,
         axisKey: string,
         axis: PlainObject,
         defaultAxes: Record<string, PlainObject>
@@ -1010,18 +1000,51 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 if (seriesOptions[directionAxisKey] !== axisKey) continue;
 
                 axis.type ??= defaultAxes[direction].type;
-
-                if (direction === ChartAxisDirection.Y && !foundAlternatePositionAxis) {
-                    axis.position ??= defaultAxes[direction].position === 'left' ? 'right' : 'left';
-                } else {
-                    axis.position ??= defaultAxes[direction].position;
-                }
+                axis.position ??= defaultAxes[direction].position;
 
                 return direction === ChartAxisDirection.Y;
             }
         }
 
         return false;
+    }
+
+    /**
+     * If the first secondary axis in either direction does not have a specified position, it will be placed in the
+     * alternate position to the primary axis (i.e. right or top).
+     */
+    private alternateSecondaryAxisPositions(
+        options: T,
+        newAxes: Record<string, unknown>,
+        unmappedAxisKeys: Map<string, string>
+    ) {
+        let xAxisCount = 0;
+        let yAxisCount = 0;
+
+        for (const [axisKey, axis] of entries(newAxes)) {
+            if (!isPlainObject(axis) || !('position' in axis)) continue;
+
+            const unmappedAxisKey = unmappedAxisKeys.get(axisKey);
+            const unmappedAxis =
+                'axes' in options && options.axes && unmappedAxisKey && unmappedAxisKey in options.axes
+                    ? options.axes[unmappedAxisKey]
+                    : undefined;
+            const unmappedAxisPosition = unmappedAxis && 'position' in unmappedAxis ? unmappedAxis.position : undefined;
+
+            if (axis.position === 'top' || axis.position === 'bottom') {
+                xAxisCount += 1;
+                if (xAxisCount === 2 && unmappedAxisPosition == null) {
+                    axis.position = 'top';
+                }
+            } else if (axis.position === 'left' || axis.position === 'right') {
+                yAxisCount += 1;
+                if (yAxisCount === 2 && unmappedAxisPosition == null) {
+                    axis.position = 'right';
+                }
+            }
+
+            if (xAxisCount > 1 && yAxisCount > 1) break;
+        }
     }
 
     private processMiniChartSeriesOptions(options: T) {
