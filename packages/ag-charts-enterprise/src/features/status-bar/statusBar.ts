@@ -2,13 +2,14 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 import {
     AbstractModuleInstance,
     BaseProperties,
+    ChartAxisDirection,
     Property,
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
 } from 'ag-charts-core';
 
-const { LayoutElement, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
+const { LayoutElement, Group, Label, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
     Open = 2, // 1 << 1
     Close = 4, // 1 << 2
@@ -104,9 +105,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     layoutStyle: 'block' | 'overlay' = 'block';
 
     readonly id = 'status-bar';
-    data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
+    private chartData?: _ModuleSupport.DataSet<any>;
     private readonly layer = new Group({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
@@ -250,37 +251,49 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('highlight:change', () => this.updateHighlight())
+            ctx.eventsHub.on('highlight:change', () => this.updateHighlight()),
+            ctx.eventsHub.on('data:update', (data) => {
+                this.chartData = data;
+            })
         );
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.enabled || this.data == null) return;
+    private updateDomainsFromSeries() {
+        if (!this.enabled) return;
 
-        const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
-        for (const label of this.labels) {
-            const { id, key } = label;
-            const datumKey = this[key];
-            if (datumKey == null) {
-                label.domain = undefined;
+        const series = this.ctx.chartService.series;
+        if (series.length === 0) return;
+
+        // Find the main price series (candlestick, ohlc, etc.) and volume series (bar).
+        // The price series provides domains for OHLC values, the volume series for volume.
+        let priceDomain: number[] | undefined;
+        let volumeDomain: number[] | undefined;
+
+        for (const s of series) {
+            // getDomain returns { domain: [...] } with DomainWithMetadata wrapper
+            const domainResult = s.getDomain(ChartAxisDirection.Y);
+            const yDomain = domainResult?.domain;
+            if (!Array.isArray(yDomain) || yDomain.length < 2) continue;
+
+            // Volume series (bar) is identified by its type
+            if (s.type === 'bar') {
+                volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             } else {
-                props.push(valueProperty(datumKey, 'number', { id }));
+                // Price series (candlestick, ohlc, range-area, range-bar, line)
+                priceDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             }
         }
 
-        if (props.length === 0) return;
-
-        const dataSet = _ModuleSupport.DataSet.wrap(this.data) ?? _ModuleSupport.DataSet.empty();
-        const { processedData, dataModel } = await dataController.request(this.id, dataSet, {
-            props,
-        });
-
+        // Apply domains to labels based on their key type
         for (const label of this.labels) {
-            const { id, key } = label;
-            const datumKey = this[key];
-            if (datumKey != null) {
-                label.domain = dataModel.getDomain(this, id, 'value', processedData).domain;
+            const key = this[label.key];
+            if (key == null) {
+                label.domain = undefined;
+                continue;
             }
+
+            // Volume label uses volume domain, all others use price domain
+            label.domain = label.key === 'volumeKey' ? volumeDomain : priceDomain;
         }
     }
 
@@ -289,6 +302,10 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.labelGroup.translationY = 0;
 
         if (!this.enabled) return;
+
+        // Update domains from series - at layout time, series have already processed
+        // their data and computed domains, so we can reuse them without re-scanning data.
+        this.updateDomainsFromSeries();
 
         const innerSpacing = 4;
         const outerSpacing = 12;
@@ -375,7 +392,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         if (!this.enabled) return;
 
         const activeHighlight = this.highlightManager.getActiveHighlight();
-        const datum = activeHighlight?.datum ?? this.data?.at(-1);
+        // Get fallback from chart data when nothing is highlighted
+        const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
 
         if (datum == null) {
             this.labelGroup.visible = false;

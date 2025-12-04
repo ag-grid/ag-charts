@@ -143,7 +143,6 @@ export function priceVolume(
         ? {
               statusBar: {
                   enabled: true,
-                  data,
                   highKey,
                   openKey,
                   lowKey,
