@@ -1,4 +1,4 @@
-import type { FontOptions, LabelBoxOptions, Toggleable } from '../series/cartesian/commonOptions';
+import type { LabelBoxOptions, TextOptions, Toggleable } from '../series/cartesian/commonOptions';
 import type {
     AgChartCallbackParams,
     HierarchyHighlightState,
@@ -8,7 +8,7 @@ import type {
 } from './callbackOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
-export interface AgChartLabelStyleOptions extends Toggleable, FontOptions, LabelBoxOptions {}
+export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>,

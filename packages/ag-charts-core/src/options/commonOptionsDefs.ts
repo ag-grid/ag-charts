@@ -16,12 +16,12 @@ import type {
     BorderOptions,
     CssColor,
     FillOptions,
-    FontOptions,
     GoogleFontFamily,
     LabelBoxOptions,
     LineDashOptions,
     PaddingOptions,
     StrokeOptions,
+    TextOptions,
 } from 'ag-charts-types';
 
 import { isObject } from '../utils/typeGuards';
@@ -332,7 +332,7 @@ export const lineSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesLineSeg
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
 
-export const fontOptionsDef: OptionsDefs<FontOptions> = {
+export const fontOptionsDef: OptionsDefs<TextOptions> = {
     color: color,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,

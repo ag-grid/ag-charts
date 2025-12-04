@@ -16,9 +16,9 @@ import type {
     AgBasePolarSeriesAxisOptions,
     AgColorType,
     FillOptions,
-    FontOptions,
     LineDashOptions,
     StrokeOptions,
+    TextOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -59,7 +59,7 @@ export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDash
     cornerRadius?: PixelSize;
 }
 
-export interface AgDonutTitleOptions extends Toggleable, FontOptions {
+export interface AgDonutTitleOptions extends Toggleable, TextOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
@@ -93,7 +93,7 @@ export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = C
     itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<TDatum, TContext>, AgDonutCalloutLineItemStylerResult>;
 }
 
-export interface AgDonutInnerLabel extends FontOptions {
+export interface AgDonutInnerLabel extends TextOptions {
     /** The text to show in the inner label. */
     text: string;
     /** The spacing in pixels before and after the inner label. */

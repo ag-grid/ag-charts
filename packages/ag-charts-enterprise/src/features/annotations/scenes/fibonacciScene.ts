@@ -1,4 +1,4 @@
-import { type FontOptions, _ModuleSupport } from 'ag-charts-community';
+import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
@@ -237,7 +237,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         });
     }
 
-    private checkWithinBounds(xAxis: AnnotationAxisContext, fontOptions: FontOptions, textNode?: CollidableText) {
+    private checkWithinBounds(xAxis: AnnotationAxisContext, fontOptions: TextOptions, textNode?: CollidableText) {
         if (!textNode) {
             return false;
         }

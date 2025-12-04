@@ -13,10 +13,10 @@ import type {
     AgCartesianAxisPosition,
     Padding as AgPadding,
     AgTimeIntervalUnit,
-    FontOptions,
     FormatterParams,
     RichFormatter,
     Styler,
+    TextOptions,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -149,7 +149,7 @@ export interface ChartAxis {
     minimumTimeGranularity?: AgTimeIntervalUnit;
 }
 
-export interface ChartAxisLabel extends FontOptions {
+export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
     getSideFlag(): ChartAxisLabelFlipFlag;
     set(props: object): void;
