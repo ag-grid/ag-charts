@@ -80,7 +80,6 @@ export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRe
 }
 
 export class ZoomOnDataChange {
-    private readonly callerId = 'zoom-on-data-change';
     private desiredChanges?: DesiredChanges;
 
     constructor(
@@ -189,7 +188,7 @@ export class ZoomOnDataChange {
 
         switch (this.properties.strategy) {
             case 'reset':
-                return this.ctx.zoomManager.resetZoom(this.callerId);
+                return this.ctx.zoomManager.resetZoom('onDataChange-reset');
             case 'preserveRatios':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':

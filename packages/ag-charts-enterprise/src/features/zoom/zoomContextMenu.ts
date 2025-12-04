@@ -1,4 +1,5 @@
-import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
@@ -16,6 +17,8 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
+const { userInteraction } = _ModuleSupport;
+
 export class ZoomContextMenu {
     constructor(
         private readonly eventsHub: _ModuleSupport.EventsHub,
@@ -23,7 +26,7 @@ export class ZoomContextMenu {
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly getRect: () => _ModuleSupport.BBox | undefined,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {}
 
@@ -83,7 +86,7 @@ export class ZoomContextMenu {
         const zoom = this.iterateFindNextZoomAtPoint(origin);
         if (zoom == null) return;
 
-        this.updateZoom(zoom);
+        this.updateZoom(userInteraction('contextmenu-zoom-to-cursor'), zoom);
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -108,11 +111,11 @@ export class ZoomContextMenu {
         newZoom = scaleZoomCenter(newZoom, scaleX, scaleY);
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
-        this.updateZoom(constrainZoom(newZoom));
+        this.updateZoom(userInteraction('contextmenu-pan-to-cursor'), constrainZoom(newZoom));
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
-        this.zoomManager.resetZoom('zoom');
+        this.zoomManager.resetZoom('contextmenu-reset');
     }
 
     private iterateFindNextZoomAtPoint(origin: Point) {

@@ -3,8 +3,7 @@ import { AbstractModuleInstance, ChartAxisDirection, PropertiesArray, Property }
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
-const { LayoutElement, Toolbar } = _ModuleSupport;
-const ZOOM_ID = 'ranges';
+const { LayoutElement, Toolbar, userInteraction } = _ModuleSupport;
 
 export class Ranges extends AbstractModuleInstance {
     @Property
@@ -74,14 +73,15 @@ export class Ranges extends AbstractModuleInstance {
 
         const { value } = button;
 
+        const sourcing = userInteraction(`zoom-range-button-${index}`);
         if (value == null) {
-            zoomManager.resetZoom(ZOOM_ID);
+            zoomManager.resetZoom(sourcing.sourceDetail);
         } else if (typeof value === 'number') {
-            zoomManager.extendToEnd(ZOOM_ID, ChartAxisDirection.X, value);
+            zoomManager.extendToEnd(sourcing, ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {
-            zoomManager.updateWith(ZOOM_ID, ChartAxisDirection.X, () => value);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, () => value);
         } else if (typeof value === 'function') {
-            zoomManager.updateWith(ZOOM_ID, ChartAxisDirection.X, value);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, value);
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);

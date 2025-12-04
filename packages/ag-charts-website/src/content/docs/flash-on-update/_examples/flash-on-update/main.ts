@@ -86,7 +86,7 @@ const options: AgCartesianChartOptions<DataType> = {
     flashOnUpdate: {
         enabled: true,
     },
-};
+} as any; /* documented flashOnUpdate option */
 
 const chart = AgCharts.create(options);
 

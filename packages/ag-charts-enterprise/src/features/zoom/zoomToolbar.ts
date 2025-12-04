@@ -91,13 +91,14 @@ export class ZoomToolbar extends BaseProperties {
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
+            sourcing: _ModuleSupport.UpdateZoomSourcing,
             axisId: AxisID,
             direction: CartesianAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void,
-        private readonly resetZoom: () => void,
+        private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
         super();
@@ -317,7 +318,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateAxisZoom(axisId, direction, constrainAxis(newZoom));
+        this.updateAxisZoom(userInteraction(`zoom-button-${event.value}`), axisId, direction, constrainAxis(newZoom));
     }
 
     private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
@@ -328,7 +329,7 @@ export class ZoomToolbar extends BaseProperties {
 
         switch (event.value) {
             case 'reset':
-                this.resetZoom();
+                this.resetZoom('zoom-button-reset');
                 return;
 
             case 'pan-start':
@@ -356,7 +357,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateZoom(constrainZoom(zoom));
+        this.updateZoom(userInteraction(`zoom-button-${event.value}`), constrainZoom(zoom));
     }
 
     private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {

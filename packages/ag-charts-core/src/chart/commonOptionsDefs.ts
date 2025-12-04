@@ -492,13 +492,14 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             opacity: ratio,
         },
     },
-    flashOnUpdate: defined,
     styleNonce: string,
     sync: defined,
     zoom: defined,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.flashOnUpdate = undocumented(defined);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option

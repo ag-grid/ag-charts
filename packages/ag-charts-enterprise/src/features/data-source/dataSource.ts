@@ -45,6 +45,18 @@ export class DataSource extends AbstractModuleInstance {
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super();
         this.dataService = ctx.dataService;
+
+        let dirty: boolean = false;
+        this.cleanup.register(
+            ctx.eventsHub.on('data:load', () => {
+                dirty = true;
+            }),
+            ctx.eventsHub.on('layout:complete', () => {
+                if (dirty) {
+                    ctx.zoomManager.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
+                }
+            })
+        );
     }
 
     private updateCallback(enabled: boolean, getData: (params: AgDataSourceCallbackParams) => Promise<unknown>) {

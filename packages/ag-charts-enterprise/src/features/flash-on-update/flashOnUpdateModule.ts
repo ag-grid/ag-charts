@@ -4,6 +4,7 @@ import { boolean, color, positiveNumber, ratio, strictUnion } from 'ag-charts-co
 import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from 'ag-charts-types';
 
 import { FlashOnUpdate } from './flashOnUpdate';
+import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdateTypes';
 
 export const FlashOnUpdateModule: PluginModuleDefinition<AgFlashOnUpdateOptions> = {
     type: 'plugin',
