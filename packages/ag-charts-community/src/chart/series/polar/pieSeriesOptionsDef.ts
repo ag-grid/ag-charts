@@ -115,8 +115,6 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     type: required(constant('pie')),
     angleKey: required(string),
     radiusKey: string,
-    angleKeyAxis: string,
-    radiusKeyAxis: string,
     calloutLabelKey: string,
     sectorLabelKey: string,
     legendItemKey: string,
@@ -139,3 +137,7 @@ pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
 pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.angleKeyAxis = undocumented(string);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.radiusKeyAxis = undocumented(string);

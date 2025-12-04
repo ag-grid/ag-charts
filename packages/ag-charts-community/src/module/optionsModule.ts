@@ -366,7 +366,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
         this.processSeriesOptions(options);
-        const unmappedAxisIds = this.processAxesOptions(options, chartType);
+        const unmappedAxisKeys = this.processAxesOptions(options, chartType);
 
         const optionsGraph = createOptionsGraph(activeTheme, options);
         const resolvedOptions = optionsGraph.resolve() as any;
@@ -384,7 +384,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
         // `type` properties are now inferred and those axes can be validated.
-        this.validateAxesOptions(processedOptions, unmappedAxisIds);
+        this.validateAxesOptions(processedOptions, unmappedAxisKeys);
 
         this.validatePluginOptions(processedOptions);
         this.processMiniChartSeriesOptions(processedOptions);
@@ -482,7 +482,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, unmappedAxisIds?: Map<string, string>) {
+    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>) {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
@@ -499,8 +499,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 continue;
             }
 
-            const keyPath = `axes.${key}`;
-            const keyPathUser = `axes.${unmappedAxisIds?.get(key) ?? key}`;
+            const keyPath = `axes.${unmappedAxisKeys?.get(key) ?? key}`;
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -521,13 +520,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const modulePlaceholder = ExpectedModules.get(axisOptions.type);
                 if (modulePlaceholder?.type !== ModuleType.Axis) {
                     Logger.warn(
-                        `Unknown type \`${axisOptions.type}\` at \`${keyPathUser}.type\`; expecting one of ${validAxesTypes}, ignoring.`
+                        `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                     );
                 }
                 continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
-                    `Axis type \`${axisDef.name}\` at  \`${keyPathUser}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
+                    `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
             }
@@ -574,7 +573,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * Collates axis ids from the axis and series options to determine the full set of axis ids, defaults series to
+     * Collates axis keys from the axis and series options to determine the full set of axis keys, defaults series to
      * the primary axes and renames the primary axes to the internal direction-based names.
      */
     private processAxesOptions(options: T, chartType: string) {
@@ -583,10 +582,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
                 : [ChartAxisDirection.X, ChartAxisDirection.Y];
 
-        const directionAxisKeys = this.getAxisDirectionKeys(directions);
-
         const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
-        const hasNonDefaultSeriesAxisKeys = this.hasNonDefaultSeriesAxisKeys(options, directions, directionAxisKeys);
+        const nonDefaultSeriesAxisKeysCount = this.countNonDefaultSeriesAxisKeys(options, directions);
+        const hasNonDefaultSeriesAxisKeys = nonDefaultSeriesAxisKeysCount > 0;
+        const hasExtraImplicitDefaultSeriesAxisKeys =
+            hasNonDefaultSeriesAxisKeys && nonDefaultSeriesAxisKeysCount < (options?.series?.length ?? 0);
 
         const primarySeriesOptions = options.series?.[0];
         const seriesType = this.optionsType(options);
@@ -594,7 +594,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.predictAxes(seriesType, directions, primarySeriesOptions, options.data) ??
             this.cloneDefaultAxes(seriesType);
 
-        if (!hasAxes && !hasNonDefaultSeriesAxisKeys) {
+        const isPrimarySeriesFlipped =
+            isObject(primarySeriesOptions) &&
+            'direction' in primarySeriesOptions &&
+            primarySeriesOptions.direction === 'horizontal' &&
+            ModuleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
+
+        if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isPrimarySeriesFlipped) {
             (options as any).axes = defaultAxes;
             return;
         }
@@ -603,94 +609,88 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // naming, e.g. the user's primary axis for the 'x' direction is named `myXAxis`, then internally it will be
         // remapped to and accessed as `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
-        const primaryAxisIds = this.getPrimaryAxisIds(
+        const primaryAxisKeys = this.getPrimaryAxisKeys(options, directions, axisKeys, hasNonDefaultSeriesAxisKeys);
+
+        const remappedAxisKeys = this.getRemappedAxisKeys(
+            axisKeys,
+            primaryAxisKeys,
+            directions,
+            hasExtraImplicitDefaultSeriesAxisKeys
+        );
+
+        // Create the new axes from the remapped axis keys.
+        const newAxes: Record<string, unknown> = {};
+        const unmappedAxisKeys = new Map<string, string>();
+        for (const [fromAxisKey, toAxisKey] of remappedAxisKeys) {
+            newAxes[toAxisKey] = 'axes' in options ? options.axes?.[fromAxisKey] : undefined;
+            unmappedAxisKeys.set(toAxisKey, fromAxisKey);
+        }
+
+        this.remapSeriesAxisKeys(
             options,
             directions,
-            directionAxisKeys,
-            axisKeys,
-            hasNonDefaultSeriesAxisKeys
+            newAxes,
+            remappedAxisKeys,
+            defaultAxes,
+            hasExtraImplicitDefaultSeriesAxisKeys
         );
-        const remappedAxisIds = new Map<string, string>();
-        for (const [direction, axisId] of primaryAxisIds) {
-            remappedAxisIds.set(axisId, direction);
-        }
-
-        // Secondary axes are then remapped to prevent clashes with the primary axis ids.
-        for (const axisId of axisKeys) {
-            if (remappedAxisIds.has(axisId)) continue;
-            remappedAxisIds.set(axisId, `${AXIS_ID_PREFIX}${remappedAxisIds.size}`);
-        }
-
-        // Create the new axes from the remapped axis ids.
-        const newAxes: Record<string, unknown> = {};
-        const unmappedAxisIds = new Map<string, string>();
-        for (const [fromAxisId, toAxisId] of remappedAxisIds) {
-            newAxes[toAxisId] = 'axes' in options ? options.axes?.[fromAxisId] : undefined;
-            unmappedAxisIds.set(toAxisId, fromAxisId);
-        }
-
-        this.remapSeriesAxisIds(options, directions, directionAxisKeys, newAxes, remappedAxisIds, defaultAxes);
-        this.predictAxesMissingTypesAndPositions(options, directions, directionAxisKeys, newAxes, defaultAxes);
+        this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
 
         (options as any).axes = newAxes as any;
 
-        return unmappedAxisIds;
+        // Provide the unmapped axis keys for user-facing error logging.
+        return unmappedAxisKeys;
     }
 
-    private getAxisDirectionKeys(directions: ChartAxisDirection[]) {
-        const directionAxisKeys: Partial<Record<ChartAxisDirection, string>> = {};
+    /**
+     * These keys are used to map a series to an axis for each direction. They are retrieved per-series to allow a
+     * mixture of flipped and non-flipped series within the same chart.
+     */
+    private getSeriesDirectionAxisKey(seriesOptions: NonNullable<T['series']>[number], direction: ChartAxisDirection) {
+        const seriesModule = ModuleRegistry.getSeriesModule(seriesOptions.type);
+        if (!seriesModule) return;
 
-        for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
-            if (!seriesModule?.axisKeys) continue;
+        const isFlipped = 'direction' in seriesOptions && seriesOptions.direction === 'horizontal';
 
-            for (const direction of directions) {
-                const seriesAxisKey = seriesModule.axisKeys[direction];
-                if (!seriesAxisKey) continue;
-                directionAxisKeys[direction] ??= seriesAxisKey;
-            }
-
-            if (Object.keys(directionAxisKeys).length === directions.length) {
-                break;
-            }
-        }
-
-        return directionAxisKeys;
+        return isFlipped && seriesModule.axisKeysFlipped
+            ? seriesModule.axisKeysFlipped[direction]
+            : seriesModule.axisKeys?.[direction];
     }
 
-    private hasNonDefaultSeriesAxisKeys(
-        options: T,
-        directions: ChartAxisDirection[],
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>
-    ) {
+    /**
+     * Check if any of the series' axis keys have values that do not match the expected value, i.e. the direction.
+     */
+    private countNonDefaultSeriesAxisKeys(options: T, directions: ChartAxisDirection[]) {
+        let count = 0;
+
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                const directionAxisKey = directionAxisKeys[direction];
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
                 if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if ((seriesOptions[directionAxisKey] as string) === (direction as string)) continue;
 
-                return true;
+                count++;
             }
         }
 
-        return false;
+        return count;
     }
 
     /**
      * The primary axes are defined, for each direction, as those first in the `axes` object or referenced by a series.
-     * This is irregardless of the specific id of the axis, e.g. an axis with the id `y` may have the position `top`,
+     * This is irregardless of the specific key of the axis, e.g. an axis with the key `y` may have the position `top`,
      * and would therefore be classified as the primary `x` axis.
      */
-    private getPrimaryAxisIds(
+    private getPrimaryAxisKeys(
         options: T,
         directions: Array<ChartAxisDirection>,
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
         axisKeys: Set<string>,
         hasNonDefaultSeriesAxisKeys: boolean
     ): Map<ChartAxisDirection, string> {
-        const primaryAxisIds = new Map<ChartAxisDirection, string>();
+        const primaryAxisKeys = new Map<ChartAxisDirection, string>();
 
         for (const direction of directions) {
-            let foundPrimaryAxisId = false;
+            let foundPrimaryAxisKey = false;
 
             if (
                 // has axes
@@ -710,59 +710,60 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         axisOptions.position &&
                         direction === POSITION_DIRECTIONS[axisOptions.position]
                     ) {
-                        primaryAxisIds.set(direction, axisKey);
-                        foundPrimaryAxisId = true;
+                        primaryAxisKeys.set(direction, axisKey);
+                        foundPrimaryAxisKey = true;
                         break;
                     }
                 }
             }
 
-            if (foundPrimaryAxisId) continue;
+            if (foundPrimaryAxisKey) continue;
 
             // If there are no series references to any axis, then skip ahead and attempt to find the primary axes by
             // one of the fallback methods.
             if (!hasNonDefaultSeriesAxisKeys) continue;
 
             for (const seriesOptions of options.series ?? []) {
-                const key = directionAxisKeys[direction];
-                if (!key) continue;
-                const seriesAxisId = (seriesOptions as any)[key];
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (!directionAxisKey) continue;
+
+                const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
 
                 // If this series references an axis that has been defined by the user,
-                if (axisKeys.has(seriesAxisId)) continue;
+                if (axisKeys.has(seriesAxisKey)) continue;
 
                 // If this series does not reference an axis in this direction, but at least one series references an
                 // axis in any direction, then this series is defaulting to the primary axis id that matches the
                 // direction.
-                if (!seriesAxisId) {
-                    primaryAxisIds.set(direction, direction);
+                if (!seriesAxisKey) {
+                    primaryAxisKeys.set(direction, direction);
                     break;
                 }
 
                 // Otherwise, if this series does reference an axis in this direction, then it must be defining the
                 // primary axis in this direction.
-                primaryAxisIds.set(direction, seriesAxisId);
+                primaryAxisKeys.set(direction, seriesAxisKey);
                 break;
             }
         }
 
-        if (axisKeys.size === 0 || !('axes' in options) || !options.axes) return primaryAxisIds;
+        if (axisKeys.size === 0 || !('axes' in options) || !options.axes) return primaryAxisKeys;
 
         // If no primary axis ids found, fallback to matching keys
-        if (primaryAxisIds.size === 0) {
+        if (primaryAxisKeys.size === 0) {
             for (const direction of directions) {
                 if (direction in options.axes) {
-                    primaryAxisIds.set(direction, direction);
+                    primaryAxisKeys.set(direction, direction);
                 }
             }
         }
 
         // If still no primary axis ids found, fallback to partially matching axis types
-        if (primaryAxisIds.size === 0) {
+        if (primaryAxisKeys.size === 0) {
             for (const direction of directions) {
                 for (const [axisKey, axisOptions] of entries(options.axes)) {
                     if (axisOptions.type?.startsWith(direction)) {
-                        primaryAxisIds.set(direction, axisKey);
+                        primaryAxisKeys.set(direction, axisKey);
                         break;
                     }
                 }
@@ -770,59 +771,100 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         // If not all primary axes found, attempt to fill out the missing ones by index
-        if (primaryAxisIds.size < 2) {
-            const primaryAxisIdsFound = new Set(primaryAxisIds.values());
+        if (primaryAxisKeys.size < 2) {
+            const primaryAxisIdsFound = new Set(primaryAxisKeys.values());
             for (const [axisKey, axisOptions] of entries(options.axes)) {
                 if (primaryAxisIdsFound.has(axisKey) || 'position' in axisOptions) continue;
                 for (const direction of directions) {
-                    if (primaryAxisIds.has(direction)) continue;
-                    primaryAxisIds.set(direction, axisKey);
+                    if (primaryAxisKeys.has(direction)) continue;
+                    primaryAxisKeys.set(direction, axisKey);
                     primaryAxisIdsFound.add(axisKey);
                     break;
                 }
-                if (primaryAxisIds.size === 2) break;
+                if (primaryAxisKeys.size === 2) break;
             }
         }
 
-        return primaryAxisIds;
+        return primaryAxisKeys;
     }
 
-    private remapSeriesAxisIds(
+    private getRemappedAxisKeys(
+        axisKeys: Set<string>,
+        primaryAxisKeys: Map<ChartAxisDirection, string>,
+        directions: ChartAxisDirection[],
+        hasExtraImplicitDefaultSeriesAxisKeys: boolean
+    ) {
+        const remappedAxisKeys = new Map<string, string>();
+        for (const [direction, axisKey] of primaryAxisKeys) {
+            remappedAxisKeys.set(axisKey, direction);
+        }
+
+        // Secondary axes are then remapped to prevent clashes with the primary axis keys.
+        for (const axisKey of axisKeys) {
+            if (remappedAxisKeys.has(axisKey)) continue;
+            remappedAxisKeys.set(axisKey, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`);
+        }
+
+        // Append secondary axes with the default directions if there are extra series with implicit default axis keys.
+        if (hasExtraImplicitDefaultSeriesAxisKeys) {
+            for (const direction of directions) {
+                if (!remappedAxisKeys.has(direction)) {
+                    remappedAxisKeys.set(direction, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`);
+                }
+            }
+        }
+
+        return remappedAxisKeys;
+    }
+
+    /**
+     * Update each series' axis keys to match the name used internally, such as the direction or a constant suffixed by
+     * the index for secondary axes.
+     */
+    private remapSeriesAxisKeys(
         options: T,
         directions: ChartAxisDirection[],
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
         newAxes: Record<string, unknown>,
-        remappedAxisIds: Map<string, string>,
-        defaultAxes: Record<string, unknown>
+        remappedAxisKeys: Map<string, string>,
+        defaultAxes: Record<string, unknown>,
+        hasExtraImplicitDefaultSeriesAxisKeys: boolean
     ) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                const directionAxisKey = directionAxisKeys[direction];
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
                 if (!directionAxisKey) continue;
 
                 // Ensure there is at least a default axis for each direction required by the series.
                 newAxes[direction] ??= defaultAxes[direction];
 
                 // Remap the series axis key to match either the direction or the remapped axis id.
-                let remappedSeriesAxisId: string = direction;
+                let remappedSeriesAxisKey: string = direction;
+
                 if (directionAxisKey in seriesOptions) {
-                    const seriesAxisId: string = (seriesOptions as any)[directionAxisKey];
-                    if (remappedAxisIds.has(seriesAxisId)) {
-                        remappedSeriesAxisId = remappedAxisIds.get(seriesAxisId)!;
+                    const seriesAxisKey: string = (seriesOptions as any)[directionAxisKey];
+                    if (remappedAxisKeys.has(seriesAxisKey)) {
+                        remappedSeriesAxisKey = remappedAxisKeys.get(seriesAxisKey)!;
                     } else {
                         // If the series references an axis that is not in the axis dictionary, create a new axis for
                         // this series axis id.
-                        remappedSeriesAxisId = `${AXIS_ID_PREFIX}${remappedAxisIds.size}`;
-                        remappedAxisIds.set(seriesAxisId, remappedSeriesAxisId);
-                        newAxes[remappedSeriesAxisId] = defaultAxes[direction];
+                        remappedSeriesAxisKey = `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`;
+                        remappedAxisKeys.set(seriesAxisKey, remappedSeriesAxisKey);
+                        newAxes[remappedSeriesAxisKey] = defaultAxes[direction];
                     }
+                } else if (remappedAxisKeys.has(direction) && hasExtraImplicitDefaultSeriesAxisKeys) {
+                    remappedSeriesAxisKey = remappedAxisKeys.get(direction)!;
+                    newAxes[remappedSeriesAxisKey] ??= defaultAxes[direction];
                 }
 
-                (seriesOptions as any)[directionAxisKey] = remappedSeriesAxisId;
+                (seriesOptions as any)[directionAxisKey] = remappedSeriesAxisKey;
             }
         }
     }
 
+    /**
+     * Attempt to predict the axes for each direction based on a subset of the data. Each series has its own prediction
+     * algorithm.
+     */
     private predictAxes(
         seriesType: SeriesType,
         directions: ChartAxisDirection[],
@@ -889,7 +931,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private predictAxesMissingTypesAndPositions(
         options: T,
         directions: ChartAxisDirection[],
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
         newAxes: Record<string, unknown>,
         defaultAxes: Record<string, PlainObject>
     ) {
@@ -916,7 +957,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             foundAlternatePositionAxis = this.predictAxisMissingTypeAndPositionFromSeries(
                 options,
                 directions,
-                directionAxisKeys,
                 foundAlternatePositionAxis,
                 key,
                 axis,
@@ -958,7 +998,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private predictAxisMissingTypeAndPositionFromSeries(
         options: T,
         directions: ChartAxisDirection[],
-        directionAxisKeys: Partial<Record<ChartAxisDirection, string>>,
         foundAlternatePositionAxis: boolean,
         axisKey: string,
         axis: PlainObject,
@@ -966,7 +1005,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     ) {
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
-                const directionAxisKey = directionAxisKeys[direction];
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
                 if (!directionAxisKey || !isKeyOf(directionAxisKey, seriesOptions)) continue;
                 if (seriesOptions[directionAxisKey] !== axisKey) continue;
 

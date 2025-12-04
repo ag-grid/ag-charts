@@ -25,21 +25,6 @@ export interface AgBaseCartesianSeriesAxisOptions {
     yKeyAxis?: string;
 }
 
-export interface AgBasePolarSeriesAxisOptions {
-    /**
-     * The key of the angle-axis to which this series is bound.
-     *
-     * Default: `'angle'`
-     */
-    angleKeyAxis?: string;
-    /**
-     * The key of the radius-axis to which this series is bound.
-     *
-     * Default: `'radius'`
-     */
-    radiusKeyAxis?: string;
-}
-
 /**
  * Represents configuration options for X and Y axes in a chart.
  */
