@@ -17,6 +17,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type ConstructorReturnType,
+    DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
     type Point,
@@ -280,6 +281,11 @@ export class RangeAreaSeries extends BaseSeries {
                 aggregateRangeAreaDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
         });
+
+        DebugMetrics.record(
+            `${this.type}:aggregation`,
+            this.aggregationManager.filters?.map((f) => f.maxRange)
+        );
     }
 
     private estimateTargetRange(): number {

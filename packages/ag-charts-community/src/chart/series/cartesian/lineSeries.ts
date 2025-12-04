@@ -1,5 +1,5 @@
 import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -340,6 +340,8 @@ export class LineSeries extends CartesianSeries<
                 ),
             targetRange,
         });
+
+        DebugMetrics.record(`${this.type}:aggregation`, this.aggregationManager.filters?.map((f) => f.maxRange));
     }
 
     private estimateTargetRange(): number {

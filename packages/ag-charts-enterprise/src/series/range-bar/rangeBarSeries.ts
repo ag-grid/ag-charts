@@ -14,6 +14,7 @@ import {
     AGGREGATION_SPAN,
     type CallbackParamRules,
     ChartAxisDirection,
+    DebugMetrics,
     type DomainWithMetadata,
     type Mutable,
     type Point,
@@ -312,6 +313,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
         });
+
+        DebugMetrics.record(`${this.type}:aggregation`, this.aggregationManager.filters?.map((f) => f.maxRange));
     }
 
     private estimateTargetRange(): number {
