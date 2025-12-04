@@ -153,7 +153,6 @@ export class ZoomOnDataChange {
 
         const min: unknown = domainAt(0);
         const max: unknown = domainAt(-1);
-        console.log({ min, max });
         if (typeof min === 'number' && typeof max === 'number') {
             return { domainMin: min, domainMax: max };
         } else if (min instanceof Date && max instanceof Date) {
