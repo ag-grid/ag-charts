@@ -128,7 +128,7 @@ export class ZoomOnDataChange {
      */
     private computeDomainMinMax(axisId: AxisID): DomainMinMax | undefined {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
-        if (!ctx) return;
+        if (!ctx?.continuous) return;
 
         // Integrated Charts wrappers datum values in a ChartValueWrapper object.
         // `domainAt` reads `ChartValueWrapper.value` when applicable.
