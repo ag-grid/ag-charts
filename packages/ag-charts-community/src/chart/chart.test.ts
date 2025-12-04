@@ -500,6 +500,77 @@ describe('Chart', () => {
 
             expect(chart.data.data.length).toBe(lengthBeforeMutation);
         });
+
+        // AG-16389: updateDelta should not reset data accumulated via applyTransaction
+        it('should preserve applyTransaction data when updateDelta changes series options', async () => {
+            const initialData = [
+                { x: 0, y: 10 },
+                { x: 1, y: 20 },
+            ];
+
+            const options = prepareTestOptions<{
+                data: { x: number; y: number }[];
+                series: any[];
+            }>({
+                data: initialData,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        connectMissingData: false,
+                    },
+                ],
+            });
+
+            // Step 1: Create chart with initial data
+            const chartProxy = AgCharts.create(options);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(2);
+
+            // Step 2: updateDelta with increasing length data-set (simulates loading data)
+            await chartProxy.updateDelta({
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 30 },
+                ],
+            });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(3);
+
+            // Step 3: Full update back to initialData (simulates user action that resets data)
+            await chartProxy.updateDelta({ data: initialData });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(2);
+
+            // At this point, DataSet.data and userOptions.data may have different references
+            // Step 4: Use applyTransaction to add more data (streaming scenario)
+            await chartProxy.applyTransaction({
+                add: [
+                    { x: 2, y: 30 },
+                    { x: 3, y: 40 },
+                ],
+            });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(4);
+
+            // Step 5: Toggle series option - this should NOT reset the data
+            await chartProxy.updateDelta({
+                series: options.series.map((s) => ({ ...s, connectMissingData: true })),
+            });
+            await waitForChartStability(chart);
+
+            // Data should still have 4 items (not reset to initial 2)
+            expect(chart.data.data.length).toBe(4);
+            expect(chart.data.data).toEqual([
+                { x: 0, y: 10 },
+                { x: 1, y: 20 },
+                { x: 2, y: 30 },
+                { x: 3, y: 40 },
+            ]);
+        });
     });
 
     describe('Chart data inherited by Series', () => {

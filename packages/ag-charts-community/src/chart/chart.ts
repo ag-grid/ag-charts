@@ -1389,7 +1389,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             forceNodeDataRefresh = true;
         }
 
-        if (deltaOptions.data) {
+        // AG-16389: Only reset data if the user explicitly passed 'data' in their delta.
+        const { userDeltaKeys } = newChartOptions;
+        const userExplicitlyPassedData = userDeltaKeys === undefined || userDeltaKeys.has('data');
+        if (deltaOptions.data && userExplicitlyPassedData) {
             // Always create a new DataSet for updateDelta to ensure cache invalidation.
             // Only clone when we still hold the caller's array reference (updateDelta fast path).
             const suppliedData = deltaOptions.data;
