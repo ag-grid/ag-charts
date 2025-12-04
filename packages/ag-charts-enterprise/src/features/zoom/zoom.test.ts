@@ -782,16 +782,25 @@ describe('Zoom', () => {
     describe('navigator-minichart-sync', () => {
         type TDatum = { date: Date; price: number };
 
+        function createSeededRng(seed: number) {
+            let state = seed;
+            return () => {
+                state = (state * 1664525 + 1013904223) % 0xffffffff;
+                return state / 0xffffffff;
+            };
+        }
+
         function getData(): TDatum[] {
             const startDate = new Date('2024-01-01');
             const data = [];
+            const rand = createSeededRng(12345);
 
             for (let i = 0; i < 30; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                 data.push({
                     date,
-                    price: 100 + Math.sin(i / 5) * 20 + Math.random() * 10,
+                    price: 100 + Math.sin(i / 5) * 20 + rand() * 10,
                 });
             }
 
