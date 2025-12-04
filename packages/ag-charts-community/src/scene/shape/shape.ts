@@ -224,7 +224,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
-            const { globalAlpha } = ctx;
+            const globalAlpha = ctx.globalAlpha;
             if (fillImage) {
                 // image pattern background fill
                 ctx.globalAlpha = fillImage.backgroundFillOpacity;

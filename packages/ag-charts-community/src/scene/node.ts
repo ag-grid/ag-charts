@@ -1,7 +1,6 @@
 import {
     DeclaredSceneChangeDetection,
     Logger,
-    SceneObjectChangeDetection,
     assignIfNotStrictlyEqual,
     createId,
     createSvgElement,
@@ -139,11 +138,12 @@ export abstract class Node<TDatum = unknown> {
     visible: boolean = true;
     declare __visible: boolean; // optimised field accessor
 
-    @SceneObjectChangeDetection<Node>({
+    @DeclaredSceneChangeDetection({
         equals: objectsEqual,
         changeCb: Node.handleNodeZIndexChange,
     })
     zIndex: ZIndex = 0;
+    declare __zIndex: ZIndex;
 
     protected batchLevel = 0;
     private batchDirty = false;
