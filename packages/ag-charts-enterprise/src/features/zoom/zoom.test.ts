@@ -837,9 +837,9 @@ describe('Zoom', () => {
                 },
             };
             await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options);
-            options.data = options.data!.slice(4);
+            await compare();
 
-            await chart.update(options);
+            await chart.updateDelta({ data: options.data!.slice(4) });
             await compare();
         });
     });
