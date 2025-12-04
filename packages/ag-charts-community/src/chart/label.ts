@@ -42,7 +42,7 @@ export class Label<TParams = never, TDatum = any>
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
 {
     @Property
-    enabled = true;
+    enabled = false;
 
     @Property
     border = new LabelBorder();
