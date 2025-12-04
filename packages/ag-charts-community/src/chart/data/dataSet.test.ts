@@ -1712,7 +1712,7 @@ describe('DataSet', () => {
                 expect(dataSet.data).toEqual([item0, item1]); // No items removed
             });
 
-            test('should not warn when trying to remove non-existent object datum (rolling window pattern)', () => {
+            test('should warn when trying to remove non-existent datum', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const nonExistent = { x: 99 };
@@ -1721,9 +1721,9 @@ describe('DataSet', () => {
                 dataSet.addTransaction({ remove: [nonExistent] });
                 dataSet.commitPendingTransactions();
 
-                // Don't warn for objects that aren't found, as rolling window patterns
-                // legitimately use new object instances
-                expect(consoleWarnSpy).not.toHaveBeenCalled();
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('AG Charts - applyTransaction() could not find 1 item(s) to remove')
+                );
                 expect(dataSet.data).toEqual([item0, item1]); // No items removed
             });
 

@@ -2398,6 +2398,7 @@ describe('DataModel', () => {
                 // Append ascending data
                 dataSet.addTransaction({ append: [{ x: 4, y: 40 }] });
                 const reprocessed = dataModel.reprocessData(result);
+                expectWarningsCalls();
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
@@ -2471,6 +2472,7 @@ describe('DataModel', () => {
                 }
 
                 const reprocessed = dataModel.reprocessData(result);
+                expectWarningsCalls();
 
                 // Order should be preserved
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
@@ -2568,17 +2570,19 @@ describe('DataModel', () => {
             let result: any = dataModel.processData(sources)!;
 
             // Rolling window: remove first, append next day
-            for (let i = 0; i < 5; i++) {
-                const dayToRemove = i + 1;
-                const dayToAdd = 31 + i;
-                dataSet.addTransaction({
-                    remove: [{ date: new Date(`2024-01-${String(dayToRemove).padStart(2, '0')}`), value: i * 10 }],
-                    append: [{ date: new Date(`2024-01-${String(dayToAdd).padStart(2, '0')}`), value: (30 + i) * 10 }],
-                });
+                for (let i = 0; i < 5; i++) {
+                    const dayToRemove = i + 1;
+                    const dayToAdd = 31 + i;
+                    dataSet.addTransaction({
+                        remove: [{ date: new Date(`2024-01-${String(dayToRemove).padStart(2, '0')}`), value: i * 10 }],
+                        append: [{ date: new Date(`2024-01-${String(dayToAdd).padStart(2, '0')}`), value: (30 + i) * 10 }],
+                    });
 
-                result = dataModel.reprocessData(result);
-                verifyReprocessMatchesBaseline(dataModel, result, sources);
-            }
+                    result = dataModel.reprocessData(result);
+                    verifyReprocessMatchesBaseline(dataModel, result, sources);
+                }
+
+                expectWarningsCalls();
 
             // For discrete domains with banding, the domain tracks ALL unique values
             // ever seen (not just currently visible ones). The bands are rebuilt on
