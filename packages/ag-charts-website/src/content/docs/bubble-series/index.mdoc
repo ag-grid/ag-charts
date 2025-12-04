@@ -109,6 +109,12 @@ label placement.
 Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable Bubble Series labels for data sets with more than a few hundred points.
 {% /note %}
 
+## Large Data
+
+By default, a maximum of 2000 markers per series are rendered. Items beyond this limit are aggregated to improve performance whilst maintaining the same visual appearance. Use `maxRenderedItems` to increase this limit if needed.
+
+See [Large Dataset Interactivity](./large-dataset-interactivity/) for more details.
+
 ## API Reference
 
 {% tabs %}
