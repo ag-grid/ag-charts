@@ -173,6 +173,11 @@ export class ZoomManager extends BaseManager {
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
+                // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
+                this.updateZoom({
+                    source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
+                    sourceDetail: 'unspecified',
+                });
             }),
             updateService.addListener('update-complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;

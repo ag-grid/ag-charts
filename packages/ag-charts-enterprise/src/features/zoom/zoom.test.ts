@@ -99,7 +99,8 @@ describe('Zoom', () => {
     async function prepareChart(
         zoomOptions?: AgChartOptions['zoom'],
         initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
-        baseOptions = EXAMPLE_OPTIONS
+        baseOptions = EXAMPLE_OPTIONS,
+        clickAfterCreate = true
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
@@ -114,8 +115,10 @@ describe('Zoom', () => {
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
-        await clickAction(cx, cy)(chart);
+        if (clickAfterCreate) {
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+        }
     }
 
     async function prepareHorizontalBarChart(zoomOptions?: AgChartOptions['zoom']) {
@@ -776,6 +779,75 @@ describe('Zoom', () => {
             await waitForChartStability(chart);
             state = chart.getState();
             expect(state.zoom).toMatchObject(resetZoomState);
+        });
+    });
+
+    describe('navigator-minichart-sync', () => {
+        type TDatum = { date: Date; price: number };
+
+        function createSeededRng(seed: number) {
+            let state = seed;
+            return () => {
+                state = (state * 1664525 + 1013904223) % 0xffffffff;
+                return state / 0xffffffff;
+            };
+        }
+
+        function getData(): TDatum[] {
+            const startDate = new Date('2024-01-01');
+            const data = [];
+            const rand = createSeededRng(12345);
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                data.push({
+                    date,
+                    price: 100 + Math.sin(i / 5) * 20 + rand() * 10,
+                });
+            }
+
+            return data;
+        }
+
+        it('should stay in sync with series-area', async () => {
+            const options: AgCartesianChartOptions<TDatum> = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        nice: false,
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        title: { text: 'Price' },
+                    },
+                },
+                zoom: {
+                    enabled: true,
+                    autoScaling: {
+                        enabled: true,
+                    },
+                    onDataChange: {
+                        strategy: 'preserveRatios',
+                    },
+                },
+                navigator: {
+                    enabled: true,
+                    miniChart: {
+                        enabled: true,
+                    },
+                },
+            };
+            await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options, false);
+            await waitForChartStability(chart);
+            await compare();
+
+            await chart.updateDelta({ data: options.data!.slice(4) });
+            await compare();
         });
     });
 });
