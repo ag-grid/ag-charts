@@ -196,6 +196,25 @@ describe('AgChartV2', () => {
         });
     });
 
+    describe('#getState', () => {
+        it('omits legend state when legend is disabled', async () => {
+            const options: AgChartOptions = {
+                legend: { enabled: false },
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(chart.getState().legend).toBeUndefined();
+        });
+    });
+
     describe('AG-16360', () => {
         beforeEach(async () => {
             const options: AgChartOptions = {
