@@ -1,4 +1,4 @@
-import { AgCharts, AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgChartOptions, AgCharts, AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
 // Register all community modules
 ModuleRegistry.registerModules([AllCommunityModule]);
