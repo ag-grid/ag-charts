@@ -334,6 +334,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const {
             chartOptions: { processedOptions, optionMetadata },
             ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
+            modulesManager,
         } = this.chart;
 
         const originators = [];
@@ -351,7 +352,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(zoomManager);
         }
 
-        if ('legend' in this.chart) {
+        const legendEnabled = modulesManager.isEnabled('legend') && processedOptions.legend?.enabled !== false;
+        if (legendEnabled) {
             originators.push(legendManager);
         }
 
