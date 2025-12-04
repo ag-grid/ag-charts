@@ -4,7 +4,7 @@ import type {
     AgAnnotationsThemeableOptions,
     AgMeasurerAnnotationStatistics,
     AgMeasurerAnnotationStyles,
-    FontOptions,
+    TextOptions,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -42,7 +42,7 @@ const lineText = {
     color: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
 };
 
-const font: WithThemeParams<FontOptions> = {
+const font: WithThemeParams<TextOptions> = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
     fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
     fontFamily: { $ref: 'fontFamily' },

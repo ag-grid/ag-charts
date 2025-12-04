@@ -7,8 +7,8 @@ import {
     type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
     type AgMeasurerAnnotationStyles,
-    type FontOptions,
     type StrokeOptions,
+    type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
 import * as ThemeSymbols from 'ag-charts-core';
@@ -26,7 +26,7 @@ const handle = {
     strokeWidth: 2,
 };
 
-const font: WithThemeParams<FontOptions> = {
+const font: WithThemeParams<TextOptions> = {
     color: { $ref: 'chartBackgroundColor' },
     fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
     fontFamily: { $ref: 'fontFamily' },

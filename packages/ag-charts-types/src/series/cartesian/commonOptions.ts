@@ -177,19 +177,25 @@ export interface LineDashOptions {
 }
 
 /**
- * Represents font styling options for text elements in a chart.
+ * Represents font styling options.
  */
 export interface FontOptions {
-    /** The colour for text elements. */
-    color?: CssColor;
-    /** The style to use for text elements. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for text elements. */
-    fontWeight?: FontWeight;
     /** The size of the font in pixels for text elements. */
     fontSize?: FontSize;
     /** The font family for text elements. */
     fontFamily?: FontFamily;
+    /** The style to use for text elements. */
+    fontStyle?: FontStyle;
+    /** The font weight to use for text elements. */
+    fontWeight?: FontWeight;
+}
+
+/**
+ * Represents styling options for text elements in a chart.
+ */
+export interface TextOptions extends FontOptions {
+    /** The colour for text elements. */
+    color?: CssColor;
 }
 
 export type Padding = PixelSize | PaddingOptions;
@@ -222,7 +228,7 @@ export interface Visible {
 
 export type TextValue = string | number | Date;
 
-export interface TextSegment extends FontOptions {
+export interface TextSegment extends TextOptions {
     /** A segment of text. */
     text: TextValue;
 }

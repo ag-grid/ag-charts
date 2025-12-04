@@ -1,9 +1,9 @@
 import type { AgStateSerializableDate } from '../api/stateTypes';
 import type {
     FillOptions,
-    FontOptions,
     LineDashOptions,
     StrokeOptions,
+    TextOptions,
     Toggleable,
     Visible,
 } from '../series/cartesian/commonOptions';
@@ -75,7 +75,7 @@ export interface AgParallelChannelAnnotationStyles extends AgChannelAnnotationSt
 // Fibonaccis
 export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     /** Configuration for the fibonacci ratio labels. */
-    label?: FontOptions;
+    label?: TextOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
     /** Whether the Fibonacci range lines are multicolored. */
@@ -89,7 +89,7 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
 }
 
 // Texts
-export interface AgTextAnnotationStyles extends FontOptions, Writeable, Visible {
+export interface AgTextAnnotationStyles extends TextOptions, Writeable, Visible {
     handle?: AgAnnotationHandleStyles;
 }
 
@@ -403,7 +403,7 @@ export interface AgMeasurerAnnotationDirection extends FillOptions, StrokeOption
     statistics?: AgMeasurerAnnotationStatistics;
 }
 
-export interface AgMeasurerAnnotationStatistics extends FontOptions, FillOptions, StrokeOptions {
+export interface AgMeasurerAnnotationStatistics extends TextOptions, FillOptions, StrokeOptions {
     divider?: StrokeOptions;
 }
 
@@ -449,12 +449,12 @@ export interface AgChannelAnnotationText extends AgChannelAnnotationTextStyles {
     label?: string;
 }
 
-export interface AgLineAnnotationTextStyles extends FontOptions {
+export interface AgLineAnnotationTextStyles extends TextOptions {
     position?: 'top' | 'center' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
 
-export interface AgChannelAnnotationTextStyles extends FontOptions {
+export interface AgChannelAnnotationTextStyles extends TextOptions {
     position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
@@ -473,7 +473,7 @@ export interface AgAnnotationPoint {
     y: number;
 }
 
-interface LabelOptions<T> extends FontOptions {
+interface LabelOptions<T> extends TextOptions {
     /** A custom formatting function used to convert values into text for display by labels. */
     formatter?: Formatter<T>;
 }

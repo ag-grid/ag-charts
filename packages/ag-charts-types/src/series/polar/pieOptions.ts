@@ -15,9 +15,9 @@ import type {
 import type {
     AgColorType,
     FillOptions,
-    FontOptions,
     LineDashOptions,
     StrokeOptions,
+    TextOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -58,7 +58,7 @@ export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
     cornerRadius?: PixelSize;
 }
 
-export interface AgPieTitleOptions extends Toggleable, FontOptions {
+export interface AgPieTitleOptions extends Toggleable, TextOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
