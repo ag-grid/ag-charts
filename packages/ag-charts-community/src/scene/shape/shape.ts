@@ -237,7 +237,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
-            ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            if (this.fillShadow?.enabled) {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            }
         }
     }
 
@@ -259,7 +261,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             __opacity: opacity = 1,
         } = this;
 
-        ctx.globalAlpha *= opacity * fillOpacity;
+        const combinedOpacity = opacity * fillOpacity;
+        if (combinedOpacity !== 1) {
+            ctx.globalAlpha *= combinedOpacity;
+        }
 
         if (fillGradient) {
             const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
@@ -293,7 +298,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             (typeof stroke === 'string' ? stroke : undefined) ??
             'black';
 
-        ctx.globalAlpha *= opacity * strokeOpacity;
+        const combinedOpacity = opacity * strokeOpacity;
+        if (combinedOpacity !== 1) {
+            ctx.globalAlpha *= combinedOpacity;
+        }
     }
 
     protected applyShadow(ctx: CanvasContext) {
