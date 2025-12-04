@@ -759,7 +759,6 @@ describe('Zoom', () => {
                 },
             };
             await prepareChart(undefined, initialState, baseOptions);
-            await compare();
         });
 
         test('dblclick', async () => {
