@@ -130,29 +130,7 @@ export class ZoomOnDataChange {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
         if (!ctx?.continuous) return;
 
-        // Integrated Charts wrappers datum values in a ChartValueWrapper object.
-        // `domainAt` reads `ChartValueWrapper.value` when applicable.
-        function domainAt(index: 0 | -1): unknown {
-            function isChartValueWrapper(o: unknown): o is { value: unknown; id: number; toString: Function } {
-                return (
-                    o != null &&
-                    typeof o === 'object' &&
-                    'id' in o &&
-                    'value' in o &&
-                    'toString' in o &&
-                    typeof o.id === 'number' &&
-                    o.toString instanceof Function
-                );
-            }
-            const elem: unknown = ctx?.scale.domain.at(index);
-            if (isChartValueWrapper(elem)) {
-                return elem.value;
-            }
-            return elem;
-        }
-
-        const min: unknown = domainAt(0);
-        const max: unknown = domainAt(-1);
+        const [min, max]: [unknown, unknown] = ctx.scale.getDomainMinMax();
         if (typeof min === 'number' && typeof max === 'number') {
             return { domainMin: min, domainMax: max };
         } else if (min instanceof Date && max instanceof Date) {

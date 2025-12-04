@@ -40,3 +40,31 @@ export function filterVisibleTicks<T = any>(
         firstTickIndex: t0,
     };
 }
+
+function isChartValueWrapper<D>(o: unknown): o is { value: D; id: number; toString: Function } {
+    return (
+        o != null &&
+        typeof o === 'object' &&
+        'id' in o &&
+        'value' in o &&
+        'toString' in o &&
+        typeof o.id === 'number' &&
+        o.toString instanceof Function
+    );
+}
+
+export function unpackDomainMinMax<D>(domain: D[]): [D, D] | [undefined, undefined] {
+    // Integrated Charts wrappers datum values in a ChartValueWrapper object.
+    // `domainAt` reads `ChartValueWrapper.value` when applicable.
+    function domainAt(index: 0 | -1): D | undefined {
+        const elem: D | undefined | object = domain.at(index);
+        if (isChartValueWrapper<D>(elem)) {
+            return elem.value;
+        }
+        return elem;
+    }
+
+    const min: D | undefined = domainAt(0);
+    const max: D | undefined = domainAt(-1);
+    return min != undefined && max != undefined ? [min, max] : [undefined, undefined];
+}

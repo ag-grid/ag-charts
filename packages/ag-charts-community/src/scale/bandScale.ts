@@ -3,6 +3,7 @@ import { Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
+import { unpackDomainMinMax } from './scaleUtil';
 
 /**
  * Maps a discrete domain to a continuous numeric range.
@@ -100,6 +101,10 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
             return Number.NaN;
         }
         return this.ordinalRange(i);
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 
     protected invertNearestIndex(position: number) {

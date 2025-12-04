@@ -3,6 +3,7 @@ import { Color, Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
+import { unpackDomainMinMax } from './scaleUtil';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 
@@ -135,6 +136,10 @@ export class ColorScale extends AbstractScale<number, string> {
 
     override invert(): number | undefined {
         return;
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 
     protected refresh() {
