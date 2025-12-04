@@ -166,8 +166,6 @@ export class ZoomManager extends BaseManager {
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
-
-                this.applyUpdateZoom({ callerId: 'zoom-manager', changeType: 'layoutComplete', changes: {} });
             }),
             updateService.addListener('update-complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
@@ -331,6 +329,10 @@ export class ZoomManager extends BaseManager {
 
     public isZoomEnabled() {
         return this.zoomModule;
+    }
+
+    public refreshZoom(callerId: string): boolean {
+        return this.applyUpdateZoom({ callerId, changeType: 'refresh', changes: {} });
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState): boolean {
