@@ -206,7 +206,7 @@ In this configuration:
 
 The tooltip symbol (the coloured marker that represents the series) can be customised using the `symbol` property in the renderer's return object.
 
-Whether the symbol includes a `marker`, `line`, or both depends on the series type and options used.
+Whether the symbol defaults to use a `marker`, `line`, or both depends on the series type and options used. Use the `enabled` option for each element to override this.
 
 {% chartExampleRunner title="Customising the Tooltip Symbol" name="tooltip-symbol" type="generated" /%}
 
@@ -237,7 +237,6 @@ In this example:
 -   Click the button to toggle the symbol. This will take effect on the next hover.
 -   The `marker` shape has been changed to `'star'` instead of inheriting the circle shape from the series.
 -   The marker and line colours have been changed from those used in the series.
--   The `line` option is only used for series that support it such as `line` or `area`.
 
 ### Using Custom Tooltips
 
