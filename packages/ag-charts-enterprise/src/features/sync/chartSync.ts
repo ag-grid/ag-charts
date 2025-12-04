@@ -144,7 +144,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             // 5. ChartSync of Chart B calls `updateSyncZoom`.
             // 6. Add so on...
             //
-            if (e.changeType !== 'sync') {
+            if (e.source !== 'sync') {
                 debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
                 zoomModule.updateSyncZoom(zoom);
             }
