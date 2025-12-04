@@ -301,6 +301,119 @@ describe('Tooltip', () => {
             expect(element?.innerHTML).toContain('d="M 4 0 L 16 0 L 16 12 L 4 12 Z"');
             expect(element?.innerHTML).toContain('fill="red"');
         });
+
+        it('should render symbol line when user specifies it on non-line series', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: true, stroke: 'red', strokeWidth: 2 } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+            expect(element?.innerHTML).toContain('stroke="red"');
+        });
+
+        it('should default line stroke properties from marker when not specified', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        stroke: 'purple',
+                        strokeWidth: 3,
+                        tooltip: {
+                            renderer() {
+                                return {
+                                    symbol: {
+                                        marker: { stroke: 'purple', strokeWidth: 3 },
+                                        line: { enabled: true },
+                                    },
+                                };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+            expect(element?.innerHTML).toContain('stroke="purple"');
+        });
+
+        it('should default line.enabled to true when user provides line properties', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { stroke: 'orange' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+        });
+
+        it('should not render line when user explicitly sets enabled to false on non-line series', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: false, stroke: 'red' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).not.toContain('<line');
+        });
     });
 
     describe('AG-16272 Missing Values', () => {
