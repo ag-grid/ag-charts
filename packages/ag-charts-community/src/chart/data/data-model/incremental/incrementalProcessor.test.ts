@@ -1167,4 +1167,701 @@ describe('DataModel', () => {
             expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
         });
     });
+
+    describe('null/empty datapoint handling', () => {
+        setupMockConsole();
+
+        describe('entirely null datums', () => {
+            it('should handle appending null datum', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append null datum
+                dataSet.addTransaction({ append: [null as any] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify invalidData tracking
+                expect(reprocessed.invalidData?.get('test')?.[2]).toBe(true);
+                expect(reprocessed.invalidKeys?.get('test')?.[2]).toBe(true);
+                expect(reprocessed.input.count).toBe(3);
+            });
+
+            it('should handle appending undefined datum', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append undefined datum
+                dataSet.addTransaction({ append: [undefined as any] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify invalidData tracking
+                expect(reprocessed.invalidData?.get('test')?.[1]).toBe(true);
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBe(true);
+            });
+
+            it('should handle prepending null datum', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Prepend null datum
+                dataSet.addTransaction({ prepend: [null as any] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify index 0 is now invalid, valid data shifted
+                expect(reprocessed.invalidData?.get('test')?.[0]).toBe(true);
+                expect(reprocessed.invalidKeys?.get('test')?.[0]).toBe(true);
+                // Valid keys shifted to positions 1 and 2
+                expect(reprocessed.keys[0].get('test')?.[1]).toBe(2);
+                expect(reprocessed.keys[0].get('test')?.[2]).toBe(3);
+            });
+
+            it('should handle appending multiple null datums in single transaction', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append mix of null and valid
+                dataSet.addTransaction({
+                    append: [null as any, { x: 2, y: 20 }, null as any],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Index 0: valid, Index 1: null, Index 2: valid, Index 3: null
+                expect(reprocessed.invalidData?.get('test')?.[0]).toBeFalsy();
+                expect(reprocessed.invalidData?.get('test')?.[1]).toBe(true);
+                expect(reprocessed.invalidData?.get('test')?.[2]).toBeFalsy();
+                expect(reprocessed.invalidData?.get('test')?.[3]).toBe(true);
+                expect(reprocessed.input.count).toBe(4);
+            });
+
+            it('should handle replacing valid datum with null via remove+append', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove middle item, append null
+                dataSet.addTransaction({
+                    remove: [initialData[1]],
+                    append: [null as any],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Domain should contract (only includes 1 and 3, not the null)
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                expect(reprocessed.domain.values).toEqual([[10, 30]]);
+            });
+        });
+
+        describe('datums with null key fields', () => {
+            it('should handle appending datum with null key field', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with null key
+                dataSet.addTransaction({ append: [{ x: null as any, y: 20 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key should use invalidValue, marked as invalid
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBe(true);
+                expect(reprocessed.invalidData?.get('test')?.[1]).toBe(true);
+                // Key domain should NOT include null key
+                expect(reprocessed.domain.keys).toEqual([[1, 1]]);
+            });
+
+            it('should handle appending datum with missing key field', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with missing x key
+                dataSet.addTransaction({ append: [{ y: 20 } as any] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key should be marked as invalid
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBe(true);
+                // Key domain unchanged
+                expect(reprocessed.domain.keys).toEqual([[1, 1]]);
+            });
+
+            it('should handle category key with null value', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKey('category'), value('value')],
+                });
+
+                const initialData = [
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with null category key
+                dataSet.addTransaction({ append: [{ category: null as any, value: 30 }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Invalid key should be tracked
+                expect(reprocessed.invalidKeys?.get('test')?.[2]).toBe(true);
+                // Category domain should NOT include null
+                expect(reprocessed.domain.keys).toEqual([['A', 'B']]);
+            });
+        });
+
+        describe('datums with null value fields (valid key)', () => {
+            it('should handle appending datum with null value but valid key', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with valid key but null value
+                dataSet.addTransaction({ append: [{ x: 2, y: null as any }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key domain should include new key
+                expect(reprocessed.domain.keys).toEqual([[1, 2]]);
+                // Value domain should NOT include null
+                expect(reprocessed.domain.values).toEqual([[10, 10]]);
+                // Key should be valid, but data marked as partially invalid
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBeFalsy();
+                expect(reprocessed.invalidData?.get('test')?.[1]).toBe(true);
+                expect(reprocessed.partialValidDataCount).toBeGreaterThan(0);
+            });
+
+            it('should handle multiple value columns with selective nulls', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y1'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        { ...value('y2'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                const initialData = [{ x: 1, y1: 10, y2: 100 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with y1 valid but y2 null
+                dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: null as any }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // y1 domain should update
+                expect(reprocessed.domain.values[0]).toEqual([10, 20]);
+                // y2 domain should NOT include null
+                expect(reprocessed.domain.values[1]).toEqual([100, 100]);
+            });
+
+            it('should handle appending datum with undefined value field', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with missing y value
+                dataSet.addTransaction({ append: [{ x: 2 } as any] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key domain should include new key
+                expect(reprocessed.domain.keys).toEqual([[1, 2]]);
+                // Value domain should NOT change
+                expect(reprocessed.domain.values).toEqual([[10, 10]]);
+            });
+        });
+
+        describe('update operations with nulls', () => {
+            it('should handle updating datum to have null key', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Mutate the datum and add update transaction
+                initialData[1].x = null as any;
+                dataSet.addTransaction({ update: [initialData[1]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Updated key should now be invalid
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBe(true);
+            });
+
+            it('should handle updating datum to have null value', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Mutate the value to null
+                initialData[1].y = null as any;
+                dataSet.addTransaction({ update: [initialData[1]] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key should still be valid
+                expect(reprocessed.invalidKeys?.get('test')?.[1]).toBeFalsy();
+                // But data should be marked as invalid
+                expect(reprocessed.invalidData?.get('test')?.[1]).toBe(true);
+            });
+        });
+
+        describe('remove operations with nulls', () => {
+            it('should handle removing null datum', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                // Start with data that includes null
+                const nullDatum = null as any;
+                const initialData = [{ x: 1, y: 10 }, nullDatum, { x: 3, y: 30 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify initial state has invalid data
+                expect(processedData!.invalidData?.get('test')?.[1]).toBe(true);
+
+                // Remove the null datum
+                dataSet.addTransaction({ remove: [nullDatum] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Should now have only 2 items
+                expect(reprocessed.input.count).toBe(2);
+                expect(reprocessed.keys[0].get('test')).toEqual([1, 3]);
+            });
+
+            it('should handle removing all valid datums leaving only nulls', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const nullDatum = null as any;
+                const validDatum = { x: 1, y: 10 };
+                const initialData = [validDatum, nullDatum];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove the only valid datum
+                dataSet.addTransaction({ remove: [validDatum] });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Should have 1 item (the null)
+                expect(reprocessed.input.count).toBe(1);
+                expect(reprocessed.invalidData?.get('test')?.[0]).toBe(true);
+            });
+        });
+
+        describe('mixed transactions with nulls', () => {
+            it('should handle prepend null and append valid', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Prepend null, append valid
+                dataSet.addTransaction({
+                    prepend: [null as any],
+                    append: [{ x: 4, y: 40 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // First position invalid, last position valid
+                expect(reprocessed.invalidData?.get('test')?.[0]).toBe(true);
+                expect(reprocessed.invalidData?.get('test')?.[3]).toBeFalsy();
+                expect(reprocessed.domain.keys).toEqual([[2, 4]]);
+            });
+
+            it('should handle remove valid and append null', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Remove first valid, append null
+                dataSet.addTransaction({
+                    remove: [initialData[0]],
+                    append: [null as any],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Domain should exclude removed value and null
+                expect(reprocessed.domain.keys).toEqual([[2, 3]]);
+                expect(reprocessed.domain.values).toEqual([[20, 30]]);
+                // Last item is null
+                expect(reprocessed.invalidData?.get('test')?.[2]).toBe(true);
+            });
+
+            it('should handle rolling window with null datums', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: bandingConfig(50, 5),
+                });
+
+                // Large dataset to trigger banding
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Rolling window: remove from start, append nulls at end
+                dataSet.addTransaction({
+                    remove: [initialData[0], initialData[1]],
+                    append: [null as any, { x: 100, y: 1000 }],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Still 100 items
+                expect(reprocessed.input.count).toBe(100);
+                // Second to last is null
+                expect(reprocessed.invalidData?.get('test')?.[98]).toBe(true);
+                // Domain excludes null
+                expect(reprocessed.domain.keys).toEqual([[2, 100]]);
+            });
+        });
+
+        describe('domain correctness with nulls', () => {
+            it('should compute correct key domain excluding null keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append mix of valid and null keys
+                dataSet.addTransaction({
+                    append: [
+                        { x: null as any, y: 20 },
+                        { x: 3, y: 30 },
+                        { x: null as any, y: 40 },
+                        { x: 5, y: 50 },
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Domain only includes valid keys (1, 3, 5)
+                expect(reprocessed.domain.keys).toEqual([[1, 5]]);
+            });
+
+            it('should compute correct value domain excluding null values', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                });
+
+                const initialData = [{ x: 1, y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append mix of valid and null values
+                dataSet.addTransaction({
+                    append: [
+                        { x: 2, y: null as any },
+                        { x: 3, y: 30 },
+                        { x: 4, y: null as any },
+                        { x: 5, y: 50 },
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Key domain includes all valid keys
+                expect(reprocessed.domain.keys).toEqual([[1, 5]]);
+                // Value domain only includes valid values (10, 30, 50)
+                expect(reprocessed.domain.values).toEqual([[10, 50]]);
+            });
+        });
+
+        describe('grouped data with nulls', () => {
+            it('should handle grouped data with null value but valid key', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [
+                        rangeKey('x'),
+                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                    ],
+                    groupByKeys: true,
+                });
+
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append datum with valid key but null value
+                dataSet.addTransaction({ append: [{ x: 3, y: null as any }] });
+
+                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+
+                // Clear warnings before baseline comparison
+                expectWarningsCalls();
+
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Groups should include the new item
+                expect(reprocessed.groups.length).toBe(3);
+                expect(reprocessed.groups[2].keys).toEqual([3]);
+                // The group's validScopes should indicate invalid value
+                // Check that column contains the invalidValue
+                expect(reprocessed.columns[0][2]).toBeUndefined();
+            });
+
+            it('should not support reprocessing when invalid keys exist in initial data', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                // Initial data with null key
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: null as any, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Clear warnings before assertion
+                expectWarningsCalls();
+
+                // Should not support reprocessing due to existing invalid keys
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+        });
+
+        describe('banding with nulls', () => {
+            it('should handle banded domain with null datum insertions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                    domainBandingConfig: bandingConfig(50, 5),
+                });
+
+                // Large dataset to trigger banding
+                const initialData = Array.from({ length: 100 }, (_, i) => ({
+                    x: i,
+                    y: i * 10,
+                }));
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append null datums
+                dataSet.addTransaction({
+                    append: [null as any, { x: 100, y: 1000 }, null as any],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Verify banding metadata is present
+                expect(reprocessed.optimizations?.domainBanding).toBeDefined();
+
+                // Domain should exclude nulls
+                expect(reprocessed.domain.keys).toEqual([[0, 100]]);
+                expect(reprocessed.domain.values).toEqual([[0, 1000]]);
+
+                // Invalid data tracked
+                expect(reprocessed.invalidData?.get('test')?.[100]).toBe(true);
+                expect(reprocessed.invalidData?.get('test')?.[102]).toBe(true);
+            });
+        });
+    });
 });
