@@ -71,8 +71,7 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 // `chart.zoom.onDataChange` options
 export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
     @Property
-    // TODO(olegat): change default to 'preserveDomain'
-    strategy: AgZoomOnDataChangeStrategy = 'preserveRatios';
+    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
 
     @Property
     // TODO(olegat): change default to 'true'
@@ -129,10 +128,9 @@ export class ZoomOnDataChange {
      */
     private computeDomainMinMax(axisId: AxisID): DomainMinMax | undefined {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
-        if (!ctx) return;
+        if (!ctx?.continuous) return;
 
-        const min: unknown = ctx.scale.domain.at(0);
-        const max: unknown = ctx.scale.domain.at(-1);
+        const [min, max]: [unknown, unknown] = ctx.scale.getDomainMinMax();
         if (typeof min === 'number' && typeof max === 'number') {
             return { domainMin: min, domainMax: max };
         } else if (min instanceof Date && max instanceof Date) {

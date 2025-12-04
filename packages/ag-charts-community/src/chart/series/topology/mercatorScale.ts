@@ -1,6 +1,7 @@
 import type { DomainWithMetadata, NormalizedDomain, Position } from 'ag-charts-core';
 
 import { AbstractScale } from '../../../scale/abstractScale';
+import { unpackDomainMinMax } from '../../../scale/scaleUtil';
 import { BBox } from '../../../scene/bbox';
 
 type XY = [x: number, y: number];
@@ -91,5 +92,9 @@ export class MercatorScale extends AbstractScale<Position, XY> {
         const yScale = (y1 - y0) / this.bounds.height;
 
         return [xLon((x - x0) / xScale + this.bounds.x), yLat((y - y0) / yScale + this.bounds.y)];
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 }

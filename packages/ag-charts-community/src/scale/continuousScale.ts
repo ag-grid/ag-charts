@@ -2,6 +2,7 @@ import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
 import { findMinMax } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
+import { unpackDomainMinMax } from './scaleUtil';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -147,6 +148,10 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         }
 
         return this.transformInvert ? this.transformInvert(d) : d;
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 
     protected getPixelRange() {
