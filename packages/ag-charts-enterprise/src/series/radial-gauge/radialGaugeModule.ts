@@ -1,10 +1,9 @@
 import { type AgRadialGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, radialGaugeSeriesOptionsDef } from 'ag-charts-core';
 
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
-
-const { FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
@@ -14,7 +13,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     dependencies: [GaugePresetModule],
     version: VERSION,
 
-    options: _ModuleSupport.radialGaugeSeriesOptionsDef,
+    options: radialGaugeSeriesOptionsDef,
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,

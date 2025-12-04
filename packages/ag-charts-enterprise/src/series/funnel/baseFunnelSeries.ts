@@ -4,7 +4,8 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
+import type { DomainInput, DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -12,10 +13,8 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
-    SeriesZIndexMap,
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -217,7 +216,11 @@ export abstract class BaseFunnelSeries<
         this.animationState.transition('updateData');
     }
 
+<<<<<<< HEAD
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
+=======
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+>>>>>>> origin/latest
         const {
             processedData,
             dataModel,
@@ -247,10 +250,7 @@ export abstract class BaseFunnelSeries<
         }
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

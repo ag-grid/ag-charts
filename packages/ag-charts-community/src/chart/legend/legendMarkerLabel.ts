@@ -1,8 +1,7 @@
-import { ObserveChanges, ProxyPropertyOnWrite } from 'ag-charts-core';
+import { ObserveChanges, ProxyPropertyOnWrite, SceneChangeDetection } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { ChildNodeCounts, RenderContext } from '../../scene/node';
 import { Line } from '../../scene/shape/line';

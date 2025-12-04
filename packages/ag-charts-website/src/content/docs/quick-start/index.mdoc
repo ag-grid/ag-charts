@@ -178,6 +178,10 @@ Load the AG Charts library and create a blank container div:
 </html>
 ```
 
+{% note %}
+If you're using TypeScript you need to import and register the modules you want to use. See the [NPM Installation](./installation/#npm-installation) docs for more information.
+{% /note %}
+
 ### Instantiate the JavaScript Chart
 
 Create the Chart inside of your container div using `create`.
@@ -191,6 +195,8 @@ const chart = agCharts.AgCharts.create(options);
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `container`, `data` and `series` properties:
 
 ```js
 // Chart Options
@@ -213,6 +219,27 @@ const options = {
 
 {% /if %}
 
+<!-- Module Install (All frameworks, exluding JS) -->
+
+{% if isNotJavascriptFramework() %}
+
+### Module Install
+
+Register the `AllCommunityModule` to access all Community features:
+
+```js
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+
+// Enable all Community features
+ModuleRegistry.registerModules([AllCommunityModule]);
+```
+
+{% note %}
+To minimize bundle size, only register the modules you want to use. See the [Modules](./module-registry/) page for more information.
+{% /note %}
+
+{% /if %}
+
 <!-- REACT Create -->
 
 {% if isFramework("react") %}
@@ -225,6 +252,8 @@ import { AgCharts } from 'ag-charts-react';
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
 
 ```tsx format="reactHooks"
 const ChartExample = () => {
@@ -274,6 +303,8 @@ import { AgChartOptions } from 'ag-charts-community';
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
 
 ```ts format="snippet"
 // Angular Chart Component
@@ -339,6 +370,8 @@ class AppComponent {}
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
 
 ```html
 <script>

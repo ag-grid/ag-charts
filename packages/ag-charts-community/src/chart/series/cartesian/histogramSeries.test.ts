@@ -6,6 +6,7 @@ import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
+import type { ChartOrProxy } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -18,7 +19,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-import type { ChartOrProxy } from '../../test/utils';
 import type { SeriesNodeDataContext } from '../series';
 import {
     HISTOGRAM_DATE_BASED_BUCKETS,

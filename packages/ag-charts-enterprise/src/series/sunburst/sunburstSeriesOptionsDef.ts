@@ -1,7 +1,7 @@
 import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string, without } from 'ag-charts-core';
+import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string, without } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, sunburstSeriesThemeableOptionsDef } = _ModuleSupport;
+const { sunburstSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,

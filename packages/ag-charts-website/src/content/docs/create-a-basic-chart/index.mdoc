@@ -136,16 +136,131 @@ Running the chart at this point will show the two series in the same chart.
 
 ### Configuring Secondary Axes
 
-The chart above shows both series in a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series. To do this, we need to configure three Axes: bottom, left and right.
+The chart above shows both series in a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series.
+
+To do this, first we need to link each series to the appropriate axis using the `yKeyAxis` property on the series:
+
+{% if isFramework("javascript") %}
+
+```js format="snippet"
+const options = {
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
+    ],
+    // ...
+};
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx format="reactHooks"
+const [chartOptions, setChartOptions] = useState({
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
+    ],
+    // ...
+});
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+this.chartOptions = {
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
+    ],
+    // ...
+};
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
+    ],
+    // ...
+});
+```
+
+{% /if %}
+
+The `yKeyAxis` property provides a way to reference a series from the axis configuration. To configure the axes, we need to add the `axes` property to the chart options, defining each axis and linking it to the appropriate series using the same keys defined in the `yKeyAxis` properties above:
 
 {% if isFramework("javascript") %}
 
 ```js format="snippet"
 const options = {
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-        ySecondary: { type: 'number', position: 'right' },
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
     },
     // ...
 };
@@ -158,9 +273,16 @@ const options = {
 ```jsx format="reactHooks"
 const [chartOptions, setChartOptions] = useState({
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-        ySecondary: { type: 'number', position: 'right' },
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
     },
     // ...
 });
@@ -173,9 +295,16 @@ const [chartOptions, setChartOptions] = useState({
 ```js
 this.chartOptions = {
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-        ySecondary: { type: 'number', position: 'right' },
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
     },
     // ...
 };
@@ -188,9 +317,16 @@ this.chartOptions = {
 ```tsx format="reactHooks"
 const options = ref<AgChartOptions>({
     axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-        ySecondary: { type: 'number', position: 'right' },
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
     },
     // ...
 });
@@ -200,13 +336,17 @@ const options = ref<AgChartOptions>({
 
 Let's breakdown what's happening here:
 
--   **Type:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
--   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
--   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
+-   **`axes.{key}`:** The key used to reference the axis, which should match the `yKeyAxis` property on the series.
+-   **`Type`:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
+-   **`Position`:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 
 Now when we run our chart, we should see both series and three axes.
 
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
+
+{% note %}
+Refer to our [Axes Configuration](./axes-configuration/) docs for more information on configuring axes.
+{% /note %}
 
 ## Styling
 
@@ -406,7 +546,7 @@ The `formatter` should be a function that receives the axis label data and retur
 const options = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -429,7 +569,7 @@ const options = {
 const [chartOptions, setChartOptions] = useState({
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -452,7 +592,7 @@ const [chartOptions, setChartOptions] = useState({
 this.chartOptions = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -475,7 +615,7 @@ this.chartOptions = {
 this.chartOptions = {
     axes: {
         // ...
-        ySecondary: {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             label: {
@@ -502,7 +642,7 @@ _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes/) API docs fo
 
 1. Format the left axis using `toLocaleString()`
 
-    _Hint: Add a formatter to the `axes.label` property_
+    _Hint: Add a formatter to the `axes.{key}.label` property_
 
 2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'.
 

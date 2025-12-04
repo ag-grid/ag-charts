@@ -1,7 +1,6 @@
+import { DEFAULT_SHADOW_COLOUR, FONT_SIZE_RATIO } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
-import { FONT_SIZE_RATIO } from '../../themes/constants';
-import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,

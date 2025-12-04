@@ -1,4 +1,4 @@
-import type { AxisID, DeepReadonly, Scale } from 'ag-charts-core';
+import type { AxisID, ChartAxisDirection, DeepReadonly, Scale } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type {
     AgAnnotation,
@@ -6,11 +6,11 @@ import type {
     AgContextMenuItemShowOn,
     AgTimeInterval,
     AgTimeIntervalUnit,
+    AgZoomEventSource,
     AgZoomRange,
     AgZoomRatio,
 } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
@@ -177,22 +177,46 @@ export interface ZoomLoadMementoEvent {
     readonly zoomModule: boolean;
 }
 
-export type ZoomChangeType =
-    | 'layoutComplete'
-    | 'panToBBox'
-    | 'reset'
-    | 'restoreMemento'
-    | 'setAxes'
-    | 'sync'
-    | 'update';
-
 export type ZoomChangeState = {
     readonly [K in AxisID]: Readonly<ZoomStateDirection> | undefined;
 };
 
+export type ZoomEventSourceDetail =
+    | `contextmenu-pan-to-cursor`
+    | `contextmenu-reset`
+    | `contextmenu-zoom-to-cursor`
+    | `dataSource`
+    | `internal-applyOptions`
+    | `internal-autoScaling`
+    | `internal-panToBBox`
+    | `internal-prepareResizedChart`
+    | `internal-restoreMemento`
+    | `internal-setAxes`
+    | `internal-updateSyncZoom`
+    | `keyboard(${-1 | 0 | 1})`
+    | `navigatorDOM`
+    | `navigator`
+    | `onDataChange-reset`
+    | `zoom-axis-dblclick`
+    | `zoom-axis-drag`
+    | `zoom-axis-wheel`
+    | `zoom-button-pan-end`
+    | `zoom-button-pan-left`
+    | `zoom-button-pan-right`
+    | `zoom-button-pan-start`
+    | `zoom-button-reset`
+    | `zoom-button-zoom-in`
+    | `zoom-button-zoom-out`
+    | `zoom-range-button-${number}`
+    | `zoom-seriesarea-dblclick`
+    | `zoom-seriesarea-panner`
+    | `zoom-seriesarea-selector`
+    | `zoom-seriesarea-twofingers`
+    | `zoom-seriesarea-wheel`;
+
 export interface ZoomChangeRequestEvent {
-    readonly callerId: string;
-    readonly changeType: ZoomChangeType;
+    readonly source: AgZoomEventSource;
+    readonly sourceDetail: ZoomEventSourceDetail;
     readonly changedAxes: readonly AxisID[];
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;
@@ -201,7 +225,8 @@ export interface ZoomChangeRequestEvent {
 }
 
 export interface ZoomChangeCompleteEvent {
-    readonly changeType: ZoomChangeType;
+    readonly source: AgZoomEventSource;
+    readonly sourceDetail: ZoomEventSourceDetail;
     readonly x?: Readonly<ZoomState>;
 }
 

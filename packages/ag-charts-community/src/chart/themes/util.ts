@@ -3,7 +3,7 @@ import type {
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
-import { Color, mapValues } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, Color, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgHighlightOptions,
@@ -13,8 +13,6 @@ import type {
     LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
-
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from './constants';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 

@@ -7,12 +7,21 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
     type CallbackParamRules,
+    ChartAxisDirection,
+    type DomainInput,
     type DomainWithMetadata,
     type Mutable,
     type Point,
     type RequireOptional,
     type Scale,
+    areScalingEqual,
+    extractDomain,
     findMinMax,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -28,7 +37,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
@@ -49,13 +57,7 @@ const {
     Rect,
     PointerEvents,
     motion,
-    areScalingEqual,
     processedDataIsAnimatable,
-    AGGREGATION_SPAN,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
     getItemStyles,
     calculateSegments,
     toHighlightString,
@@ -322,7 +324,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return Math.abs(r1 - r0);
     }
 
+<<<<<<< HEAD
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
+=======
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+>>>>>>> origin/latest
         const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return { domain: [] };
 
@@ -344,7 +350,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 

@@ -1,4 +1,4 @@
-import { type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
+import { ChartUpdateType, type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
@@ -29,7 +29,6 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -774,7 +773,7 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager.panToBBox(hoverRect, focusBBox);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

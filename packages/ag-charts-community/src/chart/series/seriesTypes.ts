@@ -1,9 +1,8 @@
-import type { DomainWithMetadata, PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
+import type { ChartAxisDirection, DomainInput, DomainWithMetadata, PlacedLabel, Point, PointLabelDatum, SizedPoint } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
-import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
 

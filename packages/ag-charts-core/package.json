@@ -56,7 +56,8 @@
     "ag-charts-types": "12.3.1-beta.20251203"
   },
   "devDependencies": {
-    "@jest/globals": "29.6.1"
+    "@jest/globals": "29.6.1",
+    "ag-charts-test": "12.3.1-beta.20251203"
   },
   "publishConfig": {
     "access": "public"

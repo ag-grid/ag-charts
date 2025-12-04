@@ -1,5 +1,6 @@
-import type { Scale } from 'ag-charts-core';
+import type { ChartAnimationPhase, Scale } from 'ag-charts-core';
 import {
+    ChartAxisDirection,
     Property,
     StateMachine,
     arraysEqual,
@@ -26,9 +27,7 @@ import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { Caption } from '../caption';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';

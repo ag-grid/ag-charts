@@ -1,4 +1,4 @@
-import { type AgRangesButton, type AgRangesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangesButton, type AgRangesOptions, VERSION } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     and,
@@ -10,6 +10,7 @@ import {
     date,
     number,
     or,
+    toolbarButtonOptionsDefs,
 } from 'ag-charts-core';
 
 import { Ranges } from './ranges';
@@ -29,7 +30,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
         enabled: boolean,
         buttons: arrayOfDefs<AgRangesButton>(
             {
-                ..._ModuleSupport.toolbarButtonOptionsDefs,
+                ...toolbarButtonOptionsDefs,
                 value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
             },
             'range button options array'

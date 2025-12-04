@@ -9,9 +9,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type ChartAnimationPhase,
     type Point,
     StateMachine,
     cachedTextMeasurer,
+    easeOut,
     findRangeExtent,
     isArray,
     measureTextSegments,
@@ -58,7 +60,6 @@ const {
     LinearScale,
     generateTicks,
     NiceMode,
-    easing,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -1137,7 +1138,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.formatLabelText();
     }
 
-    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
+    resetAnimation(phase: ChartAnimationPhase) {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -1171,7 +1172,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 from: { label: labelFrom },
                 to: { label: labelTo },
                 phase: params.phase ?? 'update',
-                ease: easing.easeOut,
+                ease: easeOut,
                 onUpdate: (datum) => this.formatLabelText(datum),
                 onStop: () => this.formatLabelText({ label: labelTo }),
             });
@@ -1211,10 +1212,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return Number.NaN; // Not used
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

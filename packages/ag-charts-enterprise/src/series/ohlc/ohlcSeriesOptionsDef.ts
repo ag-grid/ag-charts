@@ -1,7 +1,16 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, number, required, string, undocumented } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    commonSeriesOptionsDefs,
+    constant,
+    number,
+    required,
+    string,
+    undocumented,
+} from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, ohlcSeriesThemeableOptionsDef } = _ModuleSupport;
+const { ohlcSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     ...commonSeriesOptionsDefs,

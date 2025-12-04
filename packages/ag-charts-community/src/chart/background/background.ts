@@ -1,11 +1,10 @@
-import { AbstractModuleInstance, Property, ProxyPropertyOnWrite } from 'ag-charts-core';
+import { AbstractModuleInstance, Property, ProxyPropertyOnWrite, ZIndexMap } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
-import { ZIndexMap } from '../zIndexMap';
 
 export class Background<TImage = never> extends AbstractModuleInstance {
     protected readonly node;

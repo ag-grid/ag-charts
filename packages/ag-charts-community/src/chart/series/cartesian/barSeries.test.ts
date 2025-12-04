@@ -22,6 +22,7 @@ import {
 import * as examples from '../../test/examples';
 import { MockBarStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -37,7 +38,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
 
 const buildLogAxisTestCase = (
     data: any[],

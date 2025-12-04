@@ -1,14 +1,17 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from 'ag-charts-community';
-import { cartesianChartAssertions, repeat, reverseAxes, waitForChartStability } from 'ag-charts-community-test';
 import {
     type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
+    cartesianChartAssertions,
     extractImageData,
+    repeat,
+    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 import type {

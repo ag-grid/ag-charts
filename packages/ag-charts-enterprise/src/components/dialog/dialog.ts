@@ -1,11 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type {
+    CheckboxOptions as CoreCheckboxOptions,
+    SelectOptions as CoreSelectOptions,
+    TextAreaOptions as CoreTextAreaOptions,
+} from 'ag-charts-core';
 import {
     Color,
     type ElementID,
     type Point,
     Vec2,
+    createButton,
+    createCheckbox,
     createElement,
     createElementId,
+    createSelect,
+    createTextArea,
     entries,
     getIconClassNames,
     getWindow,
@@ -18,7 +27,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
 
-const { DraggablePopover, NativeWidget, createButton, createCheckbox, createSelect, createTextArea } = _ModuleSupport;
+const { DraggablePopover, NativeWidget } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
@@ -29,16 +38,16 @@ interface RadioGroupOptions<T extends string> {
     onChange: (value: T) => void;
 }
 
-interface SelectOptions extends _ModuleSupport.SelectOptions {
+interface SelectOptions extends CoreSelectOptions {
     altText: string;
     label: string;
 }
 
-interface TextAreaOptions extends _ModuleSupport.TextAreaOptions {
+interface TextAreaOptions extends CoreTextAreaOptions {
     placeholder: string;
 }
 
-interface CheckboxOptions extends _ModuleSupport.CheckboxOptions {
+interface CheckboxOptions extends CoreCheckboxOptions {
     label: string;
 }
 

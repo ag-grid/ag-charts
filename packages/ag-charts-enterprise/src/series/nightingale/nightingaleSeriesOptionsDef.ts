@@ -1,7 +1,7 @@
 import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, number, required, string } from 'ag-charts-core';
+import { type OptionsDefs, boolean, commonSeriesOptionsDefs, constant, number, required, string } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
+const { nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
     ...commonSeriesOptionsDefs,

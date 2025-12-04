@@ -3,6 +3,7 @@ import {
     type OptionsDefs,
     arrayOf,
     color,
+    commonSeriesOptionsDefs,
     constant,
     fillGradientDefaults,
     fillImageDefaults,
@@ -12,7 +13,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, sankeySeriesThemeableOptionsDef } = _ModuleSupport;
+const { sankeySeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,

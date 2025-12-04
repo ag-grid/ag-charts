@@ -1,6 +1,6 @@
+import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
-import { DeclaredSceneChangeDetection } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 

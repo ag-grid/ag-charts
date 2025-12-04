@@ -1,9 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
-} = _ModuleSupport;
 
 export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
     series: {

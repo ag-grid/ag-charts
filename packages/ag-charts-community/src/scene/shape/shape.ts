@@ -1,6 +1,11 @@
 import {
     type ColorSpace,
+    DeclaredSceneChangeDetection,
+    DeclaredSceneObjectChangeDetection,
     type InternalAgGradientColor,
+    SceneArrayChangeDetection,
+    SceneObjectChangeDetection,
+    TRIPLE_EQ,
     boxesEqual,
     clamp,
     generateUUID,
@@ -20,13 +25,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { BBox } from '../bbox';
-import {
-    DeclaredSceneChangeDetection,
-    DeclaredSceneObjectChangeDetection,
-    SceneArrayChangeDetection,
-    SceneObjectChangeDetection,
-    TRIPLE_EQ,
-} from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';

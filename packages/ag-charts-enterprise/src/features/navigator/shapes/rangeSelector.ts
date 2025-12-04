@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ZIndexMap } from 'ag-charts-core';
 
 export class RangeSelector extends _ModuleSupport.Group {
     private readonly background: _ModuleSupport.TranslatableGroup;
@@ -11,7 +12,7 @@ export class RangeSelector extends _ModuleSupport.Group {
     private rOffset = 0;
 
     constructor(children: _ModuleSupport.Node[]) {
-        super({ name: 'rangeSelectorGroup', zIndex: _ModuleSupport.ZIndexMap.NAVIGATOR });
+        super({ name: 'rangeSelectorGroup', zIndex: ZIndexMap.NAVIGATOR });
         this.background = this.appendChild(
             new _ModuleSupport.TranslatableGroup({ name: 'navigator-background', zIndex: 1 })
         );

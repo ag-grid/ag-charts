@@ -27,10 +27,7 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'bar-series-error-bars': { status: '404' },
         '100--stacked-column': { status: '404' },
         '100--stacked-bar': { status: '404' },
-
-        // Examples with random data.
-        'radar-with-markers': { randomData: true },
-        'reversed-radar-with-markers': { randomData: true },
+        'fruit-comparison': { status: '404' },
     },
 };
 

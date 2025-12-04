@@ -1,5 +1,5 @@
-import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
-import { extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import type { CallbackParamRules, DomainInput, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, extent, extractDomain, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -23,7 +23,6 @@ import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';

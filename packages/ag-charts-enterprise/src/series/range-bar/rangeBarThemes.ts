@@ -1,4 +1,5 @@
 import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
 
 export const RANGE_BAR_SERIES_THEME: WithThemeParams<
     AgChartThemeOverrides['range-bar'] & { series: { label: { padding: number } } }
@@ -30,7 +31,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
         segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
     },
     axes: {
-        [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: { enabled: true },
         },
     },

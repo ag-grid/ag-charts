@@ -1,21 +1,18 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property, type Scale, isNumberEqual, normalizeAngle360, toRadians } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    Property,
+    type Scale,
+    ZIndexMap,
+    isNumberEqual,
+    normalizeAngle360,
+    toRadians,
+} from 'ag-charts-core';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const {
-    ChartAxisDirection,
-    ZIndexMap,
-    Caption,
-    Group,
-    TransformableGroup,
-    Path,
-    Line,
-    Selection,
-    generateTicks,
-    AxisGroupZIndexMap,
-} = _ModuleSupport;
+const { Caption, Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];

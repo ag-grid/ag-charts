@@ -1,25 +1,19 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AxisID, type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
+import { type AxisID, type BaseStyleTypeMap, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
 
-const { ChartAxisDirection } = _ModuleSupport;
-
-type AxisHit = { axisId: AxisID; direction: _ModuleSupport.ChartAxisDirection };
+type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type AxesHandlers = {
-    onAxisDragStart: (direction: _ModuleSupport.ChartAxisDirection) => void;
-    onAxisDragMove: (
-        id: AxisID,
-        direction: _ModuleSupport.ChartAxisDirection,
-        event: _Widget.DragWidgetEvent<'drag-move'>
-    ) => void;
+    onAxisDragStart: (direction: ChartAxisDirection) => void;
+    onAxisDragMove: (id: AxisID, direction: ChartAxisDirection, event: _Widget.DragWidgetEvent<'drag-move'>) => void;
     onAxisDragEnd: () => void;
-    onAxisDoubleClick: (id: AxisID, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onAxisWheel: (direction: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) => void;
+    onAxisDoubleClick: (id: AxisID, direction: ChartAxisDirection) => void;
+    onAxisWheel: (direction: ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) => void;
 };
 
 type ProxyAxis = {
     axisId: AxisID;
-    direction: _ModuleSupport.ChartAxisDirection;
+    direction: ChartAxisDirection;
     div: _Widget.NativeWidget<HTMLDivElement>;
     bounds?: _ModuleSupport.BBox;
 };
@@ -99,7 +93,7 @@ export class ZoomDOMProxy {
         }
     }
 
-    toggleAxisDraggingCursor(direction: _ModuleSupport.ChartAxisDirection, enabled: boolean) {
+    toggleAxisDraggingCursor(direction: ChartAxisDirection, enabled: boolean) {
         for (const axis of this.axes) {
             if (axis.direction !== direction) continue;
             axis.div.setCursor(enabled ? this.getCursor(direction) : undefined);
@@ -185,7 +179,7 @@ export class ZoomDOMProxy {
         return axis ? { axisId: axis.axisId, direction: axis.direction } : undefined;
     }
 
-    public getCursor(direction: _ModuleSupport.ChartAxisDirection) {
+    public getCursor(direction: ChartAxisDirection) {
         if (this.cursor) return this.cursor;
         return direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
     }
@@ -194,7 +188,7 @@ export class ZoomDOMProxy {
         ctx: Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>,
         axisId: AxisID,
         handlers: AxesHandlers,
-        direction: _ModuleSupport.ChartAxisDirection
+        direction: ChartAxisDirection
     ): ProxyAxis {
         const where = 'afterend';
         const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });

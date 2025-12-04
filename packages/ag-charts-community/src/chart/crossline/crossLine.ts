@@ -1,4 +1,4 @@
-import type { Scale } from 'ag-charts-core';
+import type { ChartAxisDirection, Scale } from 'ag-charts-core';
 import { checkDatum } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
@@ -10,7 +10,6 @@ import type {
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Group } from '../../scene/group';
-import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineType = 'line' | 'range';
 

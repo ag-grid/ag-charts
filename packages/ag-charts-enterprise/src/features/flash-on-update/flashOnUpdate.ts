@@ -1,6 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
 import {
     BaseProperties,
+    ChartAxisDirection,
     CleanupRegistry,
     Property,
     createElement,
@@ -8,13 +10,14 @@ import {
     setElementBBox,
     setElementStyle,
 } from 'ag-charts-core';
-import type { BoxBounds, ModuleInstance } from 'ag-charts-core';
-import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions, CssColor, DurationMs, Opacity } from 'ag-charts-types';
+import type { CssColor, DurationMs, Opacity } from 'ag-charts-types';
+
+import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdateTypes';
 
 type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
 
 function findPrimaryCategoryAxisContext(ctx: _ModuleSupport.ModuleContext): AxisContext | undefined {
-    for (const dir of [_ModuleSupport.ChartAxisDirection.X, _ModuleSupport.ChartAxisDirection.Y]) {
+    for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
         for (const axisCtx of ctx.axisManager.getAxisContext(dir)) {
             if (_ModuleSupport.BandScale.is(axisCtx.scale)) {
                 return axisCtx;
@@ -127,7 +130,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         const seriesBounds = this.ctx.widgets.seriesWidget.getBounds();
 
         const makeBox: (band: [number, number]) => BoxBounds =
-            axisCtx.direction === _ModuleSupport.ChartAxisDirection.X
+            axisCtx.direction === ChartAxisDirection.X
                 ? ([start, end]) => {
                       return {
                           x: seriesBounds.x + start,

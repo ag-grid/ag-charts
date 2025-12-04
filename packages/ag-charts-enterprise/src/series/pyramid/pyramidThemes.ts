@@ -1,9 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const {
-    ThemeSymbols: { DEFAULT_SHADOW_COLOUR },
-} = _ModuleSupport;
 
 export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
     series: {

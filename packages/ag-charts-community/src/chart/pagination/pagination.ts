@@ -1,12 +1,10 @@
-import { ActionOnSet, BaseProperties, Property, clamp, createId } from 'ag-charts-core';
+import { ActionOnSet, BaseProperties, ChartUpdateType, FONT_SIZE, Property, clamp, createId } from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
-import { ChartUpdateType } from '../chartUpdateType';
 import { Marker } from '../marker/marker';
-import { FONT_SIZE } from '../themes/constants';
 
 class PaginationLabel extends BaseProperties {
     @Property

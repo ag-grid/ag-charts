@@ -1,7 +1,6 @@
-import { objectsEqual } from 'ag-charts-core';
+import { MementoCaretaker, type MementoOriginator, objectsEqual } from 'ag-charts-core';
 
 import { VERSION } from '../../version';
-import { MementoCaretaker, type MementoOriginator } from './memento';
 
 export class StateManager {
     private readonly caretaker = new MementoCaretaker(VERSION);

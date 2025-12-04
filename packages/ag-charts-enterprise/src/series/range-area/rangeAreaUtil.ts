@@ -4,18 +4,16 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import { type Point, areScalingEqual, isScaleValid } from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
 const {
     CollapseMode,
-    isScaleValid,
     pairUpSpans,
     prepareAreaFillAnimationFns,
     plotInterpolatedLinePathStroke,
     prepareLinePathPropertyAnimation,
-    areScalingEqual,
 } = _ModuleSupport;
 
 export interface RangeAreaLabelDatum extends Readonly<Point> {

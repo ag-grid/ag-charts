@@ -11,6 +11,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type ChartAnimationPhase,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -1184,7 +1185,7 @@ export class RadialGaugeSeries
         this.formatLabelText();
     }
 
-    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
+    resetAnimation(phase: ChartAnimationPhase) {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -1277,10 +1278,7 @@ export class RadialGaugeSeries
         return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
+    override getSeriesRange(): [number, number] {
         return [Number.NaN, Number.NaN];
     }
 

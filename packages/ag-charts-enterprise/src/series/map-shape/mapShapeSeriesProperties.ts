@@ -8,8 +8,8 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { FeatureCollection, Geometry, InternalAgColorType } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
-import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
@@ -31,13 +31,13 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
     readonly legendItemName: string | undefined;
-    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    readonly projectedGeometry: Geometry | undefined;
     style: AgMapShapeSeriesStyle;
 }
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
     @Property
-    topology?: _ModuleSupport.FeatureCollection = undefined;
+    topology?: FeatureCollection = undefined;
 
     @Property
     title?: string;

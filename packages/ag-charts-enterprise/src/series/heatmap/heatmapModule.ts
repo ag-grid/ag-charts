@@ -1,14 +1,10 @@
-import { type AgHeatmapSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgHeatmapSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
 
 import { HeatmapSeries } from './heatmapSeries';
 import { heatmapSeriesOptionsDef } from './heatmapSeriesOptionsDef';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
-
-const {
-    ChartAxisDirection,
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-} = _ModuleSupport;
 
 export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions> = {
     type: 'series',
@@ -26,5 +22,5 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate: HEATMAP_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new HeatmapSeries(ctx),
+    create: (ctx) => new HeatmapSeries(ctx),
 };

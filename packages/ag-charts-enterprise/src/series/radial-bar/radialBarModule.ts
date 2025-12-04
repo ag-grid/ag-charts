@@ -1,14 +1,9 @@
 import { type AgRadialBarSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RadialBarSeries } from './radialBarSeries';
 import { radialBarSeriesOptionsDef } from './radialBarSeriesOptionsDef';
 import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
-
-const {
-    ChartAxisDirection,
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
 
 export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOptions> = {
     type: 'series',

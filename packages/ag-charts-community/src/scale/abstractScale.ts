@@ -1,5 +1,4 @@
-import type { DomainWithMetadata, NormalizedDomain, Scale, ScaleTickParams, ScaleType } from 'ag-charts-core';
-import type { ScaleAlignment } from 'ag-charts-core';
+import type { DomainInput, DomainWithMetadata, NormalizedDomain, Scale, ScaleAlignment, ScaleTickParams, ScaleType } from 'ag-charts-core';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract readonly type: ScaleType;

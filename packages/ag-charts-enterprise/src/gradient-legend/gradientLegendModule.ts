@@ -9,8 +9,10 @@ import {
     colorUnion,
     fontOptionsDef,
     greaterThan,
+    legendPositionValidator,
     lessThan,
     number,
+    numberFormatValidator,
     padding,
     positiveNumber,
     ratio,
@@ -27,7 +29,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
 
     options: {
         enabled: boolean,
-        position: _ModuleSupport.legendPositionValidator,
+        position: legendPositionValidator,
         spacing: positiveNumber,
         reverseOrder: boolean,
         border: borderOptionsDef,
@@ -43,7 +45,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
             label: {
                 ...fontOptionsDef,
                 minSpacing: positiveNumber,
-                format: _ModuleSupport.numberFormatValidator,
+                format: numberFormatValidator,
                 formatter: callback,
             },
             padding: positiveNumber,

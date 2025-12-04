@@ -5,7 +5,16 @@ import type {
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type DomainWithMetadata, type Point, isDefined, isGradientFill, normalizeAngle360 } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DomainInput,
+    type DomainWithMetadata,
+    type Point,
+    extractDomain,
+    isDefined,
+    isGradientFill,
+    normalizeAngle360,
+} from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { getItemStyle, getStyle } from '../util/radialUtil';
@@ -14,7 +23,6 @@ import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseP
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     diff,
     fixNumericExtent,
@@ -121,7 +129,11 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
+<<<<<<< HEAD
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
+=======
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+>>>>>>> origin/latest
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return { domain: [] };
 

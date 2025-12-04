@@ -1,8 +1,9 @@
-import type { DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { ChartAnimationPhase, DomainInput, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
     type CallbackParam,
+    ChartAxisDirection,
     CleanupRegistry,
     type DistantObject,
     EventEmitter,
@@ -11,7 +12,9 @@ import {
     Logger,
     type Point,
     type RequireOptional,
+    SeriesContentZIndexMap,
     type SeriesPluginModuleInstance,
+    SeriesZIndexMap,
     callWithContext,
     createId,
     isEmptyObject,
@@ -51,9 +54,7 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
@@ -73,7 +74,6 @@ import type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './seriesTypes';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox } from './shapeUtil';
 
 export interface SeriesDataEvent {
@@ -217,6 +217,8 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
             return 'angle';
         case ChartAxisDirection.Radius:
             return 'radius';
+        default:
+            return 'x';
     }
 }
 
@@ -610,7 +612,7 @@ export abstract class Series<
     abstract getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
 
     // Needed for auto-scaling zoom
-    abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
+    abstract getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;

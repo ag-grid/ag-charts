@@ -1,5 +1,6 @@
 import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { NonNullablePath } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
@@ -166,7 +167,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         },
     },
     axes: {
-        [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: { enabled: true },
         },
     },

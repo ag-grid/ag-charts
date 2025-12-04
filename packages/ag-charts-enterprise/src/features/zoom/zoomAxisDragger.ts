@@ -1,5 +1,6 @@
 import type { AgZoomAnchorPoint } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
@@ -10,7 +11,7 @@ export class ZoomAxisDragger {
 
     update(
         event: { offsetX: number; offsetY: number },
-        direction: _ModuleSupport.ChartAxisDirection,
+        direction: ChartAxisDirection,
         anchor: AgZoomAnchorPoint,
         bbox: _ModuleSupport.BBox,
         zoom?: _ModuleSupport.AxisZoomState,
@@ -18,7 +19,7 @@ export class ZoomAxisDragger {
     ): _ModuleSupport.ZoomState {
         // Store the initial zoom state, merged with the state for this axis
         this.oldZoom ??= definedZoomState(
-            direction === _ModuleSupport.ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
+            direction === ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
         );
 
         this.updateCoords(event.offsetX, event.offsetY);
@@ -40,7 +41,7 @@ export class ZoomAxisDragger {
     }
 
     private updateZoom(
-        direction: _ModuleSupport.ChartAxisDirection,
+        direction: ChartAxisDirection,
         anchor: AgZoomAnchorPoint,
         bbox: _ModuleSupport.BBox
     ): _ModuleSupport.ZoomState {
@@ -49,7 +50,7 @@ export class ZoomAxisDragger {
         let newZoom = definedZoomState(oldZoom);
 
         if (!coords || !oldZoom) {
-            if (direction === _ModuleSupport.ChartAxisDirection.X) return newZoom.x;
+            if (direction === ChartAxisDirection.X) return newZoom.x;
             return newZoom.y;
         }
 
@@ -57,7 +58,7 @@ export class ZoomAxisDragger {
         const origin = pointToRatio(bbox, coords.x1, coords.y1);
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
-        if (direction === _ModuleSupport.ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.X) {
             const scaleX = (target.x - origin.x) * dx(oldZoom);
 
             newZoom.x.max += scaleX;

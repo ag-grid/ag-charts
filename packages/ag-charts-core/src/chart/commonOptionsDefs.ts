@@ -1,51 +1,4 @@
 import {
-    ErrorType,
-    type OptionsDefs,
-    ValidationError,
-    type Validator,
-    type ValidatorContext,
-    type ValidatorResult,
-    and,
-    array,
-    arrayLength,
-    arrayOf,
-    arrayOfDefs,
-    attachDescription,
-    boolean,
-    borderOptionsDef,
-    callback,
-    callbackDefs,
-    callbackOf,
-    color,
-    colorUnion,
-    date,
-    defined,
-    fillOptionsDef,
-    fontOptionsDef,
-    greaterThan,
-    highlightOptionsDef,
-    htmlElement,
-    isValidNumberFormat,
-    labelBoxOptionsDef,
-    lessThan,
-    lineDashOptionsDef,
-    number,
-    object,
-    optionsDefs,
-    or,
-    padding,
-    positiveNumber,
-    ratio,
-    required,
-    shapeHighlightOptionsDef,
-    string,
-    strokeOptionsDef,
-    typeUnion,
-    undocumented,
-    union,
-    validate,
-} from 'ag-charts-core';
-import {
     type AgBaseSeriesOptions,
     type AgBaseSeriesThemeableOptions,
     type AgBaseThemeableChartOptions,
@@ -72,6 +25,56 @@ import {
     type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
+
+import { isValidNumberFormat } from '../modules/format/numberFormat';
+import {
+    borderOptionsDef,
+    colorUnion,
+    fillOptionsDef,
+    fontOptionsDef,
+    highlightOptionsDef,
+    labelBoxOptionsDef,
+    lineDashOptionsDef,
+    padding,
+    shapeHighlightOptionsDef,
+    strokeOptionsDef,
+} from '../options/commonOptionsDefs';
+import {
+    ErrorType,
+    type OptionsDefs,
+    ValidationError,
+    type Validator,
+    type ValidatorContext,
+    type ValidatorResult,
+    and,
+    array,
+    arrayLength,
+    arrayOf,
+    arrayOfDefs,
+    attachDescription,
+    boolean,
+    callback,
+    callbackDefs,
+    callbackOf,
+    color,
+    date,
+    defined,
+    greaterThan,
+    htmlElement,
+    lessThan,
+    number,
+    object,
+    optionsDefs,
+    or,
+    positiveNumber,
+    ratio,
+    required,
+    string,
+    typeUnion,
+    undocumented,
+    union,
+    validate,
+} from '../utils/validation';
 
 const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
     'top',
@@ -161,7 +164,6 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     maxHeight: positiveNumber,
     ...fontOptionsDef,
 };
-
 // @ts-expect-error undocumented option
 chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 
@@ -188,7 +190,7 @@ const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> 
     label: required(string),
     enabled: boolean,
     action: callback,
-    items: (value, context) => contextMenuItemsArray(value, context),
+    items: (value: unknown, context: ValidatorContext) => contextMenuItemsArray(value, context),
 };
 // @ts-expect-error undocumented option
 contextMenuItemObjectDef.iconUrl = undocumented(string);
@@ -490,13 +492,14 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             opacity: ratio,
         },
     },
-    flashOnUpdate: defined,
     styleNonce: string,
     sync: defined,
     zoom: defined,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.flashOnUpdate = undocumented(defined);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option

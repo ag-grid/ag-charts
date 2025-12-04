@@ -2,12 +2,19 @@ import {
     type OptionsDefs,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    errorBarOptionsDefs,
+    errorBarThemeableOptionsDefs,
+    markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
     required,
+    seriesLabelOptionsDefs,
     shapeHighlightOptionsDef,
     string,
+    tooltipOptionsDefs,
     undocumented,
     union,
     without,
@@ -17,16 +24,6 @@ import type {
     AgScatterSeriesStylerResult,
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    errorBarOptionsDefs,
-    errorBarThemeableOptionsDefs,
-    markerOptionsDefs,
-    seriesLabelOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemeableOptions> = {
     title: string,

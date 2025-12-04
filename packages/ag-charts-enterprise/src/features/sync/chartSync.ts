@@ -2,6 +2,8 @@ import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
     BaseProperties,
+    ChartAxisDirection,
+    ChartUpdateType,
     Debug,
     Logger,
     type ModuleInstance,
@@ -20,22 +22,14 @@ import {
 import { readDatum } from '../../utils/datum';
 import { definedZoomState } from '../zoom/zoomUtils';
 
-const {
-    CartesianAxis,
-    ChartAxisDirection,
-    ContinuousScale,
-    TimeScale,
-    UnitTimeScale,
-    ChartUpdateType,
-    TooltipManager,
-} = _ModuleSupport;
+const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager } = _ModuleSupport;
 
 const debug = Debug.create('sync');
 
 function getDirectionKeys(
     series: _ModuleSupport.ISeries<any, any, any, any>,
-    primary: _ModuleSupport.ChartAxisDirection,
-    secondary: _ModuleSupport.ChartAxisDirection
+    primary: ChartAxisDirection,
+    secondary: ChartAxisDirection
 ) {
     const primaryKeys = series.getKeys(primary);
     const secondaryKeys = series.getKeys(secondary);
@@ -144,7 +138,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             // 5. ChartSync of Chart B calls `updateSyncZoom`.
             // 6. Add so on...
             //
-            if (e.changeType !== 'sync') {
+            if (e.source !== 'sync') {
                 debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
                 zoomModule.updateSyncZoom(zoom);
             }
@@ -204,8 +198,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private findMatchingHighlightNodes(
-        primaryDirection: _ModuleSupport.ChartAxisDirection,
-        secondaryDirection: _ModuleSupport.ChartAxisDirection,
+        primaryDirection: ChartAxisDirection,
+        secondaryDirection: ChartAxisDirection,
         secondaryKeys: string[],
         valueIsDate: boolean,
         eventValue: any,

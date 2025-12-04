@@ -8,20 +8,34 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, type Mutable, type Point, type Scale, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    ChartAxisDirection,
+    Logger,
+    type Mutable,
+    type Point,
+    type Scale,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import {
-    CLOSE,
-    HIGH,
-    LOW,
-    OPEN,
     type OhlcSeriesDataAggregationFilter,
-    SPAN,
     aggregateOhlcDataFromDataModel,
     aggregateOhlcDataFromDataModelPartial,
 } from './ohlcAggregation';
 import { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
+
+// Semantic constants for OHLC data access
+const OPEN = AGGREGATION_INDEX_X_MIN;
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const CLOSE = AGGREGATION_INDEX_X_MAX;
+const SPAN = AGGREGATION_SPAN;
 
 const {
     AggregationManager,
@@ -29,7 +43,6 @@ const {
     keyProperty,
     createDatumId,
     SeriesNodePickMode,
-    ChartAxisDirection,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
     diff,
@@ -309,7 +322,7 @@ export abstract class OhlcSeriesBase<
         return Math.abs(r1 - r0);
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return { domain: [] };
 
@@ -326,7 +339,7 @@ export abstract class OhlcSeriesBase<
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
     }
 

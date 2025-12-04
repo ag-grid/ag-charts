@@ -1,5 +1,7 @@
 import {
     type CallbackParamRules,
+    ChartAxisDirection,
+    type DomainInput,
     type DomainWithMetadata,
     type LabelPlacement,
     type MeasuredLabel,
@@ -45,7 +47,6 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';

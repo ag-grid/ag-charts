@@ -8,22 +8,28 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type {
-    AreExact,
-    CallbackParamRules,
-    ConstructorReturnType,
-    DeepRequired,
-    DomainWithMetadata,
-    Point,
-    RequireOptional,
+import {
+    AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    type AreExact,
+    type CallbackParamRules,
+    ChartAxisDirection,
+    type ConstructorReturnType,
+    type DeepRequired,
+    type DomainInput,
+    type DomainWithMetadata,
+    type Point,
+    type RequireOptional,
+    extent,
+    extractDomain,
+    findMinMax,
+    mergeDefaults,
 } from 'ag-charts-core';
-import { extent, findMinMax, mergeDefaults } from 'ag-charts-core';
 
 import {
-    HIGH,
-    LOW,
     type RangeAreaSeriesDataAggregationFilter,
-    SPAN,
     aggregateRangeAreaDataFromDataModel,
     aggregateRangeAreaDataFromDataModelPartial,
 } from './rangeAreaAggregation';
@@ -36,10 +42,14 @@ import {
     prepareRangeAreaPathAnimation,
 } from './rangeAreaUtil';
 
+// Semantic constants for Range Area data access
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const SPAN = AGGREGATION_SPAN;
+
 const {
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     updateLabelNode,
     fixNumericExtent,
     buildResetPathFn,
@@ -72,7 +82,6 @@ const {
     HighlightState,
     AggregationManager,
     resetMarkerSelectionsDirect,
-    AGGREGATION_INDEX_UNSET,
     createDatumId,
     visibleRangeIndices,
 } = _ModuleSupport;
@@ -179,9 +188,9 @@ const BaseSeries = _ModuleSupport.CartesianSeries<
     RangeAreaLabelDatum,
     RangeAreaContext
 >;
-type BaseSeries = ConstructorReturnType<typeof BaseSeries>;
+type IBaseSeries = ConstructorReturnType<typeof BaseSeries>;
 
-type GetMarkerStyleArg<I extends number> = Parameters<BaseSeries['getMarkerStyle']>[I];
+type GetMarkerStyleArg<I extends number> = Parameters<IBaseSeries['getMarkerStyle']>[I];
 
 export class RangeAreaSeries extends BaseSeries {
     static readonly className = 'RangeAreaSeries';
@@ -344,7 +353,11 @@ export class RangeAreaSeries extends BaseSeries {
         return [y, y];
     }
 
+<<<<<<< HEAD
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): DomainWithMetadata<any> {
+=======
+    override getSeriesDomain(direction: ChartAxisDirection): DomainInput<any> {
+>>>>>>> origin/latest
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return { domain: [] };
 
@@ -368,7 +381,7 @@ export class RangeAreaSeries extends BaseSeries {
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
@@ -1388,9 +1401,9 @@ export class RangeAreaSeries extends BaseSeries {
         opts?: GetMarkerStyleArg<3>,
         defaultOverrideStyle?: GetMarkerStyleArg<4>,
         inheritedStyle?: GetMarkerStyleArg<5>
-    ): ReturnType<BaseSeries['getMarkerStyle']> {
+    ): ReturnType<IBaseSeries['getMarkerStyle']> {
         type P1 = Parameters<RangeAreaSeries['getMarkerStyle']>;
-        type P2 = Parameters<BaseSeries['getMarkerStyle']>;
+        type P2 = Parameters<IBaseSeries['getMarkerStyle']>;
         true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
 
         // Override the item.(low|high).marker.itemStyler callback property:

@@ -10,10 +10,9 @@ import {
     type FontOptions,
     type StrokeOptions,
     type WithThemeParams,
-    _ModuleSupport,
 } from 'ag-charts-community';
-
-const { FONT_SIZE_RATIO, ThemeSymbols } = _ModuleSupport;
+import * as ThemeSymbols from 'ag-charts-core';
+import { FONT_SIZE_RATIO } from 'ag-charts-core';
 
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },

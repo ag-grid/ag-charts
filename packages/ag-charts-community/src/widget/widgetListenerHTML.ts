@@ -1,7 +1,7 @@
 import { entries } from 'ag-charts-core';
 
-import { WidgetEventUtil } from './widgetEvents';
 import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML } from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;

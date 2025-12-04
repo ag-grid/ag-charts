@@ -1,6 +1,13 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { PlacedLabel } from 'ag-charts-core';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import type { Feature, FeatureCollection, Geometry, LonLatBBox, PlacedLabel } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    cachedTextMeasurer,
+    extractDomain,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -46,11 +53,11 @@ export class MapLineSeries extends TopologySeries<
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapLineSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapLineNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -140,7 +147,7 @@ export class MapLineSeries extends TopologySeries<
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
 
-        const featureById = new Map<string, _ModuleSupport.Feature>();
+        const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
             if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
@@ -165,12 +172,8 @@ export class MapLineSeries extends TopologySeries<
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -217,7 +220,7 @@ export class MapLineSeries extends TopologySeries<
         datumIndex: number,
         idValue: string | undefined,
         labelValue: string | undefined,
-        projectedGeometry: _ModuleSupport.Geometry | undefined,
+        projectedGeometry: Geometry | undefined,
         measurer: ITextMeasurer
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null || idValue == null) return;
@@ -281,11 +284,7 @@ export class MapLineSeries extends TopologySeries<
 
         return {
             idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
-            featureValues: this.dataModel!.resolveColumnById<_ModuleSupport.Feature | undefined>(
-                this,
-                'featureValue',
-                processedData
-            ),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
             labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
             sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
             colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
@@ -294,10 +293,10 @@ export class MapLineSeries extends TopologySeries<
 
     private prepareProjectedLineGeometries(
         idValues: string[],
-        featureValues: (_ModuleSupport.Feature | undefined)[],
+        featureValues: (Feature | undefined)[],
         processedData: _ModuleSupport.ProcessedData<any>
-    ): Map<string, _ModuleSupport.Geometry> {
-        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
+    ): Map<string, Geometry> {
+        const projectedGeometries = new Map<string, Geometry>();
 
         for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
             const id = idValues[datumIndex];

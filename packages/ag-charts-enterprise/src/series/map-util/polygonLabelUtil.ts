@@ -1,9 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Position } from 'ag-charts-core';
 
 import { polygonPointSearch } from './polygonPointSearch';
 
 export function preferredLabelCenter(
-    polygons: _ModuleSupport.Position[][],
+    polygons: Position[][],
     { aspectRatio, precision }: { aspectRatio: number; precision: number }
 ) {
     const result = polygonPointSearch(polygons, precision, (p, cx, cy, stride) => {
@@ -22,8 +22,8 @@ export function preferredLabelCenter(
 }
 
 export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
+    a: Position,
+    b: Position,
     cx: number,
     cy: number,
     aspectRatio: number
@@ -108,7 +108,7 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
 }
 
 function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
-    polygons: _ModuleSupport.Position[][],
+    polygons: Position[][],
     cx: number,
     cy: number,
     aspectRatio: number
@@ -150,8 +150,8 @@ function applyX(into: { minX: number; maxX: number }, cx: number, x: number) {
 
 export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     into: { minX: number; maxX: number },
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
+    a: Position,
+    b: Position,
     cx: number,
     cy: number,
     height: number
@@ -194,12 +194,7 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     return into;
 }
 
-export function maxWidthInPolygonForRectOfHeight(
-    polygons: _ModuleSupport.Position[][],
-    cx: number,
-    cy: number,
-    height: number
-) {
+export function maxWidthInPolygonForRectOfHeight(polygons: Position[][], cx: number, cy: number, height: number) {
     const result = {
         minX: -Infinity,
         maxX: Infinity,

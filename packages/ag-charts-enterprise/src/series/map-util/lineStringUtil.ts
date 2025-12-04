@@ -1,13 +1,8 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Position } from 'ag-charts-core';
 
 const delta = 1e-9;
 
-export function lineSegmentDistanceToPointSquared(
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
-    x: number,
-    y: number
-): number {
+export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: number, y: number): number {
     const [ax, ay] = a;
     const [bx, by] = b;
     const abx = bx - ax;
@@ -32,7 +27,7 @@ export function lineSegmentDistanceToPointSquared(
     return dx * dx + dy * dy;
 }
 
-export function lineStringDistance(lineString: _ModuleSupport.Position[], x: number, y: number) {
+export function lineStringDistance(lineString: Position[], x: number, y: number) {
     let minDistanceSquared = Infinity;
     let p0 = lineString.at(-1)!;
 
@@ -44,7 +39,7 @@ export function lineStringDistance(lineString: _ModuleSupport.Position[], x: num
     return Math.sqrt(minDistanceSquared);
 }
 
-export function lineStringLength(lineSegment: _ModuleSupport.Position[]): number {
+export function lineStringLength(lineSegment: Position[]): number {
     let [x0, y0] = lineSegment[0];
     let totalDistance = 0;
     for (let i = 1; i < lineSegment.length; i += 1) {
@@ -58,9 +53,7 @@ export function lineStringLength(lineSegment: _ModuleSupport.Position[]): number
     return totalDistance;
 }
 
-export function lineStringCenter(
-    lineSegment: _ModuleSupport.Position[]
-): { point: _ModuleSupport.Position; angle: number } | undefined {
+export function lineStringCenter(lineSegment: Position[]): { point: Position; angle: number } | undefined {
     if (lineSegment.length === 0) return;
 
     const targetDistance = lineStringLength(lineSegment) / 2;
@@ -74,7 +67,7 @@ export function lineStringCenter(
 
         if (nextDistance > targetDistance) {
             const ratio = (targetDistance - totalDistance) / segmentDistance;
-            const point: _ModuleSupport.Position = [x0 + (x1 - x0) * ratio, y0 + (y1 - y0) * ratio];
+            const point: Position = [x0 + (x1 - x0) * ratio, y0 + (y1 - y0) * ratio];
             const angle = Math.atan2(y1 - y0, x1 - x0);
 
             return { point, angle };

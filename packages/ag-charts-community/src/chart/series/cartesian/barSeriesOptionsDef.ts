@@ -3,30 +3,27 @@ import {
     barHighlightOptionsDef,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    errorBarOptionsDefs,
+    errorBarThemeableOptionsDefs,
     fillOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    errorBarOptionsDefs,
-    errorBarThemeableOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 

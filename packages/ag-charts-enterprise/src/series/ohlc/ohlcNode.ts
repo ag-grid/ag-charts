@@ -1,7 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { DistantObject } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 
-const { Path, DeclaredSceneChangeDetection, BBox } = _ModuleSupport;
+const { Path, BBox } = _ModuleSupport;
 
 export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
     @DeclaredSceneChangeDetection()

@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { SceneChangeDetection } from 'ag-charts-core';
 
-const { TranslatableGroup, SceneChangeDetection } = _ModuleSupport;
+const { TranslatableGroup } = _ModuleSupport;
 
 export class MiniChartGroup extends TranslatableGroup {
     @SceneChangeDetection()

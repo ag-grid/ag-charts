@@ -7,6 +7,8 @@ import {
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
     ObserveChanges,
     type Point,
     PropertiesArray,
@@ -41,8 +43,7 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const { ChartUpdateType, InteractionState, ChartAxisDirection, keyProperty, valueProperty, Selection, BBox } =
-    _ModuleSupport;
+const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _ModuleSupport;
 
 type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
 

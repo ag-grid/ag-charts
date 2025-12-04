@@ -49,24 +49,22 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'iceCreamSales',
             yName: 'Ice Cream Sales',
+            // Optional Y Axis Key, to link series to an axis, with better code readability
+            yKeyAxis: 'priceAxis',
         } as AgBarSeriesOptions,
         {
             type: 'line',
             xKey: 'month',
             yKey: 'avgTemp',
             yName: 'Average Temperature (°C)',
-            yKeyAxis: 'ySecondary',
+            // Optional Y Axis Key, to link series to an axis, with better code readability
+            yKeyAxis: 'temperatureAxis',
         } as AgLineSeriesOptions,
     ],
     // Axes: Configure the axes for the chart
     axes: {
-        // Display category (xKey) as the bottom axis
-        x: {
-            type: 'category',
-            position: 'bottom',
-        } as AgCategoryAxisOptions,
-        // Use left axis for 'iceCreamSales' series
-        y: {
+        // Use left axis for 'iceCreamSales' series, referencing the yKeyAxis value
+        priceAxis: {
             type: 'number',
             position: 'left',
             // Format the label applied to this axis
@@ -76,8 +74,8 @@ const options: AgChartOptions = {
                 },
             },
         } as AgNumberAxisOptions,
-        // Use right axis for 'avgTemp' series
-        ySecondary: {
+        // Use right axis for 'avgTemp' series, referencing the yKeyAxis value
+        temperatureAxis: {
             type: 'number',
             position: 'right',
             // Format the label applied to this axis (append ' °C')

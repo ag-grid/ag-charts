@@ -5,7 +5,7 @@
         "highlights": [
             { "text": "Bundle Size Improvements", "path": "./module-registry" },
             { "text": "High Frequency Data Updates", "path": "./high-frequency-data" },
-            { "text": "Simplified Axis Configuration", "path": "./axes-types/" },
+            { "text": "Simplified Axis Configuration", "path": "./axes-configuration/" },
             { "text": "Improved Highlighting Defaults", "path": "./series-highlighting" },
             { "text": "Dynamic Context Menu Items", "path": "./context-menu/#dynamic-items" }
         ],

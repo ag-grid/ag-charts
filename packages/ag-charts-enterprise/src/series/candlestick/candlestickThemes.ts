@@ -1,8 +1,8 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
     multiSeriesHighlightStyle,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,

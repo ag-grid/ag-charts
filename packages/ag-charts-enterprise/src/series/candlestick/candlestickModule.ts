@@ -1,15 +1,12 @@
 import { type AgCandlestickSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
 
 import { CandlestickSeries } from './candlestickSeries';
 import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
-const {
-    ChartAxisDirection,
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-    predictCartesianFinancialAxis,
-} = _ModuleSupport;
+const { predictCartesianFinancialAxis } = _ModuleSupport;
 
 export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeriesOptions> = {
     type: 'series',

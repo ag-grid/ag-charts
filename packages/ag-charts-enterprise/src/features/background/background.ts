@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ActionOnSet, Property } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Property } from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
@@ -26,6 +26,6 @@ export class Background extends _ModuleSupport.Background<Image> {
     }
 
     protected onImageLoad() {
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 }

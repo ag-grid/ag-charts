@@ -1,19 +1,18 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { AgZoomAutoScaling } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { CartesianAxisDirection, DeepRequired } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
+    ChartAxisDirection,
     CleanupRegistry,
     Property,
     isFiniteNumber,
     objectsEqual,
     strictObjectKeys,
 } from 'ag-charts-core';
-import type { DeepRequired } from 'ag-charts-core';
 
-const { ChartAxisDirection } = _ModuleSupport;
 type ZoomState = _ModuleSupport.ZoomState;
-type CartesianAxisDirection = _ModuleSupport.CartesianAxisDirection;
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
 
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
@@ -70,7 +69,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
         return this.deps.enabled && this.properties.enabled && !this.manuallyAdjusted;
     }
 
-    onManualAdjustment(direction: _ModuleSupport.ChartAxisDirection) {
+    onManualAdjustment(direction: ChartAxisDirection) {
         if (direction === ChartAxisDirection.Y) {
             this.manuallyAdjusted = true;
         }
@@ -78,12 +77,16 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
 
     onChange(opts: ZoomAutoScalingOpts): void {
         if (opts.enabled) {
-            this.zoomManager.updateChanges('zoom-auto-scaler', this.autoScaleYZoom() ?? {});
+            this.zoomManager.updateChanges({
+                source: 'chart-update',
+                sourceDetail: 'internal-autoScaling',
+                changes: this.autoScaleYZoom() ?? {},
+            });
         }
     }
 
     private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.changeType == 'reset') {
+        if (event.source == 'reset') {
             for (const id of event.changedAxes) {
                 if (event.state[id]?.direction === ChartAxisDirection.Y) {
                     this.manuallyAdjusted = false;
