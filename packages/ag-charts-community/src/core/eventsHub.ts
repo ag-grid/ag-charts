@@ -197,6 +197,7 @@ export type ZoomEventSourceDetail =
     | `navigatorDOM`
     | `navigator`
     | `onDataChange-reset`
+    | `unspecified` // FIXME(AG-16412): remove this
     | `zoom-axis-dblclick`
     | `zoom-axis-drag`
     | `zoom-axis-wheel`
