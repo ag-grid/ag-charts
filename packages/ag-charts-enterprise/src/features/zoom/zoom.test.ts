@@ -99,7 +99,8 @@ describe('Zoom', () => {
     async function prepareChart(
         zoomOptions?: AgChartOptions['zoom'],
         initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
-        baseOptions = EXAMPLE_OPTIONS
+        baseOptions = EXAMPLE_OPTIONS,
+        clickAfterCreate = true,
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
@@ -114,8 +115,10 @@ describe('Zoom', () => {
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
-        await clickAction(cx, cy)(chart);
+        if (clickAfterCreate) {
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+        }
     }
 
     async function prepareHorizontalBarChart(zoomOptions?: AgChartOptions['zoom']) {
@@ -836,7 +839,8 @@ describe('Zoom', () => {
                     },
                 },
             };
-            await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options);
+            await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options, false);
+            await waitForChartStability(chart);
             await compare();
 
             await chart.updateDelta({ data: options.data!.slice(4) });
