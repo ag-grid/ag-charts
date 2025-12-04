@@ -142,7 +142,6 @@ export class ZoomManager extends BaseManager {
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
     private pendingZoomEventSource?: AgZoomEventSource;
-    private pendingRedrawSourcing?: UpdateZoomSourcing;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
@@ -170,13 +169,9 @@ export class ZoomManager extends BaseManager {
             eventsHub.on('layout:complete', () => {
                 this.didLayoutAxes = true;
 
-                const { pendingMemento, pendingRedrawSourcing } = this;
+                const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
-                }
-                if (pendingRedrawSourcing) {
-                    this.pendingRedrawSourcing = undefined;
-                    this.updateZoom(pendingRedrawSourcing);
                 }
             }),
             updateService.addListener('update-complete', ({ wasShortcut }) => {
@@ -342,10 +337,6 @@ export class ZoomManager extends BaseManager {
 
     public isZoomEnabled() {
         return this.zoomModule;
-    }
-
-    public setDirty(sourcing: UpdateZoomSourcing): void {
-        this.pendingRedrawSourcing ??= sourcing;
     }
 
     public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
