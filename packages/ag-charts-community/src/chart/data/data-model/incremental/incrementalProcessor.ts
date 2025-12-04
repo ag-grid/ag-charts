@@ -564,6 +564,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             (def) => [first(def.scopes)],
             (cached, def, defIndex) => {
                 if (cached) {
+                    // When key is invalid, value must also be invalidValue (matches full reprocessing)
+                    if (cached.hasInvalidKey) {
+                        return def.invalidValue;
+                    }
                     const valueResult = cached.values.get(defIndex);
                     return valueResult?.valid ? valueResult.value : def.invalidValue;
                 }
@@ -1087,7 +1091,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         if (!invalidMap || !counts) return;
 
         for (const [scope, invalidArray] of invalidMap) {
-            counts.set(scope, invalidArray.filter(Boolean).length);
+            const invalidCount = invalidArray.filter(Boolean).length;
+            if (invalidCount === 0) {
+                // Clean up entries with no invalids to match full reprocessing behavior
+                invalidMap.delete(scope);
+                counts.delete(scope);
+            } else {
+                counts.set(scope, invalidCount);
+            }
         }
     }
 

@@ -172,7 +172,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             valueDomains,
             (defIndex, _scope) => processedData.columns[defIndex],
             (def) => [first(def.scopes)],
-            (scope) => processedData.invalidData?.get(scope),
+            (scope) => processedData.invalidKeys?.get(scope),
             sharedDomains
         );
 
