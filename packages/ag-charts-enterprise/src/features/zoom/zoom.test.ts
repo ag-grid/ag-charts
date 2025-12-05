@@ -1223,7 +1223,7 @@ describe('Zoom', () => {
                 const orig = ORDINAL_EXAMPLE_OPTIONS.data!;
                 const data = [
                     ...orig.slice(0, 4),
-                    { date: new Date('2024-04-24T12:00:00'), value: 50 }, // Wednesday (midday)
+                    { date: new Date('2024-04-24T12:00:00'), value: 35 }, // Wednesday (midday)
                     ...orig.slice(4),
                 ];
                 await chart.updateDelta({ data });
