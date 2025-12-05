@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
+import { expectWarningMessages, setupMockConsole } from '../test/utils';
 import { DataSet } from './dataSet';
 
 type DataTransaction<T> = Parameters<DataSet<T>['addTransaction']>[0];
@@ -43,6 +44,8 @@ function expectCommitResult<T>({
 }
 
 describe('DataSet', () => {
+    setupMockConsole();
+
     describe('getChangeDescription', () => {
         test('should return undefined when there are no pending transactions', () => {
             const dataSet = new DataSet([1, 2, 3]);
@@ -383,6 +386,10 @@ describe('DataSet', () => {
             const desc = dataSet.getChangeDescription()!;
             expect(desc).toBeDefined();
 
+            expectWarningMessages([
+                'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+            ]);
+
             // No updates should be tracked
             expect(desc.getUpdatedIndices()).toEqual([]);
         });
@@ -442,6 +449,10 @@ describe('DataSet', () => {
 
             const desc = dataSet.getChangeDescription()!;
             expect(desc).toBeDefined();
+
+            expectWarningMessages([
+                'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+            ]);
 
             // Item was removed, so it shouldn't appear in updated indices
             expect(desc.getUpdatedIndices()).toEqual([]);
@@ -641,6 +652,10 @@ describe('DataSet', () => {
                 transactions: { remove: [4, 5] },
                 expected: [1, 2, 3],
             });
+
+            expectWarningMessages([
+                'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+            ]);
         });
 
         test('multiple operations on same data', () => {
@@ -707,6 +722,10 @@ describe('DataSet', () => {
 
                 // Array unchanged
                 expect(dataSet.data).toEqual([item0, item1]);
+
+                expectWarningMessages([
+                    'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+                ]);
             });
 
             test('should handle combined add and update', () => {
@@ -752,6 +771,10 @@ describe('DataSet', () => {
 
                 // item1 should be removed despite being in update array
                 expect(dataSet.data).toEqual([item0, item2]);
+
+                expectWarningMessages([
+                    'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+                ]);
             });
 
             test('should handle update of newly prepended item', () => {
@@ -1113,6 +1136,10 @@ describe('DataSet', () => {
                     expect(tracker.reads).toBe(size);
                     expect(dataSet.data).toHaveLength(size);
                     expect(dataSet.data.some((item) => item.id === 100)).toBe(true);
+
+                    expectWarningMessages([
+                        'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+                    ]);
                 });
             });
 
@@ -1132,6 +1159,34 @@ describe('DataSet', () => {
                     expect(dataSet.data).toHaveLength(size);
                     expect(dataSet.data).not.toContain(obj);
                 });
+            });
+        });
+
+        describe('warnings for missing items', () => {
+            test('warns when remove contains items not in the dataset', () => {
+                const existing = { id: 1 };
+                const missing = { id: 2 };
+                const dataSet = new DataSet([existing]);
+
+                dataSet.addTransaction({ remove: [missing] });
+                dataSet.getChangeDescription();
+
+                expectWarningMessages([
+                    'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+                ]);
+            });
+
+            test('warns when update contains items not in the dataset', () => {
+                const existing = { id: 1 };
+                const missing = { id: 2 };
+                const dataSet = new DataSet([existing]);
+
+                dataSet.addTransaction({ update: [missing] });
+                dataSet.getChangeDescription();
+
+                expectWarningMessages([
+                    'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+                ]);
             });
         });
     });
