@@ -39,13 +39,13 @@ let isRunning = false;
 /** inScope */
 function startNewCandle() {
     const lastCandle = data[data.length - 1];
-    const newDate = new Date(lastCandle.date.getTime() + MS_PER_DAY);
+    const newTimestamp = lastCandle.timestamp + MS_PER_DAY;
     const openPrice = lastCandle.close;
 
     simulator = new PriceSimulator(openPrice, TICKS_PER_CANDLE);
 
     currentCandle = {
-        date: newDate,
+        timestamp: newTimestamp,
         open: openPrice,
         high: openPrice,
         low: openPrice,
