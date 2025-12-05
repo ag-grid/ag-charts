@@ -99,6 +99,11 @@
                             "type": "item",
                             "title": "High-Frequency Update",
                             "path": "high-frequency-data"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Transactions",
+                            "path": "transactions"
                         }
                     ]
                 },
