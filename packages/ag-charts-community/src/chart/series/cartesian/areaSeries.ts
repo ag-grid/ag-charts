@@ -527,6 +527,8 @@ export class AreaSeries extends CartesianSeries<
         const { scale: yScale } = yAxis;
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
+        const invalidData = processedData.invalidData?.get(this.id);
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
@@ -585,6 +587,7 @@ export class AreaSeries extends CartesianSeries<
 
         const fillSpans: LinePathSpan[] = [];
         const strokeSpans: LinePathSpan[] = [];
+        let phantomIndex = 0;
         for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
             const startIndex = metaIndices[metaIndex];
             const endIndex = metaIndices[metaIndex + 1];
@@ -592,35 +595,61 @@ export class AreaSeries extends CartesianSeries<
             const startDatumIndex = indices[startIndex];
             const endDatumIndex = indices[endIndex];
 
-            const xValue0 = xValues[startDatumIndex];
-            const xValue1 = xValues[endDatumIndex];
-            const yValue0 = yValues[startDatumIndex];
-            const yValue1 = yValues[endDatumIndex];
+            const spanInvalid =
+                !connectMissingData &&
+                this.hasInvalidDatumsInRange(invalidData, yValues, startDatumIndex, endDatumIndex);
 
-            const midPoints: Point[] = [];
-            for (let i = startIndex + 1; i < endIndex; i++) {
+            const phantomSpanDatum = phantomSpans[phantomIndex++];
+            if (spanInvalid) {
+                fillSpans.push(phantomSpanDatum);
+                strokeSpans.push(phantomSpanDatum);
+                continue;
+            }
+
+            const bucketPoints: LineSpanPointDatum[] = [];
+            for (let i = startIndex; i <= endIndex; i++) {
                 const datumIndex = indices[i];
-                midPoints.push({
-                    x: xScale.convert(xValues[datumIndex]) + xOffset,
-                    y: yScale.convert(yValues[datumIndex]),
+                if (invalidData?.[datumIndex]) continue;
+
+                const yValue = yValues[datumIndex];
+                if (!Number.isFinite(yValue)) continue;
+
+                const xDatum = xValues[datumIndex];
+                bucketPoints.push({
+                    point: {
+                        x: xScale.convert(xDatum) + xOffset,
+                        y: yScale.convert(yValue),
+                    },
+                    xDatum,
+                    yDatum: yValue,
                 });
             }
+
+            if (bucketPoints.length < 2) {
+                fillSpans.push(phantomSpanDatum);
+                strokeSpans.push(phantomSpanDatum);
+                continue;
+            }
+
+            const startPoint = bucketPoints[0];
+            const endPoint = bucketPoints.at(-1)!;
+            const midPoints: Point[] = bucketPoints.slice(1, -1).map((p) => p.point);
 
             const span: LinePathSpan['span'] = {
                 type: 'multi-line',
                 moveTo: false,
-                x0: xScale.convert(xValue0) + xOffset,
-                y0: yScale.convert(yValue0),
-                x1: xScale.convert(xValue1) + xOffset,
-                y1: yScale.convert(yValue1),
+                x0: startPoint.point.x,
+                y0: startPoint.point.y,
+                x1: endPoint.point.x,
+                y1: endPoint.point.y,
                 midPoints,
             };
             const spanDatum: LinePathSpan = {
                 span,
-                xValue0,
-                xValue1,
-                yValue0,
-                yValue1,
+                xValue0: startPoint.xDatum,
+                xValue1: endPoint.xDatum,
+                yValue0: startPoint.yDatum,
+                yValue1: endPoint.yDatum,
             };
 
             fillSpans.push(spanDatum);
@@ -635,6 +664,29 @@ export class AreaSeries extends CartesianSeries<
             fillSpans,
             strokeSpans,
         };
+    }
+
+    private hasInvalidDatumsInRange(
+        invalidData: ReadonlyArray<boolean> | undefined,
+        yValues: any[],
+        startIndex: number,
+        endIndex: number
+    ): boolean {
+        const rangeStart = Math.min(startIndex, endIndex);
+        const rangeEnd = Math.max(startIndex, endIndex);
+
+        for (let datumIndex = rangeStart; datumIndex <= rangeEnd; datumIndex++) {
+            if (invalidData?.[datumIndex]) {
+                return true;
+            }
+
+            const yValue = yValues[datumIndex];
+            if (!Number.isFinite(yValue)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private stackYValueData(): AreaSeriesStackContext | undefined {
