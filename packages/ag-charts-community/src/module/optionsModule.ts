@@ -143,6 +143,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         identifiers: Set<string>;
         indices: Set<number>;
     }; // AG-16360
+    userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -164,6 +165,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             // Delta update case.
             baseChartOptions = currentUserOptions;
             this.specialOverrides = baseChartOptions.specialOverrides;
+
+            // AG-16389: Track the keys the user explicitly passed in their delta.
+            // This must be done before the fallback jsonDiff below, so we capture user intent.
+            if (deltaOptions) {
+                this.userDeltaKeys = new Set(Object.keys(deltaOptions));
+            }
 
             // No diff case - null means diff was a no-op.
             deltaOptions ??= jsonDiff(
