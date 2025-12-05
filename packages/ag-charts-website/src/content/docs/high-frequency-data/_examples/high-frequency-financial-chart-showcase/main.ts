@@ -15,6 +15,7 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'High-Frequency Update' },
     data,
+    dateKey: 'timestamp',
     volume: true,
     navigator: false,
     rangeButtons: false,
