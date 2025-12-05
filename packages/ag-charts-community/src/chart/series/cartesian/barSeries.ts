@@ -508,7 +508,10 @@ export class BarSeries extends AbstractBarSeries<
         const isStacked = dataModel.hasColumnById(this, `yValue-start`);
         const { label } = this.properties;
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,

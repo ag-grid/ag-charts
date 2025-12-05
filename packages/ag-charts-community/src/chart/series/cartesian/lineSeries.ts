@@ -380,8 +380,12 @@ export class LineSeries extends CartesianSeries<
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
 
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,
@@ -400,7 +404,7 @@ export class LineSeries extends CartesianSeries<
             labelsEnabled: this.properties.label.enabled,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
-            dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
+            dataAggregationFilter,
             range,
             xKey: this.properties.xKey,
             yKey: this.properties.yKey,

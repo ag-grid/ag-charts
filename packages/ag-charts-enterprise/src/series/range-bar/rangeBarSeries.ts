@@ -118,6 +118,7 @@ interface RangeBarSeriesNodeDatumContext {
 
     // Incremental update support (added for Step 4)
     readonly canIncrementallyUpdate: boolean;
+    readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
     nodes: RangeBarNodeDatum[];
     nodeIndex: number;
 }
@@ -388,8 +389,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.largestDataInterval
         );
 
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+
+        // Ensure we have the needed aggregation level (force deferred computation if necessary)
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,
@@ -405,6 +417,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             barOffset,
             barAlongX,
             crisp,
+            dataAggregationFilter,
             xKey: this.properties.xKey,
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
@@ -778,22 +791,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         // 4. Strategy selection - delegate to specialized methods
-        const [r0, r1] = ctx.xScale.range;
-        const range = Math.abs(r1 - r0);
-
-        // Ensure we have the needed aggregation level (force deferred computation if necessary)
-        this.aggregationManager.ensureLevelForRange(range);
-
-        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
-
-        if (dataAggregationFilter != null) {
+        if (ctx.dataAggregationFilter != null) {
             this.createNodeDataWithAggregation(
                 ctx,
                 xPosition,
                 nodeDatumParamsScratch,
                 itemId,
                 strokeWidth,
-                dataAggregationFilter
+                ctx.dataAggregationFilter
             );
         } else if (processedData.type === 'ungrouped') {
             this.createNodeDataSimple(ctx, xPosition, nodeDatumParamsScratch, itemId, strokeWidth, processedData);

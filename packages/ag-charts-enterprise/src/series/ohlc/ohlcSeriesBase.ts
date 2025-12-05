@@ -414,7 +414,10 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const crisp = dataAggregationFilter == null;
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,

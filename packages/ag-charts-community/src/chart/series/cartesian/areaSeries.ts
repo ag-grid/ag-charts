@@ -866,7 +866,11 @@ export class AreaSeries extends CartesianSeries<
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
         const existingNodeData = this.contextNodeData?.nodeData;
-        const canIncrementallyUpdate = processedData.changeDescription != null && existingNodeData != null;
+        const canIncrementallyUpdate =
+            existingNodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             // Data arrays (resolved once)
