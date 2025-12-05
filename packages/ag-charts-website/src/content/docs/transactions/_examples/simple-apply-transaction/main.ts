@@ -51,9 +51,9 @@ function addItems() {
 }
 
 function addAtIndex() {
-    if (data.length < 2) return;
     const newItem = createItem();
-    data.splice(2, 0, newItem);
+    const insertIndex = Math.min(2, data.length);
+    data.splice(insertIndex, 0, newItem);
     chart.applyTransaction({ add: [newItem], addIndex: 2 });
 }
 
