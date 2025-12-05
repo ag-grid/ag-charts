@@ -53,6 +53,32 @@ The minimum version of Angular you can use with AG Charts is now Angular 18
 
 {% /if %}
 
+## Modules
+
+Module Registration is now required, unless using the UMD bundle.
+
+Use `AllCommunityModule` or `AllEnterpriseModule` for simplicity, or import specific modules.
+
+The minimum change required is to add the following to your app.
+
+**AG Charts Community**
+
+```js
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+```
+
+**AG Charts Enterprise**
+
+```js
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+```
+
+See [Module Registry](./module-registry) for more details.
+
 ## Axes Changes
 
 -   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
@@ -65,7 +91,7 @@ The minimum version of Angular you can use with AG Charts is now Angular 18
 
 ## Miscellaneous
 
--   All callbacks that used to return a `string` or `string | TextSegment[]`, now also support returning a `number` or `Date` value.
+-   All callbacks that used to return a `string` or `string | TextSegment[]` now also support returning a `number` or `Date` value.
 -   `TextSegment`s now also support `string | number | Date` in the `text` field.
 -   `itemId` used in `waterfall`, `range-area`, `range-bar`, `candlestick` and `ohlc` series formatter, styler and renderers is removed and replaced by `itemType`
 -   `itemId` type in event parameters is updated from `string` to `string | number`.
@@ -99,12 +125,13 @@ This release includes the following behaviour changes:
 ### Other Changes
 
 -   `zoom.enableAxisScrolling` defaults to `true`. Use `enableAxisScrolling: false` to disable.
+-   The new `zoom.strategy` of `'preserveDomain'` is the default. Use `'preserveRatios'` for previous behaviour.
 -   Sankey series use the full width of the series area when `edgePlacement: undefined`. Use `seriesArea.padding` to adjust.
 -   `maxRenderedItems` for `scatter` and `bubble` series defaults to `2000` instead of `10000`.
 
 {% /expandingSection %}
 
-## Removal of Deprecated Properties
+## Removal of Deprecated APIs
 
 <!-- If there are *no* deprecated APIs, add the following: -->
 
@@ -129,3 +156,4 @@ There are no deprecations in AG Charts version {% migrationVersion() %}.
 <!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
 
 {% changelogSection version=$migrationVersion /%}
+```
