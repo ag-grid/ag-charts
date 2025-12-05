@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import { BaseProperties, ChartAxisDirection, Logger, Property } from 'ag-charts-core';
+import { BaseProperties, ChartAxisDirection, Logger, Property, clamp } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
 
 import { definedZoomState } from './zoomUtils';
@@ -63,8 +63,8 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
     const span = domainMax - domainMin;
     return {
         direction: 'x',
-        min: Math.max(0, (visibleMin - domainMin) / span),
-        max: Math.min(1, (visibleMax - domainMin) / span),
+        min: clamp(0, (visibleMin - domainMin) / span, 1),
+        max: clamp(0, (visibleMax - domainMin) / span, 1),
     };
 }
 
