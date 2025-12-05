@@ -691,7 +691,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 text.visible = false;
                 return;
             }
-            const labelProps = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
+            let labelProps;
+            let labelPath: string[];
+            if (tag === TextNodeTag.Primary) {
+                labelProps = isLeaf ? tile.label : group.label;
+                labelPath = ['series', `${this.declarationOrder}`, isLeaf ? 'tile' : 'group', 'label'];
+            } else {
+                labelProps = tile.secondaryLabel;
+                labelPath = ['series', `${this.declarationOrder}`, 'tile', 'secondaryLabel'];
+            }
 
             const { opacity: highlightOpacity } = this.getItemStyle(node, isLeaf, highlighted) ?? {};
 
@@ -706,20 +714,20 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeName: this.properties.sizeName ?? this.properties.sizeKey,
             };
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight);
+            const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight, labelPath);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = label.color;
             text.fillOpacity = highlightOpacity ?? 1;
+            text.fill = style.color;
+            text.setBoxing(style);
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
-            text.setBoxing(style);
             text.visible = true;
 
             text.zIndex = 1;
