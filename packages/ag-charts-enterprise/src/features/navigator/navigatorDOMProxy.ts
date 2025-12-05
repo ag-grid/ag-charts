@@ -93,7 +93,10 @@ export class NavigatorDOMProxy {
         const { _min: min, _max: max } = this;
         if (min == null || max == null) return;
 
-        this.ctx.zoomManager.updateZoom({ source: 'chart-update', sourceDetail: 'navigatorDOM' }, { x: { min, max } });
+        this.ctx.zoomManager.updateZoom(
+            { source: 'user-interaction', sourceDetail: 'navigatorDOM' },
+            { x: { min, max } }
+        );
     }
 
     updateBounds(bounds: BoxBounds): void {

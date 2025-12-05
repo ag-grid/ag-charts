@@ -296,7 +296,7 @@ export class ZoomManager extends BaseManager {
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
         this.updateChanges({
-            source: 'user-interaction',
+            source: 'initialState',
             sourceDetail: 'internal-restoreMemento',
             changes,
             isReset: false,
