@@ -140,7 +140,7 @@ const tooltipPlacementValidator = union(
     'top-left',
     'center'
 );
-export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
+export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
 export const textOrSegments = or(
     string,
     number,

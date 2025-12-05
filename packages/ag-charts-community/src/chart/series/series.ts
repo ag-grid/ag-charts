@@ -860,6 +860,8 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
+    isPointInArea?(x: number, y: number): boolean;
+
     public getLabelData(): (TLabel & PointLabelDatum)[] {
         return [];
     }
