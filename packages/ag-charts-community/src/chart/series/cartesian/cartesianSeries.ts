@@ -1038,6 +1038,7 @@ export abstract class CartesianSeries<
 
                 let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder });
                 r1 -= 1;
+                if (r1 < r0) return 0;
 
                 // @todo(AG-7083) - figure out how to determine this
                 const pixelSize = 0;
