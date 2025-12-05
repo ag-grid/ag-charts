@@ -239,15 +239,21 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._linearParams;
     }
 
+    /** Check if current encoding uses a linear unit (exact arithmetic, no DST issues) */
+    private isLinearUnit(): boolean {
+        const unit = this._encodingParams?.unit;
+        return unit === 'millisecond' || unit === 'second' || unit === 'minute' || unit === 'hour';
+    }
+
     /**
-     * O(1) findIndex for uniform bands with verification.
-     * Computes approximate index, then verifies against actual band values.
+     * O(1) findIndex for uniform bands.
+     * For linear units (ms/sec/min/hour), uses pure arithmetic without verification.
+     * For non-linear units (day/month/year), verifies against actual band values.
      */
     override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
         if (value == null) return undefined;
 
-        const numericBands = this.numericBands;
-        const n = numericBands.length;
+        const n = this.getBandCountForUpdate();
         if (n === 0) return undefined;
         if (n === 1) return 0;
 
@@ -260,14 +266,28 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const { firstBandTime, intervalMs } = linearParams;
         const target = value.valueOf();
 
-        // O(1) approximate index calculation
+        // O(1) index calculation
         const rawIndex = (target - firstBandTime) / intervalMs;
         let index = alignment === ScaleAlignment.Trailing ? Math.ceil(rawIndex) : Math.floor(rawIndex);
 
         // Clamp to valid range
         index = Math.max(0, Math.min(index, n - 1));
 
-        // Verify and adjust for floating point precision
+        // For linear units, the arithmetic is exact - no verification needed
+        if (this.isLinearUnit()) {
+            // Just check bounds
+            if (alignment === ScaleAlignment.Trailing) {
+                const bandTime = firstBandTime + index * intervalMs;
+                if (bandTime < target && index === n - 1) return undefined;
+            } else {
+                const bandTime = firstBandTime + index * intervalMs;
+                if (bandTime > target && index === 0) return undefined;
+            }
+            return index;
+        }
+
+        // For non-linear units (day/month/year), verify against actual band values
+        const numericBands = this.numericBands;
         if (alignment === ScaleAlignment.Trailing) {
             // Find smallest index where band >= target
             while (index > 0 && numericBands[index - 1] >= target) index--;
@@ -285,6 +305,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return index;
     }
 
+    /**
+     * Optimized convert for UnitTimeScale with O(1) boundary checks.
+     * Uses linear params for fast bounds checking while delegating actual
+     * conversion to parent for accuracy in edge cases.
+     */
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
@@ -292,6 +317,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;
+
+        // Boundary check using cached boundaries (O(1))
         if (options?.clamp !== true && interval != null) {
             const boundaries = this.getDomainBoundaries();
             if (boundaries != null) {
