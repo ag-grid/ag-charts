@@ -13,7 +13,7 @@ export class HighlightManager {
     private readonly pendingUnhighlights = new Map<string, { scheduler: ReturnType<typeof debouncedCallback> }>();
 
     // Configurable delay (hardcoded for POC, will be user-configurable later)
-    private readonly unhighlightDelay: number = 100; // milliseconds
+    public unhighlightDelay: number = 100; // milliseconds
 
     private static readonly HIGHLIGHT_CHANGE_EVENT = 'highlight:change';
 

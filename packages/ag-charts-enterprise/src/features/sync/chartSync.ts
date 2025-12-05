@@ -157,7 +157,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { syncManager } = this.moduleContext;
 
-        if (event.callerId === 'sync') return;
+        if (event.callerId.endsWith('-sync')) return;
 
         debug('ChartSync.onHighlightChange()', event);
 
@@ -180,8 +180,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
                 const syncModule: any = chart.modulesManager.getModule('sync');
                 if (!syncModule?.nodeInteraction) continue;
 
-                chart.ctx.highlightManager.updateHighlight(`sync`, undefined); // true = delayed
-                chart.ctx.tooltipManager.removeTooltip(`sync`, undefined); // true = delayed
+                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true); // true = delayed
+                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
             }
             return;
         }
@@ -286,7 +286,9 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
-        chart.ctx.highlightManager.updateHighlight(`sync`, nodeDatum);
+        // Use delayed unhighlight when clearing (nodeDatum is undefined)
+        const delayed = nodeDatum == null;
+        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum, delayed);
 
         const tooltipEnabled = nodeDatum?.series.tooltipEnabled ?? chart.tooltip.enabled;
         if (nodeDatum && tooltipEnabled) {
@@ -301,12 +303,12 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             );
 
             chart.ctx.tooltipManager.updateTooltip(
-                `sync`,
+                `${chart.id}-sync`,
                 tooltipMeta,
                 chart.getTooltipContent(nodeDatum.series, nodeDatum.datumIndex, nodeDatum, 'tooltip')
             );
         } else {
-            chart.ctx.tooltipManager.removeTooltip(`sync`, undefined);
+            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
         }
 
         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
@@ -511,11 +513,13 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private onEnabledChange() {
-        const { syncManager } = this.moduleContext;
+        const { syncManager, highlightManager } = this.moduleContext;
         if (this.enabled) {
             syncManager.subscribe(this.groupId);
+            highlightManager.unhighlightDelay = 0; // Workaround for AG-16398
         } else {
             syncManager.unsubscribe(this.groupId);
+            highlightManager.unhighlightDelay = 100; // Workaround for AG-16398
         }
         this.updateSiblings();
         this.onNodeInteractionChange();
