@@ -212,8 +212,10 @@ export class Zoom extends AbstractModuleInstance {
 
         // FIXME(AG-8627 TC10; AG-16414) `minVisibileItem` should have it own zoom:change-request handling
         const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
-            const restrictions = event.stateAsDefinedZoom();
-            event.constrainZoom(this.constrainZoom(restrictions));
+            if (this.minVisibleItems > 0) {
+                const restrictions = event.stateAsDefinedZoom();
+                event.constrainZoom(this.constrainZoom(restrictions));
+            }
         };
         this.dataChangeHandler = new ZoomOnDataChange(
             minVisibleItemsCallback,
