@@ -192,6 +192,107 @@ export function intervalRange(
     return values;
 }
 
+export interface IntervalRangeNumericResult {
+    /** Encoded band values (not timestamps - internal encoding) */
+    encodedValues: number[];
+    /** Encoding parameters needed to decode back to Date objects */
+    encodingParams: {
+        unit: AgTimeIntervalUnit;
+        step: number;
+        utc: boolean;
+        offset: number;
+    };
+}
+
+/**
+ * Returns encoded numeric values instead of Date objects.
+ * Use this for performance-critical paths where Date objects aren't needed.
+ * Call decodeIntervalValue() to convert individual values back to Date when needed.
+ */
+export function intervalRangeNumeric(
+    interval: AgTimeInterval | AgTimeIntervalUnit,
+    start: Date,
+    stop: Date,
+    params?: RangeParams
+): IntervalRangeNumericResult {
+    const {
+        range: [e0, e1],
+        unit,
+        step,
+        utc,
+        offset,
+    } = rangeData(interval, start, stop, params);
+
+    // Pre-allocate array for better performance
+    const count = Math.max(0, e1 - e0 + 1);
+    const encodedValues = new Array<number>(count);
+    for (let i = 0; i < count; i++) {
+        encodedValues[i] = e0 + i;
+    }
+
+    return {
+        encodedValues,
+        encodingParams: { unit, step, utc, offset },
+    };
+}
+
+/**
+ * Decode a single encoded value back to a Date object.
+ */
+export function decodeIntervalValue(
+    encoded: number,
+    encodingParams: { unit: AgTimeIntervalUnit; step: number; utc: boolean; offset: number }
+): Date {
+    return decode(encoded, encodingParams.unit, encodingParams.step, encodingParams.utc, encodingParams.offset);
+}
+
+// Cache timezone offset to avoid repeated lookups
+const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+
+// Duration constants for direct timestamp computation
+const DURATION_SECOND = 1000;
+const DURATION_MINUTE = 60000;
+const DURATION_HOUR = 3600000;
+
+/**
+ * Convert encoded value to milliseconds timestamp.
+ * Optimized to avoid Date object creation for linear time units (ms, sec, min, hour).
+ */
+export function encodedToTimestamp(
+    encoded: number,
+    encodingParams: { unit: AgTimeIntervalUnit; step: number; utc: boolean; offset: number }
+): number {
+    const { unit, step, utc, offset } = encodingParams;
+    const rawEncoded = encoded * step + offset;
+
+    // For linear units, compute timestamp directly without Date creation
+    switch (unit) {
+        case 'millisecond':
+            // millisecond encoding: timestamp = rawEncoded
+            return rawEncoded;
+        case 'second': {
+            // second encoding: timestamp = tzOffset + rawEncoded * 1000
+            const tzOffset = utc ? 0 : tzOffsetMs;
+            return tzOffset + rawEncoded * DURATION_SECOND;
+        }
+        case 'minute': {
+            // minute encoding: timestamp = tzOffset + rawEncoded * 60000
+            const tzOffset = utc ? 0 : tzOffsetMs;
+            return tzOffset + rawEncoded * DURATION_MINUTE;
+        }
+        case 'hour': {
+            // hour encoding: timestamp = tzOffset + rawEncoded * 3600000
+            const tzOffset = utc ? 0 : tzOffsetMs;
+            return tzOffset + rawEncoded * DURATION_HOUR;
+        }
+        default: {
+            // For day/month/year, we need Date creation due to DST and variable-length periods
+            const encoding = unitEncoding[unit];
+            return encoding.decode(rawEncoded, utc).valueOf();
+        }
+    }
+}
+
 export function intervalRangeStartIndex(
     interval: AgTimeInterval | AgTimeIntervalUnit,
     start: Date,

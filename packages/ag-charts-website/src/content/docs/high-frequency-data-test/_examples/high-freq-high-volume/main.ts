@@ -29,7 +29,7 @@ type BubbleDatum = {
 
 type Datum = ValueDatum | OhlcDatum | RangeDatum | BubbleDatum;
 type SeriesType = 'line' | 'area' | 'bar' | 'bubble' | 'ohlc' | 'candlestick' | 'range-bar' | 'range-area';
-type AxisType = 'time' | 'ordinal-time';
+type AxisType = 'time' | 'ordinal-time' | 'unit-time';
 
 const ALL_SERIES_TYPES: SeriesType[] = [
     'line',
@@ -41,7 +41,7 @@ const ALL_SERIES_TYPES: SeriesType[] = [
     'range-bar',
     'range-area',
 ];
-const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time'];
+const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time', 'unit-time'];
 
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
@@ -468,7 +468,7 @@ function createAxesConfig(axisType: AxisType) {
         x: {
             type: axisType,
             position: 'bottom' as const,
-            ...(axisType === 'time' ? { nice: false } : {}),
+            ...(axisType === 'time' || axisType === 'unit-time' ? { nice: false } : {}),
             label: {
                 format: '%H:%M:%S',
             },

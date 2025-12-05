@@ -19,8 +19,12 @@ export {
     intervalExtent,
     intervalRangeCount,
     intervalRange,
+    intervalRangeNumeric,
     intervalRangeStartIndex,
+    decodeIntervalValue,
+    encodedToTimestamp,
 } from './range';
+export type { IntervalRangeNumericResult } from './range';
 
 export function intervalUnit(interval: AgTimeInterval | AgTimeIntervalUnit): AgTimeIntervalUnit {
     return typeof interval === 'string' ? interval : interval.unit;

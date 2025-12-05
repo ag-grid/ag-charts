@@ -1291,11 +1291,28 @@ export abstract class CartesianSeries<
                 range: [range[0], range[1]],
             };
         } else if (scale instanceof BandScale) {
-            const domain = scale instanceof UnitTimeScale ? scale.bands : scale.domain;
+            // Use O(1) UnitTimeCategoryScaling for UnitTimeScale to avoid Date[] materialization
+            if (scale instanceof UnitTimeScale) {
+                const linearParams = scale.getLinearParams();
+                const bandCount = scale.getBandCountForUpdate();
+                if (linearParams != null && bandCount > 0) {
+                    return {
+                        type: 'category',
+                        variant: 'unit-time',
+                        firstBandTime: linearParams.firstBandTime,
+                        lastBandTime: linearParams.firstBandTime + (bandCount - 1) * linearParams.intervalMs,
+                        bandCount,
+                        intervalMs: linearParams.intervalMs,
+                        inset: scale.inset,
+                        step: scale.step,
+                    };
+                }
+            }
 
+            // Standard category scaling
             return {
                 type: 'category',
-                domain,
+                domain: scale.domain,
                 inset: scale.inset,
                 step: scale.step,
             };
