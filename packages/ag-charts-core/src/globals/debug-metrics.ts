@@ -12,4 +12,3 @@ export function flush(): Record<string, any> {
     metrics.clear();
     return result;
 }
-

@@ -282,10 +282,13 @@ export class RangeAreaSeries extends BaseSeries {
             targetRange,
         });
 
-        DebugMetrics.record(
-            `${this.type}:aggregation`,
-            this.aggregationManager.filters?.map((f) => f.maxRange)
-        );
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
     private estimateTargetRange(): number {
