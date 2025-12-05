@@ -157,6 +157,9 @@ export function priceVolume(
             autoScaling: {
                 enabled: true,
             },
+            onDataChange: {
+                stickToEnd: true,
+            },
             // @ts-expect-error undocumented option
             enableIndependentAxes: true,
         } satisfies AgZoomOptions,
