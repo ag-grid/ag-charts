@@ -157,7 +157,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { syncManager } = this.moduleContext;
 
-        if (event.callerId.endsWith('-sync')) return;
+        if (event.callerId === 'sync') return;
 
         debug('ChartSync.onHighlightChange()', event);
 
@@ -180,8 +180,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
                 const syncModule: any = chart.modulesManager.getModule('sync');
                 if (!syncModule?.nodeInteraction) continue;
 
-                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true); // true = delayed
-                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
+                chart.ctx.highlightManager.updateHighlight(`sync`, undefined); // true = delayed
+                chart.ctx.tooltipManager.removeTooltip(`sync`, undefined); // true = delayed
             }
             return;
         }
@@ -286,9 +286,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
-        // Use delayed unhighlight when clearing (nodeDatum is undefined)
-        const delayed = nodeDatum == null;
-        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum, delayed);
+        chart.ctx.highlightManager.updateHighlight(`sync`, nodeDatum);
 
         const tooltipEnabled = nodeDatum?.series.tooltipEnabled ?? chart.tooltip.enabled;
         if (nodeDatum && tooltipEnabled) {
@@ -303,12 +301,12 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             );
 
             chart.ctx.tooltipManager.updateTooltip(
-                `${chart.id}-sync`,
+                `sync`,
                 tooltipMeta,
                 chart.getTooltipContent(nodeDatum.series, nodeDatum.datumIndex, nodeDatum, 'tooltip')
             );
         } else {
-            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
+            chart.ctx.tooltipManager.removeTooltip(`sync`, undefined);
         }
 
         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
