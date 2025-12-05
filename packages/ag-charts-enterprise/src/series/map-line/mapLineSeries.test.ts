@@ -115,6 +115,42 @@ describe('MapLineSeries', () => {
         });
     });
 
+    describe('Missing color values', () => {
+        it('omits lines without color values and avoids tooltip errors', async () => {
+            const missingRoads = new Set(['M3', 'M5']);
+            const data = ukRoadData.map((datum) =>
+                missingRoads.has(datum.name) ? { name: datum.name } : datum
+            );
+            const options: AgChartOptions = {
+                data,
+                topology: ukRoadTopology,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapLineSeries;
+            const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
+
+            expect(nodeIds).not.toContain('M3');
+            expect(nodeIds).not.toContain('M5');
+            expect(nodeIds).toHaveLength(data.length - missingRoads.size);
+
+            const missingIndex = data.findIndex((datum) => datum.name === 'M3');
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+
+            await compare();
+        });
+    });
+
     describe('Variable Stroke', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...VARIABLE_STROKE_EXAMPLE };

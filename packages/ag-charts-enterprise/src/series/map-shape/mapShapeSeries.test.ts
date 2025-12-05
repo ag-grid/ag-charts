@@ -110,6 +110,43 @@ describe('MapShapeSeries', () => {
         });
     });
 
+    describe('Missing color values', () => {
+        it('renders only data with color and suppresses tooltips', async () => {
+            const missingStates = new Set(['California', 'Colorado']);
+            const data = usData.map((datum) =>
+                missingStates.has(datum.name) ? { name: datum.name, code: datum.code } : datum
+            );
+            const options: AgChartOptions = {
+                data,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        colorKey: 'gdp',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapShapeSeries;
+            const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
+            expect(nodeIds).not.toContain('California');
+            expect(nodeIds).not.toContain('Colorado');
+            expect(nodeIds).toHaveLength(data.length - missingStates.size);
+
+            const missingIndex = data.findIndex((datum) => datum.name === 'California');
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+
+            await compare({
+                failureThreshold: 1,
+            });
+        });
+    });
+
     describe('Labels', () => {
         it.each([12, 18, 24])('should render short labels at font size %s', async (fontSize) => {
             const options: AgChartOptions = {
