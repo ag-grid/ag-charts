@@ -869,6 +869,7 @@ describe('Zoom', () => {
                     {
                         zoom: {
                             enabled: true,
+                            minVisibleItems: 0,
                             autoScaling: {
                                 enabled: true,
                             },
@@ -903,6 +904,7 @@ describe('Zoom', () => {
                     {
                         zoom: {
                             enabled: true,
+                            minVisibleItems: 0,
                             autoScaling: {
                                 enabled: true,
                             },

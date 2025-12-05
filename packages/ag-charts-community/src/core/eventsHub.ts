@@ -222,6 +222,8 @@ export interface ZoomChangeRequestEvent {
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
+    stateAsDefinedZoom(): DefinedZoomState; // do not use (legacy zoom-state)
+    constrainZoom(zoom: AxisZoomState): void; // do not use (legacy zoom-state)
     constrainChanges(changes: ZoomChangeState): void;
 }
 

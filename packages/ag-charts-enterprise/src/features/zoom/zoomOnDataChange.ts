@@ -82,6 +82,7 @@ export class ZoomOnDataChange {
     private desiredChanges?: DesiredChanges;
 
     constructor(
+        private readonly onConstrainChangesCallback: (e: _ModuleSupport.ZoomChangeRequestEvent) => void,
         private readonly properties: ZoomOnDataChangeProperties,
         private readonly ctx: ModuleContext,
         eventsCleanup: CleanupRegistry
@@ -119,6 +120,7 @@ export class ZoomOnDataChange {
         const changes = this.popDesiredChanges();
         if (changes) {
             e.constrainChanges(changes);
+            this.onConstrainChangesCallback(e); // FIXME(AG-16414) remove this
         }
     }
 
