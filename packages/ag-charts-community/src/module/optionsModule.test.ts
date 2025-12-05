@@ -2861,6 +2861,43 @@ describe('ChartOptions', () => {
                 });
             });
 
+            it('should flip and position axes when a series is horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            direction: 'horizontal',
+                            xKeyAxis: 'myAxis1', // should be left
+                            yKeyAxis: 'myAxis2', // should be bottom
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            direction: 'horizontal',
+                            xKeyAxis: 'myAxis1', // should be left
+                            yKeyAxis: 'myAxis3', // should be top
+                        },
+                    ],
+                    axes: {
+                        myAxis1: { type: 'category' }, // should be left
+                        myAxis2: { type: 'number' }, // should be bottom
+                        myAxis3: { type: 'number' }, // should be top
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' }, // myAxis2
+                    y: { type: 'category', position: 'left' }, // myAxis1
+                    __AXIS_ID_2: { type: 'number', position: 'top' }, // myAxis3
+                });
+            });
+
             it('should alternate secondary x-axis positions', () => {
                 const options: AgCartesianChartOptions = {
                     series: [

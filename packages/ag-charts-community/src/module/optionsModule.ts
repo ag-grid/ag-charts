@@ -738,7 +738,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
 
-                // If this series references an axis that has been defined by the user,
+                // If this series references an axis that has been defined by the user, and it wasn't considered the
+                // primary axis by its position, then it must be a secondary axis (if both primary axes are found
+                // in other series).
                 if (axisKeys.has(seriesAxisKey)) continue;
 
                 // If this series does not reference an axis in this direction, but at least one series references an
@@ -749,8 +751,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     break;
                 }
 
-                // Otherwise, if this series does reference an axis in this direction, then it must be defining the
-                // primary axis in this direction.
+                // Otherwise, if this series does reference an axis in this direction, that has not been defined by the
+                // user, then it must be defining the primary axis in this direction.
                 primaryAxisKeys.set(direction, seriesAxisKey);
                 break;
             }
@@ -758,7 +760,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         if (axisKeys.size === 0 || !('axes' in options) || !options.axes) return primaryAxisKeys;
 
-        // If no primary axis ids found, fallback to matching keys
+        // If no primary axis keys found, fallback to matching keys by direction.
         if (primaryAxisKeys.size === 0) {
             for (const direction of directions) {
                 if (direction in options.axes) {
@@ -767,7 +769,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        // If still no primary axis ids found, fallback to partially matching axis types
+        // If still no primary axis keys found, fallback to partially matching axis types.
         if (primaryAxisKeys.size === 0) {
             for (const direction of directions) {
                 for (const [axisKey, axisOptions] of entries(options.axes)) {
@@ -779,7 +781,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        // If not all primary axes found, attempt to fill out the missing ones by index
+        // If still no primary axis keys found, get the first axis key for each direction from the series.
+        if (primaryAxisKeys.size === 0 && (options.series?.length ?? 0) > 0) {
+            for (const direction of directions) {
+                for (const seriesOptions of options.series!) {
+                    const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                    if (!directionAxisKey) continue;
+
+                    const seriesAxisKey = (seriesOptions as any)[directionAxisKey];
+                    if (!axisKeys.has(seriesAxisKey)) continue;
+
+                    primaryAxisKeys.set(direction, seriesAxisKey);
+                    break;
+                }
+            }
+        }
+
+        // If not all primary axes found, attempt to fill out the missing ones by index.
         if (primaryAxisKeys.size < 2) {
             const primaryAxisIdsFound = new Set(primaryAxisKeys.values());
             for (const [axisKey, axisOptions] of entries(options.axes)) {
