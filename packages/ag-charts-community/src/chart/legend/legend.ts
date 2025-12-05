@@ -978,15 +978,20 @@ export class Legend extends BaseProperties {
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
         this.doClick(params.event, datum, proxyButton);
+        this.updateHighlight();
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
         this.doDoubleClick(params.event, this.findNode(params).datum);
+        this.updateHighlight();
     }
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.datum;
+
+        this.updateHighlight();
+
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
         } else {
@@ -1197,7 +1202,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateHighlight(datum?: HighlightNodeDatum) {
-        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
+        if (this.ctx.interactionManager.isState(InteractionState.Default) || datum == null) {
             this.ctx.highlightManager.updateHighlight(this.id, datum);
         } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
             // Updating the highlight can interrupt animations, so only clear the highlight if the chart
