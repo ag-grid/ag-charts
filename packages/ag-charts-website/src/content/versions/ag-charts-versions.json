@@ -3,8 +3,9 @@
         "version": "13.0.0",
         "date": "December 10th, 2025",
         "highlights": [
-            { "text": "Bundle Size Improvements", "path": "./module-registry" },
+            { "text": "Bundle Size Reduction", "path": "./module-registry" },
             { "text": "High Frequency Data Updates", "path": "./high-frequency-data" },
+            { "text": "Zoom On Data Update", "path": "./zoom/#on-data-update" },
             { "text": "Simplified Axis Configuration", "path": "./axes-configuration/" },
             { "text": "Improved Highlighting Defaults", "path": "./series-highlighting" },
             { "text": "Dynamic Context Menu Items", "path": "./context-menu/#dynamic-items" }

@@ -204,6 +204,114 @@ In the above example:
 
 Auto Scaling is never applied when the user has manually adjusted the y-axis by dragging it. Auto Scaling will be reapplied when the y-axis is reset, for example by double clicking on it.
 
+## On Data Change
+
+When data is updated while the chart is zoomed, the `zoom.onDataChange` options control how the zoomed view adjusts. This helps users maintain their focus when data changes, or always see the latest data.
+
+The default strategy is `preserveDomain`, use `onDataChange.strategy` to change to one of the below.
+
+### Preserve Domain
+
+`strategy: 'preserveDomain'` preserves the current axis domain when data changes, keeping the view at the exact domain values if possible.
+
+This is useful for appending data without disrupting users viewing a specific time period in the middle of the data.
+
+{% chartExampleRunner title="Preserve Domain" name="on-data-change-preserve-domain" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'preserveDomain',
+        },
+    },
+}
+```
+
+In this example:
+
+-   The chart is initially zoomed to the middle of the data.
+-   Start the updates to see new data appended at the end.
+-   Notice in the Navigator that new data has been added, but the chart view remains fixed on the same time range.
+
+### Preserve Ratios
+
+`strategy: 'preserveRatios'`, preserves the same zoom percentages regardless of data changes.
+
+This is useful for maintaining a consistent proportional view of your data, with more data points becoming visible as the dataset grows.
+
+{% chartExampleRunner title="Preserve Ratios" name="on-data-change-preserve-ratio" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'preserveRatios',
+        },
+    },
+}
+```
+
+In this example:
+
+-   The chart is initially zoomed to the last 20% of the data.
+-   Start the updates to see new data points added in batches.
+-   Notice that more data points become visible in the chart view as total data grows, since the zoom ratio stays at 80%-100%.
+
+### Reset
+
+`strategy: 'reset'`, resets the zoom to the `initialState` or no zoom, whenever the data changes.
+
+This is useful for switching between unrelated datasets, discarding previous user interactions and reverting to a predefined starting view.
+
+{% chartExampleRunner title="Reset" name="on-data-change-reset" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'reset',
+        },
+    },
+}
+```
+
+In this example:
+
+-   The chart is initially zoomed to show only the last few data points.
+-   Pan or zoom to a different position in the chart.
+-   Click a button to switch datasets and notice that the zoom resets to the initial state.
+
+### Stick to End
+
+The `stickToEnd` option automatically scrolls to keep the latest data visible when new data is appended and the view is already at the end of the data range. Use `stickToEnd: true` to enable.
+
+When `stickToEnd` is active, it takes precedence over the configured strategy. Once the user pans away from the end, the configured strategy (e.g., `preserveDomain`) takes over until they return to viewing the end.
+
+{% chartExampleRunner title="Stick to End" name="on-data-change-stick-to-end" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        enabled: true,
+        onDataChange: {
+            strategy: 'preserveDomain',
+            stickToEnd: true,
+        },
+    },
+}
+```
+
+In this example:
+
+-   The chart is initially zoomed to the end of the data.
+-   Start the updates to see new data appended and the view scrolls to follow.
+-   Pan away from the end to see the `preserveDomain` strategy take over with a fixed view.
+-   Pan back to the end and the view will resume following new data.
+
 ## Navigator
 
 The zoom functionality can be used together with the [Navigator](./navigator/) to add a visual reference to the zoom position.
