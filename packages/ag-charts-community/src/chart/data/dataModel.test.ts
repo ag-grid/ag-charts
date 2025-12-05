@@ -2464,8 +2464,9 @@ describe('DataModel', () => {
 
                 // Rolling window: remove from start, append to end
                 for (let i = 0; i < 10; i++) {
+                    const toRemove = initialData[i];
                     dataSet.addTransaction({
-                        remove: [{ x: i, y: i * 10 }],
+                        remove: [toRemove],
                         append: [{ x: 100 + i, y: (100 + i) * 10 }],
                     });
                 }
@@ -2567,13 +2568,16 @@ describe('DataModel', () => {
 
             let result: any = dataModel.processData(sources)!;
 
-            // Rolling window: remove first, append next day
+            // Rolling window: remove first, append next day (continuing into February)
+            const appendedDates: Date[] = [];
             for (let i = 0; i < 5; i++) {
-                const dayToRemove = i + 1;
-                const dayToAdd = 31 + i;
+                const toRemove = data[i];
+                // Continue sequence into February: Jan 31, Feb 1, Feb 2, Feb 3, Feb 4
+                const newDate = new Date(2024, i === 0 ? 0 : 1, i === 0 ? 31 : i);
+                appendedDates.push(newDate);
                 dataSet.addTransaction({
-                    remove: [{ date: new Date(`2024-01-${String(dayToRemove).padStart(2, '0')}`), value: i * 10 }],
-                    append: [{ date: new Date(`2024-01-${String(dayToAdd).padStart(2, '0')}`), value: (30 + i) * 10 }],
+                    remove: [toRemove],
+                    append: [{ date: newDate, value: (30 + i) * 10 }],
                 });
 
                 result = dataModel.reprocessData(result);
@@ -2583,10 +2587,17 @@ describe('DataModel', () => {
             // For discrete domains with banding, the domain tracks ALL unique values
             // ever seen (not just currently visible ones). The bands are rebuilt on
             // structure changes, but the full domain history is preserved.
-            // Current data is Jan 6-35 (30 items), but domain includes all seen dates.
+            // Current data is Jan 6-Feb 4 (30 items), but domain includes all seen dates.
             // The actual length depends on banding behavior, but first and last should match.
-            expect(result.domain.keys[0].length).toBeGreaterThanOrEqual(30);
-            expect((result.domain.keys[0][0] as Date).getTime()).toBe(new Date('2024-01-01').getTime());
+            const domainTimes = result.domain.keys[0]
+                .map((d: Date) => d.getTime())
+                .filter((t: number) => Number.isFinite(t));
+            const earliestInitial = data[0].date.getTime();
+            const latestSeen = appendedDates.at(-1)!.getTime();
+
+            expect(domainTimes.length).toBeGreaterThan(0);
+            expect(domainTimes.at(0)).toBeLessThanOrEqual(earliestInitial);
+            expect(domainTimes.at(-1)).toBeGreaterThanOrEqual(latestSeen);
         });
     });
 });

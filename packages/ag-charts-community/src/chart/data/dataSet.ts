@@ -1,3 +1,5 @@
+import { Logger } from 'ag-charts-core';
+
 import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
 
 export { DataChangeDescription } from './dataChangeDescription';
@@ -511,6 +513,12 @@ export class DataSet<T = unknown> {
                 }
             }
         }
+
+        if (toRemove.size > 0) {
+            Logger.warnOnce(
+                'applyTransaction() remove includes items not present in current data; ignoring missing items.'
+            );
+        }
     }
 
     private applyUpdates(update: T[] | undefined, state: TransactionCollectionState<T>): void {
@@ -534,6 +542,12 @@ export class DataSet<T = unknown> {
             updatedAppendsIndices,
             updatedInsertionsIndices,
         };
+
+        if (toUpdate.size > 0) {
+            Logger.warnOnce(
+                'applyTransaction() update includes items not present in current data; ignoring missing items.'
+            );
+        }
     }
 
     // Flattens grouped inserts to find updated item offsets while consuming the lookup set.
@@ -578,10 +592,11 @@ export class DataSet<T = unknown> {
     private collectUpdatedOriginalIndices(toUpdate: Set<T>, state: TransactionCollectionState<T>): void {
         const indexMap = this.getItemToIndexMap();
 
-        for (const item of toUpdate) {
+        for (const item of [...toUpdate]) {
             const idx = indexMap.get(item);
             if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
                 state.updatedOriginalIndices.add(idx);
+                toUpdate.delete(item);
             }
         }
     }
