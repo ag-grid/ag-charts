@@ -81,12 +81,13 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
                 source: 'chart-update',
                 sourceDetail: 'internal-autoScaling',
                 changes: this.autoScaleYZoom() ?? {},
+                isReset: false,
             });
         }
     }
 
     private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.source == 'reset') {
+        if (event.isReset) {
             for (const id of event.changedAxes) {
                 if (event.state[id]?.direction === ChartAxisDirection.Y) {
                     this.manuallyAdjusted = false;

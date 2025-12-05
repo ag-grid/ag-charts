@@ -75,7 +75,7 @@ export class Ranges extends AbstractModuleInstance {
 
         const sourcing = userInteraction(`zoom-range-button-${index}`);
         if (value == null) {
-            zoomManager.resetZoom(sourcing.sourceDetail);
+            zoomManager.resetZoom(sourcing);
         } else if (typeof value === 'number') {
             zoomManager.extendToEnd(sourcing, ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {

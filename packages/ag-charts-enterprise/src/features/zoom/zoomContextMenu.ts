@@ -115,7 +115,7 @@ export class ZoomContextMenu {
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
-        this.zoomManager.resetZoom('contextmenu-reset');
+        this.zoomManager.resetZoom(userInteraction('contextmenu-reset'));
     }
 
     private iterateFindNextZoomAtPoint(origin: Point) {
