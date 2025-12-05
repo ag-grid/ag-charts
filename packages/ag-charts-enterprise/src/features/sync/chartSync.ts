@@ -157,7 +157,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { syncManager } = this.moduleContext;
 
-        if (event.callerId.endsWith('-sync')) return;
+        if (event.callerId === 'sync') return;
 
         debug('ChartSync.onHighlightChange()', event);
 
