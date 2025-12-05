@@ -42,6 +42,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     private _domain: Date[] = [];
     private _uniformityCache: UniformityCheck | undefined;
+    private _domainBoundaries: { d0: number; dNext: number } | undefined;
+    private _bandRangeCache: { start: Date; stop: Date } | undefined;
 
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
@@ -50,6 +52,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._bands = undefined;
         this._numericBands = undefined;
         this._uniformityCache = undefined;
+        this._domainBoundaries = undefined;
+        this._bandRangeCache = undefined;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -67,6 +71,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._bands = undefined;
         this._numericBands = undefined;
         this._uniformityCache = undefined;
+        this._domainBoundaries = undefined;
+        this._bandRangeCache = undefined;
     }
 
     private _bands: Date[] | undefined = undefined;
@@ -103,6 +109,34 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return normalizeContinuousDomains(...domains);
     }
 
+    private getCachedBandRange(): [Date, Date] | undefined {
+        const { domain, interval } = this;
+        if (domain.length < 2 || interval == null) return undefined;
+
+        this._bandRangeCache ??= {
+            start: intervalFloor(interval, domain[0]),
+            stop: intervalFloor(interval, domain[1]),
+        };
+        return [this._bandRangeCache.start, this._bandRangeCache.stop];
+    }
+
+    private getDomainBoundaries(): { d0: number; dNext: number } | undefined {
+        const { interval } = this;
+        if (interval == null) return undefined;
+
+        if (this._domainBoundaries === undefined) {
+            const bandRange = this.getCachedBandRange();
+            if (bandRange == null) return undefined;
+
+            const [start, stop] = bandRange;
+            const d0 = Math.min(start.valueOf(), stop.valueOf());
+            const d1 = Math.max(start.valueOf(), stop.valueOf());
+            const dNext = intervalNext(interval, new Date(d1)).valueOf();
+            this._domainBoundaries = { d0, dNext };
+        }
+        return this._domainBoundaries;
+    }
+
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
@@ -111,12 +145,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;
         if (options?.clamp !== true && interval != null) {
-            const t = value.valueOf();
-            const [start, stop] = calculateBandRange(domain, interval);
-            const d0 = Math.min(start.valueOf(), stop.valueOf());
-            const d1 = Math.max(start.valueOf(), stop.valueOf());
-            const dNext = intervalNext(interval, new Date(d1)).valueOf();
-            if (t < d0 || t >= dNext) return Number.NaN;
+            const boundaries = this.getDomainBoundaries();
+            if (boundaries != null) {
+                const t = value.valueOf();
+                if (t < boundaries.d0 || t >= boundaries.dNext) return Number.NaN;
+            }
         }
 
         return super.convert(value, options);
@@ -145,7 +178,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const rangeParams = { visibleRange, extend };
         if (!supportsInterval(domain, interval, rangeParams)) return { bands: [], firstBandIndex: undefined };
 
-        const [start, stop] = calculateBandRange(domain, interval);
+        // Use cached band range when domain matches, otherwise calculate fresh
+        const bandRange = domain === this.domain ? this.getCachedBandRange() : calculateBandRange(domain, interval);
+        if (bandRange == null) return { bands: [], firstBandIndex: undefined };
+
+        const [start, stop] = bandRange;
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
             Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
             return { bands: [], firstBandIndex: undefined };
