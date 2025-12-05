@@ -49,7 +49,8 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
     params: TParams,
     label: Label<TParams>,
     isHighlight: boolean,
-    activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined
+    activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined,
+    labelPath: string[] = ['series', `${series.declarationOrder}`, 'label']
 ): AgChartLabelStyleOptions & { fontSize: number } {
     if (series.visible && label.itemStyler) {
         const highlightState = series.getHighlightStateString(
@@ -83,7 +84,7 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
         };
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
-                ['series', `${series.declarationOrder}`, 'label'],
+                labelPath,
                 series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
                 { pick: false }
             ) ?? {};

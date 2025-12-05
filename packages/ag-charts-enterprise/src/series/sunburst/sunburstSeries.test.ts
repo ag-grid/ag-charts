@@ -110,6 +110,40 @@ describe('SunburstSeries', () => {
         }
     });
 
+    describe('Label itemStyler', () => {
+        it('should style labels via itemStyler', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Solar',
+                        children: [
+                            { name: 'Earth', size: 60 },
+                            { name: 'Mars', size: 20 },
+                        ],
+                    },
+                    {
+                        name: 'Gas Giants',
+                        children: [{ name: 'Jupiter', size: 80 }],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        label: {
+                            itemStyler: () => ({ color: 'lime' }),
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;

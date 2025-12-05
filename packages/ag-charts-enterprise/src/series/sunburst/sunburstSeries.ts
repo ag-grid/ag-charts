@@ -533,8 +533,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = label.color;
             text.fillOpacity = highlightOpacity ?? 1;
+            text.fill = style.color;
             text.setBoxing(style);
 
             switch (labelPlacement) {
