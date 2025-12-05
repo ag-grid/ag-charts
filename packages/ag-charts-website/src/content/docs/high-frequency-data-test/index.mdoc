@@ -34,7 +34,7 @@ enterprise: true
 
 ## Gap Filling
 
-{% chartExampleRunner title="High Frequency Gap Filling" name="high-freq-gap-filling" type="generated" /%}
+{% chartExampleRunner title="High Frequency Gap Filling" name="high-freq-gap-filling" type="generated" initialLoadDeferred=true /%}
 
 ## Stacked Line Series
 
@@ -52,13 +52,13 @@ The following example demonstrates high-frequency updates across multiple area c
 
 This example is tuned for high-volume datasets. It starts with 100,000 data points and can add or remove batches of 100 points at a time. Use the controls to compare the cost of full `updateDelta()` refreshes against incremental `applyTransaction()` updates while the data stream maintains a constant window size.
 
-{% chartExampleRunner title="High Frequency High Volume" name="high-freq-high-volume" type="generated" /%}
+{% chartExampleRunner title="High Frequency High Volume" name="high-freq-high-volume" type="generated" initialLoadDeferred=true /%}
 
 ## Random Updates
 
 This example investigates the performance of `applyTransaction()` with randomized updates on large datasets. Unlike append/remove operations, this tests in-place value mutations where random data points are updated each tick. Compare the cost of incremental `applyTransaction({ update })` against full `updateDelta()` refreshes.
 
-{% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" /%}
+{% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" initialLoadDeferred=true /%}
 
 ## Financial Charts
 
@@ -74,10 +74,10 @@ This example simulates a real-time data feed updating a financial chart with new
 
 This example tests high-volume datasets with 100,000 data points using the Financial Charts API. Compare the performance of `applyTransaction()` vs `updateDelta()` for rolling window updates.
 
-{% chartExampleRunner title="High Volume Financial Chart" name="high-freq-financial-high-volume" type="generated" /%}
+{% chartExampleRunner title="High Volume Financial Chart" name="high-freq-financial-high-volume" type="generated" initialLoadDeferred=true /%}
 
 ### Random Updates
 
 This example investigates the performance of randomized updates on large financial chart datasets. Random datums are mutated each tick to test in-place value updates.
 
-{% chartExampleRunner title="Financial Chart Random Updates" name="high-freq-financial-random-update" type="generated" /%}
+{% chartExampleRunner title="Financial Chart Random Updates" name="high-freq-financial-random-update" type="generated" initialLoadDeferred=true /%}
