@@ -142,6 +142,7 @@ export class ZoomManager extends BaseManager {
     private state: CoreZoomStateSafeRetrieval = {};
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
+    private didInitialState = false;
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
@@ -174,6 +175,8 @@ export class ZoomManager extends BaseManager {
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 }
+                this.didInitialState = true;
+
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
                 this.updateZoom({
                     source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
@@ -296,7 +299,7 @@ export class ZoomManager extends BaseManager {
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
         this.updateChanges({
-            source: 'initialState',
+            source: this.didInitialState ? 'setState' : 'initialState',
             sourceDetail: 'internal-restoreMemento',
             changes,
             isReset: false,

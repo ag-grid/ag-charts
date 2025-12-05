@@ -64,7 +64,13 @@ export interface AgAnnotationsEvent<TContext = ContextDefault> {
     context?: TContext;
 }
 
-export type AgZoomEventSource = 'user-interaction' | 'chart-update' | 'data-update' | 'sync' | 'initialState';
+export type AgZoomEventSource =
+    | 'chart-update'
+    | 'data-update'
+    | 'initialState'
+    | 'setState'
+    | 'sync'
+    | 'user-interaction';
 
 export interface AgZoomEvent<TContext = ContextDefault> {
     type: 'zoom';
