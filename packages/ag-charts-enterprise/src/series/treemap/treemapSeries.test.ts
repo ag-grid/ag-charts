@@ -122,6 +122,46 @@ describe('TreemapSeries', () => {
         }
     });
 
+    describe('Label itemStyler', () => {
+        it('should style labels via itemStyler', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Group',
+                        children: [
+                            { name: 'Alpha', size: 6 },
+                            { name: 'Beta', size: 4 },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: {
+                            label: {
+                                enabled: true,
+                                itemStyler: () => ({ color: 'lime' }),
+                            },
+                        },
+                        group: {
+                            label: {
+                                enabled: true,
+                                itemStyler: () => ({ color: 'lime' }),
+                            },
+                        },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;
