@@ -7,6 +7,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    DebugMetrics,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     extent,
@@ -482,6 +483,14 @@ export class AreaSeries extends CartesianSeries<
                 ),
             targetRange,
         });
+
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
     private estimateTargetRange(): number {
@@ -857,7 +866,11 @@ export class AreaSeries extends CartesianSeries<
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
         const existingNodeData = this.contextNodeData?.nodeData;
-        const canIncrementallyUpdate = processedData.changeDescription != null && existingNodeData != null;
+        const canIncrementallyUpdate =
+            existingNodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             // Data arrays (resolved once)

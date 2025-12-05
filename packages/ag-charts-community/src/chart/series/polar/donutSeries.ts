@@ -1,6 +1,7 @@
 import {
     ChartAxisDirection,
     ChartUpdateType,
+    DebugMetrics,
     type Has,
     type InternalAgColorType,
     type InternalAgGradientColor,
@@ -393,6 +394,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { nodeData = [], phantomNodeData } = this.createNodeData() ?? {};
         this.nodeData = nodeData;
         this.phantomNodeData = phantomNodeData;
+        if (nodeData.length > 0) {
+            DebugMetrics.record(`${this.type}:nodeData`, nodeData.length);
+        }
         this.nodeDataRefresh = false;
     }
 

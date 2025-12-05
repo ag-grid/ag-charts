@@ -15,6 +15,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
     ChartAxisDirection,
+    DebugMetrics,
     Logger,
     type Mutable,
     type Point,
@@ -313,6 +314,14 @@ export abstract class OhlcSeriesBase<
                 aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
         });
+
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
     private estimateTargetRange(): number {
@@ -405,7 +414,10 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const crisp = dataAggregationFilter == null;
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,

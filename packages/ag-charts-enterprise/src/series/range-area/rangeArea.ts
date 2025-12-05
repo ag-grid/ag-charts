@@ -17,6 +17,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type ConstructorReturnType,
+    DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
     type Point,
@@ -280,6 +281,14 @@ export class RangeAreaSeries extends BaseSeries {
                 aggregateRangeAreaDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
         });
+
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
     private estimateTargetRange(): number {
@@ -311,8 +320,13 @@ export class RangeAreaSeries extends BaseSeries {
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
 
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const existingMarkerData = this.contextNodeData?.nodeData;
-        const canIncrementallyUpdate = processedData.changeDescription != null && existingMarkerData != null;
+        const canIncrementallyUpdate =
+            existingMarkerData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,
@@ -323,7 +337,7 @@ export class RangeAreaSeries extends BaseSeries {
             yScale,
             xAxisRange,
             xOffset: (xScale.bandwidth ?? 0) / 2,
-            dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
+            dataAggregationFilter,
             range,
             labelsEnabled: this.properties.label.enabled,
             canIncrementallyUpdate,

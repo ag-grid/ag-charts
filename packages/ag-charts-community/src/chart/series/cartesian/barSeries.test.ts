@@ -27,6 +27,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -2007,6 +2008,68 @@ describe('BarSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await compare();
+        });
+    });
+
+    describe('incremental updates with aggregation', () => {
+        it('should enable incremental updates when aggregation is active', async () => {
+            // Create data with >1000 points to trigger aggregation (MAX_ANIMATABLE_NODES = 1000)
+            const largeData = Array.from({ length: 1500 }, (_, i) => ({
+                x: i,
+                y: Math.random() * 100,
+            }));
+
+            const options: AgChartOptions = {
+                data: largeData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Get initial node data references
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+            const initialNodeData = series.contextNodeData?.nodeData;
+            expect(initialNodeData).toBeDefined();
+            expect(initialNodeData!.length).toBeGreaterThan(0);
+
+            // Store references to some nodes
+            const firstNode = initialNodeData![0];
+            const middleNode = initialNodeData![Math.floor(initialNodeData!.length / 2)];
+
+            // Update data (same structure, different values) - this should trigger incremental update
+            const updatedData = largeData.map((d) => ({
+                ...d,
+                y: d.y * 1.1, // Slight change to values
+            }));
+
+            await chart.update({
+                ...options,
+                data: updatedData,
+            });
+            await waitForChartStability(chart);
+
+            // Verify nodes were reused (same object references)
+            const updatedChartInstance = deproxy(chart);
+            const updatedSeries = updatedChartInstance.series[0] as any;
+            const updatedNodeData = updatedSeries.contextNodeData?.nodeData;
+            expect(updatedNodeData).toBeDefined();
+            expect(updatedNodeData!.length).toBe(initialNodeData!.length);
+
+            // With aggregation active, incremental updates should reuse node objects
+            // Check that at least some nodes are reused (they should be the same references)
+            expect(updatedNodeData![0]).toBe(firstNode);
+            expect(updatedNodeData![Math.floor(updatedNodeData!.length / 2)]).toBe(middleNode);
+
+            chart.destroy();
         });
     });
 });

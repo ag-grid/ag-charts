@@ -2,6 +2,7 @@ import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
+    DebugMetrics,
     type Point,
     Property,
     type Scale,
@@ -448,6 +449,10 @@ export abstract class CartesianSeries<
             const animationValid = this.isProcessedDataAnimatable();
             if (this._contextNodeData) {
                 this._contextNodeData.animationValid ??= animationValid;
+                const nodeDataSize = this._contextNodeData.nodeData?.length;
+                if (nodeDataSize != null) {
+                    DebugMetrics.record(`${this.type}:nodeData`, nodeDataSize);
+                }
             }
 
             const { dataModel, processedData } = this;

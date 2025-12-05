@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-properties */
-import { Debug, Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
+import { Debug, DebugMetrics, Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { Group } from './group';
@@ -209,9 +209,31 @@ export function debugStats(
 
     const detailedStats = Debug.check(DebugSelectors.SCENE_STATS_VERBOSE);
     const memUsage = detailedStats ? memoryUsage() : null;
+
+    // Flush and format metrics
+    const metrics = detailedStats ? DebugMetrics.flush() : {};
+    const metricsEntries = Object.entries(metrics);
+
+    // Group metrics by type (aggregation vs nodeData)
+    const aggregationMetrics: string[] = [];
+    const nodeDataMetrics: string[] = [];
+
+    for (const [k, v] of metricsEntries) {
+        if (k.endsWith(':aggregation') && Array.isArray(v)) {
+            aggregationMetrics.push(`${k.replace(':aggregation', '')}(${v.join(',')})`);
+        } else if (k.endsWith(':nodeData') && typeof v === 'number') {
+            nodeDataMetrics.push(`${k.replace(':nodeData', '')}(${v})`);
+        }
+    }
+
+    const aggregationText = aggregationMetrics.length > 0 ? `Aggregation: ${aggregationMetrics.join(', ')}` : null;
+    const nodeDataText = nodeDataMetrics.length > 0 ? `NodeData: ${nodeDataMetrics.join(', ')}` : null;
+
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
+        aggregationText,
+        nodeDataText,
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
         detailedStats ? `Ops: ${pct(opsPerformed, opsSkipped)}` : null,

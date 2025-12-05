@@ -1,5 +1,5 @@
 import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -340,6 +340,14 @@ export class LineSeries extends CartesianSeries<
                 ),
             targetRange,
         });
+
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
     private estimateTargetRange(): number {
@@ -372,8 +380,12 @@ export class LineSeries extends CartesianSeries<
         // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
 
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const canIncrementallyUpdate =
-            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
         return {
             rawData,
@@ -392,7 +404,7 @@ export class LineSeries extends CartesianSeries<
             labelsEnabled: this.properties.label.enabled,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
-            dataAggregationFilter: this.aggregationManager.getFilterForRange(range),
+            dataAggregationFilter,
             range,
             xKey: this.properties.xKey,
             yKey: this.properties.yKey,
