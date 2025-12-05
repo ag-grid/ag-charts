@@ -101,7 +101,9 @@ function ApiReferencePageContent({
                 <h1 className="text-3xl">
                     {pageTitle?.type ? (
                         <>
-                            {pageTitle.name}[type = '<span className={styles.unionDiscriminator}>{pageTitle.type}</span>
+                            {pageTitle.name}
+                            {pageTitle.name === 'axes' ? <span className={styles.recordAlias}>.key</span> : ''}[type = '
+                            <span className={styles.unionDiscriminator}>{pageTitle.type}</span>
                             ']
                         </>
                     ) : (
