@@ -932,6 +932,72 @@ describe('Zoom', () => {
                 await chart.updateDelta({ data: getData().slice(0, -10) });
                 await compare();
             });
+
+            it('should keep minVisibleItems 2 when removing from start', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0, end: 0.25 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 2,
+                            autoScaling: {
+                                enabled: true,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await chart.updateDelta({ data: getData().slice(10) });
+                await compare();
+            });
+
+            it('should keep minVisibleItems 2 when removing from end', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0.75, end: 1 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 2,
+                            autoScaling: {
+                                enabled: true,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await chart.updateDelta({ data: getData().slice(0, -10) });
+                await compare();
+            });
         });
     });
 });
