@@ -209,7 +209,18 @@ export class Zoom extends AbstractModuleInstance {
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)
         );
-        this.dataChangeHandler = new ZoomOnDataChange(this.onDataChange, this.ctx, this.cleanup);
+
+        // FIXME(AG-8627 TC10; AG-16414) `minVisibileItem` should have it own zoom:change-request handling
+        const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
+            const restrictions = event.stateAsDefinedZoom();
+            event.constrainZoom(this.constrainZoom(restrictions));
+        };
+        this.dataChangeHandler = new ZoomOnDataChange(
+            minVisibleItemsCallback,
+            this.onDataChange,
+            this.ctx,
+            this.cleanup
+        );
 
         this.domProxy = new ZoomDOMProxy({
             onAxisDragStart: (direction) => this.onAxisDragStart(direction),
@@ -784,11 +795,6 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        // FIXME(AG-8627 TC10; AG-16414) `minVisibileItem` should have it own zoom:change-request handling
-        if (event.sourceDetail === 'unspecified') {
-            const restrictions = event.stateAsDefinedZoom();
-            event.constrainZoom(this.constrainZoom(restrictions));
-        }
         if (event.sourceDetail !== 'zoom-seriesarea-panner') {
             this.panner.stopInteractions();
         }
