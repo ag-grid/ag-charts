@@ -30,7 +30,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { DeepReadonly } from 'ag-charts-core';
+import { DeepReadonly, deepFreeze } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -98,7 +98,7 @@ describe('Zoom', () => {
 
     const ORDINAL_EXAMPLE_OPTIONS: AgChartOptions = {
         data: [
-            { date: new Date('2024-04-19'), value: 60 }, // Monday
+            { date: new Date('2024-04-19'), value: 60 }, // Friday
             // Skipping Saturday and Sunday
             { date: new Date('2024-04-22'), value: 10 }, // Monday
             { date: new Date('2024-04-23'), value: 20 }, // Tuesday
@@ -1192,6 +1192,128 @@ describe('Zoom', () => {
                     expect(zoomListener.mock).toBeCalledTimes(1);
                     expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                     expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
+                });
+            });
+        });
+        describe('ordinalTimeAxis', () => {
+            async function appendDatum() {
+                const data = [
+                    ...ORDINAL_EXAMPLE_OPTIONS.data!,
+                    { date: new Date('2024-04-30'), value: 50 }, // Tuesday
+                ];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            async function prependDatum() {
+                const data = [
+                    { date: new Date('2024-04-18'), value: 50 }, // Thursday
+                    ...ORDINAL_EXAMPLE_OPTIONS.data!,
+                ];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            async function insertMiddleDatum() {
+                const orig = ORDINAL_EXAMPLE_OPTIONS.data!;
+                const data = [
+                    ...orig.slice(0, 4),
+                    { date: new Date('2024-04-24T12:00:00'), value: 50 }, // Wednesday (midday)
+                    ...orig.slice(4),
+                ];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            async function insertMiddleDatumNegative() {
+                const orig = ORDINAL_EXAMPLE_OPTIONS.data!;
+                const data = [
+                    ...orig.slice(0, 4),
+                    { date: new Date('2024-04-24T12:00:00'), value: -20 }, // Wednesday (midday)
+                    ...orig.slice(4),
+                ];
+                await chart.updateDelta({ data });
+                await waitForChartStability(chart);
+            }
+            describe('preserveDomain', () => {
+                // Interactive Version: https://plnkr.co/edit/ksIixFaQJYhzI1fU?open=main.js
+                let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
+                let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
+                let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
+                const expectedRangeXSerialized = deepFreeze({
+                    rangeX: {
+                        start: { __type: 'date', value: '2024-04-23T00:00:00.000Z' }, // inclusive
+                        end: { __type: 'date', value: '2024-04-26T00:00:00.000Z' }, // exclusive
+                    },
+                } as const);
+                const expectedRangeX = deepFreeze({
+                    rangeX: {
+                        start: new Date('2024-04-23T00:00:00.000Z'), // inclusive
+                        end: new Date('2024-04-26T00:00:00.000Z'), // exclusive
+                    },
+                } as const);
+
+                beforeEach(async () => {
+                    zoomListener = newFreezableZoomListenerMock();
+                    await prepareChart(
+                        { onDataChange: { strategy: 'preserveDomain' } },
+                        {
+                            rangeX: {
+                                start: { __type: 'date', value: '2024-04-23' },
+                                end: { __type: 'date', value: '2024-04-25' },
+                            },
+                        },
+                        {
+                            ...ORDINAL_EXAMPLE_OPTIONS,
+                            listeners: { zoom: zoomListener.frozen },
+                        }
+                    );
+                    const { zoom } = chart.getState();
+                    expect(zoom).toMatchObject(expectedRangeXSerialized);
+                    initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
+                    initialRatioY = { ratioY: { start: zoom!.ratioY!.start!, end: zoom!.ratioY!.end! } };
+
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+                    zoomListener.mock.mockClear();
+                });
+                test('append datum', async () => {
+                    await appendDatum();
+                    const state = chart.getState();
+                    expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+                    expect(state.zoom).not.toMatchObject(initialRatioX);
+                    expect(state.zoom).toMatchObject(initialRatioY);
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+                });
+                test('prepend datum', async () => {
+                    await prependDatum();
+                    const state = chart.getState();
+                    expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+                    expect(state.zoom).not.toMatchObject(initialRatioX);
+                    expect(state.zoom).toMatchObject(initialRatioY);
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+                });
+                test('insert-middle datum', async () => {
+                    await insertMiddleDatum(); // Y-zoom unchanged
+                    const state = chart.getState();
+                    expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+                    expect(state.zoom).toMatchObject(initialRatioX);
+                    expect(state.zoom).toMatchObject(initialRatioY);
+                    expect(zoomListener.mock).toBeCalledTimes(0);
+                });
+                test('insert-middle datum (negative)', async () => {
+                    await insertMiddleDatumNegative(); // Y-zoom changed
+                    const state = chart.getState();
+                    expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+                    expect(state.zoom).toMatchObject(initialRatioX);
+                    expect(state.zoom).not.toMatchObject(initialRatioY);
+                    expect(zoomListener.mock).toBeCalledTimes(1);
+                    expect(zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+                    expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
                     expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
                 });
             });
