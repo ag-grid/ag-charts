@@ -5,6 +5,8 @@ import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-t
 
 import { definedZoomState } from './zoomUtils';
 
+const { userInteraction } = _ModuleSupport;
+
 type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
@@ -188,7 +190,7 @@ export class ZoomOnDataChange {
 
         switch (this.properties.strategy) {
             case 'reset':
-                return this.ctx.zoomManager.resetZoom('onDataChange-reset');
+                return this.ctx.zoomManager.resetZoom(userInteraction('onDataChange-reset'));
             case 'preserveRatios':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':

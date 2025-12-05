@@ -89,6 +89,7 @@ export type UpdateZoomSourcing = {
 };
 export type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
 export type UpdateZoomParams = UpdateZoomSourcing & {
+    isReset: boolean;
     changes: UpdateZoomChanges;
 };
 
@@ -294,7 +295,12 @@ export class ZoomManager extends BaseManager {
 
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
-        this.updateChanges({ source: 'user-interaction', sourceDetail: 'internal-restoreMemento', changes });
+        this.updateChanges({
+            source: 'user-interaction',
+            sourceDetail: 'internal-restoreMemento',
+            changes,
+            isReset: false,
+        });
     }
 
     private findAxis(axisId: AxisID): CartesianAxisLike | undefined {
@@ -321,7 +327,7 @@ export class ZoomManager extends BaseManager {
         this.state = changes;
         this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
 
-        this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes });
+        this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes, isReset: false });
     }
 
     public setIndependentAxes(independent = true) {
@@ -346,7 +352,7 @@ export class ZoomManager extends BaseManager {
 
     public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
-        return this.updateChanges({ source, sourceDetail, changes });
+        return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
 
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
@@ -367,7 +373,7 @@ export class ZoomManager extends BaseManager {
     }
 
     public updateChanges(params: UpdateZoomParams): boolean {
-        const { source, sourceDetail, changes } = params;
+        const { source, sourceDetail, isReset, changes } = params;
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
@@ -381,15 +387,20 @@ export class ZoomManager extends BaseManager {
         }
         this.state = newState;
 
-        return this.dispatch(source, sourceDetail, changedAxes);
+        return this.dispatch(source, sourceDetail, changedAxes, isReset);
     }
 
-    public resetZoom(sourceDetail: ZoomEventSourceDetail) {
-        this.updateChanges({ source: 'reset', sourceDetail, changes: this.getRestoredZoom() });
+    public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
+        this.updateChanges({ source, sourceDetail, changes: this.getRestoredZoom(), isReset: true });
     }
 
-    public resetAxisZoom(sourceDetail: ZoomEventSourceDetail, axisId: AxisID) {
-        this.updateChanges({ source: 'reset', sourceDetail, changes: { [axisId]: this.getRestoredZoom()[axisId] } });
+    public resetAxisZoom({ source, sourceDetail }: UpdateZoomSourcing, axisId: AxisID) {
+        this.updateChanges({
+            source,
+            sourceDetail,
+            changes: { [axisId]: this.getRestoredZoom()[axisId] },
+            isReset: true,
+        });
     }
 
     public panToBBox(seriesRect: BBox, target: BoxBounds): boolean {
@@ -410,7 +421,12 @@ export class ZoomManager extends BaseManager {
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
-        return this.updateChanges({ source: 'user-interaction', sourceDetail: 'internal-panToBBox', changes });
+        return this.updateChanges({
+            source: 'user-interaction',
+            sourceDetail: 'internal-panToBBox',
+            changes,
+            isReset: false,
+        });
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
@@ -439,7 +455,7 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start });
         if (!ratio) return;
 
-        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio } });
+        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
     public updateWith(
@@ -459,7 +475,7 @@ export class ZoomManager extends BaseManager {
         const ratio = this.rangeToRatioAxis(axis, { start, end });
         if (!ratio) return;
 
-        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio } });
+        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
     public getZoom(): AxisZoomState | undefined {
@@ -574,7 +590,8 @@ export class ZoomManager extends BaseManager {
     private dispatch(
         source: AgZoomEventSource,
         sourceDetail: ZoomEventSourceDetail,
-        changedAxes: readonly AxisID[]
+        changedAxes: readonly AxisID[],
+        isReset: boolean
     ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
@@ -584,6 +601,7 @@ export class ZoomManager extends BaseManager {
         const event = {
             source,
             sourceDetail,
+            isReset,
             changedAxes,
             state,
             x,

@@ -218,6 +218,7 @@ export type ZoomEventSourceDetail =
 export interface ZoomChangeRequestEvent {
     readonly source: AgZoomEventSource;
     readonly sourceDetail: ZoomEventSourceDetail;
+    readonly isReset: boolean;
     readonly changedAxes: readonly AxisID[];
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;

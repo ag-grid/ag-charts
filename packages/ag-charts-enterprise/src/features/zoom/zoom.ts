@@ -527,7 +527,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        zoomManager.resetAxisZoom('zoom-axis-dblclick', id);
+        zoomManager.resetAxisZoom({ source: 'user-interaction', sourceDetail: 'zoom-axis-dblclick' }, id);
     }
 
     private onAxisDragStart(direction: ChartAxisDirection) {
@@ -943,7 +943,7 @@ export class Zoom extends AbstractModuleInstance {
     private resetZoom(sourceDetail: _ModuleSupport.ZoomEventSourceDetail) {
         this.previousZoomValid = true;
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        this.ctx.zoomManager.resetZoom(sourceDetail);
+        this.ctx.zoomManager.resetZoom({ source: 'user-interaction', sourceDetail });
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
@@ -1026,7 +1026,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
         const { source, sourceDetail } = sourcing;
-        zoomManager.updateChanges({ source, sourceDetail, changes: { [axisId]: axisZoom } });
+        zoomManager.updateChanges({ source, sourceDetail, changes: { [axisId]: axisZoom }, isReset: false });
         return true;
     }
 
