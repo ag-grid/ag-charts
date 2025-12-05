@@ -1130,14 +1130,14 @@ describe('Zoom', () => {
                     expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
                 });
             });
-            describe('resize', () => {
+            describe('preserveRatios', () => {
                 let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
                 let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
                 let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
                 beforeEach(async () => {
                     zoomListener = newFreezableZoomListenerMock();
                     await prepareChart(
-                        { onDataChange: { strategy: 'resize' } },
+                        { onDataChange: { strategy: 'preserveRatios' } },
                         { ratioX: { start: 0.25, end: 0.75 } },
                         {
                             ...UGLY_NUMBER_EXAMPLE_OPTIONS,
