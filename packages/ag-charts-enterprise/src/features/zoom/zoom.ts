@@ -784,6 +784,11 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        // FIXME(AG-8627 TC10; AG-16414) `minVisibileItem` should have it own zoom:change-request handling
+        if (event.sourceDetail === 'unspecified') {
+            const restrictions = event.stateAsDefinedZoom();
+            event.constrainZoom(this.constrainZoom(restrictions));
+        }
         if (event.sourceDetail !== 'zoom-seriesarea-panner') {
             this.panner.stopInteractions();
         }

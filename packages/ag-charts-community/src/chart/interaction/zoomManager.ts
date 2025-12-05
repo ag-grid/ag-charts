@@ -580,6 +580,7 @@ export class ZoomManager extends BaseManager {
         const state = this.state;
         let constrainedState: typeof state | undefined;
 
+        const zoomManager = this;
         const event = {
             source,
             sourceDetail,
@@ -587,6 +588,14 @@ export class ZoomManager extends BaseManager {
             state,
             x,
             y,
+            stateAsDefinedZoom(): DefinedZoomState {
+                const { x = { min: 0, max: 1 }, y = { min: 0, max: 1 } } =
+                    zoomManager.toAxisZoomState(event.state) ?? {};
+                return { x, y };
+            },
+            constrainZoom(restrictions: AxisZoomState): void {
+                this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
+            },
             constrainChanges(restrictions: ZoomChangeState): void {
                 constrainedState ??= deepClone(state);
                 for (const id of strictObjectKeys(restrictions)) {
