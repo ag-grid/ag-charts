@@ -810,7 +810,10 @@ describe('Zoom', () => {
             return data;
         }
 
-        it('should stay in sync with series-area', async () => {
+        async function createMinichartChart(
+            initialState: NonNullable<AgChartOptions['initialState']>['zoom'],
+            myOptions: AgCartesianChartOptions<TDatum>
+        ): Promise<void> {
             const options: AgCartesianChartOptions<TDatum> = {
                 data: getData(),
                 series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
@@ -826,28 +829,107 @@ describe('Zoom', () => {
                         title: { text: 'Price' },
                     },
                 },
-                zoom: {
-                    enabled: true,
-                    autoScaling: {
-                        enabled: true,
-                    },
-                    onDataChange: {
-                        strategy: 'preserveRatios',
-                    },
-                },
-                navigator: {
-                    enabled: true,
-                    miniChart: {
-                        enabled: true,
-                    },
-                },
+                ...myOptions,
             };
-            await prepareChart(undefined, { ratioX: { start: 0, end: 0.25 } }, options, false);
+            await prepareChart(undefined, initialState, options, false);
+        }
+
+        it('should stay in sync with series-area', async () => {
+            await createMinichartChart(
+                { ratioX: { start: 0, end: 0.25 } },
+                {
+                    zoom: {
+                        enabled: true,
+                        autoScaling: {
+                            enabled: true,
+                        },
+                        onDataChange: {
+                            strategy: 'preserveRatios',
+                        },
+                    },
+                    navigator: {
+                        enabled: true,
+                        miniChart: {
+                            enabled: true,
+                        },
+                    },
+                }
+            );
             await waitForChartStability(chart);
             await compare();
 
-            await chart.updateDelta({ data: options.data!.slice(4) });
+            await chart.updateDelta({ data: getData().slice(4) });
             await compare();
+        });
+
+        describe('AG-8627 TC10', () => {
+            it('should clamp navigator handles when removing from start', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0, end: 0.25 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            autoScaling: {
+                                enabled: true,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await compare();
+
+                await chart.updateDelta({ data: getData().slice(10) });
+                await compare();
+            });
+
+            it('should clamp navigator handles when removing from end', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0.75, end: 1 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            autoScaling: {
+                                enabled: true,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await compare();
+
+                await chart.updateDelta({ data: getData().slice(0, -10) });
+                await compare();
+            });
         });
     });
 });
