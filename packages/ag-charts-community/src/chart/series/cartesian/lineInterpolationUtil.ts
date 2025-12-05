@@ -3,6 +3,7 @@ import {
     type Span,
     clipSpanX,
     collapseSpanToPoint,
+    isUnitTimeCategoryScaling,
     rescaleSpan,
     spanRange,
     transformIntegratedCategoryValue,
@@ -86,7 +87,19 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     }
     if (scaling.type !== 'category') return Number.NaN;
 
-    // Category axis case.
+    // Unit-time category case: O(1) index calculation
+    if (isUnitTimeCategoryScaling(scaling)) {
+        if (typeof val === 'number') {
+            const { firstBandTime, intervalMs, bandCount, inset, step } = scaling;
+            const matchingIndex = Math.round((val - firstBandTime) / intervalMs);
+            if (matchingIndex >= 0 && matchingIndex < bandCount) {
+                return inset + step * matchingIndex;
+            }
+        }
+        return Number.NaN;
+    }
+
+    // Standard category axis case.
     const axisValue = toAxisValue(val);
     let matchingIndex = scaling.domain.findIndex((d) => toAxisValue(d) === axisValue);
     if (matchingIndex === -1) {
@@ -117,6 +130,10 @@ function getAxisIndices({ data }: SpanContext, values: any[]): SpanIndices[] {
 function isValidScaling(data: SpanContext) {
     return Object.values(data.scales).every((s) => {
         if (s.type === 'category') {
+            // Unit-time scales use bandCount instead of domain.length
+            if (isUnitTimeCategoryScaling(s)) {
+                return s.bandCount < MAX_CATEGORIES;
+            }
             return s.domain.length < MAX_CATEGORIES;
         }
         return true;
@@ -128,6 +145,11 @@ function validateCategorySorting(newData: SpanContext, oldData: SpanContext) {
     const newScale = newData.scales.x;
 
     if (oldScale?.type !== 'category' || newScale?.type !== 'category') return true;
+
+    // Unit-time scales are inherently sorted by time order
+    if (isUnitTimeCategoryScaling(oldScale) || isUnitTimeCategoryScaling(newScale)) {
+        return true;
+    }
 
     let x0 = -Infinity;
     for (const oldValue of oldScale.domain) {

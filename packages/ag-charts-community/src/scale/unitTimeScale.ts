@@ -155,7 +155,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     /** Override to return band count without triggering Date materialization */
-    protected override getBandCountForUpdate(): number {
+    public override getBandCountForUpdate(): number {
         this.ensureEncodedBands();
         return this._encodedBands?.length ?? 0;
     }
@@ -223,7 +223,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._domainBoundaries;
     }
 
-    private getLinearParams(): { firstBandTime: number; intervalMs: number } | undefined {
+    /** Get linear params for O(1) index calculation and scaling metadata */
+    public getLinearParams(): { firstBandTime: number; intervalMs: number } | undefined {
         if (this._linearParams === undefined) {
             this.ensureEncodedBands();
             if (this._encodedBands != null && this._encodingParams != null && this._encodedBands.length >= 2) {
