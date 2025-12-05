@@ -83,6 +83,11 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
 
     abstract readonly bands: readonly D[];
 
+    /** Override in subclass to provide band count without triggering full band materialization */
+    protected getBandCountForUpdate(): number {
+        return this.bands.length;
+    }
+
     protected refresh() {
         if (!this.invalid) return;
 
@@ -97,7 +102,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
         const i = this.findIndex(d, options?.alignment);
-        if (i == null || i < 0 || i >= this.bands.length) {
+        if (i == null || i < 0 || i >= this.getBandCountForUpdate()) {
             return Number.NaN;
         }
         return this.ordinalRange(i);
@@ -110,7 +115,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     protected invertNearestIndex(position: number) {
         this.refresh();
 
-        const bandCount = this.bands.length;
+        const bandCount = this.getBandCountForUpdate();
 
         if (bandCount === 0) return -1;
 
@@ -144,8 +149,8 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     update() {
         const [r0, r1] = this.range;
         let { _paddingInner: paddingInner } = this;
-        const { _paddingOuter: paddingOuter, bands } = this;
-        const bandCount = bands.length;
+        const { _paddingOuter: paddingOuter } = this;
+        const bandCount = this.getBandCountForUpdate();
         if (bandCount === 0) return;
 
         const rangeDistance = r1 - r0;

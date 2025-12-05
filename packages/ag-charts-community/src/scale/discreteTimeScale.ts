@@ -80,19 +80,21 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         this.refresh();
 
         if (!(value instanceof Date)) value = new Date(value as any);
-        const { domain, bands, reversed } = this;
+        const { domain, reversed } = this;
+        const numericBands = this.numericBands;
+        const bandCount = numericBands.length;
 
         if (domain.length <= 0) return Number.NaN;
 
         const r0 = this.ordinalRange(0);
-        const r1 = this.ordinalRange(bands.length - 1);
+        const r1 = this.ordinalRange(bandCount - 1);
 
-        if (bands.length === 0) return r0;
+        if (bandCount === 0) return r0;
 
         if (options?.clamp === true) {
             const { range } = this;
-            if (value < bands[0]) return range[0];
-            if (value > bands.at(-1)!) return range[1];
+            if (value.valueOf() < numericBands[0]) return range[0];
+            if (value.valueOf() > numericBands.at(-1)!) return range[1];
         }
 
         const alignment = options?.alignment ?? ScaleAlignment.Leading;
@@ -105,15 +107,15 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         let bandIndex = this.findIndex(value) ?? 0;
         let dIndex: 1 | -1;
         if (reversed) {
-            bandIndex = Math.min(Math.max(bandIndex, 1), bands.length - 1);
+            bandIndex = Math.min(Math.max(bandIndex, 1), bandCount - 1);
             dIndex = -1;
         } else {
-            bandIndex = Math.min(Math.max(bandIndex, 0), bands.length - 2);
+            bandIndex = Math.min(Math.max(bandIndex, 0), bandCount - 2);
             dIndex = 1;
         }
 
-        const v0 = bands[bandIndex].valueOf();
-        const v1 = bands[bandIndex + dIndex].valueOf();
+        const v0 = numericBands[bandIndex];
+        const v1 = numericBands[bandIndex + dIndex];
 
         const vr0 = this.ordinalRange(bandIndex);
         const vr1 = this.ordinalRange(bandIndex + dIndex);
@@ -127,23 +129,25 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     override invert(position: number, nearest = false): Date | undefined {
         this.refresh();
 
-        const { domain, bands } = this;
+        const { domain } = this;
         if (domain.length <= 0) return;
 
+        const bands = this.bands; // Only access bands at the end for return value
+        const bandCount = this.getBandCountForUpdate();
         const reversed = domain[0].valueOf() > domain.at(-1)!.valueOf();
 
         let index: number | undefined;
         if (nearest) {
             index = this.invertNearestIndex(position - this.bandwidth / 2);
         } else {
-            const closestIndex = findMinIndex(0, bands.length - 1, (i) => {
+            const closestIndex = findMinIndex(0, bandCount - 1, (i) => {
                 const p = this.ordinalRange(i);
                 return p >= position;
             });
-            index = closestIndex ?? bands.length - 1;
+            index = closestIndex ?? bandCount - 1;
         }
 
-        return bands[reversed ? bands.length - 1 - index : index];
+        return bands[reversed ? bandCount - 1 - index : index];
     }
 
     /** Override in subclass to provide cached uniformity check result */

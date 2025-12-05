@@ -1,12 +1,15 @@
 import type {
     DomainWithMetadata,
+    IntervalRangeNumericResult,
     NormalizedDomain,
-    ScaleAlignment,
     ScaleTickParams,
     ScaleTickResult,
 } from 'ag-charts-core';
 import {
     Logger,
+    ScaleAlignment,
+    decodeIntervalValue,
+    encodedToTimestamp,
     findMaxIndex,
     findMinIndex,
     intervalFloor,
@@ -14,13 +17,14 @@ import {
     intervalNext,
     intervalRange,
     intervalRangeCount,
+    intervalRangeNumeric,
     intervalRangeStartIndex,
     isPlainObject,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { normalizeContinuousDomains } from './continuousScale';
-import { DiscreteTimeScale, type UniformityCheck, checkUniformityBySampling } from './discreteTimeScale';
+import { DiscreteTimeScale, type UniformityCheck } from './discreteTimeScale';
 import { visibleTickSliceIndices } from './scaleUtil';
 
 const APPROXIMATE_THRESHOLD = 1000;
@@ -44,6 +48,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
     private _uniformityCache: UniformityCheck | undefined;
     private _domainBoundaries: { d0: number; dNext: number } | undefined;
     private _bandRangeCache: { start: Date; stop: Date } | undefined;
+    /** Encoded band values (internal encoding, not timestamps) */
+    private _encodedBands: number[] | undefined;
+    /** Encoding params needed to decode encoded bands to Date/timestamp */
+    private _encodingParams: IntervalRangeNumericResult['encodingParams'] | undefined;
+    /** Cached linear params for O(1) findIndex */
+    private _linearParams: { firstBandTime: number; intervalMs: number } | undefined;
 
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
@@ -54,6 +64,9 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._uniformityCache = undefined;
         this._domainBoundaries = undefined;
         this._bandRangeCache = undefined;
+        this._encodedBands = undefined;
+        this._encodingParams = undefined;
+        this._linearParams = undefined;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -73,36 +86,109 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._uniformityCache = undefined;
         this._domainBoundaries = undefined;
         this._bandRangeCache = undefined;
+        this._encodedBands = undefined;
+        this._encodingParams = undefined;
+        this._linearParams = undefined;
     }
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {
-        this._bands ??= this.calculateBands(this._domain, [0, 1]).bands;
+        if (this._bands === undefined) {
+            // Lazily decode from encoded bands
+            this.ensureEncodedBands();
+            if (this._encodedBands != null && this._encodingParams != null) {
+                const params = this._encodingParams;
+                this._bands = this._encodedBands.map((e) => decodeIntervalValue(e, params));
+            } else {
+                this._bands = [];
+            }
+        }
         return this._bands;
     }
 
     private _numericBands: number[] | undefined;
     protected override get numericBands(): number[] {
-        this._numericBands ??= this.bands.map((d) => d.valueOf());
+        if (this._numericBands === undefined) {
+            // Compute timestamps from encoded bands without creating Date objects first
+            this.ensureEncodedBands();
+            if (this._encodedBands != null && this._encodingParams != null) {
+                const params = this._encodingParams;
+                this._numericBands = this._encodedBands.map((e) => encodedToTimestamp(e, params));
+            } else {
+                this._numericBands = [];
+            }
+        }
         return this._numericBands;
     }
 
+    /**
+     * Ensure encoded bands are computed. This is the numeric-first optimization:
+     * we compute just the encoded values (cheap numbers) and defer Date creation.
+     */
+    private ensureEncodedBands(): void {
+        if (this._encodedBands !== undefined) return;
+
+        const { domain, interval } = this;
+        if (domain.length < 2 || interval == null) {
+            this._encodedBands = [];
+            return;
+        }
+
+        const bandRange = this.getCachedBandRange();
+        if (bandRange == null) {
+            this._encodedBands = [];
+            return;
+        }
+
+        const [start, stop] = bandRange;
+        const rangeParams = { visibleRange: [0, 1] as [number, number], extend: false };
+
+        if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
+            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
+            this._encodedBands = [];
+            return;
+        }
+
+        const { encodedValues, encodingParams } = intervalRangeNumeric(interval, start, stop, rangeParams);
+        this._encodedBands = encodedValues;
+        this._encodingParams = encodingParams;
+    }
+
+    /** Override to return band count without triggering Date materialization */
+    protected override getBandCountForUpdate(): number {
+        this.ensureEncodedBands();
+        return this._encodedBands?.length ?? 0;
+    }
+
     override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
-        const { bands } = this;
-        const n = bands.length;
+        const n = this.getBandCountForUpdate();
 
         // For full range or no visible range, use cached whole-domain check
         if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
             if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
-                this._uniformityCache = checkUniformityBySampling(bands);
+                // UnitTimeScale bands are inherently uniform (generated from fixed interval)
+                // We can compute the interval from encoding params without materializing bands
+                this.ensureEncodedBands();
+                if (this._encodingParams != null && this._encodedBands != null && this._encodedBands.length >= 2) {
+                    const t0 = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
+                    const t1 = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
+                    this._uniformityCache = { isUniform: true, interval: t1 - t0 };
+                } else {
+                    this._uniformityCache = { isUniform: false };
+                }
             }
             return this._uniformityCache;
         }
 
-        // For partial visible range, sample within that range (no caching)
-        const startIdx = Math.floor(visibleRange[0] * n);
-        const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
-        return checkUniformityBySampling(bands, startIdx, endIdx);
+        // For partial visible range, UnitTimeScale is still uniform
+        // Compute interval from encoded bands at the visible range boundaries
+        this.ensureEncodedBands();
+        if (this._encodingParams != null && this._encodedBands != null && this._encodedBands.length >= 2) {
+            const t0 = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
+            const t1 = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
+            return { isUniform: true, interval: t1 - t0 };
+        }
+        return { isUniform: false };
     }
 
     override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {
@@ -135,6 +221,67 @@ export class UnitTimeScale extends DiscreteTimeScale {
             this._domainBoundaries = { d0, dNext };
         }
         return this._domainBoundaries;
+    }
+
+    private getLinearParams(): { firstBandTime: number; intervalMs: number } | undefined {
+        if (this._linearParams === undefined) {
+            this.ensureEncodedBands();
+            if (this._encodedBands != null && this._encodingParams != null && this._encodedBands.length >= 2) {
+                const firstBandTime = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
+                const secondBandTime = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
+                this._linearParams = {
+                    firstBandTime,
+                    intervalMs: secondBandTime - firstBandTime,
+                };
+            }
+        }
+        return this._linearParams;
+    }
+
+    /**
+     * O(1) findIndex for uniform bands with verification.
+     * Computes approximate index, then verifies against actual band values.
+     */
+    override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
+        if (value == null) return undefined;
+
+        const numericBands = this.numericBands;
+        const n = numericBands.length;
+        if (n === 0) return undefined;
+        if (n === 1) return 0;
+
+        const linearParams = this.getLinearParams();
+        if (linearParams == null || linearParams.intervalMs === 0) {
+            // Fall back to binary search
+            return super.findIndex(value, alignment);
+        }
+
+        const { firstBandTime, intervalMs } = linearParams;
+        const target = value.valueOf();
+
+        // O(1) approximate index calculation
+        const rawIndex = (target - firstBandTime) / intervalMs;
+        let index = alignment === ScaleAlignment.Trailing ? Math.ceil(rawIndex) : Math.floor(rawIndex);
+
+        // Clamp to valid range
+        index = Math.max(0, Math.min(index, n - 1));
+
+        // Verify and adjust for floating point precision
+        if (alignment === ScaleAlignment.Trailing) {
+            // Find smallest index where band >= target
+            while (index > 0 && numericBands[index - 1] >= target) index--;
+            while (index < n - 1 && numericBands[index] < target) index++;
+            // Return undefined if target > all bands
+            if (numericBands[index] < target) return undefined;
+        } else {
+            // Find largest index where band <= target
+            while (index < n - 1 && numericBands[index + 1] <= target) index++;
+            while (index > 0 && numericBands[index] > target) index--;
+            // Return undefined if target < all bands
+            if (numericBands[index] > target) return undefined;
+        }
+
+        return index;
     }
 
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
