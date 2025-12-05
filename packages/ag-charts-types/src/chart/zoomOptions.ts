@@ -69,10 +69,10 @@ export interface AgZoomOnDataChange {
     strategy?: AgZoomOnDataChangeStrategy;
     /**
      * When `true`, the zoom will be adjusted to ensure that newly appended data is in the viewport. This behavior only
-     * happens if the chart's X-zoom is pan all the way to the very end of data range; otherwise the current `strategy`
+     * happens if the chart's horizontal viewport is panned all the way to the very end of data range; otherwise the current `strategy`
      * is used instead.
      *
-     * Default: `true`
+     * Default: `false`
      */
     stickToEnd?: boolean;
 }
