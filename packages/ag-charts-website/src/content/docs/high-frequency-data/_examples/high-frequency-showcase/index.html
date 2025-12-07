@@ -1,0 +1,21 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+        <select id="seriesTypeSelect" onchange="updateSeriesType(this.value)">
+            <option value="line" selected>Line</option>
+            <option value="area">Area</option>
+            <option value="bar">Bar</option>
+            <option value="stacked-bar">Stacked Bar</option>
+            <option value="stacked-area">Stacked Area</option>
+            <option value="range-area">Range Area</option>
+            <option value="range-bar">Range Bar</option>
+            <option value="candlestick">Candlestick</option>
+            <option value="ohlc">OHLC</option>
+        </select>
+        <select id="updateModeSelect" onchange="updateMode(this.value)">
+            <option value="rolling" selected>Rolling Window</option>
+            <option value="append">Append Only</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

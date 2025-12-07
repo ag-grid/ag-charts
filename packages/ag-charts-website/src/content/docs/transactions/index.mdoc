@@ -1,0 +1,147 @@
+---
+title: 'Transactions'
+description: 'Efficiently update $framework chart data using the applyTransaction() API for incremental data operations.'
+---
+
+Efficiently update chart data using incremental transactions without replacing the entire dataset. Use Transaction Updates for fast changes to large datasets.
+
+## Apply Transaction API
+
+The `applyTransaction()` method allows incrementally updating the chart data without replacing the entire dataset. It returns a Promise that resolves once the transaction has been applied and rendered.
+
+{% if isFramework("react") %}
+The `AgChartInstance` can be obtained using a React `Ref` to our `<AgCharts />` tag, which
+exposes a `chart` property.
+{% /if %}
+
+{% if isFramework("angular") %}
+The `AgChartInstance` can be obtained using an Angular `@ViewChild` decorator to reference our `AgCharts` tag, which
+exposes a `chart` property.
+{% /if %}
+
+{% if isFramework("vue") %}
+The `AgChartInstance` can be obtained using the Vue `$refs` component property to reference our `AgCharts` tag, which
+exposes a `chart` property.
+{% /if %}
+
+## Transaction Operations
+
+Transactions support three types of operations: adding, removing, and updating data items. Multiple operations can be combined in a single transaction.
+
+{% chartExampleRunner title="Apply Transaction" name="simple-apply-transaction" type="generated" /%}
+
+-   **Add 5 Items**: Appends 5 new items to the end of the dataset.
+-   **Add at Index 2**: Inserts a new item at position 2 using `addIndex`.
+-   **Remove Last**: Removes the last item from the dataset.
+-   **Update First 5**: Modifies the values of the first 5 items.
+
+{% note %}
+Items are identified by object reference, not by comparing property values.
+
+To update or remove an item, you must pass the same object instance that exists in the data array.
+{% /note %}
+
+### Adding Data
+
+Use the `add` property to append new data items to the dataset.
+
+```js
+// Add new items to the end
+chart.applyTransaction({
+    add: [
+        { category: 'Item 1', value: 42 },
+        { category: 'Item 2', value: 38 },
+    ],
+});
+```
+
+Use `addIndex` to control where items are inserted:
+
+```js
+// Add item to the beginning
+chart.applyTransaction({
+    add: [{ category: 'Item 0', value: 50 }],
+    addIndex: 0,
+});
+
+// Add item at a specific position
+chart.applyTransaction({
+    add: [{ category: 'Item 3', value: 45 }],
+    addIndex: 2,
+});
+```
+
+### Removing Data
+
+Use the `remove` property to remove items from the dataset.
+
+Items are matched by referential equality, meaning you must provide the exact object reference that exists in the data array.
+
+```js
+// Keep a reference to the data items
+const data = [
+    { category: 'Item 1', value: 50 },
+    { category: 'Item 2', value: 55 },
+    { category: 'Item 3', value: 45 },
+];
+
+// Later, remove specific items by reference
+const itemToRemove = data[0];
+chart.applyTransaction({
+    remove: [itemToRemove],
+});
+```
+
+### Updating Data
+
+Use the `update` property to modify existing items.
+
+First mutate the item in place, then pass the reference in the transaction.
+
+```js
+// Keep a reference to the data items
+const data = [
+    { category: 'Item 1', value: 50 },
+    { category: 'Item 2', value: 55 },
+];
+
+// Mutate the item in place
+const itemToUpdate = data[1];
+itemToUpdate.value = 100;
+
+// Notify the chart of the change
+chart.applyTransaction({
+    update: [itemToUpdate],
+});
+```
+
+### Combined Operations
+
+Multiple operations can be performed in a single transaction for efficiency.
+
+```js
+chart.applyTransaction({
+    remove: [oldItems[0], oldItems[1]],
+    update: [modifiedItem],
+    add: [
+        { category: 'Item 10', value: 62 },
+        { category: 'Item 11', value: 58 },
+    ],
+});
+```
+
+Operations are processed in order: remove, then update, then add.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgDataTransaction" label="Transaction Interface" %}
+{% apiReference id="AgDataTransaction" /%}
+{% /tabItem %}
+
+{% tabItem id="_AgChartInstanceInterface" label="Chart Instance" %}
+{% apiReference id="_AgChartInstanceInterface" include=["applyTransaction"] /%}
+{% /tabItem %}
+
+{% /tabs %}

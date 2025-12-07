@@ -1,14 +1,15 @@
 /**
  * Transaction object for performing incremental data updates.
  *
- * Transactions allow efficient updates to chart data without replacing the entire dataset,
- * which is particularly useful for real-time data scenarios and high-frequency updates.
+ * Used for efficient high frequency updates.
+ *
  *
  * Object identity is determined by referential equality.
  */
 export interface AgDataTransaction<T = unknown> {
     /**
      * Data items to add to the dataset.
+     *
      * Use `addIndex` to control the insertion position, otherwise items are appended to the end.
      */
     add?: T[];
@@ -23,12 +24,14 @@ export interface AgDataTransaction<T = unknown> {
 
     /**
      * Data items to remove from the dataset.
+     *
      * Items are matched by referential equality (object reference).
      */
     remove?: T[];
 
     /**
      * Data items to update in the dataset.
+     *
      * Items are matched by referential equality (object reference).
      */
     update?: T[];
