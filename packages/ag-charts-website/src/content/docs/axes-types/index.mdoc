@@ -9,7 +9,11 @@ the relationships between data points on the graph. This section discusses the d
 In most cases, specifying an axis type is unnecessary as an appropriate axis will be inferred from the data and series type used in the chart.
 By default, the x-axis uses a [Category](#category), [Time](#time) or [Number](#number) axis based on the data type, whilst the y axis defaults to a [Number](#number) axis.
 
-Axis types can be explicitly configured as explained below. When doing so, all chart axes must be provided.
+Axis types can be explicitly configured as explained below.
+
+{% note %}
+For an overview of how to configure axes and bind them to series, see [Axis Configuration](./axes-configuration/).
+{% /note %}
 
 ## Category
 
@@ -25,7 +29,6 @@ different groups, and the number axis displays the corresponding sale value for 
         x: {
             type: 'category',
         },
-        //...
     },
 }
 ```
@@ -66,12 +69,18 @@ Ticks and labels for all levels inherit styles from the axis options by default.
 To style each level differently, use the `depthOptions` array, where each entry corresponds to a hierarchy level, starting at the leaf level.
 
 ```js format="snippet"
-type: 'grouped-category',
-depthOptions: [
-    {}, // Skip depth 0 - the nearest to the axis, no unique styles.
-    { label: { fontWeight: 'bold' } }, // depth 1
-    { label: { fontSize: 10 } }, //depth 2
-]
+{
+    axes: {
+        x: {
+            type: 'grouped-category',
+            depthOptions: [
+                {}, // Skip depth 0 - the nearest to the axis, no unique styles.
+                { label: { fontWeight: 'bold' } }, // depth 1
+                { label: { fontSize: 10 } }, //depth 2
+            ],
+        },
+    },
+}
 ```
 
 ## Number
@@ -91,7 +100,6 @@ round it up and try to segment the rounded range with evenly spaced intervals.
         y: {
             type: 'number',
         },
-        //..
     },
 }
 ```
@@ -126,7 +134,6 @@ necessary to reduce the number of ticks.
             type: 'log',
             minSpacing: 200,
         },
-        //...
     },
 }
 ```
@@ -141,7 +148,6 @@ you to change the base to any number you like, for example `Math.E` for natural 
             type: 'log',
             base: 2,
         },
-        ///...
     },
 }
 ```
@@ -203,7 +209,3 @@ For more detail on time axes, see the [Time Axes](./axes-time/) page.
 {% /tabItem %}
 
 {% /tabs %}
-
-## Next Up
-
-Continue to the next section to learn about the [Axis Intervals](./axes-intervals/).

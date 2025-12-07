@@ -1,8 +1,9 @@
 ---
 title: 'Axis Configuration'
+description: 'Learn how to configure and customize axes in $framework charts, including automatic axis selection, axis customization, and binding axes to series.'
 ---
 
-This page provides an overview of how to customise axes and how to bind them to the series.
+This page provides an overview of axis configuration in AG Charts, including automatic axis selection, customization basics, and how to bind axes to series.
 
 ## Automatic Axis Selection
 
@@ -15,7 +16,8 @@ This automatic selection removes the need for explicit axis configuration in man
 Axes are referenced using a dictionary of axis definitions, where each axis is identified by a key.
 The default keys are `x` and `y` for cartesian axes, or `radial` and `angular` for polar axes.
 
-Only the configured chart axes must be provided.It is recommended to provide the `type` to allow type-checking and improved options validation.
+Only the configured chart axes and options must be provided. It is recommended to provide the `type` to allow type-checking and improved options validation.
+When using [Secondary Axes](./secondary-axes), it is recommended to specify `position` to prevent ambiguity.
 
 {% chartExampleRunner title="Customising Axes" name="axis-configuration" type="generated" /%}
 
@@ -43,32 +45,11 @@ In this example:
 ## Secondary and Named Axes
 
 While `x` and `y` are the default axis keys for cartesian charts, you can define axes with custom keys.
-This allows for creating secondary axes or increasing code-readability.
+This allows for creating secondary axes or using more descriptive names for readability.
 
 {% chartExampleRunner title="Secondary Axes" name="multiple-axes" type="generated" /%}
 
-Series are linked to axes by supplying an axis key in the series configuration using the
-`xKeyAxis`, `yKeyAxis` and similar properties.
-
-The axis key supplied to the series does not need to be used in the `axes` options if no customisation is required.
-
-```js format="snippet"
-{
-    series: [
-        { type: 'bar', xKey: 'month', yKey: 'profit', yKeyAxis: 'profit' },
-        { type: 'line', xKey: 'month', yKey: 'revenue', yKeyAxis: 'revenue' },
-    ],
-    axes: {
-        revenue: { type: 'number', position: 'right', title: { text: 'revenue' } },
-        profit: { type: 'number', position: 'left', title: { text: 'profit' } },
-    },
-}
-```
-
--   The `yKey` values of the first series are plotted against the `profit` axis on the left, whilst the `yKey` values of the second series are plotted against the `revenue` axis on the right.
--   The series use the default `x` axis key so `series[].xKeyAxis` is not required.
--   `axes.x` is not required because no customization is needed for the default x axis.
--   There is no `axes.y` in this chart as all series have specified a different `yKeyAxis`.
+For detailed information on creating and configuring secondary axes, see the [Secondary Axes](./axes-secondary/) page.
 
 ## Polar Axes
 
@@ -89,6 +70,6 @@ For radial and polar charts, the angle and radius axes replace the traditional x
 
 Refer to the individual series documentation such as [Radar Area](./radar-area-series/) or [Radial Bar](./radial-bar-series/), for specific axis configuration details.
 
-## Next Up
+## Customisation
 
-Continue to the next section to learn about [Axis Types](./axes-types/).
+For a comprehensive list of all axis configuration options, see the [Axis Types API Reference](./axes-types/#api-reference).

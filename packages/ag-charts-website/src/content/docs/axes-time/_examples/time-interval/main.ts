@@ -18,7 +18,6 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'time',
             nice: false,
-            position: 'bottom',
             interval: {
                 step: { unit: 'day', step: 7, epoch: new Date('2025-01-01') },
             },
@@ -28,7 +27,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '#{~f} °C',
             },

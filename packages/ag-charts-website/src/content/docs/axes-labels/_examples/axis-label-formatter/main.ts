@@ -20,14 +20,12 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 formatter: ({ value }) => (value === 'Windows' ? '== Windows ==' : value),
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: ({ value }) => `${value * 100}%`,
             },
