@@ -15,7 +15,6 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'High-Frequency Update' },
     data,
-    dateKey: 'timestamp',
     volume: true,
     navigator: false,
     rangeButtons: false,
@@ -40,13 +39,13 @@ let isRunning = false;
 /** inScope */
 function startNewCandle() {
     const lastCandle = data[data.length - 1];
-    const newTimestamp = lastCandle.timestamp + MS_PER_DAY;
+    const newTimestamp = lastCandle.date + MS_PER_DAY;
     const openPrice = lastCandle.close;
 
     simulator = new PriceSimulator(openPrice, TICKS_PER_CANDLE);
 
     currentCandle = {
-        timestamp: newTimestamp,
+        date: newTimestamp,
         open: openPrice,
         high: openPrice,
         low: openPrice,

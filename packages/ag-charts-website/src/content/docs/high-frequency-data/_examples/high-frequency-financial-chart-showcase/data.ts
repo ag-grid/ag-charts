@@ -17,7 +17,7 @@ function randomNormal() {
 }
 
 export interface Candle {
-    timestamp: number;
+    date: number;
     open: number;
     high: number;
     low: number;
@@ -25,7 +25,7 @@ export interface Candle {
     volume: number;
 }
 
-function generateCandle(prevClose: number, timestamp: number): Candle {
+function generateCandle(prevClose: number, date: number): Candle {
     const open = prevClose * (1 + (seededRandom() - 0.5) * 0.002);
     let price = open;
     let high = open;
@@ -43,7 +43,7 @@ function generateCandle(prevClose: number, timestamp: number): Candle {
     }
 
     return {
-        timestamp,
+        date,
         open: Number(open.toFixed(2)),
         high: Number(high.toFixed(2)),
         low: Number(low.toFixed(2)),
@@ -59,8 +59,8 @@ export function getHistoricalData(days: number): Candle[] {
     let prevClose = STARTING_PRICE;
 
     for (let i = 0; i < days; i++) {
-        const timestamp = startTimestamp + i * MS_PER_DAY;
-        const candle = generateCandle(prevClose, timestamp);
+        const date = startTimestamp + i * MS_PER_DAY;
+        const candle = generateCandle(prevClose, date);
         data.push(candle);
         prevClose = candle.close;
     }
