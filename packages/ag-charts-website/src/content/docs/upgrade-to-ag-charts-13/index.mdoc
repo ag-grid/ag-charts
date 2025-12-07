@@ -13,7 +13,7 @@
 # * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
 
 title: 'Upgrade to AG Charts 13.0'
-description: "See what's new in AG Charts v13.0! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+description: "See what's new in AG Charts v13.0! View a full list of breaking changes, behaviour changes and deprecations. Read the release post for feature highlights."
 migrationVersion: '13.0.0'
 ---
 
@@ -53,19 +53,93 @@ The minimum version of Angular you can use with AG Charts is now Angular 18
 
 {% /if %}
 
-## Axes Changes
+### Modules
 
--   `axes` is a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
--   `axes.keys` is removed. Use the series `_KeyAxes` properties to link to axes.
+Module Registration is now required, unless using the UMD bundle.
 
-## Highlight Changes
+Use `AllCommunityModule` or `AllEnterpriseModule` for simplicity, or import specific modules.
+
+The minimum change required is to add the following to your app.
+
+**AG Charts Community**
+
+```js
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+```
+
+**AG Charts Enterprise**
+
+```js
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+```
+
+See [Module Registry](./module-registry) for more details.
+
+### Axes Changes
+
+The `axes` option is now a dictionary instead of an array. Use default `'x'`, `'y'`, `'angle'`, `'radius'` keys or define your own.
+
+The minimum change required is to replace
+
+```js format="snippet"
+{
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+}
+```
+
+with
+
+```js format="snippet"
+{
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+}
+```
+
+Only options to be changed need to be specified, so
+
+```js format="snippet"
+{
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left', title: { text: 'Price' } },
+    },
+}
+```
+
+can be specified as
+
+```js format="snippet"
+{
+    axes: {
+        y: { title: { text: 'Price' } },
+    },
+}
+```
+
+Although optional, we recommend supplying `type` to aid in type-checking and options validation, and `position` to avoid ambiguity when using secondary axes.
+
+The `axes.keys` option is removed. Use the series `_KeyAxes` properties to link to axes when using secondary or named axes.
+
+See [Axis Configuration](./axes-configuration) for more details.
+
+### Highlight Changes
 
 -   `highlightStyle` is removed from `treemap` and `sunburst` series. Use `highlight` options and `itemStyler` callbacks instead.
--   The `highlighted` boolean is removed from all callback params. Use `highlightedStyle` instead.
+-   The `highlighted` boolean is removed from all callback params. Use `highlightState` instead.
 
-## Miscellaneous
+### Miscellaneous
 
--   All callbacks that used to return a `string` or `string | TextSegment[]`, now also support returning a `number` or `Date` value.
+-   All callbacks that used to return a `string` or `string | TextSegment[]` now also support returning a `number` or `Date` value.
 -   `TextSegment`s now also support `string | number | Date` in the `text` field.
 -   `itemId` used in `waterfall`, `range-area`, `range-bar`, `candlestick` and `ohlc` series formatter, styler and renderers is removed and replaced by `itemType`
 -   `itemId` type in event parameters is updated from `string` to `string | number`.
@@ -99,12 +173,14 @@ This release includes the following behaviour changes:
 ### Other Changes
 
 -   `zoom.enableAxisScrolling` defaults to `true`. Use `enableAxisScrolling: false` to disable.
+-   The new `zoom.onDataChange.strategy` of `'preserveDomain'` is the default. Use `'preserveRatios'` for previous behaviour.
+-   The new `zoom.onDataChange.stickToEnd` option defaults to `true` for Financial Charts.
 -   Sankey series use the full width of the series area when `edgePlacement: undefined`. Use `seriesArea.padding` to adjust.
 -   `maxRenderedItems` for `scatter` and `bubble` series defaults to `2000` instead of `10000`.
 
 {% /expandingSection %}
 
-## Removal of Deprecated Properties
+## Removal of Deprecated APIs
 
 <!-- If there are *no* deprecated APIs, add the following: -->
 
@@ -114,7 +190,7 @@ This release includes the following behaviour changes:
 
 The following APIs have been deprecated since version 12 and have now been removed.
 
-{% expandingSection headerText="Removed Deprecated Properties" %}
+{% expandingSection headerText="Removed Deprecated APIs" %}
 
 <!-- ### Deprecated APIs section Name -->
 
@@ -129,3 +205,7 @@ There are no deprecations in AG Charts version {% migrationVersion() %}.
 <!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
 
 {% changelogSection version=$migrationVersion /%}
+
+```
+
+```
