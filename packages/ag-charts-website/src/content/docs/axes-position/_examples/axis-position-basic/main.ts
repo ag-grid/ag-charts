@@ -27,7 +27,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             // type: 'number',
-            depthOptions: [],
             position: 'left',
             title: { text: 'Revenue ($M)' },
             line: {
