@@ -87,7 +87,7 @@ export function priceVolume(
     } = opts;
 
     const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey);
-    const volumeSeries = createVolumeSeries(getTheme, openKey, closeKey, volume, volumeKey);
+    const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
 
     const miniChart = volume
         ? {
@@ -373,6 +373,7 @@ export function priceVolume(
 
 function createVolumeSeries(
     getTheme: () => ChartTheme,
+    xKey: string,
     openKey: string,
     closeKey: string,
     volume: boolean,
@@ -383,7 +384,7 @@ function createVolumeSeries(
     return [
         {
             type: 'bar',
-            xKey: 'date',
+            xKey: xKey,
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
