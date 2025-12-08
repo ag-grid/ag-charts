@@ -118,9 +118,7 @@ describe('MapLineSeries', () => {
     describe('Missing color values', () => {
         it('omits lines without color values and avoids tooltip errors', async () => {
             const missingRoads = new Set(['M3', 'M5']);
-            const data = ukRoadData.map((datum) =>
-                missingRoads.has(datum.name) ? { name: datum.name } : datum
-            );
+            const data = ukRoadData.map((datum) => (missingRoads.has(datum.name) ? { name: datum.name } : datum));
             const options: AgChartOptions = {
                 data,
                 topology: ukRoadTopology,
