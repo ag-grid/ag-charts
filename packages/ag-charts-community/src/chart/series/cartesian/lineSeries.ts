@@ -508,7 +508,7 @@ export class LineSeries extends CartesianSeries<
             const spanPoint: LineSpanPointDatum = {
                 point: { x: scratch.x, y: scratch.y },
                 xDatum: scratch.xDatum,
-                yDatum: scratch.yDatum,
+                yDatum: scratch.yCumulative,
             };
 
             if (Array.isArray(currentSpanPoints)) {
