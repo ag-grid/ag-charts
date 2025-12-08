@@ -439,8 +439,12 @@ export class Sector<D = any> extends Path<D> {
             true
         );
 
-        if (innerAngleExceeded) {
-            // Draw a wedge on a cartesian co-ordinate with radius `sweep`
+        if (innerAngleExceeded && hasInnerSweep) {
+            // For donuts with small angles, don't set an explicit start point.
+            // The first outer arc will implicitly set the start, and closePath() will
+            // draw a minimal line on the outer edge instead of a spike to the inner radius.
+        } else if (innerAngleExceeded) {
+            // Draw a wedge for pie charts (no inner radius) on a cartesian co-ordinate with radius `sweep`
             // Inset from bottom - i.e. y = innerRadius
             // Inset the top - i.e. y = (x - x0) * tan(sweep)
             // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
