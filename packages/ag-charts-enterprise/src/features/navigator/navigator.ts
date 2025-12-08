@@ -91,7 +91,10 @@ export class Navigator extends AbstractModuleInstance {
         if (enabled) {
             this.updateZoom();
         } else {
-            this.ctx.zoomManager.updateZoom({ source: 'chart-update', sourceDetail: 'navigator' });
+            this.ctx.zoomManager.updateZoom(
+                { source: 'chart-update', sourceDetail: 'navigator' },
+                { x: { min: 0, max: 1 } }
+            );
         }
     }
 
