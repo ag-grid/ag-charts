@@ -190,7 +190,7 @@ export class AreaSeries extends CartesianSeries<
     AreaSeriesNodeDataContext,
     AreaSeriesStackContext
 > {
-    static readonly className = 'AreaSeries';
+    static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
     override properties = new AreaSeriesProperties();

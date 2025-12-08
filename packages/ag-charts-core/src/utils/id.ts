@@ -1,6 +1,18 @@
+import { Debug } from '../globals';
 import type { AxisID, ElementID } from './idBranding';
 
 type IDTypes = ElementID | AxisID;
+
+/**
+ * Interface for classes that can have IDs generated via createId().
+ * Implementing classes MUST define: static readonly className: string
+ */
+export interface Identifiable {
+    constructor: {
+        readonly className?: string;
+        readonly name?: string;
+    };
+}
 
 const ID_MAP = new Map<string, number>();
 let nextElementID: number = 1;
@@ -10,13 +22,17 @@ export function resetIds() {
     nextElementID = 1;
 }
 
-export function createId<T extends IDTypes | string = string>(instance: any): T {
+export function createId<T extends IDTypes | string = string>(instance: Identifiable): T {
     const constructor = instance.constructor;
-    const className = Object.hasOwn(constructor, 'className') ? constructor.className : constructor.name;
+    let className = Object.hasOwn(constructor, 'className') ? constructor.className : constructor.name;
 
-    if (!className) {
-        throw new Error(`The ${constructor} is missing the 'className' property.`);
-    }
+    Debug.inDevelopmentMode(() => {
+        if (!className) {
+            throw new Error(`The ${String(constructor)} is missing the 'className' property.`);
+        }
+    });
+    className ??= 'Unknown';
+
     const nextId = (ID_MAP.get(className) ?? 0) + 1;
     ID_MAP.set(className, nextId);
 

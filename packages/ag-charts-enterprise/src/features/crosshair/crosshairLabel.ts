@@ -82,6 +82,7 @@ export class CrosshairLabelProperties
 }
 
 export class CrosshairLabel extends CrosshairLabelProperties {
+    static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
     private readonly element: HTMLElement;
 

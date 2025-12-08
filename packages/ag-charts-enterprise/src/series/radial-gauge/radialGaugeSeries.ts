@@ -158,7 +158,7 @@ export class RadialGaugeSeries
     >
     implements _ModuleSupport.GaugeSeries
 {
-    static readonly className = 'RadialGaugeSeries';
+    static override readonly className = 'RadialGaugeSeries';
     static readonly type = 'radial-gauge' as const;
 
     public centerX: number = 0;

@@ -240,6 +240,7 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
+    static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
 

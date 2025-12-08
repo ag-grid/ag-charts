@@ -10,7 +10,7 @@ import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
-    static readonly className = 'PolarChart';
+    static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
 
     override axes = this.createChartAxes();

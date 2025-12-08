@@ -91,7 +91,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     WaterfallNodeDatum,
     WaterfallContext
 > {
-    static readonly className = 'WaterfallSeries';
+    static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
     override properties = new WaterfallSeriesProperties();

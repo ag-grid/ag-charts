@@ -19,7 +19,7 @@ import { resetLineSelectionsFn } from './coneFunnelUtil';
 const { Line } = _ModuleSupport;
 
 export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgConeFunnelSeriesOptions> {
-    static readonly className = 'ConeFunnelSeries';
+    static override readonly className = 'ConeFunnelSeries';
     static readonly type = 'cone-funnel' as const;
 
     override properties = new ConeFunnelProperties();

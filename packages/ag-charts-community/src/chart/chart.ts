@@ -110,6 +110,7 @@ type SeriesChangeType =
     | 'updated';
 
 export abstract class Chart extends Observable implements ModuleInstance, ChartService {
+    static readonly className: string = 'Chart';
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {

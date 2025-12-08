@@ -47,7 +47,7 @@ interface SyncModule extends ModuleInstance {
 }
 
 export class CartesianChart extends Chart {
-    static readonly className = 'CartesianChart';
+    static override readonly className = 'CartesianChart';
     static readonly type = 'cartesian';
 
     private static readonly AxesPadding = 15; // TODO should come from theme

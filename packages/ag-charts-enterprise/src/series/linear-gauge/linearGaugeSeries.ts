@@ -126,7 +126,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {
-    static readonly className = 'LinearGaugeSeries';
+    static override readonly className = 'LinearGaugeSeries';
     static readonly type = 'linear-gauge' as const;
 
     override properties = new LinearGaugeSeriesProperties();

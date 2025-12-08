@@ -41,7 +41,7 @@ export class MapLineSeries extends TopologySeries<
     MapLineNodeLabelDatum,
     MapLineNodeDataContext
 > {
-    static readonly className = 'MapLineSeries';
+    static override readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;

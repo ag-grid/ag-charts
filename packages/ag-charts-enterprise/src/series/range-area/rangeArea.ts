@@ -192,7 +192,7 @@ type IBaseSeries = ConstructorReturnType<typeof BaseSeries>;
 type GetMarkerStyleArg<I extends number> = Parameters<IBaseSeries['getMarkerStyle']>[I];
 
 export class RangeAreaSeries extends BaseSeries {
-    static readonly className = 'RangeAreaSeries';
+    static override readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
 
     override properties = new RangeAreaProperties();

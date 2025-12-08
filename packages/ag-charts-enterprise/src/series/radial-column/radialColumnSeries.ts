@@ -9,7 +9,7 @@ import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } f
 const { PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
-    static readonly className = 'RadialColumnSeries';
+    static override readonly className = 'RadialColumnSeries';
     static readonly type = 'radial-column' as const;
 
     override properties = new RadialColumnSeriesProperties();

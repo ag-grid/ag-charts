@@ -92,7 +92,7 @@ export abstract class RadarSeries<
     TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
     TProps extends RadarSeriesProperties<TStyle, TOpts>,
 > extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker> {
-    static readonly className: string = 'RadarSeries';
+    static override readonly className: string = 'RadarSeries';
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 

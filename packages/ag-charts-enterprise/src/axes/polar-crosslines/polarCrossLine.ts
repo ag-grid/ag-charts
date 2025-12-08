@@ -39,6 +39,7 @@ export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLi
 }
 
 export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.PolarCrossLine {
+    static readonly className: string = 'PolarCrossLine';
     readonly id = createId(this);
 
     @Property

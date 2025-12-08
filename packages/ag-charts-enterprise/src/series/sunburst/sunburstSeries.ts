@@ -98,7 +98,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     SunburstSeriesProperties,
     SunburstNode
 > {
-    static readonly className = 'SunburstSeries';
+    static override readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
 
     NodeClass = SunburstNode;
