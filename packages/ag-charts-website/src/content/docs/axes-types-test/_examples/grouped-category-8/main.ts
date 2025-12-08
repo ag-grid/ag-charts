@@ -53,6 +53,7 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
+            label: {},
         },
     },
 };
