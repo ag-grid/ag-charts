@@ -17,7 +17,7 @@ const options: AgChartOptions = {
         text: 'FRIENDS & ACQUAINTANCES',
     },
     animation: { enabled: false },
-    tooltip: {mode: 'single'},
+    tooltip: { mode: 'single' },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
         type: 'radar-line',
