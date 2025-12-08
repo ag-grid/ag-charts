@@ -60,8 +60,6 @@ Use `axes.position` to control the position of the axis, and `axes.type` to defi
 
 Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Axes](./radar-line-series/#customisation) which have similar options.
 
-_Note: All of the axes must be specified in order for these changes to take effect._
-
 ### Secondary Axes
 
 Charts can have more than one axis in each direction, allowing for series with different domains to be displayed on the same chart.
@@ -70,6 +68,18 @@ Use the axes `keys` property to link the series `_Key` property to the axis.
 
 ```js format="snippet"
 {
+    series: [
+        {
+            type: 'bar',
+            yKeyAxis: 'y'
+            //...
+        },
+        {   
+            type: 'bar',
+            yKeyAxis: 'ySecondary'
+            //...
+        }
+    ],
     axes: {
         y: {
             type: 'number',
