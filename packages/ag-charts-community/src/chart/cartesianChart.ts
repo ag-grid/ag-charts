@@ -158,7 +158,9 @@ export class CartesianChart extends Chart {
 
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.getPadding());
 
-        const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        const alwaysClip = this.series.some((s) => s.alwaysClip);
+        const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
+        const clipRect = enableClip ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 

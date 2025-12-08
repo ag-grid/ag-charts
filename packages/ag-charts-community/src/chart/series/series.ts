@@ -190,6 +190,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     propertyNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
+    alwaysClip?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -244,6 +245,7 @@ export abstract class Series<
 
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
+    readonly alwaysClip: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
 
@@ -412,6 +414,7 @@ export abstract class Series<
             propertyNames = {},
             canHaveAxes = false,
             usesPlacedLabels = false,
+            alwaysClip = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -420,7 +423,7 @@ export abstract class Series<
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
-
+        this.alwaysClip = alwaysClip;
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(

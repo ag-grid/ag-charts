@@ -105,6 +105,7 @@ export class HistogramSeries extends CartesianSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
+            alwaysClip: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
