@@ -1,7 +1,7 @@
 <div class="example-controls">
     <div class="controls-row">
         <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
-        <select id="seriesTypeSelect" onchange="updateSeriesType(this.value)">
+        <select id="seriesTypeSelect" onchange="updateSeriesType(event.target.value)">
             <option value="line" selected>Line</option>
             <option value="area">Area</option>
             <option value="bar">Bar</option>
@@ -12,7 +12,7 @@
             <option value="candlestick">Candlestick</option>
             <option value="ohlc">OHLC</option>
         </select>
-        <select id="updateModeSelect" onchange="updateMode(this.value)">
+        <select id="updateModeSelect" onchange="updateMode(event.target.value)">
             <option value="rolling" selected>Rolling Window</option>
             <option value="append">Append Only</option>
         </select>

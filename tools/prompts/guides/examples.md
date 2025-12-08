@@ -27,7 +27,7 @@ Example paths are mapped from repo paths:
         <div class="example-controls">
             <div class="controls-row">
                 <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
-                <select id="methodSelect" onchange="updateMethod(this.value)">
+                <select id="methodSelect" onchange="updateMethod(event.target.value)">
                     <option value="updateDelta">updateDelta()</option>
                     <option value="applyTransaction">applyTransaction()</option>
                 </select>
@@ -239,10 +239,12 @@ The example generator parses your vanilla TypeScript code and transforms it into
 
     ```html
     <button onclick="updateData()">Update</button>
-    <select onchange="changeTheme(this.value)">
+    <select onchange="changeTheme(event.target.value)">
         ...
     </select>
     ```
+
+    **Important**: Always use `event.target.value` instead of `this.value` for select/input handlers. The `this.value` pattern doesn't work in React/Angular/Vue because `this` in the generated arrow functions refers to the component context, not the DOM element.
 
 -   **Top-Level Functions**: Functions that update the chart should be top-level (not nested):
 
@@ -398,7 +400,7 @@ Follow these guidelines to ensure your examples transform cleanly across all fra
     ```html
     <!-- ✅ Good: calls named function -->
     <button onclick="toggleSeries()">Toggle</button>
-    <select onchange="updateInterval(this.value)">
+    <select onchange="updateInterval(event.target.value)">
         ...
     </select>
 
