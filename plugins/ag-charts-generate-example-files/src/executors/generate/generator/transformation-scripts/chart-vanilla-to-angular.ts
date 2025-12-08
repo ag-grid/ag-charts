@@ -37,7 +37,8 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
-            const regex = new RegExp(`(?<!\\.)\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            // https://regex101.com/r/u79W6c/4
+            const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
             processed = processed.replace(regex, `this.${methodName}`);
         }
     });
