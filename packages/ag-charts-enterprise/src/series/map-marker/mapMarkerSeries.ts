@@ -14,7 +14,11 @@ import {
     cachedTextMeasurer,
     mergeDefaults,
 } from 'ag-charts-core';
-import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
+import {
+    type AgDrawingMode,
+    type AgMapMarkerSeriesLabelFormatterParams,
+    type AgMapMarkerSeriesOptions,
+} from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
@@ -614,6 +618,7 @@ export class MapMarkerSeries
         const scaleChange = this.checkScaleChange();
 
         const { markerSelection, highlightMarkerSelection } = this;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
         this.updateSelections();
 
@@ -625,7 +630,7 @@ export class MapMarkerSeries
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.markerSelection = this.updateMarkerSelection({ markerData: nodeData, markerSelection });
-        this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
+        this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum, drawingMode: 'overlay' });
 
         this.highlightMarkerSelection = this.updateMarkerSelection({
             markerData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -635,6 +640,7 @@ export class MapMarkerSeries
             markerSelection: highlightMarkerSelection,
             isHighlight: true,
             highlightedDatum,
+            drawingMode,
         });
 
         this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
@@ -802,8 +808,9 @@ export class MapMarkerSeries
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
+        drawingMode: AgDrawingMode;
     }) {
-        const { markerSelection, isHighlight, highlightedDatum } = opts;
+        const { markerSelection, isHighlight, highlightedDatum, drawingMode } = opts;
 
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -822,6 +829,8 @@ export class MapMarkerSeries
             marker.scalingCenterY = point.y;
 
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
+
+            marker.drawingMode = drawingMode;
         });
     }
 

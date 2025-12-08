@@ -10,6 +10,7 @@ import {
     toPlainText,
 } from 'ag-charts-core';
 import type {
+    AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
@@ -473,6 +474,7 @@ export class MapShapeSeries
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
         const highlightedDatum = this.getHighlightedDatum();
 
@@ -481,7 +483,7 @@ export class MapShapeSeries
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection });
+        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay' });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
@@ -497,7 +499,7 @@ export class MapShapeSeries
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode });
     }
 
     private getHighlightLabelData(
@@ -593,8 +595,10 @@ export class MapShapeSeries
 
     private updateDatumNodes({
         datumSelection,
+        drawingMode,
     }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
+        drawingMode: AgDrawingMode;
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -610,6 +614,8 @@ export class MapShapeSeries
             geoGeometry.projectedGeometry = projectedGeometry;
 
             geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
+
+            geoGeometry.drawingMode = drawingMode;
         });
     }
 

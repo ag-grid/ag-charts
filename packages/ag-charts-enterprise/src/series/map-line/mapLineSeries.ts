@@ -1,7 +1,7 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, LonLatBBox, PlacedLabel } from 'ag-charts-core';
 import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
-import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
+import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -408,20 +408,21 @@ export class MapLineSeries extends TopologySeries<
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
         const highlightedDatum = this.getHighlightedDatum();
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection, isHighlight: false });
+        this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true, drawingMode });
 
         this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
         this.updateHighlightLabelSelection(highlightedDatum);
@@ -500,9 +501,11 @@ export class MapLineSeries extends TopologySeries<
 
     private updateDatumNodes({
         datumSelection,
+        drawingMode,
     }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { projectedGeometry, style } = nodeDatum;
@@ -516,6 +519,7 @@ export class MapLineSeries extends TopologySeries<
             geoGeometry.projectedGeometry = projectedGeometry;
 
             geoGeometry.setProperties(style);
+            geoGeometry.drawingMode = drawingMode;
         });
     }
 
