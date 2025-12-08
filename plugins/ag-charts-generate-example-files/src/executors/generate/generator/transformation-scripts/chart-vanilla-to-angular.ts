@@ -37,8 +37,8 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
-            // https://regex101.com/r/u79W6c/5
-            const regex = new RegExp(`(?<!\\.|'|"|-)\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            // https://regex101.com/r/u79W6c/4
+            const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
             processed = processed.replace(regex, `this.${methodName}`);
         }
     });
@@ -195,9 +195,6 @@ export async function vanillaToAngular(
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
             processFunction(handler.body, suppressOptionsClone, methodNames)
         );
-        const processedPropertyAssignments = propertyAssignments.map((a) =>
-            processFunction(a, suppressOptionsClone, methodNames)
-        );
 
         indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
 
@@ -220,7 +217,7 @@ export async function vanillaToAngular(
                     : ''
             }
             constructor() {
-                ${processedPropertyAssignments.join(';\n')}
+                ${propertyAssignments.join(';\n')}
             }
 
             ${
