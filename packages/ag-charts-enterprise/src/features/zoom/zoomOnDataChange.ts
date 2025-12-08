@@ -132,7 +132,7 @@ export class ZoomOnDataChange {
      */
     private computeDomainMinMax(axisId: AxisID): DomainMinMax | undefined {
         const ctx = this.ctx.axisManager.getAxisIdContext(axisId);
-        if (!ctx?.continuous) return;
+        if (!ctx?.continuous || ctx.scale.domain.length === 0) return;
 
         const [min, max]: [unknown, unknown] = ctx.scale.getDomainMinMax();
         if (typeof min === 'number' && typeof max === 'number') {
