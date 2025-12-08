@@ -168,6 +168,64 @@ describe('Sector', () => {
                 // AG-11219
                 { innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 },
             ],
+            // Small angle donut cases - tests fix for spike artifact when innerAngleExceeded && hasInnerSweep
+            // With inset=1 and innerRadius=10, innerAngleOffset = 1/10 = 0.1 rad
+            // innerAngleExceeded triggers when sweepAngle < 2 * 0.1 = 0.2 rad (~11.5°)
+            [
+                // Very small angles - should render as thin outer arc, not spike to center
+                {
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    startAngle: 0,
+                    endAngle: 0.05,
+                    inset: 1,
+                    fill: 'blue',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                },
+                {
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    startAngle: 0,
+                    endAngle: 0.1,
+                    inset: 1,
+                    fill: 'green',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                },
+                {
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    startAngle: 0,
+                    endAngle: 0.15,
+                    inset: 1,
+                    fill: 'red',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                },
+                // Just below threshold
+                {
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    startAngle: 0,
+                    endAngle: 0.19,
+                    inset: 1,
+                    fill: 'purple',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                },
+                // Just above threshold (normal rendering with inner arc)
+                {
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    startAngle: 0,
+                    endAngle: 0.25,
+                    inset: 1,
+                    fill: 'orange',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                },
+            ],
         ];
 
         it('should render as expected', () => {
