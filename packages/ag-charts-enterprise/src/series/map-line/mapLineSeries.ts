@@ -320,7 +320,7 @@ export class MapLineSeries extends TopologySeries<
 
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
-        const { idKey, label, legendItemName } = properties;
+        const { idKey, label, legendItemName, colorKey } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -352,6 +352,10 @@ export class MapLineSeries extends TopologySeries<
             const projectedGeometry = projectedGeometries.get(dataValues.idValue);
             if (projectedGeometry == null) {
                 missingGeometries.push(dataValues.idValue);
+            }
+
+            if (colorKey != null && dataValues.colorValue == null) {
+                continue;
             }
 
             const labelDatum = this.getLabelDatum(
@@ -619,7 +623,9 @@ export class MapLineSeries extends TopologySeries<
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
-            stroke = this.colorScale.convert(colorValue);
+            if (colorValue != null) {
+                stroke = this.colorScale.convert(colorValue);
+            }
         }
 
         return {
@@ -716,6 +722,10 @@ export class MapLineSeries extends TopologySeries<
             colorKey == null
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
