@@ -222,7 +222,7 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
                                 <a
                                     id="request-trial-licence"
                                     className={classnames('button', styles.trialButton)}
-                                    href={gridUrlWithPrefix({
+                                    href={chartsUrlWithPrefix({
                                         framework,
                                         url: './community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence',
                                     })}
