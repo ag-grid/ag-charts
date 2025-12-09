@@ -3,7 +3,6 @@ import { afterEach, describe, expect } from '@jest/globals';
 import { AgChartInstance, type AgChartOptions, AgChartState, AgCharts, AgZoomEvent } from 'ag-charts-community';
 import {
     MockZoomListener,
-    clickAction,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -23,118 +22,10 @@ describe('Zoom', () => {
 
     let chart: AgChartInstance;
 
-    const EXAMPLE_OPTIONS: AgChartOptions = {
-        data: [
-            { x: 0, y: 0 },
-            { x: 1, y: 50 },
-            { x: 2, y: 25 },
-            { x: 3, y: 75 },
-            { x: 4, y: 50 },
-            { x: 5, y: 25 },
-            { x: 6, y: 50 },
-            { x: 7, y: 75 },
-        ],
-        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-        zoom: {
-            enabled: true,
-            axes: 'xy',
-            scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
-            minVisibleItems: 1,
-        },
-    };
-
-    const UGLY_NUMBER_EXAMPLE_OPTIONS: AgChartOptions = {
-        data: [
-            { x: 0, y: 0 },
-            { x: 1, y: 50 },
-            { x: 2, y: 25 },
-            { x: 3, y: 75 },
-            { x: 4, y: 50 },
-            { x: 5, y: 25 },
-            { x: 6, y: 50 },
-            { x: 7, y: 75 },
-        ],
-        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-        zoom: {
-            enabled: true,
-            axes: 'xy',
-            scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
-            minVisibleItems: 1,
-        },
-        axes: {
-            x: {
-                type: 'number',
-                position: 'bottom',
-                nice: false,
-            },
-            y: {
-                type: 'number',
-                position: 'left',
-            },
-        },
-    };
-
-    const ORDINAL_EXAMPLE_OPTIONS: AgChartOptions = {
-        data: [
-            { date: new Date('2024-04-19'), value: 60 }, // Friday
-            // Skipping Saturday and Sunday
-            { date: new Date('2024-04-22'), value: 10 }, // Monday
-            { date: new Date('2024-04-23'), value: 20 }, // Tuesday
-            { date: new Date('2024-04-24'), value: 30 }, // Wednesday
-            { date: new Date('2024-04-25'), value: 40 }, // Thursday
-            { date: new Date('2024-04-26'), value: 50 }, // Friday
-            // Skipping Saturday and Sunday
-            { date: new Date('2024-04-29'), value: 60 }, // Monday
-        ],
-        series: [
-            {
-                type: 'bar',
-                xKey: 'date',
-                yKey: 'value',
-            },
-        ],
-        axes: {
-            x: {
-                type: 'ordinal-time',
-                position: 'bottom',
-                parentLevel: {
-                    // Force more labels to show
-                    enabled: true,
-                },
-            },
-            y: {
-                type: 'number',
-                position: 'left',
-            },
-        },
-    };
-
-    let cx: number = 0;
-    let cy: number = 0;
-
-    async function prepareChart(
-        zoomOptions?: AgChartOptions['zoom'],
-        initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
-        baseOptions = EXAMPLE_OPTIONS,
-        clickAfterCreate = true
-    ) {
-        const options: AgChartOptions = {
-            ...baseOptions,
-            initialState: { zoom: initialState },
-            zoom: { ...baseOptions.zoom, ...(zoomOptions ?? {}) },
-        };
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
-
-        chart = AgCharts.create(options);
-
-        // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
-        // event is triggered.
-        if (clickAfterCreate) {
-            await waitForChartStability(chart);
-            await clickAction(cx, cy)(chart);
-        }
+    async function prepareChart<D>(options: AgChartOptions<D> & { data: D[] }): Promise<D[]> {
+        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+        await waitForChartStability(chart);
+        return options.data;
     }
 
     afterEach(() => {
@@ -145,24 +36,31 @@ describe('Zoom', () => {
     });
 
     describe('numberAxis', () => {
+        type TDatum = { x: number; y: number };
+        let chartData: TDatum[];
+
         async function appendDatum() {
-            const data = [...UGLY_NUMBER_EXAMPLE_OPTIONS.data!, { x: 8, y: 50 }];
+            expect(chartData).toBeDefined();
+            const data = [...chartData, { x: 8, y: 50 }];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function prependDatum() {
-            const data = [{ x: -1, y: 50 }, ...UGLY_NUMBER_EXAMPLE_OPTIONS.data!];
+            expect(chartData).toBeDefined();
+            const data = [{ x: -1, y: 50 }, ...chartData];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function insertMiddleDatum() {
-            const orig = UGLY_NUMBER_EXAMPLE_OPTIONS.data!;
+            expect(chartData).toBeDefined();
+            const orig = chartData;
             const data = [...orig.slice(0, 4), { x: 3.5, y: 50 }, ...orig.slice(4)];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function insertMiddleDatumNegative() {
-            const orig = UGLY_NUMBER_EXAMPLE_OPTIONS.data!;
+            expect(chartData).toBeDefined();
+            const orig = chartData;
             const data = [...orig.slice(0, 4), { x: 3.5, y: -20 }, ...orig.slice(4)];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
@@ -174,14 +72,44 @@ describe('Zoom', () => {
             let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
             beforeEach(async () => {
                 zoomListener = newFreezableZoomListenerMock();
-                await prepareChart(
-                    { onDataChange: { strategy: 'preserveDomain' } },
-                    { rangeX: { start: 2.5, end: 5.75 } },
-                    {
-                        ...UGLY_NUMBER_EXAMPLE_OPTIONS,
-                        listeners: { zoom: zoomListener.frozen },
-                    }
-                );
+                chartData = await prepareChart({
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: 1, y: 50 },
+                        { x: 2, y: 25 },
+                        { x: 3, y: 75 },
+                        { x: 4, y: 50 },
+                        { x: 5, y: 25 },
+                        { x: 6, y: 50 },
+                        { x: 7, y: 75 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            nice: false,
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    initialState: {
+                        zoom: {
+                            rangeX: { start: 2.5, end: 5.75 },
+                        },
+                    },
+                    listeners: {
+                        zoom: zoomListener.frozen,
+                    },
+                    zoom: {
+                        enabled: true,
+                        onDataChange: {
+                            strategy: 'preserveDomain',
+                        },
+                    },
+                });
                 const { zoom } = chart.getState();
                 expect(zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
                 initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
@@ -244,14 +172,44 @@ describe('Zoom', () => {
             let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
             beforeEach(async () => {
                 zoomListener = newFreezableZoomListenerMock();
-                await prepareChart(
-                    { onDataChange: { strategy: 'preserveRatios' } },
-                    { ratioX: { start: 0.25, end: 0.75 } },
-                    {
-                        ...UGLY_NUMBER_EXAMPLE_OPTIONS,
-                        listeners: { zoom: zoomListener.frozen },
-                    }
-                );
+                await prepareChart({
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: 1, y: 50 },
+                        { x: 2, y: 25 },
+                        { x: 3, y: 75 },
+                        { x: 4, y: 50 },
+                        { x: 5, y: 25 },
+                        { x: 6, y: 50 },
+                        { x: 7, y: 75 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            nice: false,
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    initialState: {
+                        zoom: {
+                            ratioX: { start: 0.25, end: 0.75 },
+                        },
+                    },
+                    listeners: {
+                        zoom: zoomListener.frozen,
+                    },
+                    zoom: {
+                        enabled: true,
+                        onDataChange: {
+                            strategy: 'preserveRatios',
+                        },
+                    },
+                });
                 const { zoom } = chart.getState();
                 expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
                 initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
@@ -305,44 +263,38 @@ describe('Zoom', () => {
         });
     });
     describe('ordinalTimeAxis', () => {
+        type TDatum = { date: Date; value: number };
+        let chartData: TDatum[];
+
         async function appendDatum() {
-            const data = [
-                ...ORDINAL_EXAMPLE_OPTIONS.data!,
-                { date: new Date('2024-04-30'), value: 50 }, // Tuesday
-            ];
+            expect(chartData).toBeDefined();
+            const datum: TDatum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
+            const data = [...chartData, datum];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function prependDatum() {
-            const data = [
-                { date: new Date('2024-04-18'), value: 50 }, // Thursday
-                ...ORDINAL_EXAMPLE_OPTIONS.data!,
-            ];
+            expect(chartData).toBeDefined();
+            const datum: TDatum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
+            const data = [datum, ...chartData];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function insertMiddleDatum() {
-            const orig = ORDINAL_EXAMPLE_OPTIONS.data!;
-            const data = [
-                ...orig.slice(0, 4),
-                { date: new Date('2024-04-24T12:00:00'), value: 35 }, // Wednesday (midday)
-                ...orig.slice(4),
-            ];
+            expect(chartData).toBeDefined();
+            const datum: TDatum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
+            const data = [...chartData.slice(0, 4), datum, ...chartData.slice(4)];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         async function insertMiddleDatumNegative() {
-            const orig = ORDINAL_EXAMPLE_OPTIONS.data!;
-            const data = [
-                ...orig.slice(0, 4),
-                { date: new Date('2024-04-24T12:00:00'), value: -20 }, // Wednesday (midday)
-                ...orig.slice(4),
-            ];
+            expect(chartData).toBeDefined();
+            const datum: TDatum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
+            const data = [...chartData.slice(0, 4), datum, ...chartData.slice(4)];
             await chart.updateDelta({ data });
             await waitForChartStability(chart);
         }
         describe('preserveDomain', () => {
-            // Interactive Version: https://plnkr.co/edit/ksIixFaQJYhzI1fU?open=main.js
             let zoomListener: ReturnType<typeof newFreezableZoomListenerMock>;
             let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
             let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
@@ -362,19 +314,58 @@ describe('Zoom', () => {
 
             beforeEach(async () => {
                 zoomListener = newFreezableZoomListenerMock();
-                await prepareChart(
-                    { onDataChange: { strategy: 'preserveDomain' } },
-                    {
-                        rangeX: {
-                            start: { __type: 'date', value: '2024-04-23' },
-                            end: { __type: 'date', value: '2024-04-25' },
+                chartData = await prepareChart({
+                    data: [
+                        { date: new Date('2024-04-19'), value: 60 }, // Friday
+                        // Skipping Saturday and Sunday
+                        { date: new Date('2024-04-22'), value: 10 }, // Monday
+                        { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                        // Skipping Wednesday (24th)
+                        { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                        { date: new Date('2024-04-26'), value: 50 }, // Friday
+                        // Skipping Saturday and Sunday
+                        { date: new Date('2024-04-29'), value: 60 }, // Monday
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'date',
+                            yKey: 'value',
+                        },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'ordinal-time',
+                            position: 'bottom',
+                            parentLevel: {
+                                // Force more labels to show
+                                enabled: true,
+                            },
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
                         },
                     },
-                    {
-                        ...ORDINAL_EXAMPLE_OPTIONS,
-                        listeners: { zoom: zoomListener.frozen },
-                    }
-                );
+
+                    initialState: {
+                        zoom: {
+                            rangeX: {
+                                start: { __type: 'date', value: '2024-04-23' },
+                                end: { __type: 'date', value: '2024-04-25' },
+                            },
+                        },
+                    },
+                    listeners: {
+                        zoom: zoomListener.frozen,
+                    },
+                    zoom: {
+                        enabled: true,
+                        onDataChange: {
+                            strategy: 'preserveDomain',
+                        },
+                    },
+                });
                 const { zoom } = chart.getState();
                 expect(zoom).toMatchObject(expectedRangeXSerialized);
                 initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
@@ -438,14 +429,55 @@ describe('Zoom', () => {
             let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
             beforeEach(async () => {
                 zoomListener = newFreezableZoomListenerMock();
-                await prepareChart(
-                    { onDataChange: { strategy: 'preserveRatios' } },
-                    { ratioX: { start: 0.25, end: 0.7 } },
-                    {
-                        ...ORDINAL_EXAMPLE_OPTIONS,
-                        listeners: { zoom: zoomListener.frozen },
-                    }
-                );
+                chartData = await prepareChart({
+                    data: [
+                        { date: new Date('2024-04-19'), value: 60 }, // Friday
+                        // Skipping Saturday and Sunday
+                        { date: new Date('2024-04-22'), value: 10 }, // Monday
+                        { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                        // Skipping Wednesday (24th)
+                        { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                        { date: new Date('2024-04-26'), value: 50 }, // Friday
+                        // Skipping Saturday and Sunday
+                        { date: new Date('2024-04-29'), value: 60 }, // Monday
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'date',
+                            yKey: 'value',
+                        },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'ordinal-time',
+                            position: 'bottom',
+                            parentLevel: {
+                                // Force more labels to show
+                                enabled: true,
+                            },
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+
+                    initialState: {
+                        zoom: {
+                            ratioX: { start: 0.25, end: 0.7 },
+                        },
+                    },
+                    listeners: {
+                        zoom: zoomListener.frozen,
+                    },
+                    zoom: {
+                        enabled: true,
+                        onDataChange: {
+                            strategy: 'preserveRatios',
+                        },
+                    },
+                });
                 const { zoom } = chart.getState();
                 expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
                 initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
