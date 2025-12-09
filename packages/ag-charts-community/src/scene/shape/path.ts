@@ -7,7 +7,7 @@ import type { ChildNodeCounts, RenderContext } from '../node';
 import { Shape } from './shape';
 
 export class Path<D = any> extends Shape<D> implements DistantObject {
-    static readonly className: string = 'Path';
+    static override readonly className: string = 'Path';
 
     /**
      * Declare a path to retain for later rendering and hit testing

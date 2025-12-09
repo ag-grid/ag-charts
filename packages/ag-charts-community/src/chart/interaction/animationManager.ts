@@ -9,6 +9,7 @@ import type {
 } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import type { Mutex } from '../../util/mutex';
+import { MAX_ANIMATABLE_NODES } from '../data/processors';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';
 
@@ -32,7 +33,7 @@ function validAnimationDuration(testee?: number) {
  */
 export class AnimationManager {
     public defaultDuration = 1000;
-    public maxAnimatableItems = Infinity;
+    public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
     private batch = new AnimationBatch(this.defaultDuration * 1.5);
 

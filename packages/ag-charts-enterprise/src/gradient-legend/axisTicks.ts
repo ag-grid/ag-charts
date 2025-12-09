@@ -32,6 +32,7 @@ interface DataProvider {
 }
 
 export class AxisTicks {
+    static readonly className = 'AxisTicks';
     static readonly DefaultTickCount = 5;
     static readonly DefaultMinSpacing = 10;
 

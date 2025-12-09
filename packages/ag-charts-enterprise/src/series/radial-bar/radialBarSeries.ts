@@ -91,7 +91,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     RadialBarSeriesNodeDataContext
 > {
-    static readonly className = 'RadialBarSeries';
+    static override readonly className = 'RadialBarSeries';
     static readonly type = 'radial-bar' as const;
 
     override properties = new RadialBarSeriesProperties();

@@ -1,3 +1,5 @@
+// Data Source: https://simplemaps.com/data/gb-cities
+
 export const data = [
     { name: 'London', population: 11262000 },
     { name: 'Birmingham', population: 2919600 },

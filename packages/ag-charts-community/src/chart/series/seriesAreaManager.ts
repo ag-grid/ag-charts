@@ -128,6 +128,7 @@ class PickedNodeState {
 }
 
 export class SeriesAreaManager extends BaseManager {
+    static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
 
     private series: UnknownSeries[] = [];

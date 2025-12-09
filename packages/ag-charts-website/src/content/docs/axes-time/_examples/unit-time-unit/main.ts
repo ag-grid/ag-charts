@@ -64,7 +64,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             unit: {
                 unit: 'day',
                 step: 7,
@@ -73,9 +72,6 @@ const options: AgCartesianChartOptions = {
             parentLevel: {
                 enabled: false,
             },
-        },
-        y: {
-            type: 'number',
         },
     },
     zoom: {

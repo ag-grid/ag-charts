@@ -30,7 +30,6 @@ function setNumberAxis() {
     options.axes = {
         y: {
             type: 'number',
-            min: 1,
             label: {
                 format: '.0f',
             },
@@ -43,7 +42,6 @@ function setLogAxis() {
     options.axes = {
         y: {
             type: 'log',
-            min: 10,
             label: {
                 format: '.0f',
             },
@@ -56,7 +54,6 @@ function setBaseTwoLogAxis() {
     options.axes = {
         y: {
             type: 'log',
-            min: 10,
             label: {
                 format: '.0f',
             },
@@ -70,7 +67,6 @@ function setLogAxisWithFewerTicks() {
     options.axes = {
         y: {
             type: 'log',
-            min: 10,
             interval: {
                 minSpacing: 200,
             },

@@ -19,14 +19,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Market Share (%)',
             },

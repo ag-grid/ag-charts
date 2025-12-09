@@ -78,7 +78,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {
-    static readonly className = 'PyramidSeries';
+    static override readonly className = 'PyramidSeries';
     static readonly type = 'pyramid' as const;
 
     override properties = new PyramidProperties();

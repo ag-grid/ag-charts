@@ -92,7 +92,7 @@ export abstract class RadarSeries<
     TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
     TProps extends RadarSeriesProperties<TStyle, TOpts>,
 > extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker> {
-    static readonly className: string = 'RadarSeries';
+    static override readonly className: string = 'RadarSeries';
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
@@ -554,7 +554,7 @@ export abstract class RadarSeries<
         const radius = this.radius;
 
         const distanceFromCenter = Math.hypot(x - cx, y - cy);
-        if (distanceFromCenter > radius + this.properties.marker.size) {
+        if (distanceFromCenter > radius + this.maxChartMarkerSize) {
             return;
         }
 
@@ -575,7 +575,7 @@ export abstract class RadarSeries<
         }
 
         if (closestDatum) {
-            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0), 0);
+            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }

@@ -10,6 +10,7 @@ import {
     toPlainText,
 } from 'ag-charts-core';
 import type {
+    AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
@@ -73,7 +74,7 @@ export class MapShapeSeries
     >
     implements _ModuleSupport.ITopology
 {
-    static readonly className = 'MapShapeSeries';
+    static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
@@ -384,7 +385,7 @@ export class MapShapeSeries
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { idKey, label, legendItemName } = properties;
+        const { idKey, label, legendItemName, colorKey } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -411,6 +412,10 @@ export class MapShapeSeries
             const geometry = columns.featureValues[datumIndex]?.geometry ?? undefined;
             if (geometry == null) {
                 missingGeometries.push(dataValues.idValue);
+            }
+
+            if (colorKey != null && dataValues.colorValue == null) {
+                continue;
             }
 
             const labelLayout = this.getLabelLayout(
@@ -469,6 +474,7 @@ export class MapShapeSeries
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
         const highlightedDatum = this.getHighlightedDatum();
 
@@ -477,7 +483,7 @@ export class MapShapeSeries
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection });
+        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay' });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
@@ -493,7 +499,7 @@ export class MapShapeSeries
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode });
     }
 
     private getHighlightLabelData(
@@ -589,8 +595,10 @@ export class MapShapeSeries
 
     private updateDatumNodes({
         datumSelection,
+        drawingMode,
     }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
+        drawingMode: AgDrawingMode;
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -606,6 +614,8 @@ export class MapShapeSeries
             geoGeometry.projectedGeometry = projectedGeometry;
 
             geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
+
+            geoGeometry.drawingMode = drawingMode;
         });
     }
 
@@ -701,7 +711,9 @@ export class MapShapeSeries
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
-            fill = this.colorScale.convert(colorValue);
+            if (colorValue != null) {
+                fill = this.colorScale.convert(colorValue);
+            }
         }
 
         return {
@@ -774,6 +786,10 @@ export class MapShapeSeries
             colorKey == null
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

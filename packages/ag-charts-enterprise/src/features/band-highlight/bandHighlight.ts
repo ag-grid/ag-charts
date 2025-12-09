@@ -21,6 +21,7 @@ const {
 } = _ModuleSupport;
 
 export class BandHighlight extends AbstractModuleInstance {
+    static readonly className = 'BandHighlight';
     readonly id = createId(this);
 
     @Property
@@ -77,7 +78,7 @@ export class BandHighlight extends AbstractModuleInstance {
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
                 this.hideBand();
-                this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+                this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
             }
         });
 

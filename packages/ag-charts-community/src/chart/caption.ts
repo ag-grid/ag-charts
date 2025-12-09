@@ -23,6 +23,7 @@ import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 
 export class Caption extends BaseProperties implements CaptionLike {
+    static readonly className = 'Caption';
     static readonly SMALL_PADDING = 10;
 
     readonly id = createId(this);

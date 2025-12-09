@@ -21,12 +21,12 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            type: 'category',
+            // type: 'category',
             position: 'bottom',
             title: { text: 'Quarter' },
         },
         y: {
-            type: 'number',
+            // type: 'number',
             position: 'left',
             title: { text: 'Revenue ($M)' },
             line: {

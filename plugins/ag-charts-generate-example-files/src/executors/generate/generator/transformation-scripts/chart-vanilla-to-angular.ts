@@ -37,7 +37,8 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
-            const regex = new RegExp(`(?<!\\.)\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            // https://regex101.com/r/u79W6c/4
+            const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
             processed = processed.replace(regex, `this.${methodName}`);
         }
     });
@@ -236,8 +237,8 @@ export async function vanillaToAngular(
         }
         `;
 
-        // @todo(AG-14126) - handle listener events correctly
-        indexFile = indexFile.replace('toggleDatum(event, event.datum);', 'this.toggleDatum(event, event.datum);');
+        // @todo(AG-14126, CRT-1003) - handle listener events correctly
+        indexFile = indexFile.replace('toggleDatum(event.datum);', 'this.toggleDatum(event.datum);');
     } else {
         const components: Array<{ selector: string; className: string }> = [];
 

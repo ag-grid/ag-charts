@@ -64,7 +64,6 @@ export const Changelog = () => {
     const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) ?? ALL_FIX_VERSIONS);
     const URLFilterItemKey = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef<any>(null);
-    const autoSizeStrategy = useMemo(() => ({ type: 'fitGridWidth' }), []);
 
     const components = useMemo(() => {
         return {
@@ -427,7 +426,6 @@ export const Changelog = () => {
                         detailCellRenderer={'myDetailCellRenderer'}
                         isRowMaster={isRowMaster}
                         masterDetail
-                        autoSizeStrategy={autoSizeStrategy}
                         onGridReady={gridReady}
                         onFirstDataRendered={() => {
                             applyFixVersionFilter();

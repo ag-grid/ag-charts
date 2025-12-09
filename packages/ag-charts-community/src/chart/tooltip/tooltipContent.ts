@@ -114,7 +114,7 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
                 for (const datum of i.data) {
                     // Skip data rows that are marked as missing
                     if (datum.missing === true) continue;
-                    ariaLabel.push(datum.label ?? datum.fallbackLabel, toTextString(datum.value));
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, toPlainText(datum.value));
                 }
             }
         }
@@ -167,7 +167,7 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         for (const datum of content.data) {
             // Skip data rows that are marked as missing
             if (datum.missing === true) continue;
-            html += dataHtml(datum.label ?? datum.fallbackLabel, toTextString(datum.value), dataInline);
+            html += dataHtml(datum.label ?? datum.fallbackLabel, toPlainText(datum.value), dataInline);
             html += ' ';
         }
     }
@@ -224,7 +224,7 @@ function tooltipContentHtml(
             for (const datum of singleItem.data) {
                 // Skip data rows that are marked as missing
                 if (datum.missing === true) continue;
-                html += dataHtml(datum.label ?? compactFallbackLabel, toTextString(datum.value), false);
+                html += dataHtml(datum.label ?? compactFallbackLabel, toPlainText(datum.value), false);
                 html += ' ';
             }
         }

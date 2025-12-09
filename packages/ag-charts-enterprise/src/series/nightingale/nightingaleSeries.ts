@@ -9,7 +9,7 @@ import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelecti
 const { Sector, SectorBox } = _ModuleSupport;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
-    static readonly className = 'NightingaleSeries';
+    static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
     override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();

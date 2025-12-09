@@ -28,6 +28,7 @@ describe('DOMManager', () => {
   <div
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
+    role="presentation"
     style="width: 300px; height: 300px;"
   >
     
@@ -136,6 +137,7 @@ describe('DOMManager', () => {
   <div
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
+    role="presentation"
     style="width: 300px; height: 300px;"
   >
     
@@ -244,6 +246,7 @@ describe('DOMManager', () => {
   <div
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
+    role="presentation"
     style="width: 300px; height: 300px;"
   >
     

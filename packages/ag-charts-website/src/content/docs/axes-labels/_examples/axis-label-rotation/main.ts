@@ -24,12 +24,10 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             label: {},
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {},
         },
     },

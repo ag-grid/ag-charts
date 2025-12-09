@@ -170,7 +170,8 @@ export function formatTypeToCode(
     apiNode: NodeTypes,
     member: MemberNode,
     reference: ApiReferenceType,
-    seen: Set<string>
+    seen: Set<string>,
+    nodeName?: string
 ): string {
     if (apiNode.kind === 'interface' || apiNode.kind === 'typeAlias') {
         seen.add(apiNode.name);
@@ -210,7 +211,7 @@ export function formatTypeToCode(
     }
 
     if (apiNode.kind === 'typeAlias' && typeof apiNode.type === 'object' && apiNode.type.kind === 'function') {
-        return formatFunctionCode(member.name, apiNode.type, member, reference);
+        return formatFunctionCode(nodeName ?? apiNode.name, apiNode.type, member, reference);
     }
 
     if (apiNode.kind === 'typeAlias') {
@@ -336,10 +337,11 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
 
     const paramsString = params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ') ?? '';
     const codeSample = `function ${name}(${paramsString}): ${normalizeType(returnType, true)};`;
+    const additionalSeen = new Set<string>();
 
     return additionalTypes
         ? [codeSample]
-              .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, new Set<string>())))
+              .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, additionalSeen)))
               .join('\n\n')
         : codeSample;
 }

@@ -66,6 +66,8 @@ const MAX_ERROR_COUNT = 5;
  * Each node can have zero or one parent and belong to zero or one scene.
  */
 export abstract class Node<TDatum = unknown> {
+    static readonly className: string = 'AbstractNode';
+
     private static _nextSerialNumber = 0;
     // eslint-disable-next-line sonarjs/public-static-readonly
     public static _debugEnabled = false;

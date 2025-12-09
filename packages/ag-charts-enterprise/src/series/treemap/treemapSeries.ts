@@ -110,7 +110,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     TreemapSeriesProperties,
     TreemapNode
 > {
-    static readonly className = 'TreemapSeries';
+    static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 
     override NodeClass = TreemapNode;

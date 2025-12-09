@@ -110,6 +110,7 @@ type SeriesChangeType =
     | 'updated';
 
 export abstract class Chart extends Observable implements ModuleInstance, ChartService {
+    static readonly className: string = 'Chart';
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {
@@ -334,6 +335,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
+
+        // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
+        // moving between charts (CRT-1012)
+        if (options.optionMetadata.presetType === 'sparkline') {
+            ctx.highlightManager.unhighlightDelay = 0;
+            ctx.tooltipManager.removeDelay = 0;
+        }
 
         this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
 
@@ -1427,7 +1435,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (!navigatorModule?.enabled && !zoomModule?.enabled) {
             // reset zoom to initial state
-            this.ctx.zoomManager.updateZoom({ source: 'chart-update', sourceDetail: 'internal-applyOptions' });
+            this.ctx.zoomManager.updateZoom(
+                { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
+                { x: { min: 0, max: 1 } }
+            );
         }
 
         const miniChart = navigatorModule?.miniChart;
