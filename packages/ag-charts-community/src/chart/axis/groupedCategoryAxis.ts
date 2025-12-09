@@ -31,6 +31,7 @@ import { Transformable } from '../../scene/transformable';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
+import type { AxisLineDatum } from './axisUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
@@ -526,6 +527,30 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         const { depthLabelMaxSize, tickLabelLayout, spacing, bbox } = this.computeLayout();
         this.computedLayout = { depthLabelMaxSize, tickLabelLayout, spacing };
         return { bbox, niceDomain: this.scale.domain };
+    }
+
+    // CRT-1021 Override CategoryAxis.calculateGridLine, but with `scale.step` set to 0.
+    override calculateGridLine(
+        { index: tickIndex, tickId, translation }: GridLineStyleTickDatum,
+        index: number,
+        p1: number,
+        p2: number,
+        ticks: GridLineStyleTickDatum[]
+    ): AxisLineDatum {
+        const { gridLine, horizontal, interval } = this;
+
+        if (interval.placement !== 'between') {
+            return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
+        }
+
+        const offset = translation;
+        const [x1, y1, x2, y2] = horizontal
+            ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
+            : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
+        const { style } = gridLine;
+        const { stroke, strokeWidth = 0, lineDash } = style[tickIndex % style.length] ?? {};
+
+        return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
     /**
