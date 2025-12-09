@@ -88,7 +88,6 @@ const options: AgCartesianChartOptions<NameData> = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             title: {
                 text: 'Popularity Index →',
@@ -119,7 +118,6 @@ const options: AgCartesianChartOptions<NameData> = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Trend Score',

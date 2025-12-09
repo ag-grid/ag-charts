@@ -162,8 +162,8 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'top',
             type: 'category',
+            position: 'top',
             title: {
                 text: 'Dolphin',
             },
@@ -183,15 +183,15 @@ const options: AgCartesianChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
+            position: 'left',
             title: {
                 text: 'Duration of Interaction (seconds)',
             },
         },
         ySecondary: {
-            position: 'right',
             type: 'number',
+            position: 'right',
             title: {
                 text: 'Number of Looks',
             },

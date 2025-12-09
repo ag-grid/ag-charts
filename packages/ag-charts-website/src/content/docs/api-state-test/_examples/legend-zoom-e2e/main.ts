@@ -53,11 +53,9 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total visitors',
             },

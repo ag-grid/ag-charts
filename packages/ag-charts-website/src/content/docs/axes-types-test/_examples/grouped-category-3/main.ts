@@ -29,14 +29,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total Visitors',
             },

@@ -54,7 +54,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -66,7 +65,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },

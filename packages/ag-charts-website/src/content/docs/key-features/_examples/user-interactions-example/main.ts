@@ -67,13 +67,11 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
             min: new Date(2000, 0, 1),
             max: new Date(2022, 0, 1),
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: `ktoe`,

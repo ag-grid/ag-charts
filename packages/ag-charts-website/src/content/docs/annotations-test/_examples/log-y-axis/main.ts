@@ -21,7 +21,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'log',
-            position: 'left',
             title: {
                 text: 'Population',
             },
@@ -31,7 +30,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },

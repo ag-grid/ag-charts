@@ -19,7 +19,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: "placement: 'between'",
                 fontSize: 15,
@@ -37,7 +36,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Market Share (%)',
             },

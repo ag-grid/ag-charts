@@ -47,7 +47,6 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
@@ -60,7 +59,6 @@ const options: AgCartesianChartOptions<DataType> = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total Visitors (Millions)',
             },

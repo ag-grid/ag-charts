@@ -36,13 +36,11 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Age band (years)' },
             interval: { step: 2 },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Number of participants' },
         },
     },

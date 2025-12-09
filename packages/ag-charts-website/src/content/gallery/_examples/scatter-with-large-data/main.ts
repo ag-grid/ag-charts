@@ -60,7 +60,6 @@ const options: AgChartOptions = {
     },
     axes: {
         y: {
-            position: 'left',
             type: 'number',
             nice: false,
             min: -40,
@@ -108,7 +107,6 @@ const options: AgChartOptions = {
             ],
         },
         x: {
-            position: 'bottom',
             type: 'category',
             title: {
                 text: 'Chromosome',

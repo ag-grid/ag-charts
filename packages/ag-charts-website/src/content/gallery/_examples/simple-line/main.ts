@@ -98,7 +98,6 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
             bandHighlight: {
                 enabled: true,
@@ -108,7 +107,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Price (pence per litre)',

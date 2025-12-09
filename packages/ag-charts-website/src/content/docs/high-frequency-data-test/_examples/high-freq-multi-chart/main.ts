@@ -62,7 +62,6 @@ const commonConfig = {
     axes: {
         x: {
             type: 'time' as const,
-            position: 'bottom' as const,
             nice: false,
             label: {
                 enabled: false,
@@ -73,7 +72,6 @@ const commonConfig = {
         },
         y: {
             type: 'number' as const,
-            position: 'left' as const,
             title: {
                 enabled: false,
             },

@@ -109,7 +109,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
             interval: {
                 step: { unit: 'year', step: 5 },

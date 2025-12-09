@@ -27,14 +27,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             gridLine: {
                 enabled: true,
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: true,
             },

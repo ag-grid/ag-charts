@@ -135,7 +135,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 enabled: true,
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],

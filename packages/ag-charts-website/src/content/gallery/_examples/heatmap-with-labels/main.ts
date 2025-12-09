@@ -44,7 +44,6 @@ const options: AgChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'category',
             line: {
                 enabled: false,

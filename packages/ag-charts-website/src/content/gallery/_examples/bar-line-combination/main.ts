@@ -123,7 +123,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             interval: { values: [0] },
             label: {
                 enabled: false,

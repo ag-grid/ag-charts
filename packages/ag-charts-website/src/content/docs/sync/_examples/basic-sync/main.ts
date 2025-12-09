@@ -52,7 +52,6 @@ const commonOptions: AgChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 maxSpacing: 180,
             },
@@ -64,7 +63,6 @@ const commonOptions: AgChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '$~s',
             },

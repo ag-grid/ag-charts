@@ -58,7 +58,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             interval: {
                 minSpacing: 80,

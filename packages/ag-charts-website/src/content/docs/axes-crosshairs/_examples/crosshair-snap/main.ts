@@ -38,14 +38,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             crosshair: {
                 snap: false,
             },
         },
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },

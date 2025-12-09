@@ -37,7 +37,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Equilibrium Temperature [K]',
             },
@@ -49,7 +48,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Planet Radius [Earth Radius]',
             },

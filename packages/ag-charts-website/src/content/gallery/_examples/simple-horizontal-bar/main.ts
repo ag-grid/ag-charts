@@ -61,7 +61,6 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             title: {
                 text: 'Profession',
             },
@@ -82,7 +81,6 @@ const options: AgCartesianChartOptions<DataType> = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 enabled: true,
                 text: 'Weekly Earnings (£)',

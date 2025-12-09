@@ -181,7 +181,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'grouped-category',
             depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
             bandHighlight: {

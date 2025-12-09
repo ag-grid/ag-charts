@@ -51,7 +51,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 style: [
                     {
@@ -89,7 +88,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             min: 4,
             max: 10,
             gridLine: {

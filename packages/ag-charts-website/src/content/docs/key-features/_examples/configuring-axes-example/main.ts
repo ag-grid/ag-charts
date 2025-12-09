@@ -37,6 +37,7 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'number',
+            position: 'left',
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },

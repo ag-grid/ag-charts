@@ -10,7 +10,7 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         // Note: axis configuration is required only for line series.
         // The bottom axis defaults to 'number' for scatter series.
-        x: { type: 'number', position: 'bottom' },
+        x: { type: 'number' },
     },
     series: [
         {

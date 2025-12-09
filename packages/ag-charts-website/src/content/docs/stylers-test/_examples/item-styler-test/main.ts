@@ -631,7 +631,7 @@ const ohlcOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'time', position: 'bottom' },
+        x: { type: 'time' },
     },
 };
 
@@ -659,7 +659,7 @@ const candlestickOptions: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'time', position: 'bottom' },
+        x: { type: 'time' },
     },
 };
 

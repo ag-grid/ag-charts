@@ -34,7 +34,6 @@ const options: AgChartOptions = {
     },
     axes: {
         y: {
-            position: 'left',
             type: 'category',
             label: {
                 enabled: false,

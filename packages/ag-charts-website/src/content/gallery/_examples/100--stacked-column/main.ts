@@ -84,14 +84,12 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             bandHighlight: {
                 enabled: true,
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '#{.0f}%',
             },

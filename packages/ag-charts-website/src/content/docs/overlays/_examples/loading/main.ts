@@ -37,8 +37,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: { type: 'number', position: 'left', title: { text: 'Year' } },
-        x: { type: 'number', position: 'bottom', title: { text: 'Spending' } },
+        y: { type: 'number', title: { text: 'Year' } },
+        x: { type: 'number', title: { text: 'Spending' } },
     },
 };
 

@@ -54,12 +54,10 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
             label: { format: '%H:%M:%S' },
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => `$${params.value.toFixed(2)}`,
             },

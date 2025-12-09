@@ -108,7 +108,6 @@ const options: AgChartOptions<DataType> = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             interval: { values: [2013, 2018, 2023] },
             title: {
                 text: 'Season',
@@ -125,7 +124,6 @@ const options: AgChartOptions<DataType> = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             min: -40,
             max: 60,

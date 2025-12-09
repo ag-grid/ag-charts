@@ -47,14 +47,12 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Expiry Date (Months)',
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Option Price (£)',
             },

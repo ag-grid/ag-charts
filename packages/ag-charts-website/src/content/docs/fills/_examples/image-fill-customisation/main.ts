@@ -64,7 +64,6 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             title: {

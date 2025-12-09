@@ -70,7 +70,6 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             interval: { values: [0, -148.1] },
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],

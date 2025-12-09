@@ -73,14 +73,9 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 autoRotate: false,
             },
-        },
-        y: {
-            type: 'number',
-            position: 'left',
         },
     },
     flashOnUpdate: {

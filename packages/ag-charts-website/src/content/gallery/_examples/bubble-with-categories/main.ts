@@ -36,7 +36,6 @@ const options: AgChartOptions = {
     })),
     axes: {
         x: {
-            position: 'bottom',
             type: 'category',
             label: {
                 autoRotate: false,
@@ -49,7 +48,6 @@ const options: AgChartOptions = {
             },
         },
         y: {
-            position: 'left',
             type: 'category',
             line: {
                 enabled: false,

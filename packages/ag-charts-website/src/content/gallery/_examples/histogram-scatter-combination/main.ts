@@ -44,7 +44,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             gridLine: {
@@ -64,7 +63,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             nice: false,
             gridLine: {

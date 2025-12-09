@@ -95,7 +95,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: { step: 'year' },
             line: {
                 enabled: false,

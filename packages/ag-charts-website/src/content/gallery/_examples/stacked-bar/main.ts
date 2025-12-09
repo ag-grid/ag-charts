@@ -102,7 +102,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.1,
             paddingOuter: 0.1,
             title: {
@@ -114,7 +113,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Percentage of Daily Entries',
             },

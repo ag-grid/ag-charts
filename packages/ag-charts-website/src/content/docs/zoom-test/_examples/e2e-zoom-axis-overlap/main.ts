@@ -17,7 +17,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             crossAt: { value: 35 },
             title: { text: 'Index' },
             line: {
@@ -27,7 +26,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             crossAt: { value: 5 },
             title: { text: 'Value' },
             line: {

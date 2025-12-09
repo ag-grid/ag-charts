@@ -107,7 +107,6 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.4,
             bandHighlight: {
                 enabled: true,

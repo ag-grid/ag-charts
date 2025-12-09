@@ -73,14 +73,12 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'time',
             title: {
                 text: 'Date',
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Magnitude',

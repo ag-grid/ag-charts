@@ -7,9 +7,6 @@ const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
     tooltip: { mode: 'single' },
     axes: {
-        x: {
-            type: 'category',
-        },
         y: {
             type: 'number',
             position: 'left',

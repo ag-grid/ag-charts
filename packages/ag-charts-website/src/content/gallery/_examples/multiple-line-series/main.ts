@@ -98,7 +98,6 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Age (years)',
             },
@@ -118,7 +117,6 @@ const options: AgChartOptions<DataType> = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Time Spent (hours)',

@@ -54,7 +54,6 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             title: {
                 text: 'Year',

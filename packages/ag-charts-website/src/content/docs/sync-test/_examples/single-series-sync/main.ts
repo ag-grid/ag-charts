@@ -6,9 +6,6 @@ import { formatBytes, formatMillis, labelFormatter } from './utils';
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
     axes: {
-        x: {
-            type: 'category',
-        },
         y: {
             type: 'number',
             position: 'left',

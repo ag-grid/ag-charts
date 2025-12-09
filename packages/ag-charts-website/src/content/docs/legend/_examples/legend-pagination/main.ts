@@ -80,11 +80,9 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,

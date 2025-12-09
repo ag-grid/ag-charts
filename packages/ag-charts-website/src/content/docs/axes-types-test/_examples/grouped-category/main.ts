@@ -11,7 +11,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'grouped-category',
-            position: 'bottom',
             title: {
                 text: 'Axis title',
             },
@@ -21,7 +20,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Axis title',
             },

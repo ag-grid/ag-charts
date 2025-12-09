@@ -134,7 +134,6 @@ const options: AgChartOptions = {
     }),
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             title: {
@@ -190,7 +189,6 @@ const options: AgChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             nice: false,
             min: 2.5,

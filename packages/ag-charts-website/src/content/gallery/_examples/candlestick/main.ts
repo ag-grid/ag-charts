@@ -164,7 +164,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: { step: 'month' },
             line: {
                 enabled: false,

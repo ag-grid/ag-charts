@@ -37,7 +37,6 @@ const options: AgChartOptions<DataType> = {
     })),
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             title: {
                 text: 'Year',
@@ -48,7 +47,6 @@ const options: AgChartOptions<DataType> = {
             nice: false,
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'IMDb Rating →',

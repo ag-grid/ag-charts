@@ -105,7 +105,6 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
             interval: { step: { unit: 'month', step: 2 } },
             label: {
                 autoRotate: false,
@@ -113,7 +112,6 @@ const options: AgChartOptions<DataType> = {
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 autoRotate: false,
             },

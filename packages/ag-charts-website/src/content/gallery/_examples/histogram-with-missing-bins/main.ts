@@ -66,7 +66,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             gridLine: {
@@ -94,7 +93,6 @@ const options: AgChartOptions = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             reverse: true,
             title: {

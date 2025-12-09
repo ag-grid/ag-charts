@@ -95,7 +95,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'number',
             min: -3,
             max: 3,
@@ -117,7 +116,6 @@ const options: AgCartesianChartOptions = {
             ],
         },
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             interval: { step: Math.PI },

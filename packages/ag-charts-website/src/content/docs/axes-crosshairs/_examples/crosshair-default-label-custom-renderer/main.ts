@@ -60,7 +60,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'time',
-            position: 'bottom',
             crosshair: {
                 label: {
                     format: `%b %d`,

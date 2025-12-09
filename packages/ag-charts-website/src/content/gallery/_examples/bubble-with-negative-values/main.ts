@@ -37,7 +37,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             title: {
                 text: 'Longitude',
@@ -57,7 +56,6 @@ const options: AgCartesianChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Latitude',
