@@ -286,7 +286,9 @@ class AgChartsInternal {
     }
 
     // CRT-1018 Use `Parameters` and `unknown` to strictly enforce type-safety
-    private static markRemovedProperties: Parameters<typeof jsonWalk<DeepPartial<AgChartOptions>, unknown, boolean>>[1] = (
+    private static markRemovedProperties: Parameters<
+        typeof jsonWalk<DeepPartial<AgChartOptions>, unknown, boolean>
+    >[1] = (
         node: DeepPartial<AgChartOptions>,
         _parallelNode: DeepPartial<AgChartOptions> | undefined,
         _ctx: unknown,
