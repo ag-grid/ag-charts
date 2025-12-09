@@ -118,6 +118,12 @@ export abstract class PolarSeries<
      */
     radius: number = 0;
 
+    /**
+     * The largest marker size of any series in the same chart. Used to determine the extent of pointer interaction
+     * with the series.
+     */
+    maxChartMarkerSize: number = 0;
+
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
     constructor({

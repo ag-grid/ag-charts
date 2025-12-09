@@ -46,6 +46,14 @@ export class PolarChart extends Chart {
             axis.update();
         }
 
+        let maxMarkerSize = 0;
+        for (const series of this.series) {
+            maxMarkerSize = Math.max(maxMarkerSize, series.properties.marker?.size ?? 0);
+        }
+        for (const series of this.series.filter(isPolarSeries)) {
+            series.maxChartMarkerSize = maxMarkerSize;
+        }
+
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
         });

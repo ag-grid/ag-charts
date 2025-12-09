@@ -554,7 +554,7 @@ export abstract class RadarSeries<
         const radius = this.radius;
 
         const distanceFromCenter = Math.hypot(x - cx, y - cy);
-        if (distanceFromCenter > radius + this.properties.marker.size) {
+        if (distanceFromCenter > radius + this.maxChartMarkerSize) {
             return;
         }
 
