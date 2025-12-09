@@ -1,13 +1,18 @@
 import type { ApiReferenceConfig } from '@components/api-documentation/components/ApiReference';
 import type {
+    ArrayNode,
     EnumNode,
     FunctionNode,
+    IndexAccessNode,
     InterfaceNode,
     MemberNode,
+    MultiTypeNode,
     NodeTypes,
+    TypeAliasNode,
     TypeLiteralNode,
     TypeNode,
     TypeParameterNode,
+    TypeReferenceNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import type Flexsearch from 'flexsearch';
 
@@ -40,7 +45,7 @@ export interface NavigationPath {
     type: string;
 }
 
-const hiddenInterfaces = [
+const hiddenInterfaces = new Set([
     'AxisValue',
     'CssColor',
     'CssShadow',
@@ -56,7 +61,21 @@ const hiddenInterfaces = [
     'DurationMs',
     'AgTimeInterval',
     'DatumKey',
-];
+]);
+
+const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
+const isTypeReferenceNode = (type: TypeNode): type is TypeReferenceNode =>
+    isTypeNodeObject(type) && type.kind === 'typeRef';
+const isArrayNode = (type: TypeNode): type is ArrayNode => isTypeNodeObject(type) && type.kind === 'array';
+const isFunctionNode = (type: TypeNode): type is FunctionNode => isTypeNodeObject(type) && type.kind === 'function';
+const isIndexAccessNode = (type: TypeNode): type is IndexAccessNode =>
+    isTypeNodeObject(type) && type.kind === 'indexAccess';
+const isUnionNode = (type: TypeNode): type is MultiTypeNode & { kind: 'union' } =>
+    isTypeNodeObject(type) && type.kind === 'union';
+const isIntersectionNode = (type: TypeNode): type is MultiTypeNode & { kind: 'intersection' } =>
+    isTypeNodeObject(type) && type.kind === 'intersection';
+const isTupleNode = (type: TypeNode): type is MultiTypeNode & { kind: 'tuple' } =>
+    isTypeNodeObject(type) && type.kind === 'tuple';
 
 export const INDEXED_SEARCH_FIELD = 'searchable';
 
@@ -65,55 +84,69 @@ export function cleanupName(name: string) {
 }
 
 export function isInterfaceHidden(name: string) {
-    return hiddenInterfaces.includes(name);
+    return hiddenInterfaces.has(name);
 }
 
 export function getMemberType(member: MemberNode): string {
-    if (typeof member.type === 'object') {
-        if ('type' in member.type && typeof member.type.type === 'string') {
-            return member.type.type;
-        }
-        if (
-            member.type.kind === 'array' &&
-            typeof member.type.type === 'object' &&
-            member.type.type.kind === 'typeRef'
-        ) {
-            return member.type.type.type;
-        }
-        return member.type.kind;
+    const { type } = member;
+    if (!isTypeNodeObject(type)) {
+        return type;
     }
-    return member.type;
+    if (isTypeReferenceNode(type)) {
+        return type.type;
+    }
+    if (isArrayNode(type) && isTypeNodeObject(type.type) && isTypeReferenceNode(type.type)) {
+        return type.type.type;
+    }
+    if ('type' in type && typeof (type as any).type === 'string') {
+        return (type as any).type;
+    }
+    return type.kind;
 }
 
 export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string {
-    if (typeof refType === 'string') {
+    if (!isTypeNodeObject(refType)) {
         return refType;
     }
-    switch (refType.kind) {
-        case 'array':
-            const arrayType = normalizeType(refType.type);
-            return arrayType.includes('|') ? `Array<${arrayType}>` : `${arrayType}[]`;
-        case 'typeRef':
-            return keepGenerics && refType.typeArguments?.length
-                ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
-                : refType.type;
-        case 'union':
-            return refType.type.map((subType) => normalizeType(subType)).join(' | ');
-        case 'intersection':
-            return refType.type.map((subType) => normalizeType(subType)).join(' & ');
-        case 'function':
-            return 'Function';
-        case 'tuple':
-            return `[${refType.type.map((subType) => normalizeType(subType)).join(', ')}]`;
-        case 'indexAccess':
-            return `${normalizeType(refType.type)}[${refType.index}]`;
-        case 'typeLiteral':
-            throw Error(
-                'Avoid using type-literals in user facing typings as nameless types break the generated docs.\nYou should use an interface or a type-alias instead.'
-            );
-        default:
-            throw Error(`Unknown type encountered: ${JSON.stringify(refType)}`);
+
+    if (isArrayNode(refType)) {
+        const arrayType = normalizeType(refType.type);
+        return arrayType.includes('|') ? `Array<${arrayType}>` : `${arrayType}[]`;
     }
+
+    if (isTypeReferenceNode(refType)) {
+        return keepGenerics && refType.typeArguments?.length
+            ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
+            : refType.type;
+    }
+
+    if (isUnionNode(refType)) {
+        return refType.type.map((subType) => normalizeType(subType)).join(' | ');
+    }
+
+    if (isIntersectionNode(refType)) {
+        return refType.type.map((subType) => normalizeType(subType)).join(' & ');
+    }
+
+    if (isFunctionNode(refType)) {
+        return 'Function';
+    }
+
+    if (isTupleNode(refType)) {
+        return `[${refType.type.map((subType) => normalizeType(subType)).join(', ')}]`;
+    }
+
+    if (isIndexAccessNode(refType)) {
+        return `${normalizeType(refType.type)}[${refType.index}]`;
+    }
+
+    if (refType.kind === 'typeLiteral') {
+        throw Error(
+            'Avoid using type-literals in user facing typings as nameless types break the generated docs.\nYou should use an interface or a type-alias instead.'
+        );
+    }
+
+    throw Error(`Unknown type encountered: ${JSON.stringify(refType)}`);
 }
 
 export function processMembers(
@@ -121,49 +154,21 @@ export function processMembers(
     config: ApiReferenceConfig,
     typeArguments?: string[]
 ) {
-    let { members } = interfaceRef;
-    if (!Array.isArray(members)) return [];
     const { prioritise, include, exclude } = config;
-    const isInterface = interfaceRef.kind === 'interface';
-    const genericsMap = new Map(isInterface ? entries(interfaceRef.genericsMap ?? {}) : null);
-    if (isInterface && interfaceRef.typeParams) {
-        for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
-            genericsMap.set(
-                typeParam.name,
-                normalizeType(typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint ?? typeParam.name)
-            );
-        }
+    const members = Array.isArray(interfaceRef.members) ? interfaceRef.members : [];
+    if (!members.length) {
+        return [];
     }
-    if (include?.length || exclude?.length) {
-        members = members.filter(
-            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
-        );
+
+    const filteredMembers = filterMembers(members, include, exclude);
+    const sortedMembers = prioritiseMembers(filteredMembers, prioritise);
+
+    if (interfaceRef.kind !== 'interface') {
+        return sortedMembers;
     }
-    if (prioritise) {
-        members = members.sort((a, b) => {
-            if (prioritise.includes(a.name)) {
-                return -1;
-            } else if (prioritise.includes(b.name)) {
-                return 1;
-            } else {
-                return 0;
-            }
-        });
-    }
-    return members.map((member) => {
-        if (isInterface) {
-            let omit: string[] | undefined;
-            let memberType = normalizeType(member.type);
-            if (memberType === 'Omit') {
-                const { typeArguments: memberTypeArguments } = member.type as HasProperty<TypeNode, 'typeArguments'>;
-                memberType = memberTypeArguments[0];
-                omit = memberTypeArguments[1];
-            }
-            const genericType = resolveGenericType(memberType, genericsMap);
-            return genericType ? { ...member, type: genericType, omit } : member;
-        }
-        return member;
-    });
+
+    const genericsMap = buildGenericsMap(interfaceRef, typeArguments);
+    return sortedMembers.map((member) => applyGenericsToMember(member, genericsMap));
 }
 
 export function formatTypeToCode(
@@ -178,172 +183,20 @@ export function formatTypeToCode(
     }
 
     if (apiNode.kind === 'interface') {
-        const additionalTypes = new Set<string>();
-        const typesList = apiNode.members.map((nodeMember) => {
-            const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
-            if (typeof nodeMember.type === 'object') {
-                const memberType = normalizeType(
-                    nodeMember.type.kind === 'array' ? nodeMember.type.type : nodeMember.type
-                );
-                if (!isInterfaceHidden(memberType) && !seen.has(memberType)) {
-                    additionalTypes.add(memberType);
-                }
-            } else if (!isInterfaceHidden(nodeMember.type) && !seen.has(nodeMember.type)) {
-                additionalTypes.add(nodeMember.type);
-            }
-            if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
-                return nodeMember.docs
-                    .map((docsLine: string) => `// ${docsLine}`)
-                    .concat(memberString)
-                    .join('\n    ');
-            }
-            return memberString;
-        });
-        const result = [`interface ${apiNode.name} {\n    ${typesList.join('\n    ')}\n}`];
-
-        for (const type of additionalTypes) {
-            const typeRef = reference.get(type);
-            if (typeRef) {
-                result.push(formatTypeToCode(typeRef, member, reference, seen));
-            }
-        }
-        return result.join('\n\n');
-    }
-
-    if (apiNode.kind === 'typeAlias' && typeof apiNode.type === 'object' && apiNode.type.kind === 'function') {
-        return formatFunctionCode(nodeName ?? apiNode.name, apiNode.type, member, reference);
+        return formatInterfaceCode(apiNode, member, reference, seen);
     }
 
     if (apiNode.kind === 'typeAlias') {
-        if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
-            let nodeType = normalizeType({
-                kind: 'union',
-                type: apiNode.type.type
-                    .map((type) => normalizeType(type))
-                    .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!)),
-            });
-            nodeType = '\n    ' + addNewLineOnPipe(nodeType);
-
-            const result = [`type ${apiNode.name} = ${nodeType};`];
-            const additionalTypes = new Set(apiNode.type.type.map((type) => normalizeType(type)));
-
-            for (const type of additionalTypes) {
-                if (
-                    reference.has(type) &&
-                    !seen.has(type) &&
-                    !isInterfaceHidden(type) &&
-                    !('deprecated' in reference.get(type)!)
-                ) {
-                    const subType = reference.get(type)!;
-                    const codeResult = formatTypeToCode(subType, member, reference, seen);
-                    if (codeResult) {
-                        result.push(codeResult);
-                    }
-                    if (subType.kind === 'interface' && subType.members.length) {
-                        for (const subMember of subType.members) {
-                            additionalTypes.add(
-                                normalizeType(
-                                    typeof subMember.type === 'object' && subMember.type.kind === 'array'
-                                        ? subMember.type.type
-                                        : subMember.type
-                                )
-                            );
-                        }
-                    }
-                }
-            }
-
-            return result.join('\n\n');
-        }
-        return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
+        return formatTypeAliasCode(apiNode, member, reference, seen, nodeName);
     }
 
-    if (apiNode.kind === 'member' && typeof apiNode.type === 'object') {
-        if (apiNode.type.kind === 'union') {
-            const nodeType =
-                '\n    ' +
-                apiNode.type.type
-                    .map((type) => normalizeType(type))
-                    .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!))
-                    .join(' | ')
-                    .replaceAll('|', '\n  |');
-            return `type ${apiNode.name} = ${nodeType};`;
-        }
-
-        if (apiNode.type.kind === 'function') {
-            return formatFunctionCode(apiNode.name, apiNode.type, member, reference);
-        }
+    if (apiNode.kind === 'member') {
+        return formatMemberNode(apiNode, member, reference);
     }
 
     // eslint-disable-next-line no-console
     console.warn('Unknown API node', apiNode);
     return '';
-}
-
-function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
-    let { params, returnType } = apiNode;
-
-    if (typeof member.type === 'object' && member.type.kind === 'typeRef' && member.type.typeArguments) {
-        const { type, typeArguments } = member.type;
-        const typeParams: TypeParameterNode[] = (reference.get(type) as any)?.typeParams;
-
-        if (typeParams) {
-            params = apiNode.params?.map((nodeParam) => {
-                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
-                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
-            });
-
-            if (typeof returnType === 'object' && returnType.kind === 'union') {
-                returnType = {
-                    ...returnType,
-                    type: returnType.type.map(
-                        (nodeReturnType) =>
-                            typeArguments[typeParams.findIndex((param) => param.name === nodeReturnType)] ??
-                            nodeReturnType
-                    ),
-                };
-            } else {
-                returnType = typeArguments[typeParams.findIndex((param) => param.name === returnType)] ?? returnType;
-            }
-        }
-    }
-
-    if (
-        typeof returnType === 'object' &&
-        returnType.kind === 'typeRef' &&
-        returnType.type === 'Required' &&
-        typeof returnType.typeArguments?.[0] === 'string'
-    ) {
-        returnType = returnType.typeArguments[0];
-    }
-
-    const additionalTypes = params
-        ?.map((param) => param.type)
-        .concat(returnType)
-        .flatMap(function typeMapper(type): PossibleTypeNode {
-            if (typeof type === 'string') {
-                return reference.get(type);
-            }
-            if (type.kind === 'typeRef') {
-                return reference.get(type.type);
-            }
-            if (type.kind === 'union' || type.kind === 'intersection' || type.kind === 'tuple') {
-                return type.type.flatMap(typeMapper);
-            }
-            // eslint-disable-next-line no-console
-            console.warn('Unknown type', type);
-        })
-        .filter((t): t is Exclude<TypeNode, string> => Boolean(t));
-
-    const paramsString = params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ') ?? '';
-    const codeSample = `function ${name}(${paramsString}): ${normalizeType(returnType, true)};`;
-    const additionalSeen = new Set<string>();
-
-    return additionalTypes
-        ? [codeSample]
-              .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, additionalSeen)))
-              .join('\n\n')
-        : codeSample;
 }
 
 export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[], specialType?: SpecialTypesMap) {
@@ -354,9 +207,11 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         pageTitle: { name: basePath.type },
         pageInterface: basePath.type,
     };
-    for (let item = path.shift(); item; item = path.shift()) {
-        if (specialType?.[item.type] === 'InterfaceArray' || specialType?.[item.type] === 'InterfaceRecord') {
-            const child = path.shift();
+
+    for (let i = 0; i < path.length; i++) {
+        const item = path[i];
+        if (isArrayOrRecordSpecialType(specialType, item.type)) {
+            const child = path[i + 1];
             if (child) {
                 if (data.hash.startsWith(baseHash)) {
                     const prePath = data.hash
@@ -372,24 +227,29 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
                 }
                 data.hash = `reference-${child.type}`;
                 data.pageInterface = child.type;
-                if (path.length === 0) {
+                if (i + 2 >= path.length) {
                     data.hash += '-type';
                 }
+                i += 1;
                 continue;
             }
         }
+
         if (specialType?.[item.type] === 'NestedPage') {
-            const child = path.shift();
+            const child = path[i + 1];
             if (child) {
                 data.pathname += `${item.name}/${child.name}/`;
                 data.hash = `reference-${child.type}`;
                 data.pageTitle = { name: child.name };
                 data.pageInterface = child.type;
+                i += 1;
                 continue;
             }
         }
+
         data.hash += `-${item.name}`;
     }
+
     return data;
 }
 
@@ -399,109 +259,20 @@ export function extractSearchData(
     basePath: NavigationPath[] = [],
     labelPrefix = ''
 ): SearchDatum[] {
-    if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
-        const { genericsMap } = interfaceRef as HasProperty<NodeTypes, 'genericsMap'>;
-        return interfaceRef.members.flatMap((member) => {
-            const newPath = { name: cleanupName(member.name), type: getMemberType(member) };
-            if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
-                return [];
-            }
-
-            const navPath = basePath.concat(newPath);
-            const results = [
-                {
-                    label: labelPrefix + cleanupName(member.name),
-                    searchable: cleanupName(member.name).toLowerCase(),
-                    navPath,
-                },
-            ];
-            if (typeof member.type === 'string' && reference?.has(genericsMap?.[member.type] ?? member.type)) {
-                results.push(
-                    ...extractSearchData(
-                        reference,
-                        reference.get(genericsMap?.[member.type] ?? member.type),
-                        navPath,
-                        `${labelPrefix}${cleanupName(member.name)}.`
-                    )
-                );
-            } else if (
-                typeof member.type === 'object' &&
-                'type' in member.type &&
-                typeof member.type.type === 'string' &&
-                reference?.has(member.type.type)
-            ) {
-                results.push(
-                    ...extractSearchData(
-                        reference,
-                        reference.get(member.type.type),
-                        navPath,
-                        `${labelPrefix}${cleanupName(member.name)}.`
-                    )
-                );
-            }
-            return results;
-        });
+    if (isInterfaceLikeNode(interfaceRef)) {
+        return extractInterfaceSearchData(reference, interfaceRef, basePath, labelPrefix);
     }
 
-    if (
-        interfaceRef?.kind === 'typeAlias' &&
-        typeof interfaceRef.type === 'object' &&
-        interfaceRef.type.kind === 'union'
-    ) {
-        return interfaceRef.type.type
-            .flatMap((typeName) => {
-                if (typeof typeName === 'string' && !isInterfaceHidden(typeName)) {
-                    const subtypeRef = reference?.get(typeName);
-                    if (subtypeRef?.kind === 'interface') {
-                        const typeMember = subtypeRef.members.find((member) => member.name === 'type');
-                        if (typeMember) {
-                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
-                            const navPath = basePath.concat({
-                                name: cleanupName(getMemberType(typeMember)),
-                                type: typeName,
-                            });
-                            return [
-                                {
-                                    label,
-                                    searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
-                                    navPath,
-                                },
-                                ...extractSearchData(reference, subtypeRef, navPath, `${label}.`),
-                            ];
-                        }
-                    }
-                }
-            })
-            .filter((item): item is SearchDatum => Boolean(item));
+    if (isUnionTypeAlias(interfaceRef)) {
+        return extractUnionSearchData(reference, interfaceRef, basePath, labelPrefix);
     }
 
     return [];
 }
 
-function findRequiredRefs(reference: ApiReferenceType) {
-    const typeNamesNotFound: string[] = [];
-    const tryGet = (typeName: string) => {
-        const result = reference.get(typeName);
-        if (result == null) {
-            typeNamesNotFound.push(typeName);
-        }
-        return result;
-    };
-
-    const axesRef = tryGet('AgChartAxesOptions')!;
-    const seriesRef = tryGet('AgChartSeriesOptions')!;
-    const annotationRef = tryGet('AgAnnotation')!;
-    const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
-
-    if (typeNamesNotFound.length) {
-        throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
-    }
-    return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
-}
-
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
     const getSubTypes = (ref: NodeTypes): string[] =>
-        ref.kind === 'typeAlias' && typeof ref.type === 'object' && ref.type.kind === 'union'
+        ref.kind === 'typeAlias' && isUnionNode(ref.type)
             ? ref.type.type.map((type) => (typeof type === 'string' ? type : (type as any).type))
             : [];
 
@@ -548,6 +319,413 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
     }));
 }
 
+export function parseJsDocs(docs?: string[]) {
+    return docs?.join('\n').replaceAll(/^@([a-z])/gm, (_, char) => char.toUpperCase());
+}
+
+function filterMembers(members: MemberNode[], include?: string[], exclude?: string[]) {
+    if (!include?.length && !exclude?.length) {
+        return members;
+    }
+    return members.filter((member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true));
+}
+
+function prioritiseMembers(members: MemberNode[], prioritise?: string[]) {
+    if (!prioritise) {
+        return members;
+    }
+    return members.sort((a, b) => {
+        if (prioritise.includes(a.name)) {
+            return -1;
+        }
+        if (prioritise.includes(b.name)) {
+            return 1;
+        }
+        return 0;
+    });
+}
+
+function buildGenericsMap(interfaceRef: InterfaceNode, typeArguments?: string[]) {
+    const genericsMap = new Map<string, unknown>(entries(interfaceRef.genericsMap ?? {}));
+    if (interfaceRef.typeParams) {
+        for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
+            genericsMap.set(
+                typeParam.name,
+                normalizeType(typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint ?? typeParam.name)
+            );
+        }
+    }
+    return genericsMap;
+}
+
+function applyGenericsToMember(member: MemberNode, genericsMap: Map<string, unknown>) {
+    let omit: string | undefined;
+    let memberType: string | TypeNode = normalizeType(member.type);
+
+    if (memberType === 'Omit') {
+        const omitType = extractOmitType(member.type);
+        memberType = omitType?.type ?? memberType;
+        omit = omitType?.omit;
+    }
+
+    const genericType = typeof memberType === 'string' ? resolveGenericType(memberType, genericsMap) : null;
+    return genericType ? { ...member, type: genericType, omit } : member;
+}
+
+function extractOmitType(memberType: TypeNode) {
+    if (!isTypeReferenceNode(memberType) || memberType.type !== 'Omit' || !memberType.typeArguments?.length) {
+        return null;
+    }
+
+    const [type, omit] = memberType.typeArguments;
+    return { type, omit: typeof omit === 'string' ? omit : omit.type };
+}
+
+function formatInterfaceCode(
+    apiNode: InterfaceNode,
+    member: MemberNode,
+    reference: ApiReferenceType,
+    seen: Set<string>
+) {
+    const additionalTypes = new Set<string>();
+    const typesList = apiNode.members.map((nodeMember) => {
+        const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
+        collectAdditionalTypes(nodeMember, additionalTypes, seen);
+        if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
+            return nodeMember.docs
+                .map((docsLine: string) => `// ${docsLine}`)
+                .concat(memberString)
+                .join('\n    ');
+        }
+        return memberString;
+    });
+    const result = [`interface ${apiNode.name} {\n    ${typesList.join('\n    ')}\n}`];
+
+    for (const type of additionalTypes) {
+        const typeRef = reference.get(type);
+        if (typeRef) {
+            result.push(formatTypeToCode(typeRef, member, reference, seen));
+        }
+    }
+
+    return result.join('\n\n');
+}
+
+function formatTypeAliasCode(
+    apiNode: TypeAliasNode,
+    member: MemberNode,
+    reference: ApiReferenceType,
+    seen: Set<string>,
+    nodeName?: string
+) {
+    if (isFunctionNode(apiNode.type)) {
+        return formatFunctionCode(nodeName ?? apiNode.name, apiNode.type, member, reference);
+    }
+
+    if (isUnionNode(apiNode.type)) {
+        return formatUnionTypeAlias(apiNode, apiNode.type, member, reference, seen);
+    }
+
+    return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
+}
+
+function formatUnionTypeAlias(
+    apiNode: TypeAliasNode,
+    unionType: MultiTypeNode & { kind: 'union' },
+    member: MemberNode,
+    reference: ApiReferenceType,
+    seen: Set<string>
+) {
+    let nodeType = normalizeType({
+        kind: 'union',
+        type: unionType.type
+            .map((type) => normalizeType(type))
+            .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!)),
+    });
+    nodeType = '\n    ' + addNewLineOnPipe(nodeType);
+
+    const result = [`type ${apiNode.name} = ${nodeType};`];
+    const additionalTypes = new Set(unionType.type.map((type) => normalizeType(type)));
+
+    for (const type of additionalTypes) {
+        if (shouldFormatAdditionalType(type, reference, seen)) {
+            const subType = reference.get(type)!;
+            const codeResult = formatTypeToCode(subType, member, reference, seen);
+            if (codeResult) {
+                result.push(codeResult);
+            }
+            if (subType.kind === 'interface' && subType.members.length) {
+                for (const subMember of subType.members) {
+                    additionalTypes.add(
+                        normalizeType(isArrayNode(subMember.type) ? subMember.type.type : subMember.type)
+                    );
+                }
+            }
+        }
+    }
+
+    return result.join('\n\n');
+}
+
+function formatMemberNode(apiNode: MemberNode, member: MemberNode, reference: ApiReferenceType) {
+    if (!isTypeNodeObject(apiNode.type)) {
+        // eslint-disable-next-line no-console
+        console.warn('Unknown API node', apiNode);
+        return '';
+    }
+
+    if (isUnionNode(apiNode.type)) {
+        const nodeType =
+            '\n    ' +
+            apiNode.type.type
+                .map((type) => normalizeType(type))
+                .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!))
+                .join(' | ')
+                .replaceAll('|', '\n  |');
+        return `type ${apiNode.name} = ${nodeType};`;
+    }
+
+    if (isFunctionNode(apiNode.type)) {
+        return formatFunctionCode(apiNode.name, apiNode.type, member, reference);
+    }
+
+    // eslint-disable-next-line no-console
+    console.warn('Unknown API node', apiNode);
+    return '';
+}
+
+function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
+    const { params, returnType } = applyTypeArgumentsToFunction(apiNode, member, reference);
+    const normalizedReturn = unwrapRequiredReturn(returnType);
+    const additionalTypes = collectFunctionAdditionalTypes(params, normalizedReturn, reference);
+    const paramsString = params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ') ?? '';
+    const codeSample = `function ${name}(${paramsString}): ${normalizeType(normalizedReturn, true)};`;
+    const additionalSeen = new Set<string>();
+
+    return additionalTypes.length
+        ? [codeSample]
+              .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, additionalSeen)))
+              .join('\n\n')
+        : codeSample;
+}
+
+function applyTypeArgumentsToFunction(apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
+    let { params, returnType } = apiNode;
+
+    if (isTypeReferenceNode(member.type) && member.type.typeArguments) {
+        const { type, typeArguments } = member.type;
+        const typeParams: TypeParameterNode[] | undefined = (reference.get(type) as any)?.typeParams;
+
+        if (typeParams) {
+            params = apiNode.params?.map((nodeParam) => {
+                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
+                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
+            });
+
+            if (isUnionNode(returnType)) {
+                returnType = {
+                    ...returnType,
+                    type: returnType.type.map(
+                        (nodeReturnType) =>
+                            typeArguments[typeParams.findIndex((param) => param.name === nodeReturnType)] ??
+                            nodeReturnType
+                    ),
+                };
+            } else {
+                returnType = typeArguments[typeParams.findIndex((param) => param.name === returnType)] ?? returnType;
+            }
+        }
+    }
+
+    return { params, returnType };
+}
+
+function unwrapRequiredReturn(returnType: TypeNode) {
+    if (
+        isTypeReferenceNode(returnType) &&
+        returnType.type === 'Required' &&
+        typeof returnType.typeArguments?.[0] === 'string'
+    ) {
+        return returnType.typeArguments[0];
+    }
+    return returnType;
+}
+
+function collectFunctionAdditionalTypes(
+    params: FunctionNode['params'],
+    returnType: TypeNode,
+    reference: ApiReferenceType
+) {
+    return (
+        params
+            ?.map((param) => param.type)
+            .concat(returnType)
+            .flatMap(function typeMapper(type): PossibleTypeNode {
+                if (!isTypeNodeObject(type)) {
+                    return reference.get(type);
+                }
+                if (isTypeReferenceNode(type)) {
+                    return reference.get(type.type);
+                }
+                if (isUnionNode(type) || isIntersectionNode(type) || isTupleNode(type)) {
+                    return type.type.flatMap(typeMapper);
+                }
+                // eslint-disable-next-line no-console
+                console.warn('Unknown type', type);
+            })
+            .filter((t): t is Exclude<TypeNode, string> => Boolean(t)) ?? []
+    );
+}
+
+function collectAdditionalTypes(nodeMember: MemberNode, additionalTypes: Set<string>, seen: Set<string>) {
+    if (isTypeNodeObject(nodeMember.type)) {
+        const memberType = normalizeType(isArrayNode(nodeMember.type) ? nodeMember.type.type : nodeMember.type);
+        if (!isInterfaceHidden(memberType) && !seen.has(memberType)) {
+            additionalTypes.add(memberType);
+        }
+        return;
+    }
+
+    if (!isInterfaceHidden(nodeMember.type) && !seen.has(nodeMember.type)) {
+        additionalTypes.add(nodeMember.type);
+    }
+}
+
+function shouldFormatAdditionalType(type: string, reference: ApiReferenceType, seen: Set<string>) {
+    if (!reference.has(type) || seen.has(type) || isInterfaceHidden(type)) {
+        return false;
+    }
+    const referencedType = reference.get(type)!;
+    return !('deprecated' in referencedType);
+}
+
+function isInterfaceLikeNode(
+    interfaceRef?: NodeTypes
+): interfaceRef is InterfaceNode | (TypeLiteralNode & { name: string }) {
+    return Boolean(interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name));
+}
+
+function isUnionTypeAlias(
+    interfaceRef?: NodeTypes
+): interfaceRef is TypeAliasNode & { type: MultiTypeNode & { kind: 'union' } } {
+    return Boolean(interfaceRef?.kind === 'typeAlias' && isUnionNode(interfaceRef.type));
+}
+
+function extractInterfaceSearchData(
+    reference: ApiReferenceType | undefined,
+    interfaceRef: InterfaceNode | (TypeLiteralNode & { name: string }),
+    basePath: NavigationPath[],
+    labelPrefix: string
+) {
+    const { genericsMap } = interfaceRef as HasProperty<NodeTypes, 'genericsMap'>;
+    return interfaceRef.members.flatMap((member) => {
+        const cleanedName = cleanupName(member.name);
+        const newPath = { name: cleanedName, type: getMemberType(member) };
+        if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
+            return [];
+        }
+
+        const navPath = basePath.concat(newPath);
+        const label = labelPrefix + cleanedName;
+        const results: SearchDatum[] = [
+            {
+                label,
+                searchable: cleanedName.toLowerCase(),
+                navPath,
+            },
+        ];
+
+        const referenceTarget = resolveMemberReference(member, reference, genericsMap);
+        if (referenceTarget) {
+            results.push(...extractSearchData(reference, referenceTarget, navPath, `${label}.`));
+        }
+
+        return results;
+    });
+}
+
+function resolveMemberReference(
+    member: MemberNode,
+    reference?: ApiReferenceType,
+    genericsMap?: Record<string, TypeNode>
+) {
+    if (typeof member.type === 'string') {
+        const mappedType = genericsMap?.[member.type] ?? member.type;
+        return typeof mappedType === 'string' && reference?.has(mappedType) ? reference.get(mappedType) : undefined;
+    }
+    if (isTypeReferenceNode(member.type) && typeof member.type.type === 'string') {
+        return reference?.get(member.type.type);
+    }
+}
+
+function extractUnionSearchData(
+    reference: ApiReferenceType | undefined,
+    interfaceRef: TypeAliasNode & { type: MultiTypeNode & { kind: 'union' } },
+    basePath: NavigationPath[],
+    labelPrefix: string
+) {
+    return interfaceRef.type.type
+        .flatMap((typeName) => buildUnionSearchEntries(typeName, reference, basePath, labelPrefix))
+        .filter((item): item is SearchDatum => Boolean(item));
+}
+
+function buildUnionSearchEntries(
+    typeName: TypeNode,
+    reference: ApiReferenceType | undefined,
+    basePath: NavigationPath[],
+    labelPrefix: string
+) {
+    if (typeof typeName !== 'string' || isInterfaceHidden(typeName)) {
+        return [];
+    }
+
+    const subtypeRef = reference?.get(typeName);
+    if (subtypeRef?.kind !== 'interface') {
+        return [];
+    }
+
+    const typeMember = subtypeRef.members.find((member) => member.name === 'type');
+    if (!typeMember) {
+        return [];
+    }
+
+    const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
+    const navPath = basePath.concat({
+        name: cleanupName(getMemberType(typeMember)),
+        type: typeName,
+    });
+
+    return [
+        {
+            label,
+            searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
+            navPath,
+        },
+        ...extractSearchData(reference, subtypeRef, navPath, `${label}.`),
+    ];
+}
+
+function findRequiredRefs(reference: ApiReferenceType) {
+    const typeNamesNotFound: string[] = [];
+    const tryGet = (typeName: string) => {
+        const result = reference.get(typeName);
+        if (result == null) {
+            typeNamesNotFound.push(typeName);
+        }
+        return result;
+    };
+
+    const axesRef = tryGet('AgChartAxesOptions')!;
+    const seriesRef = tryGet('AgChartSeriesOptions')!;
+    const annotationRef = tryGet('AgAnnotation')!;
+    const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
+
+    if (typeNamesNotFound.length) {
+        throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
+    }
+    return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
+}
+
 function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
     let resolvedType = type;
     while (genericsMap.has(resolvedType)) {
@@ -578,6 +756,6 @@ function addNewLineOnPipe(str: string) {
     return result;
 }
 
-export function parseJsDocs(docs?: string[]) {
-    return docs?.join('\n').replaceAll(/^@([a-z])/gm, (_, char) => char.toUpperCase());
+function isArrayOrRecordSpecialType(specialType: SpecialTypesMap | undefined, type: string) {
+    return specialType?.[type] === 'InterfaceArray' || specialType?.[type] === 'InterfaceRecord';
 }
