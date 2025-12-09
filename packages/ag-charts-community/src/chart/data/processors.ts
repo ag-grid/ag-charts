@@ -23,7 +23,7 @@ import {
     datumKeys,
 } from './dataModel';
 
-const MAX_ANIMATABLE_NODES = 1000;
+export const MAX_ANIMATABLE_NODES = 1000;
 
 function combineIntervalBandResults(
     bandResults: unknown[],
