@@ -15,6 +15,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
         groupPaddingInner: 0,
         label: { autoRotate: false, minSpacing: 40 },
         gridLine: { enabled: false },
+        interval: { placement: 'between' },
     },
 
     create: (ctx) => new OrdinalTimeAxis(ctx),
