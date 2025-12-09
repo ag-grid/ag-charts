@@ -2,6 +2,7 @@ import {
     CellStyleModule,
     ClientSideRowModelModule,
     ColumnAutoSizeModule,
+    ExternalFilterModule,
     QuickFilterModule,
     RowApiModule,
     RowAutoHeightModule,
@@ -38,6 +39,7 @@ export const Grid = forwardRef((props, ref) => {
                     SetFilterModule,
                     ColumnsToolPanelModule,
                     StatusBarModule,
+                    ExternalFilterModule,
                 ]}
                 statusBar={{
                     statusPanels: [
