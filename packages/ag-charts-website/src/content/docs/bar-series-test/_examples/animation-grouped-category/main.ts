@@ -12,7 +12,7 @@ import {
 
 import { getData } from './data';
 
-// eslint-disable-next-line aglint/validate-module-registration -- grouped-category axis is inferred from array data
+/* eslint-disable aglint/validate-module-registration -- grouped-category axis is inferred from array data */
 ModuleRegistry.registerModules([
     BarSeriesModule,
     GroupedCategoryAxisModule,
@@ -20,6 +20,7 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     AnimationModule,
 ]);
+/* eslint-enable aglint/validate-module-registration */
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
 const stackGroups = ['Devices', 'Devices', 'Devices', 'Wearables', 'Series'];
