@@ -575,7 +575,7 @@ export abstract class RadarSeries<
         }
 
         if (closestDatum) {
-            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0), 0);
+            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }
