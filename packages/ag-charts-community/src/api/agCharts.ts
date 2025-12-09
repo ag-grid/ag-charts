@@ -8,6 +8,7 @@ import {
     deepFreeze,
     enterpriseRegistry,
     jsonWalk,
+    strictObjectKeys,
 } from 'ag-charts-core';
 import type {
     AgChartInstance,
@@ -284,9 +285,18 @@ class AgChartsInternal {
         return proxy;
     }
 
-    private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
-        if (typeof node !== 'object') return modified;
-        for (const key of Object.keys(node)) {
+    // CRT-1018 Use `Parameters` and `unknown` to strictly enforce type-safety
+    private static readonly markRemovedProperties: Parameters<
+        typeof jsonWalk<DeepPartial<AgChartOptions>, unknown, boolean>
+    >[1] = (
+        node: DeepPartial<AgChartOptions>,
+        _parallelNode: DeepPartial<AgChartOptions> | undefined,
+        _ctx: unknown,
+        previousModified: boolean | undefined
+    ): boolean => {
+        let modified = previousModified ?? false;
+        if (typeof node !== 'object' || node == null) return modified;
+        for (const key of strictObjectKeys(node)) {
             const value = node[key];
             if (value === undefined) {
                 Object.assign(node, { [key]: Symbol('UNSET') });
@@ -295,7 +305,7 @@ class AgChartsInternal {
         }
 
         return modified;
-    }
+    };
 
     static updateUserDelta(
         proxy: AgChartInstanceProxy,
