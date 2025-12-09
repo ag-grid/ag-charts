@@ -272,16 +272,18 @@ export class Sector<D = any> extends Path<D> {
             outerRadius > 0 && adjustedSweep > 0 ? 2 * outerRadius * Math.sin(adjustedSweep / 2) : 0;
 
         // Ensure the corner radii don't exceed the radial length or inner/outer edge distance.
-        startOuterCornerRadius = Math.max(
-            0,
-            Math.min(startOuterCornerRadius, outerCornerDistance / 2, radialLength / 2)
+        startOuterCornerRadius = Math.floor(
+            Math.max(0, Math.min(startOuterCornerRadius, outerCornerDistance / 2, radialLength / 2))
         );
-        endOuterCornerRadius = Math.max(0, Math.min(endOuterCornerRadius, outerCornerDistance / 2, radialLength / 2));
-        startInnerCornerRadius = Math.max(
-            0,
-            Math.min(startInnerCornerRadius, innerCornerDistance / 2, radialLength / 2)
+        endOuterCornerRadius = Math.floor(
+            Math.max(0, Math.min(endOuterCornerRadius, outerCornerDistance / 2, radialLength / 2))
         );
-        endInnerCornerRadius = Math.max(0, Math.min(endInnerCornerRadius, innerCornerDistance / 2, radialLength / 2));
+        startInnerCornerRadius = Math.floor(
+            Math.max(0, Math.min(startInnerCornerRadius, innerCornerDistance / 2, radialLength / 2))
+        );
+        endInnerCornerRadius = Math.floor(
+            Math.max(0, Math.min(endInnerCornerRadius, innerCornerDistance / 2, radialLength / 2))
+        );
 
         const isInvalid =
             (innerRadius === 0 && outerRadius === 0) ||
