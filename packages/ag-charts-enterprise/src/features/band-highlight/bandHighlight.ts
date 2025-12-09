@@ -21,6 +21,7 @@ const {
 } = _ModuleSupport;
 
 export class BandHighlight extends AbstractModuleInstance {
+    static readonly className = 'BandHighlight';
     readonly id = createId(this);
 
     @Property

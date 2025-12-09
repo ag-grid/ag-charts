@@ -19,6 +19,7 @@ type HoverLikeEvent =
     | _ModuleSupport.DragInterpreterClickEvent;
 
 export class Crosshair extends AbstractModuleInstance {
+    static readonly className = 'Crosshair';
     readonly id = createId(this);
 
     @Property

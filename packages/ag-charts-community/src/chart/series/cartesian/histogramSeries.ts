@@ -92,7 +92,7 @@ export class HistogramSeries extends CartesianSeries<
     HistogramNodeDatum,
     HistogramSeriesNodeDataContext
 > {
-    static readonly className = 'HistogramSeries';
+    static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();

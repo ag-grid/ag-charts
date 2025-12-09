@@ -94,7 +94,7 @@ export class LineSeries extends CartesianSeries<
     LineNodeDatum,
     LineSeriesNodeDataContext
 > {
-    static readonly className = 'LineSeries';
+    static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();

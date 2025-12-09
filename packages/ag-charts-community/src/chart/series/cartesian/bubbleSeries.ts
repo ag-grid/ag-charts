@@ -127,7 +127,7 @@ export class BubbleSeries extends CartesianSeries<
     BubbleScatterNodeDatum,
     BubbleSeriesNodeDataContext
 > {
-    static readonly className: string = 'BubbleSeries';
+    static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 
     protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;

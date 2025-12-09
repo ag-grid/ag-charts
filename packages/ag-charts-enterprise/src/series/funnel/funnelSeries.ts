@@ -20,7 +20,7 @@ const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarP
     _ModuleSupport;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
-    static readonly className = 'FunnelSeries';
+    static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
     override properties = new FunnelProperties();

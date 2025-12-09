@@ -101,7 +101,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     HeatmapNodeDatum,
     HeatmapLabelDatum
 > {
-    static readonly className = 'HeatmapSeries';
+    static override readonly className = 'HeatmapSeries';
     static readonly type = 'heatmap' as const;
 
     override properties = new HeatmapSeriesProperties();

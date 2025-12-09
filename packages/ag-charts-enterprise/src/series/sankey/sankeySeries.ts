@@ -79,7 +79,7 @@ export class SankeySeries extends FlowProportionSeries<
     _ModuleSupport.Rect,
     SankeyLink
 > {
-    static readonly className = 'SankeySeries';
+    static override readonly className = 'SankeySeries';
     static readonly type = 'sankey' as const;
 
     override properties = new SankeySeriesProperties();

@@ -75,7 +75,7 @@ export class ChordSeries extends FlowProportionSeries<
     _ModuleSupport.Sector,
     ChordLink
 > {
-    static readonly className = 'ChordSeries';
+    static override readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
 
     override properties = new ChordSeriesProperties();

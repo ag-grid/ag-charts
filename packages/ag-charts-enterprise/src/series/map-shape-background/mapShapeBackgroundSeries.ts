@@ -26,7 +26,7 @@ export class MapShapeBackgroundSeries
     >
     implements _ModuleSupport.ITopology
 {
-    static readonly className = 'MapShapeBackgroundSeries';
+    static override readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;

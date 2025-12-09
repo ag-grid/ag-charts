@@ -64,7 +64,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     BoxPlotNodeDatum,
     BoxPlotSeriesNodeDataContext
 > {
-    static readonly className = 'BoxPlotSeries';
+    static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();

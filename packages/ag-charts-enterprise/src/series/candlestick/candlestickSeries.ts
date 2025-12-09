@@ -10,7 +10,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
     AgCandlestickSeriesOptions,
     CandlestickSeriesProperties<AgCandlestickSeriesOptions>
 > {
-    static readonly className = 'CandleStickSeries';
+    static override readonly className = 'CandleStickSeries';
     static readonly type = 'candlestick' as const;
 
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();

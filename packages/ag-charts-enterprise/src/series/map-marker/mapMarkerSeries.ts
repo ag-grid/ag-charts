@@ -81,7 +81,7 @@ export class MapMarkerSeries
     >
     implements _ModuleSupport.ITopology
 {
-    static readonly className = 'MapMarkerSeries';
+    static override readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;

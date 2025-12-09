@@ -97,6 +97,7 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 }
 
 export class DOMManager extends BaseManager {
+    static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     private static readonly headStyles = new Set<string>();
 

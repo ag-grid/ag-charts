@@ -74,7 +74,7 @@ export class MapShapeSeries
     >
     implements _ModuleSupport.ITopology
 {
-    static readonly className = 'MapShapeSeries';
+    static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
