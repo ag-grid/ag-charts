@@ -26,6 +26,13 @@ type MetaEntry<D> = {
     readonly insertMiddleDatumNegative: () => D[];
 };
 
+type Meta = {
+    'numberAxis-preserveDomain': MetaEntry<{ x: number; y: number }>;
+    'numberAxis-preserveRatios': MetaEntry<{ x: number; y: number }>;
+    'ordinalTimeAxis-preserveDomain': MetaEntry<{ date: Date; value: number }>;
+    'ordinalTimeAxis-preserveRatios': MetaEntry<{ date: Date; value: number }>;
+};
+
 interface TestFixture<D> {
     meta: MetaEntry<D>;
     zoomListener: ZoomListener<D>;
@@ -35,266 +42,253 @@ interface TestFixture<D> {
     insertMiddleDatumNegative ():Promise<void>
 }
 
-const meta: {
-    numberAxis: {
-        preserveDomain: MetaEntry<{ x: number; y: number }>;
-        preserveRatios: MetaEntry<{ x: number; y: number }>;
-    };
-    ordinalTimeAxis: {
-        preserveDomain: MetaEntry<{ date: Date; value: number }>;
-        preserveRatios: MetaEntry<{ date: Date; value: number }>;
-    };
-} = {
-    numberAxis: {
-        preserveDomain: {
-            options: {
-                data: [
-                    { x: 0, y: 0 },
-                    { x: 1, y: 50 },
-                    { x: 2, y: 25 },
-                    { x: 3, y: 75 },
-                    { x: 4, y: 50 },
-                    { x: 5, y: 25 },
-                    { x: 6, y: 50 },
-                    { x: 7, y: 75 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        nice: false,
-                    },
-                    y: {
-                        type: 'number',
-                        position: 'left',
-                    },
+const meta: Meta = {
+    'numberAxis-preserveDomain': {
+        options: {
+            data: [
+                { x: 0, y: 0 },
+                { x: 1, y: 50 },
+                { x: 2, y: 25 },
+                { x: 3, y: 75 },
+                { x: 4, y: 50 },
+                { x: 5, y: 25 },
+                { x: 6, y: 50 },
+                { x: 7, y: 75 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: {
+                    type: 'number',
+                    position: 'bottom',
+                    nice: false,
                 },
-                initialState: {
-                    zoom: {
-                        rangeX: { start: 2.5, end: 5.75 },
-                    },
+                y: {
+                    type: 'number',
+                    position: 'left',
                 },
+            },
+            initialState: {
                 zoom: {
-                    enabled: true,
-                    onDataChange: {
-                        strategy: 'preserveDomain',
-                    },
+                    rangeX: { start: 2.5, end: 5.75 },
                 },
             },
-            appendDatum: () => {
-                const { data } = meta.numberAxis.preserveDomain.options;
-                return [...data, { x: 8, y: 50 }];
-            },
-            prependDatum: () => {
-                const { data } = meta.numberAxis.preserveDomain.options;
-                return [{ x: -1, y: 50 }, ...data];
-            },
-            insertMiddleDatum: () => {
-                const { data } = meta.numberAxis.preserveDomain.options;
-                return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
-            },
-            insertMiddleDatumNegative: () => {
-                const { data } = meta.numberAxis.preserveDomain.options;
-                return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
+            zoom: {
+                enabled: true,
+                onDataChange: {
+                    strategy: 'preserveDomain',
+                },
             },
         },
-
-        preserveRatios: {
-            options: {
-                data: [
-                    { x: 0, y: 0 },
-                    { x: 1, y: 50 },
-                    { x: 2, y: 25 },
-                    { x: 3, y: 75 },
-                    { x: 4, y: 50 },
-                    { x: 5, y: 25 },
-                    { x: 6, y: 50 },
-                    { x: 7, y: 75 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        nice: false,
-                    },
-                    y: {
-                        type: 'number',
-                        position: 'left',
-                    },
-                },
-                initialState: {
-                    zoom: {
-                        ratioX: { start: 0.25, end: 0.75 },
-                    },
-                },
-                zoom: {
-                    enabled: true,
-                    onDataChange: {
-                        strategy: 'preserveRatios',
-                    },
-                },
-            },
-            appendDatum: () => {
-                const { data } = meta.numberAxis.preserveRatios.options;
-                return [...data, { x: 8, y: 50 }];
-            },
-            prependDatum: () => {
-                const { data } = meta.numberAxis.preserveRatios.options;
-                return [{ x: -1, y: 50 }, ...data];
-            },
-            insertMiddleDatum: () => {
-                const { data } = meta.numberAxis.preserveRatios.options;
-                return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
-            },
-            insertMiddleDatumNegative: () => {
-                const { data } = meta.numberAxis.preserveRatios.options;
-                return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
-            },
+        appendDatum: () => {
+            const { data } = meta['numberAxis-preserveDomain'].options;
+            return [...data, { x: 8, y: 50 }];
+        },
+        prependDatum: () => {
+            const { data } = meta['numberAxis-preserveDomain'].options;
+            return [{ x: -1, y: 50 }, ...data];
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['numberAxis-preserveDomain'].options;
+            return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['numberAxis-preserveDomain'].options;
+            return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
         },
     },
 
-    ordinalTimeAxis: {
-        preserveDomain: {
-            options: {
-                data: [
-                    { date: new Date('2024-04-19'), value: 60 }, // Friday
-                    // Skipping Saturday and Sunday
-                    { date: new Date('2024-04-22'), value: 10 }, // Monday
-                    { date: new Date('2024-04-23'), value: 20 }, // Tuesday
-                    // Skipping Wednesday (24th)
-                    { date: new Date('2024-04-25'), value: 40 }, // Thursday
-                    { date: new Date('2024-04-26'), value: 50 }, // Friday
-                    // Skipping Saturday and Sunday
-                    { date: new Date('2024-04-29'), value: 60 }, // Monday
-                ],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'date',
-                        yKey: 'value',
-                    },
-                ],
-                axes: {
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        parentLevel: {
-                            // Force more labels to show
-                            enabled: true,
-                        },
-                    },
-                    y: {
-                        type: 'number',
-                        position: 'left',
-                    },
+    'numberAxis-preserveRatios': {
+        options: {
+            data: [
+                { x: 0, y: 0 },
+                { x: 1, y: 50 },
+                { x: 2, y: 25 },
+                { x: 3, y: 75 },
+                { x: 4, y: 50 },
+                { x: 5, y: 25 },
+                { x: 6, y: 50 },
+                { x: 7, y: 75 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: {
+                    type: 'number',
+                    position: 'bottom',
+                    nice: false,
                 },
-
-                initialState: {
-                    zoom: {
-                        rangeX: {
-                            start: { __type: 'date', value: '2024-04-23' },
-                            end: { __type: 'date', value: '2024-04-25' },
-                        },
-                    },
+                y: {
+                    type: 'number',
+                    position: 'left',
                 },
+            },
+            initialState: {
                 zoom: {
-                    enabled: true,
-                    onDataChange: {
-                        strategy: 'preserveDomain',
-                    },
+                    ratioX: { start: 0.25, end: 0.75 },
                 },
             },
-            appendDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
-                return [...data, datum];
-            },
-            prependDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
-                return [datum, ...data]
-            },
-            insertMiddleDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
-                return [...data.slice(0, 4), datum, ...data.slice(4)];
-            },
-            insertMiddleDatumNegative: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
-                return [...data.slice(0, 4), datum, ...data.slice(4)];
+            zoom: {
+                enabled: true,
+                onDataChange: {
+                    strategy: 'preserveRatios',
+                },
             },
         },
+        appendDatum: () => {
+            const { data } = meta['numberAxis-preserveRatios'].options;
+            return [...data, { x: 8, y: 50 }];
+        },
+        prependDatum: () => {
+            const { data } = meta['numberAxis-preserveRatios'].options;
+            return [{ x: -1, y: 50 }, ...data];
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['numberAxis-preserveRatios'].options;
+            return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['numberAxis-preserveRatios'].options;
+            return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
+        },
+    },
 
-        preserveRatios: {
-            options: {
-                data: [
-                    { date: new Date('2024-04-19'), value: 60 }, // Friday
-                    // Skipping Saturday and Sunday
-                    { date: new Date('2024-04-22'), value: 10 }, // Monday
-                    { date: new Date('2024-04-23'), value: 20 }, // Tuesday
-                    // Skipping Wednesday (24th)
-                    { date: new Date('2024-04-25'), value: 40 }, // Thursday
-                    { date: new Date('2024-04-26'), value: 50 }, // Friday
-                    // Skipping Saturday and Sunday
-                    { date: new Date('2024-04-29'), value: 60 }, // Monday
-                ],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'date',
-                        yKey: 'value',
-                    },
-                ],
-                axes: {
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        parentLevel: {
-                            // Force more labels to show
-                            enabled: true,
-                        },
-                    },
-                    y: {
-                        type: 'number',
-                        position: 'left',
+    'ordinalTimeAxis-preserveDomain': {
+        options: {
+            data: [
+                { date: new Date('2024-04-19'), value: 60 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-22'), value: 10 }, // Monday
+                { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                // Skipping Wednesday (24th)
+                { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                { date: new Date('2024-04-26'), value: 50 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-29'), value: 60 }, // Monday
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'date',
+                    yKey: 'value',
+                },
+            ],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    parentLevel: {
+                        // Force more labels to show
+                        enabled: true,
                     },
                 },
-
-                initialState: {
-                    zoom: {
-                        ratioX: { start: 0.25, end: 0.7 },
-                    },
+                y: {
+                    type: 'number',
+                    position: 'left',
                 },
+            },
+
+            initialState: {
                 zoom: {
-                    enabled: true,
-                    onDataChange: {
-                        strategy: 'preserveRatios',
+                    rangeX: {
+                        start: { __type: 'date', value: '2024-04-23' },
+                        end: { __type: 'date', value: '2024-04-25' },
                     },
                 },
             },
-            appendDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
-                return [...data, datum];
+            zoom: {
+                enabled: true,
+                onDataChange: {
+                    strategy: 'preserveDomain',
+                },
             },
-            prependDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
-                return [datum, ...data]
+        },
+        appendDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
+            return [...data, datum];
+        },
+        prependDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
+            return [datum, ...data]
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+    },
+
+    'ordinalTimeAxis-preserveRatios': {
+        options: {
+            data: [
+                { date: new Date('2024-04-19'), value: 60 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-22'), value: 10 }, // Monday
+                { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                // Skipping Wednesday (24th)
+                { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                { date: new Date('2024-04-26'), value: 50 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-29'), value: 60 }, // Monday
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'date',
+                    yKey: 'value',
+                },
+            ],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    parentLevel: {
+                        // Force more labels to show
+                        enabled: true,
+                    },
+                },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                },
             },
-            insertMiddleDatum: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
-                return [...data.slice(0, 4), datum, ...data.slice(4)];
+
+            initialState: {
+                zoom: {
+                    ratioX: { start: 0.25, end: 0.7 },
+                },
             },
-            insertMiddleDatumNegative: () => {
-                const { data } = meta.ordinalTimeAxis.preserveDomain.options;
-                const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
-                return [...data.slice(0, 4), datum, ...data.slice(4)];
+            zoom: {
+                enabled: true,
+                onDataChange: {
+                    strategy: 'preserveRatios',
+                },
             },
+        },
+        appendDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
+            return [...data, datum];
+        },
+        prependDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
+            return [datum, ...data]
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
     },
 };
@@ -345,269 +339,268 @@ describe('Zoom', () => {
         }
     });
 
-    describe('numberAxis', () => {
-        describe('preserveDomain', () => {
-            type TDatum = { x: number; y: number };
-            let fixture: TestFixture<TDatum>;
-            let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
-            let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
-            let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
-            beforeEach(async () => {
-                fixture  = await prepareChart(meta.numberAxis.preserveDomain);
+    describe('numberAxis-preserveDomain', () => {
+        type TDatum = { x: number; y: number };
+        let fixture: TestFixture<TDatum>;
+        let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
+        let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
+        let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
+        beforeEach(async () => {
+            fixture  = await prepareChart(meta['numberAxis-preserveDomain']);
 
-                const { zoom } = chart.getState();
-                expect(zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
-                initialRatioY = { ratioY: { start: zoom!.ratioY!.start!, end: zoom!.ratioY!.end! } };
-                initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
+            const { zoom } = chart.getState();
+            expect(zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
+            initialRatioY = { ratioY: { start: zoom!.ratioY!.start!, end: zoom!.ratioY!.end! } };
+            initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
 
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                fixture.zoomListener.mock.mockClear();
-            });
-            test('append datum', async () => {
-                await fixture.appendDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(state.zoom).not.toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
-            });
-            test('prepend datum', async () => {
-                await fixture.prependDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(state.zoom).not.toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
-            });
-            test('insert-middle datum', async () => {
-                await fixture.insertMiddleDatum(); // Y-zoom unchanged
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(state.zoom).toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(0);
-            });
-            test('insert-middle datum (negative)', async () => {
-                await fixture.insertMiddleDatumNegative(); // Y-zoom changed
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(state.zoom).toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).not.toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
-            });
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            fixture.zoomListener.mock.mockClear();
         });
-        describe('preserveRatios', () => {
-            type TDatum = { x: number; y: number };
-            let fixture: TestFixture<TDatum>;
-            let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
-            let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
-            beforeEach(async () => {
-                fixture  = await prepareChart(meta.numberAxis.preserveRatios);
-
-                const { zoom } = chart.getState();
-                expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
-                initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
-
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                fixture.zoomListener.mock.mockClear();
-            });
-            test('append datum', async () => {
-                await fixture.appendDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(state.zoom).not.toMatchObject(initialRangeX);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
-            });
-            test('prepend datum', async () => {
-                await fixture.prependDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(state.zoom).not.toMatchObject(initialRangeX);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
-            });
-            test('insert-middle datum', async () => {
-                await fixture.insertMiddleDatum(); // Y-zoom unchanged
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(state.zoom).toMatchObject(initialRangeX);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(0);
-            });
-            test('insert-middle datum (negative)', async () => {
-                await fixture.insertMiddleDatumNegative(); // Y-zoom changed
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(state.zoom).toMatchObject(initialRangeX);
-                expect(state.zoom).not.toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
-            });
+        test('append datum', async () => {
+            await fixture.appendDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(state.zoom).not.toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+        });
+        test('prepend datum', async () => {
+            await fixture.prependDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(state.zoom).not.toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+        });
+        test('insert-middle datum', async () => {
+            await fixture.insertMiddleDatum(); // Y-zoom unchanged
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(state.zoom).toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(0);
+        });
+        test('insert-middle datum (negative)', async () => {
+            await fixture.insertMiddleDatumNegative(); // Y-zoom changed
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(state.zoom).toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).not.toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
         });
     });
-    describe('ordinalTimeAxis', () => {
-        describe('preserveDomain', () => {
-            type TDatum = { date: Date; value: number };
-            let fixture: TestFixture<TDatum>;
-            let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
-            let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
-            let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
-            const expectedRangeXSerialized = deepFreeze({
-                rangeX: {
-                    start: { __type: 'date', value: '2024-04-23T00:00:00.000Z' }, // inclusive
-                    end: { __type: 'date', value: '2024-04-26T00:00:00.000Z' }, // exclusive
-                },
-            } as const);
-            const expectedRangeX = deepFreeze({
-                rangeX: {
-                    start: new Date('2024-04-23T00:00:00.000Z'), // inclusive
-                    end: new Date('2024-04-26T00:00:00.000Z'), // exclusive
-                },
-            } as const);
 
-            beforeEach(async () => {
-                fixture  = await prepareChart(meta.ordinalTimeAxis.preserveDomain);
+    describe('numberAxis-preserveRatios', () => {
+        type TDatum = { x: number; y: number };
+        let fixture: TestFixture<TDatum>;
+        let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
+        let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
+        beforeEach(async () => {
+            fixture  = await prepareChart(meta['numberAxis-preserveRatios']);
 
-                const { zoom } = chart.getState();
-                expect(zoom).toMatchObject(expectedRangeXSerialized);
-                initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
-                initialRatioY = { ratioY: { start: zoom!.ratioY!.start!, end: zoom!.ratioY!.end! } };
-                initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
+            const { zoom } = chart.getState();
+            expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
+            initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
 
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
-                fixture.zoomListener.mock.mockClear();
-            });
-            test('append datum', async () => {
-                await fixture.appendDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject(expectedRangeXSerialized);
-                expect(state.zoom).not.toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
-            });
-            test('prepend datum', async () => {
-                await fixture.prependDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject(expectedRangeXSerialized);
-                expect(state.zoom).not.toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
-            });
-            test('insert-middle datum', async () => {
-                await fixture.insertMiddleDatum(); // Y-zoom unchanged
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject(expectedRangeXSerialized);
-                expect(state.zoom).toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(0);
-            });
-            test('insert-middle datum (negative)', async () => {
-                await fixture.insertMiddleDatumNegative(); // Y-zoom changed
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject(expectedRangeXSerialized);
-                expect(state.zoom).toMatchObject(initialRatioX);
-                expect(state.zoom).toMatchObject(initialRatioY);
-                expect(state.zoom).not.toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
-            });
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            fixture.zoomListener.mock.mockClear();
         });
-        describe('preserveRatios', () => {
-            type TDatum = { date: Date; value: number };
-            let fixture: TestFixture<TDatum>;
-            let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
-            let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
-            beforeEach(async () => {
-                fixture  = await prepareChart(meta.ordinalTimeAxis.preserveRatios);
+        test('append datum', async () => {
+            await fixture.appendDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(state.zoom).not.toMatchObject(initialRangeX);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
+        });
+        test('prepend datum', async () => {
+            await fixture.prependDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(state.zoom).not.toMatchObject(initialRangeX);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
+        });
+        test('insert-middle datum', async () => {
+            await fixture.insertMiddleDatum(); // Y-zoom unchanged
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(state.zoom).toMatchObject(initialRangeX);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(0);
+        });
+        test('insert-middle datum (negative)', async () => {
+            await fixture.insertMiddleDatumNegative(); // Y-zoom changed
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(state.zoom).toMatchObject(initialRangeX);
+            expect(state.zoom).not.toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
+        });
+    });
 
-                const { zoom } = chart.getState();
-                expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
-                initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
+    describe('ordinalTimeAxis-preserveDomain', () => {
+        type TDatum = { date: Date; value: number };
+        let fixture: TestFixture<TDatum>;
+        let initialRatioX: Pick<AgZoomEvent, 'ratioX'>;
+        let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
+        let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
+        const expectedRangeXSerialized = deepFreeze({
+            rangeX: {
+                start: { __type: 'date', value: '2024-04-23T00:00:00.000Z' }, // inclusive
+                end: { __type: 'date', value: '2024-04-26T00:00:00.000Z' }, // exclusive
+            },
+        } as const);
+        const expectedRangeX = deepFreeze({
+            rangeX: {
+                start: new Date('2024-04-23T00:00:00.000Z'), // inclusive
+                end: new Date('2024-04-26T00:00:00.000Z'), // exclusive
+            },
+        } as const);
 
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                fixture.zoomListener.mock.mockClear();
-            });
-            test('append datum', async () => {
-                await fixture.appendDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(state.zoom).not.toMatchObject(initialRangeX);
-                expect(state.zoom).not.toMatchObject(initialRangeY); // it makes day 26 (value 50) visible
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
-            });
-            test('prepend datum', async () => {
-                await fixture.prependDatum();
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(state.zoom).not.toMatchObject(initialRangeX);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
-            });
-            test('insert-middle datum', async () => {
-                await fixture.insertMiddleDatum(); // Y-zoom unchanged
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(state.zoom).toMatchObject(initialRangeX);
-                expect(state.zoom).toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(0);
-            });
-            test('insert-middle datum (negative)', async () => {
-                await fixture.insertMiddleDatumNegative(); // Y-zoom changed
-                const state = chart.getState();
-                expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(state.zoom).toMatchObject(initialRangeX);
-                expect(state.zoom).not.toMatchObject(initialRangeY);
-                expect(fixture.zoomListener.mock).toBeCalledTimes(1);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
-                expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
-            });
+        beforeEach(async () => {
+            fixture  = await prepareChart(meta['ordinalTimeAxis-preserveDomain']);
+
+            const { zoom } = chart.getState();
+            expect(zoom).toMatchObject(expectedRangeXSerialized);
+            initialRatioX = { ratioX: { start: zoom!.ratioX!.start!, end: zoom!.ratioX!.end! } };
+            initialRatioY = { ratioY: { start: zoom!.ratioY!.start!, end: zoom!.ratioY!.end! } };
+            initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
+
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+            fixture.zoomListener.mock.mockClear();
+        });
+        test('append datum', async () => {
+            await fixture.appendDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+            expect(state.zoom).not.toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+        });
+        test('prepend datum', async () => {
+            await fixture.prependDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+            expect(state.zoom).not.toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRatioY);
+        });
+        test('insert-middle datum', async () => {
+            await fixture.insertMiddleDatum(); // Y-zoom unchanged
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+            expect(state.zoom).toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(0);
+        });
+        test('insert-middle datum (negative)', async () => {
+            await fixture.insertMiddleDatumNegative(); // Y-zoom changed
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject(expectedRangeXSerialized);
+            expect(state.zoom).toMatchObject(initialRatioX);
+            expect(state.zoom).toMatchObject(initialRatioY);
+            expect(state.zoom).not.toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(expectedRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRatioY);
+        });
+    });
+
+    describe('ordinalTimeAxis-preserveRatios', () => {
+        type TDatum = { date: Date; value: number };
+        let fixture: TestFixture<TDatum>;
+        let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
+        let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
+        beforeEach(async () => {
+            fixture  = await prepareChart(meta['ordinalTimeAxis-preserveRatios']);
+
+            const { zoom } = chart.getState();
+            expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            initialRangeX = { rangeX: { start: zoom!.rangeX!.start!, end: zoom!.rangeX!.end! } };
+            initialRangeY = { rangeY: { start: zoom!.rangeY!.start!, end: zoom!.rangeY!.end! } };
+
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            fixture.zoomListener.mock.mockClear();
+        });
+        test('append datum', async () => {
+            await fixture.appendDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(state.zoom).not.toMatchObject(initialRangeX);
+            expect(state.zoom).not.toMatchObject(initialRangeY); // it makes day 26 (value 50) visible
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
+        });
+        test('prepend datum', async () => {
+            await fixture.prependDatum();
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(state.zoom).not.toMatchObject(initialRangeX);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject(initialRangeY);
+        });
+        test('insert-middle datum', async () => {
+            await fixture.insertMiddleDatum(); // Y-zoom unchanged
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(state.zoom).toMatchObject(initialRangeX);
+            expect(state.zoom).toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(0);
+        });
+        test('insert-middle datum (negative)', async () => {
+            await fixture.insertMiddleDatumNegative(); // Y-zoom changed
+            const state = chart.getState();
+            expect(state.zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(state.zoom).toMatchObject(initialRangeX);
+            expect(state.zoom).not.toMatchObject(initialRangeY);
+            expect(fixture.zoomListener.mock).toBeCalledTimes(1);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeX);
+            expect(fixture.zoomListener.mock.mock.calls[0][0]).not.toMatchObject(initialRangeY);
         });
     });
 });
