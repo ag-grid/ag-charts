@@ -135,7 +135,6 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
     }
 
     function init() {
-        let prevExampleId = initialExampleId;
         let currentExampleId = initialExampleId;
 
         // Called from example `updateExample` function
@@ -149,7 +148,10 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
             const { exampleId } = button.dataset;
 
             button.addEventListener('click', () => {
-                prevExampleId = currentExampleId;
+                if (exampleId === currentExampleId) {
+                    return;
+                }
+
                 currentExampleId = exampleId;
 
                 updateExample(exampleId);
