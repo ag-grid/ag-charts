@@ -19,6 +19,7 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
         label: { autoRotate: false },
         gridLine: { enabled: false },
         parentLevel: { enabled: true },
+        interval: { placement: 'between' },
     },
 
     create: (ctx) => new UnitTimeAxis(ctx),

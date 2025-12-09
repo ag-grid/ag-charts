@@ -4,7 +4,7 @@ import type { TickInterval } from './axisTick';
 
 export class AxisInterval<S> extends BaseProperties {
     @Property
-    placement?: 'on' | 'between' = 'between';
+    placement?: 'on' | 'between';
 
     @Property
     step?: TickInterval<S>;
