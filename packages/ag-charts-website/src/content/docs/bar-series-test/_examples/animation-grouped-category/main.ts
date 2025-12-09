@@ -2,6 +2,7 @@ import {
     AgCartesianChartOptions,
     AgChartLegendPosition,
     AgCharts,
+    AnimationModule,
     BarSeriesModule,
     GroupedCategoryAxisModule,
     LegendModule,
@@ -11,7 +12,13 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, GroupedCategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    GroupedCategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+    AnimationModule,
+]);
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
 const stackGroups = ['Devices', 'Devices', 'Devices', 'Wearables', 'Series'];
