@@ -41,7 +41,7 @@ export class TooltipManager {
     >();
 
     // Configurable delay (match highlights at 100ms)
-    private readonly removeDelay: number = 100; // milliseconds
+    public removeDelay: number = 100; // milliseconds
 
     private readonly cleanup = new CleanupRegistry();
 
