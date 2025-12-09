@@ -1,0 +1,48 @@
+<div class="example-wrapper">
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates1()">Start</button>
+        <select id="seriesTypeSelect" onchange="updateSeriesType1(event.target.value)">
+            <option value="line" selected>Line</option>
+            <option value="area">Area</option>
+            <option value="bar">Bar</option>
+            <option value="stacked-bar">Stacked Bar</option>
+            <option value="stacked-area">Stacked Area</option>
+            <option value="range-area">Range Area</option>
+            <option value="range-bar">Range Bar</option>
+            <option value="candlestick">Candlestick</option>
+            <option value="ohlc">OHLC</option>
+        </select>
+        <select id="updateModeSelect" onchange="updateMode(event.target.value)">
+            <option value="append" selected>Append</option>
+            <option value="rolling">Rolling Window</option>
+        </select>
+        <select id="rollingWindowSelect" onchange="updateRollingWindowSize(event.target.value)">
+            <option value="1000">1,000 points</option>
+            <option value="5000">5,000 points</option>
+            <option value="10000">10,000 points</option>
+            <option value="25000">25,000 points</option>
+            <option value="50000" selected>50,000 points</option>
+        </select>
+        <select id="batchSizeSelect" onchange="updateBatchSize(event.target.value)">
+            <option value="1">1 per update</option>
+            <option value="5">5 per update</option>
+            <option value="10" selected>10 per update</option>
+            <option value="25">25 per update</option>
+            <option value="50">50 per update</option>
+            <option value="100">100 per update</option>
+        </select>
+        <select id="updateSpeedSelect" onchange="updateUpdateSpeed(event.target.value)">
+            <option value="raf" selected>requestAnimationFrame</option>
+            <option value="50">50ms</option>
+            <option value="100">100ms</option>
+            <option value="500">500ms</option>
+        </select>
+    </div>
+    <span id="stats" class="stats-bar">
+        <span class="stat">Points: <strong>0</strong></span>
+        <span class="stat">FPS: <strong>0</strong></span>
+        <span class="stat">Points/sec: <strong>0</strong></span>
+        <span class="stat">Total added: <strong>0</strong></span>
+    </span>
+    <div id="myChart"></div>
+</div>
