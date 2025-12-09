@@ -12,6 +12,7 @@ import {
 
 import { getData } from './data';
 
+// eslint-disable-next-line aglint/validate-module-registration -- grouped-category axis is inferred from array data
 ModuleRegistry.registerModules([
     BarSeriesModule,
     GroupedCategoryAxisModule,
