@@ -1110,4 +1110,228 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.rollbackEdgesValue = [];
         this.isRollingBack = false;
     }
+
+    private diagramKeys?: Map<string, string>;
+    private diagramEdges?: Map<string, Set<string>>;
+    /**
+     * Console log a flowchart diagram of the graph at the given path.
+     */
+    diagram(pathArray: Array<string>, maxDepth: number = 2) {
+        this.diagramKeys = new Map();
+        this.diagramEdges = new Map();
+
+        const vertex = this.findVertexAtPath(pathArray);
+        const diagram: Array<string> = [
+            '---',
+            'config:',
+            '  layout: elk',
+            '  look: neo',
+            '  theme: redux',
+            '---',
+            'flowchart TB',
+        ];
+
+        if (vertex) {
+            this.diagramVertex(diagram, vertex as any, 1, maxDepth);
+        }
+
+        diagram.push('classDef UO fill: #e8f5e8, stroke: #4caf50');
+        diagram.push('classDef DE fill: #e3f2fd, stroke: #2196f3');
+        diagram.push('classDef DEP fill: #ffe0fd, stroke: #ff00f2');
+        diagram.push('classDef OP fill: #fff3e0, stroke: #ff9800');
+        diagram.push('classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px');
+        diagram.push('classDef OV fill: #e8f5ee, stroke: #4caf87');
+
+        // eslint-disable-next-line no-console
+        console.log(diagram.join('\n'));
+    }
+
+    private diagramKey(path: string) {
+        let diagramKey = this.diagramKeys!.get(path);
+        if (!diagramKey) {
+            diagramKey = `${this.diagramKeys!.size}`;
+            this.diagramKeys!.set(path, diagramKey);
+        }
+        return diagramKey;
+    }
+
+    private diagramLabel(path: string, vertex: Vertex<unknown, string>, edge?: string) {
+        let diagramKey = this.diagramKeys!.get(path);
+        if (diagramKey) return diagramKey;
+
+        diagramKey = this.diagramKey(path);
+
+        const classNames: any = {
+            [USER_OPTIONS_EDGE]: 'UO',
+            [DEFAULTS_EDGE]: 'DE',
+            [DEPENDENCY_EDGE]: 'DEP',
+            [OPERATION_EDGE]: 'OP',
+            [OPERATION_VALUE_EDGE]: 'OPV',
+            [OVERRIDES_EDGE]: 'OV',
+        };
+        let className = edge ? classNames[edge] ?? undefined : undefined;
+        className = className ? `:::${className}` : '';
+
+        if (typeof vertex.value === 'symbol') {
+            return `${diagramKey}[/"[symbol]"\\]${className}`;
+        } else if (Array.isArray(vertex.value)) {
+            return `${diagramKey}[/"[array]"\\]${className}`;
+        } else if (typeof vertex.value === 'object') {
+            return `${diagramKey}[/"[object]"\\]${className}`;
+        } else if (edge === DEFAULTS_EDGE || edge === USER_OPTIONS_EDGE || edge === OVERRIDES_EDGE) {
+            return `${diagramKey}("${vertex.value as any}")${className}`;
+        } else {
+            return `${diagramKey}["${vertex.value as any}"]${className}`;
+        }
+    }
+
+    private diagramVertex(diagram: Array<string>, vertex: Vertex<unknown, string>, depth: number, maxDepth: number) {
+        const pathArray = this.getPathArray(vertex);
+        const path = pathArray.length > 0 ? pathArray.join('.') : 'root';
+
+        this.diagramNeighbours(diagram, path, vertex, depth + 1, maxDepth);
+
+        let diagramKey = this.diagramKeys!.get(path);
+        if (!diagramKey) {
+            diagramKey = this.diagramKey(path);
+            diagram.push(`\t${diagramKey}["${vertex.value as any}"]`);
+        }
+    }
+
+    private diagramNeighbours(
+        diagram: Array<string>,
+        path: string,
+        vertex: Vertex<unknown, string>,
+        depth: number,
+        maxDepth: number
+    ) {
+        for (const neighbour of this.neighboursWithEdgeValue(vertex, PATH_EDGE) ?? []) {
+            const neighbourPathArray = this.getPathArray(neighbour);
+            const neighbourPath = neighbourPathArray.length > 0 ? neighbourPathArray.join('.') : 'root';
+
+            if (depth < maxDepth) {
+                this.diagramVertex(diagram, neighbour as any, depth + 1, maxDepth);
+            }
+            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, vertex);
+        }
+
+        const userValues = this.neighboursWithEdgeValue(vertex, USER_OPTIONS_EDGE) ?? [];
+        let index = 0;
+        for (const userValue of userValues) {
+            this.diagramChild(
+                diagram,
+                USER_OPTIONS_EDGE,
+                path,
+                vertex,
+                `${path}.${USER_OPTIONS_EDGE}.${index}`,
+                userValue as any
+            );
+            index++;
+        }
+
+        const defaultValues = this.neighboursWithEdgeValue(vertex, DEFAULTS_EDGE) ?? [];
+        index = 0;
+        // for (const defaultValue of defaultValues) {
+        const [defaultValue] = defaultValues;
+        if (defaultValue) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                DEFAULTS_EDGE,
+                path,
+                vertex,
+                `${path}.${DEFAULTS_EDGE}.${index}`,
+                defaultValue as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+            // break; // TODO: there should only be 1 default per vertex
+        }
+
+        const operationVertices = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE) ?? [];
+        index = 0;
+        // for (const operation of operationVertices) {
+        const [operation] = operationVertices;
+        if (operation) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                OPERATION_EDGE,
+                path,
+                vertex,
+                `${path}.${OPERATION_EDGE}.${index}`,
+                operation as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+            // break; // TODO: there should only be 1 operation per vertex
+        }
+
+        const operationValueVertices = this.neighboursWithEdgeValue(vertex, OPERATION_VALUE_EDGE) ?? [];
+        index = 0;
+        for (const operationValue of operationValueVertices) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                OPERATION_VALUE_EDGE,
+                path,
+                vertex,
+                `${path}.${OPERATION_VALUE_EDGE}.${index}`,
+                operationValue as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+        }
+
+        const dependencyVertices = this.neighboursWithEdgeValue(vertex, DEPENDENCY_EDGE) ?? [];
+        index = 0;
+        for (const dependency of dependencyVertices) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                DEPENDENCY_EDGE,
+                path,
+                vertex,
+                this.getPathArray(dependency).join('.'),
+                dependency as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+        }
+    }
+
+    private diagramChild(
+        diagram: Array<string>,
+        edge: string,
+        parentPath: string,
+        parentVertex: Vertex<unknown, string>,
+        childPath: string,
+        childVertex: Vertex<unknown, string>
+    ) {
+        let edges = this.diagramEdges!.get(parentPath);
+        if (edges?.has(childPath)) return;
+        if (!edges) {
+            edges = new Set();
+            this.diagramEdges!.set(parentPath, edges);
+        }
+        edges.add(childPath);
+        const edgeString = edge === PATH_EDGE ? '' : `|${edge}|`;
+        diagram.push(
+            `\t${this.diagramLabel(parentPath, parentVertex)} -->${edgeString} ${this.diagramLabel(childPath, childVertex, edge)}`
+        );
+    }
+
+    private diagramChildWithNeighbours(
+        diagram: Array<string>,
+        edge: string,
+        parentPath: string,
+        parentVertex: Vertex<unknown, string>,
+        childPath: string,
+        childVertex: Vertex<unknown, string>,
+        depth: number,
+        maxDepth: number
+    ) {
+        this.diagramChild(diagram, edge, parentPath, parentVertex, childPath, childVertex);
+        this.diagramNeighbours(diagram, childPath, childVertex as any, depth + 1, maxDepth);
+    }
 }
