@@ -643,8 +643,8 @@ describe('Strategies', () => {
         } as const);
         const expectedRangeX = deepFreeze({
             rangeX: {
-                start: new Date('2024-04-23T00:00:00.000Z'), // inclusive
-                end: new Date('2024-04-26T00:00:00.000Z'), // exclusive
+                start: new Date(expectedRangeXSerialized.rangeX.start.value),
+                end: new Date(expectedRangeXSerialized.rangeX.end.value),
             },
         } as const);
 
