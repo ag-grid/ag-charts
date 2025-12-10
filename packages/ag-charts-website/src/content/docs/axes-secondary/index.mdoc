@@ -1,5 +1,6 @@
 ---
 title: 'Secondary Axes'
+description: 'Learn how to create and configure secondary axes in $framework charts to compare data sets with different scales.'
 ---
 
 Secondary axes are typically used to compare data sets with different scales, with extra axes usually located
@@ -7,11 +8,11 @@ on the opposite side of the chart.
 
 ## Creating a Secondary Axis
 
-The easiest way to create a secondary axis is by linking a series to a new axis key with the `series[].yKeyAxis` property.
+The easiest way to create a secondary axis is by assigning a series to an axis key with the `series[].yKeyAxis` property.
 
-If a series provides a `yKeyAxis` value that is not the default of `'y'`, a new axis with default properties will be automatically created.
+If a series provides a `yKeyAxis` value, and no axis exists for that key, a new axis with default properties will be automatically created.
 
-<!-- and positioned to the `'right'`.-->
+The second `y` axis will be positioned to the `'right'` by default.
 
 This allows you to create and use a secondary axis without any explicit axis configuration.
 
@@ -19,8 +20,8 @@ This allows you to create and use a secondary axis without any explicit axis con
 
 In this example:
 
--   The `bar` series do not specify a `yKeyAxis`, so they are linked to the default primary `'y'` axis.
--   The `line` series specifies `yKeyAxis: 'ySecondary'`, which automatically creates a new secondary axis<!-- on the right-->.
+-   The `bar` series do not specify a `yKeyAxis`, so they are linked to the default `y` axis.
+-   The `line` series specifies `yKeyAxis: 'ySecondary'`, which automatically creates a new secondary axis on the right.
 -   Any number of `y` axes can be created in this way and the same concept applies to x-axes using the `xKeyAxis` property.
 
 ```js format="snippet"
@@ -66,31 +67,36 @@ To do this, the configured axes are declared in the `axes` property. The keys us
 }
 ```
 
-## Custom Axes Keys
+## Custom Axis Keys
 
-The above example used the default key of `'y'` and an additional key of `ySecondary`.
+The above example used the default `y` key and an additional key of `ySecondary`.
 
 To increase readability, especially when dealing with multiple axes with distinct meanings, more descriptive axis keys should be used.
 
-For example, to name the axes `cattleAxis` and `exportsAxis`, just set this in the series `yKeyAxis` properties. The axes keys are now these
-values and the default `y` axis is not used.
+Series are linked to axes by supplying an axis key in the series configuration using the `xKeyAxis`, `yKeyAxis` and similar properties.
+
+The axis key supplied to the series does not need to be used in the `axes` options if no customisation is required.
 
 ```js format="snippet"
-series: [
-    { type: 'bar', xKey: 'year', yKey: 'male', yKeyAxis: 'cattleAxis' },
-    { type: 'bar', xKey: 'year', yKey: 'female', yKeyAxis: 'cattleAxis' },
-    { type: 'line', xKey: 'year', yKey: 'exportedTonnes', yKeyAxis: 'exportsAxis' },
-],
-axes: {
-    cattleAxis: {
-        type: 'number',
-        position: 'left',
-        title: { text: 'Number of cattle' },
-    },
-    exportsAxis: {
-        type: 'number',
-        position: 'right',
-        title: { text: 'Exports (tonnes)' },
+{
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'profit', yKeyAxis: 'profit' },
+        { type: 'line', xKey: 'month', yKey: 'revenue', yKeyAxis: 'revenue' },
+    ],
+    axes: {
+        revenue: { type: 'number', position: 'right', title: { text: 'revenue' } },
+        profit: { type: 'number', position: 'left', title: { text: 'profit' } },
     },
 }
 ```
+
+In this configuration:
+
+-   The `yKey` values of the first series are plotted against the `profit` axis on the left, whilst the `yKey` values of the second series are plotted against the `revenue` axis on the right.
+-   Series default to the `x` and `y` axis keys when not specified, so `series[].xKeyAxis` is not required.
+-   `axes.x` is not required because no customisation is needed for the default x axis.
+-   There is no `axes.y` in this chart as all series have specified a different `yKeyAxis`.
+
+Specifying `type` is not required but is recommended for type-checking and validation.
+
+The `position` property is also optional. The first secondary y-axis will automatically be placed on the right, with subsequent axes alternating to the left. Without explicit `position` or series axis key properties, the chart may misidentify or misplace axes, so specifying `position` is recommended.

@@ -8,7 +8,7 @@ import {
     ModuleRegistry,
     NumberAxisModule,
     OhlcSeriesModule,
-    TimeAxisModule,
+    OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -19,7 +19,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     NumberAxisModule,
     OhlcSeriesModule,
-    TimeAxisModule,
+    OrdinalTimeAxisModule,
     ContextMenuModule,
 ]);
 
@@ -46,11 +46,6 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: {
-        x: {
-            type: 'time',
-        },
-    },
 };
 
 AgCharts.create(options);

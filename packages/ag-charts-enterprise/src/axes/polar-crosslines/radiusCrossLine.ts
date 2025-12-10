@@ -10,7 +10,7 @@ class RadiusCrossLineLabel extends PolarCrossLineLabel {
 }
 
 export class RadiusCrossLine extends PolarCrossLine {
-    static readonly className = 'RadiusCrossLine';
+    static override readonly className = 'RadiusCrossLine';
 
     override direction = ChartAxisDirection.Radius;
     gridAngles?: number[];

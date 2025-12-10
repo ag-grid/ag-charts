@@ -5,7 +5,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
-    static readonly className = 'ohlc';
+    static override readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
 
     override properties = new OhlcSeriesProperties();

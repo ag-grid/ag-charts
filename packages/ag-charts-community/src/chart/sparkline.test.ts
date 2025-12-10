@@ -33,6 +33,22 @@ describe('Sparkline', () => {
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
+    describe('unhighlightDelay', () => {
+        it('should have unhighlightDelay set to 0 for sparklines (CRT-1012)', async () => {
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                data: [2, 3, 4, 1, 2],
+                width: 200,
+                height: 100,
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            // Sparklines should have immediate unhighlight (no delay) to avoid laggy tooltips
+            expect(chart.ctx.highlightManager.unhighlightDelay).toBe(0);
+        });
+    });
+
     describe('itemStyler', () => {
         it('Handles bar series', async () => {
             const instance = AgCharts.__createSparkline({

@@ -10,7 +10,7 @@ import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
-    static readonly className = 'PolarChart';
+    static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
 
     override axes = this.createChartAxes();
@@ -44,6 +44,14 @@ export class PolarChart extends Chart {
         await this.computeCircle(seriesRect);
         for (const axis of this.axes) {
             axis.update();
+        }
+
+        let maxMarkerSize = 0;
+        for (const series of this.series) {
+            maxMarkerSize = Math.max(maxMarkerSize, series.properties.marker?.size ?? 0);
+        }
+        for (const series of this.series.filter(isPolarSeries)) {
+            series.maxChartMarkerSize = maxMarkerSize;
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {

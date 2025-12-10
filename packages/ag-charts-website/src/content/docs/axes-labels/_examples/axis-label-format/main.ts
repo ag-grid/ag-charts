@@ -12,17 +12,17 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            label: {
-                format: '$#{0>6.2f}',
-            },
-        },
         x: {
             type: 'unit-time',
             interval: { step: 'month' },
             label: {
                 format: '%b %Y',
+            },
+        },
+        y: {
+            type: 'number',
+            label: {
+                format: '$#{0>6.2f}',
             },
         },
     },

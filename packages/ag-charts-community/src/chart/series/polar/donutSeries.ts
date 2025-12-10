@@ -157,7 +157,7 @@ interface PieDonutSeriesLabelFormatterParams
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
 export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
-    static readonly className: string = 'DonutSeries';
+    static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
     override properties = new DonutSeriesProperties();

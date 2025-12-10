@@ -27,6 +27,7 @@ export class Overlay extends BaseProperties {
     renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;
 
     private content?: HTMLElement;
+    private rendererAsText?: string;
     public focusBox?: BBox;
 
     constructor(
@@ -36,9 +37,12 @@ export class Overlay extends BaseProperties {
         super();
     }
 
-    getText(localeManager: LocaleManager) {
+    getText(localeManager: LocaleManager): string {
         if (isArray(this.text)) {
             return toPlainText(this.text);
+        }
+        if (this.rendererAsText) {
+            return this.rendererAsText;
         }
         return localeManager.t(toTextString(this.text) || this.defaultMessageId);
     }
@@ -50,11 +54,13 @@ export class Overlay extends BaseProperties {
         rect: BBox
     ) {
         this.content?.remove();
+        this.rendererAsText = undefined;
         this.focusBox = rect;
 
         if (this.renderer) {
             const params: AgChartOverlayRendererParams<DatumDefault> = {};
             const htmlContent = callWithContext(callers, this.renderer, params);
+
             if (htmlContent instanceof HTMLElement) {
                 this.content = htmlContent;
             } else {
@@ -67,6 +73,7 @@ export class Overlay extends BaseProperties {
                     this.content = tempDiv;
                 }
             }
+            this.rendererAsText = this.content?.textContent?.trim() ?? undefined;
         } else {
             const content = createElement('div', {
                 display: 'flex',

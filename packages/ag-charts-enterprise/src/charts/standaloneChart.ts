@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 const { Chart } = _ModuleSupport;
 
 export class StandaloneChart extends Chart {
-    static readonly className = 'StandaloneChart';
+    static override readonly className = 'StandaloneChart';
     static readonly type = 'standalone' as const;
 
     override getChartType() {

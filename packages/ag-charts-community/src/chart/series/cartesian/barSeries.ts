@@ -219,7 +219,7 @@ export class BarSeries extends AbstractBarSeries<
     BarNodeDatum,
     BarSeriesNodeDataContext
 > {
-    static readonly className = 'BarSeries';
+    static override readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
     override properties = new BarSeriesProperties();

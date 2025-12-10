@@ -17,7 +17,7 @@ function isTopologySeries(
 }
 
 export class TopologyChart extends Chart {
-    static readonly className = 'TopologyChart';
+    static override readonly className = 'TopologyChart';
     static readonly type = 'topology' as const;
     private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;

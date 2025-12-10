@@ -94,7 +94,7 @@ export class LineSeries extends CartesianSeries<
     LineNodeDatum,
     LineSeriesNodeDataContext
 > {
-    static readonly className = 'LineSeries';
+    static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();
@@ -508,7 +508,7 @@ export class LineSeries extends CartesianSeries<
             const spanPoint: LineSpanPointDatum = {
                 point: { x: scratch.x, y: scratch.y },
                 xDatum: scratch.xDatum,
-                yDatum: scratch.yDatum,
+                yDatum: scratch.yCumulative,
             };
 
             if (Array.isArray(currentSpanPoints)) {

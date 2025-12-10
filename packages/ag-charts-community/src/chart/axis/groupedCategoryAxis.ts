@@ -111,7 +111,7 @@ class DepthProperties extends BaseProperties {
     tick = new DepthTickProperties();
 }
 
-export class GroupedCategoryAxis extends CategoryAxis {
+export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<string[]>> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
@@ -440,9 +440,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override update() {
         if (!this.computedLayout) return;
 
-        // Category axis isn't animatable
-        // As most super methods aren't called, we need to do this manually
-        this.moduleCtx.animationManager.skipCurrentBatch();
+        // Skip animations only when the domain changes (not on initial load or other updates)
+        if (!this.scale.animatable) {
+            this.moduleCtx.animationManager.skipCurrentBatch();
+        }
 
         const { tickScale, tick, gridLine, gridLength, visibleRange, tickTreeLayout } = this;
         if (!tickTreeLayout) return;

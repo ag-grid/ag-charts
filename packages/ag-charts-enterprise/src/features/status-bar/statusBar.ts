@@ -301,7 +301,10 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            this.labelGroup.visible = false;
+            return;
+        }
 
         // Update domains from series - at layout time, series have already processed
         // their data and computed domains, so we can reuse them without re-scanning data.

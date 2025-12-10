@@ -18,6 +18,7 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
         groupPaddingInner: 0.1,
         label: { autoRotate: true, wrapping: 'on-space' },
         gridLine: { enabled: false },
+        interval: { placement: 'between' },
     },
 
     create: (ctx) => new CategoryAxis(ctx),

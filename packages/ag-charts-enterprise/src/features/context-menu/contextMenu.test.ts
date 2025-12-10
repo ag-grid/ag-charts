@@ -3,8 +3,12 @@ import { afterEach, describe, expect, it, test } from '@jest/globals';
 import type { AgChartOptions, AgContextMenuItem } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    clickAction,
+    computeLegendBBox,
     contextMenuAction,
+    deproxy,
     expectWarningsCalls,
+    hoverAction,
     longTapAction,
     setupMockCanvas,
     setupMockConsole,
@@ -106,6 +110,55 @@ describe('Context Menu', () => {
             await prepareChart();
             await longTapAction(410, 575)(chart);
             await compare();
+        });
+    });
+
+    describe('legend highlight state', () => {
+        test('clears highlight when opening menu', async () => {
+            await prepareChart();
+            const chartInstance = deproxy(chart);
+            const highlightManager = chartInstance.ctx.highlightManager;
+            const legendBBox = computeLegendBBox(chartInstance);
+            const x = legendBBox.x + 2;
+            const y = legendBBox.y + 2;
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
+        test('does not leave highlight after toggling visibility', async () => {
+            await prepareChart();
+            const chartInstance = deproxy(chart);
+            const highlightManager = chartInstance.ctx.highlightManager;
+            const legendBBox = computeLegendBBox(chartInstance);
+            const x = legendBBox.x + 2;
+            const y = legendBBox.y + 2;
+
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const menuItems = Array.from(
+                document.body.getElementsByClassName(
+                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
+                ) as HTMLCollectionOf<HTMLElement>
+            );
+            const toggleVisibilityItem = menuItems.find((item) => item.textContent?.includes('Toggle Visibility'));
+            expect(toggleVisibilityItem).toBeDefined();
+
+            toggleVisibilityItem!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await waitForChartStability(chart);
+
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
     });
 

@@ -7,7 +7,7 @@ const { getCrossLineValue, validateCrossLineValue, Group, Path, Sector, Rotatabl
     _ModuleSupport;
 
 export class AngleCrossLine extends PolarCrossLine {
-    static readonly className = 'AngleCrossLine';
+    static override readonly className = 'AngleCrossLine';
 
     override direction = ChartAxisDirection.Angle;
 

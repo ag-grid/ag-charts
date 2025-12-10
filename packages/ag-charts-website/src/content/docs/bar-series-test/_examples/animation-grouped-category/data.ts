@@ -1,0 +1,68 @@
+export function getData() {
+    return [
+        {
+            yearQuarter: ['2023', 'Q1'],
+            iphone: 140,
+            mac: 16,
+            ipad: 14,
+            wearables: 12,
+            services: 20,
+        },
+        {
+            yearQuarter: ['2023', 'Q2'],
+            iphone: 124,
+            mac: 20,
+            ipad: 14,
+            wearables: 12,
+            services: 30,
+        },
+        {
+            yearQuarter: ['2023', 'Q3'],
+            iphone: -112,
+            mac: -20,
+            ipad: -18,
+            wearables: 14,
+            services: 36,
+        },
+        {
+            yearQuarter: ['2023', 'Q4'],
+            iphone: 118,
+            mac: 24,
+            ipad: 14,
+            wearables: -14,
+            services: -36,
+        },
+        {
+            yearQuarter: ['2024', 'Q1'],
+            iphone: 124,
+            mac: 18,
+            ipad: 16,
+            wearables: 18,
+            services: 26,
+        },
+        {
+            yearQuarter: ['2024', 'Q2'],
+            iphone: 108,
+            mac: 20,
+            ipad: 16,
+            wearables: 18,
+            services: 40,
+        },
+        {
+            yearQuarter: ['2024', 'Q3'],
+            iphone: 96,
+            mac: 22,
+            ipad: 18,
+            wearables: 24,
+            services: 42,
+        },
+        {
+            yearQuarter: ['2024', 'Q4'],
+            iphone: 104,
+            mac: 22,
+            ipad: 14,
+            wearables: 20,
+            services: 40,
+        },
+    ];
+}

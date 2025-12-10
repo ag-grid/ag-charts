@@ -25,7 +25,7 @@ export class MapLineBackgroundSeries
     >
     implements _ModuleSupport.ITopology
 {
-    static readonly className = 'MapLineBackgroundSeries';
+    static override readonly className = 'MapLineBackgroundSeries';
     static readonly type = 'map-line-background' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;

@@ -92,7 +92,7 @@ export class HistogramSeries extends CartesianSeries<
     HistogramNodeDatum,
     HistogramSeriesNodeDataContext
 > {
-    static readonly className = 'HistogramSeries';
+    static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
@@ -105,6 +105,7 @@ export class HistogramSeries extends CartesianSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
+            alwaysClip: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,

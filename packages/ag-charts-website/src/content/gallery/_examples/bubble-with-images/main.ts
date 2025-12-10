@@ -42,8 +42,7 @@ const options: AgCartesianChartOptions = {
             maxSize: 50,
             size: 15,
             strokeWidth: 2,
-            itemStyler: ({ datum, highlightState }) => {
-                if (highlightState === 'highlighted-item') return;
+            itemStyler: ({ datum }) => {
                 return {
                     fill: {
                         type: 'image',
