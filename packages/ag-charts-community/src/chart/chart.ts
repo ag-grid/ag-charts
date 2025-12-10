@@ -761,7 +761,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
                 if (this.pendingLocaleText) {
-                    this.modulesManager.getModule<any>('locale').localeText = this.pendingLocaleText;
+                    type LocaleModule = ModuleInstance & { localeText?: Record<string, string> };
+                    const localeModule: LocaleModule | undefined = this.modulesManager.getModule('locale');
+                    if (localeModule && 'localeText' in localeModule) {
+                        localeModule.localeText = this.pendingLocaleText;
+                    }
                     this.pendingLocaleText = undefined;
                 }
 
