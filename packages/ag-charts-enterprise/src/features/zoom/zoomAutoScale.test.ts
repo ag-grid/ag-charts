@@ -32,7 +32,7 @@ describe('ZoomAutoScale', () => {
     });
 
     async function wheelZoomIn(): Promise<void> {
-        await scrollAction(400, 300, -200)(chart);
+        await scrollAction(400, 300, -2)(chart);
         await waitForChartStability(chart);
     }
 
