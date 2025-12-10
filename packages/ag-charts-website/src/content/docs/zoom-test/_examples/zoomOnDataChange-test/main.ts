@@ -378,7 +378,7 @@ const meta = {
 
             initialState: {
                 zoom: {
-                    ratioX: { start: 0.25, end: 0.7 },
+                    ratioX: { start: 0.25, end: 0.75 },
                 },
             },
             zoom: {
