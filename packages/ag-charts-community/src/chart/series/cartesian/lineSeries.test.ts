@@ -445,6 +445,52 @@ describe('LineSeries', () => {
         });
     });
 
+    // CRT-995: Verify stacked line series animation works correctly when adding points.
+    // The fix ensures animation uses yCumulative instead of yDatum for stacked series,
+    // preventing lines from animating up from the bottom (y=0) when points are added.
+    describe('CRT-995 stacked line animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const STACKED_DATA = [
+            { quarter: 'Q1', apples: 50, oranges: 30 },
+            { quarter: 'Q2', apples: 60, oranges: 40 },
+            { quarter: 'Q3', apples: 70, oranges: 35 },
+        ];
+
+        const STACKED_OPTIONS: AgChartOptions = {
+            data: STACKED_DATA,
+            series: [
+                { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true },
+                { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+
+        for (const ratio of [0, 0.5, 0.6, 0.7, 0.8]) {
+            it(`should animate adding points to stacked series at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+                prepareTestOptions(STACKED_OPTIONS);
+                chart = AgCharts.create(STACKED_OPTIONS);
+                await waitForChartStability(chart);
+
+                // Add more data points
+                const newData = [
+                    ...STACKED_DATA,
+                    { quarter: 'Q4', apples: 80, oranges: 45 },
+                    { quarter: 'Q5', apples: 65, oranges: 50 },
+                ];
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: newData });
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
     describe('multiple overlapping lines', () => {
         beforeEach(() => {
             console.warn = jest.fn();
