@@ -179,8 +179,12 @@ jobs:
 
     generate:
         runs-on: ubuntu-24.04
-        name: Generate
+        name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: init
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2]
         outputs:
             generate: ${{ steps.generate.outcome || '' }}
         steps:
@@ -205,7 +209,11 @@ jobs:
             - name: nx generate
               id: generate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }}  -t generate -c production
+              run: |
+                  projects=$(node ./external/ag-shared/scripts/shard/shard-projects.js -t generate -s ${{ matrix.shard }} --total ${{ strategy.job-total }} --command ${{ github.event.inputs.nx_command || 'affected' }})
+                  if [ -n "$projects" ]; then
+                    yarn nx run-many -t generate -c production -p ${projects}
+                  fi
 
     build:
         runs-on: ubuntu-24.04
