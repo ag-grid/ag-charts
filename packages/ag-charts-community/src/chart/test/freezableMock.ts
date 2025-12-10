@@ -254,7 +254,7 @@ export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?
 }
 
 export function newFreezableMockInferred<F extends MockAPICallback<any, any>>(mockImp?: F) {
-    type D = F extends MockAPICallback<infer D, unknown> ? D : never;
-    type C = F extends MockAPICallback<unknown, infer C> ? C : never;
+    type D = F extends MockAPICallback<infer Di, unknown> ? Di : never;
+    type C = F extends MockAPICallback<unknown, infer Ci> ? Ci : never;
     return newFreezableMock<D, C, F>(mockImp);
 }
