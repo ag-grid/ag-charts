@@ -74,6 +74,9 @@ const meta: Meta = {
             },
             zoom: {
                 enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
                 onDataChange: {
                     strategy: 'preserveDomain',
                 },
@@ -128,6 +131,9 @@ const meta: Meta = {
             },
             zoom: {
                 enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
                 onDataChange: {
                     strategy: 'preserveRatios',
                 },
@@ -196,6 +202,9 @@ const meta: Meta = {
             },
             zoom: {
                 enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
                 onDataChange: {
                     strategy: 'preserveDomain',
                 },
@@ -265,6 +274,9 @@ const meta: Meta = {
             },
             zoom: {
                 enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
                 onDataChange: {
                     strategy: 'preserveRatios',
                 },
