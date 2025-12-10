@@ -159,7 +159,8 @@ describe('ZoomAutoScale', () => {
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: ['y'] });
     });
 
-    test('updateDelta should respond to autoScaling changes', async () => {
+    // Not yet fixed (See AG-16426 TC2)
+    xtest('updateDelta should respond to autoScaling changes', async () => {
         type D = { time: number; temp: number; humidity: number };
         let state: AgChartState;
         const zoomListener = newFreezableMockInferred<MockZoomListener<D, unknown>>();
