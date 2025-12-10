@@ -149,16 +149,14 @@ describe('ZoomAutoScale', () => {
 
         await createChart<D>(options);
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toMatchObject(['y1', 'y2']);
+        expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(zoomListener.mock).toBeCalledTimes(0);
 
         await wheelZoomIn();
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toMatchObject(['y1', 'y2']);
+        expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(zoomListener.mock).toBeCalledTimes(1);
-        expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({
-            autoScaledAxes: ['y1', 'y2'],
-        });
+        expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: ['y'] });
     });
 
     test('updateDelta should respond to autoScaling changes', async () => {
