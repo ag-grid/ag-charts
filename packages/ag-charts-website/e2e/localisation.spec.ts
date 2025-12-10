@@ -1,3 +1,5 @@
+import type { Locator } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
@@ -37,7 +39,7 @@ test.describe('localisation', () => {
             const labelId2 = await label2.getAttribute('id');
             expect(labelId1).not.toEqual(labelId2);
 
-            let targetLabel: typeof label1 | typeof label2;
+            let targetLabel: Locator;
             if (labelledBy1 === labelId1) {
                 targetLabel = label1;
             } else if (labelledBy1 === labelId2) {
