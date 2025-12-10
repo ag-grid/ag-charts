@@ -84,7 +84,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'category',
             paddingInner: 0.5,
             paddingOuter: 0.2,
@@ -110,7 +109,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             nice: false,
             title: {

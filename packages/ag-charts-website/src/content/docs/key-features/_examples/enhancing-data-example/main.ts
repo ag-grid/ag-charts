@@ -45,7 +45,6 @@ const options: AgChartOptions<DataType> = {
     },
     axes: {
         x: {
-            position: 'bottom',
             type: 'category',
             title: {
                 text: 'Month',
@@ -58,7 +57,6 @@ const options: AgChartOptions<DataType> = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Temperature (°C)',

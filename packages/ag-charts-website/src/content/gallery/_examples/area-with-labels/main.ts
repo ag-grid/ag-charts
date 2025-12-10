@@ -51,14 +51,12 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },

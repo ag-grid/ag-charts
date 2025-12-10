@@ -77,8 +77,8 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         y: {
-            position: 'right',
             type: 'number',
+            position: 'right',
             gridLine: {
                 style: [
                     {
@@ -98,8 +98,8 @@ const options: AgCartesianChartOptions = {
             },
         },
         ySecondary: {
-            position: 'left',
             type: 'number',
+            position: 'left',
             title: {
                 text: 'NPM Downloads',
             },
@@ -119,7 +119,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'unit-time',
             gridLine: {
                 enabled: true,

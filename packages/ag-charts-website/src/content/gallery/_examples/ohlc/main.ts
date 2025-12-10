@@ -69,7 +69,6 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             line: {
                 enabled: false,
             },

@@ -48,7 +48,6 @@ const options: AgChartOptions = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },

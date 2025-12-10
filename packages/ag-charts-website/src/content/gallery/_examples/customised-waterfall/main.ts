@@ -156,7 +156,6 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'category',
             bandHighlight: {
                 enabled: true,

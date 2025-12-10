@@ -175,8 +175,8 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'number',
+            position: 'left',
             title: {
                 text: 'Infrastructure Count',
             },
@@ -210,7 +210,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'grouped-category',
             bandHighlight: {
                 enabled: true,

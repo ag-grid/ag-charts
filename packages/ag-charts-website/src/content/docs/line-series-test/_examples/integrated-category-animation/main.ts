@@ -45,14 +45,6 @@ const options: AgCartesianChartOptions = {
             // visible: false
         },
     ],
-    axes: {
-        y: {
-            type: 'number',
-        },
-        x: {
-            type: 'category',
-        },
-    },
 };
 (options as any).mode = 'integrated';
 

@@ -58,7 +58,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             line: {
                 enabled: false,
             },
@@ -68,7 +67,6 @@ const options: AgChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Time',
             },

@@ -84,7 +84,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },

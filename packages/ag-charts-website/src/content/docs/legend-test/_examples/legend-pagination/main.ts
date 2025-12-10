@@ -72,7 +72,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'unit-time',
             gridLine: {
                 style: [],

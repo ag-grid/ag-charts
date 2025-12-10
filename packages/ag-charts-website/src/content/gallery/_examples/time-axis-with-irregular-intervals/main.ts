@@ -51,14 +51,12 @@ const options: AgChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'time',
             label: {
                 format: '%d/%m',
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Magnitude',

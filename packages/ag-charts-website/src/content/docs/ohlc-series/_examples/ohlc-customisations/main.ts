@@ -58,7 +58,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             label: {
                 format: '%H:%M',
             },

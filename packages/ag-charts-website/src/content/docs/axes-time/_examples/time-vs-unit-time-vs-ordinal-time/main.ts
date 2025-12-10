@@ -61,7 +61,6 @@ function setContinuousTimeAxis() {
     options.axes = {
         x: {
             type: 'time',
-            position: 'bottom',
             title: { text: 'Continuous Time Axis' },
         },
     };

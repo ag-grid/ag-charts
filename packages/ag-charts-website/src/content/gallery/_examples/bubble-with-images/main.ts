@@ -54,7 +54,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             title: {
                 text: 'Year Of Invention',

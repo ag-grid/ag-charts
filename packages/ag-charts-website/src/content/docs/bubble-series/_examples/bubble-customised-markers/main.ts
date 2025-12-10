@@ -45,7 +45,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -57,7 +56,6 @@ const options: AgChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },

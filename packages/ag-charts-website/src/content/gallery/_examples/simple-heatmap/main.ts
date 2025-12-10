@@ -68,14 +68,12 @@ const options: AgChartOptions = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },
         },
         x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 autoRotate: false,
             },

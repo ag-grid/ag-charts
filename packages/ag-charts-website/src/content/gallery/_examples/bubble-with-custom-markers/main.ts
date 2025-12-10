@@ -59,7 +59,6 @@ const options: AgChartOptions<DataType> = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             interval: { values: [1, 2, 3, 4] },
             label: {
                 formatter: ({ value }) => seasons[value - 1] ?? '',
@@ -84,7 +83,6 @@ const options: AgChartOptions<DataType> = {
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },

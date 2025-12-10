@@ -221,7 +221,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Week',
             },
@@ -231,7 +230,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: '£ per kg',
             },

@@ -51,12 +51,10 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
             label: { format: '%H:%M:%S' },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Value' },
         },
     },

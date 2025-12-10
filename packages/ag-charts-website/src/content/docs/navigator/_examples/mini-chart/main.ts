@@ -66,7 +66,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 maxSpacing: 200,
             },
@@ -80,7 +79,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => numberFormatter.format(+params.value),
             },

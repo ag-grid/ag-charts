@@ -73,7 +73,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             paddingInner: 0.5,
             groupPaddingInner: 0.05,
             bandHighlight: {
@@ -105,7 +104,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: true,
                 style: [

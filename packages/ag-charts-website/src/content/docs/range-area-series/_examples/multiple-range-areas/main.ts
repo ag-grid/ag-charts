@@ -55,7 +55,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -65,7 +64,6 @@ const options: AgChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'unit-time',
         },
     },

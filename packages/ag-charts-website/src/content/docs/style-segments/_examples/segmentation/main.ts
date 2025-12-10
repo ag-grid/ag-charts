@@ -35,12 +35,10 @@ const options: AgCartesianChartOptions<DataType> = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             paddingOuter: 0,
         },
         y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Variance ($)' },
         },
     },

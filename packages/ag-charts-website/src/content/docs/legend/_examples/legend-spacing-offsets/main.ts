@@ -50,14 +50,12 @@ const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPosi
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Millions of €',
             },

@@ -63,7 +63,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 rotation: -90,
             },
@@ -102,7 +101,6 @@ const options: AgChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },

@@ -81,7 +81,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.7,
             bandHighlight: {
                 enabled: true,
@@ -95,7 +94,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Number of Arrivals',
             },

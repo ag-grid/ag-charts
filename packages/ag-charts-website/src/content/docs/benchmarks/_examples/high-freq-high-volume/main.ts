@@ -42,7 +42,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'time',
-            position: 'bottom',
             nice: false,
             label: {
                 format: '%H:%M:%S',
@@ -50,7 +49,6 @@ const options: AgChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Value',
             },

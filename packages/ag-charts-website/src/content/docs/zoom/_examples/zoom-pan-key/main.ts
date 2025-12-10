@@ -35,7 +35,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
@@ -43,7 +42,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             interval: {
                 minSpacing: 80,

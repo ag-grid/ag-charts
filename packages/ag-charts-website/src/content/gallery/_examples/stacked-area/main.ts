@@ -79,7 +79,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             label: {
                 format: '%b',
             },
@@ -107,7 +106,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     const value = params.value as number;

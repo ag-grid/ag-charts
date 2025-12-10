@@ -36,7 +36,6 @@ const options1: AgCartesianChartOptions = {
     background: { fill: 'rgb(0, 255, 0)' },
     axes: {
         x: {
-            position: 'bottom',
             type: 'category',
             title: { enabled: false },
             crossLines: [
@@ -55,7 +54,6 @@ const options1: AgCartesianChartOptions = {
             ],
         },
         y: {
-            position: 'left',
             type: 'number',
             title: { enabled: false },
             crossLines: [

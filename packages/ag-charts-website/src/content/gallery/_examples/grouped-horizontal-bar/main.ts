@@ -70,7 +70,6 @@ const options: AgChartOptions = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },
@@ -146,7 +145,6 @@ const options: AgChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             min: -300,
             max: 500,

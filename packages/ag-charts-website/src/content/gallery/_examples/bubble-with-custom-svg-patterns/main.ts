@@ -40,7 +40,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Longitude' },
             interval: {
                 step: 0.1,
@@ -48,7 +47,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Latitude' },
             interval: {
                 step: 0.1,

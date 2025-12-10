@@ -51,7 +51,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Kilotonnes of Oil Equivalent',
             },
@@ -64,7 +63,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             crosshair: {
                 snap: false,
                 label: {

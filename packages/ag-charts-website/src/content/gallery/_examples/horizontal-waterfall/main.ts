@@ -113,14 +113,12 @@ const options: AgCartesianChartOptions = {
     axes: {
         y: {
             type: 'category',
-            position: 'left',
             bandHighlight: {
                 enabled: true,
             },
         },
         x: {
             type: 'number',
-            position: 'bottom',
             label: {
                 formatter: (params) => {
                     const value = params.value as number;

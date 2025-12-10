@@ -49,7 +49,6 @@ const options: AgCartesianChartOptions = {
         },
         x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Distance [pc]',
             },

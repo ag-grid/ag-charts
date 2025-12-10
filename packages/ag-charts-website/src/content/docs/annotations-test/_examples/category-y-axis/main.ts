@@ -34,7 +34,6 @@ const options: AgChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'category',
             paddingInner: 0.7,
             paddingOuter: 0.2,
@@ -49,7 +48,6 @@ const options: AgChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'number',
             line: {
                 enabled: false,

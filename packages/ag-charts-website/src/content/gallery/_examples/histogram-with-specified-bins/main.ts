@@ -76,7 +76,6 @@ const options: AgCartesianChartOptions<DataType> = {
     ),
     axes: {
         x: {
-            position: 'bottom',
             type: 'number',
             nice: false,
             title: {
@@ -103,7 +102,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Frequency Density',

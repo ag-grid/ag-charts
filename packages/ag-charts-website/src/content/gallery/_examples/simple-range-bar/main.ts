@@ -75,7 +75,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
             bandHighlight: {
                 enabled: true,
             },

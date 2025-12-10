@@ -50,9 +50,8 @@ const options: AgChartOptions = {
         },
     ],
     axes: {
-        y: { position: 'left', type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
+        y: { type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
         x: {
-            position: 'bottom',
             type: 'category',
             label: {
                 fontFamily: { googleFont: 'Orbitron' },

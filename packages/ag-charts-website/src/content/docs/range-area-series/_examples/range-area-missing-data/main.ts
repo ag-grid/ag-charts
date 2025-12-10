@@ -43,7 +43,6 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         y: {
-            position: 'left',
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -53,7 +52,6 @@ const options: AgCartesianChartOptions = {
             },
         },
         x: {
-            position: 'bottom',
             type: 'unit-time',
         },
     },

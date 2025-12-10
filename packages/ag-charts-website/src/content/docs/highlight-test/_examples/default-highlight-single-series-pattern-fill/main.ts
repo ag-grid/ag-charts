@@ -28,14 +28,12 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
         y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total Visitors',
             },

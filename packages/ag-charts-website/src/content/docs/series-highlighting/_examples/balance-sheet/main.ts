@@ -65,8 +65,8 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom', title: { text: 'Year' } },
-        y: { type: 'number', position: 'left', title: { text: '£ (Millions)' } },
+        x: { type: 'category', title: { text: 'Year' } },
+        y: { type: 'number', title: { text: '£ (Millions)' } },
     },
     tooltip: {
         enabled: false,

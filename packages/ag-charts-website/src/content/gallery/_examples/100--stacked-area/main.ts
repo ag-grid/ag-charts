@@ -109,7 +109,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            position: 'bottom',
             crosshair: {
                 enabled: true,
                 lineDash: [3, 3],
@@ -117,7 +116,6 @@ const options: AgCartesianChartOptions = {
         },
         y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },

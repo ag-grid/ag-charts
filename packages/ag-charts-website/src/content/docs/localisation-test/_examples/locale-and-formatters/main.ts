@@ -129,7 +129,6 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
     axes: {
         x: {
             type: 'category',
-            position: 'bottom',
             title: { text: EXAMPLE_TEXT[INITIAL_LOCALE].month },
             label: {
                 formatter: (params) => params.context?.formatMonth(params.value),
