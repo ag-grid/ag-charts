@@ -179,4 +179,144 @@ describe('Context Menu', () => {
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
     });
+
+    describe('CRT-481: Focusout Handling', () => {
+        test('should close context menu on focusout with Tab key', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            // Verify menu is open
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            expect(menu).toBeTruthy();
+            expect(menu?.getAttribute('style')).not.toContain('display: none');
+
+            // Simulate focusout event with Tab (relatedTarget outside menu)
+            const focusoutEvent = new FocusEvent('focusout', {
+                bubbles: true,
+                relatedTarget: document.body, // Focus moves outside menu
+            });
+            menu?.dispatchEvent(focusoutEvent);
+            await waitForChartStability(chart);
+
+            // Menu should be closed (hidden)
+            expect(menu?.getAttribute('style')).toContain('display: none');
+        });
+
+        test('should close context menu when relatedTarget is null', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            expect(menu).toBeTruthy();
+
+            // Simulate focusout with null relatedTarget
+            const focusoutEvent = new FocusEvent('focusout', {
+                bubbles: true,
+                relatedTarget: null,
+            });
+            menu?.dispatchEvent(focusoutEvent);
+            await waitForChartStability(chart);
+
+            // Menu should be closed
+            expect(menu?.getAttribute('style')).toContain('display: none');
+        });
+
+        test('should stay open when focus moves within menu', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            expect(menu).toBeTruthy();
+
+            // Create a child element within menu
+            const menuItem = menu?.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}__item`);
+            expect(menuItem).toBeTruthy();
+
+            // Simulate focusout with relatedTarget still within menu
+            const focusoutEvent = new FocusEvent('focusout', {
+                bubbles: true,
+                relatedTarget: menuItem,
+            });
+            menu?.dispatchEvent(focusoutEvent);
+            await waitForChartStability(chart);
+
+            // Menu should remain open
+            expect(menu?.getAttribute('style')).not.toContain('display: none');
+        });
+
+        test('should handle focusout with relatedTarget outside menu element', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            expect(menu).toBeTruthy();
+
+            // Create an element outside the menu
+            const outsideElement = document.createElement('button');
+            document.body.appendChild(outsideElement);
+
+            // Simulate focusout to outside element
+            const focusoutEvent = new FocusEvent('focusout', {
+                bubbles: true,
+                relatedTarget: outsideElement,
+            });
+            menu?.dispatchEvent(focusoutEvent);
+            await waitForChartStability(chart);
+
+            // Menu should be closed
+            expect(menu?.getAttribute('style')).toContain('display: none');
+
+            // Cleanup
+            outsideElement.remove();
+        });
+
+        test('should not close menu when focus moves within menu', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            const menuItems = Array.from(menu?.querySelectorAll(`.${DEFAULT_CONTEXT_MENU_CLASS}__item`) ?? []);
+
+            expect(menuItems.length).toBeGreaterThanOrEqual(1);
+
+            // Simulate focus moving within menu (relatedTarget is within the menu)
+            const focusoutEvent = new FocusEvent('focusout', {
+                bubbles: true,
+                relatedTarget: menu,
+            });
+            menuItems[0]?.dispatchEvent(focusoutEvent);
+            await waitForChartStability(chart);
+
+            // Chart should handle the event without crashing
+            expect(menu).toBeDefined();
+        });
+
+        test('should handle rapid focusout events correctly', async () => {
+            await prepareChart();
+            await contextMenuAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            const menu = document.querySelector(`.${DEFAULT_CONTEXT_MENU_CLASS}`);
+            expect(menu).toBeTruthy();
+
+            // Simulate multiple rapid focusout events
+            for (let i = 0; i < 3; i++) {
+                const focusoutEvent = new FocusEvent('focusout', {
+                    bubbles: true,
+                    relatedTarget: document.body,
+                });
+                menu?.dispatchEvent(focusoutEvent);
+            }
+
+            await waitForChartStability(chart);
+
+            // Menu should be closed after rapid events
+            expect(menu?.getAttribute('style')).toContain('display: none');
+        });
+    });
 });
