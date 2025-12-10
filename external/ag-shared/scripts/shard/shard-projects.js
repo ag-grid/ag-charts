@@ -24,7 +24,13 @@ const showProjectsCmd =
 const projects = execSync(showProjectsCmd, { encoding: 'utf-8' })
     .split('\n')
     .map((p) => p.trim())
-    .filter((p) => p.length > 0);
+    .filter((p) => p.length > 0)
+    // Filter out yarn output lines that may be captured
+    .filter((p) => !p.startsWith('yarn run'))
+    .filter((p) => !p.startsWith('$'))
+    .filter((p) => !p.startsWith('Done in'))
+    // Exclude 'all' meta-project which triggers full generation via dependsOn
+    .filter((p) => p !== 'all');
 
 if (projects.length === 0) {
     process.exit(0);
