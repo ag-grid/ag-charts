@@ -344,3 +344,9 @@ function insertMiddleDatumNegative() {
     setEvent(null);
     chart?.updateDelta({ data: readMeta().insertMiddleDatumNegative() });
 }
+
+(() => {
+    const bodyStyle = (document.querySelector('body') as HTMLElement).style;
+    bodyStyle.overflow = 'auto';
+    bodyStyle.display = 'block';
+})();
