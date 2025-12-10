@@ -205,7 +205,7 @@ jobs:
             - name: nx generate
               id: generate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }}  -t generate
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }}  -t generate -c production
 
     build:
         runs-on: ubuntu-24.04
