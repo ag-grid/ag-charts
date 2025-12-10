@@ -33,7 +33,7 @@ import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
+import { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
@@ -1717,6 +1717,22 @@ export class AreaSeries extends CartesianSeries<
             undefined,
             stylerStyle
         );
+    }
+
+    public override isPointInArea(x: number, y: number): boolean {
+        let fillPath: Path | undefined;
+        for (const child of this.backgroundGroup.children()) {
+            if (child instanceof Path) {
+                fillPath = child;
+                break;
+            }
+        }
+
+        if (!fillPath?.getBBox().containsPoint(x, y)) {
+            return false;
+        }
+
+        return fillPath.isPointInPath(x, y);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

@@ -88,6 +88,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     tooltipEnabled?: boolean;
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined;
+    isPointInArea?(x: number, y: number): boolean;
 }
 
 /**
