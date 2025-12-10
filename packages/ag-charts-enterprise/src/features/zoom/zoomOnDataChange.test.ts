@@ -8,7 +8,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { deepFreeze, deepClone } from 'ag-charts-core';
+import { deepClone, deepFreeze } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -36,10 +36,10 @@ type Meta = {
 interface TestFixture<D> {
     meta: MetaEntry<D>;
     zoomListener: ZoomListener<D>;
-    appendDatum (): Promise<void>;
-    prependDatum ():Promise<void>
-    insertMiddleDatum ():Promise<void>
-    insertMiddleDatumNegative ():Promise<void>
+    appendDatum(): Promise<void>;
+    prependDatum(): Promise<void>;
+    insertMiddleDatum(): Promise<void>;
+    insertMiddleDatumNegative(): Promise<void>;
 }
 
 const meta: Meta = {
@@ -218,7 +218,7 @@ const meta: Meta = {
         prependDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
-            return [datum, ...data]
+            return [datum, ...data];
         },
         insertMiddleDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
@@ -290,7 +290,7 @@ const meta: Meta = {
         prependDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
-            return [datum, ...data]
+            return [datum, ...data];
         },
         insertMiddleDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
@@ -359,7 +359,7 @@ describe('Strategies', () => {
         let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture  = await prepareChart(meta['numberAxis-preserveDomain']);
+            fixture = await prepareChart(meta['numberAxis-preserveDomain']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
@@ -424,7 +424,7 @@ describe('Strategies', () => {
         let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture  = await prepareChart(meta['numberAxis-preserveRatios']);
+            fixture = await prepareChart(meta['numberAxis-preserveRatios']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
@@ -498,7 +498,7 @@ describe('Strategies', () => {
         } as const);
 
         beforeEach(async () => {
-            fixture  = await prepareChart(meta['ordinalTimeAxis-preserveDomain']);
+            fixture = await prepareChart(meta['ordinalTimeAxis-preserveDomain']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject(expectedRangeXSerialized);
@@ -563,7 +563,7 @@ describe('Strategies', () => {
         let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture  = await prepareChart(meta['ordinalTimeAxis-preserveRatios']);
+            fixture = await prepareChart(meta['ordinalTimeAxis-preserveRatios']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
