@@ -3,9 +3,11 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import type {
+    InterfaceNode,
     MemberNode,
     NodeTypes,
     TypeAliasNode,
+    TypeLiteralNode,
     TypeNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
@@ -32,6 +34,7 @@ import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties'
 
 export const ApiReferenceContext = createContext<Map<string, NodeTypes> | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
+type ReferenceMap = Map<string, NodeTypes>;
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
@@ -180,16 +183,10 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
     const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
 
-    const hasMembers = interfaceRef && 'members' in interfaceRef;
+    const hasMembers = hasMembersNode(interfaceRef);
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
 
-    let skip: string[] | undefined;
-    let typeArguments: string[] | undefined;
-    if (hasMembers && typeof member.type === 'object' && member.type.kind === 'typeRef') {
-        typeArguments = member.type.typeArguments?.map((genericType) =>
-            normalizeType(genericsMap?.[genericType as any] ?? genericType)
-        );
-    }
+    const typeArguments = hasMembers ? buildTypeArguments(member, genericsMap) : undefined;
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -198,7 +195,7 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
         } else if (hasMembers && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
-    }, [location?.hash]);
+    }, [location?.hash, anchorId, hasMembers, setExpanded]);
 
     return (
         <>
@@ -212,22 +209,20 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
             />
             {hasMembers && isExpanded && (
                 <div className={styles.childPropsList}>
-                    {processMembers(interfaceRef, config, typeArguments)
-                        .filter((childMember) => !skip?.includes(childMember.name))
-                        .map((childMember) => (
-                            <NodeFactory
-                                key={childMember.name}
-                                member={childMember}
-                                anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
-                                prefixPath={prefixPath.concat(member.name)}
-                                genericsMap={(interfaceRef as any).genericsMap}
-                                nestedPath={
-                                    hasNestedPages
-                                        ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
-                                        : undefined
-                                }
-                            />
-                        ))}
+                    {processMembers(interfaceRef, config, typeArguments).map((childMember) => (
+                        <NodeFactory
+                            key={childMember.name}
+                            member={childMember}
+                            anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
+                            prefixPath={prefixPath.concat(member.name)}
+                            genericsMap={isInterfaceNode(interfaceRef) ? interfaceRef.genericsMap : undefined}
+                            nestedPath={
+                                hasNestedPages
+                                    ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                    : undefined
+                            }
+                        />
+                    ))}
                 </div>
             )}
         </>
@@ -344,7 +339,7 @@ function getCollapsibleType(
     additionalDetails?: NodeTypes | (NodeTypes | undefined)[],
     nestedPath?: string
 ): CollapsibleType {
-    const hasMembers = additionalDetails && 'members' in additionalDetails;
+    const hasMembers = hasMembersNode(additionalDetails);
     let collapsibleType: CollapsibleType = 'none';
     if (hasMembers) {
         collapsibleType = 'childrenProperties';
@@ -366,15 +361,8 @@ function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[]
         return member;
     }
 
-    const resolve = (resolveType: string): NodeTypes | NodeTypes[] | undefined => {
-        if (reference?.has(resolveType) && !isInterfaceHidden(resolveType)) {
-            const ref = reference.get(resolveType)!;
-            if (ref?.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
-                return [ref, reference.get(ref.type)!];
-            }
-            return ref;
-        }
-    };
+    const resolve = (resolveType: string): NodeTypes | NodeTypes[] | undefined =>
+        resolveReferenceType(reference, resolveType);
 
     const resolvedDetails = resolve(memberType);
     if (resolvedDetails) {
@@ -393,6 +381,39 @@ function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[]
             return unionTypes;
         }
     }
+}
+
+function hasMembersNode(node?: NodeTypes | (NodeTypes | undefined)[]): node is InterfaceNode | TypeLiteralNode {
+    return Boolean(node && !Array.isArray(node) && 'members' in node);
+}
+
+function isInterfaceNode(node?: NodeTypes | (NodeTypes | undefined)[]): node is InterfaceNode {
+    return Boolean(node && !Array.isArray(node) && node.kind === 'interface');
+}
+
+function buildTypeArguments(member: MemberNode, genericsMap?: Record<string, TypeNode>) {
+    if (typeof member.type === 'object' && member.type.kind === 'typeRef') {
+        return member.type.typeArguments?.map((genericType) =>
+            typeof genericType === 'string'
+                ? normalizeType(genericsMap?.[genericType] ?? genericType)
+                : normalizeType(genericType)
+        );
+    }
+    return undefined;
+}
+
+function resolveReferenceType(
+    reference: ReferenceMap | undefined,
+    typeName: string
+): NodeTypes | NodeTypes[] | undefined {
+    if (!reference?.has(typeName) || isInterfaceHidden(typeName)) {
+        return undefined;
+    }
+    const ref = reference.get(typeName)!;
+    if (ref.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
+        return [ref, reference.get(ref.type)!];
+    }
+    return ref;
 }
 
 function scrollToAndHighlightById(id: string) {
