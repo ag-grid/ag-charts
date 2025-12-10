@@ -329,7 +329,7 @@ const meta = {
         },
         insertMiddleDatum: () => {
             const { data } = meta['continuousTimeAxis-preserveDomain'].options;
-            const datum = { date: new Date('2024-04-24'), value: 30 }; // Wednesday
+            const datum = { date: new Date('2024-04-24'), value: 20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
