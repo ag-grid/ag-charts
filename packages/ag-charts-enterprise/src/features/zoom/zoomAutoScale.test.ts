@@ -160,32 +160,29 @@ describe('ZoomAutoScale', () => {
     });
 
     test('updateDelta should respond to autoScaling changes', async () => {
-        type D = { time: number; temp: number; humidity: number };
+        type D = { input: number; output: number };
         let state: AgChartState;
         const zoomListener = newFreezableMockInferred<MockZoomListener<D, unknown>>();
         const options: AgCartesianChartOptions<D> = {
             data: [
-                { time: 0, temp: -9, humidity: 10 },
-                { time: 1, temp: 50, humidity: 40 },
-                { time: 2, temp: 25, humidity: 30 },
-                { time: 3, temp: 60, humidity: 55 },
-                { time: 4, temp: 50, humidity: 45 },
-                { time: 5, temp: 22, humidity: 35 },
-                { time: 6, temp: 50, humidity: 97 },
-                { time: 7, temp: 90, humidity: 88 },
+                { input: 0, output: -20 },
+                { input: 1, output: 50 },
+                { input: 2, output: 25 },
+                { input: 3, output: 60 },
+                { input: 4, output: 50 },
+                { input: 5, output: 22 },
+                { input: 6, output: 50 },
+                { input: 7, output: 175 },
             ],
-            axes: {
-                x: { type: 'number', position: 'bottom' },
-                y1: { type: 'number', position: 'left' },
-                y2: { type: 'number', position: 'right' },
-            },
-            series: [
-                { type: 'line', xKey: 'time', yKeyAxis: 'y1', yKey: 'temp' },
-                { type: 'line', xKey: 'time', yKeyAxis: 'y2', yKey: 'humidity' },
-            ],
+            series: [{ type: 'line', xKey: 'input', yKey: 'output' }],
             zoom: {
                 enabled: true,
-                autoScaling: { enabled: false },
+                autoScaling: {
+                    enabled: false,
+                },
+            },
+            listeners: {
+                zoom: zoomListener.frozen,
             },
         };
 
