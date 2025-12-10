@@ -263,6 +263,153 @@ const meta = {
             return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
     },
+
+    'continuousTimeAxis-preserveDomain': {
+        options: {
+            data: [
+                { date: new Date('2024-04-19'), value: 60 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-22'), value: 10 }, // Monday
+                { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                // Skipping Wednesday (24th)
+                { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                { date: new Date('2024-04-26'), value: 50 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-29'), value: 60 }, // Monday
+            ],
+            series: [
+                {
+                    type: 'area',
+                    xKey: 'date',
+                    yKey: 'value',
+                },
+            ],
+            axes: {
+                x: {
+                    type: 'time',
+                    position: 'bottom',
+                    parentLevel: {
+                        // Force more labels to show
+                        enabled: true,
+                    },
+                },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                },
+            },
+
+            initialState: {
+                zoom: {
+                    rangeX: {
+                        start: { __type: 'date', value: '2024-04-23' },
+                        end: { __type: 'date', value: '2024-04-25' },
+                    },
+                },
+            },
+            zoom: {
+                enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
+                onDataChange: {
+                    strategy: 'preserveDomain',
+                },
+            },
+        },
+        appendDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
+            return [...data, datum];
+        },
+        prependDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
+            return [datum, ...data];
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-24'), value: 30 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+    },
+
+    'continuousTimeAxis-preserveRatios': {
+        options: {
+            data: [
+                { date: new Date('2024-04-19'), value: 60 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-22'), value: 10 }, // Monday
+                { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+                // Skipping Wednesday (24th)
+                { date: new Date('2024-04-25'), value: 40 }, // Thursday
+                { date: new Date('2024-04-26'), value: 50 }, // Friday
+                // Skipping Saturday and Sunday
+                { date: new Date('2024-04-29'), value: 60 }, // Monday
+            ],
+            series: [
+                {
+                    type: 'area',
+                    xKey: 'date',
+                    yKey: 'value',
+                },
+            ],
+            axes: {
+                x: {
+                    type: 'time',
+                    position: 'bottom',
+                    parentLevel: {
+                        // Force more labels to show
+                        enabled: true,
+                    },
+                },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                },
+            },
+
+            initialState: {
+                zoom: {
+                    ratioX: { start: 0.25, end: 0.7 },
+                },
+            },
+            zoom: {
+                enabled: true,
+                autoScaling: {
+                    enabled: false,
+                },
+                onDataChange: {
+                    strategy: 'preserveRatios',
+                },
+            },
+        },
+        appendDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
+            return [...data, datum];
+        },
+        prependDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
+            return [datum, ...data];
+        },
+        insertMiddleDatum: () => {
+            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+        insertMiddleDatumNegative: () => {
+            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
+            return [...data.slice(0, 4), datum, ...data.slice(4)];
+        },
+    },
 };
 
 const testOptions = {
