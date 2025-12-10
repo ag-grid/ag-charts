@@ -2,7 +2,6 @@ import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { CartesianAxisDirection, DeepRequired } from 'ag-charts-core';
 import {
-    ActionOnSet,
     BaseProperties,
     ChartAxisDirection,
     CleanupRegistry,
@@ -14,31 +13,18 @@ import {
 
 type ZoomState = _ModuleSupport.ZoomState;
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
-
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
-type ZoomAutoScaleChangeCb = (opts: ZoomAutoScalingOpts) => void;
-type ZoomAutoScaleChangeListener = { onChange: ZoomAutoScaleChangeCb };
 
 // `chart.zoom.autoScaling` options
 export class ZoomAutoScalingProperties extends BaseProperties implements ZoomAutoScalingOpts {
-    constructor(protected onChange: ZoomAutoScaleChangeCb) {
+    constructor() {
         super();
     }
 
     @Property
-    @ActionOnSet<ZoomAutoScalingProperties>({
-        changeValue(enabled) {
-            this.onChange({ enabled, padding: this.padding });
-        },
-    })
     enabled = false;
 
     @Property
-    @ActionOnSet<ZoomAutoScalingProperties>({
-        changeValue(padding) {
-            this.onChange({ enabled: this.enabled, padding });
-        },
-    })
     padding = 0;
 }
 
@@ -48,7 +34,7 @@ interface ZoomAutoScalerPropertiesDeps {
     readonly enableIndependentAxes?: boolean;
 }
 
-export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
+export class ZoomAutoScaler {
     constructor(
         private readonly properties: ZoomAutoScalingProperties,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
@@ -72,17 +58,6 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     onManualAdjustment(direction: ChartAxisDirection) {
         if (direction === ChartAxisDirection.Y) {
             this.manuallyAdjusted = true;
-        }
-    }
-
-    onChange(opts: ZoomAutoScalingOpts): void {
-        if (opts.enabled) {
-            this.zoomManager.updateChanges({
-                source: 'chart-update',
-                sourceDetail: 'internal-autoScaling',
-                changes: this.autoScaleYZoom() ?? {},
-                isReset: false,
-            });
         }
     }
 

@@ -132,9 +132,7 @@ export class Zoom extends AbstractModuleInstance {
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     @Property
-    public readonly autoScaling: ZoomAutoScalingProperties = new ZoomAutoScalingProperties((opts) => {
-        this.autoScaler?.onChange(opts);
-    });
+    public readonly autoScaling: ZoomAutoScalingProperties = new ZoomAutoScalingProperties();
 
     @ActionOnSet<Zoom>({
         changeValue(newValue) {
