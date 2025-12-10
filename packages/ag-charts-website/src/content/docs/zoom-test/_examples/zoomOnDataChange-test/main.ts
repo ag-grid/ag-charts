@@ -292,6 +292,7 @@ const meta = {
                         // Force more labels to show
                         enabled: true,
                     },
+                    nice: false,
                 },
                 y: {
                     type: 'number',
@@ -367,6 +368,7 @@ const meta = {
                         // Force more labels to show
                         enabled: true,
                     },
+                    nice: false,
                 },
                 y: {
                     type: 'number',
