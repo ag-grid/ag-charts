@@ -90,7 +90,6 @@ type FontOperation = { $rem: AnyLeaf }; // Ratio of base font size
 
 type LocationOperation =
     | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
-    | { $isThemeOverride: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path
@@ -107,10 +106,7 @@ type LogicOperation =
     | { $greaterThan: [Leaf<number>, Leaf<number>] }
     | { $lessThan: [Leaf<number>, Leaf<number>] };
 
-type NumericOperation =
-    | { $even: Leaf<number> } // Number
-    | { $mul: [Leaf<number>, Leaf<number>] } // Number A | Number B
-    | { $round: Leaf<number> }; // Number
+type NumericOperation = { $even: Leaf<number> }; // Number
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied

@@ -927,36 +927,6 @@ describe('OptionsGraph', () => {
         });
     });
 
-    describe('numeric operations', () => {
-        it('should resolve `$mul` operations', () => {
-            const themeConfig = {
-                line: {
-                    one: { $mul: [2, 4] },
-                },
-            };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
-            expect(options).toStrictEqual({
-                one: 8,
-                axes: expect.any(Object),
-            });
-        });
-
-        it('should resolve `$round` operations', () => {
-            const themeConfig = {
-                line: {
-                    one: { $round: [1.234] },
-                    two: { $round: [1.987] },
-                },
-            };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
-            expect(options).toStrictEqual({
-                one: 1,
-                two: 2,
-                axes: expect.any(Object),
-            });
-        });
-    });
-
     describe('combinations', () => {
         it('should resolve `$omit` with `$switch`', () => {
             const themeConfig = {

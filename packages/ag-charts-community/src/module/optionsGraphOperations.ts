@@ -472,7 +472,6 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
 enum LocationOperation {
     IsUserOption = '$isUserOption',
-    IsThemeOverride = '$isThemeOverride',
     MapPalette = '$mapPalette',
     Palette = '$palette',
     Path = '$path',
@@ -482,7 +481,6 @@ enum LocationOperation {
 
 const locationOperations: Record<LocationOperation, OperationFns> = {
     $isUserOption: isUserOptionOperation,
-    $isThemeOverride: isThemeOverrideOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -525,29 +523,6 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     if (path === UNRESOLVABLE_PATH) return false;
 
     return graph.hasUserOption(path);
-}
-
-function isThemeOverrideOperation(
-    graph: OptionsGraphInterface,
-    vertex: VertexInterface,
-    values: Array<VertexInterface>
-) {
-    const [relativePathVertex, thenVertex, elseVertex] = values;
-
-    const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
-    if (!isString(relativePath)) {
-        throw new Error(`\`$isThemeOverride\` json operation failed on [${String(relativePath)}], expecting a string.`);
-    }
-
-    const pathArray = graph.getPathArray(vertex);
-    const path = resolvePath(pathArray, relativePath);
-    if (path === UNRESOLVABLE_PATH) return;
-
-    if (graph.hasThemeOverride(path)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
-    }
-
-    return graph.resolveVertexValue(vertex, elseVertex);
 }
 
 const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);
@@ -1053,14 +1028,10 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
 enum NumericOperation {
     IsEven = '$isEven',
-    Mul = '$mul',
-    Round = '$round',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
-    $mul: mulOperation,
-    $round: roundOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1068,26 +1039,6 @@ function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
-}
-
-function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    let result: number | undefined;
-    for (const valueVertex of values) {
-        const value = graph.resolveVertexValue(vertex, valueVertex);
-        if (result == null) {
-            result = Number(value);
-        } else {
-            result *= Number(value);
-        }
-    }
-    return result;
-}
-
-function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
-    if (!valueVertex) return;
-
-    return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
 }
 
 export const operations: Record<Operation, OperationFns> = {
