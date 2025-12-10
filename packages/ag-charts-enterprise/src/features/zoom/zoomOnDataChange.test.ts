@@ -222,12 +222,12 @@ const meta: Meta = {
         },
         insertMiddleDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
-            const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
+            const datum = { date: new Date('2024-04-24'), value: 30 }; // Wednesday
             return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
             const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
-            const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
+            const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
     },
@@ -294,12 +294,12 @@ const meta: Meta = {
         },
         insertMiddleDatum: () => {
             const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
-            const datum = { date: new Date('2024-04-04'), value: 50 }; // Wednesday
+            const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
             return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
             const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
-            const datum = { date: new Date('2024-04-04'), value: -20 }; // Wednesday
+            const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 4), datum, ...data.slice(4)];
         },
     },
