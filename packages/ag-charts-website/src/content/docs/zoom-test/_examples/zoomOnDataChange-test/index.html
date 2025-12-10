@@ -1,0 +1,17 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select id="meta">
+            <option value="numberAxis-preserveDomain">numberAxis-preserveDomain</option>
+            <option value="numberAxis-preserveRatios">numberAxis-preserveRatios</option>
+            <option value="ordinalTimeAxis-preserveDomain">ordinalAxisTime-preserveDomain</option>
+            <option value="ordinalTimeAxis-preserveRatios">ordinalAxisTime-preserveRatios</option>
+        </select>
+        <button onclick="create()">Create</button>
+        <button onclick="appendDatum()">Append</button>
+        <button onclick="prependDatum()">Prepend</button>
+        <button onclick="insertMiddleDatum()">Middle</button>
+        <button onclick="insertMiddleDatumNegative()">Middle (Negative)</button>
+    </div>
+</div>
+<div id="myChart"></div>
+<pre id="event_json">event: (uninitialised)</pre>
