@@ -262,11 +262,9 @@ export function extractSearchData(
     if (isInterfaceLikeNode(interfaceRef)) {
         return extractInterfaceSearchData(reference, interfaceRef, basePath, labelPrefix);
     }
-
     if (isUnionTypeAlias(interfaceRef)) {
         return extractUnionSearchData(reference, interfaceRef, basePath, labelPrefix);
     }
-
     return [];
 }
 
@@ -649,13 +647,22 @@ function resolveMemberReference(
     reference?: ApiReferenceType,
     genericsMap?: Record<string, TypeNode>
 ) {
-    if (typeof member.type === 'string') {
-        const mappedType = genericsMap?.[member.type] ?? member.type;
-        return typeof mappedType === 'string' && reference?.has(mappedType) ? reference.get(mappedType) : undefined;
-    }
-    if (isTypeReferenceNode(member.type) && typeof member.type.type === 'string') {
-        return reference?.get(member.type.type);
-    }
+    const resolveTypeName = (type: TypeNode | string | undefined): string | undefined => {
+        if (!type) return;
+        if (isArrayNode(type)) {
+            return resolveTypeName(type.type);
+        }
+        if (typeof type === 'string') {
+            const mappedType = genericsMap?.[type] ?? type;
+            return typeof mappedType === 'string' ? mappedType : undefined;
+        }
+        if (isTypeReferenceNode(type) && typeof type.type === 'string') {
+            return type.type;
+        }
+    };
+
+    const resolvedType = resolveTypeName(member.type);
+    return resolvedType && reference?.get(resolvedType);
 }
 
 function extractUnionSearchData(
