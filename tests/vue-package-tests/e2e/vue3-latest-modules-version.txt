@@ -1,0 +1,9 @@
+    "ag-charts-vue3": "^13.0.0",
+  "name": "vue-latest-test",
+    "type-check": "vue-tsc --build"
+    "ag-charts-vue3": "^13.0.0",
+    "vue": "^3.5.25"
+    "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/tsconfig": "^0.8.1",
+    "vite-plugin-vue-devtools": "^8.0.5",
+    "vue-tsc": "^3.1.5"

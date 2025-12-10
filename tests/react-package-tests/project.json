@@ -50,21 +50,21 @@
     },
     "test:package:basic:production-18": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run-basic.sh -p 18",
+      "command": "{projectRoot}/run-basic-modules.sh -p 18",
       "cache": false,
       "configurations": {
         "update": {
-          "command": "{projectRoot}/run-basic.sh -p -u 18"
+          "command": "{projectRoot}/run-basic-modules.sh -p -u 18"
         }
       }
     },
     "test:package:basic:production-19": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run-basic.sh -p 19",
+      "command": "{projectRoot}/run-basic-modules.sh -p 19",
       "cache": false,
       "configurations": {
         "update": {
-          "command": "{projectRoot}/run-basic.sh -p -u 19"
+          "command": "{projectRoot}/run-basic-modules.sh -p -u 19"
         }
       }
     },
