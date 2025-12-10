@@ -306,7 +306,7 @@ const meta: Meta = {
 };
 
 // Interactive Version (for debugging): https://plnkr.co/edit/V0fHzpJXuYgpum7m?open=main.js
-describe('Zoom', () => {
+describe('Strategies', () => {
     setupMockConsole();
     setupMockCanvas();
 
