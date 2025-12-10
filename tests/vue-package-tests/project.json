@@ -24,11 +24,11 @@
     },
     "test:package:production-latest": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run.sh -p latest",
+      "command": "{projectRoot}/run-modules.sh -p latest",
       "cache": false,
       "configurations": {
         "update": {
-          "command": "{projectRoot}/run.sh -p -u latest"
+          "command": "{projectRoot}/run-modules.sh -p -u latest"
         }
       }
     },
