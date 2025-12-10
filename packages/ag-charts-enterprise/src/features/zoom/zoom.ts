@@ -195,7 +195,6 @@ export class Zoom extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this, ctx.eventsHub, this.cleanup);
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(
@@ -255,6 +254,9 @@ export class Zoom extends AbstractModuleInstance {
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
         );
+
+        // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
+        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this, ctx.eventsHub, this.cleanup);
     }
 
     private teardown() {
