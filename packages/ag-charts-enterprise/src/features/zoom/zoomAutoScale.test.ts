@@ -64,11 +64,11 @@ describe('ZoomAutoScale', () => {
         });
 
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toBe(undefined);
+        expect(state.zoom?.autoScaledAxes).toBeUndefined();
 
         await wheelZoomIn();
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toBe(undefined);
+        expect(state.zoom?.autoScaledAxes).toBeUndefined();
 
         expect(zoomListener.mock).toBeCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: undefined });
@@ -192,7 +192,7 @@ describe('ZoomAutoScale', () => {
         // Init chart; Expect no zoom at all.
         await createChart<D>(options);
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toBe(undefined);
+        expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
         zoomListener.mock.mockClear();
@@ -200,13 +200,13 @@ describe('ZoomAutoScale', () => {
         // Zoom In; Expect zoom on X-axis only (no autoScaling).
         await wheelZoomIn();
         state = chart.getState();
-        expect(state.zoom?.autoScaledAxes).toBe(undefined);
+        expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).not.toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
         expect(zoomListener.mock).toBeCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioX: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioY: { start: 0, end: 1 } });
-        expect(zoomListener.mock.mock.calls[0][0]?.autoScaledAxes).toBe(undefined);
+        expect(zoomListener.mock.mock.calls[0][0]?.autoScaledAxes).toBeUndefined();
         zoomListener.mock.mockClear();
 
         // Enable autoScaling; Expect zoom on both X and Y axes.
