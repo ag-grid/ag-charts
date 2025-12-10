@@ -40,7 +40,7 @@ describe('ZoomAutoScale', () => {
         type D = { x: number; y: number };
         let state: AgChartState;
         const zoomListener = newFreezableMockInferred<MockZoomListener<D, unknown>>();
-        await createChart<D>({
+        const options: AgCartesianChartOptions<D> = {
             data: [
                 { x: 0, y: -20 },
                 { x: 1, y: 50 },
@@ -61,15 +61,15 @@ describe('ZoomAutoScale', () => {
             listeners: {
                 zoom: zoomListener.frozen,
             },
-        });
+        };
 
+        await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
 
         await wheelZoomIn();
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
-
         expect(zoomListener.mock).toBeCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: undefined });
     });
@@ -78,7 +78,7 @@ describe('ZoomAutoScale', () => {
         type D = { x: number; y: number };
         let state: AgChartState;
         const zoomListener = newFreezableMockInferred<MockZoomListener<D, unknown>>();
-        await createChart<D>({
+        const options: AgCartesianChartOptions<D> = {
             data: [
                 { x: 0, y: -20 },
                 { x: 1, y: 50 },
@@ -99,15 +99,15 @@ describe('ZoomAutoScale', () => {
             listeners: {
                 zoom: zoomListener.frozen,
             },
-        });
+        };
 
+        await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
 
         await wheelZoomIn();
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
-
         expect(zoomListener.mock).toBeCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: ['y'] });
     });
@@ -116,8 +116,7 @@ describe('ZoomAutoScale', () => {
         type D = { time: number; temp: number; humidity: number };
         let state: AgChartState;
         const zoomListener = newFreezableMockInferred<MockZoomListener<D, unknown>>();
-
-        await createChart<D>({
+        const options: AgCartesianChartOptions<D> = {
             data: [
                 { time: 0, temp: -9, humidity: 10 },
                 { time: 1, temp: 50, humidity: 40 },
@@ -144,8 +143,9 @@ describe('ZoomAutoScale', () => {
             listeners: {
                 zoom: zoomListener.frozen,
             },
-        });
+        };
 
+        await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y1', 'y2']);
 
