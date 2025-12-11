@@ -1,4 +1,4 @@
-import { Logger } from '../../runtime';
+import { warnOnce } from '../../logging/logger';
 import { clamp } from '../data/numbers';
 import { isString } from '../types/typeGuards';
 
@@ -37,7 +37,7 @@ export function parseNumberFormat(format: string): FormatterOptions | undefined 
 
     const match = formatRegEx.exec(format);
     if (!match) {
-        Logger.warnOnce(`The number formatter is invalid: ${format}`);
+        warnOnce(`The number formatter is invalid: ${format}`);
         return;
     }
 

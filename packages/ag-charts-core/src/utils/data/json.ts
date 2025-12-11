@@ -1,4 +1,4 @@
-import { Logger } from '../../runtime';
+import { warn } from '../../logging/logger';
 import { isProperties } from '../../state/properties';
 import type { DeepPartial, PlainObject } from '../../types/global';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from '../types/typeGuards';
@@ -106,7 +106,7 @@ function cloneArray<T>(source: T[], opts?: CloneOptions): T[] {
     const seen = opts?.seen;
     for (const item of source) {
         if (typeof item === 'object' && seen?.includes(item)) {
-            Logger.warn('cycle detected in array', item);
+            warn('cycle detected in array', item);
             continue;
         }
         seen?.push(item);
@@ -247,7 +247,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             if (targetType === CLASS_INSTANCE_TYPE && !(property in target || property === 'context')) {
                 if (newValue === undefined) continue;
 
-                Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
+                warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                 continue;
             }
 
@@ -257,7 +257,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 newValueType !== currentValueType &&
                 (currentValueType !== CLASS_INSTANCE_TYPE || newValueType !== 'object')
             ) {
-                Logger.warn(
+                warn(
                     `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${currentValueType}]`
                 );
                 continue;
@@ -271,7 +271,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 }
             } else if (newValueType === 'object' && property !== 'context') {
                 if (!(property in targetAny)) {
-                    Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
+                    warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                     continue;
                 }
 
@@ -288,7 +288,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 targetAny[property] = newValue;
             }
         } catch (error: any) {
-            Logger.warn(`unable to set [${propertyPath}] in [${targetClass?.name}]; nested error is: ${error.message}`);
+            warn(`unable to set [${propertyPath}] in [${targetClass?.name}]; nested error is: ${error.message}`);
         }
     }
 

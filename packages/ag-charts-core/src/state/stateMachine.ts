@@ -1,4 +1,4 @@
-import { Debug } from '../runtime';
+import * as Debug from '../logging/debugLogger';
 import {
     addObserverToInstanceProperty,
     extractDecoratedProperties,

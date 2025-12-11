@@ -1,4 +1,4 @@
-import { Logger } from '../runtime';
+import { warnOnce } from '../logging/logger';
 import { isDate, isObject } from '../utils/types/typeGuards';
 
 export interface MementoOriginator<Memento = any> {
@@ -33,17 +33,17 @@ export class MementoCaretaker {
 
     restore(blob: unknown, ...originators: Array<MementoOriginator>) {
         if (typeof blob !== 'object') {
-            Logger.warnOnce(`Could not restore data of type [${typeof blob}], expecting an object, ignoring.`);
+            warnOnce(`Could not restore data of type [${typeof blob}], expecting an object, ignoring.`);
             return;
         }
 
         if (blob == null) {
-            Logger.warnOnce(`Could not restore data of type [null], expecting an object, ignoring.`);
+            warnOnce(`Could not restore data of type [null], expecting an object, ignoring.`);
             return;
         }
 
         if (!('version' in blob) || typeof blob.version !== 'string') {
-            Logger.warnOnce(`Could not restore data, missing [version] string in object, ignoring.`);
+            warnOnce(`Could not restore data, missing [version] string in object, ignoring.`);
             return;
         }
 
@@ -53,7 +53,7 @@ export class MementoCaretaker {
             const messages: Array<string> = [];
             if (!originator.guardMemento(memento, messages)) {
                 const messagesString = messages.length > 0 ? `\n\n${messages.join('\n\n')}\n\n` : '';
-                Logger.warnOnce(
+                warnOnce(
                     `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.${messagesString}`,
                     memento
                 );

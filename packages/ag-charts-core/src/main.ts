@@ -1,6 +1,3 @@
-// Runtime (side-effects)
-export * from './runtime';
-
 // Types
 export * from './types/global';
 export * from './modules/moduleDefinition';
@@ -10,11 +7,18 @@ export * from './types/scales';
 // Structures
 export * from './structures/eventEmitter';
 export * from './structures/lruCache';
+export * as Debug from './logging/debugLogger';
+export * as Logger from './logging/logger';
+export * as DebugMetrics from './logging/debugMetrics';
+export * from './modules/enterpriseRegistry';
+export * as ModuleRegistry from './modules/moduleRegistry';
+export { AbstractModuleInstance } from './modules/moduleInstance';
 
 // Config
 export * from './config/chartDefaults';
 export * from './config/optionsDefaults';
 export * from './config/gaugePreset';
+export * from './config/themeUtil';
 
 // API
 export * from './state/memento';
@@ -100,7 +104,6 @@ export * from './logging/debugMetrics';
 export { ChangeDetectableProperties } from './rendering/changeDetectableProperties';
 export * from './utils/format/numberFormat';
 export * from './utils/format/timeFormat';
-export * from './config/themeUtil';
 
 // Rendering
 export * from './rendering/domElements';

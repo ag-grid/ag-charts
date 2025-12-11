@@ -1,6 +1,6 @@
 import type { AgTimeInterval } from 'ag-charts-types';
 
-import { Logger } from '../../runtime';
+import { warnOnce } from '../../logging/logger';
 import { clamp, countFractionDigits } from '../data/numbers';
 import { rescaleVisibleRange } from '../data/visibleRange';
 import { createNumberFormatter, parseNumberFormat } from '../format/numberFormat';
@@ -275,7 +275,7 @@ export function range(
 
 export function isDenseInterval(count: number, availableRange: number) {
     if (count >= availableRange) {
-        Logger.warnOnce(
+        warnOnce(
             `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
         );
         return true;

@@ -1,4 +1,4 @@
-import { Logger } from '../runtime';
+import { warnOnce } from '../logging/logger';
 import type { Callback, CallbackParam, RequireOptional } from '../types/global';
 
 type Caller = { context?: unknown } | undefined;
@@ -80,7 +80,7 @@ export class CallbackCache {
             }
             return result;
         } catch (e) {
-            Logger.warnOnce(`User callback errored, ignoring`, e);
+            warnOnce(`User callback errored, ignoring`, e);
             return;
         }
     }
