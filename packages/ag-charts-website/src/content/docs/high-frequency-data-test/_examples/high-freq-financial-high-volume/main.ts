@@ -30,14 +30,14 @@ function loadConfig(): FormConfig {
         const hash = window.location.hash.slice(1);
         if (hash) {
             const params = new URLSearchParams(hash);
-            
+
             const updatesRunning = params.get('updatesRunning');
             if (updatesRunning === 'true') {
                 loaded.updatesRunning = true;
             } else if (updatesRunning === 'false') {
                 loaded.updatesRunning = false;
             }
-            
+
             const frequency = params.get('frequency');
             if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
                 loaded.frequency = frequency;
@@ -46,7 +46,7 @@ function loadConfig(): FormConfig {
     } catch {
         // Ignore parsing errors
     }
-    
+
     return { ...DEFAULT_CONFIG, ...loaded };
 }
 
@@ -54,7 +54,7 @@ function saveConfig(newConfig: FormConfig) {
     try {
         if (window.parent === window) {
             const params = new URLSearchParams();
-            
+
             // Only persist non-default values
             if (newConfig.updatesRunning !== undefined && newConfig.updatesRunning !== DEFAULT_CONFIG.updatesRunning) {
                 params.set('updatesRunning', String(newConfig.updatesRunning));
@@ -62,7 +62,7 @@ function saveConfig(newConfig: FormConfig) {
             if (newConfig.frequency && newConfig.frequency !== DEFAULT_CONFIG.frequency) {
                 params.set('frequency', newConfig.frequency);
             }
-            
+
             const newHash = params.toString();
             history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
         }
@@ -405,7 +405,7 @@ if (getConfigValue('updatesRunning')) {
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const newConfig = loadConfig();
-    
+
     const newUpdatesRunning = newConfig.updatesRunning ?? DEFAULT_CONFIG.updatesRunning;
     if (newUpdatesRunning !== isRunning) {
         if (newUpdatesRunning) {
@@ -414,13 +414,13 @@ window.addEventListener('hashchange', () => {
             stopUpdates();
         }
     }
-    
+
     const newFrequency = (newConfig.frequency ?? DEFAULT_CONFIG.frequency) as string;
     const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
     if (newFrequency !== currentFrequency) {
         updateFrequency(newFrequency);
     }
-    
+
     // Update config object
     config = newConfig;
 });

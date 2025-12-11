@@ -1,6 +1,7 @@
 // @ag-skip-fws
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
-import { BenchmarkRunner, type BenchmarkConfig, type BenchmarkCallbacks } from './benchmark';
+
+import { type BenchmarkCallbacks, type BenchmarkConfig, BenchmarkRunner } from './benchmark';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -57,7 +58,7 @@ function parseVersion(versionString: string): [number, number, number] {
 
 function isVersionAtOrAfter(major: number, minor: number, patch: number): boolean {
     const [currentMajor, currentMinor, currentPatch] = parseVersion(VERSION);
-    
+
     if (currentMajor > major) return true;
     if (currentMajor < major) return false;
     if (currentMinor > minor) return true;
@@ -102,24 +103,24 @@ function loadConfig(): FormConfig {
         const hash = window.location.hash.slice(1);
         if (hash) {
             const params = new URLSearchParams(hash);
-            
+
             const seriesType = params.get('seriesType');
             if (seriesType && ALL_SERIES_TYPES.includes(seriesType as SeriesType)) {
                 loaded.seriesType = seriesType as SeriesType;
             }
-            
+
             const updatesRunning = params.get('updatesRunning');
             if (updatesRunning === 'true') {
                 loaded.updatesRunning = true;
             } else if (updatesRunning === 'false') {
                 loaded.updatesRunning = false;
             }
-            
+
             const frequency = params.get('frequency');
             if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
                 loaded.frequency = frequency;
             }
-            
+
             const axisType = params.get('axisType');
             if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
                 loaded.axisType = axisType as AxisType;
@@ -128,7 +129,7 @@ function loadConfig(): FormConfig {
     } catch {
         // Ignore parsing errors
     }
-    
+
     return { ...DEFAULT_CONFIG, ...loaded };
 }
 
@@ -136,7 +137,7 @@ function saveConfig(newConfig: FormConfig) {
     try {
         if (window.parent === window) {
             const params = new URLSearchParams();
-            
+
             // Only persist non-default values
             if (newConfig.seriesType && newConfig.seriesType !== DEFAULT_CONFIG.seriesType) {
                 params.set('seriesType', newConfig.seriesType);
@@ -150,7 +151,7 @@ function saveConfig(newConfig: FormConfig) {
             if (newConfig.axisType && newConfig.axisType !== DEFAULT_CONFIG.axisType) {
                 params.set('axisType', newConfig.axisType);
             }
-            
+
             const newHash = params.toString();
             history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
         }
@@ -364,16 +365,13 @@ function createAxesConfig(axisType: AxisType) {
 
 function createAxesConfigCompat(axisType: AxisType) {
     const axesDict = createAxesConfig(axisType);
-    
+
     if (SUPPORTS_AXES_DICT) {
         // Version >= 13: return dictionary format
         return axesDict;
     } else {
         // Version < 13: return array format
-        return [
-            axesDict.x,
-            axesDict.y,
-        ];
+        return [axesDict.x, axesDict.y];
     }
 }
 
@@ -551,7 +549,6 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
     recordCpuUsage(elapsed);
     return elapsed;
 }
-
 
 async function addPoints(count: number) {
     const append = createBatch(count);
@@ -863,12 +860,12 @@ if (urlParams.get('benchmark') === 'true') {
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const newConfig = loadConfig();
-    
+
     const newSeriesType = (newConfig.seriesType ?? DEFAULT_CONFIG.seriesType) as SeriesType;
     if (newSeriesType !== currentSeriesType && !seriesTypeUpdateInProgress) {
         void setSeriesType(newSeriesType);
     }
-    
+
     const newUpdatesRunning = newConfig.updatesRunning ?? DEFAULT_CONFIG.updatesRunning;
     if (newUpdatesRunning !== isRunning) {
         if (newUpdatesRunning) {
@@ -877,18 +874,18 @@ window.addEventListener('hashchange', () => {
             stopUpdates();
         }
     }
-    
+
     const newFrequency = (newConfig.frequency ?? DEFAULT_CONFIG.frequency) as string;
     const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
     if (newFrequency !== currentFrequency) {
         setUpdateFrequency(newFrequency);
     }
-    
+
     const newAxisType = (newConfig.axisType ?? DEFAULT_CONFIG.axisType) as AxisType;
     if (newAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
         void setAxisType(newAxisType);
     }
-    
+
     // Update config object
     config = newConfig;
 });
@@ -921,8 +918,12 @@ const benchmarkConfig: BenchmarkConfig<SeriesType> = {
     warmupUpdates: 20,
     version: VERSION,
     versionWarnings: [
-        ...(!SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.'] : []),
-        ...(!SUPPORTS_AXES_DICT ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).'] : []),
+        ...(!SUPPORTS_APPLY_TRANSACTION
+            ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.']
+            : []),
+        ...(!SUPPORTS_AXES_DICT
+            ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).']
+            : []),
     ],
     metadata: {
         initialDataPoints: INITIAL_POINTS,

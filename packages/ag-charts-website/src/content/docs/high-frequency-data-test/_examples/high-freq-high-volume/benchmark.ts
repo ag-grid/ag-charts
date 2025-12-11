@@ -28,22 +28,22 @@ export interface BenchmarkCallbacks<TTestCase = any> {
      * Setup the chart for a specific test case (e.g., switch series type)
      */
     setupTestCase: (testCase: TTestCase) => Promise<void>;
-    
+
     /**
      * Perform a single update and return elapsed time in milliseconds
      */
     performUpdate: (testCase: TTestCase, method: string) => Promise<number>;
-    
+
     /**
      * Get available methods for a test case (e.g., ['applyTransaction', 'updateDelta'])
      */
     getMethods: (testCase: TTestCase) => string[];
-    
+
     /**
      * Format test case name for display
      */
     formatTestCase: (testCase: TTestCase) => string;
-    
+
     /**
      * Format method name for display
      */
@@ -168,9 +168,8 @@ export class BenchmarkRunner<TTestCase = any> {
                     if (benchmarkRafId !== undefined) {
                         cancelAnimationFrame(benchmarkRafId);
                     }
-                    const averageTime = timings.length > 0
-                        ? timings.reduce((sum, t) => sum + t, 0) / timings.length
-                        : 0;
+                    const averageTime =
+                        timings.length > 0 ? timings.reduce((sum, t) => sum + t, 0) / timings.length : 0;
                     const minTime = timings.length > 0 ? Math.min(...timings) : 0;
                     const maxTime = timings.length > 0 ? Math.max(...timings) : 0;
                     resolve({
@@ -235,22 +234,24 @@ export class BenchmarkRunner<TTestCase = any> {
                 totalTests += this.callbacks.getMethods(testCase).length;
             }
             const testProgress = totalTests > 0 ? Math.round((completedTests / totalTests) * 100) : 0;
-            const updateProgress = this.state.totalUpdates > 0
-                ? Math.round((this.state.updateIndex / this.state.totalUpdates) * 100)
-                : 0;
-            
+            const updateProgress =
+                this.state.totalUpdates > 0 ? Math.round((this.state.updateIndex / this.state.totalUpdates) * 100) : 0;
+
             // Status badge: grey while running, green when complete
             const statusColor = this.state.isRunning ? '#6c757d' : '#28a745';
             const statusText = this.state.isRunning ? 'Running' : 'Complete';
-            
+
             // Build warnings badges if any
             let warningsBadges = '';
             if (this.config.versionWarnings && this.config.versionWarnings.length > 0) {
-                warningsBadges = this.config.versionWarnings.map(warning => 
-                    `<span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; border: 1px solid #ffeaa7; font-size: 11px; font-weight: 500; white-space: nowrap;">⚠️ ${warning}</span>`
-                ).join('');
+                warningsBadges = this.config.versionWarnings
+                    .map(
+                        (warning) =>
+                            `<span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; border: 1px solid #ffeaa7; font-size: 11px; font-weight: 500; white-space: nowrap;">⚠️ ${warning}</span>`
+                    )
+                    .join('');
             }
-            
+
             progressElement.style.padding = '0';
             progressElement.style.backgroundColor = 'transparent';
             progressElement.style.border = 'none';
@@ -284,7 +285,7 @@ export class BenchmarkRunner<TTestCase = any> {
     private displayBenchmarkResults() {
         // Update progress one final time to show "Complete" status
         this.updateBenchmarkProgress();
-        
+
         const resultsElement = document.getElementById('benchmarkResults');
         if (!resultsElement) return;
 
@@ -412,7 +413,7 @@ export class BenchmarkRunner<TTestCase = any> {
         const exportData = {
             version: this.config.version,
             config: this.config.metadata || {},
-            results: this.state.results.map(r => ({
+            results: this.state.results.map((r) => ({
                 testCase: this.callbacks.formatTestCase(r.testCase),
                 method: this.callbacks.formatMethod(r.method),
                 averageTime: r.averageTime,

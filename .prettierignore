@@ -23,3 +23,4 @@ external/ag-website-shared/src/components/documentation-archive/DocumentationArc
 packages/ag-charts-website/src/components/example-runner/components/FrameworkTemplate.astro
 
 .prettierrc
+tsconfig.base.json

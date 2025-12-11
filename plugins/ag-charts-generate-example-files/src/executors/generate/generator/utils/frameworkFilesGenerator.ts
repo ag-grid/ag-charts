@@ -69,7 +69,15 @@ type ConfigGenerator = ({
 
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, isEnterprise, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
+    vanilla: async ({
+        entryFile,
+        indexHtml,
+        isEnterprise,
+        typedBindings,
+        otherScriptFiles,
+        transformEntryFile,
+        isDev,
+    }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
