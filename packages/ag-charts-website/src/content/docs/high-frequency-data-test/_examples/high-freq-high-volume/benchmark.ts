@@ -48,6 +48,11 @@ export interface BenchmarkCallbacks<TTestCase = any> {
      * Format method name for display
      */
     formatMethod: (method: string) => string;
+
+    /**
+     * Called when benchmark completes or is stopped
+     */
+    onComplete?: () => Promise<void>;
 }
 
 interface BenchmarkState<TTestCase> {
@@ -123,6 +128,11 @@ export class BenchmarkRunner<TTestCase = any> {
             this.state.isRunning = false;
             this.state.currentTestCase = undefined;
             this.state.currentMethod = undefined;
+
+            // Call onComplete callback to restore form state
+            if (this.callbacks.onComplete) {
+                await this.callbacks.onComplete();
+            }
         }
     }
 

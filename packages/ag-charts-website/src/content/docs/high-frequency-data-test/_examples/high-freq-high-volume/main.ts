@@ -910,6 +910,9 @@ window.addEventListener('hashchange', () => {
 };
 (window as any).rollBatch = rollBatch;
 
+// Store original state for restoration after benchmark
+let originalSeriesType: SeriesType;
+
 // Create benchmark runner instance
 const benchmarkConfig: BenchmarkConfig<SeriesType> = {
     testCases: ALL_SERIES_TYPES,
@@ -971,10 +974,25 @@ const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
     },
     formatTestCase: (seriesType: SeriesType) => seriesType,
     formatMethod: (method: string) => method,
+    onComplete: async () => {
+        // Restore original series type
+        if (originalSeriesType !== currentSeriesType) {
+            await setSeriesType(originalSeriesType);
+        }
+        // Show controls again
+        const controlsRow = document.querySelector('.controls-row');
+        if (controlsRow) {
+            (controlsRow as HTMLElement).style.display = '';
+        }
+    },
 };
 
 const benchmarkRunner = new BenchmarkRunner<SeriesType>(benchmarkConfig, benchmarkCallbacks);
 
-(window as any).runBenchmark = () => benchmarkRunner.run();
+(window as any).runBenchmark = () => {
+    // Capture original state before benchmark starts
+    originalSeriesType = currentSeriesType;
+    benchmarkRunner.run();
+};
 
 export {};
