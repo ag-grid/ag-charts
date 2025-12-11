@@ -72,5 +72,5 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new OhlcSeries(ctx),
+    create: (ctx) => new OhlcSeries(ctx),
 };

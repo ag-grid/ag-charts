@@ -1,6 +1,5 @@
-import type { AgIconName } from 'packages/ag-charts-types/src/main';
-
-import { BaseProperties, Property } from '../../../../ag-charts-core/src/runtime/state/properties';
+import { BaseProperties, Property } from 'ag-charts-core';
+import type { AgIconName } from 'ag-charts-types';
 
 export class ToolbarButtonProperties extends BaseProperties {
     @Property

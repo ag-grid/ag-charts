@@ -56,5 +56,5 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeSeries(ctx),
+    create: (ctx) => new MapShapeSeries(ctx),
 };

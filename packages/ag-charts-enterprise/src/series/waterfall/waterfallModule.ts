@@ -23,5 +23,5 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate: WATERFALL_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new WaterfallSeries(ctx),
+    create: (ctx) => new WaterfallSeries(ctx),
 };

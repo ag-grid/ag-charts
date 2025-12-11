@@ -61,5 +61,5 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new SankeySeries(ctx),
+    create: (ctx) => new SankeySeries(ctx),
 };

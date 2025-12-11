@@ -1,4 +1,4 @@
-import { type AgRadialBarSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialBarSeriesOptions, PolarChartModule, VERSION } from 'ag-charts-community';
 import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RadialBarSeries } from './radialBarSeries';
@@ -20,5 +20,5 @@ export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOpti
     axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
     themeTemplate: RADIAL_BAR_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RadialBarSeries(ctx),
+    create: (ctx) => new RadialBarSeries(ctx),
 };

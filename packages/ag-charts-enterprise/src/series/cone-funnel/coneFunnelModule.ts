@@ -1,9 +1,4 @@
-import {
-    type AgConeFunnelSeriesOptions,
-    CartesianChartModule,
-    VERSION,
-    type _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgConeFunnelSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FUNNEL_SERIES_AXES } from '../funnel/funnelThemes';
@@ -24,5 +19,5 @@ export const ConeFunnelSeriesModule: SeriesModuleDefinition<AgConeFunnelSeriesOp
     defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new ConeFunnelSeries(ctx),
+    create: (ctx) => new ConeFunnelSeries(ctx),
 };

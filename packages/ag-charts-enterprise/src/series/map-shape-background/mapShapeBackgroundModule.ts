@@ -32,5 +32,5 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeBackgroundSeries(ctx),
+    create: (ctx) => new MapShapeBackgroundSeries(ctx),
 };

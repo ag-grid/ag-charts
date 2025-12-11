@@ -112,5 +112,5 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new TreemapSeries(ctx),
+    create: (ctx) => new TreemapSeries(ctx),
 };

@@ -82,5 +82,5 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     options: sunburstSeriesOptionsDef,
     themeTemplate,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new SunburstSeries(ctx),
+    create: (ctx) => new SunburstSeries(ctx),
 };

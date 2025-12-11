@@ -91,5 +91,5 @@ export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     options: linearGaugeSeriesOptionsDef,
     themeTemplate,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new LinearGaugeSeries(ctx),
+    create: (ctx) => new LinearGaugeSeries(ctx),
 };

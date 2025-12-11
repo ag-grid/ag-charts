@@ -24,5 +24,5 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate: BOX_PLOT_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),
+    create: (ctx) => new BoxPlotSeries(ctx),
 };

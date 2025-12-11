@@ -32,5 +32,5 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate: CANDLESTICK_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new CandlestickSeries(ctx),
+    create: (ctx) => new CandlestickSeries(ctx),
 };

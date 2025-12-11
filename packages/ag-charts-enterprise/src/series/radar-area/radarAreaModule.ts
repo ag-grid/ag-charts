@@ -1,4 +1,4 @@
-import { type AgRadarAreaSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadarAreaSeriesOptions, PolarChartModule, VERSION } from 'ag-charts-community';
 import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
@@ -18,5 +18,5 @@ export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOpti
     axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
     themeTemplate: RADAR_AREA_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RadarAreaSeries(ctx),
+    create: (ctx) => new RadarAreaSeries(ctx),
 };

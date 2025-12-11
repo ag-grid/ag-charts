@@ -97,5 +97,5 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RadialGaugeSeries(ctx),
+    create: (ctx) => new RadialGaugeSeries(ctx),
 };

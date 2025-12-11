@@ -45,5 +45,5 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapLineSeries(ctx),
+    create: (ctx) => new MapLineSeries(ctx),
 };
