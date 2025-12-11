@@ -238,8 +238,7 @@ export function computeAreaAggregation(
         let metaIndicesCount = 0;
         let currentGroup = -1;
 
-        for (let i = 0; i < previousIndices.length; i++) {
-            const datumIndex = previousIndices[i];
+        for (const datumIndex of previousIndices) {
             const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
             if (group === -1) continue;
 
@@ -266,8 +265,7 @@ export function computeAreaAggregation(
         let metaIndicesIdx = 0;
         currentGroup = -1;
 
-        for (let i = 0; i < previousIndices.length; i++) {
-            const datumIndex = previousIndices[i];
+        for (const datumIndex of previousIndices) {
             const group = aggregationIndexType(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf);
             if (group === -1) continue;
 

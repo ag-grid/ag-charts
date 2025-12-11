@@ -1139,11 +1139,7 @@ export class SeriesAreaManager extends BaseManager {
 
         if (purpose === 'aria-label' || this.isTooltipEnabled(series)) {
             const { cachedTooltipContent } = this;
-            if (
-                cachedTooltipContent != null &&
-                cachedTooltipContent.series === series &&
-                cachedTooltipContent.datumIndex === datumIndex
-            ) {
+            if (cachedTooltipContent?.series === series && cachedTooltipContent.datumIndex === datumIndex) {
                 result = cachedTooltipContent.content;
             } else {
                 const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum, purpose);

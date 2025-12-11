@@ -243,7 +243,7 @@ export abstract class RadialColumnSeriesBase<
     override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
+        if (!dataModel || processedData?.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.Angle];
         const radiusAxis = this.axes[ChartAxisDirection.Radius];

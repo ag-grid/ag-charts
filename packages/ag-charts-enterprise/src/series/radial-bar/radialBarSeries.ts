@@ -229,7 +229,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!dataModel || !processedData || processedData.type !== 'grouped') return;
+        if (!dataModel || processedData?.type !== 'grouped') return;
 
         const angleAxis = this.axes[ChartAxisDirection.Angle];
         const radiusAxis = this.axes[ChartAxisDirection.Radius];

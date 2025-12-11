@@ -780,7 +780,7 @@ export class RadialGaugeSeries
     }
 
     private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): RadialGaugeTargetDatum | undefined {
-        if (node != null && node.series === this && (node as RadialGaugeTargetDatum).type === NodeDataType.Target) {
+        if (node?.series === this && (node as RadialGaugeTargetDatum).type === NodeDataType.Target) {
             return node as RadialGaugeTargetDatum;
         }
     }
