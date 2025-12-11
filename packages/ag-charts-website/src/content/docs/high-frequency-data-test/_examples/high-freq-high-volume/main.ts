@@ -937,7 +937,7 @@ const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
     setupTestCase: async (seriesType: SeriesType) => {
         await setSeriesType(seriesType);
     },
-    performUpdate: async (seriesType: SeriesType, method: string) => {
+    performUpdate: async (_seriesType: SeriesType, method: string) => {
         // Ensure no regular updates are running
         if (isRunning) {
             stopUpdates();
@@ -966,7 +966,7 @@ const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
         await chart.waitForUpdate();
         return performance.now() - start;
     },
-    getMethods: (seriesType: SeriesType) => {
+    getMethods: (_seriesType: SeriesType) => {
         return SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction', 'updateDelta'] : ['updateDelta'];
     },
     formatTestCase: (seriesType: SeriesType) => seriesType,
