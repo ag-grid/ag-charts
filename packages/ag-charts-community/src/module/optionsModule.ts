@@ -110,7 +110,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         shallow: new Set(['container']),
         assign: new Set(['data', 'context', 'theme']),
     };
-    public static readonly JSON_DIFF_OPTS = new Set<any>(['data']);
+    public static readonly JSON_DIFF_OPTS = new Set<any>(['data', 'localeText']);
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 

@@ -390,6 +390,14 @@ export class Legend extends BaseProperties {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
     }
 
+    private updateItemSelection(): void {
+        const data = [...this.data];
+        if (this.reverseOrder) {
+            data.reverse();
+        }
+        this.itemSelection.update(data);
+    }
+
     private isInteractive(): boolean {
         const {
             toggleSeries,
@@ -436,11 +444,7 @@ export class Legend extends BaseProperties {
             maxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
         } = this.item;
-        const data = [...this.data];
-        if (this.reverseOrder) {
-            data.reverse();
-        }
-        this.itemSelection.update(data);
+        this.updateItemSelection();
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -1215,6 +1219,7 @@ export class Legend extends BaseProperties {
     }
 
     private onLocaleChanged() {
+        this.updateItemSelection();
         this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
