@@ -157,7 +157,8 @@ export function batchWorkerExecutor<ExecutorOptions>(
         if (process.env.CI == null) {
             threadCount = Math.round(os.cpus().length / 2);
         } else {
-            threadCount = 2;
+            // GitHub Actions ubuntu runners have 4 vCPUs
+            threadCount = Math.min(4, os.cpus().length);
         }
         const { Tinypool } = await import('tinypool');
         const pool = new Tinypool({
