@@ -76,12 +76,12 @@ const gradientStrictDefs: OptionsDefs<AgGradientColorStrict> = {
     type: required(constant('gradient')),
     colorStops: required(gradientColorStops),
     rotation: number,
-    // Undocumented options
+    // @ts-expect-error undocumented option
     gradient: undocumented(union('linear', 'radial', 'conic')),
     bounds: undocumented(gradientBounds),
     reverse: undocumented(boolean),
     colorSpace: undocumented(union('rgb', 'oklch')),
-} as any;
+};
 export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     gradientStrictDefs,
     'a gradient object with color stops'
@@ -183,15 +183,15 @@ export const fillImageDefaults = optionsDefs<InternalAgImageFill>({
 });
 
 const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
+    // @ts-expect-error undocumented option
     gradient: {
         colorStops: gradientColorStops,
         rotation: number,
-        // Undocumented option
         gradient: undocumented(union('linear', 'radial', 'conic')),
         bounds: undocumented(gradientBounds),
         reverse: undocumented(boolean),
         colorSpace: undocumented(union('rgb', 'oklch')),
-    } as any,
+    },
     pattern: {
         pattern: union(
             'vertical-lines',
@@ -216,9 +216,8 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
         backgroundFill: color,
         backgroundFillOpacity: ratio,
         ...strokeOptionsDef,
-        // Undocumented option
         padding: undocumented(positiveNumber),
-    } as any,
+    },
     image: {
         url: required(string),
         backgroundFill: color,
@@ -229,7 +228,7 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
         repeat: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
         rotation: number,
     },
-} as any;
+};
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(colorObjectDefs as any, 'a color object');
 
 export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'));
@@ -239,12 +238,12 @@ export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fillOpacity: ratio,
 };
 
-// Undocumented option
-(fillOptionsDef as any).fillGradientDefaults = undocumented(fillGradientDefaults);
-// Undocumented option
-(fillOptionsDef as any).fillPatternDefaults = undocumented(fillPatternDefaults);
-// Undocumented option
-(fillOptionsDef as any).fillImageDefaults = undocumented(fillImageDefaults);
+// @ts-expect-error undocumented option
+fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
+// @ts-expect-error undocumented option
+fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
+// @ts-expect-error undocumented option
+fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

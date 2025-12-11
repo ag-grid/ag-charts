@@ -168,12 +168,12 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     targets: arrayOfDefs(linearGaugeTargetOptionsDef, 'target options array'),
 };
 
-// Undocumented option
-(linearGaugeSeriesOptionsDef as any).margin = undocumented(number);
-// Undocumented option
-(linearGaugeSeriesOptionsDef as any).defaultColorRange = undocumented(arrayOf(color));
-// Undocumented option
-(linearGaugeSeriesOptionsDef as any).defaultTarget = undocumented({
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.margin = undocumented(number);
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(color));
+// @ts-expect-error undocumented option
+linearGaugeSeriesOptionsDef.defaultTarget = undocumented({
     ...linearGaugeTargetOptionsDef,
     value: number,
     label: {
@@ -182,10 +182,8 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     },
 });
 
-// Undocumented option
 (linearGaugeSeriesOptionsDef as any).defaultScale = undocumented(linearGaugeSeriesOptionsDef.scale as any);
-// Undocumented option
-((linearGaugeSeriesOptionsDef as any).scale as any).defaultFill = undocumented(color);
+(linearGaugeSeriesOptionsDef.scale as any).defaultFill = undocumented(color);
 
 export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThemeableOptions> = {
     ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
@@ -264,10 +262,10 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
 };
 
-// Undocumented option
-(radialGaugeSeriesOptionsDef as any).defaultColorRange = undocumented(arrayOf(color));
-// Undocumented option
-(radialGaugeSeriesOptionsDef as any).defaultTarget = undocumented({
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(color));
+// @ts-expect-error undocumented option
+radialGaugeSeriesOptionsDef.defaultTarget = undocumented({
     ...radialGaugeTargetOptionsDef,
     value: number,
     label: {
@@ -275,5 +273,4 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
         spacing: number,
     },
 });
-// Undocumented option
-((radialGaugeSeriesOptionsDef as any).scale as any).defaultFill = undocumented(color);
+(radialGaugeSeriesOptionsDef.scale as any).defaultFill = undocumented(color);

@@ -164,8 +164,8 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     maxHeight: positiveNumber,
     ...fontOptionsDef,
 };
-// Undocumented option
-(chartCaptionOptionsDefs as any).padding = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
@@ -192,8 +192,8 @@ const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> 
     action: callback,
     items: (value: unknown, context: ValidatorContext) => contextMenuItemsArray(value, context),
 };
-// Undocumented option
-(contextMenuItemObjectDef as any).iconUrl = undocumented(string);
+// @ts-expect-error undocumented option
+contextMenuItemObjectDef.iconUrl = undocumented(string);
 
 const contextMenuItemObjectValidator: Validator = optionsDefs(contextMenuItemObjectDef);
 
@@ -498,20 +498,20 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 
-// Undocumented option
-(commonChartOptionsDefs as any).flashOnUpdate = undocumented(defined);
-// Undocumented option
-((commonChartOptionsDefs as any).dataSource as any).requestThrottle = undocumented(positiveNumber);
-// Undocumented option
-((commonChartOptionsDefs as any).dataSource as any).updateThrottle = undocumented(positiveNumber);
-// Undocumented option
-((commonChartOptionsDefs as any).dataSource as any).updateDuringInteraction = undocumented(boolean);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.flashOnUpdate = undocumented(defined);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.updateThrottle = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean);
 
-// Undocumented option
-(commonChartOptionsDefs as any).statusBar = undocumented(defined);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.statusBar = undocumented(defined);
 
-// Undocumented option
-(commonChartOptionsDefs as any).foreground = undocumented({
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.foreground = undocumented({
     visible: boolean,
     text: string,
     image: {
@@ -527,10 +527,10 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     ...fillOptionsDef,
 });
 
-// Undocumented option
-(commonChartOptionsDefs as any).overrideDevicePixelRatio = undocumented(number);
-// Undocumented option
-((commonChartOptionsDefs as any).sync as any).domainMode = undocumented(union('direction', 'position', 'key'));
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
@@ -552,8 +552,8 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     data: array,
 };
 
-// Undocumented option
-(commonSeriesOptionsDefs as any).seriesGrouping = undocumented(defined);
+// @ts-expect-error undocumented option
+commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
 export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
     shape: shapeValidator,
