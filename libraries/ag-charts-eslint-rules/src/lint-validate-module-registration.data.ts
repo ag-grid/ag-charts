@@ -1,6 +1,7 @@
 // Stub ModuleRegistry
 const ModuleRegistry = {
     registerModules: (_modules: unknown[]) => {},
+    reset: () => {},
 };
 
 // Stub AgCharts
@@ -44,6 +45,7 @@ const correctOptions1 = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(correctOptions1);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 2: Missing series module - should error
@@ -54,6 +56,7 @@ const missingSeriesModule = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(missingSeriesModule);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 3: Missing axis module - should error
@@ -64,6 +67,7 @@ const missingAxisModule = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(missingAxisModule);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 4: Over-registration - should warn
@@ -80,6 +84,7 @@ const overRegistration = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(overRegistration);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 5: Bundle module covers requirements - should pass
@@ -90,6 +95,7 @@ const bundleCovers = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(bundleCovers);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 6: Missing crosshair module - should error
@@ -103,6 +109,7 @@ const missingCrosshair = {
     },
 };
 AgCharts.create(missingCrosshair);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 7: Plugin option requires module - should error (missing zoom)
@@ -114,6 +121,7 @@ const missingZoom = {
     zoom: { enabled: true },
 };
 AgCharts.create(missingZoom);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 8: Multiple series types - all should be required
@@ -127,6 +135,7 @@ const multipleSeriesTypes = {
     axes: { x: { type: 'category' }, y: { type: 'number' } },
 };
 AgCharts.create(multipleSeriesTypes);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 9: ErrorBar requires ErrorBarsModule
@@ -144,6 +153,7 @@ const errorBarMissing = {
     axes: { x: { type: 'number' }, y: { type: 'number' } },
 };
 AgCharts.create(errorBarMissing);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 10: Correct with plugins - should pass
@@ -167,6 +177,7 @@ const correctWithPlugins = {
     navigator: { enabled: true },
 };
 AgCharts.create(correctWithPlugins);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 11: Pie chart with polar modules
@@ -176,6 +187,7 @@ const pieChart = {
     series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 AgCharts.create(pieChart);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 12: DataSource requires DataSourceModule
@@ -187,6 +199,7 @@ const dataSourceMissing = {
     dataSource: { getData: () => [] },
 };
 AgCharts.create(dataSourceMissing);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 13: Candlestick with only y-axis - should require OrdinalTimeAxisModule for default x
@@ -208,6 +221,7 @@ const candlestickOnlyYAxis = {
     },
 };
 AgCharts.create(candlestickOnlyYAxis);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 14: Candlestick with only x-axis - should require NumberAxisModule for default y
@@ -229,6 +243,7 @@ const candlestickOnlyXAxis = {
     },
 };
 AgCharts.create(candlestickOnlyXAxis);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 15: Candlestick with both axes - should pass
@@ -251,6 +266,7 @@ const candlestickBothAxes = {
     },
 };
 AgCharts.create(candlestickBothAxes);
+ModuleRegistry.reset();
 
 // =============================================================================
 // TEST CASE 16: flashOnUpdate requires FlashOnUpdateModule
@@ -262,3 +278,4 @@ const flashOnUpdateMissing = {
     flashOnUpdate: { enabled: true },
 };
 AgCharts.create(flashOnUpdateMissing);
+ModuleRegistry.reset();
