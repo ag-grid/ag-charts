@@ -1,4 +1,7 @@
-import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
+// @ag-skip-fws
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
+
+import { type BenchmarkCallbacks, type BenchmarkConfig, BenchmarkRunner } from './benchmark';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -43,6 +46,33 @@ const ALL_SERIES_TYPES: SeriesType[] = [
 ];
 const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time', 'unit-time'];
 
+// Version utilities
+function parseVersion(versionString: string): [number, number, number] {
+    // Parse "13.0.0" or "12.2.1-beta.1" into [13, 0, 0]
+    const parts = versionString.split('-')[0].split('.');
+    const major = parseInt(parts[0] || '0', 10);
+    const minor = parseInt(parts[1] || '0', 10);
+    const patch = parseInt(parts[2] || '0', 10);
+    return [major, minor, patch];
+}
+
+function isVersionAtOrAfter(major: number, minor: number, patch: number): boolean {
+    const [currentMajor, currentMinor, currentPatch] = parseVersion(VERSION);
+
+    if (currentMajor > major) return true;
+    if (currentMajor < major) return false;
+    if (currentMinor > minor) return true;
+    if (currentMinor < minor) return false;
+    return currentPatch >= patch;
+}
+
+function isVersionBefore(major: number, minor: number, patch: number): boolean {
+    return !isVersionAtOrAfter(major, minor, patch);
+}
+
+const SUPPORTS_APPLY_TRANSACTION = isVersionAtOrAfter(12, 3, 0);
+const SUPPORTS_AXES_DICT = isVersionAtOrAfter(13, 0, 0);
+
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
 let UPDATE_INTERVAL_MS = 200;
@@ -50,247 +80,97 @@ let UPDATE_FREQUENCY_MODE: 'raf' | number = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
-// Initialize frequency from persisted value
-const persistedFrequency = getPersistedFrequency();
-if (persistedFrequency === 'raf') {
-    UPDATE_FREQUENCY_MODE = 'raf';
-} else {
-    const intervalMs = parseInt(persistedFrequency, 10);
-    if (!isNaN(intervalMs) && intervalMs > 0) {
-        UPDATE_FREQUENCY_MODE = intervalMs;
-        UPDATE_INTERVAL_MS = intervalMs;
-    }
+// Unified form configuration
+interface FormConfig {
+    seriesType?: SeriesType;
+    updatesRunning?: boolean;
+    frequency?: string;
+    axisType?: AxisType;
 }
 
-const STORAGE_KEY = 'high-freq-high-volume-series-type';
-const UPDATES_STATE_KEY = 'high-freq-high-volume-updates-running';
-const FREQUENCY_KEY = 'high-freq-high-volume-frequency';
-const AXIS_TYPE_KEY = 'high-freq-high-volume-axis-type';
+const DEFAULT_CONFIG: Required<FormConfig> = {
+    seriesType: 'line',
+    updatesRunning: false,
+    frequency: '200',
+    axisType: 'time',
+};
 
-function getSeriesTypeFromHash(): SeriesType | null {
+let config: FormConfig = { ...DEFAULT_CONFIG };
+
+function loadConfig(): FormConfig {
+    const loaded: FormConfig = {};
     try {
         const hash = window.location.hash.slice(1);
-        if (!hash) return null;
-        const params = new URLSearchParams(hash);
-        const seriesType = params.get('seriesType');
-        if (seriesType && ALL_SERIES_TYPES.includes(seriesType as SeriesType)) {
-            return seriesType as SeriesType;
+        if (hash) {
+            const params = new URLSearchParams(hash);
+
+            const seriesType = params.get('seriesType');
+            if (seriesType && ALL_SERIES_TYPES.includes(seriesType as SeriesType)) {
+                loaded.seriesType = seriesType as SeriesType;
+            }
+
+            const updatesRunning = params.get('updatesRunning');
+            if (updatesRunning === 'true') {
+                loaded.updatesRunning = true;
+            } else if (updatesRunning === 'false') {
+                loaded.updatesRunning = false;
+            }
+
+            const frequency = params.get('frequency');
+            if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
+                loaded.frequency = frequency;
+            }
+
+            const axisType = params.get('axisType');
+            if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
+                loaded.axisType = axisType as AxisType;
+            }
         }
     } catch {
         // Ignore parsing errors
     }
-    return null;
+
+    return { ...DEFAULT_CONFIG, ...loaded };
 }
 
-function getSeriesTypeFromStorage(): SeriesType | null {
+function saveConfig(newConfig: FormConfig) {
     try {
-        const stored = sessionStorage.getItem(STORAGE_KEY);
-        if (stored && ALL_SERIES_TYPES.includes(stored as SeriesType)) {
-            return stored as SeriesType;
-        }
-    } catch {
-        // Ignore storage errors (e.g., in private browsing)
-    }
-    return null;
-}
-
-function getPersistedSeriesType(): SeriesType {
-    return getSeriesTypeFromHash() || getSeriesTypeFromStorage() || 'line';
-}
-
-function persistSeriesType(seriesType: SeriesType) {
-    try {
-        // Always update sessionStorage as fallback
-        sessionStorage.setItem(STORAGE_KEY, seriesType);
-    } catch {
-        // Ignore storage errors (e.g., private browsing)
-    }
-
-    try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
         if (window.parent === window) {
-            // Not in iframe, can update hash directly
-            const hash = window.location.hash.slice(1);
-            const params = new URLSearchParams(hash);
-            params.set('seriesType', seriesType);
+            const params = new URLSearchParams();
+
+            // Only persist non-default values
+            if (newConfig.seriesType && newConfig.seriesType !== DEFAULT_CONFIG.seriesType) {
+                params.set('seriesType', newConfig.seriesType);
+            }
+            if (newConfig.updatesRunning !== undefined && newConfig.updatesRunning !== DEFAULT_CONFIG.updatesRunning) {
+                params.set('updatesRunning', String(newConfig.updatesRunning));
+            }
+            if (newConfig.frequency && newConfig.frequency !== DEFAULT_CONFIG.frequency) {
+                params.set('frequency', newConfig.frequency);
+            }
+            if (newConfig.axisType && newConfig.axisType !== DEFAULT_CONFIG.axisType) {
+                params.set('axisType', newConfig.axisType);
+            }
+
             const newHash = params.toString();
-            // Use replaceState to avoid page reload
-            history.replaceState(null, '', `#${newHash}`);
+            history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
         }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
     } catch {
         // Ignore hash update errors
     }
 }
 
-function getUpdatesStateFromHash(): boolean | null {
-    try {
-        const hash = window.location.hash.slice(1);
-        if (!hash) return null;
-        const params = new URLSearchParams(hash);
-        const updatesRunning = params.get('updatesRunning');
-        if (updatesRunning === 'true') return true;
-        if (updatesRunning === 'false') return false;
-    } catch {
-        // Ignore parsing errors
-    }
-    return null;
+function getConfigValue<K extends keyof FormConfig>(key: K): FormConfig[K] {
+    return config[key] ?? DEFAULT_CONFIG[key];
 }
 
-function getUpdatesStateFromStorage(): boolean | null {
-    try {
-        const stored = sessionStorage.getItem(UPDATES_STATE_KEY);
-        if (stored === 'true') return true;
-        if (stored === 'false') return false;
-    } catch {
-        // Ignore storage errors (e.g., in private browsing)
-    }
-    return null;
+function setConfigValue<K extends keyof FormConfig>(key: K, value: FormConfig[K]) {
+    config[key] = value;
+    saveConfig(config);
 }
 
-function getPersistedUpdatesState(): boolean {
-    return getUpdatesStateFromHash() ?? getUpdatesStateFromStorage() ?? false;
-}
-
-function persistUpdatesState(running: boolean) {
-    try {
-        // Always update sessionStorage as fallback
-        sessionStorage.setItem(UPDATES_STATE_KEY, String(running));
-    } catch {
-        // Ignore storage errors (e.g., private browsing)
-    }
-
-    try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
-        if (window.parent === window) {
-            // Not in iframe, can update hash directly
-            const hash = window.location.hash.slice(1);
-            const params = new URLSearchParams(hash);
-            params.set('updatesRunning', String(running));
-            const newHash = params.toString();
-            // Use replaceState to avoid page reload
-            history.replaceState(null, '', `#${newHash}`);
-        }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
-    } catch {
-        // Ignore hash update errors
-    }
-}
-
-function getFrequencyFromHash(): string | null {
-    try {
-        const hash = window.location.hash.slice(1);
-        if (!hash) return null;
-        const params = new URLSearchParams(hash);
-        const frequency = params.get('frequency');
-        if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
-            return frequency;
-        }
-    } catch {
-        // Ignore parsing errors
-    }
-    return null;
-}
-
-function getFrequencyFromStorage(): string | null {
-    try {
-        const stored = sessionStorage.getItem(FREQUENCY_KEY);
-        if (stored && (stored === 'raf' || ['50', '100', '200', '500', '1000'].includes(stored))) {
-            return stored;
-        }
-    } catch {
-        // Ignore storage errors (e.g., in private browsing)
-    }
-    return null;
-}
-
-function getPersistedFrequency(): string {
-    return getFrequencyFromHash() || getFrequencyFromStorage() || '200';
-}
-
-function persistFrequency(frequency: string) {
-    try {
-        // Always update sessionStorage as fallback
-        sessionStorage.setItem(FREQUENCY_KEY, frequency);
-    } catch {
-        // Ignore storage errors (e.g., private browsing)
-    }
-
-    try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
-        if (window.parent === window) {
-            // Not in iframe, can update hash directly
-            const hash = window.location.hash.slice(1);
-            const params = new URLSearchParams(hash);
-            params.set('frequency', frequency);
-            const newHash = params.toString();
-            // Use replaceState to avoid page reload
-            history.replaceState(null, '', `#${newHash}`);
-        }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
-    } catch {
-        // Ignore hash update errors
-    }
-}
-
-function getAxisTypeFromHash(): AxisType | null {
-    try {
-        const hash = window.location.hash.slice(1);
-        if (!hash) return null;
-        const params = new URLSearchParams(hash);
-        const axisType = params.get('axisType');
-        if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
-            return axisType as AxisType;
-        }
-    } catch {
-        // Ignore parsing errors
-    }
-    return null;
-}
-
-function getAxisTypeFromStorage(): AxisType | null {
-    try {
-        const stored = sessionStorage.getItem(AXIS_TYPE_KEY);
-        if (stored && ALL_AXIS_TYPES.includes(stored as AxisType)) {
-            return stored as AxisType;
-        }
-    } catch {
-        // Ignore storage errors (e.g., in private browsing)
-    }
-    return null;
-}
-
-function getPersistedAxisType(): AxisType {
-    return getAxisTypeFromHash() || getAxisTypeFromStorage() || 'time';
-}
-
-function persistAxisType(axisType: AxisType) {
-    try {
-        // Always update sessionStorage as fallback
-        sessionStorage.setItem(AXIS_TYPE_KEY, axisType);
-    } catch {
-        // Ignore storage errors (e.g., private browsing)
-    }
-
-    try {
-        // Try to update URL hash (works in full-screen mode, not in iframes)
-        if (window.parent === window) {
-            // Not in iframe, can update hash directly
-            const hash = window.location.hash.slice(1);
-            const params = new URLSearchParams(hash);
-            params.set('axisType', axisType);
-            const newHash = params.toString();
-            // Use replaceState to avoid page reload
-            history.replaceState(null, '', `#${newHash}`);
-        }
-        // In iframe, rely on sessionStorage (can't reliably update parent hash)
-    } catch {
-        // Ignore hash update errors
-    }
-}
-
-let currentSeriesType: SeriesType = getPersistedSeriesType();
-let currentAxisType: AxisType = getPersistedAxisType();
+let currentSeriesType: SeriesType;
+let currentAxisType: AxisType;
 
 function generateValueDatum(index: number): ValueDatum {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
@@ -483,12 +363,41 @@ function createAxesConfig(axisType: AxisType) {
     };
 }
 
+function createAxesConfigCompat(axisType: AxisType) {
+    const axesDict = createAxesConfig(axisType);
+
+    if (SUPPORTS_AXES_DICT) {
+        // Version >= 13: return dictionary format
+        return axesDict;
+    } else {
+        // Version < 13: return array format
+        return [axesDict.x, axesDict.y];
+    }
+}
+
+// Load config first
+config = loadConfig();
+currentSeriesType = getConfigValue('seriesType') as SeriesType;
+currentAxisType = getConfigValue('axisType') as AxisType;
+
+// Initialize frequency from config
+const persistedFrequency = getConfigValue('frequency') as string;
+if (persistedFrequency === 'raf') {
+    UPDATE_FREQUENCY_MODE = 'raf';
+} else {
+    const intervalMs = parseInt(persistedFrequency, 10);
+    if (!isNaN(intervalMs) && intervalMs > 0) {
+        UPDATE_FREQUENCY_MODE = intervalMs;
+        UPDATE_INTERVAL_MS = intervalMs;
+    }
+}
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     animation: { enabled: false },
     zoom: { enabled: true },
-    axes: createAxesConfig(currentAxisType),
+    axes: createAxesConfigCompat(currentAxisType) as any,
     series: createSeriesConfig(currentSeriesType),
     legend: { enabled: false },
 };
@@ -638,6 +547,7 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
 
     const elapsed = performance.now() - start;
     recordCpuUsage(elapsed);
+    return elapsed;
 }
 
 async function addPoints(count: number) {
@@ -701,7 +611,7 @@ function startUpdates() {
         return;
     }
     isRunning = true;
-    persistUpdatesState(true);
+    setConfigValue('updatesRunning', true);
     const button = document.getElementById('toggleBtn');
     if (button) {
         button.textContent = 'Stop Updates';
@@ -732,7 +642,7 @@ function stopUpdates() {
     }
 
     isRunning = false;
-    persistUpdatesState(false);
+    setConfigValue('updatesRunning', false);
     resetFpsCounter();
     const button = document.getElementById('toggleBtn');
     if (button) {
@@ -781,7 +691,7 @@ function setUpdateFrequency(frequency: string) {
     }
 
     // Persist the frequency selection
-    persistFrequency(frequency);
+    setConfigValue('frequency', frequency);
 
     // Restart updates if they were running
     if (wasRunning) {
@@ -838,7 +748,7 @@ async function setSeriesType(newSeriesType: SeriesType) {
         currentSeriesType = newSeriesType;
 
         // Persist the selection
-        persistSeriesType(currentSeriesType);
+        setConfigValue('seriesType', currentSeriesType);
 
         // Update selector if it exists
         // The seriesTypeUpdateInProgress flag prevents recursive calls from onchange
@@ -880,14 +790,14 @@ async function setAxisType(newAxisType: AxisType) {
         await chart.update({
             ...options,
             data,
-            axes: createAxesConfig(newAxisType),
+            axes: createAxesConfigCompat(newAxisType) as any,
             series: createSeriesConfig(currentSeriesType),
         });
 
         currentAxisType = newAxisType;
 
         // Persist the selection
-        persistAxisType(currentAxisType);
+        setConfigValue('axisType', currentAxisType);
 
         // Update selector if it exists
         const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
@@ -912,57 +822,72 @@ resetFpsCounter();
 updateDataCountDisplay();
 updateButtonLabels();
 
+// Initialize form controls with config values
 methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
 if (methodSelect) {
     methodSelect.value = currentUpdateMethod;
 }
 
-// Initialize frequency selector with persisted value
 const frequencySelect = document.getElementById('frequencySelect') as HTMLSelectElement | null;
 if (frequencySelect) {
     frequencySelect.value = persistedFrequency;
 }
 
-// Initialize series type selector with persisted value
 const seriesTypeSelect = document.getElementById('seriesTypeSelect') as HTMLSelectElement | null;
 if (seriesTypeSelect) {
     seriesTypeSelect.value = currentSeriesType;
 }
 
-// Initialize axis type selector with persisted value
 const axisTypeSelect = document.getElementById('axisTypeSelect') as HTMLSelectElement | null;
 if (axisTypeSelect) {
     axisTypeSelect.value = currentAxisType;
 }
 
-// Restore updates state from persistence
-if (getPersistedUpdatesState()) {
+// Start updates AFTER config has been loaded and controls initialized
+if (getConfigValue('updatesRunning')) {
     startUpdates();
+}
+
+// Check for benchmark URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('benchmark') === 'true') {
+    // Auto-start benchmark after a short delay to ensure everything is initialized
+    setTimeout(() => {
+        void benchmarkRunner.run();
+    }, 1000);
 }
 
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
-    const persistedType = getPersistedSeriesType();
-    if (persistedType !== currentSeriesType && !seriesTypeUpdateInProgress) {
-        void setSeriesType(persistedType);
+    const newConfig = loadConfig();
+
+    const newSeriesType = (newConfig.seriesType ?? DEFAULT_CONFIG.seriesType) as SeriesType;
+    if (newSeriesType !== currentSeriesType && !seriesTypeUpdateInProgress) {
+        void setSeriesType(newSeriesType);
     }
-    const persistedUpdatesState = getPersistedUpdatesState();
-    if (persistedUpdatesState !== isRunning) {
-        if (persistedUpdatesState) {
+
+    const newUpdatesRunning = newConfig.updatesRunning ?? DEFAULT_CONFIG.updatesRunning;
+    if (newUpdatesRunning !== isRunning) {
+        if (newUpdatesRunning) {
             startUpdates();
         } else {
             stopUpdates();
         }
     }
-    const persistedFrequency = getPersistedFrequency();
+
+    const newFrequency = (newConfig.frequency ?? DEFAULT_CONFIG.frequency) as string;
     const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
-    if (persistedFrequency !== currentFrequency) {
-        setUpdateFrequency(persistedFrequency);
+    if (newFrequency !== currentFrequency) {
+        setUpdateFrequency(newFrequency);
     }
-    const persistedAxisType = getPersistedAxisType();
-    if (persistedAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
-        void setAxisType(persistedAxisType);
+
+    const newAxisType = (newConfig.axisType ?? DEFAULT_CONFIG.axisType) as AxisType;
+    if (newAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
+        void setAxisType(newAxisType);
     }
+
+    // Update config object
+    config = newConfig;
 });
 
 (window as any).toggleUpdates = () => {
@@ -984,5 +909,90 @@ window.addEventListener('hashchange', () => {
     void setAxisType(axisType as AxisType);
 };
 (window as any).rollBatch = rollBatch;
+
+// Store original state for restoration after benchmark
+let originalSeriesType: SeriesType;
+
+// Create benchmark runner instance
+const benchmarkConfig: BenchmarkConfig<SeriesType> = {
+    testCases: ALL_SERIES_TYPES,
+    updatesPerTest: 500,
+    maxCollectionTimeMs: 10000,
+    warmupUpdates: 20,
+    version: VERSION,
+    versionWarnings: [
+        ...(!SUPPORTS_APPLY_TRANSACTION
+            ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.']
+            : []),
+        ...(!SUPPORTS_AXES_DICT
+            ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).']
+            : []),
+    ],
+    metadata: {
+        initialDataPoints: INITIAL_POINTS,
+        batchSize: BATCH_SIZE,
+        axisType: currentAxisType,
+        dataIntervalMs: DATA_INTERVAL_MS,
+    },
+};
+
+const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
+    setupTestCase: async (seriesType: SeriesType) => {
+        await setSeriesType(seriesType);
+    },
+    performUpdate: async (_seriesType: SeriesType, method: string) => {
+        // Ensure no regular updates are running
+        if (isRunning) {
+            stopUpdates();
+        }
+
+        // Set the update method
+        currentUpdateMethod = method as 'applyTransaction' | 'updateDelta';
+
+        // Create rolling window update
+        if (data.length <= BATCH_SIZE) {
+            return 0;
+        }
+        const remove = data.slice(0, BATCH_SIZE);
+        const append = createBatch(BATCH_SIZE);
+        data = data.slice(BATCH_SIZE).concat(append);
+
+        const start = performance.now();
+        if (method === 'applyTransaction') {
+            await (chart as any).applyTransaction({
+                append,
+                remove,
+            });
+        } else {
+            await chart.updateDelta({ data });
+        }
+        await chart.waitForUpdate();
+        return performance.now() - start;
+    },
+    getMethods: (_seriesType: SeriesType) => {
+        return SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction', 'updateDelta'] : ['updateDelta'];
+    },
+    formatTestCase: (seriesType: SeriesType) => seriesType,
+    formatMethod: (method: string) => method,
+    onComplete: async () => {
+        // Restore original series type
+        if (originalSeriesType !== currentSeriesType) {
+            await setSeriesType(originalSeriesType);
+        }
+        // Show controls again
+        const controlsRow = document.querySelector('.controls-row');
+        if (controlsRow) {
+            (controlsRow as HTMLElement).style.display = '';
+        }
+    },
+};
+
+const benchmarkRunner = new BenchmarkRunner<SeriesType>(benchmarkConfig, benchmarkCallbacks);
+
+(window as any).runBenchmark = () => {
+    // Capture original state before benchmark starts
+    originalSeriesType = currentSeriesType;
+    benchmarkRunner.run();
+};
 
 export {};

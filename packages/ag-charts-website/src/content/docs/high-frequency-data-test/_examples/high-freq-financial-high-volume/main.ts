@@ -11,6 +11,75 @@ let UPDATE_FREQUENCY_MODE: 'raf' | number = 200;
 const DATA_INTERVAL_MS = 250;
 const START_DATE = new Date(Date.UTC(2024, 0, 1, 0, 0, 0));
 
+// Unified form configuration
+interface FormConfig {
+    updatesRunning?: boolean;
+    frequency?: string;
+}
+
+const DEFAULT_CONFIG: Required<FormConfig> = {
+    updatesRunning: false,
+    frequency: '200',
+};
+
+let config: FormConfig = { ...DEFAULT_CONFIG };
+
+function loadConfig(): FormConfig {
+    const loaded: FormConfig = {};
+    try {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+            const params = new URLSearchParams(hash);
+
+            const updatesRunning = params.get('updatesRunning');
+            if (updatesRunning === 'true') {
+                loaded.updatesRunning = true;
+            } else if (updatesRunning === 'false') {
+                loaded.updatesRunning = false;
+            }
+
+            const frequency = params.get('frequency');
+            if (frequency && (frequency === 'raf' || ['50', '100', '200', '500', '1000'].includes(frequency))) {
+                loaded.frequency = frequency;
+            }
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+
+    return { ...DEFAULT_CONFIG, ...loaded };
+}
+
+function saveConfig(newConfig: FormConfig) {
+    try {
+        if (window.parent === window) {
+            const params = new URLSearchParams();
+
+            // Only persist non-default values
+            if (newConfig.updatesRunning !== undefined && newConfig.updatesRunning !== DEFAULT_CONFIG.updatesRunning) {
+                params.set('updatesRunning', String(newConfig.updatesRunning));
+            }
+            if (newConfig.frequency && newConfig.frequency !== DEFAULT_CONFIG.frequency) {
+                params.set('frequency', newConfig.frequency);
+            }
+
+            const newHash = params.toString();
+            history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
+        }
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
+function getConfigValue<K extends keyof FormConfig>(key: K): FormConfig[K] {
+    return config[key] ?? DEFAULT_CONFIG[key];
+}
+
+function setConfigValue<K extends keyof FormConfig>(key: K, value: FormConfig[K]) {
+    config[key] = value;
+    saveConfig(config);
+}
+
 type OhlcDatum = {
     date: number;
     open: number;
@@ -65,6 +134,21 @@ const seedResult = createSeedData(INITIAL_POINTS);
 let data: OhlcDatum[] = seedResult.data;
 let nextIndex = data.length;
 let lastBasePrice: number = seedResult.lastBasePrice;
+
+// Load config first
+config = loadConfig();
+
+// Initialize frequency from config
+const persistedFrequency = getConfigValue('frequency') as string;
+if (persistedFrequency === 'raf') {
+    UPDATE_FREQUENCY_MODE = 'raf';
+} else {
+    const intervalMs = parseInt(persistedFrequency, 10);
+    if (!isNaN(intervalMs) && intervalMs > 0) {
+        UPDATE_FREQUENCY_MODE = intervalMs;
+        UPDATE_INTERVAL_MS = intervalMs;
+    }
+}
 
 /* @ag-options-extract */
 const options: AgFinancialChartOptions = {
@@ -240,6 +324,7 @@ function toggleUpdates() {
 function startUpdates() {
     if (isRunning) return;
     isRunning = true;
+    setConfigValue('updatesRunning', true);
     resetCpuIndicator();
     resetFpsCounter();
 
@@ -257,6 +342,7 @@ function startUpdates() {
 
 function stopUpdates() {
     isRunning = false;
+    setConfigValue('updatesRunning', false);
     if (intervalId !== undefined) {
         clearInterval(intervalId);
         intervalId = undefined;
@@ -290,6 +376,8 @@ function updateFrequency(value: string) {
         UPDATE_INTERVAL_MS = intervalMs;
     }
 
+    setConfigValue('frequency', value);
+
     if (wasRunning) {
         startUpdates();
     }
@@ -297,3 +385,50 @@ function updateFrequency(value: string) {
 
 // Initialize UI
 updateDataCountDisplay();
+
+// Initialize form controls with config values
+const methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
+if (methodSelect) {
+    methodSelect.value = currentUpdateMethod;
+}
+
+const frequencySelect = document.getElementById('frequencySelect') as HTMLSelectElement | null;
+if (frequencySelect) {
+    frequencySelect.value = persistedFrequency;
+}
+
+// Start updates AFTER config has been loaded and controls initialized
+if (getConfigValue('updatesRunning')) {
+    startUpdates();
+}
+
+// Listen for hash changes (e.g., when switching to full-screen mode)
+window.addEventListener('hashchange', () => {
+    const newConfig = loadConfig();
+
+    const newUpdatesRunning = newConfig.updatesRunning ?? DEFAULT_CONFIG.updatesRunning;
+    if (newUpdatesRunning !== isRunning) {
+        if (newUpdatesRunning) {
+            startUpdates();
+        } else {
+            stopUpdates();
+        }
+    }
+
+    const newFrequency = (newConfig.frequency ?? DEFAULT_CONFIG.frequency) as string;
+    const currentFrequency = typeof UPDATE_FREQUENCY_MODE === 'string' ? 'raf' : String(UPDATE_FREQUENCY_MODE);
+    if (newFrequency !== currentFrequency) {
+        updateFrequency(newFrequency);
+    }
+
+    // Update config object
+    config = newConfig;
+});
+
+(window as any).toggleUpdates = toggleUpdates;
+(window as any).rollBatch = rollBatch;
+(window as any).updateBatchSize = updateBatchSize;
+(window as any).updateMethod = updateMethod;
+(window as any).updateFrequency = updateFrequency;
+
+export {};
