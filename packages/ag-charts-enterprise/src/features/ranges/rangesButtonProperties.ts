@@ -1,4 +1,6 @@
-import { Property, ToolbarButtonProperties } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
+
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 
 type RangesButtonValue =
     | number

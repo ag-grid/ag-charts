@@ -8,10 +8,10 @@ import {
     EventEmitter,
     PropertiesArray,
     Property,
-    ToolbarButtonProperties,
 } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import { type AnnotationType } from './annotationTypes';
 import {
     FIBONACCI_ANNOTATION_ITEMS,

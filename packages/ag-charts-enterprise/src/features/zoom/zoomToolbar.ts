@@ -7,12 +7,12 @@ import {
     CleanupRegistry,
     PropertiesArray,
     Property,
-    ToolbarButtonProperties,
     createElement,
     debounce,
     entries,
 } from 'ag-charts-core';
 
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
