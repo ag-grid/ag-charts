@@ -359,5 +359,47 @@ HTMLCollection [
                 });
             }
         );
+
+        describe('CRT-1016', () => {
+            test('custom renderer text should be available for accessibility (screenreader)', async () => {
+                const customMessage = 'Custom message for missing data';
+                chart = await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: { renderer: () => `<div>${customMessage}</div>` },
+                    },
+                });
+
+                // Verify the overlay element contains the custom text
+                const overlayEl = getDocument('body').querySelector('.ag-charts-overlay');
+                expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
+
+                // Verify the overlay's getFocusInfo returns the custom text for screenreaders
+                const chartInstance = chart as any;
+                const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
+                expect(focusInfo?.text).toEqual(customMessage);
+            });
+
+            test('custom renderer with nested HTML should extract text for accessibility', async () => {
+                const customMessage = 'Nested custom text';
+                chart = await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: { renderer: () => `<div><span><strong>${customMessage}</strong></span></div>` },
+                    },
+                });
+
+                // Verify the overlay element contains the custom text
+                const overlayEl = getDocument('body').querySelector('.ag-charts-overlay');
+                expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
+
+                // Verify the overlay's getFocusInfo returns the custom text for screenreaders
+                const chartInstance = chart as any;
+                const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
+                expect(focusInfo?.text).toEqual(customMessage);
+            });
+        });
     });
 });
