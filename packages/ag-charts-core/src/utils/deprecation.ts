@@ -16,7 +16,7 @@ export function Deprecated(message?: string, opts?: { default?: any }) {
     const warnDeprecated = createDeprecationWarning();
     const def = opts?.default;
 
-    return addTransformToInstanceProperty((_: unknown, key: string | number | symbol, value: unknown) => {
+    return addTransformToInstanceProperty((_: unknown, key: PropertyKey, value: unknown) => {
         if (value !== def) {
             warnDeprecated(key.toString(), message);
         }
@@ -28,14 +28,14 @@ export function DeprecatedAndRenamedTo(newPropName: any, mapValue?: (value: any)
     const warnDeprecated = createDeprecationWarning();
 
     return addTransformToInstanceProperty(
-        (target: any, key: string | number | symbol, value: any) => {
+        (target: any, key: PropertyKey, value: any) => {
             if (value !== target[newPropName]) {
                 warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
                 setPath(target, newPropName, mapValue ? mapValue(value) : value);
             }
             return BREAK_TRANSFORM_CHAIN;
         },
-        (target: any, key: string | number | symbol) => {
+        (target: any, key: PropertyKey) => {
             warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
             return getPath(target, newPropName);
         }

@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
-import { Logger } from '../runtime';
+import * as Logger from '../logging/logger';
 import { isPlainObject } from '../utils/types/typeGuards';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 

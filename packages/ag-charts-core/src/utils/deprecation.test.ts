@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { Logger } from '../runtime';
+import * as Logger from '../logging/logger';
 import { Deprecated, DeprecatedAndRenamedTo } from './deprecation';
 
 interface TestDeprecationObject {

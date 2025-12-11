@@ -43,7 +43,9 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     config[propertyKey] = { setters: [], getters: [], observers: [] };
 
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKeyOrSymbol);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     let prevGet = descriptor?.get;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     let prevSet = descriptor?.set;
 
     if (prevGet == null || prevSet == null) {
