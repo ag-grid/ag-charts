@@ -1704,12 +1704,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         let dataChanged = false;
         let groupingChanged = false;
         let isUpdated = false;
+        let seriesReplaced = false;
 
         const changes = matchResult.changes.toSorted((a, b) => a.targetIdx - b.targetIdx);
         for (const change of changes) {
             groupingChanged ||= change.status === 'series-grouping';
             dataChanged ||= change.diff?.data != null;
             isUpdated ||= change.status !== 'no-op';
+            seriesReplaced ||= change.status === 'add' || change.status === 'remove';
 
             switch (change.status) {
                 case 'add': {
@@ -1746,6 +1748,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (groupingChanged) {
             return 'series-grouping-change';
+        }
+        if (seriesReplaced) {
+            return 'replaced';
         }
         if (dataChanged) {
             return 'data-change';
