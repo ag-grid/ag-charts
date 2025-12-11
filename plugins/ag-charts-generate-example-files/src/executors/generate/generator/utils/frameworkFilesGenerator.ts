@@ -11,6 +11,22 @@ import type { FileContents, InternalFramework } from '../types';
 import { deepCloneObject } from './deepCloneObject';
 import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUtils';
 
+/**
+ * Get commented UMD script tags for staging and production URLs
+ * Only used in dev mode for vanilla examples
+ */
+const getUmdScriptTags = (isEnterprise: boolean): string => {
+    const stagingUrl = isEnterprise
+        ? 'https://charts-staging.ag-grid.com/dev/ag-charts-enterprise/dist/umd/ag-charts-enterprise.js'
+        : 'https://charts-staging.ag-grid.com/dev/ag-charts-community/dist/umd/ag-charts-community.js';
+    const productionUrl = isEnterprise
+        ? 'https://cdn.jsdelivr.net/npm/ag-charts-enterprise@13.0.0/dist/umd/ag-charts-enterprise.js'
+        : 'https://cdn.jsdelivr.net/npm/ag-charts-community@latest/dist/umd/ag-charts-community.js';
+
+    return `<!-- <script src="${stagingUrl}"></script> -->
+<!-- <script src="${productionUrl}"></script> -->`;
+};
+
 interface FrameworkFiles {
     files: FileContents;
     boilerPlateFiles?: FileContents;
@@ -53,7 +69,7 @@ type ConfigGenerator = ({
 
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
+    vanilla: async ({ entryFile, indexHtml, isEnterprise, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'vanilla';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
@@ -92,11 +108,28 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             });
         }
 
+        // Inject commented UMD script tags for dev builds
+        let processedIndexHtml = indexHtml;
+        if (isDev) {
+            const umdScriptTags = getUmdScriptTags(isEnterprise);
+            // Check if tags are already present (idempotent)
+            if (!indexHtml.includes('<!-- Staging UMD build -->')) {
+                // Inject before closing </head> tag if present, otherwise before closing </html>, otherwise append
+                if (indexHtml.includes('</head>')) {
+                    processedIndexHtml = indexHtml.replace('</head>', `${umdScriptTags}\n</head>`);
+                } else if (indexHtml.includes('</html>')) {
+                    processedIndexHtml = indexHtml.replace('</html>', `${umdScriptTags}\n</html>`);
+                } else {
+                    processedIndexHtml = indexHtml + '\n' + umdScriptTags;
+                }
+            }
+        }
+
         return {
             files: {
                 ...otherScriptFiles,
                 [entryFileName]: mainJs,
-                'index.html': indexHtml,
+                'index.html': processedIndexHtml,
             },
             scriptFiles: Object.keys(otherScriptFiles).concat(entryFileName),
             entryFileName,
