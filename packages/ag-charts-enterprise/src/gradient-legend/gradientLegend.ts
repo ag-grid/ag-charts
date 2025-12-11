@@ -281,9 +281,9 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     }
 
     private getMeasurements(shrinkRect: _ModuleSupport.BBox, legendBBox: _ModuleSupport.BBox) {
-        function unreachable(_a: never): never {
+        const unreachable = (_a: never): never => {
             return undefined as never;
-        }
+        };
 
         let { x: left, y: top } = shrinkRect;
         const { width, height } = legendBBox;

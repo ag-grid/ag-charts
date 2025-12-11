@@ -65,7 +65,7 @@ export class CrosshairLabelProperties
 
         if (format != null) {
             let cachedFormatter = this._cachedFormatter;
-            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+            if (cachedFormatter?.type !== type || cachedFormatter?.format !== format) {
                 cachedFormatter = {
                     type,
                     format,

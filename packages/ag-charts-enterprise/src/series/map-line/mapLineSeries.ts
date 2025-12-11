@@ -255,7 +255,7 @@ export class MapLineSeries
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
-        const [x, y] = labelCenter.point;
+        const [x, y] = labelCenter?.point;
         const { width, height } = labelSize;
 
         return {

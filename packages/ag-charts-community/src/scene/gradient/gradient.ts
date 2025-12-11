@@ -38,7 +38,7 @@ export abstract class Gradient {
             return;
         }
 
-        if (this._cache != null && this._cache.ctx === ctx && this._cache.bbox.equals(bbox)) {
+        if (this._cache?.ctx === ctx && this._cache.bbox.equals(bbox)) {
             return this._cache.gradient;
         }
 

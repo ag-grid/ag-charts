@@ -394,7 +394,7 @@ export abstract class HierarchySeries<
 
     protected getActiveHighlightNode(): TNodeClass | undefined {
         const highlightedNode = this.ctx.highlightManager?.getActiveHighlight() as TNodeClass | undefined;
-        if (highlightedNode == null || highlightedNode.series !== this) {
+        if (highlightedNode?.series !== this) {
             return undefined;
         }
         return highlightedNode;

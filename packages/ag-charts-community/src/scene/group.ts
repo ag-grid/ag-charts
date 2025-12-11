@@ -100,10 +100,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private prepareSharedCanvas(width: number, height: number, pixelRatio: number) {
-        if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
-            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
-        } else {
+        if (sharedOffscreenCanvas?.pixelRatio === pixelRatio) {
             sharedOffscreenCanvas.resize(width, height, pixelRatio);
+        } else {
+            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         }
 
         return sharedOffscreenCanvas;

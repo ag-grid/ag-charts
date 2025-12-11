@@ -53,7 +53,7 @@ export class HighlightManager {
             }
 
             // Apply unhighlight immediately
-            this.highlightStates.set(callerId, undefined);
+            this.highlightStates.delete(callerId);
             const currentHighlight = this.getActiveHighlight();
 
             if (!this.isEqual(currentHighlight, previousHighlight)) {
@@ -98,7 +98,7 @@ export class HighlightManager {
         const previousHighlight = this.getActiveHighlight();
 
         // Actually clear the highlight for this caller
-        this.highlightStates.set(callerId, undefined);
+        this.highlightStates.delete(callerId);
 
         const currentHighlight = this.getActiveHighlight();
 

@@ -252,7 +252,7 @@ export class MiniChart extends AbstractModuleInstance {
         const animated = this.seriesRect != null;
         const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
 
-        const resized = this.seriesRect == null || this.seriesRect.width !== width || this.seriesRect.height !== height;
+        const resized = this.seriesRect?.width !== width || this.seriesRect?.height !== height;
 
         this.seriesRect = seriesRect;
         this.seriesRoot.translationY = padding.top;

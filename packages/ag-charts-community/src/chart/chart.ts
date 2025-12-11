@@ -495,7 +495,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
-            .filter((caption) => caption.enabled && caption.text)
+            .filter((caption) => caption.enabled && caption?.text)
             .map((caption) => caption.text)
             .join('. ');
     }

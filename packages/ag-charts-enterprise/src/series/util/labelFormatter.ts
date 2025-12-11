@@ -161,7 +161,7 @@ export function formatStackedLabels<Meta>(
 
         if (labelLineHeight + secondaryLabelLineHeight > availableHeight) return;
 
-        if (label == null || label.fontSize !== labelFontSize) {
+        if (label?.fontSize !== labelFontSize) {
             label = wrapLabel(
                 labelProps,
                 labelValue,
@@ -175,7 +175,7 @@ export function formatStackedLabels<Meta>(
 
         if (label == null || label.width > availableWidth || label.height > availableHeight) return;
 
-        if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
+        if (secondaryLabel?.fontSize !== secondaryLabelFontSize) {
             secondaryLabel = wrapLabel(
                 secondaryLabelProps,
                 secondaryLabelValue,

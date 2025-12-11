@@ -266,13 +266,13 @@ export function createAggregationIndices(
     let negativeValueData: Float64Array | undefined;
 
     if (split) {
-        if (reuseNegativeIndexData && reuseNegativeIndexData.length === requiredSize) {
+        if (reuseNegativeIndexData?.length === requiredSize) {
             negativeIndexData = reuseNegativeIndexData;
         } else {
             negativeIndexData = new Uint32Array(requiredSize);
         }
 
-        if (reuseNegativeValueData && reuseNegativeValueData.length === requiredSize) {
+        if (reuseNegativeValueData?.length === requiredSize) {
             negativeValueData = reuseNegativeValueData;
         } else {
             negativeValueData = new Float64Array(requiredSize);
@@ -545,7 +545,7 @@ export function compactAggregationIndices(
     let nextIndexData: Uint32Array;
     if (inPlace) {
         nextIndexData = indexData;
-    } else if (reuseIndexData && reuseIndexData.length === requiredSize) {
+    } else if (reuseIndexData?.length === requiredSize) {
         nextIndexData = reuseIndexData;
     } else {
         nextIndexData = new Uint32Array(requiredSize);
@@ -554,7 +554,7 @@ export function compactAggregationIndices(
     let nextValueData: Float64Array;
     if (inPlace) {
         nextValueData = valueData;
-    } else if (reuseValueData && reuseValueData.length === requiredSize) {
+    } else if (reuseValueData?.length === requiredSize) {
         nextValueData = reuseValueData;
     } else {
         nextValueData = new Float64Array(requiredSize);
@@ -639,8 +639,7 @@ export function getMidpointsForIndices(
     xMaxOffset: number = AGGREGATION_INDEX_X_MAX,
     invalidSentinel: number = -1
 ): Uint32Array {
-    const midpoints =
-        reuseMidpointData && reuseMidpointData.length === maxRange ? reuseMidpointData : new Uint32Array(maxRange);
+    const midpoints = reuseMidpointData?.length === maxRange ? reuseMidpointData : new Uint32Array(maxRange);
     for (let i = 0, offset = 0; i < maxRange; i += 1, offset += AGGREGATION_SPAN) {
         const xMin = indexData[offset + xMinOffset];
         const xMax = indexData[offset + xMaxOffset];
