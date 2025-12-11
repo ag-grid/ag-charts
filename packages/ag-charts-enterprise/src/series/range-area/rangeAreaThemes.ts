@@ -1,6 +1,15 @@
-import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { NonNullablePath } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE } from 'ag-charts-core';
+import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-community';
+import {
+    CARTESIAN_AXIS_TYPE,
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MARKER_SERIES_HIGHLIGHT_STYLE,
+    type NonNullablePath,
+    SEGMENTATION_DEFAULTS,
+} from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
@@ -43,9 +52,9 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                                     $applySwitch: [
                                         { $path: 'type' },
                                         undefined, // default case shouldn't be hit because of $if
-                                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                                        ['image', FILL_IMAGE_DEFAULTS],
+                                        ['pattern', FILL_PATTERN_DEFAULTS],
                                     ],
                                 },
                             ],
@@ -64,9 +73,9 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                     $applySwitch: [
                         { $path: 'type' },
                         { $palette: 'fill' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
                     ],
                 },
             ],
@@ -106,8 +115,8 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             $applySwitch: [
                 { $path: 'type' },
                 { $palette: 'fill' },
-                ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
         fillOpacity: 0.7,
@@ -119,9 +128,9 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
                 $applySwitch: [
                     { $path: 'type' },
                     { $palette: 'fill' },
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
                 ],
             },
             shape: 'circle',
@@ -135,7 +144,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             high: RANGE_AREA_ITEM,
         },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             placement: 'outside',
             padding: { $isUserOption: ['./spacing', 0, 10] }, // compatibility with old `padding` property (now named `spacing`).
@@ -150,17 +159,17 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: _ModuleSupport.markerSeriesHighlightStyle(),
-        segmentation: _ModuleSupport.SEGMENTATION_DEFAULTS,
+        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {
             enabled: false,
             fill: {
                 $applySwitch: [
                     { $path: 'type' },
                     { $palette: 'fill' }, // @todo(AG-14792) should be { $path: '../fill' } to inherit from series.fill
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
                 ],
             },
             fillOpacity: { $path: '../fillOpacity' },

@@ -1,5 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    DEFAULT_SHADOW_COLOUR,
+    FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_SINGLE_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
@@ -91,9 +98,9 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
                     $applySwitch: [
                         { $path: ['/type', undefined, { $value: '$1' }] },
                         { $value: '$1' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_SINGLE_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['gradient', FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
+                        ['pattern', FILL_PATTERN_SINGLE_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
                     ],
                 },
             ],
@@ -105,7 +112,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             ],
         } as any,
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

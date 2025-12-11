@@ -1,8 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { POLAR_AXIS_SHAPE, POLAR_AXIS_TYPE } from 'ag-charts-core';
+import {
+    FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+    POLAR_AXIS_SHAPE,
+    POLAR_AXIS_TYPE,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const { FILL_GRADIENT_RADIAL_SERIES_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
 
 export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
     series: {
@@ -20,14 +25,14 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
         },
         strokeWidth: 1,
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        highlight: { ..._ModuleSupport.multiSeriesHighlightStyle(), bringToFront: false },
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false },
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

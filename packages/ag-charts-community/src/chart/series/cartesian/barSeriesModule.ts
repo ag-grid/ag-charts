@@ -1,19 +1,20 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { ChartAxisDirection, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
-import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
-
-import type { ModuleContext } from '../../../module/moduleContext';
-import { VERSION } from '../../../version';
-import { CartesianChartModule } from '../../cartesianChartModule';
 import {
+    ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
     DIRECTION_SWAP_AXES,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
-    multiSeriesHighlightStyle,
-} from '../../themes/util';
+} from 'ag-charts-core';
+import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+
+import type { ModuleContext } from '../../../module/moduleContext';
+import { VERSION } from '../../../version';
+import { CartesianChartModule } from '../../cartesianChartModule';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
@@ -63,7 +64,7 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

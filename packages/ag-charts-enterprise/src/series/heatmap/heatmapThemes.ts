@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
@@ -12,7 +12,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
         },
         strokeWidth: { $isUserOption: ['./stroke', 2, undefined] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             color: { $ref: 'textColor' },
             fontSize: { $ref: 'fontSize' },
@@ -35,9 +35,5 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
 
 // @ts-expect-error undocumented option
 HEATMAP_SERIES_THEME.series.colorRange = {
-    $if: [
-        { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-        { $palette: 'divergingColors' },
-        _ModuleSupport.SAFE_RANGE2_OPERATION,
-    ],
+    $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $palette: 'divergingColors' }, SAFE_RANGE2_OPERATION],
 };

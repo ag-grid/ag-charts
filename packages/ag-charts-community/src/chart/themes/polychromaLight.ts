@@ -1,10 +1,10 @@
 import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+    getSequentialColors,
 } from 'ag-charts-core';
 
 import { ChartTheme } from './chartTheme';
-import { getSequentialColors } from './util';
 
 const POLYCHROMA_LIGHT_FILLS = {
     BLUE: '#436ff4',

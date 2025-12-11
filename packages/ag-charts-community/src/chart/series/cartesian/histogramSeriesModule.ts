@@ -1,17 +1,20 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+} from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import {
-    FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
-    multiSeriesHighlightStyle,
-} from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
@@ -48,7 +51,7 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
 };
 

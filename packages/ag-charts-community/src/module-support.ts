@@ -241,7 +241,6 @@ export {
     HierarchySeriesProperties,
     toHierarchyHighlightString,
 } from './chart/series/hierarchy/hierarchySeriesProperties';
-export type { ITopology } from './chart/series/topologySeries';
 export { MercatorScale } from './chart/series/topology/mercatorScale';
 export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
@@ -328,35 +327,6 @@ export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialCol
 export { Rect, clippedRoundRect, type CornerRadii } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape, type CanvasContext } from './scene/shape/shape';
-export {
-    DIRECTION_SWAP_AXES,
-    FILL_GRADIENT_BLANK_DEFAULTS,
-    FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
-    FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS,
-    FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
-    FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
-    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
-    FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
-    FILL_IMAGE_BLANK_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_BLANK_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
-    FILL_PATTERN_HIERARCHY_DEFAULTS,
-    FILL_PATTERN_KEYED_DEFAULTS,
-    FILL_PATTERN_SINGLE_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
-    LEGEND_CONTAINER_THEME,
-    markerSeriesHighlightStyle,
-    multiSeriesHighlightStyle,
-    SAFE_FILL_OPERATION,
-    SAFE_FILLS_OPERATION,
-    SAFE_RANGE2_OPERATION,
-    SAFE_STROKE_FILL_OPERATION,
-    SEGMENTATION_DEFAULTS,
-    singleSeriesHighlightStyle,
-} from './chart/themes/util';
 export { NativeWidget } from './widget/nativeWidget';
 export { SliderWidget } from './widget/sliderWidget';
 export { ToolbarWidget } from './widget/toolbarWidget';

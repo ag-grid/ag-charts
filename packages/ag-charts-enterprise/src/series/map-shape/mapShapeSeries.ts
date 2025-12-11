@@ -1,14 +1,6 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
-import {
-    Logger,
-    LonLatBBox,
-    cachedTextMeasurer,
-    isArray,
-    measureTextSegments,
-    mergeDefaults,
-    toPlainText,
-} from 'ag-charts-core';
+import { Logger, cachedTextMeasurer, isArray, measureTextSegments, mergeDefaults, toPlainText } from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
@@ -18,12 +10,14 @@ import type {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
@@ -72,7 +66,7 @@ export class MapShapeSeries
         MapShapeNodeLabelDatum,
         MapShapeNodeDataContext
     >
-    implements _ModuleSupport.ITopology
+    implements ITopology
 {
     static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;

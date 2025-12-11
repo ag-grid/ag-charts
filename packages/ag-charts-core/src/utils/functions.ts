@@ -1,4 +1,4 @@
-import { warnOnce } from '../globals/logger';
+import { warnOnce } from '../logging/logger';
 
 interface DebounceOptions {
     leading?: boolean;

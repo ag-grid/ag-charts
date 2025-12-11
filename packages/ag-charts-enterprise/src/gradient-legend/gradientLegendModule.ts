@@ -1,5 +1,9 @@
-import { type AgGradientLegendOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientLegendOptions, VERSION } from 'ag-charts-community';
 import {
+    FILL_GRADIENT_BLANK_DEFAULTS,
+    FILL_IMAGE_BLANK_DEFAULTS,
+    FILL_PATTERN_BLANK_DEFAULTS,
+    LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     and,
     array,
@@ -58,7 +62,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         },
     },
     themeTemplate: {
-        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
+        ...LEGEND_CONTAINER_THEME,
         enabled: false,
         position: 'bottom',
         spacing: 20,
@@ -84,9 +88,9 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
             $applySwitch: [
                 { $path: 'type' },
                 { $ref: 'chartBackgroundColour' },
-                ['gradient', _ModuleSupport.FILL_GRADIENT_BLANK_DEFAULTS],
-                ['pattern', _ModuleSupport.FILL_PATTERN_BLANK_DEFAULTS],
-                ['image', _ModuleSupport.FILL_IMAGE_BLANK_DEFAULTS],
+                ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
+                ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
+                ['image', FILL_IMAGE_BLANK_DEFAULTS],
             ],
         },
     },

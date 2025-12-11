@@ -3,6 +3,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -10,7 +11,7 @@ import type { ExtensibleTheme } from 'ag-charts-types';
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
-const { multiSeriesHighlightStyle, predictCartesianFinancialAxis } = _ModuleSupport;
+const { predictCartesianFinancialAxis } = _ModuleSupport;
 
 const themeTemplate: ExtensibleTheme<'ohlc'> = {
     animation: { enabled: false },
@@ -38,7 +39,7 @@ const themeTemplate: ExtensibleTheme<'ohlc'> = {
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

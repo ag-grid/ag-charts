@@ -1,6 +1,12 @@
-import { type AgTreemapSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
@@ -26,9 +32,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                         $applySwitch: [
                             { $path: ['/type', undefined, { $value: '$1' }] },
                             { $value: '$1' },
-                            ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                            ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                            ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                            ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                            ['pattern', FILL_PATTERN_DEFAULTS],
+                            ['image', FILL_IMAGE_DEFAULTS],
                         ],
                     },
                 ],
@@ -41,7 +47,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
                 label: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'textColor' },
                     fontStyle: undefined,
@@ -66,7 +72,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             },
             tile: {
                 label: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
@@ -79,7 +85,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     spacing: 2,
                 },
                 secondaryLabel: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,

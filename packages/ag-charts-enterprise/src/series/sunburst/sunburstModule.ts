@@ -1,6 +1,13 @@
-import { type AgSunburstSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
+import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    BASE_FONT_SIZE,
+    FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
@@ -17,9 +24,9 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
                     $applySwitch: [
                         { $path: ['/type', undefined, { $value: '$1' }] },
                         { $value: '$1' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
                     ],
                 },
             ],
@@ -30,7 +37,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         colorRange: { $palette: 'divergingColors' },
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontFamily: { $ref: 'fontFamily' },
             fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
@@ -42,7 +49,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
             spacing: 2,
         },
         secondaryLabel: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontFamily: { $ref: 'fontFamily' },
             fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },

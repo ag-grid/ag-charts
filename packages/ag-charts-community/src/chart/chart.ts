@@ -1300,6 +1300,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         const start = performance.now();
+        const timeoutLimit = timeoutMs ?? Number.POSITIVE_INFINITY;
 
         while (
             this._pendingFactoryUpdatesCount > 0 ||
@@ -1323,7 +1324,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this._performUpdateNotify.waitForCompletion();
             }
 
-            if (performance.now() - start > timeoutMs) {
+            if (performance.now() - start > timeoutLimit) {
                 const message = `Chart.waitForUpdate() timeout of ${timeoutMs} reached - first chart update taking too long.`;
                 if (failOnTimeout) {
                     throw new Error(message);

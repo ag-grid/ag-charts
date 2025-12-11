@@ -1,11 +1,13 @@
 import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
 import type { FeatureCollection } from 'ag-charts-core';
-import { Logger, LonLatBBox } from 'ag-charts-core';
+import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import {
     type MapShapeBackgroundNodeDatum,
     MapShapeBackgroundSeriesProperties,
@@ -24,7 +26,7 @@ export class MapShapeBackgroundSeries
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundNodeDataContext
     >
-    implements _ModuleSupport.ITopology
+    implements ITopology
 {
     static override readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;

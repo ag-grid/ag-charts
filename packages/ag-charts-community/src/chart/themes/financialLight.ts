@@ -4,11 +4,11 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    getSequentialColors,
 } from 'ag-charts-core';
 import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
-import { getSequentialColors } from './util';
 
 const FINANCIAL_LIGHT_FILLS = {
     GREEN: '#089981',

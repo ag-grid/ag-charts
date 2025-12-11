@@ -1,5 +1,12 @@
-import { type AgSankeySeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgSankeySeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_FILLS_OPERATION,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SankeySeries } from './sankeySeries';
@@ -25,18 +32,18 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
-            defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
+            defaultPatternFills: SAFE_FILLS_OPERATION,
             highlight: {
                 unhighlightedItem: {
                     opacity: 0.5,
                 },
             },
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

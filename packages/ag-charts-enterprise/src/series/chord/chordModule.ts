@@ -1,5 +1,12 @@
-import { type AgChordSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgChordSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SINGLE_SERIES_HIGHLIGHT_STYLE,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
@@ -19,12 +26,12 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
+            highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

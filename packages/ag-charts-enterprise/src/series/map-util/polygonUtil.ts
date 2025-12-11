@@ -1,6 +1,7 @@
-import { LonLatBBox, type Position } from 'ag-charts-core';
+import type { Position } from 'ag-charts-core';
 
 import { lineSegmentDistanceToPointSquared } from './lineStringUtil';
+import { LonLatBBox } from './lonLatBbox';
 
 export function polygonBbox(polygon: Position[], into: LonLatBBox | undefined): LonLatBBox | undefined {
     for (const coordinates of polygon) {
