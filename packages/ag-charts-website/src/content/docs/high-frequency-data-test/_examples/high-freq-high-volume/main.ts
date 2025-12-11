@@ -1,4 +1,6 @@
-import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
+// @ag-skip-fws
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
+import { BenchmarkRunner, type BenchmarkConfig, type BenchmarkCallbacks } from './benchmark';
 
 (window as any).agChartsDebug = ['scene:stats'];
 
@@ -42,6 +44,33 @@ const ALL_SERIES_TYPES: SeriesType[] = [
     'range-area',
 ];
 const ALL_AXIS_TYPES: AxisType[] = ['time', 'ordinal-time', 'unit-time'];
+
+// Version utilities
+function parseVersion(versionString: string): [number, number, number] {
+    // Parse "13.0.0" or "12.2.1-beta.1" into [13, 0, 0]
+    const parts = versionString.split('-')[0].split('.');
+    const major = parseInt(parts[0] || '0', 10);
+    const minor = parseInt(parts[1] || '0', 10);
+    const patch = parseInt(parts[2] || '0', 10);
+    return [major, minor, patch];
+}
+
+function isVersionAtOrAfter(major: number, minor: number, patch: number): boolean {
+    const [currentMajor, currentMinor, currentPatch] = parseVersion(VERSION);
+    
+    if (currentMajor > major) return true;
+    if (currentMajor < major) return false;
+    if (currentMinor > minor) return true;
+    if (currentMinor < minor) return false;
+    return currentPatch >= patch;
+}
+
+function isVersionBefore(major: number, minor: number, patch: number): boolean {
+    return !isVersionAtOrAfter(major, minor, patch);
+}
+
+const SUPPORTS_APPLY_TRANSACTION = isVersionAtOrAfter(12, 3, 0);
+const SUPPORTS_AXES_DICT = isVersionAtOrAfter(13, 0, 0);
 
 const INITIAL_POINTS = 100_000;
 let BATCH_SIZE = 100;
@@ -333,6 +362,21 @@ function createAxesConfig(axisType: AxisType) {
     };
 }
 
+function createAxesConfigCompat(axisType: AxisType) {
+    const axesDict = createAxesConfig(axisType);
+    
+    if (SUPPORTS_AXES_DICT) {
+        // Version >= 13: return dictionary format
+        return axesDict;
+    } else {
+        // Version < 13: return array format
+        return [
+            axesDict.x,
+            axesDict.y,
+        ];
+    }
+}
+
 // Load config first
 config = loadConfig();
 currentSeriesType = getConfigValue('seriesType') as SeriesType;
@@ -355,7 +399,7 @@ const options: AgCartesianChartOptions = {
     data,
     animation: { enabled: false },
     zoom: { enabled: true },
-    axes: createAxesConfig(currentAxisType),
+    axes: createAxesConfigCompat(currentAxisType) as any,
     series: createSeriesConfig(currentSeriesType),
     legend: { enabled: false },
 };
@@ -505,7 +549,9 @@ async function dispatchUpdate({ append = [], remove = [] }: { append?: Datum[]; 
 
     const elapsed = performance.now() - start;
     recordCpuUsage(elapsed);
+    return elapsed;
 }
+
 
 async function addPoints(count: number) {
     const append = createBatch(count);
@@ -747,7 +793,7 @@ async function setAxisType(newAxisType: AxisType) {
         await chart.update({
             ...options,
             data,
-            axes: createAxesConfig(newAxisType),
+            axes: createAxesConfigCompat(newAxisType) as any,
             series: createSeriesConfig(currentSeriesType),
         });
 
@@ -805,6 +851,15 @@ if (getConfigValue('updatesRunning')) {
     startUpdates();
 }
 
+// Check for benchmark URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('benchmark') === 'true') {
+    // Auto-start benchmark after a short delay to ensure everything is initialized
+    setTimeout(() => {
+        void benchmarkRunner.run();
+    }, 1000);
+}
+
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const newConfig = loadConfig();
@@ -857,5 +912,68 @@ window.addEventListener('hashchange', () => {
     void setAxisType(axisType as AxisType);
 };
 (window as any).rollBatch = rollBatch;
+
+// Create benchmark runner instance
+const benchmarkConfig: BenchmarkConfig<SeriesType> = {
+    testCases: ALL_SERIES_TYPES,
+    updatesPerTest: 500,
+    maxCollectionTimeMs: 10000,
+    warmupUpdates: 20,
+    version: VERSION,
+    versionWarnings: [
+        ...(!SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.'] : []),
+        ...(!SUPPORTS_AXES_DICT ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).'] : []),
+    ],
+    metadata: {
+        initialDataPoints: INITIAL_POINTS,
+        batchSize: BATCH_SIZE,
+        axisType: currentAxisType,
+        dataIntervalMs: DATA_INTERVAL_MS,
+    },
+};
+
+const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
+    setupTestCase: async (seriesType: SeriesType) => {
+        await setSeriesType(seriesType);
+    },
+    performUpdate: async (seriesType: SeriesType, method: string) => {
+        // Ensure no regular updates are running
+        if (isRunning) {
+            stopUpdates();
+        }
+
+        // Set the update method
+        currentUpdateMethod = method as 'applyTransaction' | 'updateDelta';
+
+        // Create rolling window update
+        if (data.length <= BATCH_SIZE) {
+            return 0;
+        }
+        const remove = data.slice(0, BATCH_SIZE);
+        const append = createBatch(BATCH_SIZE);
+        data = data.slice(BATCH_SIZE).concat(append);
+
+        const start = performance.now();
+        if (method === 'applyTransaction') {
+            await (chart as any).applyTransaction({
+                append,
+                remove,
+            });
+        } else {
+            await chart.updateDelta({ data });
+        }
+        await chart.waitForUpdate();
+        return performance.now() - start;
+    },
+    getMethods: (seriesType: SeriesType) => {
+        return SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction', 'updateDelta'] : ['updateDelta'];
+    },
+    formatTestCase: (seriesType: SeriesType) => seriesType,
+    formatMethod: (method: string) => method,
+};
+
+const benchmarkRunner = new BenchmarkRunner<SeriesType>(benchmarkConfig, benchmarkCallbacks);
+
+(window as any).runBenchmark = () => benchmarkRunner.run();
 
 export {};
