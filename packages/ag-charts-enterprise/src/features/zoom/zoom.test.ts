@@ -827,6 +827,8 @@ describe('Zoom', () => {
                         type: 'number',
                         position: 'left',
                         title: { text: 'Price' },
+                        min: 80,
+                        max: 130,
                     },
                 },
                 ...myOptions,
@@ -841,7 +843,7 @@ describe('Zoom', () => {
                     zoom: {
                         enabled: true,
                         autoScaling: {
-                            enabled: true,
+                            enabled: false,
                         },
                         onDataChange: {
                             strategy: 'preserveRatios',
@@ -871,7 +873,7 @@ describe('Zoom', () => {
                             enabled: true,
                             minVisibleItems: 0,
                             autoScaling: {
-                                enabled: true,
+                                enabled: false,
                             },
                             onDataChange: {
                                 strategy: 'preserveDomain',
@@ -906,7 +908,7 @@ describe('Zoom', () => {
                             enabled: true,
                             minVisibleItems: 0,
                             autoScaling: {
-                                enabled: true,
+                                enabled: false,
                             },
                             onDataChange: {
                                 strategy: 'preserveDomain',
@@ -941,7 +943,7 @@ describe('Zoom', () => {
                             enabled: true,
                             minVisibleItems: 2,
                             autoScaling: {
-                                enabled: true,
+                                enabled: false,
                             },
                             onDataChange: {
                                 strategy: 'preserveDomain',
