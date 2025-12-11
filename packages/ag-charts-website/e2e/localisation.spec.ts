@@ -92,7 +92,7 @@ test.describe('localisation', () => {
             'en-US': {
                 swapChain: 'Jan; Income; $250,000; Growth; 10.0%',
                 legendItem1: 'Income, Legend item 1 of 2',
-                legendItem2: 'Growth, Legend item 1 of 2',
+                legendItem2: 'Growth, Legend item 2 of 2',
                 instructions: 'Press Space or Enter to toggle visibility',
             },
         };
