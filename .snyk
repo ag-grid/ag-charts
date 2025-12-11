@@ -6,55 +6,55 @@ ignore:
         - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > bin-check@4.1.0 > execa@0.7.0 > cross-spawn@5.1.0':
               reason: >-
                   Only used for building packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T11:28:00.000Z
         - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > bin-check@4.1.0 > execa@0.7.0 > cross-spawn@5.1.0':
               reason: >-
                   Only used for building, so ReDos attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T11:28:00.000Z
     SNYK-JS-VITE-9653016:
         - vitest@2.1.6:
               reason: >-
                   Vitest is only used for development and we do not expose
                   the dev server to the network
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-VITEST-8688125:
         - vitest@2.1.6:
               reason: >-
                   Vitest is only used for development and we do not expose
                   the dev server to the network
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-ESLINTPLUGINKIT-8340627:
         - eslint@9.14.0 > @eslint/plugin-kit@0.2.2:
               reason: >-
                   Only used for testing packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-ESLINTPLUGINKIT-10847878:
         - eslint@9.14.0 > @eslint/plugin-kit@0.2.2:
               reason: >-
                   Only used for testing packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-WS-7266574:
         - jsdom@22.1.0 > ws@8.15.0:
               reason: >-
                   Only used for building, so DoS attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
         - jest-environment-jsdom@29.7.0 > jsdom@20.0.3 > ws@8.15.0:
               reason: >-
                   Only used for testing, so DoS attack would only affect developer machines and CI
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-FORMDATA-10841150:
         - request@2.88.2 > form-data@2.3.3:
               reason: >-
                   Only used for building and getting changelog/pipeline data
-              expires: 2025-12-10T12:00:00.000Z
+              expires: 2026-06-08T00:00:00.000Z
               created: 2025-09-30T14:14:23.307Z
     SNYK-JS-GLOB-14040952:
         - '@vitest/coverage-v8@2.1.9 > test-exclude@7.0.1 > glob@10.4.5':
