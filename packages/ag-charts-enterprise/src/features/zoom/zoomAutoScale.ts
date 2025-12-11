@@ -103,7 +103,7 @@ export class ZoomAutoScaler implements ZoomAutoScaleChangeListener {
     }
 
     private onSaveMemento(event: _ModuleSupport.ZoomSaveMementoEvent) {
-        event.memento.autoScaledAxes = this.enabled ? [] : ['y'];
+        event.memento.autoScaledAxes = this.enabled ? ['y'] : undefined;
     }
 
     private onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {

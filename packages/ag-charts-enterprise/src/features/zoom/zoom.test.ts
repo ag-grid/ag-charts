@@ -713,7 +713,7 @@ describe('Zoom', () => {
                 start: 0,
                 end: 0.9696592500000001,
             },
-            autoScaledAxes: [],
+            autoScaledAxes: ['y'],
         } as const satisfies DeepReadonly<AgChartState['zoom']>;
 
         beforeEach(async () => {
