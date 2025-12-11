@@ -1,18 +1,29 @@
-import { jsonDiff } from 'ag-charts-core';
+import { ModuleRegistry, jsonDiff } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ISeries } from '../series/seriesTypes';
 
-const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
+const DEFAULT_MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
 export function matchSeriesOptions<S extends ISeries<any, any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptions['series']>,
     oldOptsSeries?: AgChartOptions['series']
 ) {
+    const matchingKeysCache = new Map<string | undefined, string[]>();
+    const getMatchingKeys = (type: string | undefined) => {
+        if (matchingKeysCache.has(type)) return matchingKeysCache.get(type)!;
+
+        const matchingKeys = (type && ModuleRegistry.getSeriesModule(type)?.matchingKeys) ?? DEFAULT_MATCHING_KEYS;
+        matchingKeysCache.set(type, matchingKeys);
+
+        return matchingKeys;
+    };
+
     const generateKey = (type: string | undefined, i: any, opts?: any) => {
+        const matchingKeys = getMatchingKeys(type);
         const result = [type];
-        for (const key of MATCHING_KEYS) {
+        for (const key of matchingKeys) {
             if (key in i && i[key] != null) result.push(`${key}=${i[key]}`);
         }
         if (opts?.seriesGrouping) {

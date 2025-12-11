@@ -121,6 +121,7 @@ export interface SeriesModuleDefinition<TOptions>
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     axisKeys?: Partial<Record<string /* ChartAxisDirection */, string>>;
     axisKeysFlipped?: Partial<Record<string /* ChartAxisDirection */, string>>;
+    matchingKeys?: string[];
 
     options: OptionsDefs<TOptions>;
 }
