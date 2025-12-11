@@ -73,6 +73,22 @@ Rule URL: https://sonarcloud.io/api/rules/show?key={encoded-rule-id}&organizatio
 | S3776   | [S3776-cognitive-complexity.md] | Reduce cognitive complexity | ❌       | ~15-60min    |
 | S1541   | [S1541-function-complexity.md]  | Reduce function size (LOC)  | ❌       | ~30-120min   |
 
+### ⚠️ Rules with Important Exceptions
+
+These rules have documented exceptions in the AG Charts codebase. **Read the guide carefully before applying fixes.**
+
+| Rule ID | File                                   | Description                     | Exceptions                                              |
+| ------- | -------------------------------------- | ------------------------------- | ------------------------------------------------------- |
+| S6550   | [S6550-shorthand-object-properties.md] | Prefer shorthand properties     | Computed enum bitflags in `interactionManager.ts`       |
+| S6836   | [S6836-prefer-arrow-callbacks.md]      | Prefer arrow function callbacks | Named functions for Chrome DevTools profiler visibility |
+| S7740   | [S7740-no-this-assignment.md]          | Don't use "this" alias          | Performance-critical series rendering code              |
+
+**Key Exception Patterns:**
+
+-   **S6550:** Do NOT convert computed enum values like `Default | Annotations` to literal numbers - the expressions are intentional for maintainability
+-   **S6836:** Do NOT convert named function declarations to anonymous arrow functions - named functions appear distinctly in Chrome profiler
+-   **S7740:** Do NOT convert `this` aliases to arrow functions in series code - arrow functions harm performance in hot paths
+
 ## Creating New Guides
 
 When encountering a new rule type:
