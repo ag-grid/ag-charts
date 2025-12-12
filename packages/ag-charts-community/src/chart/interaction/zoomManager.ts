@@ -544,9 +544,9 @@ export class ZoomManager extends BaseManager {
             yVisibleRange = nextZoom.y;
         }
 
-        const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
-        const yZoom: ZoomState = { min: yVisibleRange?.[0] ?? 0, max: yVisibleRange?.[1] ?? 1 };
-        return { x: xZoom, y: yZoom };
+        const x = { min: xVisibleRange[0], max: xVisibleRange[1] };
+        const y = yVisibleRange ? { min: yVisibleRange[0], max: yVisibleRange[1] } : undefined;
+        return definedZoomState({ x, y });
     }
 
     public isVisibleItemsCountAtLeast(
