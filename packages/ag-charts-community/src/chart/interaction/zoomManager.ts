@@ -611,9 +611,7 @@ export class ZoomManager extends BaseManager {
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
-                const { x: x2 = { min: 0, max: 1 }, y: y2 = { min: 0, max: 1 } } =
-                    zoomManager.toAxisZoomState(event.state) ?? {};
-                return { x: x2, y: y2 };
+                return definedZoomState(zoomManager.toAxisZoomState(event.state));
             },
             constrainZoom(restrictions: AxisZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
