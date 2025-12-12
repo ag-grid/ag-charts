@@ -14,7 +14,6 @@ import {
 } from 'ag-charts-core';
 import type {
     AxisID,
-    AxisZoomState,
     BoxBounds,
     CartesianAxisDirection,
     DeepReadonly,
@@ -23,6 +22,7 @@ import type {
     RequireOptional,
     Scale,
     ZoomMinMax,
+    ZoomState,
 } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
@@ -196,7 +196,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
+    public toCoreZoomState(axisZoom: DeepReadonly<ZoomState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
         const { state } = this;
@@ -226,7 +226,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
+    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ZoomState | undefined {
         let x: ZoomMinMax | undefined;
         let y: ZoomMinMax | undefined;
 
@@ -354,7 +354,7 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
+    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: ZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
         return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
@@ -423,7 +423,7 @@ export class ZoomManager extends BaseManager {
             return false;
         }
 
-        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
+        const newZoom: ZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
         return this.updateChanges({
             source: 'user-interaction',
@@ -482,7 +482,7 @@ export class ZoomManager extends BaseManager {
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public getZoom(): AxisZoomState | undefined {
+    public getZoom(): ZoomState | undefined {
         return this.toAxisZoomState(this.state);
     }
 
@@ -613,7 +613,7 @@ export class ZoomManager extends BaseManager {
             stateAsDefinedZoom(): DefinedZoomState {
                 return definedZoomState(zoomManager.toAxisZoomState(event.state));
             },
-            constrainZoom(restrictions: AxisZoomState): void {
+            constrainZoom(restrictions: ZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
             },
             constrainChanges(restrictions: ZoomChangeState): void {

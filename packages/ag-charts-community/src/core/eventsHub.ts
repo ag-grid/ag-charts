@@ -1,12 +1,12 @@
 import type {
     AxisID,
-    AxisZoomState,
     ChartAxisDirection,
     DeepReadonly,
     DefinedZoomState,
     Scale,
     ZoomMinMax,
     ZoomMinMaxDirection,
+    ZoomState,
 } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type {
@@ -233,7 +233,7 @@ export interface ZoomChangeRequestEvent {
     readonly x?: Readonly<ZoomMinMax>;
     readonly y?: Readonly<ZoomMinMax>;
     stateAsDefinedZoom(): DefinedZoomState; // do not use (legacy zoom-state)
-    constrainZoom(zoom: AxisZoomState): void; // do not use (legacy zoom-state)
+    constrainZoom(zoom: ZoomState): void; // do not use (legacy zoom-state)
     constrainChanges(changes: ZoomChangeState): void;
 }
 
