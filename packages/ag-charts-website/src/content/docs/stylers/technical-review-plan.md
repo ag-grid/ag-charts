@@ -1,262 +1,230 @@
 # Technical Review Plan: Stylers Documentation
 
-## Page Information
+## Page Analysis Summary
 
--   **Documentation Page**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/stylers/index.mdoc`
--   **Live URL**: `https://localhost:4600/charts/javascript/stylers/`
--   **Review Date**: 2025-12-12
+### Features Covered
 
-## Execution Mode
+-   Item Stylers for customizing visual appearance of individual series items
+-   Styler callbacks on series level and nested property objects (e.g., marker)
+-   Conditional styling based on data values and other parameters
+-   Integration with highlighting states
 
-**ADAPTIVE MODE** - MCP Puppeteer and Task tools not available. Will perform static code analysis only.
+### Key APIs and Configuration Options Documented
 
-## API Surface Extracted from Documentation
+-   `itemStyler` callback function on series objects
+-   `itemStyler` callback within nested properties like `marker`
+-   Callback parameters including `datum`, current styles, and context
+-   Return object containing style properties to apply
+-   Specific styling properties: `fill`, `size`, `highlighted` state
 
-### Item Stylers
+### Examples Referenced and Their Purposes
 
--   `series[].marker.itemStyler` - for line series markers
--   `series[].label.itemStyler` - for series labels
--   `series[].itemStyler` - for series items (e.g., bars)
--   `axes.y.label.itemStyler` - for axis labels
+1. **item-styler**: Main example demonstrating item stylers on line series markers and bar series
 
-### Series Stylers
+    - Shows conditional marker styling based on data comparison
+    - Shows conditional bar fill based on specific month value
+    - Demonstrates highlight state handling
 
--   `theme.overrides.bar.series.styler` - for bar series styling
--   `theme.overrides.line.series.styler` - for line series styling
+2. **item-styler-highlight-states**: (Commented out in documentation) Would demonstrate granular highlight state control
+3. **marker-styler**: (Not referenced in docs but exists) Likely demonstrates marker-specific styling
+4. **series-item-styler**: (Not referenced in docs but exists) Likely demonstrates series-level item styling
 
-### Properties Referenced in Documentation
+### Interactive Features Described
 
-#### Item Styler Properties
+-   Hover interactions showing highlight states
+-   Different styling when items are highlighted vs unhighlighted
+-   Conditional styling that responds to user interactions
 
--   `fill` - fill color
--   `size` - marker size
--   `fontSize` - label font size
--   `border` - label border (with `stroke`)
--   `padding` - label padding
--   `color` - text color
--   `highlightState` - highlight state parameter
--   `stroke` - stroke color (for line series)
+## Validation Targets
 
-#### Series Styler Properties
+### TypeScript Interfaces to Verify
 
--   `fill` - for bar series
--   `stroke` - for line series
+-   `Styler` type definition from `chart/callbackOptions`
+-   `AgBarSeriesItemStylerParams` interface for bar series
+-   `AgSeriesMarkerStylerParams` interface for marker styling
+-   `AgBarSeriesStyle` interface for available bar style properties
+-   `AgSeriesMarkerStyle` interface for available marker style properties
+-   `DatumCallbackParams` and `ContextCallbackParams` base interfaces
 
-#### Styler Parameters
+### Implementation Files to Check
 
--   `datum` - the datum object
--   `fill` - current fill color
--   `size` - current size
--   `highlightState` - highlight state value
--   `yKey` - y-axis key
--   `seriesId` - series identifier
--   `value` - axis label value
+-   Bar series implementation for itemStyler behavior
+-   Line series implementation for marker.itemStyler behavior
+-   Marker rendering logic to verify style application
+-   Highlight state management in series base classes
+-   Style merging logic (how returned styles override defaults)
 
-## TypeScript Definition Files to Verify
+### Examples to Test with Expected Behaviors
 
-### Core Type Definitions
+#### item-styler Example
 
-1. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/series/cartesian/barOptions.ts`
+**Documentation Claims:**
 
-    - Verify `AgBarSeriesThemeableOptions.styler` and `AgBarSeriesThemeableOptions.itemStyler`
-    - Verify `AgBarSeriesStylerParams` and `AgBarSeriesItemStylerParams`
-    - Verify `AgBarSeriesStyle` properties
+-   Markers in 'Coal' series will be larger (size: 15) and red when coal > nuclear
+-   Markers retain default styling when coal <= nuclear
+-   'Imported' bar for 'Jul' will be red normally, lime when highlighted
+-   Other bars retain default fill color
 
-2. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/series/cartesian/lineOptions.ts`
+**Expected Behaviors to Validate:**
 
-    - Verify `AgLineSeriesThemeableOptions.styler`
-    - Verify `AgLineSeriesStylerParams` and `AgLineSeriesStylerResult`
-    - Verify marker itemStyler via `AgSeriesMarkerOptions`
+-   Chart renders with line and bar series
+-   Hovering over line markers shows tooltips
+-   Markers visually change size and color based on data comparison
+-   Bar for July is visually distinct (red)
+-   Hovering over July bar changes it to lime color
+-   Other bars maintain standard highlight behavior
+-   No console errors during rendering or interactions
 
-3. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/series/markerOptions.ts`
+**example-tester Agent Delegation:**
 
-    - Verify `AgSeriesMarkerOptions.itemStyler`
+-   Verify the example uses correct AG Charts API patterns
+-   Check that itemStyler callbacks are properly structured
+-   Validate TypeScript types if present
+-   Ensure data binding works correctly
+-   Test chart rendering without errors
+-   Verify interactive behaviors match documentation
 
-4. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/chart/labelOptions.ts`
+#### marker-styler Example (if relevant to docs)
 
-    - Verify `AgChartLabelOptions.itemStyler`
-    - Verify `AgChartLabelStylerParams` and `AgChartLabelStyleOptions`
+**Expected Behaviors:**
 
-5. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/chart/axisOptions.ts`
+-   Demonstrates marker-specific styling capabilities
+-   Shows how marker.itemStyler differs from series.itemStyler
+-   Proper parameter usage and return values
 
-    - Verify `AgBaseAxisLabelOptions.itemStyler`
-    - Verify `AgAxisLabelStylerParams` and `AgBaseAxisLabelStyleOptions`
+#### series-item-styler Example (if relevant to docs)
 
-6. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/chart/callbackOptions.ts`
-    - Verify `Styler` type definition
-    - Verify `HighlightState` type
+**Expected Behaviors:**
 
-### Theme Override Types
+-   Shows series-level item styling
+-   Demonstrates different use cases from marker styling
+-   Proper integration with series rendering
 
-7. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/chart/themes/chartTheme.ts`
-    - Verify theme override structure for series stylers
+### User Interactions to Validate
 
-## Implementation Files to Cross-Check
+1. **Hover States**
 
-### Bar Series
+    - Hover over individual line markers
+    - Hover over bar segments
+    - Verify highlight visual feedback matches styled values
+    - Check tooltip content and positioning
 
-1. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
+2. **Data-Driven Styling**
 
-    - Verify itemStyler implementation
-    - Verify styler implementation
+    - Verify conditional styling based on data values
+    - Check that all conditions work as documented
+    - Validate style inheritance and overrides
 
-2. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/barSeriesProperties.ts`
+3. **Edge Cases**
+    - Rapid hovering between elements
+    - Window resizing during hover
+    - Interaction with legend items
+    - Keyboard navigation if supported
 
-    - Verify property definitions for stylers
+### Visual States to Screenshot and Analyze
 
-3. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/barSeriesModule.ts`
-    - Check theme template defaults
+1. **Default State**
 
-### Line Series
+    - Full chart view showing all styled elements
+    - Close-up of styled markers showing size/color differences
+    - Close-up of July bar showing red fill
 
-4. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts`
+2. **Interactive States**
 
-    - Verify styler implementation
-    - Verify marker itemStyler implementation
+    - Hover tooltip on styled marker
+    - Hover state on July bar (lime highlight)
+    - Hover on regular bar for comparison
+    - Multiple highlight scenarios
 
-5. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/lineSeriesProperties.ts`
+3. **Responsive Views**
+    - Desktop view
+    - Tablet view
+    - Mobile view
+    - Verify styling persists across viewports
 
-    - Verify property definitions for stylers
+### Interactive Features Requiring Before/After Visual Comparison
 
-6. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/series/cartesian/lineSeriesModule.ts`
-    - Check theme template defaults
+-   July bar: before hover (red) vs during hover (lime)
+-   Regular bars: default vs highlighted state
+-   Markers: styled vs unstyled comparison
+-   Tooltip appearance and positioning during hover
 
-### Marker Implementation
+### Chart Elements That Should Be Interactive
 
-7. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/marker/marker.ts`
-    - Verify marker itemStyler implementation (if exists)
+Based on documentation claims:
 
-### Axis Implementation
+-   All line series markers (hover for tooltips)
+-   All bar segments (hover for highlight effect)
+-   Legend items (if present, for series highlighting)
+-   Chart canvas area for general interactions
 
-8. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-community/src/chart/axis/axis.ts`
-    - Verify axis label itemStyler implementation
+### Expected Tooltip Content and Highlighting Behaviors
 
-## Examples to Test (Static Analysis)
-
-### Example 1: item-styler
-
--   **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/stylers/_examples/item-styler/`
--   **Files**: `main.ts`, `data.ts`
--   **Documentation Claims**:
-    -   Coal line series markers and labels styled red when coal > nuclear
-    -   Marker size changes to 15 when coal > nuclear
-    -   Label fontSize changes to 12 with red border when coal > nuclear
-    -   Imported bar for 'Jul' is red, with lime highlight
-    -   Y-axis labels colored with gradient scale
--   **Key Configurations**:
-    -   `marker.itemStyler` with `coal > nuclear` logic
-    -   `label.itemStyler` for line series
-    -   `itemStyler` for bar series with `highlightState` check
-    -   `axes.y.label.itemStyler` with gradient coloring
--   **Expected Behaviors**:
-    -   Dynamic marker styling based on data comparison
-    -   Conditional label visibility (transparent for non-Jul months)
-    -   Highlight state differentiation ('highlighted-item' = lime, default = red)
-
-### Example 2: series-styler
-
--   **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/stylers/_examples/series-styler/`
--   **Files**: `main.ts`, `data.ts`
--   **Documentation Claims**:
-    -   Series with 'benchmark' in key are gray
-    -   Other series are blue (#5090DC)
-    -   Legend items reflect this styling
--   **Key Configurations**:
-    -   `theme.overrides.bar.series.styler` checking `yKey.includes('benchmark')`
-    -   `theme.overrides.line.series.styler` checking `yKey.includes('benchmark')`
-    -   Returns `fill` for bar, `stroke` for line
--   **Expected Behaviors**:
-    -   Series-level styling based on key pattern matching
-    -   Different properties for different series types (fill vs stroke)
-    -   Legend inherits series styling
-
-### Additional Examples (Not Referenced in Docs)
-
-3. **item-styler-highlight-states** - may demonstrate highlight state usage
-4. **marker-styler** - may demonstrate marker-specific itemStyler
-5. **series-item-styler** - may demonstrate relationship between styler and itemStyler
-
-## Interactive Features to Test (Static Analysis Notes)
-
-Note: Browser automation unavailable. Will verify code patterns only.
-
-### Highlight State Behavior
-
--   **Feature**: `highlightState` parameter in itemStyler
--   **Expected**: Different styles for 'highlighted-item', 'highlighted-series', etc.
--   **Verification**: Check if code correctly handles highlightState values
-
-### Gradient Coloring Function
-
--   **Feature**: `lerpColor` function in item-styler example
--   **Expected**: Smooth gradient from green to red based on value
--   **Verification**: Validate color interpolation logic
-
-## Visual States to Capture (Skipped - No Browser)
-
--   Initial render state
--   Hover over 'Jul' bar (highlight state)
--   Gradient coloring on y-axis labels
--   Coal vs Nuclear comparison styling
-
-## Content Quality Assessment Areas
-
-1. **API Completeness**:
-
-    - Are all styler types documented (itemStyler vs styler)?
-    - Are parameter objects fully described?
-    - Are return value constraints clear?
-
-2. **Usage Clarity**:
-
-    - Is the relationship between styler and itemStyler explained?
-    - Are the differences between series types clear?
-    - Is theme override usage for series stylers clear?
-
-3. **Example Coverage**:
-
-    - Do examples demonstrate all documented features?
-    - Are edge cases shown (e.g., conditional returns, undefined)?
-    - Are different series types represented?
-
-4. **Missing Documentation**:
-    - Styler availability for other series types
-    - Complete list of parameters for each styler type
-    - Performance considerations
-    - Interaction with other styling options (theme, series options)
-
-## Validation Tasks
-
-### Phase 2A: Technical Accuracy
-
--   [ ] Verify all TypeScript interfaces match documented APIs
--   [ ] Check parameter types and return types
--   [ ] Validate property names in style objects
--   [ ] Verify highlightState values and types
--   [ ] Check default values (if any documented)
-
-### Phase 2B: Example Consistency (Static Analysis)
-
--   [ ] Verify example code matches documentation snippets
--   [ ] Check that all documented features appear in examples
--   [ ] Validate data structure matches type expectations
--   [ ] Verify function signatures match TypeScript definitions
--   [ ] Check for framework compatibility patterns
-
-### Phase 2C: Content Quality
-
--   [ ] Assess completeness of feature coverage
--   [ ] Identify gaps in documentation
--   [ ] Verify cross-references to other pages
--   [ ] Check for clarity and consistency in terminology
+-   Tooltips should show series name, x/y values
+-   Custom styled elements should maintain their styling with tooltips
+-   Highlight effects should layer on top of custom styling
+-   July bar should show lime highlight instead of default
 
 ## Known Exceptions
 
-No `technical-review-exceptions.md` file found.
+No technical-review-exceptions.md file exists for this page, so no known exceptions to consider.
 
-## Review Constraints
+## Execution Plan
 
--   **Mode**: ADAPTIVE (Static analysis only)
--   **Browser Testing**: Unavailable
--   **Task Delegation**: Unavailable
--   **Focus**: TypeScript accuracy, configuration consistency, code pattern validation
+### Priority 1: Core Functionality Validation
+
+1. **TypeScript Interface Verification**
+
+    - Verify `itemStyler` property exists on series and marker options
+    - Check parameter types match documentation
+    - Validate return type allows documented style properties
+
+2. **Main Example Testing (item-styler)**
+    - Delegate to example-tester agent with detailed expectations
+    - Take comprehensive screenshots of all states
+    - Verify data-driven styling logic
+    - Test all interactive behaviors
+
+### Priority 2: Implementation Verification
+
+3. **Code Implementation Review**
+
+    - Check how itemStyler callbacks are invoked
+    - Verify style merging logic
+    - Validate highlight state integration
+    - Check for any undocumented features or limitations
+
+4. **Additional Examples Testing**
+    - Test marker-styler example if it adds value
+    - Test series-item-styler example if it demonstrates unique features
+    - Document any undocumented examples
+
+### Priority 3: Edge Cases and Completeness
+
+5. **Edge Case Testing**
+
+    - Rapid interactions and state changes
+    - Responsive behavior
+    - Error conditions (null data, invalid styles)
+    - Performance with many styled items
+
+6. **Documentation Completeness**
+    - Check if all styler capabilities are documented
+    - Verify accuracy of API references
+    - Look for missing examples or use cases
+
+### Success Criteria
+
+-   All documented behaviors work as described
+-   Examples demonstrate the features claimed in documentation
+-   No console errors during normal usage
+-   Visual styling matches documentation descriptions
+-   Interactive behaviors work consistently
+-   TypeScript types align with documentation
+-   example-tester agent confirms code quality and correctness
+
+### Estimated Complexity
+
+-   **High complexity** for interactive testing due to canvas-based rendering
+-   **Medium complexity** for API validation
+-   **Medium complexity** for visual validation of conditional styling
