@@ -832,6 +832,25 @@ For a full list of configuration options see [Category Axis Options](#reference-
 
 ## Writing Guidelines
 
+### Language Conventions
+
+Documentation follows UK/British English spelling, with specific exceptions for API names.
+
+| Content Type                  | Language           | Examples                                     |
+| ----------------------------- | ------------------ | -------------------------------------------- |
+| **Documentation text**        | UK/British English | colour, centre, behaviour, customisation     |
+| **Code comments in examples** | UK/British English | `// Customise the colour`                    |
+| **API option names**          | US English         | `color`, `center` (as defined in TypeScript) |
+| **JSDoc comments**            | UK/British English | `/** Customises the series colour. */`       |
+
+**Common UK/US Differences**:
+
+-   colour/color, centre/center, behaviour/behavior
+-   customisation/customization, visualise/visualize, minimise/minimize
+-   cancelled/canceled, labelling/labeling, organisation/organization
+
+Use UK spelling in prose but preserve US spelling when referring to actual API property names (e.g., "Set the `color` property to customise the bar colour").
+
 ### Framework Agnostic
 
 **Always use `$framework` placeholder** in descriptions:
