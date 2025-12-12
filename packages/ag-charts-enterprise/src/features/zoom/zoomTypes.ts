@@ -1,4 +1,4 @@
-import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
+import type { AgZoomAnchorPoint } from 'ag-charts-community';
 
 export type ZoomCoords = {
     x1: number;
