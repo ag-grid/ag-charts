@@ -888,8 +888,8 @@ function findFirstSiblingNotOperationOperation(
     const siblings = graph.neighboursWithEdgeValue(parentVertex, PATH_EDGE);
 
     if (siblings) {
-        for (let index = 0; index < siblings.length; index++) {
-            const siblingPathArray = graph.getPathArray(siblings[index]);
+        for (const sibling of siblings) {
+            const siblingPathArray = graph.getPathArray(sibling);
             if (siblingPathArray[parentPathArray.length] === pathArray[parentPathArray.length]) continue;
 
             const siblingChildPathArray = siblingPathArray.concat(pathArray.slice(parentPathArray.length + 1));

@@ -363,7 +363,7 @@ export class HistogramSeries extends CartesianSeries<
             visible: this.visible || animationEnabled,
             styles: getItemStyles(this.getItemStyle.bind(this)),
         };
-        if (processedData == null || processedData.type !== 'grouped') {
+        if (processedData?.type !== 'grouped') {
             return context;
         }
 

@@ -189,10 +189,9 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
             const mergedFormat = FormatManager.mergeSpecifiers(specifier, format);
             if (
-                valueFormatter == null ||
-                valueFormatter.type !== type ||
-                valueFormatter.unit !== unit ||
-                !objectsEqual(valueFormatter.mergedFormat, mergedFormat)
+                valueFormatter?.type !== type ||
+                valueFormatter?.unit !== unit ||
+                !objectsEqual(valueFormatter?.mergedFormat, mergedFormat)
             ) {
                 valueFormatter = {
                     type,

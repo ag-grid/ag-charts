@@ -130,7 +130,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const height = this.height ?? shapeHeight;
 
         const cache = this._cache;
-        if (cache != null && cache.ctx === ctx && cache.width === width && cache.height === height) {
+        if (cache?.ctx === ctx && cache.width === width && cache.height === height) {
             return cache.pattern;
         }
 

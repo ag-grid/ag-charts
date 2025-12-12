@@ -782,7 +782,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): LinearGaugeTargetDatum | undefined {
-        if (node != null && node.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
+        if (node?.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
             return node as LinearGaugeTargetDatum;
         }
     }

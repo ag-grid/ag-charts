@@ -135,8 +135,7 @@ function filterIndicesFromPrevious(
 ): Uint32Array {
     // First pass: count valid indices from previous level
     let count = 0;
-    for (let i = 0; i < prevIndices.length; i++) {
-        const datumIndex = prevIndices[i];
+    for (const datumIndex of prevIndices) {
         if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
             count++;
         }
@@ -147,8 +146,7 @@ function filterIndicesFromPrevious(
 
     // Second pass: populate indices
     let idx = 0;
-    for (let i = 0; i < prevIndices.length; i++) {
-        const datumIndex = prevIndices[i];
+    for (const datumIndex of prevIndices) {
         if (isIndexInAggregation(xValues, d0, d1, indexData, maxRange, datumIndex, xNeedsValueOf, xValuesLength)) {
             indices[idx++] = datumIndex;
         }
