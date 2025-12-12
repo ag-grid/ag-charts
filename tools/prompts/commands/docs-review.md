@@ -317,6 +317,38 @@ Overall assessment including:
     -   Don't assume similar chart types (pie/donut) behave identically
     -   Check module files (`*Module.ts`) for actual runtime defaults before documenting
 
+## Language Conventions
+
+Documentation must follow these spelling and language conventions:
+
+| Content Type                  | Language                              | Examples                                                      |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| **Documentation text**        | UK/British English                    | colour, centre, behaviour, customisation, visualise, minimise |
+| **Code comments in examples** | UK/British English                    | `// Customise the colour`                                     |
+| **API option names**          | US English (as defined in TypeScript) | `color`, `center`, `behavior`                                 |
+| **JSDoc comments**            | UK/British English                    | `/** Customises the series colour. */`                        |
+
+**Key Spelling Differences to Check**:
+
+-   colour (UK) vs color (US) - use UK in prose, US in API names
+-   centre (UK) vs center (US) - use UK in prose, US in API names
+-   behaviour (UK) vs behavior (US) - use UK in prose
+-   customisation (UK) vs customization (US) - use UK
+-   visualise (UK) vs visualize (US) - use UK
+-   minimise (UK) vs minimize (US) - use UK
+-   licence (UK noun) vs license (US) - use UK in prose
+-   organisation (UK) vs organization (US) - use UK
+-   cancelled (UK) vs canceled (US) - use UK
+-   labelling (UK) vs labeling (US) - use UK
+
+**Grammar Checks**:
+
+-   Consistent tense usage (prefer present tense)
+-   Subject-verb agreement
+-   Proper punctuation (Oxford comma optional but be consistent)
+-   Correct use of articles (a/an/the)
+-   No sentence fragments in explanatory text
+
 ## Tool Usage by Phase
 
 | Phase              | Required Tools | Mode-Dependent Tools                                     |
