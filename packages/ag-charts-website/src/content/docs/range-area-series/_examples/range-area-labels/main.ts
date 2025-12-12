@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions = {
                 size: 7,
             },
             label: {
-                padding: 17,
+                spacing: 17,
                 formatter: ({ itemType, value }) => {
                     return `${itemType === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 },
