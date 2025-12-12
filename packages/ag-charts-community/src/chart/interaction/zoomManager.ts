@@ -226,7 +226,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ZoomState | undefined {
+    public toZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ZoomState | undefined {
         let x: ZoomMinMax | undefined;
         let y: ZoomMinMax | undefined;
 
@@ -483,7 +483,7 @@ export class ZoomManager extends BaseManager {
     }
 
     public getZoom(): ZoomState | undefined {
-        return this.toAxisZoomState(this.state);
+        return this.toZoomState(this.state);
     }
 
     public getAxisZoom(axisId: AxisID): ZoomMinMax {
@@ -611,7 +611,7 @@ export class ZoomManager extends BaseManager {
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
-                return definedZoomState(zoomManager.toAxisZoomState(event.state));
+                return definedZoomState(zoomManager.toZoomState(event.state));
             },
             constrainZoom(restrictions: ZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
