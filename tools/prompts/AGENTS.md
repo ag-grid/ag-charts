@@ -44,7 +44,6 @@ For detailed information about preferred technologies and architectural constrai
 -   The main branch of this repo is `latest`
 -   Release branch names are of the form `b12.0.0` (see [Releases Guide](tools/prompts/guides/releases.md))
 -   JIRA-related branch should be named of the form `ag-12345/${kebabCaseChangeSummary}`
--   **Language conventions:** UK/British English for documentation text, comments, and JSDocs; US English for API option names (see [Documentation Pages Guide](tools/prompts/guides/docs-pages.md#language-conventions))
 
 ## Essential Commands
 

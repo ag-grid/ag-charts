@@ -1,201 +1,106 @@
-# Technical Review Plan: Data Configuration and Update
+# Technical Review Plan: data-configuration
 
-## Documentation Information
+**Document**: `/workspaces/ag-charts/packages/ag-charts-website/src/content/docs/data-configuration/index.mdoc`
 
--   **Page Path**: `packages/ag-charts-website/src/content/docs/data-configuration/index.mdoc`
--   **Dev URL**: `https://localhost:4600/charts/javascript/data-configuration/`
--   **Review Date**: 2025-12-12
+**Mode**: ADAPTIVE MODE (Static Analysis Only - MCP Puppeteer unavailable)
 
-## Execution Mode
+## Phase 1: Analysis Summary
 
-**ADAPTIVE MODE** - Checking available tools and performing review with available capabilities.
+### 1. API Surface Extraction
 
-## 1. TypeScript Definitions to Verify
+The documentation covers:
 
-### Core Chart Options
+-   **Chart Options**: `data` array property, `suppressFieldDotNotation`
+-   **Series Options**: Per-series `data` override, `xKey`, `yKey`, `yName`
+-   **Data Source**: Asynchronous `dataSource` with `getData` callback
+-   **Data Transaction**: `applyTransaction()` method with `add`, `remove`, `update` operations
+-   **Framework Updates**: `AgChartInstance.update()`, `AgChartInstance.updateDelta()`
 
--   **File**: `packages/ag-charts-types/src/chart/chartOptions.ts`
-    -   `AgBaseChartOptions.data?: TDatum[]` (line 288)
-    -   `AgBaseThemeableChartOptions.suppressFieldDotNotation?: boolean` (line 254)
-    -   Documentation claims for data structure and binding
+### 2. TypeScript Definition Files to Review
 
-### Series Options
+| API/Interface                             | File Path                                                 | Purpose                  |
+| ----------------------------------------- | --------------------------------------------------------- | ------------------------ |
+| `AgChartOptions.data`                     | `packages/ag-charts-types/src/chart/chartOptions.ts`      | Root-level chart data    |
+| `AgChartOptions.suppressFieldDotNotation` | `packages/ag-charts-types/src/chart/chartOptions.ts`      | Dot notation control     |
+| `AgChartOptions.dataSource`               | `packages/ag-charts-types/src/chart/chartOptions.ts`      | Async data loading       |
+| `AgDataSourceOptions`                     | `packages/ag-charts-types/src/chart/dataSourceOptions.ts` | DataSource interface     |
+| `AgDataTransaction`                       | `packages/ag-charts-types/src/chart/dataTransaction.ts`   | Transaction interface    |
+| Series `data`                             | `packages/ag-charts-types/src/series/seriesOptions.ts`    | Per-series data override |
+| Series `xKey`, `yKey`                     | `packages/ag-charts-types/src/series/cartesian/*.ts`      | Cartesian key properties |
 
--   **File**: `packages/ag-charts-types/src/series/seriesOptions.ts`
-    -   `AgBaseSeriesOptions.data?: TDatum[]` (line 99)
-    -   Per-series data configuration
-    -   Key properties (`xKey`, `yKey`, `colorKey`, `angleKey`)
+### 3. Implementation Files to Cross-Check
 
-### Data Transaction API
+| Feature              | Path Pattern                                             |
+| -------------------- | -------------------------------------------------------- |
+| Series data binding  | `packages/ag-charts-community/src/series/**/*.ts`        |
+| Chart update methods | `packages/ag-charts-community/src/chart/*.ts`            |
+| Transaction handling | `packages/ag-charts-community/src/chart/*.ts`            |
+| Dot notation support | `packages/ag-charts-core/src/**/*.ts` (field resolution) |
 
--   **File**: `packages/ag-charts-types/src/chart/dataTransaction.ts`
-    -   `AgDataTransaction<T>` interface (lines 9-38)
-    -   `add?: T[]` property
-    -   `addIndex?: number` property
-    -   `remove?: T[]` property
-    -   `update?: T[]` property
+### 4. Example Files to Validate
 
-### Chart Instance API
+| Example         | Path                                | Documentation Claims                    | Key Config                                 |
+| --------------- | ----------------------------------- | --------------------------------------- | ------------------------------------------ |
+| basic-data      | `_examples/basic-data/main.ts`      | Basic data structure and series binding | Multiple series with shared root data      |
+| per-series-data | `_examples/per-series-data/main.ts` | Series-specific data override           | Column and line series with different data |
+| hierarchy-data  | `_examples/hierarchy-data/main.ts`  | Hierarchical data structure             | Treemap with nested children               |
+| **MISSING**     | `_examples/using-data-basic/`       | Referenced in chartExampleRunner        | **CRITICAL: Does not exist**               |
 
--   **File**: `packages/ag-charts-types/src/chartBuilderOptions.ts`
-    -   `AgTypedChartInstance.update()` method (line 170)
-    -   `AgTypedChartInstance.updateDelta()` method (line 183)
-    -   `AgTypedChartInstance.applyTransaction()` method (line 190)
+### 5. Interactive Features Claimed in Documentation
 
-## 2. Implementation Files to Cross-Check
+-   Dot notation field access (`user.name`, `user.age`)
+-   Per-series data override behavior
+-   Update method calls (`chart.update()`, `chart.updateDelta()`)
+-   Transaction operations (`applyTransaction()`)
+-   Asynchronous data loading (`dataSource.getData()`)
+-   High-frequency updates with transactions
 
-### Data Binding Implementation
+### 6. Known Exceptions
 
--   `packages/ag-charts-community/src/chart/chart.ts` - Main chart class with data handling
--   `packages/ag-charts-community/src/chart/series/series.ts` - Base series class
--   `packages/ag-charts-community/src/series/cartesian/barSeries.ts` - Bar series implementation (used in example)
+**No exceptions file found** at `packages/ag-charts-website/src/content/docs/data-configuration/technical-review-exceptions.md`
 
-### Field Dot Notation Implementation
+## Review Task Summary
 
--   Search for `suppressFieldDotNotation` usage in community/enterprise packages
--   Verify dot notation parsing logic
+### Technical Accuracy Checks (Static Analysis)
 
-### Transaction Implementation
+1. Verify `data` property documentation against `chartOptions.ts`
+2. Verify `suppressFieldDotNotation` default behavior (should be `false`)
+3. Verify `dataSource` interface matches documentation
+4. Verify transaction operations (`add`, `remove`, `update`) documented correctly
+5. Verify series `xKey`, `yKey` variations by chart type
+6. Verify dot notation feature description accuracy
 
--   Search for `applyTransaction` implementation in chart class
--   Verify transaction processing logic
+### Example Consistency Checks (Static Analysis)
 
-## 3. Module Files to Check for Theme Defaults
+1. **basic-data**: Verify configuration matches documentation patterns
+2. **per-series-data**: Verify per-series data structure and series-specific configs
+3. **hierarchy-data**: Verify hierarchical data structure with `children` array
+4. **using-data-basic**: **CRITICAL** - Example referenced but files do not exist
 
-### Bar Series Module
+### Content Quality Assessment
 
--   `packages/ag-charts-community/src/series/cartesian/barSeriesModule.ts`
-    -   Check for any theme template defaults related to data properties
+-   Check for missing property documentation
+-   Verify feature coverage completeness
+-   Identify unclear explanations or gaps
 
-## 4. Examples to Test
+### Visual & Interaction Testing
 
-### Example: basic-data
+**[SKIPPED] - MCP Puppeteer unavailable**
 
--   **Location**: `packages/ag-charts-website/src/content/docs/data-configuration/_examples/basic-data/`
--   **Files**:
-    -   `main.ts` (verified exists)
-    -   `index.html` (verified exists)
-    -   No `data.ts` file
-    -   No `styles.css` file
+Cannot verify:
 
-**Documentation Claims**:
+-   Screenshot capture and rendering validation
+-   Interactive feature testing
+-   Framework-specific update behavior
+-   Responsive layout verification
 
--   Demonstrates binding data to series using `xKey` and `yKey`
--   Shows two bar series sharing the same root-level data
--   Data structure: `{ year: string, women: number, men: number }`
--   Both series use `xKey: 'year'` for category axis
--   Series 1 uses `yKey: 'women'`
--   Series 2 uses `yKey: 'men'`
--   Each series has a `yName` for legend display
+Manual verification recommended for:
 
-**Expected Behaviors**:
+-   `chart.update()` behavior across frameworks (vanilla/React/Angular/Vue)
+-   `applyTransaction()` performance characteristics
+-   Dot notation field resolution with nested objects
 
--   Chart displays two grouped bar series
--   X-axis shows years (2021, 2022, 2023)
--   Y-axis shows numeric values
--   Legend shows "Women" and "Men" labels
--   Bars are grouped by year
+## Files to Be Generated
 
-**Key Configurations to Verify**:
-
--   Root-level `data` array matches documentation snippet
--   `series[0].type: 'bar'`
--   `series[0].xKey: 'year'`
--   `series[0].yKey: 'women'`
--   `series[0].yName: 'Women'`
--   `series[1].type: 'bar'`
--   `series[1].xKey: 'year'`
--   `series[1].yKey: 'men'`
--   `series[1].yName: 'Men'`
--   Title: "Annual Attendees by Gender"
-
-## 5. Interactive Features to Test (Mode-Dependent)
-
-**Full Mode Features**:
-
--   Hover over bars to verify tooltip displays
--   Legend items are clickable to toggle series visibility
--   Chart renders correctly with both series visible
-
-**Degraded Mode**: Static analysis only, runtime behavior cannot be verified without browser automation.
-
-## 6. Visual States to Capture (Full Mode Only)
-
-If MCP Puppeteer available:
-
--   `reports/screenshots/basic-data-initial.png` - Initial chart rendering
--   `reports/screenshots/basic-data-tooltip.png` - Tooltip on hover
--   `reports/screenshots/basic-data-legend-toggle.png` - After toggling legend item
-
-## 7. Technical Accuracy Validation Tasks
-
-### Data Structure Section
-
--   [ ] Verify documentation claim: "expects data as an array of objects"
--   [ ] Verify TypeScript generics support exists and is documented correctly
--   [ ] Verify hierarchical series reference is accurate (Treemap, Sunburst using `children`)
-
-### Binding Data to Series Section
-
--   [ ] Verify `_Key` properties exist in TypeScript definitions
--   [ ] Verify examples of key properties: `xKey`, `yKey`, `colorKey`, `angleKey`
--   [ ] Verify link to Series Options reference is valid
--   [ ] Verify example code matches actual example implementation
-
-### Per-Series Data Section
-
--   [ ] Verify series-level `data` option exists in TypeScript definitions
--   [ ] Verify documentation claim: "overrides the root-level data option for that series only"
--   [ ] Verify performance recommendation: "recommended for best performance" (root-level data)
-
-### Field Dot Notation Section
-
--   [ ] Verify `suppressFieldDotNotation` option exists and matches TypeScript definition
--   [ ] Verify default value is `false` (dot notation enabled by default)
--   [ ] Verify dot notation example is technically accurate
--   [ ] Check if implementation supports nested property access
-
-### Updating Data Section
-
--   [ ] Verify `update()` method exists on `AgChartInstance`
--   [ ] Verify `updateDelta()` method exists on `AgChartInstance`
--   [ ] Verify method signatures match documentation
--   [ ] Verify link to Create/Update API Reference is valid
-
-### High Frequency Updates Section
-
--   [ ] Verify `applyTransaction()` method exists on `AgChartInstance`
--   [ ] Verify `AgDataTransaction` interface structure matches documentation
--   [ ] Verify transaction properties: `add`, `remove`, `update`
--   [ ] Verify documentation claim about performance benefits
--   [ ] Verify link to High-Frequency Data page is valid
-
-## 8. Content Quality Review Tasks
-
--   [ ] Check for missing configuration options related to data
--   [ ] Verify all code snippets are syntactically correct
--   [ ] Check for consistency between inline snippets and full examples
--   [ ] Verify all internal links are valid
--   [ ] Check for completeness of feature coverage
--   [ ] Identify any undocumented features discovered in TypeScript definitions
-
-## 9. Known Exceptions
-
-No `technical-review-exceptions.md` file found for this page.
-
-## 10. Review Execution Order
-
-1. **Phase 1**: Read all TypeScript definition files listed above
-2. **Phase 2**: Verify technical accuracy of each documentation section against TypeScript definitions
-3. **Phase 3**: Validate example consistency (static analysis or runtime testing based on available tools)
-4. **Phase 4**: Visual and interaction testing (if MCP Puppeteer available)
-5. **Phase 5**: Content quality assessment
-6. **Phase 6**: Generate comprehensive report with findings
-
-## Notes
-
--   This page is fundamental documentation covering core data concepts
--   Accuracy is critical as this affects all chart types and use cases
--   Example should work across all frameworks (React, Angular, Vue, vanilla JS)
--   Pay special attention to API signature accuracy for `update()`, `updateDelta()`, and `applyTransaction()`
--   Verify TypeScript generic support claims are accurate
+-   `technical-review-report.md` - Detailed findings and recommendations
+-   `reports/` - Directory for any supporting evidence

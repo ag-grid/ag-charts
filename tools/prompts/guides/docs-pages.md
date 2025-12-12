@@ -832,25 +832,6 @@ For a full list of configuration options see [Category Axis Options](#reference-
 
 ## Writing Guidelines
 
-### Language Conventions
-
-Documentation follows UK/British English spelling, with specific exceptions for API names.
-
-| Content Type                  | Language           | Examples                                     |
-| ----------------------------- | ------------------ | -------------------------------------------- |
-| **Documentation text**        | UK/British English | colour, centre, behaviour, customisation     |
-| **Code comments in examples** | UK/British English | `// Customise the colour`                    |
-| **API option names**          | US English         | `color`, `center` (as defined in TypeScript) |
-| **JSDoc comments**            | UK/British English | `/** Customises the series colour. */`       |
-
-**Common UK/US Differences**:
-
--   colour/color, centre/center, behaviour/behavior
--   customisation/customization, visualise/visualize, minimise/minimize
--   cancelled/canceled, labelling/labeling, organisation/organization
-
-Use UK spelling in prose but preserve US spelling when referring to actual API property names (e.g., "Set the `color` property to customise the bar colour").
-
 ### Framework Agnostic
 
 **Always use `$framework` placeholder** in descriptions:
@@ -967,23 +948,6 @@ The default value of `strokeWidth` is `1`.
 3. Ensure TypeScript comments match runtime default
 
 See the [Default Values Guide](./defaults.md) for complete details.
-
-### Conciseness and Restraint
-
-Documentation should be concise. Avoid over-documentation:
-
-**Don't add:**
-
--   **Sections for minor properties** - Not every property needs documentation. Properties like `spacing`, `padding`, or simple numeric values are covered in the API Reference.
--   **Implementation details** - Don't document internal behaviour like callback return values, fallback mechanisms, or edge case handling unless essential for usage.
--   **Redundant enablement explanations** - If something is enabled by default, only document how to disable it.
-    -   ❌ "The toolbar can be enabled by setting `enabled: true`, or disabled by setting `enabled: false`"
-    -   ✅ "The toolbar is enabled by default. Use `enabled: false` to disable."
-
-**Example titles** should describe what's demonstrated, not the chart type:
-
--   ❌ "Overlapping Series" (describes data)
--   ✅ "Simple Highlight" (describes the feature)
 
 ### Code Quality
 
