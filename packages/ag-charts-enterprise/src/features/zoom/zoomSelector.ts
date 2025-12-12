@@ -1,4 +1,3 @@
-import type { _ModuleSupport } from 'ag-charts-community';
 import { definedZoomState } from 'ag-charts-core';
 import type { AxisZoomState, BoxBounds, DefinedZoomState } from 'ag-charts-core';
 

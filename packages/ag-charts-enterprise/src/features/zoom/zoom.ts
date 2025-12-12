@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CartesianAxisDirection, ZoomState } from 'ag-charts-core';
+import type { CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -12,7 +12,6 @@ import {
     entries,
     roundTo,
 } from 'ag-charts-core';
-import type { DefinedZoomState } from 'ag-charts-core';
 import { UNIT_MAX, UNIT_MIN, definedZoomState } from 'ag-charts-core';
 import type { AgZoomAnchorPoint, AgZoomAxisDraggingMode } from 'ag-charts-types';
 

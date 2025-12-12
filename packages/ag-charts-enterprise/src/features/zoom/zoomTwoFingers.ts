@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { _Widget } from 'ag-charts-community';
 import type { AxisZoomState, DefinedZoomState, ZoomState } from 'ag-charts-core';
 
 // clientXY  (unit: px)          :  Touch screen points.
