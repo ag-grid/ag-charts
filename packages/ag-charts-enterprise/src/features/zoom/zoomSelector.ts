@@ -1,5 +1,5 @@
 import { definedZoomState } from 'ag-charts-core';
-import type { AxisZoomState, BoxBounds, DefinedZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedViewportState, ViewportState } from 'ag-charts-core';
 
 import type { ZoomRect } from './scenes/zoomRect';
 import type { ZoomCoords, ZoomProperties } from './zoomTypes';
@@ -11,8 +11,8 @@ export class ZoomSelector {
 
     constructor(
         private readonly rect: ZoomRect,
-        private readonly getZoom: () => DefinedZoomState,
-        private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
+        private readonly getZoom: () => DefinedViewportState,
+        private readonly isZoomValid: (zoom: DefinedViewportState) => boolean
     ) {
         this.rect.visible = false;
     }
@@ -26,7 +26,7 @@ export class ZoomSelector {
         this.updateRect(bbox);
     }
 
-    stop(innerBBox?: BoxBounds, bbox?: BoxBounds, currentZoom?: AxisZoomState): DefinedZoomState | undefined {
+    stop(innerBBox?: BoxBounds, bbox?: BoxBounds, currentZoom?: ViewportState): DefinedViewportState | undefined {
         let zoom = definedZoomState();
 
         if (!innerBBox || !bbox) return zoom;
@@ -124,7 +124,7 @@ export class ZoomSelector {
         }
     }
 
-    private createZoomFromCoords(bbox: BoxBounds, currentZoom?: AxisZoomState) {
+    private createZoomFromCoords(bbox: BoxBounds, currentZoom?: ViewportState) {
         const oldZoom = definedZoomState(currentZoom);
         const normal = this.getNormalisedDimensions();
 

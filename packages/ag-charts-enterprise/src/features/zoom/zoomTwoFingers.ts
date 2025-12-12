@@ -1,5 +1,5 @@
 import type { _Widget } from 'ag-charts-community';
-import type { AxisZoomState, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { ViewportState, DefinedViewportState, ZoomState } from 'ag-charts-core';
 
 // clientXY  (unit: px)          :  Touch screen points.
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.
@@ -48,10 +48,10 @@ export class ZoomTwoFingers {
             { identifier: 0, normalX: Number.NaN, normalY: Number.NaN },
         ],
     };
-    private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
+    private readonly initialZoom: DefinedViewportState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
     private readonly previous = { a1: Number.NaN, a2: Number.NaN, b1: Number.NaN, b2: Number.NaN };
 
-    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: AxisZoomState): boolean {
+    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: ViewportState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
         event.sourceEvent.preventDefault();
 
@@ -91,7 +91,7 @@ export class ZoomTwoFingers {
         return true;
     }
 
-    update(event: _Widget.TouchWidgetEvent<'touchmove'>, target: _Widget.Widget): DefinedZoomState {
+    update(event: _Widget.TouchWidgetEvent<'touchmove'>, target: _Widget.Widget): DefinedViewportState {
         event.sourceEvent.preventDefault();
 
         const targetTouches = Array.from(event.sourceEvent.targetTouches);

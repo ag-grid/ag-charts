@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedViewportState, ZoomState } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -86,12 +86,12 @@ export class ZoomToolbar extends BaseProperties {
 
     private readonly cleanup = new CleanupRegistry();
 
-    private previousZoom?: DefinedZoomState;
+    private previousZoom?: DefinedViewportState;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedViewportState) => void,
         private readonly updateAxisZoom: (
             sourcing: _ModuleSupport.UpdateZoomSourcing,
             axisId: AxisID,
@@ -99,7 +99,7 @@ export class ZoomToolbar extends BaseProperties {
             partialZoom: ZoomState | undefined
         ) => void,
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
-        private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
+        private readonly isZoomValid: (zoom: DefinedViewportState) => boolean
     ) {
         super();
 
@@ -210,7 +210,7 @@ export class ZoomToolbar extends BaseProperties {
         trailing: true,
     });
     private toggleButtons() {
-        const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.zoomManager.getZoom());
+        const zoom: Readonly<DefinedViewportState> = definedZoomState(this.ctx.zoomManager.getZoom());
 
         // Only change the buttons if zoom has changed to prevent churn
         if (this.previousZoom && isZoomEqual(this.previousZoom, zoom)) return;
@@ -360,7 +360,11 @@ export class ZoomToolbar extends BaseProperties {
         this.updateZoom(userInteraction(`zoom-button-${event.value}`), constrainZoom(zoom));
     }
 
-    private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {
+    private getNextZoomStateUnified(
+        button: 'zoom-in' | 'zoom-out',
+        oldZoom: DefinedViewportState,
+        props: ZoomProperties
+    ) {
         const { isScalingX, isScalingY, scrollingStep } = props;
 
         const scale = button === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;

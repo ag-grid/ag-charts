@@ -3,7 +3,7 @@ import type {
     AxisID,
     CleanupRegistry,
     DeepRequired,
-    DefinedZoomState,
+    DefinedViewportState,
     ZoomState,
     ZoomStateDirection,
 } from 'ag-charts-core';
@@ -43,11 +43,11 @@ type DesiredStickToEnd = {
 
 type DesiredChanges = DesiredDomains | DesiredStickToEnd;
 
-function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
+function shouldIgnoreDataUpdate(zoom: DefinedViewportState): boolean {
     return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
 }
 
-function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZoomState): boolean {
+function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedViewportState): boolean {
     return properties.stickToEnd && zoom.x.max === 1;
 }
 

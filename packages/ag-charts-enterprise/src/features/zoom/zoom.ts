@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { CartesianAxisDirection, DefinedViewportState, ZoomState } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -854,13 +854,13 @@ export class Zoom extends AbstractModuleInstance {
         return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
     }
 
-    private constrainZoom(newZoom: DefinedZoomState) {
+    private constrainZoom(newZoom: DefinedViewportState) {
         return this.ctx.zoomManager.constrainZoomToItemCount(newZoom, this.minVisibleItems, this.autoScaler.enabled);
     }
 
     private previousZoomValid = true;
     private isZoomValid(
-        newZoom: DefinedZoomState,
+        newZoom: DefinedViewportState,
         options?: { directional?: boolean; includeYVisibleRange?: boolean }
     ) {
         const {
@@ -944,15 +944,15 @@ export class Zoom extends AbstractModuleInstance {
         this.ctx.zoomManager.resetZoom({ source: 'user-interaction', sourceDetail });
     }
 
-    public updateSyncZoom(zoom: DefinedZoomState) {
+    public updateSyncZoom(zoom: DefinedViewportState) {
         this.updateZoom({ source: 'sync', sourceDetail: 'internal-updateSyncZoom' }, zoom);
     }
 
     private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
-        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
-        // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
+        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedViewportState.
+        // For compatibility, we calculate the final DefinedViewportState for constrainZoom to continue to work without
         // breaking thebehaviour.
-        const partialZoom = this.ctx.zoomManager.toAxisZoomState(changes) ?? {};
+        const partialZoom = this.ctx.zoomManager.toViewportState(changes) ?? {};
         const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
         this.updateZoom(sourcing, {
             x: partialZoom.x ?? currentZoom.x,
@@ -960,7 +960,7 @@ export class Zoom extends AbstractModuleInstance {
         });
     }
 
-    private updateZoom(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+    private updateZoom(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedViewportState) {
         if (this.enableIndependentAxes) {
             this.updatePrimaryAxisZooms(sourcing, zoom);
         } else {
@@ -970,7 +970,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private updateUnifiedZoom(
         sourcing: _ModuleSupport.UpdateZoomSourcing,
-        zoom: DefinedZoomState,
+        zoom: DefinedViewportState,
         validOptions?: { directional?: boolean }
     ) {
         zoom = this.constrainZoom(zoom);
@@ -985,14 +985,14 @@ export class Zoom extends AbstractModuleInstance {
         return true;
     }
 
-    private updatePrimaryAxisZooms(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+    private updatePrimaryAxisZooms(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedViewportState) {
         this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.X);
         this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.Y);
     }
 
     private updatePrimaryAxisZoom(
         sourcing: _ModuleSupport.UpdateZoomSourcing,
-        zoom: DefinedZoomState,
+        zoom: DefinedViewportState,
         direction: CartesianAxisDirection
     ) {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);

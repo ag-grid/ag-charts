@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
-import type { BoxBounds, DefinedZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedViewportState } from 'ag-charts-core';
 
 import type { ZoomProperties } from './zoomTypes';
 import { constrainAxis, constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
@@ -53,8 +53,8 @@ export class ZoomScroller {
         event: _Widget.WheelWidgetEvent,
         props: ZoomProperties,
         bbox: BoxBounds,
-        oldZoom: DefinedZoomState
-    ): DefinedZoomState | undefined {
+        oldZoom: DefinedViewportState
+    ): DefinedViewportState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         const canvasX = event.offsetX + bbox.x;
@@ -83,7 +83,7 @@ export class ZoomScroller {
         return newZoom;
     }
 
-    updateDelta(delta: number, props: ZoomProperties, oldZoom: DefinedZoomState): DefinedZoomState {
+    updateDelta(delta: number, props: ZoomProperties, oldZoom: DefinedViewportState): DefinedViewportState {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         // Scale the zoom bounding box

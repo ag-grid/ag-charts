@@ -1,10 +1,10 @@
 import type {
     AxisID,
-    AxisZoomState,
     ChartAxisDirection,
     DeepReadonly,
-    DefinedZoomState,
+    DefinedViewportState,
     Scale,
+    ViewportState,
     ZoomState,
     ZoomStateDirection,
 } from 'ag-charts-core';
@@ -180,7 +180,7 @@ export interface ZoomLoadMementoEvent {
     // Note: `zoom` is intentionally mutable. At the time of writing, only one feature (autoScaling) depends on zoom
     // memento events, so it's safe because we do not have multiple writers. We may need to consider adding a
     // `constrain()` method to this event.
-    zoom: DefinedZoomState;
+    zoom: DefinedViewportState;
     readonly memento: DeepReadonly<ZoomMemento> | undefined;
     readonly navigatorModule: boolean;
     readonly zoomModule: boolean;
@@ -232,8 +232,8 @@ export interface ZoomChangeRequestEvent {
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
-    stateAsDefinedZoom(): DefinedZoomState; // do not use (legacy zoom-state)
-    constrainZoom(zoom: AxisZoomState): void; // do not use (legacy zoom-state)
+    stateAsDefinedZoom(): DefinedViewportState; // do not use (legacy zoom-state)
+    constrainZoom(zoom: ViewportState): void; // do not use (legacy zoom-state)
     constrainChanges(changes: ZoomChangeState): void;
 }
 

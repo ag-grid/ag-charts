@@ -1,20 +1,20 @@
 import type { AgZoomAnchorPoint } from 'ag-charts-community';
 import { ChartAxisDirection, definedZoomState } from 'ag-charts-core';
-import type { AxisZoomState, BoxBounds, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedViewportState, ViewportState, ZoomState } from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
     private coords?: ZoomCoords;
-    private oldZoom?: DefinedZoomState;
+    private oldZoom?: DefinedViewportState;
 
     update(
         event: { offsetX: number; offsetY: number },
         direction: ChartAxisDirection,
         anchor: AgZoomAnchorPoint,
         bbox: BoxBounds,
-        zoom?: AxisZoomState,
+        zoom?: ViewportState,
         axisZoom?: ZoomState
     ): ZoomState {
         // Store the initial zoom state, merged with the state for this axis

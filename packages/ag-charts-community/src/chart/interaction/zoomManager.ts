@@ -14,14 +14,14 @@ import {
 } from 'ag-charts-core';
 import type {
     AxisID,
-    AxisZoomState,
     BoxBounds,
     CartesianAxisDirection,
     DeepReadonly,
-    DefinedZoomState,
+    DefinedViewportState,
     OptionsDefs,
     RequireOptional,
     Scale,
+    ViewportState,
     ZoomState,
 } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
@@ -196,7 +196,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
+    public toCoreZoomState(axisZoom: DeepReadonly<ViewportState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
         const { state } = this;
@@ -226,7 +226,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
+    public toViewportState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ViewportState | undefined {
         let x: ZoomState | undefined;
         let y: ZoomState | undefined;
 
@@ -354,7 +354,7 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
+    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: ViewportState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
         return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
@@ -423,7 +423,7 @@ export class ZoomManager extends BaseManager {
             return false;
         }
 
-        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
+        const newZoom: ViewportState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
         return this.updateChanges({
             source: 'user-interaction',
@@ -482,8 +482,8 @@ export class ZoomManager extends BaseManager {
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public getZoom(): AxisZoomState | undefined {
-        return this.toAxisZoomState(this.state);
+    public getZoom(): ViewportState | undefined {
+        return this.toViewportState(this.state);
     }
 
     public getAxisZoom(axisId: AxisID): ZoomState {
@@ -530,10 +530,10 @@ export class ZoomManager extends BaseManager {
     }
 
     public constrainZoomToItemCount(
-        zoom: DefinedZoomState,
+        zoom: DefinedViewportState,
         minVisibleItems: number,
         shouldAutoscale: boolean
-    ): DefinedZoomState {
+    ): DefinedViewportState {
         let xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         let yVisibleRange: [number, number] | undefined = shouldAutoscale ? undefined : [zoom.y.min, zoom.y.max];
         for (const series of this.getBoundSeries()) {
@@ -550,7 +550,7 @@ export class ZoomManager extends BaseManager {
     }
 
     public isVisibleItemsCountAtLeast(
-        zoom: DefinedZoomState,
+        zoom: DefinedViewportState,
         minVisibleItems: number,
         opts: { autoScaleYAxis: boolean; includeYVisibleRange: boolean }
     ): boolean {
@@ -610,10 +610,10 @@ export class ZoomManager extends BaseManager {
             state,
             x,
             y,
-            stateAsDefinedZoom(): DefinedZoomState {
-                return definedZoomState(zoomManager.toAxisZoomState(event.state));
+            stateAsDefinedZoom(): DefinedViewportState {
+                return definedZoomState(zoomManager.toViewportState(event.state));
             },
-            constrainZoom(restrictions: AxisZoomState): void {
+            constrainZoom(restrictions: ViewportState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
             },
             constrainChanges(restrictions: ZoomChangeState): void {

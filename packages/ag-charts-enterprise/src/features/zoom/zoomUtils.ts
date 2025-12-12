@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedViewportState, ZoomState } from 'ag-charts-core';
 import { UNIT_MAX, UNIT_MIN, clamp, isNumberEqual, jsonDiff } from 'ag-charts-core';
 
 export const UNIT_SIZE = UNIT_MAX - UNIT_MIN;
@@ -9,15 +9,15 @@ export const ZOOM_VALID_CHECK_DEBOUNCE = 300;
 
 const constrain = (value: number, min = UNIT_MIN, max = UNIT_MAX) => clamp(min, value, max);
 
-export function unitZoomState(): DefinedZoomState {
+export function unitZoomState(): DefinedViewportState {
     return { x: { min: UNIT_MIN, max: UNIT_MAX }, y: { min: UNIT_MIN, max: UNIT_MAX } };
 }
 
-export function dx(zoom: DefinedZoomState) {
+export function dx(zoom: DefinedViewportState) {
     return zoom.x.max - zoom.x.min;
 }
 
-export function dy(zoom: DefinedZoomState) {
+export function dy(zoom: DefinedViewportState) {
     return zoom.y.max - zoom.y.min;
 }
 
@@ -25,11 +25,11 @@ function isZoomRangeEqual(left: ZoomState, right: ZoomState) {
     return isNumberEqual(left.min, right.min) && isNumberEqual(left.max, right.max);
 }
 
-export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState) {
+export function isZoomEqual(left: DefinedViewportState, right: DefinedViewportState) {
     return isZoomRangeEqual(left.x, right.x) && isZoomRangeEqual(left.y, right.y);
 }
 
-export function isMaxZoom(zoom: DefinedZoomState) {
+export function isMaxZoom(zoom: DefinedViewportState) {
     return isZoomEqual(zoom, unitZoomState());
 }
 
@@ -53,7 +53,7 @@ export function pointToRatio(bbox: BoxBounds, x: number, y: number): { x: number
 /**
  * Translate a zoom bounding box by shifting all points by the given x & y amounts.
  */
-export function translateZoom(zoom: DefinedZoomState, x: number, y: number): DefinedZoomState {
+export function translateZoom(zoom: DefinedViewportState, x: number, y: number): DefinedViewportState {
     return {
         x: { min: zoom.x.min + x, max: zoom.x.max + x },
         y: { min: zoom.y.min + y, max: zoom.y.max + y },
@@ -63,7 +63,7 @@ export function translateZoom(zoom: DefinedZoomState, x: number, y: number): Def
 /**
  * Scale a zoom bounding box from the top left corner.
  */
-export function scaleZoom(zoom: DefinedZoomState, sx: number, sy: number): DefinedZoomState {
+export function scaleZoom(zoom: DefinedViewportState, sx: number, sy: number): DefinedViewportState {
     return {
         x: { min: zoom.x.min, max: zoom.x.min + dx(zoom) * sx },
         y: { min: zoom.y.min, max: zoom.y.min + dy(zoom) * sy },
@@ -73,7 +73,7 @@ export function scaleZoom(zoom: DefinedZoomState, sx: number, sy: number): Defin
 /**
  * Scale a zoom bounding box from the center.
  */
-export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number): DefinedZoomState {
+export function scaleZoomCenter(zoom: DefinedViewportState, sx: number, sy: number): DefinedViewportState {
     const dx_ = dx(zoom);
     const dy_ = dy(zoom);
 
@@ -125,7 +125,7 @@ export function scaleZoomAxisWithPoint(newState: ZoomState, oldState: ZoomState,
     return { min, max };
 }
 
-export function multiplyZoom(zoom: DefinedZoomState, nx: number, ny: number) {
+export function multiplyZoom(zoom: DefinedViewportState, nx: number, ny: number) {
     return {
         x: { min: zoom.x.min * nx, max: zoom.x.max * nx },
         y: { min: zoom.y.min * ny, max: zoom.y.max * ny },
@@ -135,7 +135,7 @@ export function multiplyZoom(zoom: DefinedZoomState, nx: number, ny: number) {
 /**
  * Constrain a zoom bounding box such that no corner exceeds an edge while maintaining the same width and height.
  */
-export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
+export function constrainZoom(zoom: DefinedViewportState): DefinedViewportState {
     return {
         x: constrainAxis(zoom.x),
         y: constrainAxis(zoom.y),
