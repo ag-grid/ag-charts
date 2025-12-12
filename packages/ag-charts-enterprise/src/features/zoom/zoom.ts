@@ -1,18 +1,19 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
-    type AxisID,
     ChartAxisDirection,
     ChartUpdateType,
     Property,
     ProxyProperty,
+    UNIT_MAX,
+    UNIT_MIN,
     debounce,
+    definedZoomState,
     entries,
     roundTo,
 } from 'ag-charts-core';
-import { UNIT_MAX, UNIT_MIN, definedZoomState } from 'ag-charts-core';
 import type { AgZoomAnchorPoint, AgZoomAxisDraggingMode } from 'ag-charts-types';
 
 import { ZoomRect } from './scenes/zoomRect';
