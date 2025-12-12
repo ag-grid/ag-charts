@@ -190,6 +190,7 @@ In this example:
 
 -   The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
     whose text is dynamically derived from the Context Menu Event parameters.
+-   When the callback returns `undefined` (e.g., for non-series-node contexts), the context menu falls back to the `items` property configuration. This allows selective customization based on context.
 
 ## API Reference
 

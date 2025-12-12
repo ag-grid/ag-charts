@@ -53,7 +53,7 @@ return <AgSparkline options={options} />;
     template: `<ag-sparkline [options]="options"></ag-sparkline>`,
 })
 export class AppComponent {
-    public options: AgRadialGaugeOptions;
+    public options: AgSparklineOptions;
     constructor() {
         this.options = {
             type: 'bar',

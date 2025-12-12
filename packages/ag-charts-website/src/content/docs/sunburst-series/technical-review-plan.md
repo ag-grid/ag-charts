@@ -1,310 +1,205 @@
-# Technical Review Plan: Sunburst Series
+# Sunburst Series Documentation - Technical Review Plan
 
-## Page Analysis Summary
+## Documentation Page
 
-### Chart Types/Features Covered
+**Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/index.mdoc`
 
--   Sunburst series - hierarchical/tree data visualization
--   Radial segment-based representation of hierarchical data
--   Nested data structures with parent-child relationships
--   Size-based segment angles (relative sizing via `sizeKey`)
--   Color scale visualization for additional data dimension
--   Primary and secondary labels with auto-sizing
--   Gradient legend for color scale interpretation
+## TypeScript Definition Files to Verify
 
-### Key APIs and Configuration Options Documented
+1. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/series/standalone/sunburstOptions.ts`
+   - Primary interface: `AgSunburstSeriesOptions`
+   - Includes: `AgSunburstSeriesThemeableOptions`, `AgSunburstSeriesOptionsKeys`, `AgSunburstSeriesOptionsNames`
+   - Highlight options: `AgSunburstSeriesHighlightOptions`, `AgSunburstSeriesHighlightStyle`
+   - Tooltip and formatter interfaces
 
--   `type: 'sunburst'` - Series type declaration
--   `labelKey` - Defines segment titles
--   `sizeKey` / `sizeName` - Controls relative segment sizing
--   `colorKey` / `colorName` / `colorRange` - Color scale configuration
--   `fills` / `strokes` - Alternative coloring (non-scale based)
--   `secondaryLabelKey` - Secondary label data
--   Label configuration (`fontSize`, `minimumFontSize`, `spacing`)
--   `padding` - Sector content spacing
--   Gradient legend configuration (position, size, labels)
+2. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-types/src/chart/gradientLegendOptions.ts`
+   - Primary interface: `AgGradientLegendOptions`
+   - Includes: `AgGradientLegendBarOptions`, `AgGradientLegendScaleOptions`, `AgGradientLegendLabelOptions`
 
-### Examples Referenced and Their Purposes
+## Implementation Files to Cross-Check
 
-1. **org-chart** - Simple sunburst demonstrating basic hierarchical structure
-2. **sizing** - Custom sizing using GDP data with `sizeKey`
-3. **color-scale** - Color gradient based on numeric values
-4. **other-colors** - Alternative coloring using `fills` array
-5. **labels** - Label formatting and secondary labels
-6. **gradient-legend** - Basic gradient legend display
-7. **gradient-legend-position** - Legend positioning options
-8. **gradient-legend-size** - Legend size customization
-9. **gradient-legend-labels** - Legend label styling
+1. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-enterprise/src/series/sunburst/sunburstSeries.ts`
+   - Main series implementation
 
-### Interactive Features Described
+2. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-enterprise/src/series/sunburst/sunburstSeriesProperties.ts`
+   - Property decorators and default values:
+     - `fillOpacity: number = 1` (line 55)
+     - `strokeWidth: number = 0` (line 58)
+     - `strokeOpacity: number = 1` (line 61)
+     - `cornerRadius: number = 0` (line 64)
 
--   Tooltips showing node information
--   Hover highlighting of segments
--   Label auto-sizing to fit available space
--   Interactive gradient legend
+## Module Files for Theme Template Defaults
 
-## Validation Targets
+1. `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-enterprise/src/series/sunburst/sunburstModule.ts`
+   - Theme template with runtime defaults:
+     - `fills`: Uses palette cycle
+     - `strokes`: Uses palette cycle
+     - `colorRange`: Uses divergingColors palette
+     - `strokeWidth`: Conditional based on user options (line 31)
+     - `label.enabled: true` (line 34)
+     - `label.fontSize`: LARGE ratio (line 36)
+     - `label.minimumFontSize: 9/BASE_FONT_SIZE` (line 37)
+     - `label.color`: chartBackgroundColor reference (line 39)
+     - `label.spacing: 2` (line 42)
+     - `secondaryLabel.enabled: true` (line 46)
+     - `secondaryLabel.fontSize`: SMALLEST ratio (line 48)
+     - `secondaryLabel.minimumFontSize: 7/BASE_FONT_SIZE` (line 49)
+     - `sectorSpacing: 2` (line 55)
+     - `padding: 3` (line 56)
+     - `highlight.unhighlightedItem.fillOpacity: 0.6` (line 59)
+     - `highlight.unhighlightedItem.strokeOpacity: 0.6` (line 60)
+     - `highlight.unhighlightedBranch.fillOpacity: 0.2` (line 63)
+     - `highlight.unhighlightedBranch.strokeOpacity: 0.2` (line 64)
+     - `gradientLegend.enabled`: Conditional based on colorKey (line 69)
 
-### Specific TypeScript Interfaces to Verify
+## Examples to Test
 
--   `AgSunburstSeriesOptions` in `/packages/ag-charts-types/src/series/standalone/sunburstOptions.ts`
--   `AgGradientLegendOptions` in `/packages/ag-charts-types/src/chart/gradientLegendOptions.ts`
--   Label interfaces: `AgChartAutoSizedLabelOptions`, `AgChartAutoSizedSecondaryLabelOptions`
--   Tooltip interface: `AgSunburstSeriesTooltipRendererParams`
+### 1. org-chart
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/org-chart/`
+- **Purpose**: Simple Sunburst - demonstrates basic organizational chart
+- **Key Configs**: `type: 'sunburst'`, `labelKey: 'name'`
+- **Expected**: Hierarchical data display with sectors
 
-### Implementation Files to Check
+### 2. sizing
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/sizing/`
+- **Purpose**: Custom Sizing - demonstrates sizeKey and sizeName
+- **Key Configs**: `labelKey`, `sizeKey: 'gdp'`, `sizeName: 'GDP'`
+- **Expected**: Sectors sized proportionally by GDP values
 
--   Main implementation: Look for sunburst series implementation in community/enterprise packages
--   Property decorators for default values
--   Gradient legend implementation
--   Label auto-sizing logic
--   Color scale interpolation logic
+### 3. color-scale
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/color-scale/`
+- **Purpose**: Colour Scale - demonstrates colorKey and colorRange
+- **Key Configs**: `colorKey: 'gdpChange'`, `colorName: 'Change'`, `colorRange: ['#FF9800', '#8BC34A']`
+- **Expected**: Sectors colored by gdpChange using scale
 
-### Examples to Test with Expected Behaviors
+### 4. other-colors
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/other-colors/`
+- **Purpose**: Other Colours - demonstrates fills and strokes arrays
+- **Key Configs**: `fills: ['#D32F2F', '#FF5722', '#283593']`
+- **Expected**: Sectors colored by root node index
 
-#### org-chart Example
+### 5. labels
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/labels/`
+- **Purpose**: Labels - demonstrates label configuration and secondary labels
+- **Key Configs**: `labelKey`, `secondaryLabelKey`, `label.fontSize: 14`, `label.minimumFontSize: 9`, `label.spacing: 2`, `padding: 3`
+- **Expected**: Dual labels with auto-sizing
 
-**Documentation claims:**
+### 6. gradient-legend
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/gradient-legend/`
+- **Purpose**: Gradient Legend - demonstrates default gradient legend
+- **Key Configs**: `colorKey: 'gdpChange'`, `gradientLegend.enabled: true`
+- **Expected**: Gradient legend displayed with color scale
 
--   Simple hierarchical organizational chart
--   Uses `labelKey: 'name'` to display names in segments
--   Default sizing (equal angles for leaf nodes)
+### 7. gradient-legend-position
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/gradient-legend-position/`
+- **Purpose**: Gradient Legend Position - demonstrates position and reverseOrder
+- **Key Configs**: `gradientLegend.position: 'right'`, `reverseOrder`
+- **Expected**: Legend positioned on right side
 
-**Expected behaviors to validate:**
+### 8. gradient-legend-size
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/gradient-legend-size/`
+- **Purpose**: Gradient Legend Size - demonstrates thickness and preferredLength
+- **Key Configs**: `gradientLegend.gradient.thickness: 50`, `gradientLegend.gradient.preferredLength: 400`
+- **Expected**: Customized gradient bar dimensions
 
--   Hierarchical data properly rendered as nested radial segments
--   Names displayed as labels in each segment
--   Equal-sized leaf segments when no `sizeKey` specified
--   Tooltips show node names
--   Proper parent-child nesting visually represented
+### 9. gradient-legend-labels
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/gradient-legend-labels/`
+- **Purpose**: Gradient Legend Labels - demonstrates scale label customization
+- **Key Configs**: `gradientLegend.scale.label` (fontSize, fontStyle, fontWeight, fontFamily, color), `gradientLegend.scale.padding: 20`
+- **Expected**: Styled scale labels
 
-#### sizing Example
+### 10. highlight
+- **Path**: `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/_examples/highlight/`
+- **Purpose**: Highlighting - demonstrates highlight states
+- **Key Configs**: `highlight.highlightedItem.stroke: 'green'`, `highlight.highlightedBranch.strokeWidth: 2`, `highlight.unhighlightedItem.opacity: 0.5`, `highlight.unhighlightedBranch.opacity: 0.1`
+- **Expected**: Different visual states on hover
 
-**Documentation claims:**
+## Interactive Features to Test
 
--   Uses `sizeKey: 'gdp'` for relative sizing
--   `sizeName: 'GDP'` appears in tooltips
--   Segments sized proportionally to GDP values
+1. **Sector hover interaction**: Verify highlighting behavior matches documentation
+2. **Tooltip display**: Check tooltip content for labelKey, sizeKey, colorKey values
+3. **Gradient legend interaction**: Verify legend displays correctly with colorKey
+4. **Label auto-sizing**: Verify labels shrink to minimumFontSize when needed
+5. **Branch highlighting**: Verify all segments in branch get highlighted styles
 
-**Expected behaviors to validate:**
+## Visual States to Capture
 
--   Segments have different sizes based on GDP data
--   Tooltip shows "GDP" label with values
--   Relative sizing correctly calculated
--   Parent segments sum child segment sizes
+1. **Default state**: Simple sunburst with basic configuration
+2. **With sizing**: Sectors with different sizes based on sizeKey
+3. **With color scale**: Gradient coloring based on colorKey and colorRange
+4. **With fills array**: Custom color palette
+5. **With labels**: Primary and secondary labels
+6. **Gradient legend positions**: Bottom (default), right
+7. **Hover state**: All highlight states (highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch)
 
-#### color-scale Example
+## Key Properties to Validate
 
-**Documentation claims:**
+### Sunburst Series Properties
+- `type: 'sunburst'` (required)
+- `labelKey` (optional string)
+- `secondaryLabelKey` (optional string)
+- `childrenKey` (optional string, defaults to 'children')
+- `sizeKey` (optional string)
+- `colorKey` (optional string)
+- `sizeName` (optional string)
+- `colorName` (optional string)
+- `fills` (optional array)
+- `strokes` (optional array)
+- `fillOpacity` (optional number)
+- `strokeWidth` (optional number)
+- `strokeOpacity` (optional number)
+- `colorRange` (optional array)
+- `cornerRadius` (optional number)
+- `sectorSpacing` (optional number)
+- `padding` (optional number)
+- `label` (optional object with fontSize, minimumFontSize, spacing, formatter)
+- `secondaryLabel` (optional object)
+- `highlight` (optional object with highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch)
 
--   `colorKey: 'gdpChange'` provides numeric values for color scale
--   `colorName: 'Change'` appears in tooltips
--   `colorRange: ['#FF9800', '#8BC34A']` defines gradient colors
+### Gradient Legend Properties
+- `enabled` (optional boolean)
+- `position` (optional: 'top' | 'right' | 'bottom' | 'left')
+- `reverseOrder` (optional boolean)
+- `gradient.thickness` (optional number)
+- `gradient.preferredLength` (optional number)
+- `scale.label` (optional object with font properties)
+- `scale.padding` (optional number)
 
-**Expected behaviors to validate:**
+## Default Values to Verify
 
--   Segments colored based on gdpChange values
--   Color interpolation between orange and green
--   Tooltip shows "Change" with color-coded values
--   Gradient legend appears showing color scale
+Priority: Check theme template first, then @Property decorators
 
-#### other-colors Example
+### From sunburstModule.ts (Theme Template - Runtime Defaults):
+- `label.enabled: true`
+- `label.spacing: 2`
+- `secondaryLabel.enabled: true`
+- `sectorSpacing: 2`
+- `padding: 3`
+- `highlight.unhighlightedItem.fillOpacity: 0.6`
+- `highlight.unhighlightedItem.strokeOpacity: 0.6`
+- `highlight.unhighlightedBranch.fillOpacity: 0.2`
+- `highlight.unhighlightedBranch.strokeOpacity: 0.2`
+- `gradientLegend.enabled`: Conditional (true if colorKey exists)
 
-**Documentation claims:**
+### From sunburstSeriesProperties.ts (@Property Decorators - Fallback Defaults):
+- `fillOpacity: 1`
+- `strokeWidth: 0`
+- `strokeOpacity: 1`
+- `cornerRadius: 0`
 
--   `fills: ['#D32F2F', '#FF5722', '#283593']` cycles through colors
--   Colors indexed by root node index
--   `fills` ignored when `colorRange` is used
+### From gradientLegendOptions.ts (TypeScript Comments):
+- `position: 'bottom'` (line 40)
+- `spacing: 20` (line 49)
 
-**Expected behaviors to validate:**
+## Common Pitfalls to Check
 
--   Three distinct colors applied to root nodes and their children
--   No gradient legend (since no colorKey)
--   Colors cycle through the fills array
--   All children of a root share the same color
-
-#### labels Example
-
-**Documentation claims:**
-
--   `secondaryLabelKey: 'gdpChange'` shows secondary labels
--   `fontSize: 14` with `minimumFontSize: 9` for auto-sizing
--   `spacing: 2` between labels
--   `padding: 3` from sector edges
--   Secondary label formatter shows percentage
-
-**Expected behaviors to validate:**
-
--   Primary and secondary labels visible
--   Font size shrinks to fit small segments (down to 9px)
--   Proper spacing between primary and secondary labels
--   3px padding from segment edges
--   Secondary labels formatted as percentages
-
-#### gradient-legend Examples
-
-**Documentation claims:**
-
--   Gradient legend enabled by default with colorKey
--   Position options: bottom (default), left, right
--   Size customization via thickness and preferredLength
--   Label styling options (font, color, padding)
-
-**Expected behaviors to validate:**
-
--   Gradient legend appears when colorKey is used
--   Position changes work correctly
--   Size adjustments respected
--   Label styling applied
--   Legend constrained by container edges
--   Vertical legends show descending order
-
-### User Interactions to Validate
-
--   Hover over segments for tooltips
--   Hover highlighting of individual segments
--   Click interactions (if any)
--   Keyboard navigation support
--   Legend hover/interaction behavior
-
-### Visual States to Screenshot and Analyze
-
--   Default rendering state for each example
--   Hover states showing tooltips and highlighting
--   Different viewport sizes (responsive behavior)
--   Label auto-sizing in action (small segments)
--   Gradient legend in different positions
--   Parent vs leaf segment visual distinction
-
-### Interactive Features Requiring Before/After Visual Comparison
-
--   Segment hover highlighting
--   Tooltip appearance on hover
--   Label resizing based on available space
--   Any click-based interactions
-
-### Chart Elements That Should Be Interactive
-
--   All visible segments (hover for tooltips)
--   Gradient legend (if interactive)
--   Any clickable elements mentioned in docs
-
-### Expected Tooltip Content and Highlighting Behaviors
-
--   Tooltip shows labelKey value
--   Size values with sizeName when sizeKey is used
--   Color values with colorName when colorKey is used
--   Segment highlight on hover
--   Clear visual feedback for interactive elements
+1. **Default values**: Verify against theme template first (sunburstModule.ts), not just @Property decorators
+2. **Gradient legend enablement**: Should be enabled by default when colorKey is present
+3. **Label auto-sizing**: minimumFontSize should allow shrinking below fontSize
+4. **Highlight states**: Four distinct states should work independently
+5. **Color precedence**: colorRange should override fills/strokes arrays
+6. **Object configuration enablement**: Setting label properties implies enabled: true
 
 ## Known Exceptions
 
-No existing technical-review-exceptions.md file found for this page.
-
-## Execution Plan
-
-### Prioritized Testing Checklist
-
-1. **High Priority - Core Functionality**
-
-    - Verify sunburst series type configuration works
-    - Test hierarchical data rendering accuracy
-    - Validate labelKey functionality
-    - Check tooltip content matches documentation
-    - Test hover highlighting behavior
-
-2. **High Priority - Sizing Feature**
-
-    - Verify sizeKey implementation
-    - Test relative sizing calculations
-    - Validate sizeName in tooltips
-    - Check parent segment size aggregation
-
-3. **High Priority - Color Scale Feature**
-
-    - Test colorKey/colorRange implementation
-    - Verify gradient interpolation
-    - Check gradient legend appears by default
-    - Validate colorName in tooltips
-
-4. **Medium Priority - Alternative Coloring**
-
-    - Test fills array cycling
-    - Verify fills ignored with colorRange
-    - Check root node color inheritance
-
-5. **Medium Priority - Labels**
-
-    - Test label auto-sizing functionality
-    - Verify secondary labels
-    - Check label formatting
-    - Test padding and spacing
-
-6. **Medium Priority - Gradient Legend**
-
-    - Test all position options
-    - Verify size customization
-    - Check label styling
-    - Test responsive constraints
-
-7. **Low Priority - Visual Polish**
-    - Screenshot all examples
-    - Check responsive behavior
-    - Verify visual consistency
-
-### Success Criteria for Each Test
-
--   API properties match TypeScript definitions
--   Examples render without console errors
--   Interactive features work as documented
--   Visual appearance matches descriptions
--   Tooltips show expected content
--   Performance is acceptable
-
-### Estimated Complexity/Time for Each Task
-
--   Core functionality: High complexity (30 min)
--   Sizing feature: Medium complexity (20 min)
--   Color scale: Medium complexity (20 min)
--   Alternative coloring: Low complexity (10 min)
--   Labels: Medium complexity (15 min)
--   Gradient legend: Medium complexity (20 min)
--   Visual validation: Low complexity (15 min)
-
-## Delegation Plan for example-tester Agent
-
-### org-chart Example
-
--   **Test focus**: Basic hierarchical rendering
--   **Expected**: Clean tree structure with equal leaf sizes, name labels visible
--   **Validate**: Proper nesting, tooltip content, no console errors
-
-### sizing Example
-
--   **Test focus**: GDP-based sizing implementation
--   **Expected**: Variable segment sizes based on GDP data
--   **Validate**: Size calculations, tooltip shows GDP values with "GDP" label
-
-### color-scale Example
-
--   **Test focus**: Color gradient implementation
--   **Expected**: Orange to green gradient based on gdpChange values
--   **Validate**: Color interpolation, gradient legend presence, tooltip shows "Change" values
-
-### other-colors Example
-
--   **Test focus**: Fills array implementation
--   **Expected**: Three distinct colors for root nodes
--   **Validate**: No gradient legend, color cycling, children inherit parent colors
-
-### labels Example
-
--   **Test focus**: Label configuration and formatting
--   **Expected**: Primary and secondary labels, auto-sizing, percentage formatting
--   **Validate**: Font sizing behavior, spacing, padding, formatter function
-
-### gradient-legend Examples
-
--   **Test focus**: Legend configuration options
--   **Expected**: Various positions, sizes, and styles
--   **Validate**: Position changes, size adjustments, label styling, responsive behavior
+No exceptions file found at `/Users/bls/git/ag-charts.worktrees/review-docs-13/packages/ag-charts-website/src/content/docs/sunburst-series/technical-review-exceptions.md`
