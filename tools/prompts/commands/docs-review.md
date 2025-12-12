@@ -317,6 +317,49 @@ Overall assessment including:
     -   Don't assume similar chart types (pie/donut) behave identically
     -   Check module files (`*Module.ts`) for actual runtime defaults before documenting
 
+## Documentation Style Principles
+
+When reviewing documentation, apply these principles to avoid over-documentation:
+
+### Do NOT Recommend Adding:
+
+1. **Default values in prose** - Don't add sentences like "The default value is X" unless the default is surprising or essential for understanding. Users can check the API Reference for defaults.
+
+2. **Redundant enablement explanations** - If something is enabled by default, don't explain how to enable it. Only document how to disable.
+
+    - ❌ "The toolbar can be enabled by setting `enabled: true`, or disabled by setting `enabled: false`"
+    - ✅ "The toolbar is enabled by default. Use `enabled: false` to disable."
+
+3. **New sections for minor properties** - Not every property needs its own documentation section. Properties like `spacing`, `padding`, or simple numeric values are adequately covered in the API Reference.
+
+4. **Implementation details** - Don't document internal behavior like callback return value handling, fallback mechanisms, or edge case handling unless it's essential for correct usage.
+
+5. **Verbose explanations** - Keep documentation concise. If something can be explained in one sentence, don't use three.
+
+### Example Titles
+
+Example titles should describe what the example demonstrates, not just the chart type:
+
+-   ❌ "Overlapping Series" (describes the data, not the feature)
+-   ✅ "Simple Highlight" (describes what's being demonstrated)
+-   ❌ "Bar Chart with Tooltip" (generic)
+-   ✅ "Custom Tooltip Content" (specific feature demonstrated)
+
+### When Flagging Issues
+
+Only flag documentation as incomplete if:
+
+-   A **primary feature** is undocumented (not minor styling properties)
+-   The documentation is **factually incorrect** (wrong API names, broken examples)
+-   An example **doesn't match** what the documentation claims it shows
+-   There's a **critical default** that affects common use cases
+
+Do NOT flag:
+
+-   Missing documentation for every property (that's what API Reference is for)
+-   Missing default value mentions
+-   Opportunities to add more detail to already-clear explanations
+
 ## Language Conventions
 
 Documentation must follow these spelling and language conventions:

@@ -968,6 +968,23 @@ The default value of `strokeWidth` is `1`.
 
 See the [Default Values Guide](./defaults.md) for complete details.
 
+### Conciseness and Restraint
+
+Documentation should be concise. Avoid over-documentation:
+
+**Don't add:**
+
+-   **Sections for minor properties** - Not every property needs documentation. Properties like `spacing`, `padding`, or simple numeric values are covered in the API Reference.
+-   **Implementation details** - Don't document internal behaviour like callback return values, fallback mechanisms, or edge case handling unless essential for usage.
+-   **Redundant enablement explanations** - If something is enabled by default, only document how to disable it.
+    -   ❌ "The toolbar can be enabled by setting `enabled: true`, or disabled by setting `enabled: false`"
+    -   ✅ "The toolbar is enabled by default. Use `enabled: false` to disable."
+
+**Example titles** should describe what's demonstrated, not the chart type:
+
+-   ❌ "Overlapping Series" (describes data)
+-   ✅ "Simple Highlight" (describes the feature)
+
 ### Code Quality
 
 **Configuration snippets**:
