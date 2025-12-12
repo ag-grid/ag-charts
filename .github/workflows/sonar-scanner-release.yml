@@ -5,6 +5,7 @@ env:
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     SONAR_PROJECT: ag-charts-community
+    SONAR_SOURCE_PROJECT: ag-charts-community-latest
 
 on: workflow_dispatch
 
@@ -39,3 +40,26 @@ jobs:
             - name: Run Scan
               run: |
                   npx sonar-scanner -Dsonar.token=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}
+
+    sync_accepted_issues:
+        runs-on: ubuntu-24.04
+        needs: sonar_scanner
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Sync Accepted Issues
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
+              run: |
+                  npx tsx tools/prompts/commands/sonar-fix/scripts/sync-sonar-issues.ts \
+                    --source ${SONAR_SOURCE_PROJECT} \
+                    --target ${SONAR_PROJECT}
