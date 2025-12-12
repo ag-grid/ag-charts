@@ -1,4 +1,13 @@
-import type { AxisID, ChartAxisDirection, DeepReadonly, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisZoomState,
+    ChartAxisDirection,
+    DeepReadonly,
+    DefinedZoomState,
+    Scale,
+    ZoomState,
+    ZoomStateDirection,
+} from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type {
     AgAnnotation,
@@ -248,26 +257,6 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
     readonly aggregatedValue?: number;
     readonly domain?: [number, number];
     readonly legendItemName?: string;
-}
-
-export interface ZoomState {
-    min: number;
-    max: number;
-}
-
-export interface ZoomStateDirection extends ZoomState {
-    direction: 'x' | 'y';
-}
-
-export interface DefinedZoomState {
-    x: ZoomState;
-    y: ZoomState;
-}
-
-export interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
 }
 
 export interface AxisLayout {

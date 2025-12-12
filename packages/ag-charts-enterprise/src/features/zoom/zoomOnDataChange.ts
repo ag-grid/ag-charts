@@ -1,17 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import { BaseProperties, ChartAxisDirection, Logger, Property, clamp } from 'ag-charts-core';
+import type {
+    AxisID,
+    CleanupRegistry,
+    DeepRequired,
+    DefinedZoomState,
+    ZoomState,
+    ZoomStateDirection,
+} from 'ag-charts-core';
+import { BaseProperties, ChartAxisDirection, Logger, Property, clamp, definedZoomState } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
-
-import { definedZoomState } from './zoomUtils';
 
 const { userInteraction } = _ModuleSupport;
 
-type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
-type ZoomState = _ModuleSupport.ZoomState;
-type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
 // All axes scale-types can have their minimums & maximums represented as a number.
 // * For category-scales, it's indices.

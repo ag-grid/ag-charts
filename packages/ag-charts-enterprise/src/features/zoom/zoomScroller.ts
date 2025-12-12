@@ -1,16 +1,9 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { ChartAxisDirection, entries } from 'ag-charts-core';
+import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
+import type { DefinedZoomState } from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
-import {
-    constrainAxis,
-    constrainZoom,
-    definedZoomState,
-    dx,
-    dy,
-    pointToRatio,
-    scaleZoomAxisWithAnchor,
-} from './zoomUtils';
+import type { ZoomProperties } from './zoomTypes';
+import { constrainAxis, constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 type State = _ModuleSupport.CoreZoomState;
 type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;

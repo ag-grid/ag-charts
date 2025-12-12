@@ -1,6 +1,7 @@
 import { ChartUpdateType, CleanupRegistry } from 'ag-charts-core';
+import type { ZoomState } from 'ag-charts-core';
 
-import type { EventsHub, ZoomState } from '../../core/eventsHub';
+import type { EventsHub } from '../../core/eventsHub';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ZoomManager } from '../interaction/zoomManager';

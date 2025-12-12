@@ -1,13 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import type { DefinedZoomState, Point } from 'ag-charts-core';
+import { definedZoomState } from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     UNIT_SIZE,
     canResetZoom,
     constrainZoom,
-    definedZoomState,
     dx,
     dy,
     isZoomEqual,
