@@ -45,7 +45,7 @@ function panAxesUnnormalized(
     return clamp(worldMin, viewportMin + diff, worldMax);
 }
 
-// The calculations of the new desired viewport (i.e. ZoomState) is done in pixel coords (unnormalised).
+// The calculations of the new desired viewport (i.e. ZoomMinMax) is done in pixel coords (unnormalised).
 // The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
 export function calcPanToBBoxRatios(
     viewportBBox: BoxBounds,

@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -907,7 +907,7 @@ export class Zoom extends AbstractModuleInstance {
     };
     private isAxisZoomValid(
         direction: CartesianAxisDirection,
-        axisZoom: ZoomState,
+        axisZoom: ZoomMinMax,
         options?: { directional?: boolean }
     ) {
         const {
@@ -1005,7 +1005,7 @@ export class Zoom extends AbstractModuleInstance {
         sourcing: _ModuleSupport.UpdateZoomSourcing,
         axisId: AxisID,
         direction: CartesianAxisDirection,
-        axisZoom: ZoomState | undefined,
+        axisZoom: ZoomMinMax | undefined,
         validOptions?: { directional?: boolean }
     ) {
         const {

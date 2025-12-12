@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -95,7 +95,7 @@ export class ZoomToolbar extends BaseProperties {
             sourcing: _ModuleSupport.UpdateZoomSourcing,
             axisId: AxisID,
             direction: CartesianAxisDirection,
-            partialZoom: ZoomState | undefined
+            partialZoom: ZoomMinMax | undefined
         ) => void,
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
@@ -274,7 +274,7 @@ export class ZoomToolbar extends BaseProperties {
         props: ZoomProperties,
         axisId: AxisID,
         direction: CartesianAxisDirection,
-        zoom: ZoomState
+        zoom: ZoomMinMax
     ) {
         const { isScalingX, isScalingY, scrollingStep } = props;
 

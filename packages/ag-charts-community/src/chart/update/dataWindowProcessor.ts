@@ -1,5 +1,5 @@
 import { ChartUpdateType, CleanupRegistry } from 'ag-charts-core';
-import type { ZoomState } from 'ag-charts-core';
+import type { ZoomMinMax } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DataService } from '../data/dataService';
@@ -11,7 +11,7 @@ import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
-    private readonly lastAxisZooms = new Map<string, ZoomState>();
+    private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
 
     private readonly cleanup = new CleanupRegistry();
 
@@ -88,7 +88,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
-    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomState) {
+    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomMinMax) {
         if (event.apiUpdate) return true;
         if (this.dirtyDataSource) return true;
         if (!this.dirtyZoom) return false;
@@ -103,7 +103,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return true;
     }
 
-    private getAxisWindow(axis: AxisLike, zoom: ZoomState) {
+    private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax) {
         const { domain } = axis.scale;
 
         if (!zoom || domain.length === 0 || Number.isNaN(Number(domain[0]))) return;
