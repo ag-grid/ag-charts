@@ -6,6 +6,7 @@ import {
     deepClone,
     deepFreeze,
     defined,
+    definedZoomState,
     isFiniteNumber,
     isObject,
     strictObjectKeys,
@@ -282,7 +283,7 @@ export class ZoomManager extends BaseManager {
 
         // Migration from older versions can be implemented here.
 
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -574,7 +575,7 @@ export class ZoomManager extends BaseManager {
     }
 
     private getMementoRanges() {
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         const memento: RequireOptional<ZoomMemento> & {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
@@ -755,13 +756,5 @@ export class ZoomManager extends BaseManager {
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
         return [d0, d1];
-    }
-
-    private getDefinedZoom(): DefinedZoomState {
-        const zoom = this.getZoom();
-        return {
-            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
-            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
-        };
     }
 }
