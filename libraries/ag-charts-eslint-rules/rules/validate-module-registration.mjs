@@ -3,6 +3,7 @@
  */
 import {
     annotationsPluginToModule,
+    axisModuleCompatibility,
     axisPluginToModule,
     axisTypeToModule,
     bundleContents,
@@ -564,35 +565,52 @@ export default {
         }
 
         /**
+         * Check if a compatible axis module is registered that satisfies the default axis requirement.
+         * Returns true only if a DIFFERENT compatible module is registered (not the exact module).
+         * This allows us to skip requiring CategoryAxisModule when GroupedCategoryAxisModule is registered.
+         */
+        function isAxisRequirementSatisfiedByCompatible(moduleId, expandedModules) {
+            // Check if a compatible module is registered (e.g., GroupedCategoryAxisModule for CategoryAxisModule)
+            const compatibleModules = axisModuleCompatibility.get(moduleId);
+            if (compatibleModules) {
+                return compatibleModules.some((compatMod) => expandedModules.has(compatMod));
+            }
+
+            return false;
+        }
+
+        /**
          * Apply default axes based on series types
          */
         function applyDefaultAxes() {
+            const expandedRegistered = expandBundles(registeredModules);
+
             for (const seriesType of seriesTypes) {
                 const defaults = seriesDefaultAxes.get(seriesType);
                 if (defaults) {
                     // Cartesian axes (x, y) - only apply if not explicitly defined
                     if (defaults.x && !explicitAxes.has('x')) {
                         const moduleId = axisTypeToModule.get(defaults.x);
-                        if (moduleId) {
+                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     if (defaults.y && !explicitAxes.has('y')) {
                         const moduleId = axisTypeToModule.get(defaults.y);
-                        if (moduleId) {
+                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     // Polar axes (angle, radius) - only apply if not explicitly defined
                     if (defaults.angle && !explicitAxes.has('angle')) {
                         const moduleId = axisTypeToModule.get(defaults.angle);
-                        if (moduleId) {
+                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     if (defaults.radius && !explicitAxes.has('radius')) {
                         const moduleId = axisTypeToModule.get(defaults.radius);
-                        if (moduleId) {
+                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
                             requireModule(moduleId, `default axis for '${seriesType}' series`, null);
                         }
                     }

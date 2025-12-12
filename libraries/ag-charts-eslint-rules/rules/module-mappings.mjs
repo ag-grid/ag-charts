@@ -455,6 +455,12 @@ export const bundleContents = new Map([
     ],
 ]);
 
+// Axis module compatibility - modules that can satisfy a default axis requirement
+// For example, GroupedCategoryAxisModule is a superset of CategoryAxisModule
+export const axisModuleCompatibility = new Map([
+    ['CategoryAxisModule', ['GroupedCategoryAxisModule']], // grouped-category can satisfy category axis requirement
+]);
+
 // Intrinsic defaults - modules that are expected without explicit options
 export const intrinsicDefaults = {
     // Always expected for any chart
@@ -462,7 +468,13 @@ export const intrinsicDefaults = {
     // Expected when using enterprise features (commonly included for interactivity)
     enterprise: ['AnimationModule', 'ContextMenuModule', 'CrosshairModule'],
     // Expected for cartesian charts (axis modules)
-    cartesian: ['CategoryAxisModule', 'NumberAxisModule', 'TimeAxisModule', 'LogAxisModule'],
+    cartesian: [
+        'CategoryAxisModule',
+        'GroupedCategoryAxisModule',
+        'NumberAxisModule',
+        'TimeAxisModule',
+        'LogAxisModule',
+    ],
     // Expected for polar charts (axis modules)
     polar: ['AngleCategoryAxisModule', 'AngleNumberAxisModule', 'RadiusCategoryAxisModule', 'RadiusNumberAxisModule'],
 };
