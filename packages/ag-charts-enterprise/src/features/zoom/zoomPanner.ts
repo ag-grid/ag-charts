@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries, getWindow } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    ChartAxisDirection,
+    UNIT_MAX,
+    UNIT_MIN,
+    definedZoomState,
+    entries,
+    getWindow,
+} from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
@@ -166,7 +174,7 @@ export class ZoomPanner {
         return this.direction == null || this.direction === ChartAxisDirection.Y;
     }
 
-    translateZooms(bbox: _ModuleSupport.BBox, currentZooms: StateRetrieval, deltaX: number, deltaY: number) {
+    translateZooms(bbox: BoxBounds, currentZooms: StateRetrieval, deltaX: number, deltaY: number) {
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), bbox.y + bbox.height - Math.abs(deltaY));
 
         const offsetX = Math.sign(deltaX) * offset.x;

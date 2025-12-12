@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
-import type { DefinedZoomState, Point } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState, Point } from 'ag-charts-core';
 import { definedZoomState } from 'ag-charts-core';
 
 import type { ZoomProperties } from './zoomTypes';
@@ -25,7 +25,7 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly getRect: () => _ModuleSupport.BBox | undefined,
+        private readonly getRect: () => BoxBounds | undefined,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {}

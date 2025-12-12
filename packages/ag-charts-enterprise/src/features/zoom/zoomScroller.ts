@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
-import type { DefinedZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState } from 'ag-charts-core';
 
 import type { ZoomProperties } from './zoomTypes';
 import { constrainAxis, constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
@@ -9,12 +9,7 @@ type State = _ModuleSupport.CoreZoomState;
 type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 
 export class ZoomScroller {
-    updateAxes(
-        event: _Widget.WheelWidgetEvent,
-        props: ZoomProperties,
-        bbox: _ModuleSupport.BBox,
-        zooms: StateRetrieval
-    ): State {
+    updateAxes(event: _Widget.WheelWidgetEvent, props: ZoomProperties, bbox: BoxBounds, zooms: StateRetrieval): State {
         const sourceEvent = event.sourceEvent;
         const newZooms: State = {};
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
@@ -57,7 +52,7 @@ export class ZoomScroller {
     update(
         event: _Widget.WheelWidgetEvent,
         props: ZoomProperties,
-        bbox: _ModuleSupport.BBox,
+        bbox: BoxBounds,
         oldZoom: DefinedZoomState
     ): DefinedZoomState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
