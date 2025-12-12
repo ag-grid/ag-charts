@@ -15,6 +15,10 @@ export class ZoomWheelSequencer {
     }, 100);
 
     public onWheel(event: _Widget.WheelWidgetEvent, callback: ZoomWheelSequencerCb) {
+        if (event.sourceEvent.cancelable === false) {
+            return; // abort, because calling `preventDefault()` would have no effect (AG-16317).
+        }
+
         const result = callback();
         if (result === 'abort') return;
 
