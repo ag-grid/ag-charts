@@ -30,7 +30,6 @@ import {
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
-    unitZoomState,
 } from './zoomUtils';
 
 const { userInteraction, NativeWidget, Toolbar } = _ModuleSupport;
@@ -233,7 +232,7 @@ export class ZoomToolbar extends BaseProperties {
                     enabled = zoom.x.max < UNIT_MAX;
                     break;
                 case 'zoom-out':
-                    enabled = !isZoomEqual(zoom, unitZoomState());
+                    enabled = !isMaxZoom(zoom);
                     break;
                 case 'zoom-in':
                     enabled = this.isZoomValid(

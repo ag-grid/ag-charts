@@ -10,11 +10,10 @@ import {
     constrainZoom,
     dx,
     dy,
-    isZoomEqual,
+    isMaxZoom,
     pointToRatio,
     scaleZoomCenter,
     translateZoom,
-    unitZoomState,
 } from './zoomUtils';
 
 const { userInteraction } = _ModuleSupport;
@@ -53,7 +52,7 @@ export class ZoomContextMenu {
             return this.iterateFindNextZoomAtPoint(origin) != null;
         };
         const shouldEnablePanToHere = () => {
-            return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
+            return !isMaxZoom(definedZoomState(this.zoomManager.getZoom()));
         };
         const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);

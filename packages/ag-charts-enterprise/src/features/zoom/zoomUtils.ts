@@ -1,6 +1,6 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 import type { BoxBounds, DefinedZoomState, ZoomState } from 'ag-charts-core';
-import { UNIT_MAX, UNIT_MIN, clamp, isNumberEqual, jsonDiff } from 'ag-charts-core';
+import { UNIT_MAX, UNIT_MIN, clamp, definedZoomState, isNumberEqual, jsonDiff } from 'ag-charts-core';
 
 export const UNIT_SIZE = UNIT_MAX - UNIT_MIN;
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
@@ -8,10 +8,6 @@ export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
 export const ZOOM_VALID_CHECK_DEBOUNCE = 300;
 
 const constrain = (value: number, min = UNIT_MIN, max = UNIT_MAX) => clamp(min, value, max);
-
-export function unitZoomState(): DefinedZoomState {
-    return { x: { min: UNIT_MIN, max: UNIT_MAX }, y: { min: UNIT_MIN, max: UNIT_MAX } };
-}
 
 export function dx(zoom: DefinedZoomState) {
     return zoom.x.max - zoom.x.min;
@@ -30,7 +26,7 @@ export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState) {
 }
 
 export function isMaxZoom(zoom: DefinedZoomState) {
-    return isZoomEqual(zoom, unitZoomState());
+    return isZoomEqual(zoom, definedZoomState());
 }
 
 /**
