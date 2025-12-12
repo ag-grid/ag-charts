@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection, entries } from 'ag-charts-core';
+import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
 
-import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from './zoomUtils';
+import { constrainZoom, dx, pointToRatio, translateZoom } from './zoomUtils';
 
 type State = _ModuleSupport.CoreZoomState;
 type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;

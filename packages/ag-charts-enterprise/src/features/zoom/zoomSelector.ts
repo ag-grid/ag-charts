@@ -1,17 +1,10 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import { definedZoomState } from 'ag-charts-core';
+import type { AxisZoomState, DefinedZoomState } from 'ag-charts-core';
 
 import type { ZoomRect } from './scenes/zoomRect';
-import type { DefinedZoomState, ZoomCoords, ZoomProperties } from './zoomTypes';
-import {
-    constrainZoom,
-    definedZoomState,
-    dx,
-    dy,
-    multiplyZoom,
-    pointToRatio,
-    scaleZoom,
-    translateZoom,
-} from './zoomUtils';
+import type { ZoomCoords, ZoomProperties } from './zoomTypes';
+import { constrainZoom, dx, dy, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
@@ -37,7 +30,7 @@ export class ZoomSelector {
     stop(
         innerBBox?: _ModuleSupport.BBox,
         bbox?: _ModuleSupport.BBox,
-        currentZoom?: _ModuleSupport.AxisZoomState
+        currentZoom?: AxisZoomState
     ): DefinedZoomState | undefined {
         let zoom = definedZoomState();
 
@@ -136,7 +129,7 @@ export class ZoomSelector {
         }
     }
 
-    private createZoomFromCoords(bbox: _ModuleSupport.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
+    private createZoomFromCoords(bbox: _ModuleSupport.BBox, currentZoom?: AxisZoomState) {
         const oldZoom = definedZoomState(currentZoom);
         const normal = this.getNormalisedDimensions();
 

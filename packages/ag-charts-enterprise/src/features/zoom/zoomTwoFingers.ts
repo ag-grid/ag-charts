@@ -1,11 +1,9 @@
 import type { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { AxisZoomState, DefinedZoomState, ZoomState } from 'ag-charts-core';
 
 // clientXY  (unit: px)          :  Touch screen points.
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.
 type Origin = { identifier: number; normalX: number; normalY: number };
-type ZoomState = _ModuleSupport.ZoomState;
-type AxisZoomState = _ModuleSupport.AxisZoomState;
-type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ZoomTwoFingersTouchStart = { readonly origins: [Origin, Origin] };
 
 const N = 1_000_000;

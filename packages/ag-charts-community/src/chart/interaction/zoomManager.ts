@@ -1,13 +1,6 @@
 import {
-    type AxisID,
-    type BoxBounds,
-    type CartesianAxisDirection,
     ChartAxisDirection,
-    type DeepReadonly,
     Logger,
-    type OptionsDefs,
-    type RequireOptional,
-    type Scale,
     ScaleAlignment,
     attachDescription,
     deepClone,
@@ -18,17 +11,26 @@ import {
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisZoomState,
+    BoxBounds,
+    CartesianAxisDirection,
+    DeepReadonly,
+    DefinedZoomState,
+    OptionsDefs,
+    RequireOptional,
+    Scale,
+    ZoomState,
+} from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
-    AxisZoomState,
-    DefinedZoomState,
     EventsHub,
     ZoomChangeRequestEvent,
     ZoomChangeState,
     ZoomEventSourceDetail,
     ZoomMemento,
-    ZoomState,
 } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';

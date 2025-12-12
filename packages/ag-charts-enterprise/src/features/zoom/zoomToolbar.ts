@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -8,22 +8,22 @@ import {
     PropertiesArray,
     Property,
     ToolbarButtonProperties,
+    UNIT_MAX,
+    UNIT_MIN,
     createElement,
     debounce,
+    definedZoomState,
     entries,
 } from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT_MAX,
-    UNIT_MIN,
     ZOOM_VALID_CHECK_DEBOUNCE,
     canResetZoom,
     constrainAxis,
     constrainZoom,
-    definedZoomState,
     dx,
     isMaxZoom,
     isZoomEqual,
@@ -96,7 +96,7 @@ export class ZoomToolbar extends BaseProperties {
             sourcing: _ModuleSupport.UpdateZoomSourcing,
             axisId: AxisID,
             direction: CartesianAxisDirection,
-            partialZoom: _ModuleSupport.ZoomState | undefined
+            partialZoom: ZoomState | undefined
         ) => void,
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
@@ -275,7 +275,7 @@ export class ZoomToolbar extends BaseProperties {
         props: ZoomProperties,
         axisId: AxisID,
         direction: CartesianAxisDirection,
-        zoom: _ModuleSupport.ZoomState
+        zoom: ZoomState
     ) {
         const { isScalingX, isScalingY, scrollingStep } = props;
 

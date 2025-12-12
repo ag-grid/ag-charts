@@ -1,6 +1,6 @@
 import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { CartesianAxisDirection, DeepRequired } from 'ag-charts-core';
+import type { CartesianAxisDirection, DeepRequired, ZoomState } from 'ag-charts-core';
 import {
     BaseProperties,
     ChartAxisDirection,
@@ -11,7 +11,6 @@ import {
     strictObjectKeys,
 } from 'ag-charts-core';
 
-type ZoomState = _ModuleSupport.ZoomState;
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
 
