@@ -9,7 +9,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Chart } from 'ag-charts-community/src/chart/chart';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -177,7 +176,7 @@ describe('CandlestickSeries', () => {
     });
 
     describe('Series Matching - AG-16450', () => {
-        let chart: Chart;
+        let chart: any;
 
         afterEach(() => {
             if (chart) {
@@ -321,7 +320,7 @@ describe('CandlestickSeries', () => {
                 expect(legendDataAfter).toHaveLength(2);
 
                 // Verify no duplicate series IDs
-                const seriesIds = legendDataAfter.map((d) => d.seriesId);
+                const seriesIds = legendDataAfter.map((d: any) => d.seriesId);
                 const uniqueSeriesIds = new Set(seriesIds);
                 expect(uniqueSeriesIds.size).toBe(2);
 
