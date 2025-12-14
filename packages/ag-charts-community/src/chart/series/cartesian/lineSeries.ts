@@ -45,7 +45,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import { datumStylerProperties } from '../util';
+import { datumStylerProperties, hasDimmedOpacity } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -129,6 +129,15 @@ export class LineSeries extends CartesianSeries<
 
     private isNormalized() {
         return this.properties.normalizedTo != null;
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
+        const hasHighlightOpacity =
+            highlightActive &&
+            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
+                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
+        return hasHighlightOpacity || super.renderToOffscreenCanvas();
     }
 
     override async processData(dataController: DataController) {
@@ -717,12 +726,18 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const { datumSelection, isHighlight, drawingMode } = opts;
+        const { datumSelection, isHighlight } = opts;
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        let drawingMode = opts.drawingMode;
+
+        if (this.renderToOffscreenCanvas() && !isHighlight) {
+            drawingMode = 'cutout';
+        }
 
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);

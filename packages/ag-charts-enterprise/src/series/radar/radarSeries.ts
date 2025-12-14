@@ -1,5 +1,6 @@
 import {
     type AgBaseRadarSeriesOptions,
+    type AgDrawingMode,
     type AgRadarSeriesLabelFormatterParams,
     type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
@@ -40,6 +41,7 @@ const {
     Selection,
     Text,
     Marker,
+    hasDimmedOpacity,
     updateLabelNode,
     getMarkerStyles,
 } = _ModuleSupport;
@@ -123,6 +125,16 @@ export abstract class RadarSeries<
 
         this.lineGroup.zIndex = 0;
         this.itemGroup.zIndex = 1;
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
+        const hasHighlightOpacity =
+            highlightActive &&
+            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
+                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
+
+        return super.renderToOffscreenCanvas() || hasHighlightOpacity;
     }
 
     protected override nodeFactory(): _ModuleSupport.Marker {
@@ -314,8 +326,10 @@ export abstract class RadarSeries<
             this.updateDatumStyles(this.highlightSelection, true);
         }
 
-        this.updateMarkers(this.itemSelection, false);
-        this.updateMarkers(this.highlightSelection, true);
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+
+        this.updateMarkers(this.itemSelection, false, 'overlay');
+        this.updateMarkers(this.highlightSelection, true, drawingMode);
         this.updateLabels();
 
         if (resize) {
@@ -402,7 +416,8 @@ export abstract class RadarSeries<
 
     protected updateMarkers(
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
-        isHighlight: boolean
+        isHighlight: boolean,
+        drawingMode: AgDrawingMode
     ) {
         const fillBBox = this.getShapeFillBBox();
         const { contextNodeData } = this;
@@ -412,11 +427,17 @@ export abstract class RadarSeries<
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        if (this.renderToOffscreenCanvas() && !isHighlight) {
+            drawingMode = 'cutout';
+        }
+
         selection.each((node, datum) => {
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
+
+            node.drawingMode = drawingMode;
         });
     }
 

@@ -21,6 +21,7 @@ import {
     type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
     type AgAreaSeriesStylerResult,
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
@@ -60,7 +61,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { datumStylerProperties, hasDimmedOpacity, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,
     aggregateAreaDataFromDataModel,
@@ -229,8 +230,15 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override renderToOffscreenCanvas(): boolean {
+        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
+        const hasHighlightOpacity =
+            highlightActive &&
+            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
+                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
+
         return (
             super.renderToOffscreenCanvas() ||
+            hasHighlightOpacity ||
             (this.contextNodeData != null &&
                 (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
                     this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
@@ -1320,6 +1328,7 @@ export class AreaSeries extends CartesianSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -1330,12 +1339,18 @@ export class AreaSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        let drawingMode = opts.drawingMode;
+
+        if (this.renderToOffscreenCanvas() && !isHighlight) {
+            drawingMode = 'cutout';
+        }
 
         datumSelection.each((node, datum) => {
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            node.drawingMode = drawingMode;
         });
 
         if (!isHighlight) {

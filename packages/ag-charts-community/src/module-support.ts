@@ -60,6 +60,7 @@ export {
     predictCartesianFinancialAxis,
     predictCartesianNonPrimitiveAxis,
 } from './chart/series/cartesian/util';
+export { hasDimmedOpacity } from './chart/series/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
 export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
 export type {

@@ -1,4 +1,5 @@
 import {
+    type AgDrawingMode,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesLineStyle,
@@ -62,6 +63,7 @@ const {
     animationValidation,
     diff,
     updateClipPath,
+    hasDimmedOpacity,
     computeMarkerFocusBounds,
     plotAreaPathFill,
     plotLinePathStroke,
@@ -222,6 +224,16 @@ export class RangeAreaSeries extends BaseSeries {
             },
             clipFocusBox: false,
         });
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
+        const hasHighlightOpacity =
+            highlightActive &&
+            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
+                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
+
+        return super.renderToOffscreenCanvas() || hasHighlightOpacity;
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -950,6 +962,7 @@ export class RangeAreaSeries extends BaseSeries {
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -961,6 +974,12 @@ export class RangeAreaSeries extends BaseSeries {
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        let drawingMode = opts.drawingMode;
+
+        if (this.renderToOffscreenCanvas() && !isHighlight) {
+            drawingMode = 'cutout';
+        }
+
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
             const style =
@@ -969,6 +988,7 @@ export class RangeAreaSeries extends BaseSeries {
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
+            node.drawingMode = drawingMode;
         });
 
         if (!isHighlight) {
