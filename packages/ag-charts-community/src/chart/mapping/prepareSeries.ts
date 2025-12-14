@@ -12,9 +12,13 @@ export function matchSeriesOptions<S extends ISeries<any, any, any>>(
 ) {
     const matchingKeysCache = new Map<string | undefined, string[]>();
     const getMatchingKeys = (type: string | undefined) => {
+        if (type === undefined) {
+            return DEFAULT_MATCHING_KEYS;
+        }
+
         if (matchingKeysCache.has(type)) return matchingKeysCache.get(type)!;
 
-        const matchingKeys = (type && ModuleRegistry.getSeriesModule(type)?.matchingKeys) ?? DEFAULT_MATCHING_KEYS;
+        const matchingKeys = ModuleRegistry.getSeriesModule(type)?.matchingKeys ?? DEFAULT_MATCHING_KEYS;
         matchingKeysCache.set(type, matchingKeys);
 
         return matchingKeys;
