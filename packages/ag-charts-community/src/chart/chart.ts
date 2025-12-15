@@ -1555,6 +1555,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private shouldClearLegendData(options: AgChartOptions, oldOpts: AgChartOptions, seriesStatus: SeriesChangeType) {
         const seriesChanged =
             seriesStatus === 'replaced' ||
+            seriesStatus === 'series-count-changed' ||
             seriesStatus === 'series-grouping-change' ||
             (seriesStatus === 'updated' &&
                 (options.series?.length !== oldOpts.series?.length ||
@@ -1704,14 +1705,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         let dataChanged = false;
         let groupingChanged = false;
         let isUpdated = false;
-        let seriesReplaced = false;
+        let seriesCountChanged = false;
 
         const changes = matchResult.changes.toSorted((a, b) => a.targetIdx - b.targetIdx);
         for (const change of changes) {
             groupingChanged ||= change.status === 'series-grouping';
             dataChanged ||= change.diff?.data != null;
             isUpdated ||= change.status !== 'no-op';
-            seriesReplaced ||= change.status === 'add' || change.status === 'remove';
+            seriesCountChanged ||= change.status === 'add' || change.status === 'remove';
 
             switch (change.status) {
                 case 'add': {
@@ -1749,8 +1750,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (groupingChanged) {
             return 'series-grouping-change';
         }
-        if (seriesReplaced) {
-            return 'replaced';
+        if (seriesCountChanged) {
+            return 'series-count-changed';
         }
         if (dataChanged) {
             return 'data-change';
