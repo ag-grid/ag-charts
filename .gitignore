@@ -63,9 +63,6 @@ src/env.d.ts
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
-# Prompts package (installed via yarn, symlinked to node_modules/@ag-grid/ag-charts-prompts)
-/tools/prompts
-
 # Ignore local AI.
 /.claude/
 /.gemini/
