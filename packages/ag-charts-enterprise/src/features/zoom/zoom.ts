@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -907,7 +907,7 @@ export class Zoom extends AbstractModuleInstance {
     };
     private isAxisZoomValid(
         direction: CartesianAxisDirection,
-        axisZoom: ZoomState,
+        axisZoom: ZoomMinMax,
         options?: { directional?: boolean }
     ) {
         const {
@@ -953,7 +953,7 @@ export class Zoom extends AbstractModuleInstance {
         // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
         // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
         // breaking thebehaviour.
-        const partialZoom = this.ctx.zoomManager.toAxisZoomState(changes) ?? {};
+        const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
         const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
         this.updateZoom(sourcing, {
             x: partialZoom.x ?? currentZoom.x,
@@ -1005,7 +1005,7 @@ export class Zoom extends AbstractModuleInstance {
         sourcing: _ModuleSupport.UpdateZoomSourcing,
         axisId: AxisID,
         direction: CartesianAxisDirection,
-        axisZoom: ZoomState | undefined,
+        axisZoom: ZoomMinMax | undefined,
         validOptions?: { directional?: boolean }
     ) {
         const {

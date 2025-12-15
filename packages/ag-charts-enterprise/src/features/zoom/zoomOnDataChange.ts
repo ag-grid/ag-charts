@@ -4,8 +4,8 @@ import type {
     CleanupRegistry,
     DeepRequired,
     DefinedZoomState,
-    ZoomState,
-    ZoomStateDirection,
+    ZoomMinMax,
+    ZoomMinMaxDirection,
 } from 'ag-charts-core';
 import { BaseProperties, ChartAxisDirection, Logger, Property, clamp, definedZoomState } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
@@ -51,7 +51,7 @@ function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZ
     return properties.stickToEnd && zoom.x.max === 1;
 }
 
-function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: ZoomState): VisibleMinMax {
+function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: ZoomMinMax): VisibleMinMax {
     const { domainMin, domainMax } = domainMinMax;
     const span = domainMax - domainMin;
     return {
@@ -61,7 +61,7 @@ function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: Zoo
     };
 }
 
-function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMinMax): ZoomStateDirection {
+function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMinMax): ZoomMinMaxDirection {
     const { domainMin, domainMax } = domainMinMax;
     const { visibleMin, visibleMax } = visibleMinMax;
     const span = domainMax - domainMin;
@@ -153,7 +153,7 @@ export class ZoomOnDataChange {
 
         switch (desiredChanges.type) {
             case 'domain': {
-                const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
+                const changes: { [K in AxisID]: Readonly<ZoomMinMaxDirection> } = {};
                 for (const entry of desiredChanges.domains) {
                     const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(entry.axisId);
                     if (domainMinMax) {
@@ -225,7 +225,7 @@ export class ZoomOnDataChange {
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios: ZoomState = this.ctx.zoomManager.getAxisZoom(axisId);
+        const ratios: ZoomMinMax = this.ctx.zoomManager.getAxisZoom(axisId);
         if (!ratios) return;
 
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);
