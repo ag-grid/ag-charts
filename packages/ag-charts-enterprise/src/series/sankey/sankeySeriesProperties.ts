@@ -21,8 +21,7 @@ import type {
     FlowProportionNodeDatumIndex,
 } from '../flow-proportion/flowProportionSeries';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
-    _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, Label } = _ModuleSupport;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
@@ -160,15 +159,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     sizeName: string | undefined = undefined;
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     defaultColorRange: string[][] = [];

@@ -541,6 +541,7 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
         switch (key) {
             case 'fill':
+                // TODO: % index?
                 return circularSliceArray(graph.palette.fills, 1, index)[0];
             case 'fillFallback':
                 return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];

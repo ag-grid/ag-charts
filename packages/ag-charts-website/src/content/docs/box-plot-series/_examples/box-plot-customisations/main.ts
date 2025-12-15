@@ -47,7 +47,8 @@ const options: AgChartOptions = {
             q3Name: 'Q3',
             maxKey: 'max',
             maxName: 'Max',
-            fill: '#7fc3c3',
+            fill: { type: 'gradient' },
+            // fill: 'red',
             stroke: '#098a89',
             strokeWidth: 2,
             whisker: {
@@ -57,6 +58,10 @@ const options: AgChartOptions = {
             },
             cap: {
                 lengthRatio: 0.8,
+            },
+            itemStyler: (params) => {
+                // return { fill: { type: 'gradient', colorStops: [{ color: 'pink' }, { color: 'orange' }] } };
+                if (params.datum.role === 'Research') return { fill: { type: 'pattern', pattern: 'squares' } };
             },
         },
     ],

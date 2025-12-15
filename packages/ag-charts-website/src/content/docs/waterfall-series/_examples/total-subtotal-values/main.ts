@@ -43,6 +43,23 @@ const options: AgChartOptions = {
                 { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
                 { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
             ],
+            item: {
+                positive: {
+                    itemStyler: (params) => {
+                        return { fill: { type: 'gradient' } };
+                    },
+                },
+                negative: {
+                    itemStyler: (params) => {
+                        return { fill: { type: 'pattern' } };
+                    },
+                },
+                total: {
+                    itemStyler: (params) => {
+                        return { fill: { type: 'pattern', pattern: 'squares' } };
+                    },
+                },
+            },
         },
     ],
 };

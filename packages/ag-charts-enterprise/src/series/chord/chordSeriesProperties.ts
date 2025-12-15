@@ -12,8 +12,7 @@ import {
 import type { InternalAgColorType } from 'ag-charts-core';
 import { BaseProperties, Property } from 'ag-charts-core';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
-    _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, Label } = _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Property
@@ -53,8 +52,8 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
 
     getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesLinkStyle> {
         const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, tension } = this;
-        const fill = this.fill ?? fills[index % fills.length];
-        const stroke = this.stroke ?? strokes[index % fills.length];
+        const fill = this.fill ?? fills[index];
+        const stroke = this.stroke ?? strokes[index];
         return {
             fill,
             fillOpacity,
@@ -101,8 +100,8 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
 
     getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesNodeStyle> {
         const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
-        const fill = this.fill ?? fills[index % fills.length];
-        const stroke = this.stroke ?? strokes[index % fills.length];
+        const fill = this.fill ?? fills[index];
+        const stroke = this.stroke ?? strokes[index];
         return {
             fill,
             fillOpacity,
@@ -142,15 +141,6 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Property
     nodes: any[] | undefined = undefined;
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fills: InternalAgColorType[] = [];

@@ -34,7 +34,7 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { Transformable, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } = _ModuleSupport;
+const { Transformable, SeriesNodePickMode, createDatumId, getLabelStyles, Rect, BBox } = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
@@ -772,37 +772,16 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected getNodeStyle(nodeDatum: Partial<SankeyNodeDatum>, fromNodeDatumIndex: number, isHighlight: boolean) {
         const { properties } = this;
-        const {
-            fills,
-            strokes,
-            defaultColorRange,
-            defaultPatternFills,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = properties;
+        const { fills, strokes } = properties;
         const { itemStyler } = properties.node;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex % defaultColorRange.length].map((color) => ({
-            color,
-        }));
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
-
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(false, fills, strokes, fromNodeDatumIndex));
-        const hasNodeFill = properties.node.fill != null;
-        let style = getShapeStyle(
-            baseStyle,
-            hasNodeFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            hasNodeFill
-                ? fillPatternDefaults
-                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
-            fillImageDefaults
-        );
+        let style = baseStyle;
 
         if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(nodeDatum.datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex?.index, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
                     return this.callWithContext(itemStyler, params);
@@ -810,13 +789,7 @@ export class SankeySeries extends FlowProportionSeries<
             );
 
             if (overrides) {
-                style = mergeDefaults(
-                    overrides,
-                    style,
-                    { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-                    { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -891,37 +864,34 @@ export class SankeySeries extends FlowProportionSeries<
     ) {
         const { id: seriesId, properties } = this;
         const {
+            // defaultColorRange, defaultPatternFills,
             fills,
             strokes,
-            defaultColorRange,
-            defaultPatternFills,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
         } = properties;
         const { itemStyler } = properties.link;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex.index % defaultColorRange.length].map(
-            (color) => ({
-                color,
-            })
-        );
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
+        // const defaultColorStops = defaultColorRange[fromNodeDatumIndex.index % defaultColorRange.length].map(
+        //     (color) => ({
+        //         color,
+        //     })
+        // );
+        // const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(
             highlightStyle,
             properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
         );
-        const hasLinkFill = properties.link.fill != null;
-        let style = getShapeStyle(
-            baseStyle,
-            hasLinkFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            hasLinkFill
-                ? fillPatternDefaults
-                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
-            fillImageDefaults
-        );
+        // const hasLinkFill = properties.link.fill != null;
+        let style = baseStyle;
+        // getShapeStyle(
+        //     baseStyle,
+        //     hasLinkFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+        //     hasLinkFill
+        //         ? fillPatternDefaults
+        //         : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+        //     fillImageDefaults
+        // );
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -940,13 +910,7 @@ export class SankeySeries extends FlowProportionSeries<
             );
 
             if (overrides) {
-                style = mergeDefaults(
-                    overrides,
-                    style,
-                    { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-                    { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 

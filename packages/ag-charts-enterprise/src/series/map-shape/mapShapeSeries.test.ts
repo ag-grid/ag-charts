@@ -467,4 +467,38 @@ describe('MapShapeSeries', () => {
             });
         });
     });
+
+    describe('itemStyler', () => {
+        it('complex fills', async () => {
+            const options: AgChartOptions = {
+                data: usData,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        labelKey: 'code',
+                        itemStyler: (params) => {
+                            if (params.datum.name === 'Alabama') return { fill: { type: 'gradient' } };
+                            if (params.datum.name === 'Arizona')
+                                return {
+                                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'green' }] },
+                                };
+                            if (params.datum.name === 'Arkansas') return { fill: { type: 'pattern' } };
+                            if (params.datum.name === 'California')
+                                return { fill: { type: 'pattern', pattern: 'squares' } };
+                        },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare({
+                failureThreshold: 1,
+            });
+        });
+    });
 });

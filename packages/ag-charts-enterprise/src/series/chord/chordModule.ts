@@ -17,11 +17,29 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     options: chordSeriesOptionsDef,
     themeTemplate: {
         series: {
-            fills: { $palette: 'fills' },
-            strokes: { $palette: 'strokes' },
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+            fills: {
+                $applyCycle: [
+                    { $size: { $path: ['./data', { $path: '/data' }] } },
+                    { $palette: 'fills' },
+                    {
+                        $applySwitch: [
+                            { $path: ['/type', undefined, { $value: '$1' }] },
+                            { $value: '$1' },
+                            ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                            ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                            ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ],
+                    },
+                ],
+            },
+            strokes: {
+                $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+            },
+            highlightStyle: {
+                series: {
+                    dimOpacity: 0.2,
+                },
+            },
             highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,

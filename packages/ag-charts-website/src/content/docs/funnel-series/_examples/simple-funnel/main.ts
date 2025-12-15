@@ -33,6 +33,16 @@ const options: AgChartOptions = {
             type: 'funnel',
             stageKey: 'group',
             valueKey: 'value',
+            fills: [
+                {
+                    type: 'gradient',
+                    // bounds: 'series',
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+            ],
+            // itemStyler: () => {
+            //     return { fill: { type: 'gradient' } };
+            // },
         },
     ],
 };

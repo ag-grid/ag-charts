@@ -515,4 +515,26 @@ describe('FunnelSeries', () => {
         chart = deproxy(AgCharts.create(options));
         await compare();
     });
+
+    describe('itemStyler', () => {
+        it('complex fills', async () => {
+            const options = {
+                ...FUNNEL_EXAMPLE,
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        itemStyler: () => {
+                            return { fill: { type: 'gradient' } };
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+    });
 });

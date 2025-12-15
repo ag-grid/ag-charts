@@ -25,7 +25,7 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, Sector, getLabelStyles, BBox } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -402,13 +402,13 @@ export class ChordSeries extends FlowProportionSeries<
         isHighlight: boolean
     ) {
         const { properties } = this;
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { fills, strokes } = properties;
         const { itemStyler } = properties.node;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.node.getStyle(fills, strokes, fromNodeDatumIndex));
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -419,12 +419,7 @@ export class ChordSeries extends FlowProportionSeries<
                 }
             );
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -494,7 +489,7 @@ export class ChordSeries extends FlowProportionSeries<
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { fills, strokes } = properties;
         const { itemStyler } = properties.link;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -503,7 +498,7 @@ export class ChordSeries extends FlowProportionSeries<
             properties.link.getStyle(fills, strokes, fromNodeDatumIndex.index)
         );
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -525,12 +520,7 @@ export class ChordSeries extends FlowProportionSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
