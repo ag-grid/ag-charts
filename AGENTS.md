@@ -8,17 +8,21 @@ The full agent instructions are located at:
 
 -   `tools/prompts/AGENTS.md` (after setup)
 
-If this path doesn't exist, set up the prompts package:
+If this path doesn't exist, simply run `yarn install` - the setup script will offer to clone the prompts repo automatically if you have agentic tools (Claude, Cursor, etc.) installed.
+
+Manual setup:
 
 ```bash
-# Clone the prompts repo adjacent to ag-charts
 git clone git@github.com:ag-grid/ag-charts-prompts.git ../ag-charts-prompts
-
-# Run yarn install - it will auto-detect the adjacent checkout
 yarn install
 ```
 
-The postinstall script automatically detects `../ag-charts-prompts` and creates the `tools/prompts/` symlink.
+The postinstall script automatically:
+
+-   Detects if you have agentic tools installed
+-   Offers to clone `ag-charts-prompts` if not present
+-   Offers to update if your checkout is behind
+-   Creates the `tools/prompts/` symlink
 
 ## Full Instructions
 
