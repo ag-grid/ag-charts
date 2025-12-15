@@ -1,8 +1,20 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/universal:2",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20",
     "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {},
         "ghcr.io/devcontainers/features/node:1": {
             "version": "20"
+        }
+    },
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "ag-grid/ag-charts-prompts": {
+                    "permissions": {
+                        "contents": "write"
+                    }
+                }
+            }
         }
     },
     "containerEnv": {
@@ -21,6 +33,6 @@
             "requireLocalPort": false
         }
     },
-    "postCreateCommand": "echo PATH=\"$PATH:/workspaces/ag-charts/node_modules/.bin/\" >> ~/.bashrc && yarn",
+    "postCreateCommand": "echo PATH=\"$PATH:/workspaces/ag-charts/node_modules/.bin/\" >> ~/.bashrc && gh repo clone ag-grid/ag-charts-prompts /workspaces/ag-charts-prompts || true && yarn",
     "postAttachCommand": "gh codespace ports visibility 4600:public -c $CODESPACE_NAME"
 }

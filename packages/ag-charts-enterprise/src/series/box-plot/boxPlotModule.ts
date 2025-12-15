@@ -17,6 +17,7 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     dependencies: [CartesianChartModule],
 
     options: boxPlotSeriesOptionsDef,
+    matchingKeys: ['xKey', 'lowKey', 'q1Key', 'medianKey', 'q3Key', 'highKey', 'outlierKey', 'normalizedTo'],
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },

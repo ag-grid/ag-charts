@@ -17,6 +17,7 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     dependencies: [CartesianChartModule],
 
     options: rangeBarSeriesOptionsDef,
+    matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },

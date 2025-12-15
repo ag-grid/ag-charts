@@ -1,23 +1,21 @@
-import type { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { _Widget } from 'ag-charts-community';
+import type { DefinedZoomState, ZoomMinMax, ZoomState } from 'ag-charts-core';
 
 // clientXY  (unit: px)          :  Touch screen points.
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.
 type Origin = { identifier: number; normalX: number; normalY: number };
-type ZoomState = _ModuleSupport.ZoomState;
-type AxisZoomState = _ModuleSupport.AxisZoomState;
-type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ZoomTwoFingersTouchStart = { readonly origins: [Origin, Origin] };
 
 const N = 1_000_000;
 
 // Interpolate `a` from [Rx, Rw] to [min, max]
-function clientToNormal({ min, max }: ZoomState, a: number, Rx: number, Rw: number): number {
+function clientToNormal({ min, max }: ZoomMinMax, a: number, Rx: number, Rw: number): number {
     if (Rw === 0) return 0; // don't divide by 0.
     return N * (((a - Rx) / Rw) * (max - min) + min);
 }
 
 // See AG-13737 for explanation.
-function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: number, Rw: number): ZoomState {
+function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: number, Rw: number): ZoomMinMax {
     // The math expects x1 <= x2 (and a1 <= a2).
     // If x1 > x2, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
     [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
@@ -53,7 +51,7 @@ export class ZoomTwoFingers {
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
     private readonly previous = { a1: Number.NaN, a2: Number.NaN, b1: Number.NaN, b2: Number.NaN };
 
-    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: AxisZoomState): boolean {
+    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: ZoomState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
         event.sourceEvent.preventDefault();
 
@@ -173,8 +171,8 @@ function twitchTolerantZoomPan2(
     previousKey2: keyof typeof previous,
     Rx: number,
     Rw: number,
-    initialZoom: ZoomState
-): ZoomState {
+    initialZoom: ZoomMinMax
+): ZoomMinMax {
     if (x1 == x2) {
         // pan-only mode:
         const xn1 = clientToNormal(initialZoom, a1, Rx, Rw);

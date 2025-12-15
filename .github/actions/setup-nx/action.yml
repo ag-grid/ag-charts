@@ -23,7 +23,7 @@ inputs:
         default: 'true'
     base_ref:
         description: 'Base branch/SHA for diff detection'
-        default: 'origin/latest'
+        default: 'latest'
         required: false
     cache_mode:
         description: 'Read/write mode for caches'

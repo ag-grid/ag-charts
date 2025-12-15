@@ -1,20 +1,13 @@
 import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, clamp, isNumberEqual, jsonDiff } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import { UNIT_MAX, UNIT_MIN, clamp, definedZoomState, isNumberEqual, jsonDiff } from 'ag-charts-core';
 
-import type { DefinedZoomState } from './zoomTypes';
-
-export const UNIT_MIN = 0;
-export const UNIT_MAX = 1;
 export const UNIT_SIZE = UNIT_MAX - UNIT_MIN;
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
 export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
 export const ZOOM_VALID_CHECK_DEBOUNCE = 300;
 
 const constrain = (value: number, min = UNIT_MIN, max = UNIT_MAX) => clamp(min, value, max);
-
-export function unitZoomState(): DefinedZoomState {
-    return { x: { min: UNIT_MIN, max: UNIT_MAX }, y: { min: UNIT_MIN, max: UNIT_MAX } };
-}
 
 export function dx(zoom: DefinedZoomState) {
     return zoom.x.max - zoom.x.min;
@@ -24,7 +17,7 @@ export function dy(zoom: DefinedZoomState) {
     return zoom.y.max - zoom.y.min;
 }
 
-function isZoomRangeEqual(left: _ModuleSupport.ZoomState, right: _ModuleSupport.ZoomState) {
+function isZoomRangeEqual(left: ZoomMinMax, right: ZoomMinMax) {
     return isNumberEqual(left.min, right.min) && isNumberEqual(left.max, right.max);
 }
 
@@ -33,14 +26,7 @@ export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState) {
 }
 
 export function isMaxZoom(zoom: DefinedZoomState) {
-    return isZoomEqual(zoom, unitZoomState());
-}
-
-export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
-    return {
-        x: { min: zoom?.x?.min ?? UNIT_MIN, max: zoom?.x?.max ?? UNIT_MAX },
-        y: { min: zoom?.y?.min ?? UNIT_MIN, max: zoom?.y?.max ?? UNIT_MAX },
-    };
+    return isZoomEqual(zoom, definedZoomState());
 }
 
 /**
@@ -100,11 +86,11 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
  * Scale a single zoom axis about its anchor.
  */
 export function scaleZoomAxisWithAnchor(
-    newState: _ModuleSupport.ZoomState,
-    oldState: _ModuleSupport.ZoomState,
+    newState: ZoomMinMax,
+    oldState: ZoomMinMax,
     anchor: AgZoomAnchorPoint,
     origin?: number
-): _ModuleSupport.ZoomState {
+): ZoomMinMax {
     const { min, max } = oldState;
     const center = min + (max - min) / 2;
     const diff = newState.max - newState.min;
@@ -123,11 +109,7 @@ export function scaleZoomAxisWithAnchor(
     }
 }
 
-export function scaleZoomAxisWithPoint(
-    newState: _ModuleSupport.ZoomState,
-    oldState: _ModuleSupport.ZoomState,
-    origin: number
-) {
+export function scaleZoomAxisWithPoint(newState: ZoomMinMax, oldState: ZoomMinMax, origin: number) {
     const newDelta = newState.max - newState.min;
     const oldDelta = oldState.max - oldState.min;
     const scaledOrigin = origin * (1 - (oldDelta - newDelta));

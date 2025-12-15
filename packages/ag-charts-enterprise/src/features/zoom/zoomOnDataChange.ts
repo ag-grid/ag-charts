@@ -1,17 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, CleanupRegistry, DeepRequired } from 'ag-charts-core';
-import { BaseProperties, ChartAxisDirection, Logger, Property, clamp } from 'ag-charts-core';
+import type {
+    AxisID,
+    CleanupRegistry,
+    DeepRequired,
+    DefinedZoomState,
+    ZoomMinMax,
+    ZoomMinMaxDirection,
+} from 'ag-charts-core';
+import { BaseProperties, ChartAxisDirection, Logger, Property, clamp, definedZoomState } from 'ag-charts-core';
 import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
-
-import { definedZoomState } from './zoomUtils';
 
 const { userInteraction } = _ModuleSupport;
 
-type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
-type ZoomState = _ModuleSupport.ZoomState;
-type ZoomStateDirection = _ModuleSupport.ZoomStateDirection;
 
 // All axes scale-types can have their minimums & maximums represented as a number.
 // * For category-scales, it's indices.
@@ -49,7 +51,7 @@ function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZ
     return properties.stickToEnd && zoom.x.max === 1;
 }
 
-function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: ZoomState): VisibleMinMax {
+function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: ZoomMinMax): VisibleMinMax {
     const { domainMin, domainMax } = domainMinMax;
     const span = domainMax - domainMin;
     return {
@@ -59,7 +61,7 @@ function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: Zoo
     };
 }
 
-function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMinMax): ZoomStateDirection {
+function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMinMax): ZoomMinMaxDirection {
     const { domainMin, domainMax } = domainMinMax;
     const { visibleMin, visibleMax } = visibleMinMax;
     const span = domainMax - domainMin;
@@ -151,7 +153,7 @@ export class ZoomOnDataChange {
 
         switch (desiredChanges.type) {
             case 'domain': {
-                const changes: { [K in AxisID]: Readonly<ZoomStateDirection> } = {};
+                const changes: { [K in AxisID]: Readonly<ZoomMinMaxDirection> } = {};
                 for (const entry of desiredChanges.domains) {
                     const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(entry.axisId);
                     if (domainMinMax) {
@@ -223,7 +225,7 @@ export class ZoomOnDataChange {
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios: ZoomState = this.ctx.zoomManager.getAxisZoom(axisId);
+        const ratios: ZoomMinMax = this.ctx.zoomManager.getAxisZoom(axisId);
         if (!ratios) return;
 
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);

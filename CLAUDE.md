@@ -1,1 +1,1 @@
-./tools/prompts/AGENTS.md
+AGENTS.md

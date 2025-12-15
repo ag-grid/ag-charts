@@ -11,6 +11,7 @@ import {
     Property,
     type Scale,
     arraysEqual,
+    definedZoomState,
     findMinMax,
     isDate,
     isDefined,
@@ -20,7 +21,6 @@ import {
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import { definedZoomState } from '../zoom/zoomUtils';
 
 const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager } = _ModuleSupport;
 

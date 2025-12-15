@@ -100,6 +100,7 @@ export * from './utils/geometry/bezier';
 export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/scaling';
 export * from './utils/geometry/lineInterpolation';
+export * from './utils/zoomUtils';
 export * from './logging/debugMetrics';
 export { ChangeDetectableProperties } from './rendering/changeDetectableProperties';
 export * from './utils/format/numberFormat';

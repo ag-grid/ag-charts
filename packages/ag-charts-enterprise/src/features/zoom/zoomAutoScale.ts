@@ -1,6 +1,6 @@
 import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { CartesianAxisDirection, DeepRequired } from 'ag-charts-core';
+import type { CartesianAxisDirection, DeepRequired, ZoomMinMax } from 'ag-charts-core';
 import {
     BaseProperties,
     ChartAxisDirection,
@@ -11,7 +11,6 @@ import {
     strictObjectKeys,
 } from 'ag-charts-core';
 
-type ZoomState = _ModuleSupport.ZoomState;
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
 type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
 
@@ -110,11 +109,11 @@ export class ZoomAutoScaler {
         }
     }
 
-    private getAutoScaleYZoom(zoomX: ZoomState): ZoomState | undefined {
+    private getAutoScaleYZoom(zoomX: ZoomMinMax): ZoomMinMax | undefined {
         if (!this.enabled) return;
 
         const { padding } = this.properties;
-        let yZoom: ZoomState | undefined;
+        let yZoom: ZoomMinMax | undefined;
         if (this.deps.enableIndependentAxes) {
             yZoom = this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         } else {
@@ -156,7 +155,7 @@ export class ZoomAutoScaler {
         yAxis: CartesianAxisLike,
         zoom: { min: number; max: number },
         padding: number
-    ): ZoomState | undefined {
+    ): ZoomMinMax | undefined {
         // Because xScale is only updated after a chart update, working out a visible range
         // will be calculated with unpredictable - but always accurate - numbers
         // However, floating point rounding causes issues when doing that
@@ -237,9 +236,9 @@ export class ZoomAutoScaler {
 
     private primaryAxisZoom(
         direction: CartesianAxisDirection,
-        zoom: ZoomState,
+        zoom: ZoomMinMax,
         { padding = 0 } = {}
-    ): ZoomState | undefined {
+    ): ZoomMinMax | undefined {
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const xAxis = this.zoomManager.getPrimaryAxis(crossDirection);
@@ -252,9 +251,9 @@ export class ZoomAutoScaler {
 
     private combinedAxisZoom(
         direction: CartesianAxisDirection,
-        zoom: ZoomState,
+        zoom: ZoomMinMax,
         { padding = 0 } = {}
-    ): ZoomState | undefined {
+    ): ZoomMinMax | undefined {
         const axes = this.zoomManager.getAxes();
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 

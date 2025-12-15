@@ -1,34 +1,37 @@
 import {
-    type AxisID,
-    type BoxBounds,
-    type CartesianAxisDirection,
     ChartAxisDirection,
-    type DeepReadonly,
     Logger,
-    type OptionsDefs,
-    type RequireOptional,
-    type Scale,
     ScaleAlignment,
     attachDescription,
     deepClone,
     deepFreeze,
     defined,
+    definedZoomState,
     isFiniteNumber,
     isObject,
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
+import type {
+    AxisID,
+    BoxBounds,
+    CartesianAxisDirection,
+    DeepReadonly,
+    DefinedZoomState,
+    OptionsDefs,
+    RequireOptional,
+    Scale,
+    ZoomMinMax,
+    ZoomState,
+} from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
-    AxisZoomState,
-    DefinedZoomState,
     EventsHub,
     ZoomChangeRequestEvent,
     ZoomChangeState,
     ZoomEventSourceDetail,
     ZoomMemento,
-    ZoomState,
 } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -40,7 +43,7 @@ import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';
 
-type CoreZoomEntry = ZoomState & { direction: CartesianAxisDirection };
+type CoreZoomEntry = ZoomMinMax & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
 export type CoreZoomStateSafeRetrieval = { readonly [K in AxisID]: CoreZoomEntry | undefined };
 
@@ -87,7 +90,7 @@ export type UpdateZoomSourcing = {
     source: AgZoomEventSource;
     sourceDetail: ZoomEventSourceDetail;
 };
-export type UpdateZoomChanges = Record<AxisID, ZoomState | undefined>;
+export type UpdateZoomChanges = Record<AxisID, ZoomMinMax | undefined>;
 export type UpdateZoomParams = UpdateZoomSourcing & {
     isReset: boolean;
     changes: UpdateZoomChanges;
@@ -193,7 +196,7 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toCoreZoomState(axisZoom: DeepReadonly<AxisZoomState>): CoreZoomState {
+    public toCoreZoomState(axisZoom: DeepReadonly<ZoomState>): CoreZoomState {
         const result: CoreZoomState = {};
         let ids: AxisID[];
         const { state } = this;
@@ -223,9 +226,9 @@ export class ZoomManager extends BaseManager {
     }
 
     // FIXME: should be private
-    public toAxisZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): AxisZoomState | undefined {
-        let x: ZoomState | undefined;
-        let y: ZoomState | undefined;
+    public toZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ZoomState | undefined {
+        let x: ZoomMinMax | undefined;
+        let y: ZoomMinMax | undefined;
 
         // Use the zoom on the primary (first) axis in each direction
         for (const id of strictObjectKeys(coreZoom)) {
@@ -280,7 +283,7 @@ export class ZoomManager extends BaseManager {
 
         // Migration from older versions can be implemented here.
 
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -351,7 +354,7 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: AxisZoomState): boolean {
+    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: ZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
         return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
@@ -420,7 +423,7 @@ export class ZoomManager extends BaseManager {
             return false;
         }
 
-        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
+        const newZoom: ZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
         return this.updateChanges({
             source: 'user-interaction',
@@ -479,11 +482,11 @@ export class ZoomManager extends BaseManager {
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public getZoom(): AxisZoomState | undefined {
-        return this.toAxisZoomState(this.state);
+    public getZoom(): ZoomState | undefined {
+        return this.toZoomState(this.state);
     }
 
-    public getAxisZoom(axisId: AxisID): ZoomState {
+    public getAxisZoom(axisId: AxisID): ZoomMinMax {
         return this.state[axisId] ?? { min: 0, max: 1 };
     }
 
@@ -541,9 +544,9 @@ export class ZoomManager extends BaseManager {
             yVisibleRange = nextZoom.y;
         }
 
-        const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
-        const yZoom: ZoomState = { min: yVisibleRange?.[0] ?? 0, max: yVisibleRange?.[1] ?? 1 };
-        return { x: xZoom, y: yZoom };
+        const x = { min: xVisibleRange[0], max: xVisibleRange[1] };
+        const y = yVisibleRange ? { min: yVisibleRange[0], max: yVisibleRange[1] } : undefined;
+        return definedZoomState({ x, y });
     }
 
     public isVisibleItemsCountAtLeast(
@@ -572,7 +575,7 @@ export class ZoomManager extends BaseManager {
     }
 
     private getMementoRanges() {
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         const memento: RequireOptional<ZoomMemento> & {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
@@ -608,11 +611,9 @@ export class ZoomManager extends BaseManager {
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
-                const { x: x2 = { min: 0, max: 1 }, y: y2 = { min: 0, max: 1 } } =
-                    zoomManager.toAxisZoomState(event.state) ?? {};
-                return { x: x2, y: y2 };
+                return definedZoomState(zoomManager.toZoomState(event.state));
             },
-            constrainZoom(restrictions: AxisZoomState): void {
+            constrainZoom(restrictions: ZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
             },
             constrainChanges(restrictions: ZoomChangeState): void {
@@ -648,15 +649,15 @@ export class ZoomManager extends BaseManager {
         return changeAccepted;
     }
 
-    public getRange(axisId: AxisID, ratio: ZoomState): AgZoomRange | undefined {
+    public getRange(axisId: AxisID, ratio: ZoomMinMax): AgZoomRange | undefined {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
 
-    private getRangeDirection(direction: CartesianAxisDirection, ratio: ZoomState): AgZoomRange | undefined {
+    private getRangeDirection(direction: CartesianAxisDirection, ratio: ZoomMinMax): AgZoomRange | undefined {
         return this.getRangeAxis(this.getPrimaryAxis(direction), ratio);
     }
 
-    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomState | undefined): AgZoomRange | undefined {
+    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomMinMax | undefined): AgZoomRange | undefined {
         if (!axis || !ratio || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
 
         const extents = this.getDomainPixelExtents(axis);
@@ -678,15 +679,15 @@ export class ZoomManager extends BaseManager {
         return { start, end };
     }
 
-    public rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomState | undefined {
+    public rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomMinMax | undefined {
         return this.rangeToRatioAxis(this.findAxis(axisId), range);
     }
 
-    public rangeToRatioDirection(direction: CartesianAxisDirection, range: AgZoomRange): ZoomState | undefined {
+    public rangeToRatioDirection(direction: CartesianAxisDirection, range: AgZoomRange): ZoomMinMax | undefined {
         return this.rangeToRatioAxis(this.getPrimaryAxis(direction), range);
     }
 
-    private rangeToRatioAxis(axis: CartesianAxisLike | undefined, range: AgZoomRange): ZoomState | undefined {
+    private rangeToRatioAxis(axis: CartesianAxisLike | undefined, range: AgZoomRange): ZoomMinMax | undefined {
         if (!axis) return;
 
         const extents = this.getDomainPixelExtents(axis);
@@ -753,13 +754,5 @@ export class ZoomManager extends BaseManager {
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
         return [d0, d1];
-    }
-
-    private getDefinedZoom(): DefinedZoomState {
-        const zoom = this.getZoom();
-        return {
-            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
-            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
-        };
     }
 }

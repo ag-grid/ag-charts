@@ -65,6 +65,7 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     dependencies: [CartesianChartModule],
 
     options: ohlcSeriesOptionsDef,
+    matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],
     predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {
         y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },

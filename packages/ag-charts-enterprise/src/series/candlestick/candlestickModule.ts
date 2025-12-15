@@ -18,6 +18,7 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     dependencies: [CartesianChartModule],
 
     options: candlestickSeriesOptionsDef,
+    matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],
     predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {
         y: {
