@@ -95,13 +95,15 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         buttons: {
             enabled: { $path: '../enabled' },
             visible: 'hover',
-            buttons: [
-                { icon: 'zoom-out', value: 'zoom-out', section: 'scale' },
-                { icon: 'zoom-in', value: 'zoom-in', section: 'scale' },
-                { icon: 'pan-left', value: 'pan-left', section: 'pan' },
-                { icon: 'pan-right', value: 'pan-right', section: 'pan' },
-                { icon: 'reset', value: 'reset', section: 'reset' },
-            ],
+            buttons: {
+                $shallowSimple: [
+                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale' },
+                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale' },
+                    { icon: 'pan-left', value: 'pan-left', section: 'pan' },
+                    { icon: 'pan-right', value: 'pan-right', section: 'pan' },
+                    { icon: 'reset', value: 'reset', section: 'reset' },
+                ],
+            },
         },
     },
 
