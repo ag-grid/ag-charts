@@ -33,6 +33,6 @@
             "requireLocalPort": false
         }
     },
-    "postCreateCommand": "echo PATH=\"$PATH:/workspaces/ag-charts/node_modules/.bin/\" >> ~/.bashrc && yarn",
+    "postCreateCommand": "echo PATH=\"$PATH:/workspaces/ag-charts/node_modules/.bin/\" >> ~/.bashrc && gh repo clone ag-grid/ag-charts-prompts /workspaces/ag-charts-prompts || true && yarn",
     "postAttachCommand": "gh codespace ports visibility 4600:public -c $CODESPACE_NAME"
 }
