@@ -1,6 +1,6 @@
-import { Logger } from '../globals';
-import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
-import { getPath, setPath } from './object';
+import * as Logger from '../logging/logger';
+import { getPath, setPath } from './data/object';
+import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './types/decorator';
 
 // Note: These deprecation utilities are currently unused but are kept for future deprecations.
 // They provide decorators for marking properties as deprecated with helpful migration messages.
@@ -16,7 +16,7 @@ export function Deprecated(message?: string, opts?: { default?: any }) {
     const warnDeprecated = createDeprecationWarning();
     const def = opts?.default;
 
-    return addTransformToInstanceProperty((_, key, value) => {
+    return addTransformToInstanceProperty((_: unknown, key: PropertyKey, value: unknown) => {
         if (value !== def) {
             warnDeprecated(key.toString(), message);
         }
@@ -28,14 +28,14 @@ export function DeprecatedAndRenamedTo(newPropName: any, mapValue?: (value: any)
     const warnDeprecated = createDeprecationWarning();
 
     return addTransformToInstanceProperty(
-        (target, key, value) => {
+        (target: any, key: PropertyKey, value: any) => {
             if (value !== target[newPropName]) {
                 warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
                 setPath(target, newPropName, mapValue ? mapValue(value) : value);
             }
             return BREAK_TRANSFORM_CHAIN;
         },
-        (target, key) => {
+        (target: any, key: PropertyKey) => {
             warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
             return getPath(target, newPropName);
         }

@@ -1,14 +1,16 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { Feature, FeatureCollection, Geometry, LonLatBBox, PlacedLabel } from 'ag-charts-core';
+import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
 import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
 import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const {
@@ -34,13 +36,16 @@ interface LineDataValues {
     readonly labelValue: string | undefined;
 }
 
-export class MapLineSeries extends TopologySeries<
-    MapLineNodeDatum,
-    AgMapLineSeriesOptions,
-    MapLineSeriesProperties,
-    MapLineNodeLabelDatum,
-    MapLineNodeDataContext
-> {
+export class MapLineSeries
+    extends TopologySeries<
+        MapLineNodeDatum,
+        AgMapLineSeriesOptions,
+        MapLineSeriesProperties,
+        MapLineNodeLabelDatum,
+        MapLineNodeDataContext
+    >
+    implements ITopology
+{
     static override readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 

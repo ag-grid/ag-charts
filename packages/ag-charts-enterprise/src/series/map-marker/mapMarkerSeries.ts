@@ -6,7 +6,6 @@ import {
     type Geometry,
     type ITextMeasurer,
     Logger,
-    LonLatBBox,
     type PlacedLabel,
     type Point,
     type SizedPoint,
@@ -21,11 +20,13 @@ import {
 } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import {
     type MapMarkerNodeDatum,
     type MapMarkerNodeLabelDatum,
@@ -79,7 +80,7 @@ export class MapMarkerSeries
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
-    implements _ModuleSupport.ITopology
+    implements ITopology
 {
     static override readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;

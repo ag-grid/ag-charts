@@ -1,5 +1,10 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
+import {
+    DEFAULT_SHADOW_COLOUR,
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
@@ -15,9 +20,9 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
                     $applySwitch: [
                         { $path: ['/type', undefined, { $value: '$1' }] },
                         { $value: '$1' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
                     ],
                 },
             ],
@@ -26,7 +31,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
             $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
         },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -34,7 +39,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
             color: { $ref: 'chartBackgroundColor' },
         },
         stageLabel: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

@@ -30,5 +30,5 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RangeAreaSeries(ctx),
+    create: (ctx) => new RangeAreaSeries(ctx),
 };

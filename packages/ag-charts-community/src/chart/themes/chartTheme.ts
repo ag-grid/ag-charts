@@ -41,6 +41,7 @@ import {
     POLAR_AXIS_TYPE,
     deepClone,
     deepFreeze,
+    getSequentialColors,
     groupBy,
     isArray,
     jsonWalk,
@@ -62,7 +63,6 @@ import type {
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import type { ChartType } from '../factory/expectedModules';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
-import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';

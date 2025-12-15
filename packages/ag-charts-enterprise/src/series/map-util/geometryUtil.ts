@@ -1,7 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Geometry, LonLatBBox, type Position } from 'ag-charts-core';
+import { type Geometry, type Position } from 'ag-charts-core';
 
 import { lineStringLength } from './lineStringUtil';
+import { LonLatBBox } from './lonLatBbox';
 import { polygonBbox } from './polygonUtil';
 
 function calculatePolygonArea(polygon: Position[][]): number {

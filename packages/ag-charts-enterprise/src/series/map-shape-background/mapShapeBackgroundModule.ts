@@ -1,5 +1,10 @@
-import { type AgMapShapeBackgroundOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgMapShapeBackgroundOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_HIERARCHY_DEFAULTS,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
@@ -22,9 +27,9 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
                 $applySwitch: [
                     { $path: 'type' },
                     { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_HIERARCHY_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_HIERARCHY_DEFAULTS],
                 ],
             }),
             stroke: { $ref: 'chartBackgroundColor' },
@@ -32,5 +37,5 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeBackgroundSeries(ctx),
+    create: (ctx) => new MapShapeBackgroundSeries(ctx),
 };

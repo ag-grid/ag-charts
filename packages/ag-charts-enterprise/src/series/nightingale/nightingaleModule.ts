@@ -1,4 +1,4 @@
-import { type AgNightingaleSeriesOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions, PolarChartModule, VERSION } from 'ag-charts-community';
 import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { NightingaleSeries } from './nightingaleSeries';
@@ -21,5 +21,5 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate: NIGHTINGALE_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new NightingaleSeries(ctx),
+    create: (ctx) => new NightingaleSeries(ctx),
 };

@@ -1,13 +1,13 @@
-import { DEFAULT_SHADOW_COLOUR, FONT_SIZE_RATIO } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
-
 import {
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
-    partWholeHighlightStyle,
-} from '../../themes/util';
+    PART_WHOLE_HIGHLIGHT_STYLE,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
@@ -99,7 +99,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: partWholeHighlightStyle(),
+        highlight: PART_WHOLE_HIGHLIGHT_STYLE,
     },
     legend: { enabled: true },
 };

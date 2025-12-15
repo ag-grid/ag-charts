@@ -12,12 +12,12 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     IS_DARK_THEME,
+    getSequentialColors,
 } from 'ag-charts-core';
 import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
-import { getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_DARK_BACKGROUND_FILL = '#192232';

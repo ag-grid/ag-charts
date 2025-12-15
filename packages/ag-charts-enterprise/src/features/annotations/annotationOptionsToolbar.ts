@@ -7,10 +7,10 @@ import {
     EventEmitter,
     PropertiesArray,
     Property,
-    ToolbarButtonProperties,
 } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import {
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,

@@ -1,6 +1,12 @@
-import { type AgRadialGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { FONT_SIZE_RATIO, radialGaugeSeriesOptionsDef } from 'ag-charts-core';
+import { type AgRadialGaugePreset, VERSION } from 'ag-charts-community';
+import {
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_RANGE2_OPERATION,
+    SAFE_STROKE_FILL_OPERATION,
+    type SeriesModuleDefinition,
+    radialGaugeSeriesOptionsDef,
+} from 'ag-charts-core';
 
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
@@ -29,12 +35,12 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                    _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    SAFE_RANGE2_OPERATION,
                 ],
             },
             scale: {
                 defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
-                stroke: { $path: ['/2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 label: {
                     fontWeight: { $ref: 'fontWeight' },
@@ -74,7 +80,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 spacing: 10,
             },
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: 56,
@@ -83,7 +89,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 color: { $ref: 'textColor' },
             },
             secondaryLabel: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
@@ -97,5 +103,5 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RadialGaugeSeries(ctx),
+    create: (ctx) => new RadialGaugeSeries(ctx),
 };

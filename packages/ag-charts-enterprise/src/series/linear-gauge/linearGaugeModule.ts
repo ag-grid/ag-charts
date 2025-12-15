@@ -1,6 +1,12 @@
-import { type AgLinearGaugePreset, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { FONT_SIZE, linearGaugeSeriesOptionsDef } from 'ag-charts-core';
+import { type AgLinearGaugePreset, VERSION } from 'ag-charts-community';
+import {
+    FONT_SIZE,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_RANGE2_OPERATION,
+    SAFE_STROKE_FILL_OPERATION,
+    type SeriesModuleDefinition,
+    linearGaugeSeriesOptionsDef,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
@@ -18,13 +24,13 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                _ModuleSupport.SAFE_RANGE2_OPERATION,
+                SAFE_RANGE2_OPERATION,
             ],
         },
         scale: {
             // @ts-expect-error undocumented option
             defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
-            stroke: { $path: ['/2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+            stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             label: {
                 spacing: 11,
@@ -63,7 +69,7 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
             },
         },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             placement: 'inside-start',
             fontFamily: { $ref: 'fontFamily' },
@@ -91,5 +97,5 @@ export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     options: linearGaugeSeriesOptionsDef,
     themeTemplate,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new LinearGaugeSeries(ctx),
+    create: (ctx) => new LinearGaugeSeries(ctx),
 };

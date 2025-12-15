@@ -1,8 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { POLAR_AXIS_TYPE } from 'ag-charts-core';
+import {
+    FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+    POLAR_AXIS_TYPE,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const { FILL_GRADIENT_CONIC_SERIES_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
 
 export const RADIAL_BAR_SERIES_THEME: ExtensibleTheme<'radial-bar'> = {
     series: {
@@ -18,14 +22,14 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleTheme<'radial-bar'> = {
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
     axes: {
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: {

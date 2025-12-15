@@ -1,6 +1,7 @@
 import {
     CARTESIAN_POSITION,
     FONT_SIZE_RATIO,
+    LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     boolean,
     borderOptionsDef,
@@ -20,7 +21,6 @@ import {
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
 import { VERSION } from '../../version';
-import { LEGEND_CONTAINER_THEME } from '../themes/util';
 import { Legend } from './legend';
 
 export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {

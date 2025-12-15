@@ -1,17 +1,19 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+} from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import {
-    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
-    multiSeriesHighlightStyle,
-} from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
@@ -46,7 +48,7 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
 };
 

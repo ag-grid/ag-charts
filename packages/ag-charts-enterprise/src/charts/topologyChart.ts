@@ -1,12 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, FeatureCollection, LonLatBBox, Position } from 'ag-charts-core';
+import type { AxisID, FeatureCollection, Position } from 'ag-charts-core';
 import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
+
+import type { LonLatBBox } from '../series/map-util/lonLatBbox';
+import type { ITopology } from '../series/map-util/topologyTypes';
 
 const { Chart, MercatorScale } = _ModuleSupport;
 function isTopologySeries(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
-): series is _ModuleSupport.ITopology {
+): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -59,7 +62,7 @@ export class TopologyChart extends Chart {
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
-        const mapSeries = this.series as _ModuleSupport.ITopology[];
+        const mapSeries = this.series as ITopology[];
         const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;

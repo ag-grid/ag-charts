@@ -1,19 +1,22 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection, DEFAULT_SHADOW_COLOUR } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
-
-import type { ModuleContext } from '../../../module/moduleContext';
-import { VERSION } from '../../../version';
-import { CartesianChartModule } from '../../cartesianChartModule';
 import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
-    markerSeriesHighlightStyle,
-} from '../../themes/util';
+} from 'ag-charts-core';
+import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+
+import type { ModuleContext } from '../../../module/moduleContext';
+import { VERSION } from '../../../version';
+import { CartesianChartModule } from '../../cartesianChartModule';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
@@ -75,7 +78,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: markerSeriesHighlightStyle(),
+        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

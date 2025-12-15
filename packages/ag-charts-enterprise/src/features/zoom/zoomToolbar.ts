@@ -7,7 +7,6 @@ import {
     CleanupRegistry,
     PropertiesArray,
     Property,
-    ToolbarButtonProperties,
     UNIT_MAX,
     UNIT_MIN,
     createElement,
@@ -16,6 +15,7 @@ import {
     entries,
 } from 'ag-charts-core';
 
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,

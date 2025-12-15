@@ -130,8 +130,8 @@ export class WidgetListenerInternal {
             const element = target.getElement();
             const cleanup = new CleanupRegistry();
             cleanup.register(
-                attachListener(element, 'mousedown', (event) => this.triggerMouseDrag(target, event)),
-                attachListener(element, 'touchstart', (event) => this.triggerTouchDrag(target, event), {
+                attachListener(element, 'mousedown', (event: MouseEvent) => this.triggerMouseDrag(target, event)),
+                attachListener(element, 'touchstart', (event: TouchEvent) => this.triggerTouchDrag(target, event), {
                     passive: false,
                 })
             );

@@ -1,7 +1,12 @@
-import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type AgWaterfallSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_KEYED_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SINGLE_SERIES_HIGHLIGHT_STYLE,
+} from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
-
-const { FILL_GRADIENT_LINEAR_KEYED_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_KEYED_DEFAULTS } = _ModuleSupport;
 
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
@@ -26,7 +31,7 @@ function itemTheme(
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontStyle: undefined,
             fontWeight: { $ref: 'fontWeight' as const },
@@ -54,7 +59,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleTheme<'waterfall'> = {
             lineDashOffset: 0,
             strokeWidth: 2,
         },
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+        highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: {
         enabled: true,

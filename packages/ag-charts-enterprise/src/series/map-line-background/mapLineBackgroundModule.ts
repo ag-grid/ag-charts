@@ -1,4 +1,4 @@
-import { type AgMapLineBackgroundOptions, VERSION, type _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineBackgroundOptions, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -25,5 +25,5 @@ export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBack
         },
     },
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapLineBackgroundSeries(ctx),
+    create: (ctx) => new MapLineBackgroundSeries(ctx),
 };
