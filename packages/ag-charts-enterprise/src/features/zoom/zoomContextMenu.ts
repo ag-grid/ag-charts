@@ -1,20 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState, Point } from 'ag-charts-core';
+import { definedZoomState } from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     UNIT_SIZE,
     canResetZoom,
     constrainZoom,
-    definedZoomState,
     dx,
     dy,
-    isZoomEqual,
+    isMaxZoom,
     pointToRatio,
     scaleZoomCenter,
     translateZoom,
-    unitZoomState,
 } from './zoomUtils';
 
 const { userInteraction } = _ModuleSupport;
@@ -25,7 +24,7 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly getRect: () => _ModuleSupport.BBox | undefined,
+        private readonly getRect: () => BoxBounds | undefined,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {}
@@ -53,7 +52,7 @@ export class ZoomContextMenu {
             return this.iterateFindNextZoomAtPoint(origin) != null;
         };
         const shouldEnablePanToHere = () => {
-            return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
+            return !isMaxZoom(definedZoomState(this.zoomManager.getZoom()));
         };
         const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);

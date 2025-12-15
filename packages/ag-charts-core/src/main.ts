@@ -93,6 +93,7 @@ export * from './utils/value';
 export * from './utils/validation';
 export * as Vec2 from './utils/vector';
 export * as Vec4 from './utils/vector4';
+export * from './utils/zoomUtils';
 export * from './utils/fill';
 export * from './utils/bezier';
 export * from './utils/labelPlacement';

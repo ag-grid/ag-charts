@@ -1,14 +1,16 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CartesianAxisDirection } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomState } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     ActionOnSet,
-    type AxisID,
     ChartAxisDirection,
     ChartUpdateType,
     Property,
     ProxyProperty,
+    UNIT_MAX,
+    UNIT_MIN,
     debounce,
+    definedZoomState,
     entries,
     roundTo,
 } from 'ag-charts-core';
@@ -26,16 +28,13 @@ import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import { ZoomToolbar } from './zoomToolbar';
 import { ZoomTwoFingers } from './zoomTwoFingers';
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT_MAX,
-    UNIT_MIN,
     UNIT_SIZE,
     ZOOM_VALID_CHECK_DEBOUNCE,
     constrainZoom,
-    definedZoomState,
     dx,
     dy,
     isMaxZoom,
@@ -908,7 +907,7 @@ export class Zoom extends AbstractModuleInstance {
     };
     private isAxisZoomValid(
         direction: CartesianAxisDirection,
-        axisZoom: _ModuleSupport.ZoomState,
+        axisZoom: ZoomState,
         options?: { directional?: boolean }
     ) {
         const {
@@ -1006,7 +1005,7 @@ export class Zoom extends AbstractModuleInstance {
         sourcing: _ModuleSupport.UpdateZoomSourcing,
         axisId: AxisID,
         direction: CartesianAxisDirection,
-        axisZoom: _ModuleSupport.ZoomState | undefined,
+        axisZoom: ZoomState | undefined,
         validOptions?: { directional?: boolean }
     ) {
         const {

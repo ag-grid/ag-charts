@@ -1,34 +1,37 @@
 import {
-    type AxisID,
-    type BoxBounds,
-    type CartesianAxisDirection,
     ChartAxisDirection,
-    type DeepReadonly,
     Logger,
-    type OptionsDefs,
-    type RequireOptional,
-    type Scale,
     ScaleAlignment,
     attachDescription,
     deepClone,
     deepFreeze,
     defined,
+    definedZoomState,
     isFiniteNumber,
     isObject,
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisZoomState,
+    BoxBounds,
+    CartesianAxisDirection,
+    DeepReadonly,
+    DefinedZoomState,
+    OptionsDefs,
+    RequireOptional,
+    Scale,
+    ZoomState,
+} from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
-    AxisZoomState,
-    DefinedZoomState,
     EventsHub,
     ZoomChangeRequestEvent,
     ZoomChangeState,
     ZoomEventSourceDetail,
     ZoomMemento,
-    ZoomState,
 } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -280,7 +283,7 @@ export class ZoomManager extends BaseManager {
 
         // Migration from older versions can be implemented here.
 
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -541,9 +544,9 @@ export class ZoomManager extends BaseManager {
             yVisibleRange = nextZoom.y;
         }
 
-        const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
-        const yZoom: ZoomState = { min: yVisibleRange?.[0] ?? 0, max: yVisibleRange?.[1] ?? 1 };
-        return { x: xZoom, y: yZoom };
+        const x = { min: xVisibleRange[0], max: xVisibleRange[1] };
+        const y = yVisibleRange ? { min: yVisibleRange[0], max: yVisibleRange[1] } : undefined;
+        return definedZoomState({ x, y });
     }
 
     public isVisibleItemsCountAtLeast(
@@ -572,7 +575,7 @@ export class ZoomManager extends BaseManager {
     }
 
     private getMementoRanges() {
-        const zoom = this.getDefinedZoom();
+        const zoom = definedZoomState(this.getZoom());
         const memento: RequireOptional<ZoomMemento> & {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
@@ -608,9 +611,7 @@ export class ZoomManager extends BaseManager {
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
-                const { x: x2 = { min: 0, max: 1 }, y: y2 = { min: 0, max: 1 } } =
-                    zoomManager.toAxisZoomState(event.state) ?? {};
-                return { x: x2, y: y2 };
+                return definedZoomState(zoomManager.toAxisZoomState(event.state));
             },
             constrainZoom(restrictions: AxisZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
@@ -753,13 +754,5 @@ export class ZoomManager extends BaseManager {
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
         return [d0, d1];
-    }
-
-    private getDefinedZoom(): DefinedZoomState {
-        const zoom = this.getZoom();
-        return {
-            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
-            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
-        };
     }
 }

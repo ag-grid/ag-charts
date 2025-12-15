@@ -64,11 +64,9 @@ export { stackCartesianSeries } from './chart/cartesianUtil';
 export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
 export type {
     AxisLayout,
-    AxisZoomState,
     ContextMenuEvent,
     DataModelDiff,
     DataModelDiffEvent,
-    DefinedZoomState,
     EventsHub,
     EventsHubMap,
     HighlightChangeEvent,
@@ -84,8 +82,6 @@ export type {
     ZoomLoadMementoEvent,
     ZoomPanStartEvent,
     ZoomSaveMementoEvent,
-    ZoomState,
-    ZoomStateDirection,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
 export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';

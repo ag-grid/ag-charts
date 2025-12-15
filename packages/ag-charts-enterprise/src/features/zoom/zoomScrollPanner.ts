@@ -1,7 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection, entries } from 'ag-charts-core';
+import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
+import type { BoxBounds } from 'ag-charts-core';
 
-import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from './zoomUtils';
+import { constrainZoom, dx, pointToRatio, translateZoom } from './zoomUtils';
 
 type State = _ModuleSupport.CoreZoomState;
 type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
@@ -9,12 +10,12 @@ type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 const DELTA_SCALE = 200;
 
 export class ZoomScrollPanner {
-    update(event: { deltaX: number }, step: number, bbox: _ModuleSupport.BBox, zooms: StateRetrieval): State {
+    update(event: { deltaX: number }, step: number, bbox: BoxBounds, zooms: StateRetrieval): State {
         const deltaX = event.deltaX * step * DELTA_SCALE;
         return this.translateZooms(bbox, zooms, deltaX);
     }
 
-    private translateZooms(bbox: _ModuleSupport.BBox, currentZooms: StateRetrieval, deltaX: number) {
+    private translateZooms(bbox: BoxBounds, currentZooms: StateRetrieval, deltaX: number) {
         const newZooms: State = {};
 
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), 0);
