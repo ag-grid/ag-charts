@@ -1,6 +1,6 @@
 # AI Agent Instructions
 
-⚠️ **IMPORTANT:** You are reading the bootstrap file. The **full authoritative agent instructions** are in [tools/prompts/AGENTS.md](tools/prompts/AGENTS.md). 
+⚠️ **IMPORTANT:** You are reading the bootstrap file. The **full authoritative agent instructions** are in [tools/prompts/AGENTS.md](tools/prompts/AGENTS.md).
 
 **READ THAT FILE FIRST.** It contains critical guidance on development workflows, testing requirements, code standards, and repository conventions.
 
