@@ -17,7 +17,7 @@
     "postinstall:nx-daemon-reset-metadata": "(test -e .nx/workspace-data/ && rm -rf .nx/workspace-data/) || echo \"Nx workspace not found\"",
     "postinstall:plugin-build": "nx run-many -p tag:plugin -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
-    "postinstall:setup-prompts": "yarn link @ag-grid/ag-charts-prompts 2>/dev/null && node_modules/@ag-grid/ag-charts-prompts/setup-prompts.sh || echo 'Skipping prompts setup (run: cd ../ag-charts-prompts && yarn link)'"
+    "postinstall:setup-prompts": "test -d ../ag-charts-prompts && ../ag-charts-prompts/setup-prompts.sh || echo 'Skipping prompts setup (clone ag-charts-prompts adjacent to this repo)'"
   },
   "private": true,
   "engines": {
