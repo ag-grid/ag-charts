@@ -68,13 +68,8 @@ main() {
         return 0
     fi
 
-    # Skip if no agentic tools installed
-    if ! has_agentic_tools; then
-        echo "Skipping prompts setup (no agentic tools detected)"
-        return 0
-    fi
-
     # If prompts dir exists, check for updates and run setup
+    # (bypass agentic tools check - user explicitly cloned the repo)
     if [[ -d "$PROMPTS_DIR" ]]; then
         if is_checkout_clean && is_checkout_behind; then
             echo "ag-charts-prompts is out of date."
@@ -88,7 +83,13 @@ main() {
         return 0
     fi
 
-    # Prompts dir doesn't exist - check access and offer to clone
+    # Prompts dir doesn't exist - only offer to clone if agentic tools detected
+    if ! has_agentic_tools; then
+        echo "Skipping prompts setup (no agentic tools detected)"
+        return 0
+    fi
+
+    # Check repo access before offering to clone
     if ! has_repo_access; then
         echo "Skipping prompts setup (no access to ag-charts-prompts repo)"
         return 0
