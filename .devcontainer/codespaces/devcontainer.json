@@ -5,6 +5,17 @@
             "version": "20"
         }
     },
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "ag-grid/ag-charts-prompts": {
+                    "permissions": {
+                        "contents": "write"
+                    }
+                }
+            }
+        }
+    },
     "containerEnv": {
         "AG_SKIP_NATIVE_DEP_VERSION_CHECK": "1",
         "PUBLIC_SITE_URL": "https://${CODESPACE_NAME}.app.github.dev/",
