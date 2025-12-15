@@ -1,7 +1,10 @@
 {
     "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20",
     "features": {
-        "ghcr.io/devcontainers/features/github-cli:1": {}
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20"
+        }
     },
     "customizations": {
         "codespaces": {
