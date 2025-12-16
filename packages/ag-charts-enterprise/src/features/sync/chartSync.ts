@@ -513,13 +513,11 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private onEnabledChange() {
-        const { syncManager, highlightManager } = this.moduleContext;
+        const { syncManager } = this.moduleContext;
         if (this.enabled) {
             syncManager.subscribe(this.groupId);
-            highlightManager.unhighlightDelay = 0; // Workaround for AG-16398
         } else {
             syncManager.unsubscribe(this.groupId);
-            highlightManager.unhighlightDelay = 100; // Workaround for AG-16398
         }
         this.updateSiblings();
         this.onNodeInteractionChange();

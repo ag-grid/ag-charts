@@ -68,6 +68,10 @@ export interface ChartInternalOptionMetadata {
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
+    /** Delay in ms before unhighlight is applied. Undefined = use default (100ms). */
+    unhighlightDelay?: number;
+    /** Delay in ms before tooltip removal is applied. Undefined = use default (100ms). */
+    tooltipRemoveDelay?: number;
 }
 
 type GroupingOptions = {

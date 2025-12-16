@@ -337,11 +337,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
         }));
 
-        // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
-        // moving between charts (CRT-1012)
-        if (options.optionMetadata.presetType === 'sparkline') {
-            ctx.highlightManager.unhighlightDelay = 0;
-            ctx.tooltipManager.removeDelay = 0;
+        // Apply preset-configured delays (e.g., CRT-1012: sparklines use 0 to avoid laggy tooltips)
+        if (options.optionMetadata.unhighlightDelay !== undefined) {
+            ctx.highlightManager.unhighlightDelay = options.optionMetadata.unhighlightDelay;
+        }
+        if (options.optionMetadata.tooltipRemoveDelay !== undefined) {
+            ctx.tooltipManager.removeDelay = options.optionMetadata.tooltipRemoveDelay;
         }
 
         this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));

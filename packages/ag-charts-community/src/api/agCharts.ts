@@ -109,6 +109,10 @@ export abstract class AgCharts {
                 pool: pool ?? true,
                 domMode: 'minimal',
                 withDragInterpretation: false,
+                // Disable delayed unhighlight/tooltip removal for sparklines to avoid laggy tooltips
+                // when quickly moving between charts (CRT-1012)
+                unhighlightDelay: 0,
+                tooltipRemoveDelay: 0,
             }) as any;
         });
     }
