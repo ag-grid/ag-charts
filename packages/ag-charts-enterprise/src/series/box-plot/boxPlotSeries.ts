@@ -314,7 +314,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         mutableNode.bandwidth = barWidth;
 
         // Update scaledValues in place
-        const mutableScaledValues = mutableNode.scaledValues as Mutable<BoxPlotNodeDatum['scaledValues']>;
+        const mutableScaledValues = mutableNode.scaledValues;
         mutableScaledValues.xValue = scaledValues.xValue;
         mutableScaledValues.minValue = scaledValues.minValue;
         mutableScaledValues.q1Value = scaledValues.q1Value;
