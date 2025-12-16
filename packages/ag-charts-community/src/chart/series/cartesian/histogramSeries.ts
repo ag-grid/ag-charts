@@ -1,8 +1,10 @@
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type Mutable,
     type Point,
     type RequireOptional,
+    type Scale,
     createTicks,
     deepClone,
     findMinMax,
@@ -27,6 +29,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import type { ChartAxis } from '../../chartAxis';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type {
@@ -82,6 +85,31 @@ interface CalculatedBin {
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
     styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
+}
+
+/**
+ * Shared context for creating HistogramNodeDatum instances.
+ * Instantiated once per createNodeData() call and reused across all datum operations.
+ */
+interface HistogramSeriesNodeDatumContext {
+    // Scales (axis lookups - worth caching)
+    readonly xScale: Scale<any, any, any>;
+    readonly yScale: Scale<any, any, any>;
+
+    // Pre-computed values
+    readonly yAxisReversed: boolean;
+
+    // Property lookups (constant across all datums - worth caching)
+    readonly xKey: string;
+    readonly yKey: string | undefined;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly label: HistogramSeriesProperties['label'];
+
+    // Incremental update support
+    readonly canIncrementallyUpdate: boolean;
+    readonly nodes: HistogramNodeDatum[];
+    nodeIndex: number;
 }
 
 export class HistogramSeries extends CartesianSeries<
@@ -338,6 +366,179 @@ export class HistogramSeries extends CartesianSeries<
         return group.datumIndices.reduce((acc, datumIndices) => acc + datumIndices.length, 0);
     }
 
+    /**
+     * Creates the shared context for datum creation.
+     * Caches expensive lookups and computations that are constant across all datums.
+     */
+    private createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): HistogramSeriesNodeDatumContext {
+        const { xKey, yKey, xName, yName, label } = this.properties;
+        const { contextNodeData, processedData } = this;
+
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData?.changeDescription != null;
+
+        return {
+            xScale: xAxis.scale,
+            yScale: yAxis.scale,
+            yAxisReversed: yAxis.isReversed(),
+            xKey,
+            yKey,
+            xName,
+            yName,
+            label,
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Creates label data for a histogram bin if labels are enabled.
+     */
+    private createLabelData(
+        ctx: HistogramSeriesNodeDatumContext,
+        bin: CalculatedBin,
+        x: number,
+        y: number,
+        w: number,
+        h: number
+    ): HistogramNodeDatum['label'] {
+        const { label, yKey, xKey, xName, yName } = ctx;
+        const { total, datum } = bin;
+
+        if (!label.enabled || total === 0) {
+            return undefined;
+        }
+
+        return {
+            x: x + w / 2,
+            y: y + h / 2,
+            text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                value: total,
+                datum,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            }),
+        };
+    }
+
+    /**
+     * Creates a skeleton HistogramNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
+        const { xKey, yKey } = ctx;
+        const { domain, datum, groupIndex, frequency, total } = bin;
+
+        return {
+            series: this,
+            datumIndex: groupIndex,
+            datum,
+            aggregatedValue: total,
+            frequency,
+            domain,
+            yKey,
+            xKey,
+            x: 0,
+            y: 0,
+            xValue: 0,
+            yValue: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
+            topLeftCornerRadius: false,
+            topRightCornerRadius: false,
+            bottomRightCornerRadius: false,
+            bottomLeftCornerRadius: false,
+            label: undefined,
+            crisp: true,
+        };
+    }
+
+    /**
+     * Updates an existing HistogramNodeDatum in-place.
+     * This is more efficient than recreating the entire node when only data values change.
+     */
+    private updateNodeDatum(ctx: HistogramSeriesNodeDatumContext, node: HistogramNodeDatum, bin: CalculatedBin): void {
+        const { xScale, yScale, yAxisReversed } = ctx;
+        const { domain, datum, groupIndex, frequency, total } = bin;
+        const mutableNode = node as Mutable<HistogramNodeDatum>;
+
+        const [xDomainMin, xDomainMax] = domain;
+        const xMinPx = xScale.convert(xDomainMin);
+        const xMaxPx = xScale.convert(xDomainMax);
+
+        const yZeroPx = yScale.convert(0);
+        const yMaxPx = yScale.convert(total);
+        const w = Math.abs(xMaxPx - xMinPx);
+        const h = Math.abs(yMaxPx - yZeroPx);
+
+        const x = Math.min(xMinPx, xMaxPx);
+        const y = Math.min(yZeroPx, yMaxPx);
+
+        // Update properties
+        mutableNode.datumIndex = groupIndex;
+        mutableNode.datum = datum;
+        mutableNode.aggregatedValue = total;
+        mutableNode.frequency = frequency;
+        mutableNode.domain = domain;
+        mutableNode.x = x;
+        mutableNode.y = y;
+        mutableNode.xValue = xMinPx;
+        mutableNode.yValue = yMaxPx;
+        mutableNode.width = w;
+        mutableNode.height = h;
+
+        // Update midPoint in place
+        if (mutableNode.midPoint) {
+            mutableNode.midPoint.x = x + w / 2;
+            mutableNode.midPoint.y = y + h / 2;
+        } else {
+            mutableNode.midPoint = { x: x + w / 2, y: y + h / 2 };
+        }
+
+        // Update corner radius flags
+        mutableNode.topLeftCornerRadius = !yAxisReversed;
+        mutableNode.topRightCornerRadius = !yAxisReversed;
+        mutableNode.bottomRightCornerRadius = yAxisReversed;
+        mutableNode.bottomLeftCornerRadius = yAxisReversed;
+
+        // Update label
+        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h);
+    }
+
+    /**
+     * Creates a HistogramNodeDatum for a single bin.
+     * Creates a skeleton node and uses updateNodeDatum to populate it.
+     */
+    private createNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, bin);
+        this.updateNodeDatum(ctx, node, bin);
+        return node;
+    }
+
+    /**
+     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
+     */
+    private upsertNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+
+        let nodeData: HistogramNodeDatum;
+        if (canReuseNode) {
+            // Reuse existing node by updating in place
+            nodeData = ctx.nodes[ctx.nodeIndex];
+            this.updateNodeDatum(ctx, nodeData, bin);
+        } else {
+            // Create new node
+            nodeData = this.createNodeDatum(ctx, bin);
+            ctx.nodes.push(nodeData);
+        }
+        ctx.nodeIndex++;
+
+        return nodeData;
+    }
+
     override createNodeData() {
         const { axes, processedData, dataModel } = this;
 
@@ -348,90 +549,37 @@ export class HistogramSeries extends CartesianSeries<
             return;
         }
 
-        const { scale: xScale } = xAxis;
-        const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, label } = this.properties;
+        // Create shared context for datum creation (must be done early to access ctx.nodes)
+        const ctx = this.createNodeDatumContext(xAxis, yAxis);
+
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        const nodeData: HistogramNodeDatum[] = [];
-        const context = {
+        const context: HistogramSeriesNodeDataContext = {
             itemId: this.properties.yKey ?? this.id,
-            nodeData,
-            labelData: nodeData,
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
             scales: this.calculateScaling(),
             animationValid: true,
             visible: this.visible || animationEnabled,
             styles: getItemStyles(this.getItemStyle.bind(this)),
         };
+
         if (processedData?.type !== 'grouped') {
             return context;
         }
 
-        for (const { domain, datum, groupIndex, frequency, total } of this.calculatedBins) {
-            const [xDomainMin, xDomainMax] = domain;
-            const xMinPx = xScale.convert(xDomainMin);
-            const xMaxPx = xScale.convert(xDomainMax);
+        // Main iteration loop
+        for (const bin of this.calculatedBins) {
+            this.upsertNodeDatum(ctx, bin);
+        }
 
-            const yZeroPx = yScale.convert(0);
-            const yMaxPx = yScale.convert(total);
-            const w = Math.abs(xMaxPx - xMinPx);
-            const h = Math.abs(yMaxPx - yZeroPx);
-
-            const x = Math.min(xMinPx, xMaxPx);
-            const y = Math.min(yZeroPx, yMaxPx);
-
-            let selectionDatumLabel = undefined;
-            if (label.enabled && total !== 0) {
-                selectionDatumLabel = {
-                    x: x + w / 2,
-                    y: y + h / 2,
-                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
-                        total,
-                        datum,
-                        yKey!,
-                        'y',
-                        [],
-                        label,
-                        { value: total, datum, xKey, yKey, xName, yName }
-                    ),
-                };
-            }
-
-            const nodeMidPoint = {
-                x: x + w / 2,
-                y: y + h / 2,
-            };
-
-            const yAxisReversed = yAxis.isReversed();
-
-            nodeData.push({
-                series: this,
-                datumIndex: groupIndex,
-                datum, // required by SeriesNodeDatum, but might not make sense here
-                // since each selection is an aggregation of multiple data.
-                aggregatedValue: total,
-                frequency,
-                domain,
-                yKey,
-                xKey,
-                x,
-                y,
-                xValue: xMinPx,
-                yValue: yMaxPx,
-                width: w,
-                height: h,
-                midPoint: nodeMidPoint,
-                topLeftCornerRadius: !yAxisReversed,
-                topRightCornerRadius: !yAxisReversed,
-                bottomRightCornerRadius: yAxisReversed,
-                bottomLeftCornerRadius: yAxisReversed,
-                label: selectionDatumLabel,
-                crisp: true,
-            });
+        // Trim excess nodes if the data shrunk
+        if (ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
         }
 
         // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
-        nodeData.sort((a, b) => a.x - b.x);
+        ctx.nodes.sort((a, b) => a.x - b.x);
 
         return context;
     }

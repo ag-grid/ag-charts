@@ -5,7 +5,7 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired, Mutable, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -33,6 +33,57 @@ const {
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
     styles: _ModuleSupport.SeriesNodeStyleContext<AgBoxPlotSeriesStyle>;
+}
+
+/**
+ * Shared context for creating BoxPlotNodeDatum instances.
+ * Instantiated once per createNodeData() call and reused across all datum operations
+ * to minimize memory allocations.
+ */
+interface BoxPlotSeriesNodeDatumContext {
+    // Data arrays (resolved from dataModel - worth caching)
+    readonly rawData: any[];
+    readonly xValues: any[];
+    readonly minValues: any[];
+    readonly q1Values: any[];
+    readonly medianValues: any[];
+    readonly q3Values: any[];
+    readonly maxValues: any[];
+
+    // Scales (axis lookups - worth caching)
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+
+    // Computed positioning (involves scale conversions - worth caching)
+    readonly barWidth: number;
+    readonly barOffset: number;
+    readonly groupOffset: number;
+
+    // Pre-computed values
+    readonly isVertical: boolean;
+    readonly xKey: string;
+
+    // Incremental update support
+    readonly canIncrementallyUpdate: boolean;
+    readonly nodes: BoxPlotNodeDatum[];
+    nodeIndex: number;
+}
+
+/** Scratch object for computed scaled values - reused across iterations */
+interface ScaledBoxPlotValues {
+    xValue: number;
+    minValue: number;
+    q1Value: number;
+    medianValue: number;
+    q3Value: number;
+    maxValue: number;
+}
+
+/** Parameters for creating/updating a BoxPlotNodeDatum */
+interface BoxPlotNodeDatumParams {
+    datumIndex: number;
+    datum: any;
+    scaledValues: ScaledBoxPlotValues;
 }
 
 class BoxPlotSeriesNodeEvent<
@@ -145,6 +196,194 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange);
     }
 
+    /**
+     * Creates the shared context for datum creation.
+     * Caches expensive lookups and computations that are constant across all datums.
+     */
+    private createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
+    ): BoxPlotSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData, contextNodeData } = this;
+        if (!dataModel || !processedData) return undefined;
+
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
+        const groupOffset = this.groupScale.convert(String(groupIndex));
+
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
+
+        return {
+            rawData: processedData.dataSources.get(this.id)?.data ?? [],
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            minValues: dataModel.resolveColumnById(this, 'minValue', processedData),
+            q1Values: dataModel.resolveColumnById(this, 'q1Value', processedData),
+            medianValues: dataModel.resolveColumnById(this, 'medianValue', processedData),
+            q3Values: dataModel.resolveColumnById(this, 'q3Value', processedData),
+            maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData),
+            xScale: xAxis.scale,
+            yScale: yAxis.scale,
+            barWidth,
+            barOffset,
+            groupOffset,
+            isVertical: this.isVertical(),
+            xKey: this.properties.xKey,
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Validates box plot values and checks ordering constraints.
+     * Returns true if values are valid (all numbers, min <= q1 <= median <= q3 <= max).
+     */
+    private validateBoxPlotValues(minValue: any, q1Value: any, medianValue: any, q3Value: any, maxValue: any): boolean {
+        return (
+            [minValue, q1Value, medianValue, q3Value, maxValue].every((value) => typeof value === 'number') &&
+            minValue <= q1Value &&
+            q1Value <= medianValue &&
+            medianValue <= q3Value &&
+            q3Value <= maxValue
+        );
+    }
+
+    /**
+     * Computes scaled values for a single datum.
+     * Populates the scratch object to avoid allocations.
+     */
+    private computeScaledValues(
+        ctx: BoxPlotSeriesNodeDatumContext,
+        scratch: ScaledBoxPlotValues,
+        datumIndex: number
+    ): void {
+        scratch.xValue =
+            ctx.xScale.convert(ctx.xValues[datumIndex]) + ctx.groupOffset + ctx.barOffset + ctx.barWidth / 2;
+        scratch.minValue = ctx.yScale.convert(ctx.minValues[datumIndex]);
+        scratch.q1Value = ctx.yScale.convert(ctx.q1Values[datumIndex]);
+        scratch.medianValue = ctx.yScale.convert(ctx.medianValues[datumIndex]);
+        scratch.q3Value = ctx.yScale.convert(ctx.q3Values[datumIndex]);
+        scratch.maxValue = ctx.yScale.convert(ctx.maxValues[datumIndex]);
+    }
+
+    /**
+     * Creates a skeleton BoxPlotNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: BoxPlotSeriesNodeDatumContext,
+        params: BoxPlotNodeDatumParams
+    ): BoxPlotNodeDatum {
+        return {
+            series: this,
+            itemId: ctx.xValues[params.datumIndex],
+            datum: params.datum,
+            datumIndex: params.datumIndex,
+            xKey: ctx.xKey,
+            bandwidth: ctx.barWidth,
+            scaledValues: {
+                xValue: 0,
+                minValue: 0,
+                q1Value: 0,
+                medianValue: 0,
+                q3Value: 0,
+                maxValue: 0,
+            },
+            midPoint: { x: 0, y: 0 },
+            focusRect: { x: 0, y: 0, width: 0, height: 0 },
+        };
+    }
+
+    /**
+     * Updates an existing BoxPlotNodeDatum in-place.
+     * This is more efficient than recreating the entire node when only data values change.
+     */
+    private updateNodeDatum(
+        ctx: BoxPlotSeriesNodeDatumContext,
+        node: BoxPlotNodeDatum,
+        params: BoxPlotNodeDatumParams
+    ): void {
+        const { isVertical, barWidth } = ctx;
+        const scaledValues = params.scaledValues;
+        const mutableNode = node as Mutable<BoxPlotNodeDatum>;
+
+        // Update datum and index
+        mutableNode.datum = params.datum;
+        mutableNode.datumIndex = params.datumIndex;
+        mutableNode.itemId = ctx.xValues[params.datumIndex];
+        mutableNode.bandwidth = barWidth;
+
+        // Update scaledValues in place
+        const mutableScaledValues = mutableNode.scaledValues as Mutable<BoxPlotNodeDatum['scaledValues']>;
+        mutableScaledValues.xValue = scaledValues.xValue;
+        mutableScaledValues.minValue = scaledValues.minValue;
+        mutableScaledValues.q1Value = scaledValues.q1Value;
+        mutableScaledValues.medianValue = scaledValues.medianValue;
+        mutableScaledValues.q3Value = scaledValues.q3Value;
+        mutableScaledValues.maxValue = scaledValues.maxValue;
+
+        // Compute midPoint
+        const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
+        const midX = scaledValues.xValue;
+        const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
+
+        const midPointX = isVertical ? midX : midY;
+        const midPointY = isVertical ? midY : midX;
+
+        // Update midPoint in place (or create if missing)
+        if (mutableNode.midPoint) {
+            mutableNode.midPoint.x = midPointX;
+            mutableNode.midPoint.y = midPointY;
+        } else {
+            mutableNode.midPoint = { x: midPointX, y: midPointY };
+        }
+
+        // Update focusRect in place
+        const focusRect = mutableNode.focusRect;
+        if (isVertical) {
+            focusRect.x = midPointX - barWidth / 2;
+            focusRect.y = scaledValues.minValue;
+            focusRect.width = barWidth;
+            focusRect.height = scaledValues.maxValue - scaledValues.minValue;
+        } else {
+            focusRect.x = scaledValues.minValue;
+            focusRect.y = midPointY - barWidth / 2;
+            focusRect.width = scaledValues.maxValue - scaledValues.minValue;
+            focusRect.height = barWidth;
+        }
+    }
+
+    /**
+     * Creates a BoxPlotNodeDatum for a single data point.
+     * Creates a skeleton node and uses updateNodeDatum to populate it.
+     */
+    private createNodeDatum(ctx: BoxPlotSeriesNodeDatumContext, params: BoxPlotNodeDatumParams): BoxPlotNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, params);
+        this.updateNodeDatum(ctx, node, params);
+        return node;
+    }
+
+    /**
+     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
+     */
+    private upsertNodeDatum(ctx: BoxPlotSeriesNodeDatumContext, params: BoxPlotNodeDatumParams): BoxPlotNodeDatum {
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+
+        let nodeData: BoxPlotNodeDatum;
+        if (canReuseNode) {
+            // Reuse existing node by updating in place
+            nodeData = ctx.nodes[ctx.nodeIndex];
+            this.updateNodeDatum(ctx, nodeData, params);
+        } else {
+            // Create new node
+            nodeData = this.createNodeDatum(ctx, params);
+            ctx.nodes.push(nodeData);
+        }
+        ctx.nodeIndex++;
+
+        return nodeData;
+    }
+
     override createNodeData() {
         const { visible, dataModel, processedData } = this;
 
@@ -153,21 +392,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!(dataModel && processedData && xAxis && yAxis)) return;
 
+        // Create shared context for datum creation (must be done early to access ctx.nodes)
+        const ctx = this.createNodeDatumContext(xAxis, yAxis);
+        if (!ctx) return;
+
         const { xKey } = this.properties;
-
-        const nodeData: BoxPlotNodeDatum[] = [];
-
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const minValues = dataModel.resolveColumnById(this, 'minValue', processedData);
-        const q1Values = dataModel.resolveColumnById(this, 'q1Value', processedData);
-        const medianValues = dataModel.resolveColumnById(this, 'medianValue', processedData);
-        const q3Values = dataModel.resolveColumnById(this, 'q3Value', processedData);
-        const maxValues = dataModel.resolveColumnById(this, 'maxValue', processedData);
-
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
-        const { groupScale } = this;
-        const isVertical = this.isVertical();
 
         const segments = calculateSegments(
             this.properties.segmentation,
@@ -177,9 +406,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             this.ctx.scene
         );
 
-        const context = {
+        const context: BoxPlotSeriesNodeDataContext = {
             itemId: xKey,
-            nodeData,
+            nodeData: ctx.nodes,
             labelData: [],
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
@@ -190,77 +419,50 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!visible) return context;
 
-        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, datum] of rawData.entries()) {
-            const xValue = xValues[datumIndex];
+        // Scratch objects for reuse across iterations
+        const scaledValuesScratch: ScaledBoxPlotValues = {
+            xValue: 0,
+            minValue: 0,
+            q1Value: 0,
+            medianValue: 0,
+            q3Value: 0,
+            maxValue: 0,
+        };
+
+        const paramsScratch: BoxPlotNodeDatumParams = {
+            datumIndex: 0,
+            datum: undefined,
+            scaledValues: scaledValuesScratch,
+        };
+
+        // Main iteration loop
+        for (let datumIndex = 0; datumIndex < ctx.rawData.length; datumIndex++) {
+            const datum = ctx.rawData[datumIndex];
+            const xValue = ctx.xValues[datumIndex];
             if (xValue == null) continue;
 
-            const minValue = minValues[datumIndex];
-            const q1Value = q1Values[datumIndex];
-            const medianValue = medianValues[datumIndex];
-            const q3Value = q3Values[datumIndex];
-            const maxValue = maxValues[datumIndex];
+            const minValue = ctx.minValues[datumIndex];
+            const q1Value = ctx.q1Values[datumIndex];
+            const medianValue = ctx.medianValues[datumIndex];
+            const q3Value = ctx.q3Values[datumIndex];
+            const maxValue = ctx.maxValues[datumIndex];
 
-            if (
-                [minValue, q1Value, medianValue, q3Value, maxValue].some((value) => typeof value !== 'number') ||
-                minValue > q1Value ||
-                q1Value > medianValue ||
-                medianValue > q3Value ||
-                q3Value > maxValue
-            ) {
+            if (!this.validateBoxPlotValues(minValue, q1Value, medianValue, q3Value, maxValue)) {
                 continue;
             }
 
-            const scaledValues = {
-                xValue: xAxis.scale.convert(xValue),
-                minValue: yAxis.scale.convert(minValue),
-                q1Value: yAxis.scale.convert(q1Value),
-                medianValue: yAxis.scale.convert(medianValue),
-                q3Value: yAxis.scale.convert(q3Value),
-                maxValue: yAxis.scale.convert(maxValue),
-            };
+            this.computeScaledValues(ctx, scaledValuesScratch, datumIndex);
 
-            const bandwidth = barWidth;
-            scaledValues.xValue += groupScale.convert(String(groupIndex)) + barOffset + bandwidth / 2;
+            // Update scratch params
+            paramsScratch.datumIndex = datumIndex;
+            paramsScratch.datum = datum;
 
-            const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
-            const midX = scaledValues.xValue;
-            const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
+            this.upsertNodeDatum(ctx, paramsScratch);
+        }
 
-            const midPoint = {
-                x: isVertical ? midX : midY,
-                y: isVertical ? midY : midX,
-            };
-
-            let focusRect: (typeof nodeData)[number]['focusRect'];
-
-            if (isVertical) {
-                focusRect = {
-                    x: midPoint.x - bandwidth / 2,
-                    y: scaledValues.minValue,
-                    width: bandwidth,
-                    height: scaledValues.maxValue - scaledValues.minValue,
-                };
-            } else {
-                focusRect = {
-                    x: scaledValues.minValue,
-                    y: midPoint.y - bandwidth / 2,
-                    width: scaledValues.maxValue - scaledValues.minValue,
-                    height: bandwidth,
-                };
-            }
-
-            nodeData.push({
-                series: this,
-                itemId: xValue,
-                datum,
-                datumIndex,
-                xKey,
-                bandwidth,
-                scaledValues,
-                midPoint,
-                focusRect,
-            });
+        // Trim excess nodes if the data shrunk
+        if (ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
         }
 
         return context;

@@ -14,7 +14,9 @@ import {
     type DomainWithMetadata,
     type InternalAgColorType,
     Logger,
+    type Mutable,
     type Point,
+    type Scale,
     type SizedPoint,
     extent,
     formatValue,
@@ -70,6 +72,37 @@ interface HeatmapLabelDatum extends Point {
 
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
     Required<Omit<AgHeatmapSeriesStyle, 'fill'>> & { opacity: number };
+
+/** Internal context for createNodeData() - caches expensive lookups */
+interface HeatmapSeriesNodeDatumContext {
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+    readonly xOffset: number;
+    readonly yOffset: number;
+    readonly width: number;
+    readonly height: number;
+    readonly textAlignFactor: number;
+    readonly verticalAlignFactor: number;
+    readonly xKey: string;
+    readonly yKey: string;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly colorKey: string | undefined;
+    readonly colorName: string | undefined;
+    readonly colorDomain: number[];
+    readonly itemPadding: number;
+    // Data arrays
+    readonly xValues: any[];
+    readonly yValues: any[];
+    readonly colorValues: number[] | undefined;
+    readonly rawData: unknown[];
+    // Incremental update support
+    readonly canIncrementallyUpdate: boolean;
+    readonly nodes: HeatmapNodeDatum[];
+    readonly labels: HeatmapLabelDatum[];
+    nodeIndex: number;
+    labelIndex: number;
+}
 
 class HeatmapSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -247,8 +280,48 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding, label } =
+        // Create shared context for datum creation (must be done early to access datumCtx.nodes)
+        const datumCtx = this.createNodeDatumContext(xAxis, yAxis, dataModel, processedData);
+        if (!datumCtx) return;
+
+        // Labels are rebuilt from scratch each time (due to formatLabels complexity)
+        const labelData: HeatmapLabelDatum[] = [];
+
+        for (const [datumIndex, datum] of datumCtx.rawData.entries()) {
+            const nodeDatum = this.upsertNodeDatum(datumCtx, datumIndex, datum);
+
+            const labelDatum = this.createLabelDatum(datumCtx, datumIndex, datum, nodeDatum);
+            if (labelDatum) {
+                labelData.push(labelDatum);
+            }
+        }
+
+        // Trim excess nodes if the data shrunk
+        if (datumCtx.nodeIndex < datumCtx.nodes.length) {
+            datumCtx.nodes.length = datumCtx.nodeIndex;
+        }
+
+        return {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData: datumCtx.nodes,
+            labelData,
+            scales: this.calculateScaling(),
+            visible: this.visible,
+        };
+    }
+
+    private createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis,
+        dataModel: _ModuleSupport.DataModel<any, any, any>,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): HeatmapSeriesNodeDatumContext | undefined {
+        const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding } =
             this.properties;
+        const { contextNodeData } = this;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
@@ -258,108 +331,223 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData).domain : [];
 
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-        const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: HeatmapNodeDatum[] = [];
-        const labelData: HeatmapLabelDatum[] = [];
-
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
 
-        const textAlignFactor = (width - 2 * itemPadding) * textAlignFactors[textAlign];
-        const verticalAlignFactor = (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign];
-
-        const sizeFittingHeight = () => ({ width, height, meta: null });
-
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, datum] of rawData.entries()) {
-            const xDatum = xValues[datumIndex];
-            const yDatum = yValues[datumIndex];
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yDatum) + yOffset;
 
-            const colorValue = colorValues?.[datumIndex];
-
-            const labelText =
-                label.enabled && colorValue != null
-                    ? this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
-                          colorValue,
-                          datum,
-                          colorKey!,
-                          'color',
-                          colorDomain,
-                          label,
-                          { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
-                      )
-                    : undefined;
-
-            const labels = formatLabels(
-                toPlainText(labelText),
-                this.properties.label,
-                undefined,
-                this.properties.label,
-                { padding: itemPadding },
-                sizeFittingHeight
-            );
-
-            const point = { x, y, size: 0 };
-
-            const style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
-
-            nodeData.push({
-                series: this,
-                itemId: yKey,
-                datumIndex,
-                yKey,
-                xKey,
-                xValue: xDatum,
-                yValue: yDatum,
-                colorValue,
-                datum,
-                point,
-                width,
-                height,
-                midPoint: { x, y },
-                missing: colorValues != null && colorValue == null,
-                style,
-            });
-
-            if (labels?.label != null) {
-                const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-                const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
-                const lx = point.x + textAlignFactor * (width - 2 * itemPadding);
-                const ly =
-                    point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
-
-                labelData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum,
-                    datumIndex,
-                    text,
-                    fontSize,
-                    lineHeight,
-                    fontStyle,
-                    fontFamily,
-                    fontWeight,
-                    color,
-                    textAlign,
-                    textBaseline: verticalAlign,
-                    x: lx,
-                    y: ly,
-                    style,
-                });
-            }
-        }
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
         return {
-            itemId: this.properties.yKey ?? this.id,
-            nodeData,
-            labelData,
-            scales: this.calculateScaling(),
-            visible: this.visible,
+            xScale,
+            yScale,
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+            yOffset: (yScale.bandwidth ?? 0) / 2,
+            width,
+            height,
+            textAlignFactor: (width - 2 * itemPadding) * textAlignFactors[textAlign],
+            verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
+            xKey,
+            yKey,
+            xName,
+            yName,
+            colorKey,
+            colorName,
+            colorDomain,
+            itemPadding,
+            xValues,
+            yValues,
+            colorValues,
+            rawData,
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            labels: canIncrementallyUpdate ? contextNodeData.labelData : [],
+            nodeIndex: 0,
+            labelIndex: 0,
+        };
+    }
+
+    /**
+     * Creates a skeleton HeatmapNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: HeatmapSeriesNodeDatumContext,
+        datumIndex: number,
+        datum: unknown
+    ): HeatmapNodeDatum {
+        const { xKey, yKey, width, height, colorValues } = ctx;
+        const xDatum = ctx.xValues[datumIndex];
+        const yDatum = ctx.yValues[datumIndex];
+        const colorValue = colorValues?.[datumIndex];
+
+        return {
+            series: this,
+            itemId: yKey,
+            datumIndex,
+            yKey,
+            xKey,
+            xValue: xDatum,
+            yValue: yDatum,
+            colorValue,
+            datum,
+            point: { x: 0, y: 0, size: 0 },
+            width,
+            height,
+            midPoint: { x: 0, y: 0 },
+            missing: colorValues != null && colorValue == null,
+            style: {} as AgHeatmapSeriesStyle,
+        };
+    }
+
+    /**
+     * Updates an existing HeatmapNodeDatum in-place.
+     */
+    private updateNodeDatum(
+        ctx: HeatmapSeriesNodeDatumContext,
+        node: HeatmapNodeDatum,
+        datumIndex: number,
+        datum: unknown
+    ): void {
+        const { xScale, yScale, xOffset, yOffset, width, height, xKey, yKey, colorValues } = ctx;
+        const mutableNode = node as Mutable<HeatmapNodeDatum>;
+
+        const xDatum = ctx.xValues[datumIndex];
+        const yDatum = ctx.yValues[datumIndex];
+        const x = xScale.convert(xDatum) + xOffset;
+        const y = yScale.convert(yDatum) + yOffset;
+        const colorValue = colorValues?.[datumIndex];
+
+        // Update properties
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.datum = datum;
+        mutableNode.itemId = yKey;
+        mutableNode.yKey = yKey;
+        mutableNode.xKey = xKey;
+        mutableNode.xValue = xDatum;
+        mutableNode.yValue = yDatum;
+        mutableNode.colorValue = colorValue;
+        mutableNode.width = width;
+        mutableNode.height = height;
+        mutableNode.missing = colorValues != null && colorValue == null;
+
+        // Update point in place
+        const mutablePoint = mutableNode.point as Mutable<SizedPoint>;
+        mutablePoint.x = x;
+        mutablePoint.y = y;
+        mutablePoint.size = 0;
+
+        // Update midPoint in place
+        mutableNode.midPoint.x = x;
+        mutableNode.midPoint.y = y;
+
+        // Update style
+        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
+    }
+
+    /**
+     * Creates a HeatmapNodeDatum for a single data point.
+     */
+    private createNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
+        this.updateNodeDatum(ctx, node, datumIndex, datum);
+        return node;
+    }
+
+    /**
+     * Handles node creation/update - reuses existing nodes when possible.
+     */
+    private upsertNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+
+        let nodeData: HeatmapNodeDatum;
+        if (canReuseNode) {
+            nodeData = ctx.nodes[ctx.nodeIndex];
+            this.updateNodeDatum(ctx, nodeData, datumIndex, datum);
+        } else {
+            nodeData = this.createNodeDatum(ctx, datumIndex, datum);
+            ctx.nodes.push(nodeData);
+        }
+        ctx.nodeIndex++;
+
+        return nodeData;
+    }
+
+    private createLabelDatum(
+        ctx: HeatmapSeriesNodeDatumContext,
+        datumIndex: number,
+        datum: unknown,
+        nodeDatum: HeatmapNodeDatum
+    ): HeatmapLabelDatum | undefined {
+        const { label } = this.properties;
+        const {
+            width,
+            height,
+            textAlignFactor,
+            verticalAlignFactor,
+            itemPadding,
+            colorKey,
+            colorName,
+            colorDomain,
+            xKey,
+            yKey,
+            xName,
+            yName,
+        } = ctx;
+
+        const colorValue = ctx.colorValues?.[datumIndex];
+
+        const labelText =
+            label.enabled && colorValue != null
+                ? this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
+                      colorValue,
+                      datum,
+                      colorKey!,
+                      'color',
+                      colorDomain,
+                      label,
+                      { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
+                  )
+                : undefined;
+
+        const sizeFittingHeight = () => ({ width, height, meta: null });
+        const labels = formatLabels(
+            toPlainText(labelText),
+            this.properties.label,
+            undefined,
+            this.properties.label,
+            { padding: itemPadding },
+            sizeFittingHeight
+        );
+
+        if (labels?.label == null) {
+            return undefined;
+        }
+
+        const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
+        const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
+        const { textAlign, verticalAlign } = this.properties;
+        const lx = nodeDatum.point.x + textAlignFactor * (width - 2 * itemPadding);
+        const ly =
+            nodeDatum.point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
+
+        return {
+            series: this,
+            itemId: ctx.yKey,
+            datum,
+            datumIndex,
+            text,
+            fontSize,
+            lineHeight,
+            fontStyle,
+            fontFamily,
+            fontWeight,
+            color,
+            textAlign,
+            textBaseline: verticalAlign,
+            x: lx,
+            y: ly,
+            style: nodeDatum.style,
         };
     }
 
