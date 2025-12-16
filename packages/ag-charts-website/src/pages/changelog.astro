@@ -4,7 +4,7 @@ import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@components/docs/utils/urlPaths';
 import { Changelog } from '@ag-website-shared/components/changelog/Changelog';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
-import styles from '@pages-styles/pipelineChangelog.module.scss';
+import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
