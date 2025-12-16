@@ -61,7 +61,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import { datumStylerProperties, hasDimmedOpacity, visibleRangeIndices } from '../util';
+import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,
     aggregateAreaDataFromDataModel,
@@ -230,15 +230,10 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override renderToOffscreenCanvas(): boolean {
-        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
-        const hasHighlightOpacity =
-            highlightActive &&
-            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
-                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
-
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
         return (
             super.renderToOffscreenCanvas() ||
-            hasHighlightOpacity ||
+            (hasMarkers && this.getDrawingMode(false) === 'cutout') ||
             (this.contextNodeData != null &&
                 (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
                     this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
@@ -1339,11 +1334,8 @@ export class AreaSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        let drawingMode = opts.drawingMode;
 
-        if (this.renderToOffscreenCanvas() && !isHighlight) {
-            drawingMode = 'cutout';
-        }
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
         datumSelection.each((node, datum) => {
             const style =

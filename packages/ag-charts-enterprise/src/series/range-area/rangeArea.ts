@@ -63,7 +63,6 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    hasDimmedOpacity,
     computeMarkerFocusBounds,
     plotAreaPathFill,
     plotLinePathStroke,
@@ -227,13 +226,8 @@ export class RangeAreaSeries extends BaseSeries {
     }
 
     override renderToOffscreenCanvas(): boolean {
-        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
-        const hasHighlightOpacity =
-            highlightActive &&
-            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
-                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
-
-        return super.renderToOffscreenCanvas() || hasHighlightOpacity;
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
+        return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -974,11 +968,7 @@ export class RangeAreaSeries extends BaseSeries {
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        let drawingMode = opts.drawingMode;
-
-        if (this.renderToOffscreenCanvas() && !isHighlight) {
-            drawingMode = 'cutout';
-        }
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;

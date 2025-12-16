@@ -41,7 +41,6 @@ const {
     Selection,
     Text,
     Marker,
-    hasDimmedOpacity,
     updateLabelNode,
     getMarkerStyles,
 } = _ModuleSupport;
@@ -128,13 +127,8 @@ export abstract class RadarSeries<
     }
 
     override renderToOffscreenCanvas(): boolean {
-        const highlightActive = this.properties.highlight.enabled && this.ctx.highlightManager.getActiveHighlight() != null;
-        const hasHighlightOpacity =
-            highlightActive &&
-            (hasDimmedOpacity(this.properties.highlight.unhighlightedItem) ||
-                hasDimmedOpacity(this.properties.highlight.unhighlightedSeries));
-
-        return super.renderToOffscreenCanvas() || hasHighlightOpacity;
+        const hasMarkers = (this.nodeData?.length ?? 0) > 0;
+        return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
     }
 
     protected override nodeFactory(): _ModuleSupport.Marker {
@@ -427,9 +421,7 @@ export abstract class RadarSeries<
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        if (this.renderToOffscreenCanvas() && !isHighlight) {
-            drawingMode = 'cutout';
-        }
+        drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
         selection.each((node, datum) => {
             const style =
