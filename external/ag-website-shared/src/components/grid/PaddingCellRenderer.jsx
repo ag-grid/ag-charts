@@ -7,7 +7,7 @@ const PaddingCellRenderer = forwardRef((props, ref) => {
         <>
             {!IS_SSR && (
                 <div ref={ref} style={{ paddingLeft: '28px', fontSize: '15px' }}>
-                    {props.node.data.key}
+                    {props.valueFormatted ?? props.value}
                 </div>
             )}
         </>

@@ -4,7 +4,7 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import styles from './ChevronButtonRenderer.module.scss';
 
-const TreeClosed = urlWithBaseUrl(`/theme-icons/alpine/tree-closed.svg`);
+const TreeClosed = urlWithBaseUrl('/theme-icons/quartz/tree-closed.svg');
 
 const IS_SSR = typeof window === 'undefined';
 
@@ -35,12 +35,18 @@ const ChevronButtonCellRenderer = forwardRef((props, ref) => {
                         ref={ref}
                         src={TreeClosed}
                         style={{ cursor: 'pointer' }}
+                        onMouseDown={(e) => {
+                            // prevents this component from being focused
+                            e.preventDefault();
+                            // and focuses the cellWrapper instead.
+                            props.eGridCell.focus();
+                        }}
                         onClick={() => {
                             clickHandler();
                         }}
                     ></input>
                 </div>
-                <span>{props.value}</span>
+                <span>{props.valueFormatted ?? props.value}</span>
             </div>
         );
     }

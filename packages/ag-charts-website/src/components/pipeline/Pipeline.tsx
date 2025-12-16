@@ -1,11 +1,11 @@
 import { Alert } from '@ag-website-shared/components/alert/Alert';
+import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
+import ChevronButtonCellRenderer from '@ag-website-shared/components/grid/ChevronButtonRenderer';
+import DetailCellRenderer from '@ag-website-shared/components/grid/DetailCellRendererComponent';
+import { Grid } from '@ag-website-shared/components/grid/Grid';
+import IssueTypeCellRenderer from '@ag-website-shared/components/grid/IssueTypeRenderer';
+import PaddingCellRenderer from '@ag-website-shared/components/grid/PaddingCellRenderer';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-import { Grid } from '@components/grid/Grid';
-import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
-import styles from '@pages-styles/pipelineChangelog.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';

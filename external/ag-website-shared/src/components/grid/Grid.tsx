@@ -1,3 +1,5 @@
+import { type FunctionComponent } from 'react';
+
 import {
     CellStyleModule,
     ClientSideRowModelModule,
@@ -16,14 +18,20 @@ import {
     SetFilterModule,
     StatusBarModule,
 } from 'ag-grid-enterprise';
-import { AgGridReact } from 'ag-grid-react';
-import { forwardRef } from 'react';
+import { AgGridReact, type AgGridReactProps } from 'ag-grid-react';
 
-export const Grid = forwardRef((props, ref) => {
+import styles from './Grid.module.scss';
+
+type Props = {
+    gridHeight: string;
+} & AgGridReactProps;
+
+export const Grid: FunctionComponent<Props> = ({ gridHeight, ...props }) => {
     return (
-        <div style={{ width: '100%', height: props.gridHeight }}>
+        <div className={styles.grid} style={{ width: '100%', height: gridHeight }}>
             <AgGridReact
-                ref={ref}
+                loading={false}
+                suppressNoRowsOverlay={true}
                 {...props}
                 modules={[
                     RowAutoHeightModule,
@@ -59,4 +67,4 @@ export const Grid = forwardRef((props, ref) => {
             />
         </div>
     );
-});
+};
