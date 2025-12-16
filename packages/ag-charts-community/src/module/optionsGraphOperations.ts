@@ -713,6 +713,7 @@ enum TransformOperation {
     ApplyCycle = '$applyCycle',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
+    Clone = '$clone',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
     Map = '$map',
     Merge = '$merge',
@@ -728,6 +729,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $applyCycle: applyCycleOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
+    $clone: cloneOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
     $merge: mergeOperation,
@@ -864,6 +866,18 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
             graph.graftConfig(child, fromPathResolved, ignorePaths);
         }
     }
+
+    return RESOLVED_TO_BRANCH;
+}
+
+function cloneOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+
+    if (!isPlainObject(value)) return;
+
+    // Graft as the 'user' edge to ensure it takes priority over the default values.
+    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE);
 
     return RESOLVED_TO_BRANCH;
 }
