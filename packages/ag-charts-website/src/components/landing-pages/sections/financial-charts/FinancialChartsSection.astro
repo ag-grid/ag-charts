@@ -1,0 +1,49 @@
+---
+/**
+ * FinancialChartsSection.astro - Financial charts showcase section
+ *
+ * Displays an interactive financial charts demo with annotations toolbar.
+ */
+import type { FinancialChartsSection as FinancialChartsSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './FinancialChartsSection.module.scss';
+
+interface Props {
+    section: FinancialChartsSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const height = section.height ?? 700;
+const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseUrl(`./${pageContent.docsPath}/financial-charts/`);
+---
+
+<LandingPageSection
+    id="financial-charts"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+    ctaTitle={section.cta?.text}
+    ctaUrl={ctaUrl}
+    ctaId={`${pageContent.analyticsPrefix}-financial-charts-cta`}
+>
+    <div class={styles.financialChartsDemo}>
+        <ExampleRunnerContainer pageName="financial-charts" exampleName="financial-charts-showcase" exampleHeight={height}>
+            <DocsExampleRunner
+                client:only="react"
+                title="Financial Charts Showcase"
+                name="financial-charts-showcase"
+                exampleType="generated"
+                options={{ exampleHeight: height }}
+                pageName="financial-charts"
+                internalFrameworkOverride="vanilla"
+                hideCode
+                hideExternalLinks
+            />
+        </ExampleRunnerContainer>
+    </div>
+</LandingPageSection>

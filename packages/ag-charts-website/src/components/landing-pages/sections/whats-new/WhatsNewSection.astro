@@ -1,0 +1,64 @@
+---
+/**
+ * WhatsNewSection.astro - What's new / releases section
+ *
+ * Displays recent version releases with highlights.
+ */
+import type { WhatsNewSection as WhatsNewSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { Version } from '@ag-website-shared/components/whats-new/components/Version';
+import { parseVersion } from '@ag-website-shared/utils/parseVersion';
+import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
+import { getEntry, type CollectionEntry } from 'astro:content';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './WhatsNewSection.module.scss';
+
+interface Props {
+    section: WhatsNewSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const versionsToShow = section.versionsToShow ?? 3;
+const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseUrl('./whats-new/');
+const { blogPrefix } = whatsNewData['charts'];
+
+// Load versions data
+const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
+
+// Filter to major/minor releases only (exclude patch releases)
+const filteredVersions = versionsData
+    .filter((versionInfo) => versionInfo.version.endsWith('.0'))
+    .slice(0, versionsToShow);
+---
+
+<LandingPageSection
+    id="whats-new"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+    ctaTitle={section.cta?.text}
+    ctaUrl={ctaUrl}
+    ctaId={`${pageContent.analyticsPrefix}-whats-new-cta`}
+>
+    <div class={styles.whatsNewVersions}>
+        {filteredVersions.map((versionInfo, index) => {
+            if (versionInfo.highlights) {
+                const { major, minor } = parseVersion(versionInfo.version);
+                const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                return (
+                    <Version
+                        client:load
+                        isLatest={index === 0}
+                        blogUrl={blogUrl}
+                        version={versionInfo.version}
+                        date={versionInfo.date}
+                        highlights={versionInfo.highlights}
+                        notesPath={versionInfo.notesPath}
+                    />
+                );
+            }
+        })}
+    </div>
+</LandingPageSection>

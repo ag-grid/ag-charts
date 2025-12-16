@@ -1,0 +1,35 @@
+---
+/**
+ * ChartExplorerSection.astro - Interactive chart explorer with sidebar, code, and preview
+ *
+ * Displays a three-panel layout:
+ * - Left sidebar: List of available charts
+ * - Middle: Code for the selected chart
+ * - Right: Live chart preview
+ */
+import type { ChartExplorerSection as ChartExplorerSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { ChartExplorer } from './ChartExplorer';
+
+interface Props {
+    section: ChartExplorerSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+---
+
+<LandingPageSection
+    id="chart-explorer"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <ChartExplorer
+        client:visible
+        examples={section.examples}
+        height={section.height}
+        analyticsPrefix={pageContent.analyticsPrefix}
+    />
+</LandingPageSection>

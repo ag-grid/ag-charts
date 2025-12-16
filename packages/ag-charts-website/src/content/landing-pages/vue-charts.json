@@ -1,0 +1,117 @@
+{
+    "meta": {
+        "title": "AG Charts: High-Performance Vue Charts Library",
+        "description": "Build interactive, high-performance Vue charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
+    },
+    "framework": "vue3",
+    "packageName": "ag-charts-vue3",
+    "docsPath": "vue",
+    "analyticsPrefix": "vue-charts",
+    "sections": [
+        {
+            "type": "hero",
+            "tag": "Vue Charts",
+            "heading": "Fast, Interactive Vue Charts",
+            "subHeading": "Build Vue Charts",
+            "subHeadingHtml": "Build <b>high-performance</b>, <b>interactive</b>, and <b>beautiful</b> Vue charts with AG Charts. From simple bar charts to complex financial charts, all for <b>free</b>.",
+            "showVersionBadge": true,
+            "galleryExample": "simple-line",
+            "demoHeight": 450,
+            "primaryCta": {
+                "text": "Get Started"
+            },
+            "secondaryCta": {
+                "text": "View Gallery",
+                "url": "./gallery"
+            }
+        },
+        {
+            "type": "chart-types",
+            "tag": "Chart Types",
+            "heading": "30+ Chart Types for Every Use Case",
+            "subHeading": "From simple bar and line charts to advanced financial charts, maps, gauges, and more. AG Charts has the chart type you need."
+        },
+        {
+            "type": "gallery-showcase",
+            "tag": "Examples",
+            "heading": "See What's Possible",
+            "subHeading": "Explore our gallery of examples to see the full range of charts you can build with AG Charts.",
+            "showBackgroundGradient": true,
+            "examples": [
+                "stacked-area",
+                "simple-candlestick",
+                "simple-sunburst",
+                "simple-heatmap",
+                "simple-radar-line",
+                "treemap-with-color-range"
+            ],
+            "columns": 3
+        },
+        {
+            "type": "interactive-demo",
+            "tag": "Try It Out",
+            "heading": "Interactive Charts",
+            "subHeading": "Experience the interactivity of AG Charts. Zoom, pan, and explore the data with tooltips and crosshairs.",
+            "exampleName": "line-with-time-axis",
+            "height": 500
+        },
+        {
+            "type": "customers",
+            "tag": "Who Uses AG Charts?",
+            "headingHtml": "Trusted by Developers<br />Around the World",
+            "subHeadingHtml": "<span>AG Charts powers data visualization in applications across <b>Fortune 500 companies</b>, startups, and everything in between. Join thousands of developers building with AG Charts.</span>"
+        },
+        {
+            "type": "faq",
+            "tag": "Vue Charts FAQs",
+            "heading": "Frequently Asked Questions",
+            "subHeading": "Answers to common questions about building Vue charts with AG Charts",
+            "items": [
+                {
+                    "question": "Is AG Charts free to use?",
+                    "answer": "Yes! AG Charts Community is free and open-source, with no restrictions on usage. [AG Charts Enterprise](/license-pricing/) offers additional features like financial charts, annotations, and advanced interactivity."
+                },
+                {
+                    "question": "What chart types does AG Charts support?",
+                    "answer": "AG Charts supports 30+ chart types including Bar, Line, Area, Scatter, Pie, Donut, Radar, Treemap, Sunburst, Heatmap, Candlestick, Maps, Gauges, and many more. View all chart types in our [Gallery](/gallery/)."
+                },
+                {
+                    "question": "Can I use AG Charts with TypeScript?",
+                    "answer": "Yes! AG Charts is written in TypeScript and provides full type definitions. Our Vue 3 integration includes TypeScript support out of the box."
+                },
+                {
+                    "question": "How do I get started with AG Charts in Vue?",
+                    "answer": "Install the package with `npm install ag-charts-vue3`, import the `AgCharts` component, and use it in your template. See our [Quick Start guide](./vue/quick-start/) for a complete walkthrough."
+                },
+                {
+                    "question": "What Vue versions are supported?",
+                    "answer": "AG Charts supports Vue 3. For Vue 2 projects, you can use the vanilla JavaScript API directly. We recommend Vue 3 for the best experience."
+                },
+                {
+                    "question": "What is AG Charts Enterprise?",
+                    "answer": "[AG Charts Enterprise](/license-pricing/) includes advanced features like Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, and more. Try it free with a trial license."
+                },
+                {
+                    "question": "Can AG Charts handle large datasets?",
+                    "answer": "Yes! AG Charts is optimized for performance and can handle millions of data points smoothly. Our canvas-based rendering ensures fast updates and smooth interactions."
+                },
+                {
+                    "question": "Is AG Charts compatible with AG Grid?",
+                    "answer": "Yes! AG Charts integrates seamlessly with [AG Grid](https://www.ag-grid.com/) for Integrated Charts, allowing users to create charts directly from grid data."
+                }
+            ]
+        },
+        {
+            "type": "contact",
+            "tag": "Get In Touch",
+            "heading": "Contact Our Team",
+            "subHeading": "Have questions about AG Charts? Get in touch with our team",
+            "features": [
+                "Expert technical guidance",
+                "Demos & technical walkthroughs",
+                "Licensing and pricing information",
+                "Response within 24 hours"
+            ]
+        }
+    ]
+}

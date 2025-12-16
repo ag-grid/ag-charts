@@ -1,0 +1,66 @@
+---
+/**
+ * GalleryShowcaseSection.astro - Display a grid of gallery example thumbnails
+ *
+ * Shows selected gallery examples as clickable cards with thumbnails.
+ * Uses the existing GalleryExampleImage component for theme-aware images.
+ */
+import type { GalleryShowcaseSection as GalleryShowcaseSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { getEntry, type CollectionEntry } from 'astro:content';
+import { GalleryExampleImage } from '@components/gallery/components/GalleryExampleImage';
+import { getChartExampleTitle } from '@components/gallery/utils/filesData';
+import { getPageUrl } from '@components/gallery/utils/urlPaths';
+import styles from '@pages-styles/landing-page.module.scss';
+
+interface Props {
+    section: GalleryShowcaseSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const columns = section.columns ?? 3;
+const columnClass = `columns${columns}`;
+
+// Load gallery data
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
+const galleryData = galleryDataEntry.data;
+
+// Get example metadata for each specified example
+const examples = section.examples.map((exampleName) => {
+    const title = getChartExampleTitle({ galleryData, exampleName });
+    const url = getPageUrl(exampleName);
+    return { exampleName, title, url };
+});
+---
+
+<LandingPageSection
+    id="gallery-showcase"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <div class:list={[styles.galleryShowcaseGrid, styles[columnClass]]}>
+        {examples.map((example) => (
+            <a
+                href={example.url}
+                class:list={[
+                    styles.galleryShowcaseItem,
+                    `plausible-event-name=${pageContent.analyticsPrefix}-gallery-${example.exampleName}`,
+                ]}
+            >
+                <GalleryExampleImage
+                    client:visible
+                    exampleName={example.exampleName}
+                    label={example.title}
+                    enableDprScaling={true}
+                    className={styles.galleryShowcaseImage}
+                />
+                <div class={styles.galleryShowcaseTitle}>
+                    {example.title}
+                </div>
+            </a>
+        ))}
+    </div>
+</LandingPageSection>

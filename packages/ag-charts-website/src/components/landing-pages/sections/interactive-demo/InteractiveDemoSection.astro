@@ -1,0 +1,55 @@
+---
+/**
+ * InteractiveDemoSection.astro - Large embedded interactive chart demo
+ *
+ * Displays a full-width interactive chart demo with the code panel hidden.
+ * Users can interact with the chart (zoom, pan, tooltips) to experience AG Charts.
+ */
+import type { InteractiveDemoSection as InteractiveDemoSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { getEntry, type CollectionEntry } from 'astro:content';
+import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
+import { GalleryExampleRunner } from '@components/gallery/components/GalleryExampleRunner';
+import { getChartExampleTitle, getSeriesTypeSlug } from '@components/gallery/utils/filesData';
+import { getLoadingIFrameId } from '@ag-website-shared/components/loading-logo/getElementId';
+import styles from '@pages-styles/landing-page.module.scss';
+
+interface Props {
+    section: InteractiveDemoSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const { exampleName, height = 500 } = section;
+
+// Load gallery data
+const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
+const galleryData = galleryDataEntry.data;
+
+const title = getChartExampleTitle({ galleryData, exampleName });
+const pageName = getSeriesTypeSlug({ galleryData, exampleName });
+const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
+---
+
+<LandingPageSection
+    id="interactive-demo"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <div class={styles.interactiveDemoContainer} style={`height: ${height}px;`}>
+        <div class={styles.interactiveDemoWrapper}>
+            <ExampleRunnerContainer pageName={pageName} exampleName={exampleName} exampleHeight={height}>
+                <GalleryExampleRunner
+                    client:load
+                    title={title}
+                    exampleName={exampleName}
+                    loadingIFrameId={loadingIFrameId}
+                    hideCode={true}
+                    hideExternalLinks={true}
+                />
+            </ExampleRunnerContainer>
+        </div>
+    </div>
+</LandingPageSection>

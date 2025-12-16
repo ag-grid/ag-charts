@@ -1,0 +1,78 @@
+@use 'design-system' as *;
+
+.featureGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-size-6;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media screen and (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.featureCard {
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-size-8;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-primary);
+    background: var(--color-bg-primary);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: var(--color-util-brand-300);
+        box-shadow: var(--shadow-md);
+
+        .iconWrapper {
+            transform: scale(1.1);
+        }
+    }
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    background: var(--color-util-brand-100);
+    margin-bottom: $spacing-size-6;
+    transition: transform 0.3s ease;
+
+    #{$selector-darkmode} & {
+        background: var(--color-bg-tertiary);
+    }
+}
+
+.icon {
+    --icon-size: 28px;
+    --icon-color: var(--color-util-brand-500);
+
+    width: var(--icon-size);
+    height: var(--icon-size);
+    fill: var(--icon-color);
+
+    #{$selector-darkmode} & {
+        --icon-color: var(--color-util-brand-400);
+    }
+}
+
+.title {
+    font-size: var(--text-fs-xl);
+    font-weight: var(--text-semibold);
+    color: var(--color-fg-primary);
+    margin: 0 0 $spacing-size-3;
+}
+
+.description {
+    font-size: var(--text-fs-base);
+    color: var(--color-fg-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
