@@ -2,10 +2,9 @@
 import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@components/docs/utils/urlPaths';
-import { Changelog } from '@components/changelog/Changelog';
+import { Changelog } from '@ag-website-shared/components/changelog/Changelog';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
-import classnames from 'classnames';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
@@ -14,17 +13,18 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
 ---
 
 <Layout
-    title="Changelog | AG Charts"
-    description="Identify the specific version in which a feature request or bug fix was included. Find changelog items by issue number, summary content, or version."
+    title={'Changelog | AG Charts'}
+    description={'Identify the specific version in which a feature request or bug fix was included. Find changelog items by issue number, summary content, or version.'}
     showDocsNav={true}
     showSearchBar={true}
 >
-    <div class="layout-grid">
+    <div class:list={['contentViewport layout-grid']}>
         <DocsNavFromLocalStorage client:load menuData={docsNavData} framework={framework} />
 
-        <div className={classnames('page-margin', styles.container)}>
+        <div class:list={['page-margin', styles.container]}>
             <h1>AG Charts Changelog</h1>
-            <Changelog currentFramework={framework} client:only="react" />
+
+            <Changelog client:load library="charts" />
         </div>
     </div>
 </Layout>
