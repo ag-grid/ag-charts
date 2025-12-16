@@ -1,0 +1,108 @@
+@use 'design-system' as *;
+
+.codeExampleContainer {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-primary);
+    overflow: hidden;
+    background: var(--color-bg-primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.windowHeader {
+    display: flex;
+    align-items: center;
+    padding: $spacing-size-3 $spacing-size-4;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.trafficLights {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-2;
+}
+
+.trafficLightRed,
+.trafficLightYellow,
+.trafficLightGreen {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.trafficLightRed {
+    background-color: #ff5f57;
+}
+
+.trafficLightYellow {
+    background-color: #febc2e;
+}
+
+.trafficLightGreen {
+    background-color: #28c840;
+}
+
+.fileName {
+    flex: 1;
+    text-align: center;
+    font-family: var(--text-monospace-font-family);
+    font-size: var(--text-fs-sm);
+    color: var(--color-fg-secondary);
+}
+
+.copyButton {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-2;
+    padding: $spacing-size-1 $spacing-size-3;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-bg-tertiary);
+    color: var(--color-fg-secondary);
+    font-size: var(--text-fs-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background: var(--color-bg-primary);
+        color: var(--color-fg-primary);
+    }
+}
+
+.copyIcon {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.codeContent {
+    overflow-x: auto;
+
+    // Override Code component styles for better fit
+    :global {
+        pre {
+            margin: 0;
+            border-radius: 0;
+            padding: $spacing-size-4 $spacing-size-6;
+            background: var(--color-bg-primary) !important;
+        }
+
+        code {
+            font-size: var(--text-fs-sm);
+            line-height: 1.6;
+        }
+
+        // Style line numbers
+        .line-numbers-rows {
+            border-right: 1px solid var(--color-border-primary);
+            padding-right: $spacing-size-3;
+            margin-right: $spacing-size-4;
+        }
+
+        .line-numbers-rows > span::before {
+            color: var(--color-fg-tertiary);
+        }
+    }
+}

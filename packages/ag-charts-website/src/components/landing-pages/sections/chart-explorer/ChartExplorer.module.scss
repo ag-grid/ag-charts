@@ -1,0 +1,228 @@
+@use 'design-system' as *;
+
+.chartExplorer {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-bg-primary);
+    height: var(--chart-height);
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: auto;
+        min-height: 700px;
+    }
+}
+
+// Sidebar
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border-primary);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border-primary);
+    }
+}
+
+.sidebarHeader {
+    padding: $spacing-size-2 $spacing-size-3;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border-primary);
+    background: var(--color-bg-tertiary);
+}
+
+.chartList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    flex: 1;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $spacing-size-1;
+        padding: $spacing-size-2;
+    }
+}
+
+.chartButton {
+    display: block;
+    width: 100%;
+    padding: $spacing-size-2 $spacing-size-3;
+    text-align: left;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: var(--color-bg-tertiary);
+    }
+
+    &.active {
+        background: var(--color-brand-100);
+        color: var(--color-brand-600);
+        font-weight: var(--font-weight-medium);
+    }
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        width: auto;
+        padding: $spacing-size-1 $spacing-size-2;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border-primary);
+
+        &.active {
+            border-color: var(--color-brand-500);
+        }
+    }
+}
+
+// Main content area (code + preview)
+.mainContent {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        flex-direction: column;
+    }
+}
+
+// Code panel
+.codePanel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 200px;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        width: 100% !important;
+        height: 300px;
+        border-bottom: 1px solid var(--color-border-primary);
+    }
+}
+
+.codePanelHeader {
+    display: flex;
+    align-items: center;
+    padding: $spacing-size-2 $spacing-size-3;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border-primary);
+    background: var(--color-bg-tertiary);
+}
+
+.fileName {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-primary);
+}
+
+.codeContent {
+    flex: 1;
+    overflow: auto;
+    background: var(--color-bg-primary);
+
+    // Override Code component styles for better fit
+    :global {
+        pre {
+            margin: 0;
+            border-radius: 0;
+            height: 100%;
+        }
+
+        code {
+            font-size: var(--font-size-xs);
+        }
+    }
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+// Resize handle
+.resizeHandle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 8px;
+    cursor: col-resize;
+    background: var(--color-bg-tertiary);
+    border-left: 1px solid var(--color-border-primary);
+    border-right: 1px solid var(--color-border-primary);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: var(--color-bg-secondary);
+    }
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        display: none;
+    }
+}
+
+.resizeHandleBar {
+    width: 2px;
+    height: 24px;
+    background: var(--color-border-secondary);
+    border-radius: 1px;
+}
+
+// Chart panel
+.chartPanel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 200px;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        width: 100% !important;
+        flex: 1;
+    }
+}
+
+.chartPanelHeader {
+    display: flex;
+    align-items: center;
+    padding: $spacing-size-2 $spacing-size-3;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border-primary);
+    background: var(--color-bg-tertiary);
+}
+
+.chartContent {
+    flex: 1;
+    overflow: hidden;
+    background: var(--color-bg-primary);
+}
+
+.chartIframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
