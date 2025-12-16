@@ -7,7 +7,37 @@
 set -euo pipefail
 
 PROMPTS_REPO="git@github.com:ag-grid/ag-charts-prompts.git"
-PROMPTS_DIR="../ag-charts-prompts"
+
+# Detect if we're in a git worktree and find the main repo
+# In a worktree, .git is a file containing "gitdir: /path/to/main/.git/worktrees/name"
+get_main_repo_root() {
+    local git_path=".git"
+
+    if [[ -f "$git_path" ]]; then
+        # We're in a worktree - parse the gitdir to find main repo
+        local gitdir
+        gitdir=$(cat "$git_path" | sed 's/gitdir: //')
+        # gitdir is like /path/to/main/.git/worktrees/name
+        # Go up twice to get /path/to/main/.git, then dirname for main repo
+        local main_git_dir
+        main_git_dir=$(dirname "$(dirname "$gitdir")")
+        dirname "$main_git_dir"
+    else
+        # Normal checkout - current directory is the repo root
+        pwd
+    fi
+}
+
+# Detect if we're in a worktree
+is_worktree() {
+    [[ -f ".git" ]]
+}
+
+# Get the main repo root (handles worktrees)
+MAIN_REPO_ROOT=$(get_main_repo_root)
+
+# Prompts directory is always adjacent to the MAIN repo, not the worktree
+PROMPTS_DIR="$MAIN_REPO_ROOT/../ag-charts-prompts"
 
 # Detect CI environment
 is_ci() {
@@ -78,6 +108,27 @@ main() {
                 (cd "$PROMPTS_DIR" && git pull --ff-only)
             fi
         fi
+        # In worktrees, create a symlink in the parent directory pointing to the real prompts
+        # This allows the version-controlled relative symlink (../../ag-charts-prompts) to work
+        if is_worktree; then
+            local worktree_parent
+            worktree_parent=$(dirname "$(pwd)")
+            local parent_prompts_link="$worktree_parent/ag-charts-prompts"
+            local real_prompts
+            real_prompts=$(cd "$PROMPTS_DIR" && pwd)
+
+            if [[ ! -e "$parent_prompts_link" ]]; then
+                echo "Creating prompts symlink in worktree parent: $parent_prompts_link -> $real_prompts"
+                ln -sf "$real_prompts" "$parent_prompts_link"
+            elif [[ -L "$parent_prompts_link" ]]; then
+                local current_target
+                current_target=$(readlink "$parent_prompts_link")
+                if [[ "$current_target" != "$real_prompts" ]]; then
+                    echo "Updating prompts symlink in worktree parent: $parent_prompts_link -> $real_prompts"
+                    ln -sf "$real_prompts" "$parent_prompts_link"
+                fi
+            fi
+        fi
         # Run the actual setup script
         "$PROMPTS_DIR/setup-prompts.sh"
         return 0
@@ -99,6 +150,18 @@ main() {
     if prompt_yes_no "Clone it now?"; then
         echo "Cloning ag-charts-prompts..."
         git clone "$PROMPTS_REPO" "$PROMPTS_DIR"
+        # In worktrees, create parent symlink (same logic as above)
+        if is_worktree; then
+            local worktree_parent
+            worktree_parent=$(dirname "$(pwd)")
+            local parent_prompts_link="$worktree_parent/ag-charts-prompts"
+            local real_prompts
+            real_prompts=$(cd "$PROMPTS_DIR" && pwd)
+            if [[ ! -e "$parent_prompts_link" ]]; then
+                echo "Creating prompts symlink in worktree parent: $parent_prompts_link -> $real_prompts"
+                ln -sf "$real_prompts" "$parent_prompts_link"
+            fi
+        fi
         "$PROMPTS_DIR/setup-prompts.sh"
     else
         echo "Skipping prompts setup"
