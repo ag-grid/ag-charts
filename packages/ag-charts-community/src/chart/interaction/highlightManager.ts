@@ -22,24 +22,27 @@ export class HighlightManager {
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
         const previousHighlight = this.getActiveHighlight();
 
+        // Apply and clear all pending unhighlight state.
+        const triggeringCallerIdToKeep = highlightedDatum == null ? callerId : undefined;
+        this.clearPendingUnhighlights(triggeringCallerIdToKeep);
+
         // Case 1: Highlighting something (datum is not null/undefined)
-        if (highlightedDatum == null) {
+        if (triggeringCallerIdToKeep) {
             // Case 2: Unhighlighting (datum is null/undefined)
             // Sub-case 2a: Delayed unhighlight requested
             if (delayed && this.unhighlightDelay > 0) {
-                // Only schedule if we don't already have a pending unhighlight for this caller
-                // This prevents resetting the countdown on repeated calls during continuous mouse movement
-                const existingPending = this.pendingUnhighlights.get(callerId);
-                if (!existingPending) {
-                    // First call for this caller - start the countdown
+                let pending = this.pendingUnhighlights.get(callerId);
+                if (!pending) {
                     const scheduler = debouncedCallback(() => {
                         this.applyPendingUnhighlight(callerId);
                     });
 
+                    pending = { scheduler };
                     // Schedule the unhighlight after a delay
-                    this.pendingUnhighlights.set(callerId, { scheduler });
-                    scheduler.schedule(this.unhighlightDelay);
+                    this.pendingUnhighlights.set(callerId, pending);
                 }
+                pending.scheduler.schedule(this.unhighlightDelay);
+
                 // If already pending for same caller, do nothing - let the countdown continue
                 return;
             }
@@ -67,10 +70,13 @@ export class HighlightManager {
         }
 
         // Cancel any pending delayed unhighlight for THIS caller only - we're highlighting something new
-        const pending = this.pendingUnhighlights.get(callerId);
-        if (pending) {
-            pending.scheduler.cancel();
-            this.pendingUnhighlights.delete(callerId);
+        this.pendingUnhighlights.get(callerId)?.scheduler.cancel();
+
+        // AG-16398: When a user interaction creates a highlight (not from sync),
+        // clear any existing sync entries on this chart. This prevents stale sync entries
+        // from persisting when focus returns to a chart that had received sync highlights.
+        if (!callerId.endsWith('-sync')) {
+            this.clearSyncEntries();
         }
 
         // Apply the highlight immediately (always instant visual feedback)
@@ -83,6 +89,15 @@ export class HighlightManager {
                 currentHighlight,
                 previousHighlight,
             });
+        }
+    }
+
+    private clearPendingUnhighlights(triggeringCallerIdToKeep?: string): void {
+        for (const [callerId, pending] of this.pendingUnhighlights.entries()) {
+            if (callerId === triggeringCallerIdToKeep) continue;
+            if (!pending.scheduler.isPending()) continue;
+            pending.scheduler.cancel();
+            this.highlightStates.delete(callerId);
         }
     }
 
@@ -116,6 +131,10 @@ export class HighlightManager {
         return this.highlightStates.stateValue();
     }
 
+    public getActiveHighlightCallerId(): string | undefined {
+        return this.highlightStates.stateId();
+    }
+
     public destroy(): void {
         // Cancel all pending unhighlights when manager is destroyed
         for (const { scheduler } of this.pendingUnhighlights.values()) {
@@ -129,5 +148,24 @@ export class HighlightManager {
             a === b ||
             (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)
         );
+    }
+
+    /**
+     * Clear all sync entries from this chart's highlight states.
+     * This is called when a user interaction creates a new highlight, making any existing
+     * sync entries stale.
+     */
+    private clearSyncEntries(): void {
+        for (const stateId of this.highlightStates.keys()) {
+            if (typeof stateId === 'string' && stateId.endsWith('-sync')) {
+                // Cancel any pending unhighlight for this sync entry
+                const pending = this.pendingUnhighlights.get(stateId);
+                if (pending) {
+                    pending.scheduler.cancel();
+                    this.pendingUnhighlights.delete(stateId);
+                }
+                this.highlightStates.delete(stateId);
+            }
+        }
     }
 }

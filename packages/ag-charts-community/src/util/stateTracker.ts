@@ -10,7 +10,8 @@ export class StateTracker<T, K = string> extends Map<K, T> {
     }
 
     override set(key: K, value?: T) {
-        this.delete(key); // removed even if re-set to make sure we're last
+        console.log('set', key, new Error().stack?.split('\n').slice(1, 5).join('\n'), this);
+        super.delete(key); // removed even if re-set to make sure we're last
         if (value !== undefined) {
             super.set(key, value);
         }
@@ -20,6 +21,7 @@ export class StateTracker<T, K = string> extends Map<K, T> {
     }
 
     override delete(key: K) {
+        console.log('delete', key, new Error().stack?.split('\n').slice(1, 5).join('\n'), this);
         delete this.cachedState;
         delete this.cachedValue;
         return super.delete(key);

@@ -46,6 +46,7 @@ export function debouncedAnimationFrame(cb: Callback): {
 export function debouncedCallback(cb: Callback): {
     schedule(delayMs?: number): void;
     cancel(): void;
+    isPending(): boolean;
     waitForCompletion(): Promise<void>;
 } {
     function scheduleWithDelay(innerCb: VoidCallback, delayMs = 0): number | void {
@@ -70,6 +71,10 @@ function buildScheduler(scheduleFn: SchedulerFunction, cb: Callback, cancelFn?: 
     let awaitingPromise: Promise<void> | undefined;
     let awaitingDone: VoidCallback | undefined;
     let scheduledId: number | void;
+
+    function isPending(): boolean {
+        return scheduleCount > 0 || promiseRunning;
+    }
 
     function busy(): boolean {
         return promiseRunning;
@@ -138,5 +143,6 @@ function buildScheduler(scheduleFn: SchedulerFunction, cb: Callback, cancelFn?: 
         schedule,
         cancel,
         waitForCompletion,
+        isPending,
     };
 }

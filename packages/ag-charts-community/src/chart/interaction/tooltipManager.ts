@@ -73,11 +73,17 @@ export class TooltipManager {
         content?: TooltipContent[],
         pagination?: TooltipPaginationState
     ) {
-        // Cancel any pending delayed removal - we're showing a new tooltip
-        const pending = this.pendingRemovals.get(callerId);
-        if (pending) {
-            pending.scheduler.cancel();
-            this.pendingRemovals.delete(callerId);
+        // Apply and clear all pending removal state.
+        this.clearPendingRemovals();
+
+        // Cancel any pending delayed removal for THIS caller - we're showing a new tooltip
+        this.pendingRemovals.get(callerId)?.scheduler.cancel();
+
+        // AG-16398: When a user interaction creates a tooltip (not from sync),
+        // clear any existing sync entries on this chart. This prevents stale sync entries
+        // from persisting when focus returns to a chart that had received sync tooltips.
+        if (!callerId.endsWith('-sync')) {
+            this.clearSyncEntries();
         }
 
         content ??= this.stateTracker.get(callerId)?.content;
@@ -86,32 +92,28 @@ export class TooltipManager {
     }
 
     public removeTooltip(callerId: string, meta?: TooltipMeta, delayed: boolean = false): void {
-        // Case 1: Immediate removal (default behavior - backward compatible)
+        // Apply and clear all pending removal state.
+        const triggeringCallerIdToKeep = delayed ? callerId : undefined;
+        this.clearPendingRemovals(triggeringCallerIdToKeep);
+
         if (delayed && this.removeDelay > 0) {
-            // Case 2: Delayed removal
-            // Check if we already have a pending removal for this caller
-            // This prevents resetting the countdown (same fix as highlights)
-            const existingPending = this.pendingRemovals.get(callerId);
-            if (existingPending) {
-                // Already pending - optionally update position if meta provided
-                // This allows tooltip position to update during delay (future enhancement)
-                if (meta) {
-                    existingPending.lastMeta = meta;
-                }
-                // Don't reset countdown - let it continue
-                return;
+            // Delayed removal requested
+            let pending = this.pendingRemovals.get(callerId);
+            if (!pending) {
+                const scheduler = debouncedCallback(() => {
+                    this.applyPendingRemoval(callerId);
+                });
+
+                pending = { scheduler, lastMeta: meta };
+                this.pendingRemovals.set(callerId, pending);
+            } else if (meta) {
+                pending.lastMeta = meta;
             }
-
-            // First delayed removal call - start the countdown
-            const scheduler = debouncedCallback(() => {
-                this.applyPendingRemoval(callerId);
-            });
-
-            this.pendingRemovals.set(callerId, { scheduler, lastMeta: meta });
-            scheduler.schedule(this.removeDelay);
+            pending.scheduler.schedule(this.removeDelay);
             return;
         }
 
+        // Immediate removal (default)
         // Cancel any pending delayed removal for this caller
         const pending = this.pendingRemovals.get(callerId);
         if (pending) {
@@ -119,9 +121,17 @@ export class TooltipManager {
             this.pendingRemovals.delete(callerId);
         }
 
-        // Remove immediately
         this.stateTracker.delete(callerId);
         this.applyStates();
+    }
+
+    private clearPendingRemovals(triggeringCallerIdToKeep?: string): void {
+        for (const [callerId, pending] of this.pendingRemovals.entries()) {
+            if (callerId === triggeringCallerIdToKeep) continue;
+            if (!pending.scheduler.isPending()) continue;
+            pending.scheduler.cancel();
+            this.stateTracker.delete(callerId);
+        }
     }
 
     public suppressTooltip(callerId: string) {
@@ -170,6 +180,25 @@ export class TooltipManager {
         }
 
         this.appliedState = state;
+    }
+
+    /**
+     * Clear all sync entries from this chart's tooltip states.
+     * This is called when a user interaction creates a new tooltip, making any existing
+     * sync entries stale.
+     */
+    private clearSyncEntries(): void {
+        for (const stateId of this.stateTracker.keys()) {
+            if (typeof stateId === 'string' && stateId.endsWith('-sync')) {
+                // Cancel any pending removal for this sync entry
+                const pending = this.pendingRemovals.get(stateId);
+                if (pending) {
+                    pending.scheduler.cancel();
+                    this.pendingRemovals.delete(stateId);
+                }
+                this.stateTracker.delete(stateId);
+            }
+        }
     }
 
     public static makeTooltipMeta(

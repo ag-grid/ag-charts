@@ -23,6 +23,61 @@ test.describe('synchronised', () => {
     test.describe('for single-series charts', () => {
         const { url } = toExamplePageUrl('sync-test', 'single-series-sync', 'vanilla');
 
+        test.describe('ghost highlights regression (AG-16398)', () => {
+            test('should clear all tooltips and highlights when tabbing out of charts', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const tooltipLocator = page.locator(SELECTORS.tooltip);
+
+                // Step 1: Tab into first chart (focuses first bar)
+                await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
+
+                // Navigate to the last bar in the first chart (9 bars total, so 8 ArrowRight presses)
+                for (let i = 0; i < 8; i++) {
+                    await page.keyboard.press('ArrowRight');
+                }
+                await waitForAllChartUpdates(page);
+
+                // Verify tooltips appear on all synced charts
+                await expect(tooltipLocator).toHaveCount(3);
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+                // Charts 2 and 3 may not have this datum, but tooltip elements should exist
+                expect(await tooltipLocator.nth(0).textContent()).toContain('latest');
+
+                // Step 2: Tab to move focus to the second chart
+                await page.keyboard.press('Tab');
+                await waitForAllChartUpdates(page);
+
+                // Navigate to the first bar in the 2nd chart
+                await page.keyboard.press('Home'); // Jump to first bar
+                await waitForAllChartUpdates(page);
+
+                // Verify tooltip updated to first datum
+                await expect(tooltipLocator.nth(1)).toBeVisible();
+                expect(await tooltipLocator.nth(1).textContent()).toContain('b9.3.0');
+
+                // Step 3: Shift-tab back to the first chart
+                await page.keyboard.press('Shift+Tab');
+                await waitForAllChartUpdates(page);
+
+                // Should still be on last bar of first chart
+                await expect(tooltipLocator.nth(0)).toBeVisible();
+
+                // Step 4: Shift-tab out of the first chart entirely
+                await page.keyboard.press('Shift+Tab');
+                await waitForAllChartUpdates(page);
+
+                // Wait for delayed removal to complete
+                await page.waitForTimeout(DELAYED_REMOVAL_TIMEOUT);
+
+                // CRITICAL: Verify NO tooltips remain visible (this is the ghost highlight bug - AG-16398)
+                await expect(tooltipLocator.nth(0)).not.toBeVisible();
+                await expect(tooltipLocator.nth(1)).not.toBeVisible();
+                await expect(tooltipLocator.nth(2)).not.toBeVisible();
+            });
+        });
+
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
                 await gotoExample(page, url); // Let animations complete

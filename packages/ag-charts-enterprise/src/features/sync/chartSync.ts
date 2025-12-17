@@ -155,9 +155,21 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        const { syncManager } = this.moduleContext;
+        const { syncManager, highlightManager } = this.moduleContext;
 
         if (event.callerId.endsWith('-sync')) return;
+
+        // AG-16398: Check if the current highlight is from a sync entry.
+        // This happens when a non-sync entry is removed and only sync entries remain.
+        // We should NOT propagate in this case, as it causes ghost highlights.
+        const activeHighlightCallerId = highlightManager.getActiveHighlightCallerId();
+        if (activeHighlightCallerId?.endsWith('-sync')) {
+            debug(
+                'ChartSync.onHighlightChange() - skipping, active highlight is from sync entry:',
+                activeHighlightCallerId
+            );
+            return;
+        }
 
         debug('ChartSync.onHighlightChange()', event);
 
