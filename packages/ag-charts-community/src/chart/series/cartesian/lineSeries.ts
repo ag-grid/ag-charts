@@ -52,6 +52,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type { CartesianSeriesTypes } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
     aggregateLineDataFromDataModel,
@@ -84,16 +85,23 @@ import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
+/**
+ * Consolidated type interface for LineSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface LineSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgLineSeriesOptions;
+    readonly properties: LineSeriesProperties;
+    readonly datum: LineNodeDatum;
+    readonly label: LineNodeDatum;
+    readonly context: LineSeriesNodeDataContext;
+    readonly stackContext: never;
+}
+
 type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
-export class LineSeries extends CartesianSeries<
-    Marker,
-    AgLineSeriesOptions,
-    LineSeriesProperties,
-    LineNodeDatum,
-    LineNodeDatum,
-    LineSeriesNodeDataContext
-> {
+export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 

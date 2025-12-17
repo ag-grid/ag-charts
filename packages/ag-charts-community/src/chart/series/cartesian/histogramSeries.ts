@@ -96,6 +96,20 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
 }
 
 /**
+ * Consolidated type interface for HistogramSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface HistogramSeriesTypes {
+    readonly node: Rect<HistogramNodeDatum>;
+    readonly options: AgHistogramSeriesOptions;
+    readonly properties: HistogramSeriesProperties;
+    readonly datum: HistogramNodeDatum;
+    readonly label: HistogramNodeDatum;
+    readonly context: HistogramSeriesNodeDataContext;
+    readonly stackContext: never;
+}
+
+/**
  * Shared context for creating HistogramNodeDatum instances.
  * Instantiated once per createNodeData() call and reused across all datum operations.
  */
@@ -120,14 +134,7 @@ interface HistogramSeriesNodeDatumContext {
     nodeIndex: number;
 }
 
-export class HistogramSeries extends CartesianSeries<
-    Rect<HistogramNodeDatum>,
-    AgHistogramSeriesOptions,
-    HistogramSeriesProperties,
-    HistogramNodeDatum,
-    HistogramNodeDatum,
-    HistogramSeriesNodeDataContext
-> {
+export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 

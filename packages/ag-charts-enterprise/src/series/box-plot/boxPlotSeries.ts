@@ -37,6 +37,20 @@ interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesN
 }
 
 /**
+ * Consolidated type interface for BoxPlotSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface BoxPlotSeriesTypes {
+    readonly node: BoxPlotNode;
+    readonly options: AgBoxPlotSeriesOptions;
+    readonly properties: BoxPlotSeriesProperties;
+    readonly datum: BoxPlotNodeDatum;
+    readonly label: BoxPlotNodeDatum;
+    readonly context: BoxPlotSeriesNodeDataContext;
+    readonly stackContext: never;
+}
+
+/**
  * Shared context for creating BoxPlotNodeDatum instances.
  * Instantiated once per createNodeData() call and reused across all datum operations
  * to minimize memory allocations.
@@ -108,14 +122,7 @@ class BoxPlotSeriesNodeEvent<
     }
 }
 
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
-    BoxPlotNode,
-    AgBoxPlotSeriesOptions,
-    BoxPlotSeriesProperties,
-    BoxPlotNodeDatum,
-    BoxPlotNodeDatum,
-    BoxPlotSeriesNodeDataContext
-> {
+export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSeriesTypes> {
     static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
 

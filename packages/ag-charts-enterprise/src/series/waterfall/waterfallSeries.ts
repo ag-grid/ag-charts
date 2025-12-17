@@ -122,21 +122,23 @@ interface WaterfallNodeDatumParams {
     datumType: AgWaterfallSeriesItemType | undefined;
 }
 
-type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
-    _ModuleSupport.Rect,
-    WaterfallNodeDatum,
-    WaterfallNodeDatum,
-    WaterfallContext
->;
+/**
+ * Consolidated type interface for WaterfallSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.Rect<WaterfallNodeDatum>;
+    readonly options: AgWaterfallSeriesOptions;
+    readonly properties: WaterfallSeriesProperties;
+    readonly datum: WaterfallNodeDatum;
+    readonly label: WaterfallNodeDatum;
+    readonly context: WaterfallContext;
+    readonly stackContext: never;
+}
 
-export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect<WaterfallNodeDatum>,
-    AgWaterfallSeriesOptions,
-    WaterfallSeriesProperties,
-    WaterfallNodeDatum,
-    WaterfallNodeDatum,
-    WaterfallContext
-> {
+type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
+
+export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 

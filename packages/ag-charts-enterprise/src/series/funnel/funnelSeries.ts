@@ -9,6 +9,7 @@ import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
+    type BaseFunnelSeriesTypes,
     type Bounds,
     type FunnelAnimationData,
     type FunnelNodeDatum,
@@ -16,22 +17,25 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
-const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } =
-    _ModuleSupport;
+const { prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } = _ModuleSupport;
 
-export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
+/**
+ * Consolidated type interface for FunnelSeries.
+ */
+interface FunnelSeriesTypes extends BaseFunnelSeriesTypes {
+    readonly node: _ModuleSupport.Rect<FunnelNodeDatum>;
+    readonly options: AgFunnelSeriesOptions;
+    readonly properties: FunnelProperties;
+}
+
+export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
     override properties = new FunnelProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({
-            moduleCtx,
-            animationResetFns: {
-                datum: resetBarSelectionsFn,
-            },
-        });
+        super(moduleCtx);
     }
 
     override getBandScalePadding() {

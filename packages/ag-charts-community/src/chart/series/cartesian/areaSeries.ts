@@ -81,6 +81,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import type { CartesianSeriesTypes } from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -181,15 +182,21 @@ interface AreaNodeDatumScratch {
     validPoint: boolean;
 }
 
-export class AreaSeries extends CartesianSeries<
-    Marker,
-    AgAreaSeriesOptions,
-    AreaSeriesProperties,
-    MarkerSelectionDatum,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext,
-    AreaSeriesStackContext
-> {
+/**
+ * Consolidated type interface for AreaSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface AreaSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgAreaSeriesOptions;
+    readonly properties: AreaSeriesProperties;
+    readonly datum: MarkerSelectionDatum;
+    readonly label: LabelSelectionDatum;
+    readonly context: AreaSeriesNodeDataContext;
+    readonly stackContext: AreaSeriesStackContext;
+}
+
+export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
