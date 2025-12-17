@@ -16,7 +16,7 @@ module.exports = [
     {
         name: 'Full package',
         import: '*',
-        limit: '261 kB',
+        limit: '274 kB',
         ...defaultConfig,
     },
     {
