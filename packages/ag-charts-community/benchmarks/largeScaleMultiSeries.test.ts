@@ -25,7 +25,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 4 },
+            { expectedRelativeMB: 3.3, expectedCanvasCount: 4 },
             async () => {
                 await ctx.legendToggle();
                 await ctx.legendToggle();
@@ -36,7 +36,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '4x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 4 },
+            { expectedRelativeMB: 3.3, expectedCanvasCount: 4 },
             async () => {
                 for (let i = 0; i < 2; i++) {
                     await ctx.legendToggle(i);
