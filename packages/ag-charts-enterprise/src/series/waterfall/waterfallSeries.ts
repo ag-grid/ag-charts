@@ -34,6 +34,7 @@ const {
     updateLabelNode,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
+    resetBarSelectionsDirect,
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
     resetLabelFn,
@@ -45,6 +46,7 @@ const {
     motion,
     getItemStylesPerItemId,
     DataSet,
+    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
@@ -568,40 +570,45 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             mutableNode.midPoint = { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 };
         }
 
-        // Update label
-        const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-        const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
-            value,
-            datum,
-            yKey,
-            'y',
-            yDomain,
-            label,
-            {
-                itemType,
+        // Update label - skip expensive getLabelText() when labels are disabled
+        if (label.enabled) {
+            const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
                 value,
                 datum,
-                xKey,
                 yKey,
-                xName,
-                yName,
-            }
-        );
+                'y',
+                yDomain,
+                label,
+                {
+                    itemType,
+                    value,
+                    datum,
+                    xKey,
+                    yKey,
+                    xName,
+                    yName,
+                }
+            );
 
-        const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
-        const labelPlacement = adjustLabelPlacement({
-            isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
-            isVertical: !barAlongX,
-            placement: label.placement,
-            spacing,
-            rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
-        });
+            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+            const labelPlacement = adjustLabelPlacement({
+                isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
+                isVertical: !barAlongX,
+                placement: label.placement,
+                spacing,
+                rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+            });
 
-        mutableNode.label.text = labelText;
-        mutableNode.label.x = labelPlacement.x;
-        mutableNode.label.y = labelPlacement.y;
-        mutableNode.label.textAlign = labelPlacement.textAlign;
-        mutableNode.label.textBaseline = labelPlacement.textBaseline;
+            mutableNode.label.text = labelText;
+            mutableNode.label.x = labelPlacement.x;
+            mutableNode.label.y = labelPlacement.y;
+            mutableNode.label.textAlign = labelPlacement.textAlign;
+            mutableNode.label.textBaseline = labelPlacement.textBaseline;
+        } else {
+            // Clear label when disabled
+            mutableNode.label.text = '';
+        }
     }
 
     /**
@@ -767,7 +774,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(data);
+
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return datumSelection.update(data);
+        }
+
+        return datumSelection.update(data, undefined, (datum) => createDatumId(datum.datumIndex));
     }
 
     private getItemStyle(
@@ -1026,6 +1039,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override toggleSeriesItem(): void {
         // Legend item toggling is unsupported.
+    }
+
+    protected override resetDatumAnimation(data: WaterfallAnimationData): void {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection]);
     }
 
     override animateEmptyUpdateReady(opts: WaterfallAnimationData) {

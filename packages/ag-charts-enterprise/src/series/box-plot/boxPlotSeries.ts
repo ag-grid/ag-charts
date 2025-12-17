@@ -29,6 +29,7 @@ const {
     getItemStyles,
     calculateSegments,
     toHighlightString,
+    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -636,7 +637,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
-        return opts.datumSelection.update(data);
+
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return opts.datumSelection.update(data);
+        }
+
+        return opts.datumSelection.update(data, undefined, (datum) => createDatumId(datum.datumIndex));
     }
 
     private makeStylerParams(
