@@ -2,7 +2,7 @@
 import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@components/docs/utils/urlPaths';
-import { Pipeline } from '@components/pipeline/Pipeline';
+import { Pipeline } from '@ag-website-shared/components/changelog/Pipeline';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
 import classnames from 'classnames';
@@ -24,7 +24,8 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
 
         <div className={classnames('page-margin', styles.container)}>
             <h1>AG Charts Pipeline</h1>
-            <Pipeline currentFramework={framework} client:only="react" />
+
+            <Pipeline client:load library="charts" />
         </div>
     </div>
 </Layout>

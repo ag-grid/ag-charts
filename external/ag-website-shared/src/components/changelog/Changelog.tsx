@@ -1,6 +1,8 @@
 import type { Library } from '@ag-grid-types';
 import { Alert } from '@ag-website-shared/components/alert/Alert';
 import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
+import { transformVersion } from '@ag-website-shared/components/changelog/transformVersion';
+import { useSearchQuery } from '@ag-website-shared/components/changelog/useSearchQuery';
 import DetailCellRenderer from '@ag-website-shared/components/grid/DetailCellRendererComponent';
 import { Grid } from '@ag-website-shared/components/grid/Grid';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
@@ -8,7 +10,7 @@ import { IssueColDef, IssueTypeColDef } from '@ag-website-shared/utils/issueColD
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes.jsx';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FunctionComponent } from 'react';
 
 interface Props {
@@ -36,26 +38,6 @@ function useFixVersion() {
     return [fixVersion, setFixVersion];
 }
 
-function useSearchQuery() {
-    const [searchQuery, setSearchQuery] = useState<string>('');
-    const handleSearchQueryChange = useCallback((event: ChangeEvent<{ value: string }>) => {
-        const value = event.target?.value;
-        setSearchQuery(value);
-    }, []);
-
-    useEffect(() => {
-        const searchParams = window.location.search;
-        const urlSearchQuery = new URLSearchParams(searchParams).get('searchQuery');
-        const value = searchParams && urlSearchQuery ? urlSearchQuery : '';
-        setSearchQuery(value);
-    }, []);
-
-    return {
-        searchQuery,
-        handleSearchQueryChange,
-    };
-}
-
 const compareSemver = (a: any, b: any) => {
     // versions are in the format 'x.y.z', so we need to compare them as numbers
     const [aMajor, aMinor, aPatch] = a.split('.').map((num: string) => parseInt(num, 10));
@@ -67,18 +49,6 @@ const compareSemver = (a: any, b: any) => {
     } else {
         return bPatch - aPatch;
     }
-};
-
-const gridToChartVersion = (gridVersion: string) => {
-    const versionParts = gridVersion.split('.');
-
-    // The first charts release was on grid version 22 - we'll keep in lock step release wise going forward so this works
-    const chartMajorVersion = parseInt(versionParts[0]) - 22;
-    return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
-};
-
-const transformVersion: Record<Library, (version: string) => string> = {
-    charts: gridToChartVersion,
 };
 
 export const Changelog: FunctionComponent<Props> = ({ library }) => {
