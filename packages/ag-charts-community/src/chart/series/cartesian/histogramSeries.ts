@@ -41,7 +41,14 @@ import type {
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
-import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
+import {
+    SORT_DOMAIN_GROUPS,
+    createDatumId,
+    keyProperty,
+    processedDataIsAnimatable,
+    rowCountProperty,
+    valueProperty,
+} from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -59,6 +66,7 @@ import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
     prepareBarAnimationFunctions,
+    resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './barUtil';
 import {
@@ -594,6 +602,11 @@ export class HistogramSeries extends CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
 
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return datumSelection.update(nodeData);
+        }
+
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) =>
             createDatumId(...datum.domain)
         );
@@ -837,6 +850,11 @@ export class HistogramSeries extends CartesianSeries<
                 hideInLegend: !showInLegend,
             },
         ];
+    }
+
+    protected override resetDatumAnimation(data: HistogramAnimationData): void {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection]);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
