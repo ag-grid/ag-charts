@@ -64,10 +64,6 @@ function isVersionAtOrAfter(major: number, minor: number, patch: number): boolea
     return currentPatch >= patch;
 }
 
-function isVersionBefore(major: number, minor: number, patch: number): boolean {
-    return !isVersionAtOrAfter(major, minor, patch);
-}
-
 const SUPPORTS_APPLY_TRANSACTION = isVersionAtOrAfter(12, 3, 0);
 const SUPPORTS_AXES_DICT = isVersionAtOrAfter(13, 0, 0);
 
@@ -902,10 +898,6 @@ window.addEventListener('hashchange', () => {
 // Store original state for restoration after benchmark
 let originalSeriesType: SeriesType;
 
-/**
- * Performs a rolling window update for benchmarking.
- * Returns elapsed time in milliseconds.
- */
 /** inScope */
 async function performBenchmarkUpdate(method: 'applyTransaction' | 'updateDelta'): Promise<number> {
     // Ensure no regular updates are running
@@ -937,11 +929,7 @@ async function performBenchmarkUpdate(method: 'applyTransaction' | 'updateDelta'
     return performance.now() - start;
 }
 
-/**
- * inScope
- * Declarative benchmark configuration.
- * This function is auto-detected by the example generator and enables the benchmark UI.
- */
+/** inScope */
 function getBenchmarkConfig() {
     // Capture original state when benchmark config is requested
     originalSeriesType = currentSeriesType;

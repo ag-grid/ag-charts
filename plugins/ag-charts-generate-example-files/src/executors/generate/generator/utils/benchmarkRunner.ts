@@ -4,26 +4,6 @@
  */
 export const benchmarkRunner = `
 /**
- * Benchmark Types
- */
-
-/**
- * Result of a single benchmark test
- */
-
-/**
- * Method configuration for a benchmark test case
- */
-
-/**
- * Test case configuration
- */
-
-/**
- * Configuration returned by getBenchmarkConfig() in the example
- */
-
-/**
  * BenchmarkUI - Self-contained UI management for benchmarks
  * Creates all necessary DOM elements dynamically
  */
