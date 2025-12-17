@@ -9,8 +9,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type Mutable,
     type Point,
     type RequireOptional,
+    type Scale,
     easeOut,
     isContinuous,
     mergeDefaults,
@@ -74,6 +76,48 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
     styles: Record<AgWaterfallSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<Required<AgWaterfallSeriesStyle>>>;
+}
+
+/** Internal context for createNodeData() - caches expensive lookups */
+interface WaterfallSeriesNodeDatumContext {
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+    readonly categoryAxis: _ModuleSupport.ChartAxis;
+    readonly valueAxis: _ModuleSupport.ChartAxis;
+    readonly barAlongX: boolean;
+    readonly barWidth: number;
+    readonly categoryAxisReversed: boolean;
+    readonly valueAxisReversed: boolean;
+    readonly crisp: boolean;
+    readonly xKey: string;
+    readonly yKey: string;
+    readonly xName: string | undefined;
+    readonly yName: string | undefined;
+    readonly lineStrokeWidth: number;
+    readonly yDomain: number[];
+    // Data arrays
+    readonly xValues: any[];
+    readonly yRawValues: (number | undefined)[];
+    readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
+    readonly yCurrValues: number[];
+    readonly yPrevValues: number[];
+    readonly yCurrTotalValues: number[];
+    readonly rawData: unknown[];
+    // Incremental update support
+    readonly canIncrementallyUpdate: boolean;
+    readonly nodes: WaterfallNodeDatum[];
+    nodeIndex: number;
+}
+
+/** Parameters for creating/updating a WaterfallNodeDatum */
+interface WaterfallNodeDatumParams {
+    datumIndex: number;
+    datum: unknown;
+    xDatum: any;
+    value: number | undefined;
+    cumulativeValue: number | undefined;
+    trailingValue: number | undefined;
+    datumType: AgWaterfallSeriesItemType | undefined;
 }
 
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
@@ -248,20 +292,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
 
-        const { line } = this.properties;
-        const xScale = categoryAxis.scale;
-        const yScale = valueAxis.scale;
-        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const barWidth = this.getBandwidth(categoryAxis) ?? 10;
-        const categoryAxisReversed = categoryAxis.isReversed();
-        const valueAxisReversed = valueAxis.isReversed();
-
         if (processedData.type !== 'ungrouped') return;
+
+        // Create shared context for datum creation (must be done early to access datumCtx.nodes)
+        const datumCtx = this.createNodeDatumContext(categoryAxis, valueAxis, dataModel, processedData);
+        if (!datumCtx) return;
 
         const context: WaterfallContext = {
             itemId: this.properties.yKey,
-            nodeData: [],
-            labelData: [],
+            nodeData: datumCtx.nodes,
+            labelData: datumCtx.nodes,
             pointData: [],
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
@@ -272,6 +312,85 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (!this.visible) return context;
 
         const pointData: WaterfallNodePointDatum[] = [];
+        let trailingSubtotal = 0;
+
+        // Scratch object for params - reused across iterations
+        const paramsScratch: WaterfallNodeDatumParams = {
+            datumIndex: 0,
+            datum: undefined,
+            xDatum: undefined,
+            value: undefined,
+            cumulativeValue: undefined,
+            trailingValue: undefined,
+            datumType: undefined,
+        };
+
+        for (const [datumIndex, datum] of datumCtx.rawData.entries()) {
+            const datumType = datumCtx.totalTypeValues[datumIndex];
+            const isSubtotal = this.isSubtotal(datumType);
+            const isTotal = this.isTotal(datumType);
+            const isTotalOrSubtotal = isTotal || isSubtotal;
+
+            const xDatum = datumCtx.xValues[datumIndex];
+            if (xDatum == null) continue;
+
+            const rawValue = datumCtx.yRawValues[datumIndex];
+            const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
+                datumCtx,
+                datumIndex,
+                isTotal,
+                isSubtotal,
+                trailingSubtotal
+            );
+
+            if (isTotalOrSubtotal) {
+                trailingSubtotal = cumulativeValue ?? 0;
+            }
+
+            const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
+
+            // Update scratch params
+            paramsScratch.datumIndex = datumIndex;
+            paramsScratch.datum = datum;
+            paramsScratch.xDatum = xDatum;
+            paramsScratch.value = value;
+            paramsScratch.cumulativeValue = cumulativeValue;
+            paramsScratch.trailingValue = trailingValue;
+            paramsScratch.datumType = datumType;
+
+            const nodeDatum = this.upsertNodeDatum(datumCtx, paramsScratch);
+
+            const pathPoint = this.createPointDatum(
+                datumCtx,
+                nodeDatum,
+                cumulativeValue,
+                trailingValue,
+                isTotalOrSubtotal
+            );
+            pointData.push(pathPoint);
+        }
+
+        // Trim excess nodes if the data shrunk
+        if (datumCtx.nodeIndex < datumCtx.nodes.length) {
+            datumCtx.nodes.length = datumCtx.nodeIndex;
+        }
+
+        const connectorLinesEnabled = this.properties.line.enabled;
+        if (datumCtx.yCurrValues != null && connectorLinesEnabled) {
+            context.pointData = pointData;
+        }
+
+        return context;
+    }
+
+    private createNodeDatumContext(
+        categoryAxis: _ModuleSupport.ChartAxis,
+        valueAxis: _ModuleSupport.ChartAxis,
+        dataModel: _ModuleSupport.DataModel<any, any, any>,
+        processedData: _ModuleSupport.UngroupedData<any>
+    ): WaterfallSeriesNodeDatumContext | undefined {
+        const xScale = categoryAxis.scale;
+        const yScale = valueAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
@@ -284,197 +403,295 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
-
-        const crisp = checkCrisp(
-            categoryAxis?.scale,
-            categoryAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
-
-        function getValues(
-            isTotal: boolean,
-            isSubtotal: boolean,
-            datumIndex: number
-        ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
-            if (isTotal || isSubtotal) {
-                return {
-                    cumulativeValue: yCurrTotalValues[datumIndex],
-                    trailingValue: isSubtotal ? trailingSubtotal : 0,
-                };
-            }
-
-            return {
-                cumulativeValue: yCurrValues[datumIndex],
-                trailingValue: yPrevValues[datumIndex],
-            };
-        }
-
-        function getValue(
-            isTotal: boolean,
-            isSubtotal: boolean,
-            rawValue?: number,
-            cumulativeValue?: number,
-            trailingValue?: number
-        ) {
-            if (isTotal) {
-                return cumulativeValue;
-            }
-            if (isSubtotal) {
-                return (cumulativeValue ?? 0) - (trailingValue ?? 0);
-            }
-            return rawValue;
-        }
-
-        let trailingSubtotal = 0;
-        const { xKey, yKey, xName, yName } = this.properties;
-
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex, datum] of rawData.entries()) {
-            const datumType = totalTypeValues[datumIndex];
 
-            const isSubtotal = this.isSubtotal(datumType);
-            const isTotal = this.isTotal(datumType);
-            const isTotalOrSubtotal = isTotal || isSubtotal;
+        const { xKey, yKey, xName, yName, line } = this.properties;
+        const { contextNodeData } = this;
 
-            const xDatum = xValues[datumIndex];
-            if (xDatum == null) continue;
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
-            const x = Math.round(xScale.convert(xDatum));
+        return {
+            xScale,
+            yScale,
+            categoryAxis,
+            valueAxis,
+            barAlongX: this.getBarDirection() === ChartAxisDirection.X,
+            barWidth: this.getBandwidth(categoryAxis) ?? 10,
+            categoryAxisReversed: categoryAxis.isReversed(),
+            valueAxisReversed: valueAxis.isReversed(),
+            crisp: checkCrisp(
+                categoryAxis.scale,
+                categoryAxis.visibleRange,
+                this.smallestDataInterval,
+                this.largestDataInterval
+            ),
+            xKey,
+            yKey,
+            xName,
+            yName,
+            lineStrokeWidth: line.strokeWidth,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
+            xValues,
+            yRawValues,
+            totalTypeValues,
+            yCurrValues,
+            yPrevValues,
+            yCurrTotalValues,
+            rawData,
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
+    }
 
-            const rawValue = yRawValues[datumIndex];
-
-            const { cumulativeValue, trailingValue } = getValues(isTotal, isSubtotal, datumIndex);
-
-            if (isTotalOrSubtotal) {
-                trailingSubtotal = cumulativeValue ?? 0;
-            }
-
-            const currY = Math.round(yScale.convert(cumulativeValue));
-            const trailY = Math.round(yScale.convert(trailingValue));
-
-            const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
-            const isPositive = (value ?? 0) >= 0;
-
-            const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { strokeWidth, label } = this.getItemConfig(seriesItemType);
-
-            const y = isPositive ? currY : trailY;
-            const bottomY = isPositive ? trailY : currY;
-            const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
-
-            const rect = {
-                x: barAlongX ? Math.min(y, bottomY) : x,
-                y: barAlongX ? x : Math.min(y, bottomY),
-                width: barAlongX ? barHeight : barWidth,
-                height: barAlongX ? barWidth : barHeight,
+    private computeWaterfallValues(
+        ctx: WaterfallSeriesNodeDatumContext,
+        datumIndex: number,
+        isTotal: boolean,
+        isSubtotal: boolean,
+        trailingSubtotal: number
+    ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
+        if (isTotal || isSubtotal) {
+            return {
+                cumulativeValue: ctx.yCurrTotalValues[datumIndex],
+                trailingValue: isSubtotal ? trailingSubtotal : 0,
             };
+        }
 
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
+        return {
+            cumulativeValue: ctx.yCurrValues[datumIndex],
+            trailingValue: ctx.yPrevValues[datumIndex],
+        };
+    }
 
-            const pointY = isTotalOrSubtotal ? currY : trailY;
-            const pixelAlignmentOffset = (Math.floor(line.strokeWidth) % 2) / 2;
+    private computeDisplayValue(
+        isTotal: boolean,
+        isSubtotal: boolean,
+        rawValue?: number,
+        cumulativeValue?: number,
+        trailingValue?: number
+    ): number | undefined {
+        if (isTotal) {
+            return cumulativeValue;
+        }
+        if (isSubtotal) {
+            return (cumulativeValue ?? 0) - (trailingValue ?? 0);
+        }
+        return rawValue;
+    }
 
-            const startY = categoryAxisReversed ? currY : pointY;
-            const stopY = categoryAxisReversed ? pointY : currY;
+    /**
+     * Creates a skeleton WaterfallNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        params: WaterfallNodeDatumParams
+    ): WaterfallNodeDatum {
+        const { xKey, yKey, crisp } = ctx;
+        const { datumIndex, datum, xDatum, value, cumulativeValue, datumType } = params;
 
-            let startCoordinates: { x: number; y: number };
-            let stopCoordinates: { x: number; y: number };
-            if (barAlongX) {
-                startCoordinates = {
-                    x: startY + pixelAlignmentOffset,
-                    y: rect.y,
-                };
-                stopCoordinates = {
-                    x: stopY + pixelAlignmentOffset,
-                    y: rect.y + rect.height,
-                };
-            } else {
-                startCoordinates = {
-                    x: rect.x,
-                    y: startY + pixelAlignmentOffset,
-                };
-                stopCoordinates = {
-                    x: rect.x + rect.width,
-                    y: stopY + pixelAlignmentOffset,
-                };
-            }
+        const isPositive = (value ?? 0) >= 0;
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
 
-            const pathPoint = {
-                // lineTo
-                x: categoryAxisReversed ? stopCoordinates.x : startCoordinates.x,
-                y: categoryAxisReversed ? stopCoordinates.y : startCoordinates.y,
-                // moveTo
-                x2: categoryAxisReversed ? startCoordinates.x : stopCoordinates.x,
-                y2: categoryAxisReversed ? startCoordinates.y : stopCoordinates.y,
-                size: 0,
-            };
+        return {
+            index: datumIndex,
+            series: this,
+            itemType: seriesItemType,
+            datum,
+            datumIndex,
+            cumulativeValue: cumulativeValue ?? 0,
+            xValue: xDatum,
+            yValue: value,
+            yKey,
+            xKey,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
+            crisp,
+            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle' },
+        };
+    }
 
-            pointData.push(pathPoint);
+    /**
+     * Updates an existing WaterfallNodeDatum in-place.
+     * This is more efficient than recreating the entire node when only data values change.
+     */
+    private updateNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        node: WaterfallNodeDatum,
+        params: WaterfallNodeDatumParams
+    ): void {
+        const { xScale, yScale, barAlongX, barWidth, valueAxisReversed, xKey, yKey, xName, yName, yDomain, crisp } =
+            ctx;
+        const { datumIndex, datum, xDatum, value, cumulativeValue, trailingValue, datumType } = params;
+        const mutableNode = node as Mutable<WaterfallNodeDatum>;
 
-            const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
+        const x = Math.round(xScale.convert(xDatum));
+        const isPositive = (value ?? 0) >= 0;
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+        const { strokeWidth, label } = this.getItemConfig(seriesItemType);
+
+        const currY = Math.round(yScale.convert(cumulativeValue));
+        const trailY = Math.round(yScale.convert(trailingValue));
+
+        const y = isPositive ? currY : trailY;
+        const bottomY = isPositive ? trailY : currY;
+        const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
+
+        const rectX = barAlongX ? Math.min(y, bottomY) : x;
+        const rectY = barAlongX ? x : Math.min(y, bottomY);
+        const rectWidth = barAlongX ? barHeight : barWidth;
+        const rectHeight = barAlongX ? barWidth : barHeight;
+
+        // Update properties
+        mutableNode.index = datumIndex;
+        mutableNode.itemType = seriesItemType;
+        mutableNode.datum = datum;
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.cumulativeValue = cumulativeValue ?? 0;
+        mutableNode.xValue = xDatum;
+        mutableNode.yValue = value;
+        mutableNode.x = rectX;
+        mutableNode.y = rectY;
+        mutableNode.width = rectWidth;
+        mutableNode.height = rectHeight;
+        mutableNode.crisp = crisp;
+
+        // Update midPoint in place
+        if (mutableNode.midPoint) {
+            mutableNode.midPoint.x = rectX + rectWidth / 2;
+            mutableNode.midPoint.y = rectY + rectHeight / 2;
+        } else {
+            mutableNode.midPoint = { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 };
+        }
+
+        // Update label
+        const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+        const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
+            value,
+            datum,
+            yKey,
+            'y',
+            yDomain,
+            label,
+            {
+                itemType,
                 value,
                 datum,
-                yKey,
-                'y',
-                yDomain,
-                label,
-                {
-                    itemType,
-                    value,
-                    datum,
-                    xKey,
-                    yKey,
-                    xName,
-                    yName,
-                }
-            );
-
-            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
-            const nodeDatum: WaterfallNodeDatum = {
-                index: datumIndex,
-                series: this,
-                itemType: seriesItemType,
-                datum,
-                datumIndex,
-                cumulativeValue: cumulativeValue ?? 0,
-                xValue: xDatum,
-                yValue: value,
-                yKey,
                 xKey,
-                x: rect.x,
+                yKey,
+                xName,
+                yName,
+            }
+        );
+
+        const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+        const labelPlacement = adjustLabelPlacement({
+            isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
+            isVertical: !barAlongX,
+            placement: label.placement,
+            spacing,
+            rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+        });
+
+        mutableNode.label.text = labelText;
+        mutableNode.label.x = labelPlacement.x;
+        mutableNode.label.y = labelPlacement.y;
+        mutableNode.label.textAlign = labelPlacement.textAlign;
+        mutableNode.label.textBaseline = labelPlacement.textBaseline;
+    }
+
+    /**
+     * Creates a WaterfallNodeDatum for a single data point.
+     * Creates a skeleton node and uses updateNodeDatum to populate it.
+     */
+    private createNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        params: WaterfallNodeDatumParams
+    ): WaterfallNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, params);
+        this.updateNodeDatum(ctx, node, params);
+        return node;
+    }
+
+    /**
+     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
+     */
+    private upsertNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        params: WaterfallNodeDatumParams
+    ): WaterfallNodeDatum {
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+
+        let nodeData: WaterfallNodeDatum;
+        if (canReuseNode) {
+            // Reuse existing node by updating in place
+            nodeData = ctx.nodes[ctx.nodeIndex];
+            this.updateNodeDatum(ctx, nodeData, params);
+        } else {
+            // Create new node
+            nodeData = this.createNodeDatum(ctx, params);
+            ctx.nodes.push(nodeData);
+        }
+        ctx.nodeIndex++;
+
+        return nodeData;
+    }
+
+    private createPointDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        nodeDatum: WaterfallNodeDatum,
+        cumulativeValue: number | undefined,
+        trailingValue: number | undefined,
+        isTotalOrSubtotal: boolean
+    ): WaterfallNodePointDatum {
+        const { yScale, barAlongX, categoryAxisReversed, lineStrokeWidth } = ctx;
+
+        const currY = Math.round(yScale.convert(cumulativeValue));
+        const trailY = Math.round(yScale.convert(trailingValue));
+
+        const pointY = isTotalOrSubtotal ? currY : trailY;
+        const pixelAlignmentOffset = (Math.floor(lineStrokeWidth) % 2) / 2;
+
+        const startY = categoryAxisReversed ? currY : pointY;
+        const stopY = categoryAxisReversed ? pointY : currY;
+
+        const rect = { x: nodeDatum.x, y: nodeDatum.y, width: nodeDatum.width, height: nodeDatum.height };
+
+        let startCoordinates: { x: number; y: number };
+        let stopCoordinates: { x: number; y: number };
+        if (barAlongX) {
+            startCoordinates = {
+                x: startY + pixelAlignmentOffset,
                 y: rect.y,
-                width: rect.width,
-                height: rect.height,
-                midPoint: nodeMidPoint,
-                crisp,
-                label: {
-                    text: labelText,
-                    ...adjustLabelPlacement({
-                        isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
-                        isVertical: !barAlongX,
-                        placement: label.placement,
-                        spacing,
-                        rect,
-                    }),
-                },
             };
-
-            context.nodeData.push(nodeDatum);
-            context.labelData.push(nodeDatum);
+            stopCoordinates = {
+                x: stopY + pixelAlignmentOffset,
+                y: rect.y + rect.height,
+            };
+        } else {
+            startCoordinates = {
+                x: rect.x,
+                y: startY + pixelAlignmentOffset,
+            };
+            stopCoordinates = {
+                x: rect.x + rect.width,
+                y: stopY + pixelAlignmentOffset,
+            };
         }
 
-        const connectorLinesEnabled = this.properties.line.enabled;
-        if (yCurrValues != null && connectorLinesEnabled) {
-            context.pointData = pointData;
-        }
-
-        return context;
+        return {
+            // lineTo
+            x: categoryAxisReversed ? stopCoordinates.x : startCoordinates.x,
+            y: categoryAxisReversed ? stopCoordinates.y : startCoordinates.y,
+            // moveTo
+            x2: categoryAxisReversed ? startCoordinates.x : stopCoordinates.x,
+            y2: categoryAxisReversed ? startCoordinates.y : stopCoordinates.y,
+            size: 0,
+        };
     }
 
     private updateSeriesItemTypes() {
