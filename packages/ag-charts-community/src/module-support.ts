@@ -190,7 +190,6 @@ export type {
     DatumSelectionOf,
     LabelOf,
     LabelSelectionOf,
-    MakeCartesianSeriesTypes,
     NodeOf,
     OptionsOf,
     PropertiesOf,

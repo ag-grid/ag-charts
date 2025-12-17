@@ -121,52 +121,6 @@ export type ContextOf<T extends CartesianSeriesTypes> = T['context'];
 export type StackContextOf<T extends CartesianSeriesTypes> = T['stackContext'];
 
 // ============================================================================
-// Factory Helper
-// ============================================================================
-// Use this when you want TypeScript to compute the types interface from individual
-// type parameters (useful for applying defaults).
-
-/**
- * Factory type helper to create a CartesianSeriesTypes from individual type parameters.
- *
- * This is useful when you want to leverage TypeScript's default type parameter behavior:
- * - TLabel defaults to TDatum
- * - TContext defaults to CartesianSeriesNodeDataContext<TDatum, TLabel>
- * - TStackContext defaults to never
- *
- * @example
- * ```typescript
- * // Explicit interface (preferred for documentation)
- * interface LineSeriesTypes extends CartesianSeriesTypes { ... }
- *
- * // Using factory (when defaults are sufficient)
- * type LineSeriesTypes = MakeCartesianSeriesTypes<
- *     Marker,
- *     AgLineSeriesOptions,
- *     LineSeriesProperties,
- *     LineNodeDatum
- * >;
- * ```
- */
-export type MakeCartesianSeriesTypes<
-    TNode extends Node<any>,
-    TOpts extends object,
-    TProps extends CartesianSeriesPropertiesBase<TOpts>,
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-    TStackContext = never,
-> = {
-    readonly node: TNode;
-    readonly options: TOpts;
-    readonly properties: TProps;
-    readonly datum: TDatum;
-    readonly label: TLabel;
-    readonly context: TContext;
-    readonly stackContext: TStackContext;
-};
-
-// ============================================================================
 // Animation Data Types
 // ============================================================================
 // Type aliases for animation-related types that use the consolidated types interface.
