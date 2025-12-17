@@ -46,13 +46,12 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
 import { datumStylerProperties } from '../util';
-import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import type { CartesianSeriesTypes } from './cartesianSeriesTypes';
+import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
     aggregateLineDataFromDataModel,
@@ -99,7 +98,7 @@ interface LineSeriesTypes extends CartesianSeriesTypes {
     readonly stackContext: never;
 }
 
-type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
 export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';

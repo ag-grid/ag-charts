@@ -28,18 +28,13 @@ import type { Node, NodeWithOpacity } from '../../../scene/node';
 import { SegmentedGroup } from '../../../scene/segmentedGroup';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
-import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
+import { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';
-import {
-    DataModelSeries,
-    type DataModelSeriesConstructorOpts,
-    type DataModelSeriesNodeDataContext,
-    type DataModelSeriesNodeDatum,
-} from '../dataModelSeries';
+import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
@@ -47,6 +42,9 @@ import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } f
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     DatumOf,
@@ -56,13 +54,6 @@ import type {
     PropertiesOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
-
-export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
-    readonly xKey: string;
-    readonly yKey?: string;
-    readonly xValue?: any;
-    readonly yValue?: any;
-}
 
 type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     pathsPerSeries: string[];
@@ -135,7 +126,10 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
+export abstract class CartesianSeriesProperties<T extends object>
+    extends SeriesProperties<T>
+    implements CartesianSeriesPropertiesBase<T>
+{
     @Property
     xKeyAxis: string = 'x';
 
@@ -150,16 +144,6 @@ export abstract class CartesianSeriesProperties<T extends object> extends Series
 
     @Property
     segmentation: AgSeriesSegmentation = new Segmentation();
-}
-
-export interface CartesianSeriesNodeDataContext<
-    TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-> extends DataModelSeriesNodeDataContext<TDatum, TLabel> {
-    scales: { [key in ChartAxisDirection]?: Scaling };
-    animationValid?: boolean;
-    visible: boolean;
-    segments?: Segment[];
 }
 
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;

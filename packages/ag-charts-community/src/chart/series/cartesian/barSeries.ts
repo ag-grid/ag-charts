@@ -82,10 +82,10 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
-    type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
 import { calculateSegments } from './util';
 

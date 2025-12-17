@@ -74,14 +74,13 @@ import {
     plotAreaPathFill,
     prepareAreaPathAnimation,
 } from './areaUtil';
-import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import type { CartesianSeriesTypes } from './cartesianSeriesTypes';
+import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -99,12 +98,7 @@ import { calculateSegments } from './util';
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
-type AreaAnimationData = CartesianAnimationData<
-    Marker,
-    MarkerSelectionDatum,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext
->;
+type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
 interface StackRange {
     leading: number;

@@ -70,18 +70,17 @@ import {
     resetBarSelectionsFn,
 } from './barUtil';
 import {
-    type CartesianAnimationData,
     CartesianSeries,
-    type CartesianSeriesNodeDataContext,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type { CartesianAnimationDataOf, CartesianSeriesNodeDataContext } from './cartesianSeriesTypes';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 interface CalculatedBin {
     domain: [number, number];

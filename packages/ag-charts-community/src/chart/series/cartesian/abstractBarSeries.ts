@@ -11,13 +11,16 @@ import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
+import { type CartesianAnimationData, CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import type {
-    CartesianAnimationData,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-} from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
-import type { CartesianSeriesTypes, ContextOf, DatumOf, LabelOf, NodeOf } from './cartesianSeriesTypes';
+    CartesianSeriesTypes,
+    ContextOf,
+    DatumOf,
+    LabelOf,
+    NodeOf,
+} from './cartesianSeriesTypes';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {

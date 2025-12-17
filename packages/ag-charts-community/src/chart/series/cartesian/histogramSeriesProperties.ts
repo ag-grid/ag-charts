@@ -12,7 +12,8 @@ import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
 import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
-import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { CartesianSeriesProperties } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly x: number;

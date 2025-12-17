@@ -1,14 +1,59 @@
+import type { ChartAxisDirection, Scaling } from 'ag-charts-core';
+import type { AgSeriesSegmentation } from 'ag-charts-types';
+
 import type { BBox } from '../../../scene/bbox';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
+import type { DataModelSeriesNodeDataContext, DataModelSeriesNodeDatum } from '../dataModelSeries';
+import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import type {
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-    CartesianSeriesProperties,
-} from './cartesianSeries';
+
+// ============================================================================
+// Node Datum & Context Types
+// ============================================================================
+// These are the canonical definitions - cartesianSeries.ts re-exports them.
+
+export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
+    readonly xKey: string;
+    readonly yKey?: string;
+    readonly xValue?: any;
+    readonly yValue?: any;
+}
+
+export interface CartesianSeriesNodeDataContext<
+    TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+> extends DataModelSeriesNodeDataContext<TDatum, TLabel> {
+    scales: { [key in ChartAxisDirection]?: Scaling };
+    animationValid?: boolean;
+    visible: boolean;
+    segments?: Segment[];
+}
+
+// ============================================================================
+// Properties Interface
+// ============================================================================
+// Defines the shape of CartesianSeriesProperties for type constraints.
+// The actual class with decorators lives in cartesianSeries.ts.
+
+/**
+ * Interface defining cartesian-specific properties.
+ * CartesianSeriesProperties class implements this interface.
+ */
+export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesProperties<T> {
+    xKeyAxis: string;
+    yKeyAxis: string;
+    legendItemName?: string;
+    pickOutsideVisibleMinorAxis: boolean;
+    segmentation: AgSeriesSegmentation;
+}
+
+// ============================================================================
+// Consolidated Types Interface
+// ============================================================================
 
 /**
  * Consolidated type interface for CartesianSeries generic parameters.
@@ -36,8 +81,8 @@ export interface CartesianSeriesTypes {
     readonly node: Node<any>;
     /** Series options type from ag-charts-types */
     readonly options: object;
-    /** Series properties class extending CartesianSeriesProperties */
-    readonly properties: CartesianSeriesProperties<this['options']>;
+    /** Series properties class extending CartesianSeriesPropertiesBase */
+    readonly properties: CartesianSeriesPropertiesBase<this['options']>;
     /** Node datum type containing processed data for rendering */
     readonly datum: CartesianSeriesNodeDatum;
     /** Label datum type (defaults to same as datum in most series) */
@@ -106,7 +151,7 @@ export type StackContextOf<T extends CartesianSeriesTypes> = T['stackContext'];
 export type MakeCartesianSeriesTypes<
     TNode extends Node<any>,
     TOpts extends object,
-    TProps extends CartesianSeriesProperties<TOpts>,
+    TProps extends CartesianSeriesPropertiesBase<TOpts>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,

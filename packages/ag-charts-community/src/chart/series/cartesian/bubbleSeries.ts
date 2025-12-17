@@ -75,17 +75,17 @@ import {
     computeBubbleAggregationDilation,
 } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-} from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type {
+    CartesianAnimationDataOf,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeriesTypes';
 import {
     computeMarkerFocusBounds,
     getMarkerStyles,
@@ -95,7 +95,7 @@ import {
 } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleSeriesTypes>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,

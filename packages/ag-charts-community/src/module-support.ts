@@ -178,13 +178,12 @@ export {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './chart/series/cartesian/cartesianSeries';
-export type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-} from './chart/series/cartesian/cartesianSeries';
+export type { CartesianAnimationData } from './chart/series/cartesian/cartesianSeries';
 export type {
     CartesianAnimationDataOf,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     DatumOf,

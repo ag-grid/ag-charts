@@ -16,7 +16,7 @@ import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 
