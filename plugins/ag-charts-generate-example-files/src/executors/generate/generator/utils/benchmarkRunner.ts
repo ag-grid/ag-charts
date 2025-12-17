@@ -109,7 +109,7 @@ class BenchmarkUI {
         this.runButton = document.createElement('button');
         this.runButton.id = 'runBenchmarkBtn';
         this.runButton.textContent = 'Run Benchmark';
-        this.runButton.style.cssText = 'margin-left: auto;';
+        this.runButton.style.cssText = 'margin-left: auto; background-color: #4caf50; color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px;';
         controlsRow.appendChild(this.runButton);
     }
 
@@ -193,16 +193,23 @@ class BenchmarkUI {
 
         let html = \`
             <style>
+                .benchmark-table-container {
+                    max-height: 400px;
+                    overflow-y: auto;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                }
                 .benchmark-table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin-top: 20px;
                     font-family: system-ui, -apple-system, sans-serif;
                     font-size: 14px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                 }
                 .benchmark-table thead {
                     background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
                 }
                 .benchmark-table th {
                     padding: 12px 16px;
@@ -238,7 +245,7 @@ class BenchmarkUI {
                     font-weight: 500;
                 }
                 .export-button {
-                    margin-top: 20px;
+                    margin-bottom: 12px;
                     padding: 10px 20px;
                     background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%);
                     color: white;
@@ -262,6 +269,8 @@ class BenchmarkUI {
             </style>
         \`;
 
+        html += '<button id="exportBenchmarkResults" class="export-button">Export Results as JSON</button>';
+        html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
         html += '<th>Test Case</th>';
         html += '<th>Method</th>';
@@ -283,7 +292,7 @@ class BenchmarkUI {
         });
 
         html += '</tbody></table>';
-        html += '<button id="exportBenchmarkResults" class="export-button">Export Results as JSON</button>';
+        html += '</div>';
 
         this.resultsElement.innerHTML = html;
 
