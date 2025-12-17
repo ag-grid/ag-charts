@@ -146,7 +146,7 @@ class BenchmarkUI {
         }
     }
 
-    updateProgress(status, currentTest, completedTests, totalTests, updateIndex, totalUpdates, version, warnings) {
+    updateProgress(status, currentTest, completedTests, totalTests, updateIndex, totalUpdates, version, warnings, showExportButton = false) {
         if (!this.progressElement) return;
 
         const statusColor = status === 'running' ? '#6c757d' : '#28a745';
@@ -162,6 +162,10 @@ class BenchmarkUI {
                 )
                 .join('');
         }
+
+        const exportButton = showExportButton
+            ? \`<button id="exportBenchmarkResults" style="background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%); color: white; border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;">Export JSON</button>\`
+            : '';
 
         this.progressElement.style.cssText = 'padding: 0; background-color: transparent; border: none; border-radius: 0; font-family: system-ui, -apple-system, sans-serif;';
         this.progressElement.innerHTML = \`
@@ -181,9 +185,12 @@ class BenchmarkUI {
                     </span>
                     \${warningsBadges}
                 </div>
-                <span style="background: #e7f1ff; color: #0066cc; padding: 4px 12px; border-radius: 12px; border: 1px solid #b3d9ff; font-size: 12px; font-weight: 500; white-space: nowrap;">
-                    v\${version}
-                </span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: #e7f1ff; color: #0066cc; padding: 4px 12px; border-radius: 12px; border: 1px solid #b3d9ff; font-size: 12px; font-weight: 500; white-space: nowrap;">
+                        v\${version}
+                    </span>
+                    \${exportButton}
+                </div>
             </div>
         \`;
     }
@@ -244,32 +251,9 @@ class BenchmarkUI {
                 .benchmark-method {
                     font-weight: 500;
                 }
-                .export-button {
-                    margin-bottom: 12px;
-                    padding: 10px 20px;
-                    background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    transition: all 0.2s ease;
-                }
-                .export-button:hover {
-                    background: linear-gradient(to bottom, #0052a3 0%, #003d7a 100%);
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                    transform: translateY(-1px);
-                }
-                .export-button:active {
-                    transform: translateY(0);
-                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-                }
             </style>
         \`;
 
-        html += '<button id="exportBenchmarkResults" class="export-button">Export Results as JSON</button>';
         html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
         html += '<th>Test Case</th>';
@@ -513,7 +497,7 @@ class BenchmarkRunner {
         });
     }
 
-    updateProgress() {
+    updateProgress(showExportButton = false) {
         const currentTest = this.currentTestCase
             ? \`\${this.currentTestCase.label || this.currentTestCase.id} (\${this.currentMethod?.label || this.currentMethod?.id || ''})\`
             : 'Initializing...';
@@ -531,12 +515,13 @@ class BenchmarkRunner {
             this.updateIndex,
             this.totalUpdates,
             this.version,
-            this.config.warnings || []
+            this.config.warnings || [],
+            showExportButton
         );
     }
 
     displayResults() {
-        this.updateProgress();
+        this.updateProgress(true);
         this.ui.displayResults(
             this.results,
             (testCase) => {
