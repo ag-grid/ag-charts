@@ -946,13 +946,13 @@ function getBenchmarkConfig() {
                     ? [
                           {
                               params: { 'Update Method': 'applyTransaction()' },
-                              update: () => performBenchmarkUpdate('applyTransaction'),
+                              run: () => performBenchmarkUpdate('applyTransaction'),
                           },
                       ]
                     : []),
                 {
                     params: { 'Update Method': 'updateDelta()' },
-                    update: () => performBenchmarkUpdate('updateDelta'),
+                    run: () => performBenchmarkUpdate('updateDelta'),
                 },
             ],
         })),

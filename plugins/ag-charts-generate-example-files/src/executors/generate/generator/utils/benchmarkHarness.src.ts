@@ -15,7 +15,7 @@ declare const agCharts: { VERSION?: string } | undefined;
 interface BenchmarkVariant {
     params?: Record<string, string>;
     available?: boolean;
-    update: () => Promise<number>;
+    run: () => Promise<number>;
 }
 
 interface BenchmarkTestCase {
@@ -53,7 +53,7 @@ interface BenchmarkResult {
 interface NormalizedVariant {
     params: Record<string, string>;
     available: boolean;
-    update: () => Promise<number>;
+    run: () => Promise<number>;
 }
 
 interface NormalizedTestCase {
@@ -82,7 +82,7 @@ function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
         const variants: NormalizedVariant[] = tc.variants.map((v) => ({
             params: v.params || {},
             available: v.available !== false,
-            update: v.update,
+            run: v.run,
         }));
 
         return {
@@ -581,7 +581,7 @@ class BenchmarkRunner {
                         if (!updateInFlight) {
                             updateInFlight = true;
                             try {
-                                await variant.update();
+                                await variant.run();
                                 warmupCount++;
                                 this.updateIndex++;
                                 this.updateProgress();
@@ -620,7 +620,7 @@ class BenchmarkRunner {
                 if (!updateInFlight) {
                     updateInFlight = true;
                     try {
-                        const elapsed = await variant.update();
+                        const elapsed = await variant.run();
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
