@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Full benchmark harness implementation that gets compiled to benchmarkHarness.js
  * and included in generated examples that define getBenchmarkConfig().
@@ -121,10 +122,10 @@ function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
  * Format params for display (e.g., in progress indicator)
  */
 function formatParams(params: Record<string, string>): string {
-    const entries = Object.entries(params);
-    if (entries.length === 0) return '';
-    if (entries.length === 1) return entries[0][1];
-    return entries.map(([k, v]) => `${k}: ${v}`).join(', ');
+    const keys = Object.keys(params);
+    if (keys.length === 0) return '';
+    if (keys.length === 1) return params[keys[0]];
+    return keys.map((k) => `${k}: ${params[k]}`).join(', ');
 }
 
 /**
@@ -171,13 +172,11 @@ class BenchmarkUI {
         this.resultsElement.id = 'benchmarkResults';
         this.container.appendChild(this.resultsElement);
 
-        // Insert after example controls or chart
-        const exampleControls = document.querySelector('.example-controls');
+        // Insert before the chart element (between controls and chart)
         const chartElement = document.getElementById('myChart');
-        const insertAfter = exampleControls || chartElement;
 
-        if (insertAfter && insertAfter.parentNode) {
-            insertAfter.parentNode.insertBefore(this.container, insertAfter.nextSibling);
+        if (chartElement?.parentNode) {
+            chartElement.parentNode.insertBefore(this.container, chartElement);
         } else {
             document.body.appendChild(this.container);
         }
@@ -185,7 +184,7 @@ class BenchmarkUI {
 
     injectRunButton(): void {
         // Find or create controls container
-        let controlsRow = document.querySelector('.controls-row') as HTMLElement | null;
+        let controlsRow = document.querySelector('.controls-row');
         if (!controlsRow) {
             const exampleControls = document.querySelector('.example-controls');
             if (exampleControls) {
@@ -201,7 +200,7 @@ class BenchmarkUI {
                 exampleControlsContainer.appendChild(controlsRow);
 
                 const chartElement = document.getElementById('myChart');
-                if (chartElement && chartElement.parentNode) {
+                if (chartElement?.parentNode) {
                     chartElement.parentNode.insertBefore(exampleControlsContainer, chartElement);
                 } else {
                     document.body.insertBefore(exampleControlsContainer, document.body.firstChild);
@@ -231,16 +230,16 @@ class BenchmarkUI {
     }
 
     hideControls(): void {
-        const controlsRow = document.querySelector('.controls-row') as HTMLElement | null;
+        const controlsRow = document.querySelector('.controls-row');
         if (controlsRow) {
-            controlsRow.style.display = 'none';
+            (controlsRow as HTMLElement).style.display = 'none';
         }
     }
 
     showControls(): void {
-        const controlsRow = document.querySelector('.controls-row') as HTMLElement | null;
+        const controlsRow = document.querySelector('.controls-row');
         if (controlsRow) {
-            controlsRow.style.display = '';
+            (controlsRow as HTMLElement).style.display = '';
         }
     }
 
@@ -298,7 +297,7 @@ class BenchmarkUI {
                         Tests: ${completedTests}/${totalTests} <strong style="color: #0066cc;">${testProgress}%</strong>
                     </span>
                     <span style="background: white; color: #495057; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid #dee2e6; white-space: nowrap;">
-                        Updates: ${updateIndex}/${totalUpdates} <strong style="color: #0066cc;">${updateProgress}%</strong>
+                        Runs: ${updateIndex}/${totalUpdates} <strong style="color: #0066cc;">${updateProgress}%</strong>
                     </span>
                     ${warningsBadges}
                 </div>
@@ -475,15 +474,15 @@ class BenchmarkUI {
  * BenchmarkRunner - Executes benchmark tests based on declarative config
  */
 class BenchmarkRunner {
-    private config: NormalizedConfig;
-    private ui: BenchmarkUI;
+    private readonly config: NormalizedConfig;
+    private readonly ui: BenchmarkUI;
     private isRunning = false;
     private results: BenchmarkResult[] = [];
     private updateIndex = 0;
     private totalUpdates = 0;
     private currentTestCase: NormalizedTestCase | null = null;
     private currentVariant: NormalizedVariant | null = null;
-    private version: string;
+    private readonly version: string;
 
     constructor(config: NormalizedConfig, ui: BenchmarkUI) {
         this.config = config;
@@ -493,7 +492,7 @@ class BenchmarkRunner {
 
     private detectVersion(): string {
         // Try to detect AG Charts version from window
-        if (typeof agCharts !== 'undefined' && agCharts?.VERSION) {
+        if (agCharts?.VERSION) {
             return agCharts.VERSION;
         }
         // Fallback
@@ -583,19 +582,17 @@ class BenchmarkRunner {
                             try {
                                 await variant.run();
                                 warmupCount++;
-                                this.updateIndex++;
-                                this.updateProgress();
                             } finally {
                                 updateInFlight = false;
                             }
                         }
-                        requestAnimationFrame(runFrame);
+                        requestAnimationFrame(() => void runFrame());
                         return;
                     }
                 }
 
                 // Measurement phase
-                const elapsedTime = startTime !== null ? performance.now() - startTime : 0;
+                const elapsedTime = startTime === null ? 0 : performance.now() - startTime;
                 const hasReachedSampleLimit = updateCount >= updatesPerTest;
                 const hasReachedTimeLimit = elapsedTime >= maxCollectionTimeMs;
 
@@ -632,10 +629,10 @@ class BenchmarkRunner {
                     }
                 }
 
-                requestAnimationFrame(runFrame);
+                requestAnimationFrame(() => void runFrame());
             };
 
-            requestAnimationFrame(runFrame);
+            requestAnimationFrame(() => void runFrame());
         });
     }
 
@@ -683,7 +680,7 @@ class BenchmarkRunner {
  * This is called by the loader snippet after dynamic import.
  */
 export function initBenchmark(config: BenchmarkConfig): void {
-    if (!config || !config.testCases || config.testCases.length === 0) {
+    if (config?.testCases?.length === 0) {
         console.warn('initBenchmark: Invalid or empty config provided');
         return;
     }
@@ -697,14 +694,14 @@ export function initBenchmark(config: BenchmarkConfig): void {
 
     // Set up run button handler
     ui.setRunButtonHandler(() => {
-        runner.run();
+        void runner.run();
     });
 
     // Check for auto-run URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('benchmark') === 'true') {
         setTimeout(() => {
-            runner.run();
+            void runner.run();
         }, 1000);
     }
 
