@@ -249,9 +249,9 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         files['_options.json'] = JSON.stringify(jsonOptions);
     }
 
-    // Add benchmark.js if getBenchmarkConfig() is detected
+    // Add benchmarkHarness.js if getBenchmarkConfig() is detected
     if (hasBenchmarkConfig) {
-        files['benchmark.js'] = benchmarkRunner;
+        files['benchmarkHarness.js'] = benchmarkRunner;
     }
 
     const result: GeneratedContents = {
