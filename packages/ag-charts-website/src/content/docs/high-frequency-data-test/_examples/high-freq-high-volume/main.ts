@@ -941,19 +941,17 @@ function getBenchmarkConfig() {
             setup: async () => {
                 await setSeriesType(seriesType);
             },
-            methods: [
+            variants: [
                 ...(SUPPORTS_APPLY_TRANSACTION
                     ? [
                           {
-                              id: 'applyTransaction',
-                              label: 'applyTransaction()',
+                              params: { 'Update Method': 'applyTransaction()' },
                               update: () => performBenchmarkUpdate('applyTransaction'),
                           },
                       ]
                     : []),
                 {
-                    id: 'updateDelta',
-                    label: 'updateDelta()',
+                    params: { 'Update Method': 'updateDelta()' },
                     update: () => performBenchmarkUpdate('updateDelta'),
                 },
             ],

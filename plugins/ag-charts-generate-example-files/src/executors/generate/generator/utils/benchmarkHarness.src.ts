@@ -8,9 +8,12 @@
 // Type declarations for the benchmark system
 declare const agCharts: { VERSION?: string } | undefined;
 
-interface BenchmarkMethod {
-    id: string;
-    label?: string;
+/**
+ * A benchmark variant represents one permutation to test within a test case.
+ * The `params` object defines arbitrary key-value pairs that describe this variant.
+ */
+interface BenchmarkVariant {
+    params?: Record<string, string>;
     available?: boolean;
     update: () => Promise<number>;
 }
@@ -19,7 +22,7 @@ interface BenchmarkTestCase {
     id: string;
     label?: string;
     setup?: () => Promise<void>;
-    methods: BenchmarkMethod[];
+    variants: BenchmarkVariant[];
 }
 
 interface BenchmarkConfigSettings {
@@ -38,12 +41,90 @@ interface BenchmarkConfig {
 
 interface BenchmarkResult {
     testCase: string;
-    method: string;
+    params: Record<string, string>;
     averageTime: number;
     minTime: number;
     maxTime: number;
-    updateCount: number;
+    sampleCount: number;
     timings: number[];
+}
+
+// Internal normalized variant (always has params)
+interface NormalizedVariant {
+    params: Record<string, string>;
+    available: boolean;
+    update: () => Promise<number>;
+}
+
+interface NormalizedTestCase {
+    id: string;
+    label?: string;
+    setup?: () => Promise<void>;
+    variants: NormalizedVariant[];
+}
+
+interface NormalizedConfig {
+    testCases: NormalizedTestCase[];
+    config: BenchmarkConfigSettings;
+    warnings: string[];
+    metadata?: Record<string, unknown>;
+    onComplete?: () => Promise<void>;
+    paramKeys: string[];
+}
+
+/**
+ * Normalize config to internal format
+ */
+function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
+    const warnings = [...(config.warnings || [])];
+
+    const testCases: NormalizedTestCase[] = config.testCases.map((tc) => {
+        const variants: NormalizedVariant[] = tc.variants.map((v) => ({
+            params: v.params || {},
+            available: v.available !== false,
+            update: v.update,
+        }));
+
+        return {
+            id: tc.id,
+            label: tc.label,
+            setup: tc.setup,
+            variants,
+        };
+    });
+
+    // Preserve discovery order by iterating test cases and variants in order
+    const paramKeys: string[] = [];
+    for (const tc of config.testCases) {
+        for (const variant of tc.variants) {
+            if (variant.params) {
+                for (const key of Object.keys(variant.params)) {
+                    if (!paramKeys.includes(key)) {
+                        paramKeys.push(key);
+                    }
+                }
+            }
+        }
+    }
+
+    return {
+        testCases,
+        config: config.config,
+        warnings,
+        metadata: config.metadata,
+        onComplete: config.onComplete,
+        paramKeys,
+    };
+}
+
+/**
+ * Format params for display (e.g., in progress indicator)
+ */
+function formatParams(params: Record<string, string>): string {
+    const entries = Object.entries(params);
+    if (entries.length === 0) return '';
+    if (entries.length === 1) return entries[0][1];
+    return entries.map(([k, v]) => `${k}: ${v}`).join(', ');
 }
 
 /**
@@ -233,12 +314,16 @@ class BenchmarkUI {
 
     displayResults(
         results: BenchmarkResult[],
+        paramKeys: string[],
         formatTestCase: (testCase: string) => string,
-        formatMethod: (method: string) => string,
         version: string,
         metadata?: Record<string, unknown>
     ): void {
         if (!this.resultsElement) return;
+
+        // Calculate which columns need right-alignment (numeric columns start after params)
+        const numParamCols = paramKeys.length;
+        const firstNumericCol = 1 + numParamCols + 1; // Test Case + params + first numeric (Avg Time)
 
         let html = `
             <style>
@@ -270,7 +355,7 @@ class BenchmarkUI {
                     font-size: 12px;
                     letter-spacing: 0.5px;
                 }
-                .benchmark-table th:nth-child(n+3) {
+                .benchmark-table th:nth-child(n+${firstNumericCol}) {
                     text-align: right;
                 }
                 .benchmark-table td {
@@ -278,7 +363,7 @@ class BenchmarkUI {
                     border: 1px solid #dee2e6;
                     color: #212529;
                 }
-                .benchmark-table td:nth-child(n+3) {
+                .benchmark-table td:nth-child(n+${firstNumericCol}) {
                     text-align: right;
                     font-family: 'SF Mono', Monaco, 'Courier New', monospace;
                     font-size: 13px;
@@ -290,7 +375,7 @@ class BenchmarkUI {
                     background-color: #e7f1ff;
                     transition: background-color 0.15s ease;
                 }
-                .benchmark-method {
+                .benchmark-param {
                     font-weight: 500;
                 }
             </style>
@@ -299,21 +384,26 @@ class BenchmarkUI {
         html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
         html += '<th>Test Case</th>';
-        html += '<th>Method</th>';
+        for (const key of paramKeys) {
+            html += `<th>${key}</th>`;
+        }
         html += '<th>Avg Time (ms)</th>';
         html += '<th>Min Time (ms)</th>';
         html += '<th>Max Time (ms)</th>';
-        html += '<th>Updates</th>';
+        html += '<th>Samples</th>';
         html += '</tr></thead><tbody>';
 
         results.forEach((result) => {
             html += '<tr>';
             html += `<td>${formatTestCase(result.testCase)}</td>`;
-            html += `<td><span class="benchmark-method">${formatMethod(result.method)}</span></td>`;
+            for (const key of paramKeys) {
+                const value = result.params[key] || '';
+                html += `<td><span class="benchmark-param">${value}</span></td>`;
+            }
             html += `<td>${result.averageTime.toFixed(3)}</td>`;
             html += `<td>${result.minTime.toFixed(3)}</td>`;
             html += `<td>${result.maxTime.toFixed(3)}</td>`;
-            html += `<td>${result.updateCount}</td>`;
+            html += `<td>${result.sampleCount}</td>`;
             html += '</tr>';
         });
 
@@ -328,14 +418,15 @@ class BenchmarkUI {
             exportButton.addEventListener('click', () => {
                 const exportData = {
                     version,
-                    config: metadata || {},
+                    parameterKeys: paramKeys,
+                    metadata: metadata || {},
                     results: results.map((r) => ({
                         testCase: formatTestCase(r.testCase),
-                        method: formatMethod(r.method),
+                        params: r.params,
                         averageTime: r.averageTime,
                         minTime: r.minTime,
                         maxTime: r.maxTime,
-                        updateCount: r.updateCount,
+                        sampleCount: r.sampleCount,
                         timings: r.timings,
                     })),
                 };
@@ -350,17 +441,21 @@ class BenchmarkUI {
             });
         }
 
-        // Log to console
-        console.table(
-            results.map((r) => ({
+        // Log to console with dynamic columns
+        const consoleData = results.map((r) => {
+            const row: Record<string, string | number> = {
                 testCase: formatTestCase(r.testCase),
-                method: formatMethod(r.method),
-                avgMs: r.averageTime.toFixed(3),
-                minMs: r.minTime.toFixed(3),
-                maxMs: r.maxTime.toFixed(3),
-                updates: r.updateCount,
-            }))
-        );
+            };
+            for (const key of paramKeys) {
+                row[key] = r.params[key] || '';
+            }
+            row.avgMs = r.averageTime.toFixed(3);
+            row.minMs = r.minTime.toFixed(3);
+            row.maxMs = r.maxTime.toFixed(3);
+            row.samples = r.sampleCount;
+            return row;
+        });
+        console.table(consoleData);
     }
 
     setRunButtonHandler(handler: () => void): void {
@@ -380,17 +475,17 @@ class BenchmarkUI {
  * BenchmarkRunner - Executes benchmark tests based on declarative config
  */
 class BenchmarkRunner {
-    private config: BenchmarkConfig;
+    private config: NormalizedConfig;
     private ui: BenchmarkUI;
     private isRunning = false;
     private results: BenchmarkResult[] = [];
     private updateIndex = 0;
     private totalUpdates = 0;
-    private currentTestCase: BenchmarkTestCase | null = null;
-    private currentMethod: BenchmarkMethod | null = null;
+    private currentTestCase: NormalizedTestCase | null = null;
+    private currentVariant: NormalizedVariant | null = null;
     private version: string;
 
-    constructor(config: BenchmarkConfig, ui: BenchmarkUI) {
+    constructor(config: NormalizedConfig, ui: BenchmarkUI) {
         this.config = config;
         this.ui = ui;
         this.version = this.detectVersion();
@@ -408,8 +503,8 @@ class BenchmarkRunner {
     private calculateTotalUpdates(): number {
         let total = 0;
         for (const testCase of this.config.testCases) {
-            const availableMethods = testCase.methods.filter((m) => m.available !== false);
-            total += availableMethods.length * this.config.config.updatesPerTest;
+            const availableVariants = testCase.variants.filter((v) => v.available);
+            total += availableVariants.length * this.config.config.updatesPerTest;
         }
         return total;
     }
@@ -436,12 +531,12 @@ class BenchmarkRunner {
                     await testCase.setup();
                 }
 
-                // Run each available method
-                const availableMethods = testCase.methods.filter((m) => m.available !== false);
-                for (const method of availableMethods) {
-                    this.currentMethod = method;
+                // Run each available variant
+                const availableVariants = testCase.variants.filter((v) => v.available);
+                for (const variant of availableVariants) {
+                    this.currentVariant = variant;
                     this.updateProgress();
-                    const result = await this.runBenchmarkTest(testCase, method);
+                    const result = await this.runBenchmarkTest(testCase, variant);
                     this.results.push(result);
                 }
             }
@@ -453,7 +548,7 @@ class BenchmarkRunner {
         } finally {
             this.isRunning = false;
             this.currentTestCase = null;
-            this.currentMethod = null;
+            this.currentVariant = null;
             this.ui.setRunButtonEnabled(true);
 
             // Call onComplete callback
@@ -465,7 +560,7 @@ class BenchmarkRunner {
         }
     }
 
-    private async runBenchmarkTest(testCase: BenchmarkTestCase, method: BenchmarkMethod): Promise<BenchmarkResult> {
+    private async runBenchmarkTest(testCase: NormalizedTestCase, variant: NormalizedVariant): Promise<BenchmarkResult> {
         const timings: number[] = [];
         let updateCount = 0;
         let warmupCount = 0;
@@ -486,7 +581,7 @@ class BenchmarkRunner {
                         if (!updateInFlight) {
                             updateInFlight = true;
                             try {
-                                await method.update();
+                                await variant.update();
                                 warmupCount++;
                                 this.updateIndex++;
                                 this.updateProgress();
@@ -512,11 +607,11 @@ class BenchmarkRunner {
 
                     resolve({
                         testCase: testCase.id,
-                        method: method.id,
+                        params: { ...variant.params },
                         averageTime,
                         minTime,
                         maxTime,
-                        updateCount: timings.length,
+                        sampleCount: timings.length,
                         timings: [...timings],
                     });
                     return;
@@ -525,7 +620,7 @@ class BenchmarkRunner {
                 if (!updateInFlight) {
                     updateInFlight = true;
                     try {
-                        const elapsed = await method.update();
+                        const elapsed = await variant.update();
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
@@ -545,13 +640,14 @@ class BenchmarkRunner {
     }
 
     private updateProgress(showExportButton = false): void {
+        const variantDisplay = this.currentVariant ? formatParams(this.currentVariant.params) : '';
         const currentTest = this.currentTestCase
-            ? `${this.currentTestCase.label || this.currentTestCase.id} (${this.currentMethod?.label || this.currentMethod?.id || ''})`
+            ? `${this.currentTestCase.label || this.currentTestCase.id}${variantDisplay ? ` (${variantDisplay})` : ''}`
             : 'Initializing...';
         const completedTests = this.results.length;
         let totalTests = 0;
         for (const testCase of this.config.testCases) {
-            totalTests += testCase.methods.filter((m) => m.available !== false).length;
+            totalTests += testCase.variants.filter((v) => v.available).length;
         }
 
         this.ui.updateProgress(
@@ -562,7 +658,7 @@ class BenchmarkRunner {
             this.updateIndex,
             this.totalUpdates,
             this.version,
-            this.config.warnings || [],
+            this.config.warnings,
             showExportButton
         );
     }
@@ -571,16 +667,10 @@ class BenchmarkRunner {
         this.updateProgress(true);
         this.ui.displayResults(
             this.results,
+            this.config.paramKeys,
             (testCase) => {
                 const tc = this.config.testCases.find((t) => t.id === testCase);
                 return tc?.label || testCase;
-            },
-            (method) => {
-                for (const tc of this.config.testCases) {
-                    const m = tc.methods.find((m) => m.id === method);
-                    if (m) return m.label || method;
-                }
-                return method;
             },
             this.version,
             this.config.metadata
@@ -598,10 +688,12 @@ export function initBenchmark(config: BenchmarkConfig): void {
         return;
     }
 
+    const normalizedConfig = normalizeConfig(config);
+
     const ui = new BenchmarkUI();
     ui.init();
 
-    const runner = new BenchmarkRunner(config, ui);
+    const runner = new BenchmarkRunner(normalizedConfig, ui);
 
     // Set up run button handler
     ui.setRunButtonHandler(() => {
