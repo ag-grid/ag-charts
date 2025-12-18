@@ -1,11 +1,12 @@
-import { type ChartAnimationPhase, Color } from 'ag-charts-core';
 import {
     ActionOnSet,
     AsyncAwaitQueue,
     type AxisID,
+    type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
+    Color,
     Debug,
     Logger,
     type ModuleInstance,
