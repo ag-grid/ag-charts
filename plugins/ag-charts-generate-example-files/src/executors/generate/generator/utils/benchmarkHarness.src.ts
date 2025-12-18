@@ -129,6 +129,89 @@ function formatParams(params: Record<string, string>): string {
 }
 
 /**
+ * CSS custom properties for theme-aware benchmark styling.
+ * Uses `[data-dark-mode="true"]` selector to automatically switch themes.
+ */
+const BENCHMARK_THEME_CSS = `
+    :root {
+        /* Colors aligned with ag-website-shared design system */
+        --bm-container-bg: #ffffff;  /* white */
+        --bm-container-border: #d0d5dd;  /* gray-300 */
+        --bm-container-shadow: rgba(12,17,29,0.08);  /* gray-950 based */
+        --bm-error-text: #dc3545;  /* negative */
+        --bm-error-bg: #fef0c7;  /* warning-100 */
+        --bm-status-running: #667085;  /* gray-500 */
+        --bm-status-complete: #28a745;  /* success/positive */
+        --bm-warning-bg: #fffaeb;  /* warning-50 */
+        --bm-warning-text: #b54708;  /* warning-700 */
+        --bm-warning-border: #fedf89;  /* warning-200 */
+        --bm-primary-bg: #0e4491;  /* brand-500 */
+        --bm-primary-bg-end: #00388f;  /* brand-700 */
+        --bm-badge-bg: #ffffff;  /* white */
+        --bm-badge-text: #475467;  /* gray-600 */
+        --bm-badge-border: #d0d5dd;  /* gray-300 */
+        --bm-badge-accent: #0e4491;  /* brand-500 */
+        --bm-version-bg: #e5effd;  /* brand-100 */
+        --bm-version-text: #0e4491;  /* brand-500 */
+        --bm-version-border: #a9c5ec;  /* brand-300 */
+        --bm-table-header-start: #f9fafb;  /* gray-50 */
+        --bm-table-header-end: #f2f4f7;  /* gray-100 */
+        --bm-table-header-text: #475467;  /* gray-600 */
+        --bm-table-border: #eaecf0;  /* gray-200 */
+        --bm-table-text: #101828;  /* gray-900 */
+        --bm-table-row-alt: #f9fafb;  /* gray-50 */
+        --bm-table-row-hover: #e5effd;  /* brand-100 */
+        --bm-run-button-bg: #28a745;  /* success/positive */
+    }
+
+    [data-dark-mode="true"] {
+        /* Colors aligned with ag-website-shared design system - muted for dark mode */
+        --bm-container-bg: #141d2c;  /* mix of gray-800 #182230 and gray-900 #101828 */
+        --bm-container-border: #344054;  /* gray-700 */
+        --bm-container-shadow: rgba(0,0,0,0.3);
+        --bm-error-text: #f87171;
+        --bm-error-bg: #450a0a;
+        --bm-status-running: #667085;  /* gray-500 - muted */
+        --bm-status-complete: #28a745;  /* standard success - not too bright */
+        --bm-warning-bg: #4e1d09;  /* warning-950 */
+        --bm-warning-text: #fdb022;  /* warning-400 */
+        --bm-warning-border: #93370d;  /* warning-800 */
+        --bm-primary-bg: #3d7acd;  /* brand-400 - darker than brand-300 */
+        --bm-primary-bg-end: #0e4491;  /* brand-500 */
+        --bm-badge-bg: #182230;  /* gray-800 */
+        --bm-badge-text: #98a2b3;  /* gray-400 - slightly muted */
+        --bm-badge-border: #344054;  /* gray-700 */
+        --bm-badge-accent: #3d7acd;  /* brand-400 */
+        --bm-version-bg: #001a5a;  /* brand-950 - darker */
+        --bm-version-text: #a9c5ec;  /* brand-300 - muted */
+        --bm-version-border: #00246c;  /* brand-900 */
+        --bm-table-header-start: #182230;  /* gray-800 */
+        --bm-table-header-end: #101828;  /* gray-900 */
+        --bm-table-header-text: #98a2b3;  /* gray-400 */
+        --bm-table-border: #344054;  /* gray-700 */
+        --bm-table-text: #d0d5dd;  /* gray-300 - not pure white */
+        --bm-table-row-alt: #182230;  /* gray-800 */
+        --bm-table-row-hover: #002e7e;  /* brand-800 */
+        --bm-run-button-bg: #28a745;  /* standard success - not too bright */
+    }
+`;
+
+let themeStylesInjected = false;
+
+/**
+ * Inject theme CSS custom properties into the document
+ */
+function injectThemeStyles(): void {
+    if (themeStylesInjected) return;
+
+    const styleElement = document.createElement('style');
+    styleElement.id = 'benchmark-theme-styles';
+    styleElement.textContent = BENCHMARK_THEME_CSS;
+    document.head.appendChild(styleElement);
+    themeStylesInjected = true;
+}
+
+/**
  * BenchmarkUI - Self-contained UI management for benchmarks
  * Creates all necessary DOM elements dynamically
  */
@@ -143,6 +226,7 @@ class BenchmarkUI {
      * Initialize the benchmark UI by creating DOM elements
      */
     init(): void {
+        injectThemeStyles();
         this.createBenchmarkContainer();
         this.injectRunButton();
     }
@@ -152,7 +236,7 @@ class BenchmarkUI {
         this.container = document.createElement('div');
         this.container.id = 'benchmarkContainer';
         this.container.style.cssText =
-            'display: none; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-top: 10px;';
+            'display: none; background-color: var(--bm-container-bg); border: 1px solid var(--bm-container-border); border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px var(--bm-container-shadow); margin-top: 10px;';
 
         // Progress element
         this.progressElement = document.createElement('div');
@@ -164,7 +248,7 @@ class BenchmarkUI {
         this.errorElement = document.createElement('div');
         this.errorElement.id = 'benchmarkError';
         this.errorElement.style.cssText =
-            'display: none; color: #dc3545; margin-top: 10px; padding: 10px; background: #f8d7da; border-radius: 4px;';
+            'display: none; color: var(--bm-error-text); margin-top: 10px; padding: 10px; background: var(--bm-error-bg); border-radius: 4px;';
         this.container.appendChild(this.errorElement);
 
         // Results element
@@ -213,7 +297,7 @@ class BenchmarkUI {
         this.runButton.id = 'runBenchmarkBtn';
         this.runButton.textContent = 'Run Benchmark';
         this.runButton.style.cssText =
-            'margin-left: auto; background-color: #4caf50; color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px;';
+            'margin-left: auto; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px;';
         controlsRow.appendChild(this.runButton);
     }
 
@@ -263,7 +347,7 @@ class BenchmarkUI {
     ): void {
         if (!this.progressElement) return;
 
-        const statusColor = status === 'running' ? '#6c757d' : '#28a745';
+        const statusColor = status === 'running' ? 'var(--bm-status-running)' : 'var(--bm-status-complete)';
         const statusText = status === 'running' ? 'Running' : 'Complete';
         const testProgress = totalTests > 0 ? Math.round((completedTests / totalTests) * 100) : 0;
         const updateProgress = totalUpdates > 0 ? Math.round((updateIndex / totalUpdates) * 100) : 0;
@@ -273,13 +357,13 @@ class BenchmarkUI {
             warningsBadges = warnings
                 .map(
                     (warning) =>
-                        `<span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; border: 1px solid #ffeaa7; font-size: 11px; font-weight: 500; white-space: nowrap;">⚠️ ${warning}</span>`
+                        `<span style="background: var(--bm-warning-bg); color: var(--bm-warning-text); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--bm-warning-border); font-size: 11px; font-weight: 500; white-space: nowrap;">⚠️ ${warning}</span>`
                 )
                 .join('');
         }
 
         const exportButton = showExportButton
-            ? `<button id="exportBenchmarkResults" style="background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%); color: white; border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;">Export JSON</button>`
+            ? `<button id="exportBenchmarkResults" style="background: linear-gradient(to bottom, var(--bm-primary-bg) 0%, var(--bm-primary-bg-end) 100%); color: white; border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;">Export JSON</button>`
             : '';
 
         this.progressElement.style.cssText =
@@ -290,19 +374,19 @@ class BenchmarkUI {
                     <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${statusText}
                     </span>
-                    <span style="background: #0066cc; color: white; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; white-space: nowrap;">
+                    <span style="background: var(--bm-primary-bg); color: white; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; white-space: nowrap;">
                         ${currentTest}
                     </span>
-                    <span style="background: white; color: #495057; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid #dee2e6; white-space: nowrap;">
-                        Tests: ${completedTests}/${totalTests} <strong style="color: #0066cc;">${testProgress}%</strong>
+                    <span style="background: var(--bm-badge-bg); color: var(--bm-badge-text); padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid var(--bm-badge-border); white-space: nowrap;">
+                        Tests: ${completedTests}/${totalTests} <strong style="color: var(--bm-badge-accent);">${testProgress}%</strong>
                     </span>
-                    <span style="background: white; color: #495057; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid #dee2e6; white-space: nowrap;">
-                        Runs: ${updateIndex}/${totalUpdates} <strong style="color: #0066cc;">${updateProgress}%</strong>
+                    <span style="background: var(--bm-badge-bg); color: var(--bm-badge-text); padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid var(--bm-badge-border); white-space: nowrap;">
+                        Runs: ${updateIndex}/${totalUpdates} <strong style="color: var(--bm-badge-accent);">${updateProgress}%</strong>
                     </span>
                     ${warningsBadges}
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="background: #e7f1ff; color: #0066cc; padding: 4px 12px; border-radius: 12px; border: 1px solid #b3d9ff; font-size: 12px; font-weight: 500; white-space: nowrap;">
+                    <span style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;">
                         v${version}
                     </span>
                     ${exportButton}
@@ -329,7 +413,7 @@ class BenchmarkUI {
                 .benchmark-table-container {
                     max-height: 400px;
                     overflow-y: auto;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid var(--bm-table-border);
                     border-radius: 4px;
                 }
                 .benchmark-table {
@@ -339,7 +423,7 @@ class BenchmarkUI {
                     font-size: 14px;
                 }
                 .benchmark-table thead {
-                    background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+                    background: linear-gradient(to bottom, var(--bm-table-header-start) 0%, var(--bm-table-header-end) 100%);
                     position: sticky;
                     top: 0;
                     z-index: 1;
@@ -348,8 +432,8 @@ class BenchmarkUI {
                     padding: 12px 16px;
                     text-align: left;
                     font-weight: 600;
-                    color: #495057;
-                    border: 1px solid #dee2e6;
+                    color: var(--bm-table-header-text);
+                    border: 1px solid var(--bm-table-border);
                     text-transform: uppercase;
                     font-size: 12px;
                     letter-spacing: 0.5px;
@@ -359,8 +443,8 @@ class BenchmarkUI {
                 }
                 .benchmark-table td {
                     padding: 10px 16px;
-                    border: 1px solid #dee2e6;
-                    color: #212529;
+                    border: 1px solid var(--bm-table-border);
+                    color: var(--bm-table-text);
                 }
                 .benchmark-table td:nth-child(n+${firstNumericCol}) {
                     text-align: right;
@@ -368,10 +452,10 @@ class BenchmarkUI {
                     font-size: 13px;
                 }
                 .benchmark-table tbody tr:nth-child(even) {
-                    background-color: #f8f9fa;
+                    background-color: var(--bm-table-row-alt);
                 }
                 .benchmark-table tbody tr:hover {
-                    background-color: #e7f1ff;
+                    background-color: var(--bm-table-row-hover);
                     transition: background-color 0.15s ease;
                 }
                 .benchmark-param {
