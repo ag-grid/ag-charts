@@ -52,7 +52,6 @@ import { HeroGallery } from './sections/hero/HeroGallery';
 import GalleryShowcaseSection from './sections/gallery-showcase/GalleryShowcaseSection.astro';
 import ChartTypesGridSection from './sections/chart-types/ChartTypesGridSection.astro';
 import InteractiveDemoSection from './sections/interactive-demo/InteractiveDemoSection.astro';
-import ChartExplorerSection from './sections/chart-explorer/ChartExplorerSection.astro';
 import FinancialChartsSection from './sections/financial-charts/FinancialChartsSection.astro';
 import MapChartsSection from './sections/map-charts/MapChartsSection.astro';
 import IntegratedChartsSection from './sections/integrated-charts/IntegratedChartsSection.astro';
@@ -165,9 +164,6 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
                         <InteractiveDemoSection section={section as InteractiveDemoSectionType} pageContent={content} />
                     );
 
-                case 'chart-explorer':
-                    return <ChartExplorerSection section={section as ChartExplorerSectionType} pageContent={content} />;
-
                 case 'financial-charts':
                     return (
                         <FinancialChartsSection section={section as FinancialChartsSectionType} pageContent={content} />
@@ -193,18 +189,17 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
                     );
 
                 case 'code-example':
-                    return (
-                        <CodeExampleSection section={section as CodeExampleSectionType} pageContent={content} />
-                    );
+                    return <CodeExampleSection section={section as CodeExampleSectionType} pageContent={content} />;
 
                 case 'feature-grid':
-                    return (
-                        <FeatureGridSection section={section as FeatureGridSectionType} pageContent={content} />
-                    );
+                    return <FeatureGridSection section={section as FeatureGridSectionType} pageContent={content} />;
 
                 case 'chart-types-showcase':
                     return (
-                        <ChartTypesShowcaseSection section={section as ChartTypesShowcaseSectionType} pageContent={content} />
+                        <ChartTypesShowcaseSection
+                            section={section as ChartTypesShowcaseSectionType}
+                            pageContent={content}
+                        />
                     );
 
                 case 'pricing':
