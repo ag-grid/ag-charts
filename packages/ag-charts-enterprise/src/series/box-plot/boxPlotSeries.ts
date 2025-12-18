@@ -52,11 +52,7 @@ interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly createNodeDataContext: BoxPlotSeriesNodeDatumContext;
 }
 
-/**
- * Shared context for creating BoxPlotNodeDatum instances.
- * Instantiated once per createNodeData() call and reused across all datum operations
- * to minimize memory allocations.
- */
+/** Context object caching expensive lookups for createNodeData(). */
 interface BoxPlotSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<BoxPlotNodeDatum> {
     // Box plot specific data arrays
     readonly minValues: any[];

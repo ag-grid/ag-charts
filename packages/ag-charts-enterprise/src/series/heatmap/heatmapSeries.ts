@@ -73,14 +73,7 @@ interface HeatmapLabelDatum extends Point {
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
     Required<Omit<AgHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
-/**
- * Shared context for creating HeatmapNodeDatum instances.
- * Instantiated once per createNodeData() call and reused across all datum operations.
- *
- * Extends CartesianCreateNodeDataContext which provides:
- * - xAxis, yAxis, xScale, yScale, rawData, xValues, xKey, yKey, xName, yName, animationEnabled
- * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
- */
+/** Context object caching expensive lookups for createNodeData(). */
 interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
     // Override yKey to be required for heatmap
     readonly yKey: string;

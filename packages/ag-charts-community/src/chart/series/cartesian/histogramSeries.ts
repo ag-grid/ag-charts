@@ -114,17 +114,7 @@ interface HistogramSeriesTypes extends CartesianSeriesTypes {
     readonly createNodeDataContext: HistogramSeriesNodeDatumContext;
 }
 
-/**
- * Shared context for creating HistogramNodeDatum instances.
- * Instantiated once per createNodeData() call and reused across all datum operations.
- *
- * Extends CartesianCreateNodeDataContext which provides:
- * - xAxis, yAxis, xScale, yScale, rawData, xValues, xKey, yKey, xName, yName, animationEnabled
- * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
- *
- * Note: HistogramSeries uses calculatedBins for iteration rather than rawData/xValues,
- * but these fields are included for type compatibility with the template method pattern.
- */
+/** Context object caching expensive lookups for createNodeData(). */
 interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext<HistogramNodeDatum> {
     // Pre-computed values specific to histogram
     readonly yAxisReversed: boolean;

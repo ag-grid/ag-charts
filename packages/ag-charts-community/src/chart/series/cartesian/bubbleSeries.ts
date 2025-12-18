@@ -145,18 +145,7 @@ interface BubbleSeriesTypes extends CartesianSeriesTypes {
     readonly createNodeDataContext: BubbleSeriesNodeDatumContext;
 }
 
-/**
- * Context object cached once per createNodeData() call.
- * Avoids repeated property lookups and scale conversions in hot loops.
- *
- * Extends CartesianMarkerLikeContext which provides:
- * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
- * - xAxis, yAxis, xScale, yScale (axes and scales)
- * - rawData, xValues (data arrays - we use xDataValues/yDataValues instead)
- * - xKey, yKey, xName, yName (property keys)
- * - animationEnabled (animation flag)
- * - xOffset, yOffset (band scale offsets)
- */
+/** Context object caching expensive lookups for createNodeData(). */
 interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<BubbleScatterNodeDatum> {
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
@@ -614,6 +603,27 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     /**
+     * Validates datum state and upserts node - centralizes duplicated upsert pattern.
+     */
+    private upsertBubbleNodeDatum(
+        ctx: BubbleSeriesNodeDatumContext,
+        scratch: PreparedBubbleNodeDatumState,
+        datumIndex: number
+    ): void {
+        if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) return;
+        upsertNodeDatum(
+            ctx,
+            { scratch, datumIndex },
+            (c, p) => {
+                const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                return node;
+            },
+            (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+        );
+    }
+
+    /**
      * Simple iteration path for ungrouped data without aggregation.
      */
     private createNodeDataSimple(ctx: BubbleSeriesNodeDatumContext, scratch: PreparedBubbleNodeDatumState): void {
@@ -622,19 +632,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            // Validate and compute - skip if invalid
-            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
-            // Use shared utility for create/update logic
-            upsertNodeDatum(
-                ctx,
-                { scratch, datumIndex },
-                (c, p) => {
-                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
-                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
-                    return node;
-                },
-                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
-            );
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
     }
 
@@ -666,35 +664,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = count;
             scratch.dilation = dilation;
             scratch.area = area;
-            // Validate and compute - skip if invalid
-            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
-            upsertNodeDatum(
-                ctx,
-                { scratch, datumIndex },
-                (c, p) => {
-                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
-                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
-                    return node;
-                },
-                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
-            );
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
         for (const datumIndex of singleDatumIndices) {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            // Validate and compute - skip if invalid
-            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
-            upsertNodeDatum(
-                ctx,
-                { scratch, datumIndex },
-                (c, p) => {
-                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
-                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
-                    return node;
-                },
-                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
-            );
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
     }
 

@@ -119,18 +119,7 @@ interface AreaSeriesStackContext {
     strokeSpans: LinePathSpan[];
 }
 
-/**
- * Context object caching expensive lookups for createNodeData().
- * Created once per createNodeData() call and passed to helper methods.
- *
- * Extends CartesianMarkerLikeContext which provides:
- * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
- * - xAxis, yAxis, xScale, yScale (axes and scales)
- * - rawData, xValues (data arrays)
- * - xKey, yKey, xName, yName (property keys)
- * - animationEnabled (animation flag)
- * - xOffset, yOffset (band scale offsets)
- */
+/** Context object caching expensive lookups for createNodeData(). */
 interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<MarkerSelectionDatum> {
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
@@ -946,7 +935,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             xScale,
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,
-            yOffset: 0, // Area series don't use y offset
+            yOffset: 0,
 
             // Aggregation
             indices: dataAggregationFilter?.indices,
