@@ -17,7 +17,8 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
-const { prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } = _ModuleSupport;
+const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } =
+    _ModuleSupport;
 
 /**
  * Consolidated type interface for FunnelSeries.
@@ -35,7 +36,12 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     override properties = new FunnelProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx);
+        super({
+            moduleCtx,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+            },
+        });
     }
 
     override getBandScalePadding() {

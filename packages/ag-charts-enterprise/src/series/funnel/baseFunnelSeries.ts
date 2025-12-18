@@ -138,7 +138,18 @@ export abstract class BaseFunnelSeries<
         return 'main-category' as const;
     }
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor({
+        moduleCtx,
+        animationResetFns,
+    }: {
+        moduleCtx: _ModuleSupport.ModuleContext;
+        animationResetFns: {
+            datum: (
+                node: _ModuleSupport.NodeOf<TTypes>,
+                datum: FunnelNodeDatum
+            ) => _ModuleSupport.AnimationValue & Partial<_ModuleSupport.NodeOf<TTypes>>;
+        };
+    }) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -153,6 +164,7 @@ export abstract class BaseFunnelSeries<
             categoryKey: 'xValue',
             datumSelectionGarbageCollection: false,
             animationResetFns: {
+                datum: animationResetFns.datum,
                 label: resetLabelFn,
             },
         });

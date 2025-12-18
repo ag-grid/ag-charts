@@ -35,7 +35,12 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     override properties = new ConeFunnelProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx);
+        super({
+            moduleCtx,
+            animationResetFns: {
+                datum: resetLineSelectionsFn,
+            },
+        });
     }
 
     override get hasData(): boolean {
