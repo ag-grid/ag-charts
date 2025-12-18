@@ -218,13 +218,7 @@ export {
     resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './chart/series/cartesian/barUtil';
-export {
-    isValidCoordinate,
-    trimArray,
-    updateBBoxInPlace,
-    updateNodeDatumCoordinates,
-    upsertNodeDatum,
-} from './chart/series/cartesian/cartesianSeriesUtil';
+export { upsertNodeDatum } from './chart/series/cartesian/cartesianSeriesUtil';
 export type { IncrementalUpdateContext } from './chart/series/cartesian/cartesianSeriesUtil';
 export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/cartesian/areaUtil';
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';

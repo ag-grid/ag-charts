@@ -284,9 +284,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      * Template method hook: Iterates over data and creates/updates node datums.
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
-        // Labels are rebuilt from scratch each time (due to formatLabels complexity)
-        ctx.labels.length = 0;
-
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             // Use shared utility for create/update logic
             const nodeDatum = upsertNodeDatum(
@@ -387,8 +384,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             colorDomain,
             itemPadding,
 
-            // Label support
-            labels: canIncrementallyUpdate ? contextNodeData.labelData : [],
+            // Label support - labels are always rebuilt from scratch (not incrementally updated)
+            labels: [],
             labelIndex: 0,
         };
     }

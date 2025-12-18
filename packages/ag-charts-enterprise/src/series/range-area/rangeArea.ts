@@ -324,10 +324,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
-        const existingMarkerData = this.contextNodeData?.nodeData;
+        const existingNodes = this.contextNodeData?.nodeData;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate =
-            existingMarkerData != null &&
+            existingNodes != null &&
             (processedData.changeDescription != null ||
                 !processedDataIsAnimatable(processedData) ||
                 dataAggregationFilter != null);
@@ -355,7 +355,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             connectMissingData: this.properties.connectMissingData,
             interpolation: this.properties.interpolation,
-            nodes: canIncrementallyUpdate ? existingMarkerData : [],
+            nodes: canIncrementallyUpdate ? existingNodes : [],
             labelData: [],
             spanPoints: [],
             nodeIndex: 0,

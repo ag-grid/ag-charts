@@ -100,6 +100,8 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly yCurrValues: number[];
     readonly yPrevValues: number[];
     readonly yCurrTotalValues: number[];
+    // Mutable state for connector line points (built during populateNodeData)
+    pointData: WaterfallNodePointDatum[];
 }
 
 /** Parameters for creating/updating a WaterfallNodeDatum */
@@ -279,11 +281,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return [Number.NaN, Number.NaN];
     }
 
-    // Store pointData for use in assembleResult - needs to persist between hooks
-    private _pendingPointData: WaterfallNodePointDatum[] = [];
-
     protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
-        const pointData: WaterfallNodePointDatum[] = [];
         let trailingSubtotal = 0;
 
         // Scratch object for params - reused across iterations
@@ -346,11 +344,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     trailingValue,
                     isTotalOrSubtotal
                 );
-                pointData.push(pathPoint);
+                ctx.pointData.push(pathPoint);
             }
         }
-
-        this._pendingPointData = pointData;
     }
 
     protected override finalizeNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
@@ -379,7 +375,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     ): WaterfallContext {
         const connectorLinesEnabled = this.properties.line.enabled;
         if (ctx.yCurrValues != null && connectorLinesEnabled) {
-            result.pointData = this._pendingPointData;
+            result.pointData = ctx.pointData;
         }
         return result;
     }
@@ -451,6 +447,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
             nodeIndex: 0,
+            pointData: [],
         };
     }
 
