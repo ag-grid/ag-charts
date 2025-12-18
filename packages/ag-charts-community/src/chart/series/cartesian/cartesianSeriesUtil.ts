@@ -97,3 +97,65 @@ export function trimArray<T>(array: T[], length: number): void {
         array.length = length;
     }
 }
+
+/**
+ * Update coordinate fields in-place on a node datum.
+ *
+ * JIT-safe: modifies existing properties only, never adds new ones.
+ * Centralizes the common x/y/midPoint coordinate calculation pattern.
+ *
+ * @example
+ * ```typescript
+ * updateNodeDatumCoordinates(datum, x, y, width, height);
+ * ```
+ *
+ * @param datum - Node datum with x, y, and midPoint fields
+ * @param x - Left edge x coordinate
+ * @param y - Top edge y coordinate
+ * @param width - Width for midPoint calculation
+ * @param height - Height for midPoint calculation
+ */
+export function updateNodeDatumCoordinates(
+    datum: { x: number; y: number; midPoint: { x: number; y: number } },
+    x: number,
+    y: number,
+    width: number,
+    height: number
+): void {
+    datum.x = x;
+    datum.y = y;
+    datum.midPoint.x = x + width / 2;
+    datum.midPoint.y = y + height / 2;
+}
+
+/**
+ * Update BBox fields in-place.
+ *
+ * JIT-safe: modifies existing properties only, never creates new objects.
+ * Use this instead of creating new BBox instances in hot paths.
+ *
+ * @example
+ * ```typescript
+ * if (datum.clipBBox) {
+ *     updateBBoxInPlace(datum.clipBBox, x, y, width, height);
+ * }
+ * ```
+ *
+ * @param bbox - Existing BBox to update
+ * @param x - Left edge x coordinate
+ * @param y - Top edge y coordinate
+ * @param width - BBox width
+ * @param height - BBox height
+ */
+export function updateBBoxInPlace(
+    bbox: { x: number; y: number; width: number; height: number },
+    x: number,
+    y: number,
+    width: number,
+    height: number
+): void {
+    bbox.x = x;
+    bbox.y = y;
+    bbox.width = width;
+    bbox.height = height;
+}

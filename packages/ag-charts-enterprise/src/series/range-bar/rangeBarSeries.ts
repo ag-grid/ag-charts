@@ -61,6 +61,7 @@ const {
     toHighlightString,
     HighlightState,
     AggregationManager,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
@@ -578,33 +579,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     /**
-     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
-     * This method decides whether to update existing nodes in-place or create new ones.
-     */
-    private upsertNodeDatum(
-        ctx: RangeBarSeriesNodeDatumContext,
-        params: NodeDatumParams,
-        itemId: RangeBarItemId,
-        strokeWidth: number
-    ): void {
-        // Check if we can reuse existing nodes
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        if (canReuseNode) {
-            // Reuse existing node by updating in place
-            const existingNode = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, existingNode, params, strokeWidth);
-        } else {
-            // Create new node
-            const nodeData = this.createNodeDatum(ctx, params, itemId, strokeWidth);
-            if (nodeData) {
-                ctx.nodes.push(nodeData);
-            }
-        }
-        ctx.nodeIndex++;
-    }
-
-    /**
      * Creates node data using aggregation filters for large datasets.
      */
     private createNodeDataWithAggregation(
@@ -646,7 +620,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[yMaxIndex];
             nodeDatumParamsScratch.crisp = false;
 
-            this.upsertNodeDatum(ctx, nodeDatumParamsScratch, itemId, strokeWidth);
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
         }
     }
 
@@ -681,7 +661,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
             nodeDatumParamsScratch.crisp = ctx.crisp;
 
-            this.upsertNodeDatum(ctx, nodeDatumParamsScratch, itemId, strokeWidth);
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
         }
     }
 
@@ -709,7 +695,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
             nodeDatumParamsScratch.crisp = ctx.crisp;
 
-            this.upsertNodeDatum(ctx, nodeDatumParamsScratch, itemId, strokeWidth);
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
         }
     }
 

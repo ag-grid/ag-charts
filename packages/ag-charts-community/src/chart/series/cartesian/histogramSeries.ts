@@ -79,6 +79,7 @@ import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
+import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -554,27 +555,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     /**
-     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
-     */
-    private upsertNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: HistogramNodeDatum;
-        if (canReuseNode) {
-            // Reuse existing node by updating in place
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, bin);
-        } else {
-            // Create new node
-            nodeData = this.createNodeDatum(ctx, bin);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
-    }
-
-    /**
      * Template method hook: Iterates over calculated bins and creates/updates node datums.
      */
     protected override populateNodeData(ctx: HistogramSeriesNodeDatumContext): void {
@@ -584,9 +564,14 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             return;
         }
 
-        // Main iteration loop
+        // Main iteration loop - uses shared upsertNodeDatum utility
         for (const bin of this.calculatedBins) {
-            this.upsertNodeDatum(ctx, bin);
+            upsertNodeDatum(
+                ctx,
+                bin,
+                (c, b) => this.createNodeDatum(c, b),
+                (c, n, b) => this.updateNodeDatum(c, n, b)
+            );
         }
     }
 

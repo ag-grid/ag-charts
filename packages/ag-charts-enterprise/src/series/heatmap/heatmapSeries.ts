@@ -40,6 +40,7 @@ const {
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     updateLabelNode,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -294,11 +295,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         ctx.labels.length = 0;
 
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
-            const nodeDatum = this.upsertNodeDatum(ctx, datumIndex, datum);
+            // Use shared utility for create/update logic
+            const nodeDatum = upsertNodeDatum(
+                ctx,
+                { datumIndex, datum },
+                (c, p) => this.createNodeDatum(c, p.datumIndex, p.datum),
+                (c, n, p) => this.updateNodeDatum(c, n, p.datumIndex, p.datum)
+            );
 
-            const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);
-            if (labelDatum) {
-                ctx.labels.push(labelDatum);
+            if (nodeDatum) {
+                const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);
+                if (labelDatum) {
+                    ctx.labels.push(labelDatum);
+                }
             }
         }
     }
@@ -476,25 +485,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
         this.updateNodeDatum(ctx, node, datumIndex, datum);
         return node;
-    }
-
-    /**
-     * Handles node creation/update - reuses existing nodes when possible.
-     */
-    private upsertNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: HeatmapNodeDatum;
-        if (canReuseNode) {
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, datumIndex, datum);
-        } else {
-            nodeData = this.createNodeDatum(ctx, datumIndex, datum);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
     }
 
     private createLabelDatum(

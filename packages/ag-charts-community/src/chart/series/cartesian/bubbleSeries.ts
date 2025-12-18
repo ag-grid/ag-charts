@@ -88,6 +88,7 @@ import type {
     CartesianSeriesNodeDatum,
     CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
+import { upsertNodeDatum } from './cartesianSeriesUtil';
 import {
     computeMarkerFocusBounds,
     getMarkerStyles,
@@ -621,7 +622,19 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            // Validate and compute - skip if invalid
+            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                { scratch, datumIndex },
+                (c, p) => {
+                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                    return node;
+                },
+                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+            );
         }
     }
 
@@ -653,40 +666,36 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = count;
             scratch.dilation = dilation;
             scratch.area = area;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            // Validate and compute - skip if invalid
+            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
+            upsertNodeDatum(
+                ctx,
+                { scratch, datumIndex },
+                (c, p) => {
+                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                    return node;
+                },
+                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+            );
         }
         for (const datumIndex of singleDatumIndices) {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            // Validate and compute - skip if invalid
+            if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) continue;
+            upsertNodeDatum(
+                ctx,
+                { scratch, datumIndex },
+                (c, p) => {
+                    const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                    this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                    return node;
+                },
+                (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+            );
         }
-    }
-
-    /**
-     * Decision point: reuse existing node or create new one.
-     * Centralizes the incremental update logic.
-     */
-    private upsertNodeDatum(
-        ctx: BubbleSeriesNodeDatumContext,
-        scratch: PreparedBubbleNodeDatumState,
-        datumIndex: number
-    ): void {
-        const prepared = this.prepareNodeDatumState(ctx, scratch, datumIndex);
-        if (!prepared) return;
-
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        if (canReuseNode) {
-            // Update existing node in-place
-            this.updateNodeDatum(ctx, ctx.nodes[ctx.nodeIndex], scratch, datumIndex);
-        } else {
-            // Create new node
-            const nodeData = this.createSkeletonNodeDatum(ctx, scratch, datumIndex);
-            this.updateNodeDatum(ctx, nodeData, scratch, datumIndex);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
     }
 
     /**

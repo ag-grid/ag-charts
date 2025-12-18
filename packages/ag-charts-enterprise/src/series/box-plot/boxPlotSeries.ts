@@ -30,6 +30,7 @@ const {
     calculateSegments,
     toHighlightString,
     processedDataIsAnimatable,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -366,27 +367,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     /**
-     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
-     */
-    private upsertNodeDatum(ctx: BoxPlotSeriesNodeDatumContext, params: BoxPlotNodeDatumParams): BoxPlotNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: BoxPlotNodeDatum;
-        if (canReuseNode) {
-            // Reuse existing node by updating in place
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, params);
-        } else {
-            // Create new node
-            nodeData = this.createNodeDatum(ctx, params);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
-    }
-
-    /**
      * Initialize the result object shell before populating node data.
      */
     protected override initializeResult(ctx: BoxPlotSeriesNodeDatumContext): BoxPlotSeriesNodeDataContext {
@@ -445,7 +425,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.datum = datum;
 
-            this.upsertNodeDatum(ctx, paramsScratch);
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                paramsScratch,
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
+            );
         }
     }
 

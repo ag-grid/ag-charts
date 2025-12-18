@@ -46,6 +46,7 @@ const {
     getItemStylesPerItemId,
     DataSet,
     processedDataIsAnimatable,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
@@ -329,10 +330,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             paramsScratch.trailingValue = trailingValue;
             paramsScratch.datumType = datumType;
 
-            const nodeDatum = this.upsertNodeDatum(ctx, paramsScratch);
+            // Use shared utility for create/update logic
+            const nodeDatum = upsertNodeDatum(
+                ctx,
+                paramsScratch,
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
+            );
 
-            const pathPoint = this.createPointDatum(ctx, nodeDatum, cumulativeValue, trailingValue, isTotalOrSubtotal);
-            pointData.push(pathPoint);
+            if (nodeDatum) {
+                const pathPoint = this.createPointDatum(
+                    ctx,
+                    nodeDatum,
+                    cumulativeValue,
+                    trailingValue,
+                    isTotalOrSubtotal
+                );
+                pointData.push(pathPoint);
+            }
         }
 
         this._pendingPointData = pointData;
@@ -615,30 +630,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const node = this.createSkeletonNodeDatum(ctx, params);
         this.updateNodeDatum(ctx, node, params);
         return node;
-    }
-
-    /**
-     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
-     */
-    private upsertNodeDatum(
-        ctx: WaterfallSeriesNodeDatumContext,
-        params: WaterfallNodeDatumParams
-    ): WaterfallNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: WaterfallNodeDatum;
-        if (canReuseNode) {
-            // Reuse existing node by updating in place
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, params);
-        } else {
-            // Create new node
-            nodeData = this.createNodeDatum(ctx, params);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
     }
 
     private createPointDatum(
