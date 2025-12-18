@@ -3,6 +3,7 @@
         "title": "AG Charts: High-Performance Angular Charts Library",
         "description": "Build interactive, high-performance Angular charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
     },
+    "productName": "AG Charts",
     "framework": "angular",
     "packageName": "ag-charts-angular",
     "docsPath": "angular",
@@ -15,51 +16,417 @@
             "subHeading": "Build Angular Charts",
             "subHeadingHtml": "Build <b>high-performance</b>, <b>interactive</b>, and <b>beautiful</b> Angular charts with AG Charts. From simple bar charts to complex financial charts, all for <b>free</b>.",
             "showVersionBadge": true,
-            "galleryExample": "simple-line",
-            "demoHeight": 450,
+            "showCustomerLogos": false,
+            "galleryExamples": [
+                {
+                    "title": "Line",
+                    "exampleName": "line-with-time-axis"
+                },
+                {
+                    "title": "Stacked Bar",
+                    "exampleName": "stacked-bar"
+                },
+                {
+                    "title": "Stacked Area",
+                    "exampleName": "stacked-area"
+                },
+                {
+                    "title": "Pie",
+                    "exampleName": "simple-pie"
+                },
+                {
+                    "title": "Donut",
+                    "exampleName": "simple-donut"
+                },
+                {
+                    "title": "Scatter",
+                    "exampleName": "simple-scatter"
+                },
+                {
+                    "title": "Bubble",
+                    "exampleName": "bubble-with-negative-values"
+                },
+                {
+                    "title": "Radar",
+                    "exampleName": "simple-radar-area"
+                },
+                {
+                    "title": "Treemap",
+                    "exampleName": "treemap-with-color-range"
+                },
+                {
+                    "title": "Sunburst",
+                    "exampleName": "simple-sunburst"
+                },
+                {
+                    "title": "Heatmap",
+                    "exampleName": "simple-heatmap"
+                },
+                {
+                    "title": "Candlestick",
+                    "exampleName": "candlestick"
+                }
+            ],
+            "demoHeight": 500,
             "primaryCta": {
                 "text": "Get Started"
-            },
-            "secondaryCta": {
-                "text": "View Gallery",
-                "url": "./gallery"
             }
         },
         {
-            "type": "chart-types",
+            "type": "feature-grid",
+            "tag": "Why AG Charts",
+            "heading": "Why Developers Choose AG Charts",
+            "subHeading": "Built from the ground up for performance, flexibility, and developer experience.",
+            "cta": {
+                "text": "Browse Gallery",
+                "url": "./gallery/"
+            },
+            "items": [
+                {
+                    "icon": "flash",
+                    "title": "Blazing Fast",
+                    "description": "Canvas-powered rendering handles millions of data points at 60fps. No lag, no compromise."
+                },
+                {
+                    "icon": "colorPalette",
+                    "title": "Fully Customisable",
+                    "description": "Every pixel is configurable. Themes, animations, and styles that match your brand perfectly."
+                },
+                {
+                    "icon": "code",
+                    "title": "Developer First",
+                    "description": "TypeScript definitions, intuitive APIs, and comprehensive documentation for rapid development."
+                },
+                {
+                    "icon": "chartsCombination",
+                    "title": "30+ Chart Types",
+                    "description": "From simple lines to complex financial charts. All the visualisations you'll ever need."
+                },
+                {
+                    "icon": "download",
+                    "title": "1M+ Weekly Downloads",
+                    "description": "Downloaded over 1 million times per week, by some of the worlds largest companies."
+                },
+                {
+                    "icon": "enterprise",
+                    "title": "Enterprise Ready",
+                    "description": "Battle-tested in production by Fortune 500 companies. Security and reliability guaranteed."
+                }
+            ]
+        },
+        {
+            "type": "chart-types-showcase",
             "tag": "Chart Types",
-            "heading": "30+ Chart Types for Every Use Case",
-            "subHeading": "From simple bar and line charts to advanced financial charts, maps, gauges, and more. AG Charts has the chart type you need."
-        },
-        {
-            "type": "gallery-showcase",
-            "tag": "Examples",
-            "heading": "See What's Possible",
-            "subHeading": "Explore our gallery of examples to see the full range of charts you can build with AG Charts.",
-            "showBackgroundGradient": true,
-            "examples": [
-                "stacked-area",
-                "simple-candlestick",
-                "simple-sunburst",
-                "simple-heatmap",
-                "simple-radar-line",
-                "treemap-with-color-range"
+            "heading": "Every Chart You Need",
+            "subHeading": "From basic visualisations to complex financial charts, AG Charts has you covered.",
+            "chartHeight": 350,
+            "items": [
+                {
+                    "title": "Area Charts",
+                    "description": "Smooth gradients for time series",
+                    "pageName": "area-series",
+                    "exampleName": "area-no-labels"
+                },
+                {
+                    "title": "Bar Charts",
+                    "description": "Compare values with precision",
+                    "pageName": "bar-series",
+                    "exampleName": "bar-no-labels"
+                },
+                {
+                    "title": "Line Charts",
+                    "description": "Track trends over time",
+                    "pageName": "line-series",
+                    "exampleName": "simple-line-no-labels"
+                },
+                {
+                    "title": "Pie Charts",
+                    "description": "Visualise proportions beautifully",
+                    "pageName": "pie-series",
+                    "exampleName": "pie-no-labels"
+                },
+                {
+                    "title": "Bubble Charts",
+                    "description": "Multi-dimensional data analysis",
+                    "pageName": "bubble-series",
+                    "exampleName": "bubble-no-labels"
+                },
+                {
+                    "title": "And More...",
+                    "description": "30+ chart types available",
+                    "icon": "chartsCombination"
+                }
             ],
-            "columns": 3
+            "cta": {
+                "text": "Explore All Chart Types",
+                "url": "./gallery/"
+            }
         },
         {
-            "type": "interactive-demo",
-            "tag": "Try It Out",
-            "heading": "Interactive Charts",
-            "subHeading": "Experience the interactivity of AG Charts. Zoom, pan, and explore the data with tooltips and crosshairs.",
-            "exampleName": "line-with-time-axis",
-            "height": 500
+            "type": "chart-explorer",
+            "tag": "Explore",
+            "heading": "Explore Chart Examples",
+            "subHeading": "Browse examples, view the code, and see charts render in real-time.",
+            "height": 550,
+            "examples": [
+                { "name": "Bar", "exampleName": "simple-bar" },
+                { "name": "Line", "exampleName": "simple-line" },
+                { "name": "Area", "exampleName": "simple-area" },
+                { "name": "Scatter", "exampleName": "simple-scatter" },
+                { "name": "Bubble", "exampleName": "bubble-with-negative-values" },
+                { "name": "Pie", "exampleName": "simple-pie" },
+                { "name": "Donut", "exampleName": "simple-donut" },
+                { "name": "Map", "exampleName": "multiple-map-shape-series" },
+                { "name": "Histogram", "exampleName": "simple-histogram" },
+                { "name": "Range Bar", "exampleName": "simple-range-bar" },
+                { "name": "Range Area", "exampleName": "simple-range-area" },
+                { "name": "Waterfall", "exampleName": "simple-waterfall" },
+                { "name": "Box Plot", "exampleName": "simple-box-plot" },
+                { "name": "Candlestick", "exampleName": "candlestick" },
+                { "name": "OHLC", "exampleName": "ohlc" },
+                { "name": "Radar Line", "exampleName": "simple-radar-line" },
+                { "name": "Radar Area", "exampleName": "simple-radar-area" },
+                { "name": "Nightingale", "exampleName": "simple-nightingale" },
+                { "name": "Radial Column", "exampleName": "simple-radial-column" },
+                { "name": "Radial Bar", "exampleName": "simple-radial-bar" },
+                { "name": "Sunburst", "exampleName": "simple-sunburst" },
+                { "name": "Treemap", "exampleName": "simple-treemap" },
+                { "name": "Heatmap", "exampleName": "simple-heatmap" },
+                { "name": "Sankey", "exampleName": "sankey" },
+                { "name": "Chord", "exampleName": "chord" },
+                { "name": "Funnel", "exampleName": "simple-funnel" },
+                { "name": "Cone Funnel", "exampleName": "simple-cone-funnel" },
+                { "name": "Pyramid", "exampleName": "simple-pyramid" },
+                { "name": "Radial Gauge", "exampleName": "simple-radial-gauge" },
+                { "name": "Linear Gauge", "exampleName": "simple-linear-gauge" },
+                { "name": "Combination", "exampleName": "bar-line-combination" }
+            ],
+            "cta": {
+                "text": "Browse Gallery",
+                "url": "./gallery/"
+            }
         },
         {
-            "type": "customers",
-            "tag": "Who Uses AG Charts?",
-            "headingHtml": "Trusted by Developers<br />Around the World",
-            "subHeadingHtml": "<span>AG Charts powers data visualization in applications across <b>Fortune 500 companies</b>, startups, and everything in between. Join thousands of developers building with AG Charts.</span>"
+            "type": "code-example",
+            "tag": "Developer Experience",
+            "heading": "Simple, Intuitive API",
+            "subHeading": "Get started in minutes with our declarative configuration.",
+            "fileName": "revenue-chart.component.ts",
+            "language": "typescript",
+            "code": "import { Component } from '@angular/core';\nimport { AgCharts } from 'ag-charts-angular';\nimport { AgChartOptions } from 'ag-charts-community';\n\n@Component({\n  selector: 'revenue-chart',\n  standalone: true,\n  imports: [AgCharts],\n  template: `<ag-charts [options]=\"options\" />`,\n})\nexport class RevenueChart {\n  options: AgChartOptions = {\n    data: [\n      { month: 'Jan', revenue: 15200 },\n      { month: 'Feb', revenue: 18400 },\n      { month: 'Mar', revenue: 22100 },\n    ],\n    series: [{\n      type: 'bar',\n      xKey: 'month',\n      yKey: 'revenue',\n      fill: '#3b82f6',\n      cornerRadius: 8,\n    }],\n  };\n}",
+            "cta": {
+                "text": "Get Started",
+                "url": "./angular/quick-start/"
+            }
+        },
+        {
+            "type": "features",
+            "tag": "Key Features",
+            "heading": "Powerful Features Out of the Box",
+            "subHeading": "AG Charts comes packed with features to help you build beautiful, interactive charts with minimal effort.",
+            "items": [
+                {
+                    "id": "displaying-data",
+                    "title": "Displaying Data",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "configuring-axes-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Series & Data",
+                            "detail": "Multiple series types with flexible data binding using key properties."
+                        },
+                        {
+                            "heading": "Axis Types",
+                            "detail": "Categorical, numerical, time, and logarithmic axes with full customisation."
+                        },
+                        {
+                            "heading": "Secondary Axes",
+                            "detail": "Multiple axes per direction for comparing series with different scales."
+                        }
+                    ],
+                    "docsLink": "./angular/key-features/"
+                },
+                {
+                    "id": "data-elements",
+                    "title": "Data Elements",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "enhancing-data-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Legends",
+                            "detail": "Configurable legends with positioning, pagination, and series toggling."
+                        },
+                        {
+                            "heading": "Cross Lines",
+                            "detail": "Add reference lines and ranges to highlight important values."
+                        },
+                        {
+                            "heading": "Conditional Styling",
+                            "detail": "Item stylers for dynamic appearance based on data values."
+                        }
+                    ],
+                    "docsLink": "./angular/legend/"
+                },
+                {
+                    "id": "layout-styling",
+                    "title": "Layout & Styling",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "customizing-charts-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Themes",
+                            "detail": "5 built-in themes with light and dark modes, plus custom theming."
+                        },
+                        {
+                            "heading": "Fills & Strokes",
+                            "detail": "Solid colours, gradients, patterns, and images for series styling."
+                        },
+                        {
+                            "heading": "Markers",
+                            "detail": "Customisable marker shapes, sizes, and styles for data points."
+                        }
+                    ],
+                    "docsLink": "./angular/themes/"
+                },
+                {
+                    "id": "interactivity",
+                    "title": "Interactivity",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "user-interactions-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Tooltips",
+                            "detail": "Rich tooltips with multiple modes and custom renderers."
+                        },
+                        {
+                            "heading": "Highlighting",
+                            "detail": "Hover highlighting with customisable styles for items and series."
+                        },
+                        {
+                            "heading": "Events",
+                            "detail": "Click, double-click, and zoom events for series, legend, and chart."
+                        }
+                    ],
+                    "docsLink": "./angular/tooltips/"
+                },
+                {
+                    "id": "enterprise",
+                    "title": "Enterprise",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "enterprise-features-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Zoom & Pan",
+                            "detail": "Interactive zoom and pan controls for exploring large datasets."
+                        },
+                        {
+                            "heading": "Context Menu",
+                            "detail": "Right-click menus with customisable actions and download options."
+                        },
+                        {
+                            "heading": "Navigator",
+                            "detail": "Mini-chart navigator for quick navigation through time-series data."
+                        }
+                    ],
+                    "docsLink": "./angular/zoom/"
+                }
+            ]
+        },
+        {
+            "type": "performance-demo",
+            "tag": "Large Data",
+            "heading": "Handle Millions of Data Points",
+            "subHeading": "AG Charts is optimised for performance and can render and interact with charts containing millions of data points without lag. Try zooming and panning through the data.",
+            "pageName": "large-dataset-interactivity",
+            "exampleName": "ordered-data",
+            "height": 500,
+            "cta": {
+                "text": "Learn More About Large Data",
+                "url": "./angular/large-dataset-interactivity/"
+            }
+        },
+        {
+            "type": "performance-demo",
+            "tag": "High Frequency Updates",
+            "heading": "Real-time Streaming at 60+ FPS",
+            "subHeading": "Handle continuous data streams with batched updates and efficient rendering. Perfect for live dashboards, monitoring systems, and real-time analytics.",
+            "pageName": "high-frequency-data",
+            "exampleName": "high-frequency-showcase",
+            "height": 500,
+            "cta": {
+                "text": "Learn More About High Frequency Data",
+                "url": "./angular/high-frequency-data/"
+            }
+        },
+        {
+            "type": "financial-charts",
+            "tag": "Financial Charts",
+            "heading": "Interactive Financial Charts for Trading and Analysis",
+            "subHeading": "Build interactive financial charts featuring advanced annotations with minimal configuration. Use the toolbar to add annotations, change the chart type, and interact with the data in real-time.",
+            "height": 700,
+            "cta": {
+                "text": "View Financial Charts Features",
+                "url": "./angular/financial-charts/"
+            }
+        },
+        {
+            "type": "map-charts",
+            "tag": "Map Charts",
+            "heading": "Customisable Map Charts for Geographical Data",
+            "subHeading": "Visualise geographical areas, overlay routes and connections, and add markers and points of interest.",
+            "cardHeight": 360,
+            "cards": [
+                {
+                    "title": "Geographic Areas",
+                    "description": "Visualise data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values.",
+                    "pageName": "map-shapes",
+                    "exampleName": "multiple-series"
+                },
+                {
+                    "title": "Routes & Connections",
+                    "description": "Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour to represent data values.",
+                    "pageName": "map-lines",
+                    "exampleName": "map-shapes-lines"
+                },
+                {
+                    "title": "Markers & POIs",
+                    "description": "Add markers for geographic points, with the ability to vary the size to represent data values.",
+                    "pageName": "map-markers",
+                    "exampleName": "marker-size"
+                }
+            ],
+            "cta": {
+                "text": "View Map Charts Features",
+                "url": "./angular/maps/"
+            }
+        },
+        {
+            "type": "integrated-charts",
+            "tag": "AG Grid Integration",
+            "heading": "AG Grid Integrated Charts, Powered by AG Charts",
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/angular-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500."
+        },
+        {
+            "type": "whats-new",
+            "tag": "Latest Releases",
+            "heading": "Regular Releases, Updates, and Enhancements",
+            "subHeading": "Browse the latest updates to AG Charts, including new features, series types, functionality and more.",
+            "versionsToShow": 3,
+            "cta": {
+                "text": "See What's New",
+                "url": "./whats-new/"
+            }
         },
         {
             "type": "faq",
@@ -81,11 +448,11 @@
                 },
                 {
                     "question": "How do I get started with AG Charts in Angular?",
-                    "answer": "Install the package with `npm install ag-charts-angular`, import the `AgCharts` component in your module, and use it in your template. See our [Quick Start guide](./angular/quick-start/) for a complete walkthrough."
+                    "answer": "Install the package with `npm install ag-charts-angular ag-charts-community`, import the `AgCharts` component, and use it in your template. See our [Quick Start guide](./angular/quick-start/) for a complete walkthrough."
                 },
                 {
                     "question": "What Angular versions are supported?",
-                    "answer": "AG Charts supports Angular 14 and later. We test against the latest Angular versions and maintain backwards compatibility."
+                    "answer": "AG Charts supports Angular 16 and later, including standalone components. We test against the latest Angular versions and maintain backwards compatibility."
                 },
                 {
                     "question": "What is AG Charts Enterprise?",
