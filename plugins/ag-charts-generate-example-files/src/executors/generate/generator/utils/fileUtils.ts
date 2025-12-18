@@ -164,6 +164,10 @@ export const getHasExampleControls = ({ contents }: { contents: string }) => {
     return controlsRegex.test(contents);
 };
 
+export const getHasBenchmarkConfig = ({ entryFile }: { entryFile: string }) => {
+    return entryFile?.includes('getBenchmarkConfig');
+};
+
 export const isEmptyOrWhitespaceOnly = (content: string): boolean => {
     return content.trim().length === 0;
 };

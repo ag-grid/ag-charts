@@ -173,7 +173,8 @@ export function debugStats(
     ctx: CanvasRenderingContext2D,
     renderCtxStats: RenderContext['stats'],
     extraDebugStats = {},
-    seriesRect = BBox.zero
+    seriesRect = BBox.zero,
+    colors?: { background?: string; foreground?: string }
 ) {
     if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) return;
 
@@ -247,10 +248,10 @@ export function debugStats(
     const x = 2 + seriesRect.x;
     ctx.save();
     try {
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = colors?.background ?? 'white';
         ctx.fillRect(x, 0, width, height);
 
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = colors?.foreground ?? 'black';
         let y = 0;
         for (const [stat, size] of statsSize.entries()) {
             y += size.height;

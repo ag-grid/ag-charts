@@ -35,31 +35,9 @@
             <option value="ordinal-time">ordinal-time</option>
             <option value="unit-time">unit-time</option>
         </select>
-        <button
-            id="benchmarkBtn"
-            onclick="runBenchmark()"
-            style="
-                margin-left: 10px;
-                background-color: #4caf50;
-                color: white;
-                border: none;
-                padding: 5px 15px;
-                cursor: pointer;
-            "
-        >
-            Run Benchmark
-        </button>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
         <span id="fpsCounter" style="margin-left: 10px">FPS: 0</span>
         <span id="dataCount" style="margin-left: 10px">Points: 100000</span>
     </div>
-</div>
-<div
-    id="benchmarkContainer"
-    style="display: none; padding: 20px; background-color: #f5f5f5; border: 1px solid #ddd; margin-bottom: 20px"
->
-    <div id="benchmarkProgress" style="margin: 10px 0; font-weight: bold">Initializing...</div>
-    <div id="benchmarkError" style="display: none; color: red; margin: 10px 0"></div>
-    <div id="benchmarkResults"></div>
 </div>
 <div id="myChart"></div>

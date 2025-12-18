@@ -1,8 +1,6 @@
 // @ag-skip-fws
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
 
-import { type BenchmarkCallbacks, type BenchmarkConfig, BenchmarkRunner } from './benchmark';
-
 (window as any).agChartsDebug = ['scene:stats'];
 
 type ValueDatum = {
@@ -64,10 +62,6 @@ function isVersionAtOrAfter(major: number, minor: number, patch: number): boolea
     if (currentMinor > minor) return true;
     if (currentMinor < minor) return false;
     return currentPatch >= patch;
-}
-
-function isVersionBefore(major: number, minor: number, patch: number): boolean {
-    return !isVersionAtOrAfter(major, minor, patch);
 }
 
 const SUPPORTS_APPLY_TRANSACTION = isVersionAtOrAfter(12, 3, 0);
@@ -848,15 +842,6 @@ if (getConfigValue('updatesRunning')) {
     startUpdates();
 }
 
-// Check for benchmark URL parameter
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('benchmark') === 'true') {
-    // Auto-start benchmark after a short delay to ensure everything is initialized
-    setTimeout(() => {
-        void benchmarkRunner.run();
-    }, 1000);
-}
-
 // Listen for hash changes (e.g., when switching to full-screen mode)
 window.addEventListener('hashchange', () => {
     const newConfig = loadConfig();
@@ -913,86 +898,91 @@ window.addEventListener('hashchange', () => {
 // Store original state for restoration after benchmark
 let originalSeriesType: SeriesType;
 
-// Create benchmark runner instance
-const benchmarkConfig: BenchmarkConfig<SeriesType> = {
-    testCases: ALL_SERIES_TYPES,
-    updatesPerTest: 500,
-    maxCollectionTimeMs: 10000,
-    warmupUpdates: 20,
-    version: VERSION,
-    versionWarnings: [
-        ...(!SUPPORTS_APPLY_TRANSACTION
-            ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.']
-            : []),
-        ...(!SUPPORTS_AXES_DICT
-            ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).']
-            : []),
-    ],
-    metadata: {
-        initialDataPoints: INITIAL_POINTS,
-        batchSize: BATCH_SIZE,
-        axisType: currentAxisType,
-        dataIntervalMs: DATA_INTERVAL_MS,
-    },
-};
+/** inScope */
+async function performBenchmarkUpdate(method: 'applyTransaction' | 'updateDelta'): Promise<number> {
+    // Ensure no regular updates are running
+    if (isRunning) {
+        stopUpdates();
+    }
 
-const benchmarkCallbacks: BenchmarkCallbacks<SeriesType> = {
-    setupTestCase: async (seriesType: SeriesType) => {
-        await setSeriesType(seriesType);
-    },
-    performUpdate: async (_seriesType: SeriesType, method: string) => {
-        // Ensure no regular updates are running
-        if (isRunning) {
-            stopUpdates();
-        }
+    // Set the update method
+    currentUpdateMethod = method;
 
-        // Set the update method
-        currentUpdateMethod = method as 'applyTransaction' | 'updateDelta';
+    // Create rolling window update
+    if (data.length <= BATCH_SIZE) {
+        return 0;
+    }
+    const remove = data.slice(0, BATCH_SIZE);
+    const append = createBatch(BATCH_SIZE);
+    data = data.slice(BATCH_SIZE).concat(append);
 
-        // Create rolling window update
-        if (data.length <= BATCH_SIZE) {
-            return 0;
-        }
-        const remove = data.slice(0, BATCH_SIZE);
-        const append = createBatch(BATCH_SIZE);
-        data = data.slice(BATCH_SIZE).concat(append);
+    const start = performance.now();
+    if (method === 'applyTransaction') {
+        await (chart as any).applyTransaction({
+            append,
+            remove,
+        });
+    } else {
+        await chart.updateDelta({ data });
+    }
+    await chart.waitForUpdate();
+    return performance.now() - start;
+}
 
-        const start = performance.now();
-        if (method === 'applyTransaction') {
-            await (chart as any).applyTransaction({
-                append,
-                remove,
-            });
-        } else {
-            await chart.updateDelta({ data });
-        }
-        await chart.waitForUpdate();
-        return performance.now() - start;
-    },
-    getMethods: (_seriesType: SeriesType) => {
-        return SUPPORTS_APPLY_TRANSACTION ? ['applyTransaction', 'updateDelta'] : ['updateDelta'];
-    },
-    formatTestCase: (seriesType: SeriesType) => seriesType,
-    formatMethod: (method: string) => method,
-    onComplete: async () => {
-        // Restore original series type
-        if (originalSeriesType !== currentSeriesType) {
-            await setSeriesType(originalSeriesType);
-        }
-        // Show controls again
-        const controlsRow = document.querySelector('.controls-row');
-        if (controlsRow) {
-            (controlsRow as HTMLElement).style.display = '';
-        }
-    },
-};
-
-const benchmarkRunner = new BenchmarkRunner<SeriesType>(benchmarkConfig, benchmarkCallbacks);
-
-(window as any).runBenchmark = () => {
-    // Capture original state before benchmark starts
+/** inScope */
+function getBenchmarkConfig() {
+    // Capture original state when benchmark config is requested
     originalSeriesType = currentSeriesType;
-    benchmarkRunner.run();
-};
+
+    return {
+        testCases: ALL_SERIES_TYPES.map((seriesType) => ({
+            id: seriesType,
+            label: seriesType,
+            setup: async () => {
+                await setSeriesType(seriesType);
+            },
+            variants: [
+                ...(SUPPORTS_APPLY_TRANSACTION
+                    ? [
+                          {
+                              params: { 'Update Method': 'applyTransaction()' },
+                              run: () => performBenchmarkUpdate('applyTransaction'),
+                          },
+                      ]
+                    : []),
+                {
+                    params: { 'Update Method': 'updateDelta()' },
+                    run: () => performBenchmarkUpdate('updateDelta'),
+                },
+            ],
+        })),
+        config: {
+            updatesPerTest: 500,
+            maxCollectionTimeMs: 10000,
+            warmupUpdates: 20,
+        },
+        warnings: [
+            ...(!SUPPORTS_APPLY_TRANSACTION
+                ? ['applyTransaction not available (requires >= 12.3.0). Only updateDelta will be tested.']
+                : []),
+            ...(!SUPPORTS_AXES_DICT
+                ? ['Using axes array format for compatibility (requires >= 13.0.0 for dictionary format).']
+                : []),
+        ],
+        metadata: {
+            initialDataPoints: INITIAL_POINTS,
+            batchSize: BATCH_SIZE,
+            axisType: currentAxisType,
+            dataIntervalMs: DATA_INTERVAL_MS,
+            version: VERSION,
+        },
+        onComplete: async () => {
+            // Restore original series type
+            if (originalSeriesType !== currentSeriesType) {
+                await setSeriesType(originalSeriesType);
+            }
+        },
+    };
+}
 
 export {};
