@@ -19,7 +19,6 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
-    type Scale,
     areScalingEqual,
     findMinMax,
     mergeDefaults,
@@ -82,20 +81,10 @@ type RangeBarItemId = `${string}-${string}`;
  * to minimize memory allocations. Only contains values that are expensive to compute
  * or resolve - cheap property lookups use `this` directly in methods.
  */
-interface RangeBarSeriesNodeDatumContext {
+interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeBarNodeDatum> {
     // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: any[];
-    readonly xValues: any[];
     readonly yLowValues: any[];
     readonly yHighValues: any[];
-
-    // Scales (axis lookups - worth caching)
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
-
-    // Axes (for range calculations and other operations)
-    readonly xAxis: _ModuleSupport.ChartAxis;
-    readonly yAxis: _ModuleSupport.ChartAxis;
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
@@ -107,7 +96,6 @@ interface RangeBarSeriesNodeDatumContext {
     readonly crisp: boolean;
 
     // Property keys (constant across all datums - worth caching)
-    readonly xKey: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
 
@@ -116,11 +104,8 @@ interface RangeBarSeriesNodeDatumContext {
     readonly labelPlacement: 'inside' | 'outside';
     readonly labelPadding: number;
 
-    // Incremental update support (added for Step 4)
-    readonly canIncrementallyUpdate: boolean;
+    // Incremental update support
     readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
-    nodes: RangeBarNodeDatum[];
-    nodeIndex: number;
 }
 
 /**
@@ -221,6 +206,7 @@ interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly label: RangeBarNodeLabelDatum;
     readonly context: RangeBarSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: RangeBarSeriesNodeDatumContext;
 }
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSeriesTypes> {
@@ -367,7 +353,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
      * to minimize memory allocations. Only caches values that are expensive to
      * compute - cheap property lookups use `this` directly.
      */
-    private createNodeDatumContext(
+    protected override createNodeDatumContext(
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): RangeBarSeriesNodeDatumContext | undefined {
@@ -399,6 +385,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const canIncrementallyUpdate =
             this.contextNodeData?.nodeData != null &&
@@ -407,20 +394,21 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 dataAggregationFilter != null);
 
         return {
+            xAxis,
+            yAxis,
             rawData,
             xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
             yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData),
             yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData),
             xScale,
             yScale,
-            xAxis,
-            yAxis,
             barWidth,
             groupOffset,
             barOffset,
             barAlongX,
             crisp,
             dataAggregationFilter,
+            animationEnabled,
             xKey: this.properties.xKey,
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
@@ -725,45 +713,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
     }
 
-    override createNodeData() {
-        const { data, processedData, visible } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!(data && xAxis && yAxis && this.dataModel && processedData?.dataSources && this.chart?.seriesRect)) return;
-
-        // 1. Create shared context for datum creation (instantiated once, reused for all datums)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
+    protected override populateNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
+        const { processedData } = this;
+        if (!processedData) return;
 
         const { yLowKey, yHighKey, strokeWidth } = this.properties;
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            xAxis,
-            yAxis,
-            this.chart.seriesRect,
-            this.ctx.scene
-        );
-
-        const context: RangeBarSeriesNodeDataContext = {
-            itemId,
-            nodeData: ctx.nodes,
-            labelData: [],
-            scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
-            visible: this.visible,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
-            segments,
-        };
-        if (!visible) return context;
-
-        // 2. Helper for x position calculation (uses context)
+        // Helper for x position calculation (uses context)
         const xPosition = (datumIndex: number) =>
             Math.round(ctx.xScale.convert(ctx.xValues[datumIndex])) + ctx.groupOffset + ctx.barOffset;
 
-        // 3. Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
+        // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
         const nodeDatumParamsScratch: NodeDatumParams = {
             nodeDatumScratch: {
                 datum: undefined,
@@ -793,7 +754,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             crisp: false,
         };
 
-        // 4. Strategy selection - delegate to specialized methods
+        // Strategy selection - delegate to specialized methods
         if (ctx.dataAggregationFilter != null) {
             this.createNodeDataWithAggregation(
                 ctx,
@@ -808,21 +769,47 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } else {
             this.createNodeDataGrouped(ctx, xPosition, nodeDatumParamsScratch, itemId, strokeWidth);
         }
+    }
 
-        // 5. Trim excess nodes if we did incremental updates and have leftover nodes
-        if (ctx.canIncrementallyUpdate) {
-            if (ctx.nodeIndex < ctx.nodes.length) {
-                ctx.nodes.length = ctx.nodeIndex;
-            }
+    protected override finalizeNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
+        // Trim excess nodes if we did incremental updates and have leftover nodes
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
         }
+    }
 
-        // 6. Build label data from nodes
+    protected override initializeResult(ctx: RangeBarSeriesNodeDatumContext): RangeBarSeriesNodeDataContext {
+        const { yLowKey, yHighKey } = this.properties;
+        const itemId = `${yLowKey}-${yHighKey}` as const;
+
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+        const segments =
+            xAxis && yAxis && this.chart?.seriesRect
+                ? calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart.seriesRect, this.ctx.scene)
+                : undefined;
+
+        return {
+            itemId,
+            nodeData: ctx.nodes,
+            labelData: [],
+            scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
+            visible: this.visible,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
+        };
+    }
+
+    protected override assembleResult(
+        ctx: RangeBarSeriesNodeDatumContext,
+        result: RangeBarSeriesNodeDataContext
+    ): RangeBarSeriesNodeDataContext {
+        // Build label data from nodes
         for (const node of ctx.nodes) {
-            context.labelData.push(...node.labels);
+            result.labelData.push(...node.labels);
         }
-
-        // 7. Return result
-        return context;
+        return result;
     }
 
     /**

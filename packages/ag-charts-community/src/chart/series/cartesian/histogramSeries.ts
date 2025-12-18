@@ -4,7 +4,6 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
-    type Scale,
     createTicks,
     deepClone,
     findMinMax,
@@ -74,7 +73,12 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import type { CartesianAnimationDataOf, CartesianSeriesNodeDataContext } from './cartesianSeriesTypes';
+import type {
+    CartesianAnimationDataOf,
+    CartesianCreateNodeDataContext,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesTypes,
+} from './cartesianSeriesTypes';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -98,7 +102,7 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
  * Consolidated type interface for HistogramSeries.
  * Defines all type parameters in one place for the series.
  */
-interface HistogramSeriesTypes {
+interface HistogramSeriesTypes extends CartesianSeriesTypes {
     readonly node: Rect<HistogramNodeDatum>;
     readonly options: AgHistogramSeriesOptions;
     readonly properties: HistogramSeriesProperties;
@@ -106,31 +110,26 @@ interface HistogramSeriesTypes {
     readonly label: HistogramNodeDatum;
     readonly context: HistogramSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: HistogramSeriesNodeDatumContext;
 }
 
 /**
  * Shared context for creating HistogramNodeDatum instances.
  * Instantiated once per createNodeData() call and reused across all datum operations.
+ *
+ * Extends CartesianCreateNodeDataContext which provides:
+ * - xAxis, yAxis, xScale, yScale, rawData, xValues, xKey, yKey, xName, yName, animationEnabled
+ * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
+ *
+ * Note: HistogramSeries uses calculatedBins for iteration rather than rawData/xValues,
+ * but these fields are included for type compatibility with the template method pattern.
  */
-interface HistogramSeriesNodeDatumContext {
-    // Scales (axis lookups - worth caching)
-    readonly xScale: Scale<any, any, any>;
-    readonly yScale: Scale<any, any, any>;
-
-    // Pre-computed values
+interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext<HistogramNodeDatum> {
+    // Pre-computed values specific to histogram
     readonly yAxisReversed: boolean;
 
-    // Property lookups (constant across all datums - worth caching)
-    readonly xKey: string;
-    readonly yKey: string | undefined;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
+    // Histogram-specific property lookups
     readonly label: HistogramSeriesProperties['label'];
-
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    readonly nodes: HistogramNodeDatum[];
-    nodeIndex: number;
 }
 
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
@@ -383,22 +382,44 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     /**
      * Creates the shared context for datum creation.
      * Caches expensive lookups and computations that are constant across all datums.
+     *
+     * Note: rawData and xValues are empty arrays because HistogramSeries
+     * iterates over calculatedBins rather than raw data.
      */
-    private createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): HistogramSeriesNodeDatumContext {
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): HistogramSeriesNodeDatumContext | undefined {
         const { xKey, yKey, xName, yName, label } = this.properties;
         const { contextNodeData, processedData } = this;
 
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData?.changeDescription != null;
 
         return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
+
+            // Scales
             xScale: xAxis.scale,
             yScale: yAxis.scale,
             yAxisReversed: yAxis.isReversed(),
+
+            // Data source (empty arrays - histogram uses calculatedBins instead)
+            rawData: [],
+            xValues: [],
+
+            // Property lookups
             xKey,
             yKey,
             xName,
             yName,
             label,
+
+            // Animation flag
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+
+            // Incremental update support
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -553,49 +574,45 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return nodeData;
     }
 
-    override createNodeData() {
-        const { axes, processedData, dataModel } = this;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xAxis || !yAxis || !dataModel) {
-            return;
-        }
-
-        // Create shared context for datum creation (must be done early to access ctx.nodes)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-
-        const context: HistogramSeriesNodeDataContext = {
-            itemId: this.properties.yKey ?? this.id,
-            nodeData: ctx.nodes,
-            labelData: ctx.nodes,
-            scales: this.calculateScaling(),
-            animationValid: true,
-            visible: this.visible || animationEnabled,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
-        };
+    /**
+     * Template method hook: Iterates over calculated bins and creates/updates node datums.
+     */
+    protected override populateNodeData(ctx: HistogramSeriesNodeDatumContext): void {
+        const { processedData } = this;
 
         if (processedData?.type !== 'grouped') {
-            return context;
+            return;
         }
 
         // Main iteration loop
         for (const bin of this.calculatedBins) {
             this.upsertNodeDatum(ctx, bin);
         }
+    }
 
-        // Trim excess nodes if the data shrunk
-        if (ctx.nodeIndex < ctx.nodes.length) {
-            ctx.nodes.length = ctx.nodeIndex;
-        }
+    /**
+     * Template method hook: Creates the result object shell.
+     */
+    protected override initializeResult(ctx: HistogramSeriesNodeDatumContext): HistogramSeriesNodeDataContext {
+        return {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
+            scales: this.calculateScaling(),
+            animationValid: true,
+            visible: this.visible || ctx.animationEnabled,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+        };
+    }
+
+    /**
+     * Template method hook: Trims arrays and sorts nodes for keyboard navigation.
+     */
+    protected override finalizeNodeData(ctx: HistogramSeriesNodeDatumContext): void {
+        super.finalizeNodeData(ctx);
 
         // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
         ctx.nodes.sort((a, b) => a.x - b.x);
-
-        return context;
     }
 
     protected override nodeFactory() {

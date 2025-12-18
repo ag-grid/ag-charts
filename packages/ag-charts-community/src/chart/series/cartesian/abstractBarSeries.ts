@@ -105,6 +105,19 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return this.axes[direction];
     }
 
+    /**
+     * Override to use bar-specific axis resolution (category/value vs X/Y).
+     * Bar series can be horizontal or vertical, so we use getCategoryAxis/getValueAxis.
+     */
+    protected override validateCreateNodeDataPreconditions(): { xAxis: ChartAxis; yAxis: ChartAxis } | undefined {
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+        if (!xAxis || !yAxis || !this.dataModel || !this.processedData) {
+            return undefined;
+        }
+        return { xAxis, yAxis };
+    }
+
     protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
         return ContinuousScale.is(xAxis.scale)
             ? xAxis.scale.calcBandwidth(this.smallestDataInterval, minWidth)

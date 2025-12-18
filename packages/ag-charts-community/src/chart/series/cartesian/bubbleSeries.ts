@@ -83,8 +83,10 @@ import {
 } from './cartesianSeries';
 import type {
     CartesianAnimationDataOf,
+    CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
+    CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
 import {
     computeMarkerFocusBounds,
@@ -131,7 +133,7 @@ interface BubbleSeriesNodeDataContext
  * Consolidated type interface for BubbleSeries.
  * Defines all type parameters in one place for the series.
  */
-interface BubbleSeriesTypes {
+interface BubbleSeriesTypes extends CartesianSeriesTypes {
     readonly node: Marker;
     readonly options: AgBubbleSeriesOptions;
     readonly properties: BubbleSeriesProperties;
@@ -139,15 +141,26 @@ interface BubbleSeriesTypes {
     readonly label: BubbleScatterNodeDatum;
     readonly context: BubbleSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: BubbleSeriesNodeDatumContext;
 }
 
 /**
  * Context object cached once per createNodeData() call.
  * Avoids repeated property lookups and scale conversions in hot loops.
+ *
+ * Extends CartesianMarkerLikeContext which provides:
+ * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
+ * - xAxis, yAxis, xScale, yScale (axes and scales)
+ * - rawData, xValues (data arrays - we use xDataValues/yDataValues instead)
+ * - xKey, yKey, xName, yName (property keys)
+ * - animationEnabled (animation flag)
+ * - xOffset, yOffset (band scale offsets)
  */
-interface BubbleSeriesNodeDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: any[];
+interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<BubbleScatterNodeDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
+
+    // Data arrays (BubbleSeries-specific naming - resolved from dataModel)
     readonly xDataValues: any[];
     readonly yDataValues: any[];
     readonly sizeDataValues: number[] | undefined;
@@ -156,22 +169,12 @@ interface BubbleSeriesNodeDatumContext {
     readonly yFilterDataValues: any[] | undefined;
     readonly sizeFilterDataValues: number[] | undefined;
 
-    // Scales (axis lookups - worth caching)
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
+    // Additional scale (size is BubbleSeries-specific)
     readonly sizeScale: Scale<any, number>;
 
-    // Computed positioning (involves scale conversions - worth caching)
-    readonly xOffset: number;
-    readonly yOffset: number;
-
-    // Property lookups (constant across all datums)
-    readonly xKey: string;
-    readonly yKey: string;
+    // Property lookups (BubbleSeries-specific)
     readonly sizeKey: string | undefined;
     readonly labelKey: string | undefined;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
     readonly sizeName: string | undefined;
     readonly labelName: string | undefined;
     readonly legendItemName: string | undefined;
@@ -186,13 +189,7 @@ interface BubbleSeriesNodeDatumContext {
     readonly label: BubbleSeriesProperties['label'];
 
     // Other state
-    readonly animationEnabled: boolean;
     readonly visible: boolean;
-
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    nodes: BubbleScatterNodeDatum[];
-    nodeIndex: number;
 }
 
 /**
@@ -446,7 +443,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Creates and returns a context object that caches expensive property lookups
      * and scale conversions. Called once per createNodeData() invocation.
      */
-    private createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): BubbleSeriesNodeDatumContext | undefined {
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): BubbleSeriesNodeDatumContext | undefined {
         const { dataModel, processedData, sizeScale, visible } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -487,10 +487,17 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain = [];
         }
 
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+
         return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
+
             // Data arrays
             rawData,
-            xDataValues: dataModel.resolveColumnById(this, `xValue`, processedData),
+            xValues: xDataValues, // Base interface field
+            xDataValues, // BubbleSeries-specific alias
             yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData),
             sizeDataValues:
                 sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData),
@@ -545,21 +552,19 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         };
     }
 
-    override createNodeData() {
-        const { axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+    // ============================================================================
+    // Template Method Hooks
+    // ============================================================================
 
-        if (!xAxis || !yAxis) return;
-
-        // 1. Create shared context (instantiated once per createNodeData call)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
-
-        // 2. Set size scale range
+    /**
+     * Populates the node data array by iterating over visible data.
+     * Strategy selection happens inside: simple or aggregation path.
+     */
+    protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
+        // Set size scale range
         this.sizeScale.range = this.getSizeRange();
 
-        // 3. Pre-allocate scratch object for datum state
+        // Pre-allocate scratch object for datum state
         const scratch: PreparedBubbleNodeDatumState = {
             datum: undefined,
             xDatum: undefined,
@@ -575,22 +580,20 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             area: 0,
         };
 
-        // 4. Strategy selection - delegate to specialized methods
-        if (ctx.visible) {
-            const { dataAggregation } = this;
-            if (dataAggregation == null) {
-                this.createNodeDataSimple(ctx, scratch);
-            } else {
-                this.createNodeDataWithAggregation(ctx, scratch, xAxis, yAxis, dataAggregation);
-            }
+        // Strategy selection - delegate to specialized methods
+        const { dataAggregation } = this;
+        if (dataAggregation == null) {
+            this.createNodeDataSimple(ctx, scratch);
+        } else {
+            this.createNodeDataWithAggregation(ctx, scratch, ctx.xAxis, ctx.yAxis, dataAggregation);
         }
+    }
 
-        // 5. Cleanup: trim excess nodes from incremental updates
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
-            ctx.nodes.length = ctx.nodeIndex;
-        }
-
-        // 6. Return result
+    /**
+     * Initializes the result context object with default values.
+     * Called before populate phase to allow early return for invisible series.
+     */
+    protected override initializeResult(ctx: BubbleSeriesNodeDatumContext): BubbleSeriesNodeDataContext {
         const { marker } = this.properties;
         type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
         type StylerParams =

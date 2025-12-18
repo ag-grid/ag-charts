@@ -182,11 +182,16 @@ export {
 export type { CartesianAnimationData } from './chart/series/cartesian/cartesianSeries';
 export type {
     CartesianAnimationDataOf,
+    CartesianBarLikeContext,
+    CartesianCreateNodeDataContext,
+    CartesianCreateNodeDataContextBase,
+    CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
     CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
+    CreateNodeDataContextOf,
     DatumOf,
     DatumSelectionOf,
     LabelOf,

@@ -39,6 +39,7 @@ import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
+import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -81,7 +82,11 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
+import type {
+    CartesianAnimationDataOf,
+    CartesianMarkerLikeContext,
+    CartesianSeriesTypes,
+} from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -117,22 +122,24 @@ interface AreaSeriesStackContext {
 /**
  * Context object caching expensive lookups for createNodeData().
  * Created once per createNodeData() call and passed to helper methods.
+ *
+ * Extends CartesianMarkerLikeContext which provides:
+ * - canIncrementallyUpdate, nodes, nodeIndex (incremental update tracking)
+ * - xAxis, yAxis, xScale, yScale (axes and scales)
+ * - rawData, xValues (data arrays)
+ * - xKey, yKey, xName, yName (property keys)
+ * - animationEnabled (animation flag)
+ * - xOffset, yOffset (band scale offsets)
  */
-interface AreaSeriesCreateNodeDatumContext {
-    // Data arrays (from dataModel - cache once)
-    readonly rawData: any[];
-    readonly xValues: any[];
+interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<MarkerSelectionDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
+
+    // Additional data arrays specific to area series
     readonly yRawValues: any[];
     readonly yCumulativeValues: any[];
     readonly yFilterValues: any[] | undefined;
     readonly invalidData: boolean[] | undefined;
-
-    // Scales (from axes - cache once)
-    readonly xScale: { convert: (v: any) => number; bandwidth?: number };
-    readonly yScale: { convert: (v: any) => number };
-
-    // Pre-computed offsets
-    readonly xOffset: number;
 
     // Aggregation
     readonly indices: Uint32Array | undefined;
@@ -141,13 +148,8 @@ interface AreaSeriesCreateNodeDatumContext {
     readonly isContinuousY: boolean;
     readonly labelsEnabled: boolean;
     readonly normalizedTo: number | undefined;
-    readonly canIncrementallyUpdate: boolean;
 
-    // Property caches
-    readonly xKey: string;
-    readonly yKey: string;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
+    // Property caches (in addition to base xKey, yKey, xName, yName)
     readonly legendItemName: string | undefined;
     readonly markerSize: number;
     readonly markerFill: InternalAgColorType | undefined;
@@ -155,10 +157,8 @@ interface AreaSeriesCreateNodeDatumContext {
     readonly markerStrokeWidth: number;
     readonly yDomain: any[];
 
-    // Mutable state
-    markerData: MarkerSelectionDatum[];
+    // Mutable state (in addition to nodes, nodeIndex from base)
     labelData: LabelSelectionDatum[];
-    nodeIndex: number;
     crossFiltering: boolean;
 }
 
@@ -189,6 +189,7 @@ interface AreaSeriesTypes extends CartesianSeriesTypes {
     readonly label: LabelSelectionDatum;
     readonly context: AreaSeriesNodeDataContext;
     readonly stackContext: AreaSeriesStackContext;
+    readonly createNodeDataContext: AreaSeriesCreateNodeDatumContext;
 }
 
 export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
@@ -886,9 +887,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
      * Creates the context object with cached lookups for createNodeData().
      * All expensive operations (data resolution, scale lookups) are performed once here.
      */
-    private createNodeDatumContext(
-        xAxis: NonNullable<(typeof this.axes)[ChartAxisDirection.X]>,
-        yAxis: NonNullable<(typeof this.axes)[ChartAxisDirection.Y]>
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
     ): AreaSeriesCreateNodeDatumContext | undefined {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
@@ -923,12 +924,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         const existingNodeData = this.contextNodeData?.nodeData;
         const canIncrementallyUpdate =
-            existingNodeData != null &&
-            (processedData.changeDescription != null ||
-                !processedDataIsAnimatable(processedData) ||
-                dataAggregationFilter != null);
+            existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
+
             // Data arrays (resolved once)
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
@@ -944,6 +946,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             xScale,
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,
+            yOffset: 0, // Area series don't use y offset
 
             // Aggregation
             indices: dataAggregationFilter?.indices,
@@ -953,6 +956,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             labelsEnabled: label.enabled,
             normalizedTo,
             canIncrementallyUpdate,
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
 
             // Property caches
             xKey,
@@ -966,8 +970,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
 
-            // Mutable state
-            markerData: canIncrementallyUpdate ? existingNodeData : [],
+            // Mutable state (nodes instead of markerData to match base interface)
+            nodes: canIncrementallyUpdate ? existingNodeData : [],
             labelData: [],
             nodeIndex: 0,
             crossFiltering: false,
@@ -1022,13 +1026,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             ctx.crossFiltering = true;
         }
 
-        // Marker data
+        // Marker data (using ctx.nodes to match base interface)
         if (scratch.validPoint) {
-            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length;
+            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 
             if (canReuseNode) {
                 // Update existing node in place
-                const existingNode = ctx.markerData[ctx.nodeIndex] as {
+                const existingNode = ctx.nodes[ctx.nodeIndex] as {
                     -readonly [K in keyof MarkerSelectionDatum]: MarkerSelectionDatum[K];
                 };
                 existingNode.datum = scratch.datum;
@@ -1040,7 +1044,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
                 existingNode.selected = scratch.selected;
             } else {
-                ctx.markerData.push({
+                ctx.nodes.push({
                     series: this,
                     itemId: ctx.yKey,
                     datum: scratch.datum,
@@ -1093,18 +1097,14 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         }
     }
 
-    override createNodeData() {
-        const { axes, data, processedData } = this;
+    // ============================================================================
+    // Template Method Hooks
+    // ============================================================================
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xAxis || !yAxis || !data || !processedData) return;
-
-        // Create context with cached lookups
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
-
+    /**
+     * Populates the node data array by iterating over visible data.
+     */
+    protected override populateNodeData(ctx: AreaSeriesCreateNodeDatumContext): void {
         // Pre-allocate scratch object for mutations
         const scratch: AreaNodeDatumScratch = {
             datum: undefined,
@@ -1118,13 +1118,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         };
 
         // Calculate visible range
-        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, ctx.indices);
+        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', ctx.xAxis.range, ctx.indices);
         startIndex = Math.max(startIndex - 2, 0);
         endIndex = Math.min(endIndex + 2, ctx.indices?.length ?? ctx.xValues.length);
         // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
+        if (this.processedData!.input.count < 1e3) {
             startIndex = 0;
-            endIndex = processedData.input.count;
+            endIndex = this.processedData!.input.count;
         }
 
         // Process visible datums
@@ -1132,38 +1132,54 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             const datumIndex = ctx.indices?.[i] ?? i;
             this.handleDatum(ctx, scratch, datumIndex);
         }
+    }
 
-        // Trim excess nodes from incremental updates
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
-            ctx.markerData.length = ctx.nodeIndex;
-        }
-
+    /**
+     * Initializes the result context object with default values.
+     * Called before populate phase to allow early return for invisible series.
+     *
+     * Note: We use the actual fillSpans/strokeSpans/phantomSpans because createStackContext()
+     * runs BEFORE createNodeData() and populates these instance fields. They are valid
+     * even in the early return case when !visible.
+     */
+    protected override initializeResult(ctx: AreaSeriesCreateNodeDatumContext): AreaSeriesNodeDataContext {
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            xAxis,
-            yAxis,
-            this.chart!.seriesRect!,
-            this.ctx.scene,
-            false
-        );
-
-        const context: AreaSeriesNodeDataContext = {
+        return {
             itemId: ctx.yKey,
+            // Use actual spans from createStackContext() - valid even for early return
             fillData: { spans: this.fillSpans, phantomSpans: this.phantomSpans },
             strokeData: { spans: this.strokeSpans },
             labelData: ctx.labelData,
-            nodeData: ctx.markerData,
+            nodeData: ctx.nodes,
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering: ctx.crossFiltering,
             styles: getMarkerStyles(this, this.properties, this.properties.marker),
-            segments,
+            segments: undefined,
         };
+    }
 
-        return context;
+    /**
+     * Assembles the final result with computed fields.
+     * Note: fillData/strokeData are already set in initializeResult() from instance fields.
+     */
+    protected override assembleResult(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        result: AreaSeriesNodeDataContext
+    ): AreaSeriesNodeDataContext {
+        // Calculate segments (only computed field needed beyond what initializeResult provides)
+        result.segments = calculateSegments(
+            this.properties.segmentation,
+            ctx.xAxis,
+            ctx.yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene,
+            false
+        );
+
+        return result;
     }
 
     protected override isPathOrSelectionDirty(): boolean {

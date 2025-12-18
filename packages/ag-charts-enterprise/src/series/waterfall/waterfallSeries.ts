@@ -12,7 +12,6 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
-    type Scale,
     easeOut,
     isContinuous,
     mergeDefaults,
@@ -81,9 +80,7 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
 }
 
 /** Internal context for createNodeData() - caches expensive lookups */
-interface WaterfallSeriesNodeDatumContext {
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
+interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<WaterfallNodeDatum> {
     readonly categoryAxis: _ModuleSupport.ChartAxis;
     readonly valueAxis: _ModuleSupport.ChartAxis;
     readonly barAlongX: boolean;
@@ -91,24 +88,17 @@ interface WaterfallSeriesNodeDatumContext {
     readonly categoryAxisReversed: boolean;
     readonly valueAxisReversed: boolean;
     readonly crisp: boolean;
-    readonly xKey: string;
+    // Override from base to make required (Waterfall always has yKey)
     readonly yKey: string;
-    readonly xName: string | undefined;
     readonly yName: string | undefined;
     readonly lineStrokeWidth: number;
     readonly yDomain: number[];
     // Data arrays
-    readonly xValues: any[];
     readonly yRawValues: (number | undefined)[];
     readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
     readonly yCurrValues: number[];
     readonly yPrevValues: number[];
     readonly yCurrTotalValues: number[];
-    readonly rawData: unknown[];
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    readonly nodes: WaterfallNodeDatum[];
-    nodeIndex: number;
 }
 
 /** Parameters for creating/updating a WaterfallNodeDatum */
@@ -134,6 +124,7 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly label: WaterfallNodeDatum;
     readonly context: WaterfallContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: WaterfallSeriesNodeDatumContext;
 }
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
@@ -287,34 +278,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return [Number.NaN, Number.NaN];
     }
 
-    override createNodeData() {
-        const { data, dataModel, processedData } = this;
-        const categoryAxis = this.getCategoryAxis();
-        const valueAxis = this.getValueAxis();
+    // Store pointData for use in assembleResult - needs to persist between hooks
+    private _pendingPointData: WaterfallNodePointDatum[] = [];
 
-        if (!data || !categoryAxis || !valueAxis || !dataModel || !processedData) {
-            return;
-        }
-
-        if (processedData.type !== 'ungrouped') return;
-
-        // Create shared context for datum creation (must be done early to access datumCtx.nodes)
-        const datumCtx = this.createNodeDatumContext(categoryAxis, valueAxis, dataModel, processedData);
-        if (!datumCtx) return;
-
-        const context: WaterfallContext = {
-            itemId: this.properties.yKey,
-            nodeData: datumCtx.nodes,
-            labelData: datumCtx.nodes,
-            pointData: [],
-            scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
-            visible: this.visible,
-            styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
-        };
-
-        if (!this.visible) return context;
-
+    protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
         const pointData: WaterfallNodePointDatum[] = [];
         let trailingSubtotal = 0;
 
@@ -329,18 +296,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             datumType: undefined,
         };
 
-        for (const [datumIndex, datum] of datumCtx.rawData.entries()) {
-            const datumType = datumCtx.totalTypeValues[datumIndex];
+        for (const [datumIndex, datum] of ctx.rawData.entries()) {
+            const datumType = ctx.totalTypeValues[datumIndex];
             const isSubtotal = this.isSubtotal(datumType);
             const isTotal = this.isTotal(datumType);
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
-            const xDatum = datumCtx.xValues[datumIndex];
+            const xDatum = ctx.xValues[datumIndex];
             if (xDatum == null) continue;
 
-            const rawValue = datumCtx.yRawValues[datumIndex];
+            const rawValue = ctx.yRawValues[datumIndex];
             const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
-                datumCtx,
+                ctx,
                 datumIndex,
                 isTotal,
                 isSubtotal,
@@ -362,39 +329,59 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             paramsScratch.trailingValue = trailingValue;
             paramsScratch.datumType = datumType;
 
-            const nodeDatum = this.upsertNodeDatum(datumCtx, paramsScratch);
+            const nodeDatum = this.upsertNodeDatum(ctx, paramsScratch);
 
-            const pathPoint = this.createPointDatum(
-                datumCtx,
-                nodeDatum,
-                cumulativeValue,
-                trailingValue,
-                isTotalOrSubtotal
-            );
+            const pathPoint = this.createPointDatum(ctx, nodeDatum, cumulativeValue, trailingValue, isTotalOrSubtotal);
             pointData.push(pathPoint);
         }
 
-        // Trim excess nodes if the data shrunk
-        if (datumCtx.nodeIndex < datumCtx.nodes.length) {
-            datumCtx.nodes.length = datumCtx.nodeIndex;
-        }
-
-        const connectorLinesEnabled = this.properties.line.enabled;
-        if (datumCtx.yCurrValues != null && connectorLinesEnabled) {
-            context.pointData = pointData;
-        }
-
-        return context;
+        this._pendingPointData = pointData;
     }
 
-    private createNodeDatumContext(
-        categoryAxis: _ModuleSupport.ChartAxis,
-        valueAxis: _ModuleSupport.ChartAxis,
-        dataModel: _ModuleSupport.DataModel<any, any, any>,
-        processedData: _ModuleSupport.UngroupedData<any>
+    protected override finalizeNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
+        // Trim excess nodes if the data shrunk
+        if (ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
+        }
+    }
+
+    protected override initializeResult(ctx: WaterfallSeriesNodeDatumContext): WaterfallContext {
+        return {
+            itemId: this.properties.yKey,
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
+            pointData: [],
+            scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
+            visible: this.visible,
+            styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
+        };
+    }
+
+    protected override assembleResult(
+        ctx: WaterfallSeriesNodeDatumContext,
+        result: WaterfallContext
+    ): WaterfallContext {
+        const connectorLinesEnabled = this.properties.line.enabled;
+        if (ctx.yCurrValues != null && connectorLinesEnabled) {
+            result.pointData = this._pendingPointData;
+        }
+        return result;
+    }
+
+    protected override createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
     ): WaterfallSeriesNodeDatumContext | undefined {
-        const xScale = categoryAxis.scale;
-        const yScale = valueAxis.scale;
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData || processedData.type !== 'ungrouped') return undefined;
+
+        const categoryAxis = this.getCategoryAxis();
+        const valueAxis = this.getValueAxis();
+        if (!categoryAxis || !valueAxis) return undefined;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
@@ -412,9 +399,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const { xKey, yKey, xName, yName, line } = this.properties;
         const { contextNodeData } = this;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
         return {
+            xAxis,
+            yAxis,
             xScale,
             yScale,
             categoryAxis,
@@ -429,19 +419,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 this.smallestDataInterval,
                 this.largestDataInterval
             ),
+            animationEnabled,
             xKey,
-            yKey,
+            yKey: yKey,
             xName,
             yName,
             lineStrokeWidth: line.strokeWidth,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             xValues,
+            rawData,
             yRawValues,
             totalTypeValues,
             yCurrValues,
             yPrevValues,
             yCurrTotalValues,
-            rawData,
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
             nodeIndex: 0,

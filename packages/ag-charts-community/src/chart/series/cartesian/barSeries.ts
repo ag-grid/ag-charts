@@ -102,8 +102,10 @@ interface BarNodeLabelDatum extends Readonly<Point> {
  * or resolve - cheap property lookups use `this` directly in methods.
  */
 interface BarSeriesNodeDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: { data: any[] } | undefined;
+    // Data source (resolved from processedData)
+    readonly dataSource: { data: any[] } | undefined;
+    // rawData conforms to CartesianCreateNodeDataContext - populated from dataSource.data
+    readonly rawData: any[];
     readonly xValues: any[];
     readonly yRawValues: any[];
     readonly yFilterValues: any[] | undefined;
@@ -221,6 +223,7 @@ interface BarSeriesTypes {
     readonly label: BarNodeDatum;
     readonly context: BarSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: BarSeriesNodeDatumContext;
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarSeriesTypes>;
@@ -495,7 +498,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * to minimize memory allocations. Only caches values that are expensive to
      * compute - cheap property lookups use `this` directly.
      */
-    private createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): BarSeriesNodeDatumContext | undefined {
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): BarSeriesNodeDatumContext | undefined {
         const { dataModel, processedData, groupScale } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -514,14 +520,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
         const isStacked = dataModel.hasColumnById(this, `yValue-start`);
         const { label } = this.properties;
-        const canIncrementallyUpdate =
-            this.contextNodeData?.nodeData != null &&
-            (processedData.changeDescription != null ||
-                !processedDataIsAnimatable(processedData) ||
-                dataAggregationFilter != null);
+        const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         return {
-            rawData,
+            dataSource: rawData,
+            rawData: rawData.data,
             xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
             yRawValues: dataModel.resolveColumnById(this, `yValue-raw`, processedData),
             yFilterValues: this.crossFilteringEnabled()
@@ -548,9 +551,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             dataAggregationFilter,
             canIncrementallyUpdate,
-            phantomNodes: canIncrementallyUpdate ? this.contextNodeData.phantomNodeData ?? [] : [],
-            nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
-            labels: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            phantomNodes: canIncrementallyUpdate ? this.contextNodeData!.phantomNodeData ?? [] : [],
+            nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
+            labels: canIncrementallyUpdate ? this.contextNodeData!.labelData : [],
             nodeIndex: 0,
             phantomIndex: 0,
             barAlongX: this.getBarDirection() === ChartAxisDirection.X,
@@ -588,7 +591,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return undefined;
         }
 
-        const datum = ctx.rawData?.data[datumIndex];
+        const datum = ctx.dataSource?.data[datumIndex];
         const yRawValue = ctx.yRawValues[datumIndex];
         const yFilterValue = ctx.yFilterValues == null ? undefined : Number(ctx.yFilterValues[datumIndex]);
         if (yFilterValue != null && !Number.isFinite(yFilterValue)) {
@@ -1078,16 +1081,15 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return { nodeData, phantomNodeData };
     }
 
-    createNodeData() {
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+    // ============================================================================
+    // Template Method Hooks (createNodeData flow)
+    // ============================================================================
 
-        if (!this.dataModel || !this.processedData || !xAxis || !yAxis) return;
-
-        // Create shared context for datum creation (instantiated once, reused for all datums)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
-
+    /**
+     * Populates node data by selecting the appropriate strategy based on data type.
+     * Creates scratch objects and delegates to strategy-specific methods.
+     */
+    protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
@@ -1116,34 +1118,18 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         if (ctx.dataAggregationFilter != null) {
             this.createNodeDataWithAggregation(ctx, xPosition, nodeDatumParamsScratch);
-        } else if (this.processedData.type === 'grouped') {
+        } else if (this.processedData!.type === 'grouped') {
             this.createNodeDataGrouped(ctx, xPosition, nodeDatumParamsScratch);
         } else {
             this.createNodeDataSimple(ctx, xPosition, nodeDatumParamsScratch);
         }
+    }
 
-        // Trim excess nodes if we did incremental updates and have leftover nodes
-        if (ctx.canIncrementallyUpdate) {
-            if (ctx.nodeIndex < ctx.nodes.length) {
-                ctx.nodes.length = ctx.nodeIndex;
-            }
-            if (ctx.phantomIndex < ctx.phantomNodes.length) {
-                ctx.phantomNodes.length = ctx.phantomIndex;
-            }
-            // Labels array should match nodes array length
-            if (ctx.labels.length > ctx.nodes.length) {
-                ctx.labels.length = ctx.nodes.length;
-            }
-        }
-
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            ctx.xAxis,
-            ctx.yAxis,
-            this.chart!.seriesRect!,
-            this.ctx.scene
-        );
-
+    /**
+     * Creates the initial result context object.
+     * Note: segments is undefined here - it's computed in assembleResult.
+     */
+    protected override initializeResult(ctx: BarSeriesNodeDatumContext): BarSeriesNodeDataContext {
         return {
             itemId: this.properties.yKey,
             nodeData: ctx.nodes,
@@ -1153,8 +1139,38 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             visible: this.visible || ctx.animationEnabled,
             groupScale: this.getScaling(this.groupScale),
             styles: getItemStyles(this.getItemStyle.bind(this)),
-            segments,
+            segments: undefined,
         };
+    }
+
+    /**
+     * Finalizes node data by trimming incremental arrays.
+     * BarSeries has multiple arrays: nodes, phantomNodes, and labels.
+     */
+    protected override finalizeNodeData(ctx: BarSeriesNodeDatumContext): void {
+        if (ctx.canIncrementallyUpdate) {
+            this.trimIncrementalNodeArray(ctx.nodes, ctx.nodeIndex);
+            this.trimIncrementalNodeArray(ctx.phantomNodes, ctx.phantomIndex);
+            // Labels array should match nodes array length
+            this.trimIncrementalNodeArray(ctx.labels, ctx.nodes.length);
+        }
+    }
+
+    /**
+     * Assembles the final result by computing segments.
+     */
+    protected override assembleResult(
+        ctx: BarSeriesNodeDatumContext,
+        result: BarSeriesNodeDataContext
+    ): BarSeriesNodeDataContext {
+        result.segments = calculateSegments(
+            this.properties.segmentation,
+            ctx.xAxis,
+            ctx.yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        );
+        return result;
     }
 
     protected nodeFactory() {

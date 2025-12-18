@@ -34,6 +34,7 @@ import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';
+import { processedDataIsAnimatable } from '../../data/processors';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
@@ -47,6 +48,7 @@ import type {
     CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
+    CreateNodeDataContextOf,
     DatumOf,
     LabelOf,
     NodeOf,
@@ -407,6 +409,258 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     public createStackContext(): StackContextOf<TTypes> | undefined {
         // Override point for subclasses to create a stack context.
         return undefined;
+    }
+
+    // ============================================================================
+    // createNodeData() Pattern Helpers
+    // ============================================================================
+    // These methods support the optimized createNodeData() pattern with incremental updates.
+    // See series-performance-optimization.md for detailed documentation.
+
+    /**
+     * Determines if incremental node updates are possible based on common criteria.
+     *
+     * Returns true if existing nodeData exists AND either:
+     * - processedData has a changeDescription (partial update), OR
+     * - animation is disabled (large dataset)
+     *
+     * Series may extend with additional conditions by OR'ing additional checks:
+     * ```
+     * const canIncrementallyUpdate =
+     *     this.canIncrementallyUpdateNodes() || (existingNodeData && seriesSpecificCondition);
+     * ```
+     *
+     * @param additionalCondition - Optional series-specific condition to OR with base conditions
+     */
+    protected canIncrementallyUpdateNodes(additionalCondition: boolean = false): boolean {
+        const existingNodeData = this.contextNodeData?.nodeData;
+        if (existingNodeData == null) return false;
+
+        const { processedData } = this;
+        if (!processedData) return false;
+
+        return (
+            processedData.changeDescription != null || !processedDataIsAnimatable(processedData) || additionalCondition
+        );
+    }
+
+    /**
+     * Creates base incremental update tracking state for context objects.
+     *
+     * Use this to initialize the incremental update fields in your context:
+     * ```
+     * const ctx = {
+     *     ...this.createIncrementalUpdateState(this.contextNodeData?.nodeData, additionalCondition),
+     *     // series-specific fields...
+     * };
+     * ```
+     *
+     * @param existingNodes - The existing node array from previous createNodeData()
+     * @param additionalCondition - Optional series-specific condition for incremental updates
+     */
+    protected createIncrementalUpdateState<T>(
+        existingNodes: T[] | undefined,
+        additionalCondition: boolean = false
+    ): {
+        canIncrementallyUpdate: boolean;
+        nodes: T[];
+        nodeIndex: number;
+    } {
+        const canIncrementallyUpdate = existingNodes != null && this.canIncrementallyUpdateNodes(additionalCondition);
+        return {
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? existingNodes : [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Trims the node array after incremental updates.
+     *
+     * Call at the end of createNodeData() when using incremental updates:
+     * ```
+     * if (ctx.canIncrementallyUpdate) {
+     *     this.trimIncrementalNodeArray(ctx.nodes, ctx.nodeIndex);
+     * }
+     * ```
+     *
+     * @param nodes - The node array to trim
+     * @param nodeIndex - The final write position (new array length)
+     */
+    protected trimIncrementalNodeArray<T>(nodes: T[], nodeIndex: number): void {
+        if (nodeIndex < nodes.length) {
+            nodes.length = nodeIndex;
+        }
+    }
+
+    // ============================================================================
+    // createNodeData() Template Method Pattern
+    // ============================================================================
+    // The template method pattern pulls the common createNodeData() flow into the
+    // base class. Subclasses implement hooks to customize behavior.
+    //
+    // Subclasses that have been migrated implement:
+    // - createNodeDatumContext() - cache expensive lookups
+    // - populateNodeData() - iterate and create/update datums
+    // - initializeResult() - create result object shell
+    //
+    // And optionally override:
+    // - validateCreateNodeDataPreconditions() - custom axis validation
+    // - finalizeNodeData() - custom cleanup (multiple arrays, sorting)
+    // - assembleResult() - add computed fields (segments)
+
+    /**
+     * Template method for creating node data.
+     *
+     * This implementation provides the common algorithm skeleton:
+     * 1. Validate preconditions (axes, dataModel, processedData)
+     * 2. Create context with cached values
+     * 3. Initialize result object
+     * 4. Populate node data (strategy selection inside)
+     * 5. Finalize (trim arrays, post-processing)
+     * 6. Assemble and return result
+     *
+     * Subclasses that have been migrated to the template pattern should NOT
+     * override this method. Instead, implement the abstract hooks.
+     *
+     * Subclasses that haven't been migrated yet can override this method entirely.
+     */
+    override createNodeData(): ContextOf<TTypes> | undefined {
+        // Phase 1: VALIDATE (virtual hook with default)
+        const validation = this.validateCreateNodeDataPreconditions();
+        if (!validation) return undefined;
+        const { xAxis, yAxis } = validation;
+
+        // Phase 2: CONTEXT (abstract hook - subclasses must implement)
+        const ctx = this.createNodeDatumContext(xAxis, yAxis);
+        if (!ctx) return this.getEmptyResult();
+
+        // Phase 3: INITIALIZE (abstract hook - subclasses must implement)
+        const result = this.initializeResult(ctx);
+        if (!this.visible) return result;
+
+        // Phase 4: POPULATE (abstract hook - subclasses must implement)
+        this.populateNodeData(ctx);
+
+        // Phase 5: FINALIZE (virtual hook with default)
+        this.finalizeNodeData(ctx);
+
+        // Phase 6: ASSEMBLE (virtual hook with default)
+        return this.assembleResult(ctx, result);
+    }
+
+    // ============================================================================
+    // Template Method Hooks (Subclasses MUST implement when NOT overriding createNodeData)
+    // ============================================================================
+    // Series that override createNodeData() entirely don't need these hooks.
+    // Series using the template method MUST implement createNodeDatumContext,
+    // populateNodeData, and initializeResult.
+
+    /**
+     * Creates the shared context for datum creation/update operations.
+     * Called once per createNodeData() invocation.
+     *
+     * MUST return an object extending CartesianCreateNodeDataContext with:
+     * - Cached data arrays (resolved from dataModel)
+     * - Cached scales (from axes)
+     * - Pre-computed positioning values
+     * - Property key lookups
+     * - Incremental update state (canIncrementallyUpdate, nodes, nodeIndex)
+     *
+     * @returns Context object or undefined if context cannot be created
+     */
+    protected createNodeDatumContext(
+        _xAxis: ChartAxis,
+        _yAxis: ChartAxis
+    ): CreateNodeDataContextOf<TTypes> | undefined {
+        throw new Error(
+            `${this.constructor.name}: createNodeDatumContext() must be implemented when using the template method pattern`
+        );
+    }
+
+    /**
+     * Populates the node data array by iterating over data.
+     *
+     * Strategy selection happens inside this method:
+     * - Simple iteration for ungrouped data
+     * - Grouped iteration for grouped data
+     * - Aggregation iteration for large datasets
+     *
+     * Implementations should use the upsert pattern:
+     * - prepareNodeDatumState() → validate and compute state
+     * - upsertNodeDatum() → create or update node in place
+     */
+    protected populateNodeData(_ctx: CreateNodeDataContextOf<TTypes>): void {
+        throw new Error(
+            `${this.constructor.name}: populateNodeData() must be implemented when using the template method pattern`
+        );
+    }
+
+    /**
+     * Initializes the result context object that will be returned.
+     * Called before populate phase to allow early return for invisible series.
+     *
+     * Should create the context with:
+     * - itemId
+     * - nodeData (reference to ctx.nodes)
+     * - labelData (reference or separate array)
+     * - scales
+     * - visible
+     * - styles
+     */
+    protected initializeResult(_ctx: CreateNodeDataContextOf<TTypes>): ContextOf<TTypes> {
+        throw new Error(
+            `${this.constructor.name}: initializeResult() must be implemented when using the template method pattern`
+        );
+    }
+
+    // ============================================================================
+    // Virtual Hooks (Subclasses MAY Override)
+    // ============================================================================
+
+    /**
+     * Validates preconditions for createNodeData.
+     * Default: checks axes, dataModel, and processedData exist.
+     *
+     * Override for specialized axis requirements (e.g., category vs value axis in bar series).
+     */
+    protected validateCreateNodeDataPreconditions(): { xAxis: ChartAxis; yAxis: ChartAxis } | undefined {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
+        if (!xAxis || !yAxis || !this.dataModel || !this.processedData) {
+            return undefined;
+        }
+        return { xAxis, yAxis };
+    }
+
+    /**
+     * Returns empty result when context creation fails.
+     * Default: returns undefined.
+     */
+    protected getEmptyResult(): ContextOf<TTypes> | undefined {
+        return undefined;
+    }
+
+    /**
+     * Finalizes node data after population phase.
+     * Default: trims incremental node arrays.
+     *
+     * Override to add post-processing (sorting, additional cleanup, multiple arrays).
+     */
+    protected finalizeNodeData(ctx: CreateNodeDataContextOf<TTypes>): void {
+        if (ctx.canIncrementallyUpdate) {
+            this.trimIncrementalNodeArray(ctx.nodes, ctx.nodeIndex);
+        }
+    }
+
+    /**
+     * Assembles final result from context and initialized result.
+     * Default: returns the initialized result unchanged.
+     *
+     * Override to add computed fields (segments, groupScale).
+     */
+    protected assembleResult(_ctx: CreateNodeDataContextOf<TTypes>, result: ContextOf<TTypes>): ContextOf<TTypes> {
+        return result;
     }
 
     protected updateSelections() {

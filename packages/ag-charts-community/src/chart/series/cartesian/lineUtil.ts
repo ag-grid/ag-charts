@@ -16,7 +16,11 @@ import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
+import type {
+    CartesianMarkerLikeContext,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeriesTypes';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 
@@ -67,37 +71,26 @@ export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContex
  * Caches expensive-to-compute values that are reused across all datum iterations
  * to minimize memory allocations. Only caches values that are expensive to
  * compute - cheap property lookups use `this` directly in methods.
+ *
+ * Extends CartesianMarkerLikeContext to satisfy the template method pattern.
  */
-export interface LineSeriesDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: any[];
-    readonly xValues: any[];
+export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineNodeDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
+
+    // Additional data arrays specific to line series
     readonly yRawValues: any[];
     readonly yCumulativeValues: any[];
     readonly selectionValues: any[] | undefined;
-
-    // Scales (axis lookups - worth caching)
-    readonly xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] };
-    readonly yScale: { convert: (v: any) => number; bandwidth?: number };
-
-    // Pre-computed offsets (involves scale property access)
-    readonly xOffset: number;
-    readonly yOffset: number;
 
     // Pre-computed values (computed once, reused for all datums)
     readonly size: number;
     readonly yDomain: any[];
     readonly labelsEnabled: boolean;
-    readonly animationEnabled: boolean;
-    readonly canIncrementallyUpdate: boolean;
     readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
     readonly range: number;
 
     // Property lookups (constant across all datums - worth caching)
-    readonly xKey: string;
-    readonly yKey: string;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
     readonly legendItemName: string | undefined;
     readonly connectMissingData: boolean;
 
@@ -105,9 +98,7 @@ export interface LineSeriesDatumContext {
     readonly capDefaults: { lengthRatioMultiplier: number; lengthMax: number };
 
     // Mutable working state (arrays and counters that change during node creation)
-    nodeData: LineNodeDatum[];
     spanPoints: Array<LineSpanPointDatum[] | { skip: number }>;
-    nodeIndex: number;
 }
 
 /**

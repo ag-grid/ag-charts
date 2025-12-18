@@ -385,7 +385,7 @@ export abstract class OhlcSeriesBase<
      * to minimize memory allocations. Only caches values that are expensive to
      * compute - cheap property lookups use `this` directly.
      */
-    private createNodeDatumContext(
+    private buildDatumContext(
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): OhlcSeriesNodeDatumContext | undefined {
@@ -652,7 +652,7 @@ export abstract class OhlcSeriesBase<
         if (!xAxis || !yAxis) return;
 
         // Create shared context for datum creation (instantiated once, reused for all datums)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
+        const ctx = this.buildDatumContext(xAxis, yAxis);
 
         const resultContext = {
             itemId: this.properties.xKey,
