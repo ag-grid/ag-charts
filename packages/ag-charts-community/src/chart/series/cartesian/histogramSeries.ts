@@ -70,18 +70,17 @@ import {
     resetBarSelectionsFn,
 } from './barUtil';
 import {
-    type CartesianAnimationData,
     CartesianSeries,
-    type CartesianSeriesNodeDataContext,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type { CartesianAnimationDataOf, CartesianSeriesNodeDataContext } from './cartesianSeriesTypes';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 interface CalculatedBin {
     domain: [number, number];
@@ -93,6 +92,20 @@ interface CalculatedBin {
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
     styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
+}
+
+/**
+ * Consolidated type interface for HistogramSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface HistogramSeriesTypes {
+    readonly node: Rect<HistogramNodeDatum>;
+    readonly options: AgHistogramSeriesOptions;
+    readonly properties: HistogramSeriesProperties;
+    readonly datum: HistogramNodeDatum;
+    readonly label: HistogramNodeDatum;
+    readonly context: HistogramSeriesNodeDataContext;
+    readonly stackContext: never;
 }
 
 /**
@@ -120,14 +133,7 @@ interface HistogramSeriesNodeDatumContext {
     nodeIndex: number;
 }
 
-export class HistogramSeries extends CartesianSeries<
-    Rect<HistogramNodeDatum>,
-    AgHistogramSeriesOptions,
-    HistogramSeriesProperties,
-    HistogramNodeDatum,
-    HistogramNodeDatum,
-    HistogramSeriesNodeDataContext
-> {
+export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 

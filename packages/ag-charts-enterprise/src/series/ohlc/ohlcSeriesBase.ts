@@ -1,6 +1,5 @@
 import {
     type AgCandlestickSeriesItemOptions,
-    type AgOhlcSeriesBaseOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesItemType,
     type FillOptions,
@@ -8,6 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { AgOhlcSeriesBaseOptions } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -90,12 +90,7 @@ class OhlcSeriesNodeEvent<
     readonly highKey?: string;
     readonly lowKey?: string;
 
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: OhlcNodeDatum,
-        series: OhlcSeriesBase<OhlcBaseNode, AgOhlcSeriesBaseOptions, any>
-    ) {
+    constructor(type: TEvent, nativeEvent: Event, datum: OhlcNodeDatum, series: OhlcSeriesBase<OhlcSeriesBaseTypes>) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
@@ -177,6 +172,19 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
 }
 
 /**
+ * Base type interface for OHLC series types.
+ * Template parameter TNode allows subclasses to specify their node type.
+ */
+export interface OhlcSeriesBaseTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: OhlcBaseNode<any>;
+    readonly options: AgOhlcSeriesBaseOptions;
+    readonly properties: OhlcSeriesBaseProperties<this['options']>;
+    readonly datum: OhlcNodeDatum;
+    readonly label: OhlcNodeDatum;
+    readonly context: OhlcSeriesBaseNodeDataContext;
+}
+
+/**
  * High-performance direct reset for OHLC selections.
  * Bypasses resetMotion callback pattern and decorator system entirely.
  * Uses batchedUpdate to consolidate markDirty calls per selection.
@@ -209,17 +217,8 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
 }
 
 export abstract class OhlcSeriesBase<
-    TNode extends OhlcBaseNode,
-    TOpts extends AgOhlcSeriesBaseOptions,
-    TProps extends OhlcSeriesBaseProperties<TOpts>,
-> extends _ModuleSupport.AbstractBarSeries<
-    TNode,
-    TOpts,
-    TProps,
-    OhlcNodeDatum,
-    OhlcNodeDatum,
-    OhlcSeriesBaseNodeDataContext
-> {
+    TTypes extends OhlcSeriesBaseTypes,
+> extends _ModuleSupport.AbstractBarSeries<TTypes> {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
@@ -768,7 +767,12 @@ export abstract class OhlcSeriesBase<
     }
 
     protected override resetDatumAnimation(
-        data: _ModuleSupport.CartesianAnimationData<TNode, OhlcNodeDatum, OhlcNodeDatum, OhlcSeriesBaseNodeDataContext>
+        data: _ModuleSupport.CartesianAnimationData<
+            TTypes['node'],
+            OhlcNodeDatum,
+            OhlcNodeDatum,
+            OhlcSeriesBaseNodeDataContext
+        >
     ) {
         // Use direct reset to bypass resetMotion callback overhead
         resetOhlcSelectionsDirect([data.datumSelection]);
@@ -776,7 +780,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<TTypes['node'], OhlcNodeDatum>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];

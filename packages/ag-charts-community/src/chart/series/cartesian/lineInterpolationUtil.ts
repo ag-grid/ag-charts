@@ -9,7 +9,7 @@ import {
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 
-import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
+import type { CartesianSeriesNodeDataContext } from './cartesianSeriesTypes';
 
 const MAX_CATEGORIES = 1000;
 

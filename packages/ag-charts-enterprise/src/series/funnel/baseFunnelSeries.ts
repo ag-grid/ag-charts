@@ -84,6 +84,18 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
     connectorData: FunnelConnectorDatum[];
 }
 
+/**
+ * Base type interface for funnel series types.
+ * Constrains datum, label, context, and properties types while leaving node and options open for subclasses.
+ */
+export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.QuadtreeCompatibleNode;
+    readonly properties: BaseFunnelProperties<this['options']>;
+    readonly datum: FunnelNodeDatum;
+    readonly label: FunnelNodeLabelDatum;
+    readonly context: FunnelContext;
+}
+
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
     extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
 
@@ -93,7 +105,12 @@ class FunnelSeriesNodeEvent<
     readonly xKey?: string;
     readonly yKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: FunnelNodeDatum, series: BaseFunnelSeries<any, object>) {
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: FunnelNodeDatum,
+        series: BaseFunnelSeries<BaseFunnelSeriesTypes>
+    ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
@@ -101,16 +118,8 @@ class FunnelSeriesNodeEvent<
 }
 
 export abstract class BaseFunnelSeries<
-    TNode extends _ModuleSupport.QuadtreeCompatibleNode,
-    TOpts extends object,
-> extends _ModuleSupport.AbstractBarSeries<
-    TNode,
-    TOpts,
-    BaseFunnelProperties<TOpts>,
-    FunnelNodeDatum,
-    FunnelNodeLabelDatum,
-    FunnelContext
-> {
+    TTypes extends BaseFunnelSeriesTypes,
+> extends _ModuleSupport.AbstractBarSeries<TTypes> {
     // @ts-expect-error xKey/yKey renamed
     protected override readonly NodeEvent = FunnelSeriesNodeEvent;
 
@@ -135,7 +144,10 @@ export abstract class BaseFunnelSeries<
     }: {
         moduleCtx: _ModuleSupport.ModuleContext;
         animationResetFns: {
-            datum: (node: TNode, datum: FunnelNodeDatum) => _ModuleSupport.AnimationValue & Partial<TNode>;
+            datum: (
+                node: _ModuleSupport.NodeOf<TTypes>,
+                datum: FunnelNodeDatum
+            ) => _ModuleSupport.AnimationValue & Partial<_ModuleSupport.NodeOf<TTypes>>;
         };
     }) {
         super({
@@ -456,7 +468,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNode, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.NodeOf<TTypes>, FunnelNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -501,7 +513,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: FunnelNodeLabelDatum[];
-        labelSelection: FunnelAnimationData<TNode>['labelSelection'];
+        labelSelection: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>['labelSelection'];
     }) {
         const labelData = this.properties.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
@@ -571,14 +583,19 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
-        data: _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext>
+        data: _ModuleSupport.CartesianAnimationData<
+            _ModuleSupport.NodeOf<TTypes>,
+            FunnelNodeDatum,
+            FunnelNodeLabelDatum,
+            FunnelContext
+        >
     ): void {
         super.resetAllAnimation(data);
 
         resetMotion([this.connectorSelection], resetConnectorSelectionsFn);
     }
 
-    override animateEmptyUpdateReady({ labelSelection }: FunnelAnimationData<TNode>) {
+    override animateEmptyUpdateReady({ labelSelection }: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>) {
         const { connectorSelection } = this;
         const isVertical = this.isVertical();
         const mode = 'normal';
@@ -589,7 +606,7 @@ export abstract class BaseFunnelSeries<
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<TNode>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>) {
         const { labelSelection: labelSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);

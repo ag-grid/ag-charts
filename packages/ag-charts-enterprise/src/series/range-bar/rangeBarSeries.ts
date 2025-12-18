@@ -186,11 +186,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     style?: Required<AgRangeBarSeriesStyle>;
 }
 
-type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<
-    _ModuleSupport.Rect,
-    RangeBarNodeDatum,
-    RangeBarNodeLabelDatum
->;
+type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
 
 class RangeBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -213,14 +209,21 @@ interface RangeBarSeriesNodeDataContext
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
 }
 
-export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect<RangeBarNodeDatum>,
-    AgRangeBarSeriesOptions,
-    RangeBarProperties,
-    RangeBarNodeDatum,
-    RangeBarNodeLabelDatum,
-    RangeBarSeriesNodeDataContext
-> {
+/**
+ * Consolidated type interface for RangeBarSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.Rect<RangeBarNodeDatum>;
+    readonly options: AgRangeBarSeriesOptions;
+    readonly properties: RangeBarProperties;
+    readonly datum: RangeBarNodeDatum;
+    readonly label: RangeBarNodeLabelDatum;
+    readonly context: RangeBarSeriesNodeDataContext;
+    readonly stackContext: never;
+}
+
+export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSeriesTypes> {
     static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
 

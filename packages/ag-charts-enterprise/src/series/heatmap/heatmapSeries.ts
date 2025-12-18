@@ -127,13 +127,21 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
     bottom: -0.5,
 };
 
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.Rect,
-    AgHeatmapSeriesOptions,
-    HeatmapSeriesProperties,
-    HeatmapNodeDatum,
-    HeatmapLabelDatum
-> {
+/**
+ * Consolidated type interface for HeatmapSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
+    readonly node: _ModuleSupport.Rect;
+    readonly options: AgHeatmapSeriesOptions;
+    readonly properties: HeatmapSeriesProperties;
+    readonly datum: HeatmapNodeDatum;
+    readonly label: HeatmapLabelDatum;
+    readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum>;
+    readonly stackContext: never;
+}
+
+export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesTypes> {
     static override readonly className = 'HeatmapSeries';
     static readonly type = 'heatmap' as const;
 

@@ -82,10 +82,10 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
-    type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
 import { calculateSegments } from './util';
 
@@ -209,16 +209,23 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
     segments?: Segment[];
 }
 
-type BarAnimationData = AbstractBarSeriesAnimationData<BarShape<BarNodeDatum>, BarNodeDatum>;
+/**
+ * Consolidated type interface for BarSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface BarSeriesTypes {
+    readonly node: BarShape<BarNodeDatum>;
+    readonly options: AgBarSeriesOptions;
+    readonly properties: BarSeriesProperties;
+    readonly datum: BarNodeDatum;
+    readonly label: BarNodeDatum;
+    readonly context: BarSeriesNodeDataContext;
+    readonly stackContext: never;
+}
 
-export class BarSeries extends AbstractBarSeries<
-    BarShape<BarNodeDatum>,
-    AgBarSeriesOptions,
-    BarSeriesProperties,
-    BarNodeDatum,
-    BarNodeDatum,
-    BarSeriesNodeDataContext
-> {
+type BarAnimationData = AbstractBarSeriesAnimationData<BarSeriesTypes>;
+
+export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     static override readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 

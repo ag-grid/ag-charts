@@ -9,6 +9,7 @@ import { ChartAxisDirection } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
+    type BaseFunnelSeriesTypes,
     type Bounds,
     type FunnelNodeDatum,
     type FunnelNodeLabelDatum,
@@ -18,7 +19,16 @@ import { resetLineSelectionsFn } from './coneFunnelUtil';
 
 const { Line } = _ModuleSupport;
 
-export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgConeFunnelSeriesOptions> {
+/**
+ * Consolidated type interface for ConeFunnelSeries.
+ */
+interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
+    readonly node: _ModuleSupport.Line;
+    readonly options: AgConeFunnelSeriesOptions;
+    readonly properties: ConeFunnelProperties;
+}
+
+export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     static override readonly className = 'ConeFunnelSeries';
     static readonly type = 'cone-funnel' as const;
 

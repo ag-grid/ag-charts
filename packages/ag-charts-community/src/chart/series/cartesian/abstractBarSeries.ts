@@ -11,12 +11,16 @@ import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
+import { type CartesianAnimationData, CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import type {
-    CartesianAnimationData,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-} from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
+    CartesianSeriesTypes,
+    ContextOf,
+    DatumOf,
+    LabelOf,
+    NodeOf,
+} from './cartesianSeriesTypes';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
@@ -31,23 +35,25 @@ export interface AbstractBarSeriesNodeDataContext<
     groupScale: Scaling | undefined;
 }
 
-export type AbstractBarSeriesAnimationData<
-    TNode extends QuadtreeCompatibleNode,
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-> = CartesianAnimationData<TNode, TDatum, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
+/**
+ * Type constraint for series extending AbstractBarSeries.
+ * The node type must be compatible with quadtree hit testing.
+ * The properties type must include direction for bar orientation.
+ */
+export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
+    readonly node: QuadtreeCompatibleNode;
+    readonly properties: AbstractBarSeriesProperties<this['options']>;
+    readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
+}
 
-export abstract class AbstractBarSeries<
-    TNode extends QuadtreeCompatibleNode,
-    TOpts extends object,
-    TProps extends AbstractBarSeriesProperties<TOpts>,
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
-        TDatum,
-        TLabel
-    >,
-> extends CartesianSeries<TNode, TOpts, TProps, TDatum, TLabel, TContext> {
+export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes> = CartesianAnimationData<
+    NodeOf<TTypes>,
+    DatumOf<TTypes>,
+    LabelOf<TTypes>,
+    ContextOf<TTypes>
+>;
+
+export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
     /**
      * Used to get the position of bars within each group.
      */
@@ -168,7 +174,7 @@ export abstract class AbstractBarSeries<
         return direction;
     }
 
-    protected override initQuadTree(quadtree: QuadtreeNearest<TDatum>) {
+    protected override initQuadTree(quadtree: QuadtreeNearest<DatumOf<TTypes>>) {
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 

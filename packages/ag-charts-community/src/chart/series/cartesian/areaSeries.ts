@@ -74,13 +74,13 @@ import {
     plotAreaPathFill,
     prepareAreaPathAnimation,
 } from './areaUtil';
-import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -98,12 +98,7 @@ import { calculateSegments } from './util';
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
-type AreaAnimationData = CartesianAnimationData<
-    Marker,
-    MarkerSelectionDatum,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext
->;
+type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
 interface StackRange {
     leading: number;
@@ -181,15 +176,21 @@ interface AreaNodeDatumScratch {
     validPoint: boolean;
 }
 
-export class AreaSeries extends CartesianSeries<
-    Marker,
-    AgAreaSeriesOptions,
-    AreaSeriesProperties,
-    MarkerSelectionDatum,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext,
-    AreaSeriesStackContext
-> {
+/**
+ * Consolidated type interface for AreaSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface AreaSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgAreaSeriesOptions;
+    readonly properties: AreaSeriesProperties;
+    readonly datum: MarkerSelectionDatum;
+    readonly label: LabelSelectionDatum;
+    readonly context: AreaSeriesNodeDataContext;
+    readonly stackContext: AreaSeriesStackContext;
+}
+
+export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 

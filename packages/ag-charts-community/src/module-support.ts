@@ -169,6 +169,7 @@ export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/c
 export type {
     AbstractBarSeriesAnimationData,
     AbstractBarSeriesNodeDataContext,
+    AbstractBarSeriesTypes,
 } from './chart/series/cartesian/abstractBarSeries';
 export {
     CartesianSeries,
@@ -177,11 +178,23 @@ export {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './chart/series/cartesian/cartesianSeries';
+export type { CartesianAnimationData } from './chart/series/cartesian/cartesianSeries';
 export type {
-    CartesianAnimationData,
+    CartesianAnimationDataOf,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-} from './chart/series/cartesian/cartesianSeries';
+    CartesianSeriesPropertiesBase,
+    CartesianSeriesTypes,
+    ContextOf,
+    DatumOf,
+    DatumSelectionOf,
+    LabelOf,
+    LabelSelectionOf,
+    NodeOf,
+    OptionsOf,
+    PropertiesOf,
+    StackContextOf,
+} from './chart/series/cartesian/cartesianSeriesTypes';
 export {
     interpolatePoints,
     plotInterpolatedLinePathStroke,

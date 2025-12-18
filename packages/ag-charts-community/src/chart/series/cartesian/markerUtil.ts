@@ -15,7 +15,7 @@ import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(

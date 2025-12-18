@@ -21,15 +21,17 @@ import { ErrorBarProperties } from './errorBarProperties';
 
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
-type ErrorBoundCartesianSeries = Omit<
-    _ModuleSupport.CartesianSeries<
-        _ModuleSupport.Node,
-        object,
-        _ModuleSupport.CartesianSeriesProperties<any>,
-        ErrorBarNodeDatum
-    >,
-    'highlightSelection'
->;
+interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
+    readonly node: _ModuleSupport.Node<any>;
+    readonly options: object;
+    readonly properties: _ModuleSupport.CartesianSeriesProperties<any>;
+    readonly datum: ErrorBarNodeDatum;
+    readonly label: ErrorBarNodeDatum;
+    readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<ErrorBarNodeDatum, ErrorBarNodeDatum>;
+    readonly stackContext: never;
+}
+
+type ErrorBoundCartesianSeries = Omit<_ModuleSupport.CartesianSeries<ErrorBoundSeriesTypes>, 'highlightSelection'>;
 
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;

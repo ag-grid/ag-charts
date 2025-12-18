@@ -1,15 +1,20 @@
 import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgGradientColor, isGradientFill, isImageFill, isPatternFill } from 'ag-charts-core';
 
-import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-export class CandlestickSeries extends OhlcSeriesBase<
-    CandlestickNode,
-    AgCandlestickSeriesOptions,
-    CandlestickSeriesProperties<AgCandlestickSeriesOptions>
-> {
+/**
+ * Consolidated type interface for CandlestickSeries.
+ */
+interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
+    readonly node: CandlestickNode;
+    readonly options: AgCandlestickSeriesOptions;
+    readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
+}
+
+export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     static override readonly className = 'CandleStickSeries';
     static readonly type = 'candlestick' as const;
 
@@ -25,7 +30,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -37,7 +42,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;

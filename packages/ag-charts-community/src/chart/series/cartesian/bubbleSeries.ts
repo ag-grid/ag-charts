@@ -75,17 +75,17 @@ import {
     computeBubbleAggregationDilation,
 } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-} from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type {
+    CartesianAnimationDataOf,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeriesTypes';
 import {
     computeMarkerFocusBounds,
     getMarkerStyles,
@@ -95,7 +95,7 @@ import {
 } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleSeriesTypes>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -125,6 +125,20 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
 interface BubbleSeriesNodeDataContext
     extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+}
+
+/**
+ * Consolidated type interface for BubbleSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface BubbleSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgBubbleSeriesOptions;
+    readonly properties: BubbleSeriesProperties;
+    readonly datum: BubbleScatterNodeDatum;
+    readonly label: BubbleScatterNodeDatum;
+    readonly context: BubbleSeriesNodeDataContext;
+    readonly stackContext: never;
 }
 
 /**
@@ -211,14 +225,7 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
-export class BubbleSeries extends CartesianSeries<
-    Marker,
-    AgBubbleSeriesOptions,
-    BubbleSeriesProperties,
-    BubbleScatterNodeDatum,
-    BubbleScatterNodeDatum,
-    BubbleSeriesNodeDataContext
-> {
+export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 

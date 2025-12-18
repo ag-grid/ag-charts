@@ -16,7 +16,6 @@ import {
     type AreExact,
     type CallbackParamRules,
     ChartAxisDirection,
-    type ConstructorReturnType,
     DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
@@ -179,19 +178,24 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-const BaseSeries = _ModuleSupport.CartesianSeries<
-    _ModuleSupport.Marker,
-    AgRangeAreaSeriesOptions,
-    RangeAreaProperties,
-    RangeAreaMarkerDatum,
-    RangeAreaLabelDatum,
-    RangeAreaContext
->;
-type IBaseSeries = ConstructorReturnType<typeof BaseSeries>;
+/**
+ * Consolidated type interface for RangeAreaSeries.
+ */
+interface RangeAreaSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
+    readonly node: _ModuleSupport.Marker;
+    readonly options: AgRangeAreaSeriesOptions;
+    readonly properties: RangeAreaProperties;
+    readonly datum: RangeAreaMarkerDatum;
+    readonly label: RangeAreaLabelDatum;
+    readonly context: RangeAreaContext;
+    readonly stackContext: never;
+}
 
-type GetMarkerStyleArg<I extends number> = Parameters<IBaseSeries['getMarkerStyle']>[I];
+type GetMarkerStyleArg<I extends number> = Parameters<
+    _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes>['getMarkerStyle']
+>[I];
 
-export class RangeAreaSeries extends BaseSeries {
+export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes> {
     static override readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
 
@@ -1409,9 +1413,9 @@ export class RangeAreaSeries extends BaseSeries {
         opts?: GetMarkerStyleArg<3>,
         defaultOverrideStyle?: GetMarkerStyleArg<4>,
         inheritedStyle?: GetMarkerStyleArg<5>
-    ): ReturnType<IBaseSeries['getMarkerStyle']> {
+    ): ReturnType<_ModuleSupport.CartesianSeries<RangeAreaSeriesTypes>['getMarkerStyle']> {
         type P1 = Parameters<RangeAreaSeries['getMarkerStyle']>;
-        type P2 = Parameters<IBaseSeries['getMarkerStyle']>;
+        type P2 = Parameters<_ModuleSupport.CartesianSeries<RangeAreaSeriesTypes>['getMarkerStyle']>;
         true satisfies AreExact<P1, P2>; // break compilation if override/base function signatures do not match.
 
         // Override the item.(low|high).marker.itemStyler callback property:

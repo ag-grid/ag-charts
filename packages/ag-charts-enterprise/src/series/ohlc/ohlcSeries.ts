@@ -1,10 +1,19 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
-import { type OhlcNodeDatum, OhlcSeriesBase } from './ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
+/**
+ * Consolidated type interface for OhlcSeries.
+ */
+interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
+    readonly node: OhlcNode;
+    readonly options: AgOhlcSeriesOptions;
+    readonly properties: OhlcSeriesProperties;
+}
+
+export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
     static override readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
 
@@ -20,7 +29,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -32,7 +41,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;
