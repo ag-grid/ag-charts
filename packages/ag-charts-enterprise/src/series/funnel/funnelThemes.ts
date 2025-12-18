@@ -10,35 +10,7 @@ import {
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
-
-// TODO: Fix OptionsGraph to allow `label: { $path: ['/series/0/stageLabel' ]}` to merge with the defaults correctly.
-// Perhaps a type of `$apply` operator.
-const labelOptions = {
-    autoRotate: { $path: '/series/0/stageLabel/autoRotate' },
-    autoRotateAngle: { $path: '/series/0/stageLabel/autoRotateAngle' },
-    avoidCollisions: { $path: ['/series/0/stageLabel/avoidCollisions', true] },
-    border: { $path: ['/series/0/stageLabel/border'] },
-    color: { $path: ['/series/0/stageLabel/color', { $ref: 'textColor' }] },
-    cornerRadius: { $path: ['/series/0/stageLabel/cornerRadius'] },
-    enabled: {
-        $if: [
-            { $eq: [{ $path: '/series/0/stageLabel/enabled' }, undefined] },
-            true,
-            { $path: '/series/0/stageLabel/enabled' },
-        ],
-    },
-    fill: { $path: ['/series/0/stageLabel/fill'] },
-    fillOpacity: { $path: ['/series/0/stageLabel/fillOpacity'] },
-    fontSize: { $path: ['/series/0/stageLabel/fontSize', { $ref: 'fontSize' }] },
-    fontStyle: { $path: ['/series/0/stageLabel/fontStyle', { $ref: 'fontStyle' }] },
-    fontWeight: { $path: ['/series/0/stageLabel/fontWeight', { $ref: 'fontWeight' }] },
-    format: { $path: '/series/0/stageLabel/format' },
-    formatter: { $path: '/series/0/stageLabel/formatter' },
-    itemStyler: { $path: '/series/0/stageLabel/itemStyler' },
-    minSpacing: { $path: '/series/0/stageLabel/minSpacing' },
-    padding: { $path: ['/series/0/stageLabel/padding'] },
-    rotation: { $path: ['/series/0/stageLabel/rotation', 0] },
-};
+const labelOptions = { $clone: { $omit: [['placement', 'spacing'], { $path: '/series/0/stageLabel' }] } };
 
 export const FUNNEL_SERIES_AXES: any = {
     y: {

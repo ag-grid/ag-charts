@@ -402,6 +402,7 @@ export class ChartTheme {
             },
             overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},
+            // TODO: remove this
             series: {
                 tooltip: {
                     range: { $path: ['/tooltip/range', 'exact'] },
@@ -509,6 +510,7 @@ export class ChartTheme {
                     );
                 }
 
+                // TODO: remove this
                 if (seriesType === 'map-shape-background' || seriesType === 'map-line-background') {
                     delete (result[seriesType].series as any).tooltip;
                 }

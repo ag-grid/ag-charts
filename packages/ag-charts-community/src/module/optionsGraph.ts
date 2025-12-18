@@ -6,6 +6,7 @@ import {
     type Vertex,
     isObject,
     isObjectLike,
+    isPlainObject,
     pick,
     simpleMemorize,
     without,
@@ -122,6 +123,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private rollbackEdgesTo: Array<Vertex<unknown, unknown>> = [];
     private rollbackEdgesValue: Array<string> = [];
     private isRollingBack = false;
+
+    // Records the already resolved root ancestors, i.e. vertices with a path of a single segment
+    private readonly resolvedRootAncestorsPaths = new Set();
 
     constructor(
         private readonly config: PlainObject = {},
@@ -903,14 +907,32 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!, prune?: unknown) {
         const pathArray = this.getPathArray(vertex);
+        const rootAncestorPath = pathArray[0];
 
-        // TODO: is it resolving the same vertex multiple times, is that a bug, or should it just skip it if already resolved?
-        // if (debug.check()) {
-        //     if (pathArray.length > 0 && object === this.resolved && getPathSafe(object, pathArray) != null) {
-        //         // eslint-disable-next-line no-console
-        //         console.warn('duplicate resolve', pathArray.join('.'), getPathSafe(object, pathArray));
-        //     }
-        // }
+        if (pathArray.length === 1) {
+            this.resolvedRootAncestorsPaths.add(rootAncestorPath);
+        }
+
+        // Resolve the full ancestor object if attempting to resolve a child before the ancestor. For example,
+        // `/series/0/type` must be resolved after `/series`, otherwise the de-duplication below will prevent
+        // subsequent resolving from filling out the full ancestor object.
+        if (pathArray.length > 1 && !this.resolvedRootAncestorsPaths.has(rootAncestorPath)) {
+            const rootAncestorVertex = this.findVertexAtPath([rootAncestorPath]);
+            if (rootAncestorVertex) {
+                this.resolveVertex(rootAncestorVertex, object, prune);
+                return;
+            }
+        }
+
+        // Only resolve vertices once, to prevent duplication of vertices and edges. This is only applied to when not
+        // partially resolving or using a custom path branch and also only for simple non-object values to avoid
+        // skipping unresolved children.
+        if (this.userPartialOptions == null && object === this.resolved && pathArray.length > 0) {
+            const resolvedVertexValue = getPathSafe(object, pathArray);
+            if (resolvedVertexValue != null && !isPlainObject(resolvedVertexValue)) {
+                return;
+            }
+        }
 
         this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
@@ -976,8 +998,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!autoEnableValueVertex) return;
 
         const pathVertex = this.findVertexAtPath(pathArray);
-        const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as PlainObject;
-        const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as PlainObject;
+        const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as
+            | PlainObject
+            | undefined;
+        const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as
+            | PlainObject
+            | undefined;
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
             | PlainObject
             | undefined;
@@ -988,7 +1014,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             ? undefined
             : (this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as PlainObject | undefined);
 
-        const isUserEnabled: boolean =
+        const isUserEnabled =
             (userOptionsEnabled != null && userOptionsEnabled.enabled == null) ||
             (userPartialOptionsEnabled != null && userPartialOptionsEnabled.enabled == null);
 
@@ -1022,7 +1048,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!dependencies) return;
 
         for (const dependency of dependencies) {
-            // TODO: should it check here to not resolve if already resolved?
             this.resolveVertex(dependency);
         }
     }
@@ -1231,9 +1256,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         const defaultValues = this.neighboursWithEdgeValue(vertex, DEFAULTS_EDGE) ?? [];
         index = 0;
-        // for (const defaultValue of defaultValues) {
-        const [defaultValue] = defaultValues;
-        if (defaultValue) {
+        for (const defaultValue of defaultValues) {
             this.diagramChildWithNeighbours(
                 diagram,
                 DEFAULTS_EDGE,
@@ -1245,7 +1268,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
                 maxDepth
             );
             index++;
-            // break; // TODO: there should only be 1 default per vertex
         }
 
         const operationVertices = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE) ?? [];
