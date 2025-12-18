@@ -162,6 +162,7 @@ const BENCHMARK_THEME_CSS = `
         --bm-table-row-alt: #f9fafb;  /* gray-50 */
         --bm-table-row-hover: #e5effd;  /* brand-100 */
         --bm-run-button-bg: #28a745;  /* success/positive */
+        --bm-overlay-bg: rgba(255, 255, 255, 0.8);  /* semi-transparent white */
     }
 
     [data-dark-mode="true"] {
@@ -193,6 +194,7 @@ const BENCHMARK_THEME_CSS = `
         --bm-table-row-alt: #182230;  /* gray-800 */
         --bm-table-row-hover: #002e7e;  /* brand-800 */
         --bm-run-button-bg: #28a745;  /* standard success - not too bright */
+        --bm-overlay-bg: rgba(20, 29, 44, 0.8);  /* semi-transparent dark */
     }
 `;
 
@@ -221,6 +223,10 @@ class BenchmarkUI {
     resultsElement: HTMLDivElement | null = null;
     errorElement: HTMLDivElement | null = null;
     runButton: HTMLButtonElement | null = null;
+    panelCollapsed: boolean = false;
+    panelToggleButton: HTMLButtonElement | null = null;
+    panelContent: HTMLDivElement | null = null;
+    isFloatingMode: boolean = false;
 
     /**
      * Initialize the benchmark UI by creating DOM elements
@@ -232,35 +238,64 @@ class BenchmarkUI {
     }
 
     createBenchmarkContainer(): void {
-        // Create main container
+        const chartElement = document.getElementById('myChart');
+        if (!chartElement) {
+            console.warn('Cannot create benchmark container: chart element not found');
+            return;
+        }
+
+        // Ensure chart parent has position: relative for absolute positioning
+        const chartParent = chartElement.parentElement;
+        if (chartParent) {
+            const computedStyle = window.getComputedStyle(chartParent);
+            if (computedStyle.position === 'static') {
+                chartParent.style.position = 'relative';
+            }
+        }
+
+        // Create main container (floating at bottom)
         this.container = document.createElement('div');
         this.container.id = 'benchmarkContainer';
         this.container.style.cssText =
-            'display: none; background-color: var(--bm-container-bg); border: 1px solid var(--bm-container-border); border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px var(--bm-container-shadow); margin-top: 10px;';
+            'display: none; position: absolute; bottom: 0; left: 0; right: 0; z-index: 99; background-color: var(--bm-overlay-bg); backdrop-filter: blur(4px); border-radius: 8px 8px 0 0;';
 
-        // Progress element
+        // Toggle button (always visible at bottom edge)
+        this.panelToggleButton = document.createElement('button');
+        this.panelToggleButton.id = 'benchmarkPanelToggle';
+        this.panelToggleButton.textContent = '▼ Hide Panel';
+        this.panelToggleButton.style.cssText =
+            'display: block; width: 100%; background-color: color-mix(in srgb, var(--bm-primary-bg) 85%, transparent); color: white; border: none; padding: 8px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: 500; font-size: 12px; text-align: center;';
+        this.panelToggleButton.addEventListener('click', () => this.togglePanelCollapsed());
+        this.container.appendChild(this.panelToggleButton);
+
+        // Collapsible content wrapper
+        this.panelContent = document.createElement('div');
+        this.panelContent.id = 'benchmarkPanelContent';
+        this.panelContent.style.cssText = 'max-height: 60vh; overflow-y: auto;';
+        this.container.appendChild(this.panelContent);
+
+        // Progress element (status bar)
         this.progressElement = document.createElement('div');
         this.progressElement.id = 'benchmarkProgress';
+        this.progressElement.style.cssText = 'padding: 12px 16px;';
         this.progressElement.textContent = 'Initializing...';
-        this.container.appendChild(this.progressElement);
+        this.panelContent.appendChild(this.progressElement);
 
         // Error element
         this.errorElement = document.createElement('div');
         this.errorElement.id = 'benchmarkError';
         this.errorElement.style.cssText =
-            'display: none; color: var(--bm-error-text); margin-top: 10px; padding: 10px; background: var(--bm-error-bg); border-radius: 4px;';
-        this.container.appendChild(this.errorElement);
+            'display: none; color: var(--bm-error-text); margin: 0 16px 10px; padding: 10px; background: var(--bm-error-bg); border-radius: 4px;';
+        this.panelContent.appendChild(this.errorElement);
 
         // Results element
         this.resultsElement = document.createElement('div');
         this.resultsElement.id = 'benchmarkResults';
-        this.container.appendChild(this.resultsElement);
+        this.panelContent.appendChild(this.resultsElement);
 
-        // Insert before the chart element (between controls and chart)
-        const chartElement = document.getElementById('myChart');
-
-        if (chartElement?.parentNode) {
-            chartElement.parentNode.insertBefore(this.container, chartElement);
+        // Insert container relative to chart element
+        if (chartParent) {
+            chartParent.appendChild(this.container);
         } else {
             document.body.appendChild(this.container);
         }
@@ -276,23 +311,14 @@ class BenchmarkUI {
                 controlsRow.className = 'controls-row';
                 exampleControls.appendChild(controlsRow);
             } else {
-                // Create example-controls structure if it doesn't exist
-                const exampleControlsContainer = document.createElement('div');
-                exampleControlsContainer.className = 'example-controls';
-                controlsRow = document.createElement('div');
-                controlsRow.className = 'controls-row';
-                exampleControlsContainer.appendChild(controlsRow);
-
-                const chartElement = document.getElementById('myChart');
-                if (chartElement?.parentNode) {
-                    chartElement.parentNode.insertBefore(exampleControlsContainer, chartElement);
-                } else {
-                    document.body.insertBefore(exampleControlsContainer, document.body.firstChild);
-                }
+                // No example-controls exists - create floating button instead
+                this.isFloatingMode = true;
+                this.createFloatingButton();
+                return;
             }
         }
 
-        // Create run benchmark button
+        // Create run benchmark button (non-floating mode)
         this.runButton = document.createElement('button');
         this.runButton.id = 'runBenchmarkBtn';
         this.runButton.textContent = 'Run Benchmark';
@@ -301,10 +327,44 @@ class BenchmarkUI {
         controlsRow.appendChild(this.runButton);
     }
 
+    private createFloatingButton(): void {
+        const chartElement = document.getElementById('myChart');
+        if (!chartElement) {
+            console.warn('Cannot create floating button: chart element not found');
+            return;
+        }
+
+        // Ensure chart parent has position: relative for absolute positioning
+        const chartParent = chartElement.parentElement;
+        if (chartParent) {
+            const computedStyle = window.getComputedStyle(chartParent);
+            if (computedStyle.position === 'static') {
+                chartParent.style.position = 'relative';
+            }
+        }
+
+        // Create floating button
+        this.runButton = document.createElement('button');
+        this.runButton.id = 'runBenchmarkBtn';
+        this.runButton.textContent = 'Run Benchmark';
+        this.runButton.style.cssText =
+            'position: absolute; top: 10px; right: 10px; z-index: 100; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-weight: 500;';
+
+        // Insert button relative to chart element
+        if (chartParent) {
+            chartParent.appendChild(this.runButton);
+        } else {
+            document.body.appendChild(this.runButton);
+        }
+    }
+
     show(): void {
         if (this.container) {
             this.container.style.display = 'block';
         }
+        // Ensure panel is expanded when showing
+        this.panelCollapsed = false;
+        this.updatePanelVisibility();
     }
 
     hide(): void {
@@ -318,12 +378,20 @@ class BenchmarkUI {
         if (controlsRow) {
             (controlsRow as HTMLElement).style.display = 'none';
         }
+        // Hide floating button if in floating mode
+        if (this.isFloatingMode && this.runButton) {
+            this.runButton.style.display = 'none';
+        }
     }
 
     showControls(): void {
         const controlsRow = document.querySelector('.controls-row');
         if (controlsRow) {
             (controlsRow as HTMLElement).style.display = '';
+        }
+        // Show floating button if in floating mode
+        if (this.isFloatingMode && this.runButton) {
+            this.runButton.style.display = 'block';
         }
     }
 
@@ -367,7 +435,7 @@ class BenchmarkUI {
             : '';
 
         this.progressElement.style.cssText =
-            'padding: 0; background-color: transparent; border: none; border-radius: 0; font-family: system-ui, -apple-system, sans-serif;';
+            'padding: 12px 16px; background-color: transparent; border: none; border-radius: 0; font-family: system-ui, -apple-system, sans-serif;';
         this.progressElement.innerHTML = `
             <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;">
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
@@ -411,10 +479,11 @@ class BenchmarkUI {
         let html = `
             <style>
                 .benchmark-table-container {
-                    max-height: 400px;
+                    max-height: 300px;
                     overflow-y: auto;
                     border: 1px solid var(--bm-table-border);
                     border-radius: 4px;
+                    margin: 0 16px 16px 16px;
                 }
                 .benchmark-table {
                     width: 100%;
@@ -550,6 +619,23 @@ class BenchmarkUI {
     setRunButtonEnabled(enabled: boolean): void {
         if (this.runButton) {
             this.runButton.disabled = !enabled;
+        }
+    }
+
+    togglePanelCollapsed(): void {
+        this.panelCollapsed = !this.panelCollapsed;
+        this.updatePanelVisibility();
+    }
+
+    private updatePanelVisibility(): void {
+        if (!this.panelContent || !this.panelToggleButton) return;
+
+        if (this.panelCollapsed) {
+            this.panelContent.style.display = 'none';
+            this.panelToggleButton.textContent = '▲ Show Panel';
+        } else {
+            this.panelContent.style.display = 'block';
+            this.panelToggleButton.textContent = '▼ Hide Panel';
         }
     }
 }
