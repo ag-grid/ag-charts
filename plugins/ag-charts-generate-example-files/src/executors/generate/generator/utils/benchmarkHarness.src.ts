@@ -374,24 +374,17 @@ class BenchmarkUI {
     }
 
     hideControls(): void {
-        const controlsRow = document.querySelector('.controls-row');
-        if (controlsRow) {
-            (controlsRow as HTMLElement).style.display = 'none';
-        }
-        // Hide floating button if in floating mode
-        if (this.isFloatingMode && this.runButton) {
+        // Only hide the run button, not the entire controls row
+        // This preserves the original example controls
+        if (this.runButton) {
             this.runButton.style.display = 'none';
         }
     }
 
     showControls(): void {
-        const controlsRow = document.querySelector('.controls-row');
-        if (controlsRow) {
-            (controlsRow as HTMLElement).style.display = '';
-        }
-        // Show floating button if in floating mode
-        if (this.isFloatingMode && this.runButton) {
-            this.runButton.style.display = 'block';
+        // Show the run button
+        if (this.runButton) {
+            this.runButton.style.display = this.isFloatingMode ? 'block' : '';
         }
     }
 
