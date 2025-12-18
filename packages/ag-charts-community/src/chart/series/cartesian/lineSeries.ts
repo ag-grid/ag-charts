@@ -138,6 +138,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return this.properties.normalizedTo != null;
     }
 
+    override renderToOffscreenCanvas(): boolean {
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
+        return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
+    }
+
     override async processData(dataController: DataController) {
         if (this.data == null) return;
 
@@ -724,12 +729,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             return;
         }
 
-        const { datumSelection, isHighlight, drawingMode } = opts;
+        const { datumSelection, isHighlight } = opts;
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);

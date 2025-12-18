@@ -579,6 +579,42 @@ describe('RadarLineSeries', () => {
         });
     });
 
+    it('should dim non-highlight markers with cutout in multi-series radar line', async () => {
+        const options: AgPolarChartOptions = {
+            data: [
+                { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
+                { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
+                { subject: 'Biology', gradeA: 3, gradeB: 3 },
+                { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
+                { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
+            ],
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'gradeA',
+                    strokeWidth: 5,
+                    marker: { enabled: true, size: 28 },
+                },
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'gradeB',
+                    strokeWidth: 5,
+                    marker: { enabled: true, size: 28 },
+                },
+            ],
+        };
+
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+
+        await waitForChartStability(chart);
+        await hoverAction(300, 200)(chart);
+        await waitForChartStability(chart);
+        await compare();
+    });
+
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
             create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),

@@ -164,3 +164,7 @@ export function getItemStylesPerItemId<ItemId extends string, TNodeDatum, TStyle
     }
     return result;
 }
+
+export function hasDimmedOpacity(style?: { opacity?: number; fillOpacity?: number; strokeOpacity?: number }) {
+    return (style?.opacity ?? 1) < 1 || (style?.fillOpacity ?? 1) < 1 || (style?.strokeOpacity ?? 1) < 1;
+}

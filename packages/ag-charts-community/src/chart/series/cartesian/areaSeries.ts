@@ -21,6 +21,7 @@ import {
     type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
     type AgAreaSeriesStylerResult,
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
@@ -230,8 +231,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     override renderToOffscreenCanvas(): boolean {
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
         return (
             super.renderToOffscreenCanvas() ||
+            (hasMarkers && this.getDrawingMode(false) === 'cutout') ||
             (this.contextNodeData != null &&
                 (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
                     this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
@@ -1321,6 +1324,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -1332,11 +1336,14 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
+
         datumSelection.each((node, datum) => {
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            node.drawingMode = drawingMode;
         });
 
         if (!isHighlight) {

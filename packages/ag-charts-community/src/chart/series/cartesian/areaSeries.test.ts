@@ -40,6 +40,7 @@ import {
     doubleClickAction,
     doubleTapAction,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -1634,6 +1635,48 @@ describe('AreaSeries', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should use cutout on dimmed non-highlight markers to mask the line for area', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            unhighlightedItem: {
+                                fillOpacity: 0.4,
+                                strokeOpacity: 0.4,
+                            },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
+            await waitForChartStability(chart);
+            await compare();
         });
 
         it('should render area series with positive/negative segmentation', async () => {

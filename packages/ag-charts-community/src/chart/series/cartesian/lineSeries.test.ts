@@ -1641,6 +1641,97 @@ describe('LineSeries', () => {
             await hoverAction(300, 280)(chart);
             await compare();
         });
+
+        it('should use cutout on dimmed non-highlight markers to mask the line', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            unhighlightedItem: {
+                                fillOpacity: 0.4,
+                                strokeOpacity: 0.4,
+                            },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('should dim non-highlight markers with cutout in multi-series default highlight style', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { month: 'Jan', sales: 100, expenses: 80 },
+                    { month: 'Feb', sales: 120, expenses: 90 },
+                    { month: 'Mar', sales: 110, expenses: 85 },
+                    { month: 'Apr', sales: 140, expenses: 100 },
+                    { month: 'May', sales: 130, expenses: 95 },
+                    { month: 'Jun', sales: 150, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'sales',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'expenses',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'triangle',
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(220, 250)(chart);
+            await waitForChartStability(chart);
+            await compare();
+        });
     });
 
     describe('AG-15743 legendItemName', () => {

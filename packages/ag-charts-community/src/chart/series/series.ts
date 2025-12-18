@@ -28,6 +28,7 @@ import {
 import type {
     AgChartLabelFormatterParams,
     AgColorType,
+    AgDrawingMode,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
@@ -75,6 +76,7 @@ import type {
     SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
+import { hasDimmedOpacity } from './util';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -471,6 +473,21 @@ export abstract class Series<
 
     renderToOffscreenCanvas() {
         return false;
+    }
+
+    protected hasHighlightOpacity() {
+        if (!this.properties.highlight.enabled) return false;
+        if (this.ctx.highlightManager.getActiveHighlight() == null) return false;
+
+        const { unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
+        return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
+    }
+
+    protected getDrawingMode(isHighlight?: boolean, highlightDrawingMode: AgDrawingMode = 'cutout'): AgDrawingMode {
+        if (isHighlight) {
+            return highlightDrawingMode;
+        }
+        return this.hasHighlightOpacity() ? 'cutout' : 'overlay';
     }
 
     readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();

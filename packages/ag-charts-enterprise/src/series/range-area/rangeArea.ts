@@ -1,4 +1,5 @@
 import {
+    type AgDrawingMode,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesLineStyle,
@@ -226,6 +227,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             },
             clipFocusBox: false,
         });
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
+        return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -954,6 +960,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -965,6 +972,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
+
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
             const style =
@@ -973,6 +982,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
+            node.drawingMode = drawingMode;
         });
 
         if (!isHighlight) {

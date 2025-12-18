@@ -15,6 +15,7 @@ import {
     MockRangeAreaStyler,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -1407,6 +1408,42 @@ describe('RangeAreaSeries', () => {
             chart = AgCharts.create(prepareEnterpriseTestOptions(opts));
             await compare();
         });
+    });
+
+    it('should dim non-highlight markers with cutout in range area', async () => {
+        const options: AgChartOptions = {
+            data: [
+                { category: 'Jan', low: 1, high: 5 },
+                { category: 'Feb', low: 2, high: 7 },
+                { category: 'Mar', low: 3, high: 6 },
+                { category: 'Apr', low: 4, high: 8 },
+            ],
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'category',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    item: {
+                        low: { marker: { enabled: true, size: 28 } },
+                        high: { marker: { enabled: true, size: 28 } },
+                    },
+                    highlight: {
+                        unhighlightedItem: {
+                            fillOpacity: 0.4,
+                            strokeOpacity: 0.4,
+                        },
+                    },
+                },
+            ],
+        };
+
+        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+
+        await waitForChartStability(chart);
+        await hoverAction(200, 220)(chart);
+        await waitForChartStability(chart);
+        await compare();
     });
 
     describe('AG-15743 legendItemName', () => {

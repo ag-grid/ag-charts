@@ -213,7 +213,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
-            this.executeStroke(ctx, path);
             ctx.globalCompositeOperation = 'source-over';
         }
 
