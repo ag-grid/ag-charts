@@ -88,8 +88,8 @@ jobs:
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=b11.3.1" >> $GITHUB_OUTPUT
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
-                    # For scheduled runs, get the most recent branch matching 'b' followed by semver (e.g. b1.2.3)
-                    release=$(git ls-remote --heads origin 'b[0-9]*\.[0-9]*\.[0-9]*' | sort -t '/' -k 2 -V | tail -n 1 | sed 's/.*refs\/heads\///')
+                    # For scheduled runs, get the most recent release branch matching exact 'bX.Y.Z' format
+                    release=$(git ls-remote --heads origin | grep -E 'refs/heads/b[0-9]+\.[0-9]+\.[0-9]+$' | sort -t '/' -k 3 -V | tail -n 1 | sed 's/.*refs\/heads\///')
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=$release" >> $GITHUB_OUTPUT
                   else
