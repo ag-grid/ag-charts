@@ -152,8 +152,9 @@ export class Scene extends EventEmitter<EventMap> {
         debugSplitTimes: Record<string, number>;
         extraDebugStats: Record<string, number>;
         seriesRect?: BBox;
+        debugColors?: { background?: string; foreground?: string };
     }) {
-        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
+        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect, debugColors } = opts ?? {};
         const {
             canvas,
             canvas: { context: ctx } = {},
@@ -200,7 +201,15 @@ export class Scene extends EventEmitter<EventMap> {
             }
 
             if (statsEnabled) {
-                debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
+                debugStats(
+                    this.layersManager,
+                    debugSplitTimes,
+                    ctx,
+                    undefined,
+                    extraDebugStats,
+                    seriesRect,
+                    debugColors
+                );
             }
             return;
         }
@@ -281,7 +290,15 @@ export class Scene extends EventEmitter<EventMap> {
         this.isDirty = false;
 
         if (statsEnabled) {
-            debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
+            debugStats(
+                this.layersManager,
+                debugSplitTimes,
+                ctx,
+                renderCtx.stats,
+                extraDebugStats,
+                seriesRect,
+                debugColors
+            );
         }
         debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 

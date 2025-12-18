@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase } from 'ag-charts-core';
+import { type ChartAnimationPhase, Color } from 'ag-charts-core';
 import {
     ActionOnSet,
     AsyncAwaitQueue,
@@ -817,7 +817,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.animationManager.endBatch();
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
-                ctx.scene.render({ debugSplitTimes: splits, extraDebugStats, seriesRect: this.seriesRect });
+                ctx.scene.render({
+                    debugSplitTimes: splits,
+                    extraDebugStats,
+                    seriesRect: this.seriesRect,
+                    debugColors: this.getDebugColors(),
+                });
                 this.extraDebugStats = {};
                 for (const key of Object.keys(splits)) {
                     delete splits[key];
@@ -1239,6 +1244,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
+
+    protected getDebugColors(): { background?: string; foreground?: string } | undefined {
+        const bg = this.background.fill;
+        if (!bg) return undefined;
+        try {
+            const color = Color.fromString(bg);
+            const [lightness] = Color.RGBtoOKLCH(color.r, color.g, color.b);
+            return { background: bg, foreground: lightness > 0.5 ? 'black' : 'white' };
+        } catch {
+            return { background: bg };
+        }
+    }
 
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
         const { seriesRect } = this;
