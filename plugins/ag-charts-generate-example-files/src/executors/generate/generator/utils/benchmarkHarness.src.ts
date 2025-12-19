@@ -237,20 +237,31 @@ class BenchmarkUI {
         this.injectRunButton();
     }
 
-    createBenchmarkContainer(): void {
+    /**
+     * Gets the chart parent element and ensures it has position: relative for absolute positioning.
+     * Returns the parent element, or null if chart element not found.
+     */
+    private getChartParentWithPositioning(): HTMLElement | null {
         const chartElement = document.getElementById('myChart');
         if (!chartElement) {
-            console.warn('Cannot create benchmark container: chart element not found');
-            return;
+            console.warn('Chart element not found');
+            return null;
         }
 
-        // Ensure chart parent has position: relative for absolute positioning
         const chartParent = chartElement.parentElement;
         if (chartParent) {
             const computedStyle = window.getComputedStyle(chartParent);
             if (computedStyle.position === 'static') {
                 chartParent.style.position = 'relative';
             }
+        }
+        return chartParent;
+    }
+
+    createBenchmarkContainer(): void {
+        const chartParent = this.getChartParentWithPositioning();
+        if (!chartParent) {
+            return;
         }
 
         // Create main container (floating at bottom)
@@ -294,11 +305,7 @@ class BenchmarkUI {
         this.panelContent.appendChild(this.resultsElement);
 
         // Insert container relative to chart element
-        if (chartParent) {
-            chartParent.appendChild(this.container);
-        } else {
-            document.body.appendChild(this.container);
-        }
+        chartParent.appendChild(this.container);
     }
 
     injectRunButton(): void {
@@ -328,20 +335,7 @@ class BenchmarkUI {
     }
 
     private createFloatingButton(): void {
-        const chartElement = document.getElementById('myChart');
-        if (!chartElement) {
-            console.warn('Cannot create floating button: chart element not found');
-            return;
-        }
-
-        // Ensure chart parent has position: relative for absolute positioning
-        const chartParent = chartElement.parentElement;
-        if (chartParent) {
-            const computedStyle = window.getComputedStyle(chartParent);
-            if (computedStyle.position === 'static') {
-                chartParent.style.position = 'relative';
-            }
-        }
+        const chartParent = this.getChartParentWithPositioning();
 
         // Create floating button
         this.runButton = document.createElement('button');
