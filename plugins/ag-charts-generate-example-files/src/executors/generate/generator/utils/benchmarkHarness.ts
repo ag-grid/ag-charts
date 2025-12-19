@@ -16,12 +16,16 @@ declare const agCharts: { VERSION?: string } | undefined;
 interface BenchmarkVariant {
     params?: Record<string, string>;
     available?: boolean;
+    minVersion?: string; // e.g., "12.3.0"
+    maxVersion?: string; // e.g., "13.0.0"
     run: () => Promise<number>;
 }
 
 interface BenchmarkTestCase {
     id: string;
     label?: string;
+    minVersion?: string; // e.g., "12.3.0"
+    maxVersion?: string; // e.g., "13.0.0"
     setup?: () => Promise<void>;
     variants: BenchmarkVariant[];
 }
@@ -74,25 +78,116 @@ interface NormalizedConfig {
 }
 
 /**
+ * Parse version string to [major, minor, patch]
+ */
+function parseVersion(version: string): [number, number, number] {
+    const parts = version.split('-')[0].split('.');
+    return [parseInt(parts[0] || '0', 10), parseInt(parts[1] || '0', 10), parseInt(parts[2] || '0', 10)];
+}
+
+/**
+ * Check if version meets minimum requirement
+ */
+function isVersionAtOrAfter(currentVersion: string, minVersion: string): boolean {
+    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
+    const [minMajor, minMinor, minPatch] = parseVersion(minVersion);
+    if (curMajor > minMajor) return true;
+    if (curMajor < minMajor) return false;
+    if (curMinor > minMinor) return true;
+    if (curMinor < minMinor) return false;
+    return curPatch >= minPatch;
+}
+
+/**
+ * Check if version is before maximum
+ */
+function isVersionBefore(currentVersion: string, maxVersion: string): boolean {
+    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
+    const [maxMajor, maxMinor, maxPatch] = parseVersion(maxVersion);
+    if (curMajor < maxMajor) return true;
+    if (curMajor > maxMajor) return false;
+    if (curMinor < maxMinor) return true;
+    if (curMinor > maxMinor) return false;
+    return curPatch < maxPatch;
+}
+
+/**
+ * Check if version is within range [minVersion, maxVersion)
+ */
+function isVersionInRange(currentVersion: string, minVersion?: string, maxVersion?: string): boolean {
+    if (currentVersion === 'unknown') return true; // Can't filter if version unknown
+    if (minVersion && !isVersionAtOrAfter(currentVersion, minVersion)) return false;
+    if (maxVersion && !isVersionBefore(currentVersion, maxVersion)) return false;
+    return true;
+}
+
+/**
+ * Format params for display (e.g., in progress indicator)
+ */
+function formatParams(params: Record<string, string>): string {
+    const keys = Object.keys(params);
+    if (keys.length === 0) return '';
+    if (keys.length === 1) return params[keys[0]];
+    return keys.map((k) => `${k}: ${params[k]}`).join(', ');
+}
+
+/**
  * Normalize config to internal format
  */
 function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
     const warnings = [...(config.warnings || [])];
 
-    const testCases: NormalizedTestCase[] = config.testCases.map((tc) => {
-        const variants: NormalizedVariant[] = tc.variants.map((v) => ({
-            params: v.params || {},
-            available: v.available !== false,
-            run: v.run,
-        }));
+    // Detect current AG Charts version
+    const currentVersion = agCharts?.VERSION || 'unknown';
 
-        return {
+    const testCases: NormalizedTestCase[] = [];
+
+    for (const tc of config.testCases) {
+        // Check if test case meets version constraints
+        const testCaseVersionOk = isVersionInRange(currentVersion, tc.minVersion, tc.maxVersion);
+
+        if (!testCaseVersionOk) {
+            // Skip entire test case if version doesn't match
+            const constraint = tc.minVersion
+                ? tc.maxVersion
+                    ? `${tc.minVersion} - ${tc.maxVersion}`
+                    : `>= ${tc.minVersion}`
+                : `< ${tc.maxVersion}`;
+            warnings.push(`Skipped "${tc.label || tc.id}" (requires ${constraint})`);
+            continue;
+        }
+
+        const variants: NormalizedVariant[] = [];
+
+        for (const v of tc.variants) {
+            // Check if variant meets version constraints
+            const variantVersionOk = isVersionInRange(currentVersion, v.minVersion, v.maxVersion);
+
+            if (!variantVersionOk) {
+                // Mark variant as unavailable if version doesn't match
+                const constraint = v.minVersion
+                    ? v.maxVersion
+                        ? `${v.minVersion} - ${v.maxVersion}`
+                        : `>= ${v.minVersion}`
+                    : `< ${v.maxVersion}`;
+                const paramDesc = v.params ? ` (${formatParams(v.params)})` : '';
+                warnings.push(`Skipped "${tc.label || tc.id}${paramDesc}" (requires ${constraint})`);
+            }
+
+            variants.push({
+                params: v.params || {},
+                available: v.available !== false && variantVersionOk,
+                run: v.run,
+            });
+        }
+
+        testCases.push({
             id: tc.id,
             label: tc.label,
             setup: tc.setup,
             variants,
-        };
-    });
+        });
+    }
 
     // Preserve discovery order by iterating test cases and variants in order
     const paramKeys: string[] = [];
@@ -116,16 +211,6 @@ function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
         onComplete: config.onComplete,
         paramKeys,
     };
-}
-
-/**
- * Format params for display (e.g., in progress indicator)
- */
-function formatParams(params: Record<string, string>): string {
-    const keys = Object.keys(params);
-    if (keys.length === 0) return '';
-    if (keys.length === 1) return params[keys[0]];
-    return keys.map((k) => `${k}: ${params[k]}`).join(', ');
 }
 
 /**

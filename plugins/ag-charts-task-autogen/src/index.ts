@@ -47,16 +47,17 @@ export const createNodes: CreateNodes = [
             tags.push('skip-gha-cache');
         }
 
+        const projectRoot = dirname(configFilePath);
         return {
             projects: {
                 [projectName]: {
-                    root: dirname(configFilePath),
+                    root: projectRoot,
                     name: projectName,
                     tags,
                     targets: {
                         ...createGenerateTarget(thumbnails),
                         ...createTypecheckTarget(),
-                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath),
+                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, projectRoot),
                         ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                     },
                 },

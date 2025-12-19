@@ -5,13 +5,58 @@ import {
     type TargetConfiguration,
     validateDependency,
 } from '@nx/devkit';
+import { lstatSync, readdirSync, readlinkSync } from 'fs';
+import { dirname, join, resolve } from 'path';
 
-export function createTask(parentProject: string, srcRelativeInputPath: string): Record<string, TargetConfiguration> {
+/**
+ * Find symlinks in a directory and resolve them to workspace-relative paths.
+ * Returns paths in the format suitable for Nx inputs (e.g., '{workspaceRoot}/path/to/file').
+ */
+function findSymlinkTargets(projectRoot: string): string[] {
+    const symlinks: string[] = [];
+
+    try {
+        const files = readdirSync(projectRoot);
+        for (const file of files) {
+            const filePath = join(projectRoot, file);
+            try {
+                const stat = lstatSync(filePath);
+                if (stat.isSymbolicLink()) {
+                    // Read the symlink target (relative path like '../benchmarkUtils.ts')
+                    const linkTarget = readlinkSync(filePath);
+                    // Resolve relative to the symlink's directory to get workspace-relative path
+                    const resolvedPath = join(dirname(filePath), linkTarget);
+                    // Normalize the path (resolves '..' segments)
+                    const normalizedPath = resolve(resolvedPath).replace(process.cwd() + '/', '');
+                    symlinks.push(`{workspaceRoot}/${normalizedPath}`);
+                }
+            } catch {
+                // Skip files we can't stat
+            }
+        }
+    } catch {
+        // Skip directories we can't read
+    }
+
+    return symlinks;
+}
+
+export function createTask(
+    parentProject: string,
+    srcRelativeInputPath: string,
+    projectRoot: string
+): Record<string, TargetConfiguration> {
+    const baseInputs = ['{projectRoot}/**', '{workspaceRoot}/plugins/ag-charts-generate-example-files/{dist,src}/**/*'];
+
+    // Add symlink targets as additional inputs
+    const symlinkTargets = findSymlinkTargets(projectRoot);
+    const inputs = [...baseInputs, ...symlinkTargets];
+
     return {
         'generate-example': {
             dependsOn: [{ projects: 'ag-charts-generate-example-files', target: 'build' }],
             executor: 'ag-charts-generate-example-files:generate',
-            inputs: ['{projectRoot}/**', '{workspaceRoot}/plugins/ag-charts-generate-example-files/{dist,src}/**/*'],
+            inputs,
             outputs: ['{options.outputPath}'],
             cache: true,
             options: {
