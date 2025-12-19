@@ -23,6 +23,7 @@ import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
+import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -96,6 +97,7 @@ interface LineSeriesTypes extends CartesianSeriesTypes {
     readonly label: LineNodeDatum;
     readonly context: LineSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: LineSeriesDatumContext;
 }
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
@@ -377,13 +379,12 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
      * to minimize memory allocations. Only caches values that are expensive to
      * compute - cheap property lookups use `this` directly.
      */
-    private createNodeDatumContext(
-        xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] },
-        yScale: { convert: (v: any) => number; bandwidth?: number }
-    ): LineSeriesDatumContext | undefined {
+    protected override createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): LineSeriesDatumContext | undefined {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
         const [r0, r1] = xScale.range;
@@ -393,13 +394,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
-        const canIncrementallyUpdate =
-            this.contextNodeData?.nodeData != null &&
-            (processedData.changeDescription != null ||
-                !processedDataIsAnimatable(processedData) ||
-                dataAggregationFilter != null);
+        const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         return {
+            xAxis,
+            yAxis,
             rawData,
             xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
             yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
@@ -428,14 +427,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 lengthRatioMultiplier: this.properties.marker.getDiameter(),
                 lengthMax: Infinity,
             },
-            nodeData: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
             spanPoints: [],
             nodeIndex: 0,
         };
     }
 
     /**
-     * Processes a single datum and updates the context's nodeData and spanPoints arrays.
+     * Processes a single datum and updates the context's nodes and spanPoints arrays.
      * Uses the scratch object to avoid per-iteration allocations.
      */
     private handleDatum(ctx: LineSeriesDatumContext, scratch: LineNodeDatumScratch, datumIndex: number): void {
@@ -472,11 +471,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                   )
                 : undefined;
 
-            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
+            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 
             if (canReuseNode) {
                 // Update existing node datum in place
-                const existingNode = ctx.nodeData[ctx.nodeIndex];
+                const existingNode = ctx.nodes[ctx.nodeIndex];
                 (existingNode as any).datum = scratch.datum;
                 (existingNode as any).datumIndex = datumIndex;
                 (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
@@ -487,7 +486,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 (existingNode as any).labelText = labelText;
                 (existingNode as any).selected = scratch.selected;
             } else {
-                ctx.nodeData.push({
+                ctx.nodes.push({
                     series: this,
                     datum: scratch.datum,
                     datumIndex,
@@ -540,20 +539,10 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    override createNodeData() {
-        const { processedData, axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!processedData || !xAxis || !yAxis) return;
-
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-
-        // Create context with all cached values
-        const ctx = this.createNodeDatumContext(xScale, yScale);
-        if (!ctx) return;
-
+    /**
+     * Populates node data by iterating over the visible range.
+     */
+    protected override populateNodeData(ctx: LineSeriesDatumContext): void {
         // Reusable scratch object to avoid per-datum allocations
         const scratch: LineNodeDatumScratch = {
             datum: undefined,
@@ -567,54 +556,66 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         // Compute visible range and iterate
         const indices = ctx.dataAggregationFilter?.indices;
-        let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
+        let [start, end] = this.visibleRangeIndices('xValue', ctx.xAxis.range, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? ctx.xValues.length);
 
         // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
+        if (this.processedData!.input.count < 1e3) {
             start = 0;
-            end = processedData.input.count;
+            end = this.processedData!.input.count;
         }
 
         for (let i = start; i < end; i += 1) {
             this.handleDatum(ctx, scratch, indices?.[i] ?? i);
         }
+    }
 
-        // Cleanup incremental updates - trim nodeData if fewer nodes than before
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
-            ctx.nodeData.length = ctx.nodeIndex;
-        }
+    /**
+     * Creates the initial result context object.
+     * Note: strokeData and segments are computed in assembleResult, but we need valid defaults
+     * for the early return case (when !this.visible).
+     */
+    protected override initializeResult(ctx: LineSeriesDatumContext): LineSeriesNodeDataContext {
+        return {
+            itemId: ctx.yKey,
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
+            strokeData: { itemId: ctx.yKey, spans: [] }, // Default for early return
+            scales: this.calculateScaling(),
+            visible: this.visible,
+            crossFiltering: false,
+            styles: getMarkerStyles(this, this.properties, this.properties.marker),
+            segments: undefined,
+        };
+    }
 
+    /**
+     * Assembles the final result by computing strokeData, crossFiltering, and segments.
+     */
+    protected override assembleResult(
+        ctx: LineSeriesDatumContext,
+        result: LineSeriesNodeDataContext
+    ): LineSeriesNodeDataContext {
         // Build stroke data from span points
         const strokeSpans = ctx.spanPoints.flatMap((p): LinePathSpan[] => {
             return Array.isArray(p) ? interpolatePoints(p, this.properties.interpolation) : [];
         });
-        const strokeData = { itemId: ctx.yKey, spans: strokeSpans };
+        result.strokeData = { itemId: ctx.yKey, spans: strokeSpans };
 
-        const crossFiltering =
+        result.crossFiltering =
             ctx.selectionValues?.some((selectionValue, index) => selectionValue === ctx.yRawValues[index]) ?? false;
 
-        const segments = calculateSegments(
+        result.segments = calculateSegments(
             this.properties.segmentation,
-            xAxis,
-            yAxis,
+            ctx.xAxis,
+            ctx.yAxis,
             this.chart!.seriesRect!,
             this.ctx.scene,
             false
         );
 
-        return {
-            itemId: ctx.yKey,
-            nodeData: ctx.nodeData,
-            labelData: ctx.nodeData,
-            strokeData,
-            scales: this.calculateScaling(),
-            visible: this.visible,
-            crossFiltering,
-            styles: getMarkerStyles(this, this.properties, this.properties.marker),
-            segments,
-        };
+        return result;
     }
 
     protected override isPathOrSelectionDirty(): boolean {

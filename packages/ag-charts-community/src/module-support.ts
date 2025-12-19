@@ -182,11 +182,15 @@ export {
 export type { CartesianAnimationData } from './chart/series/cartesian/cartesianSeries';
 export type {
     CartesianAnimationDataOf,
+    CartesianBarLikeContext,
+    CartesianCreateNodeDataContext,
+    CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
     CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
+    CreateNodeDataContextOf,
     DatumOf,
     DatumSelectionOf,
     LabelOf,
@@ -213,6 +217,8 @@ export {
     resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './chart/series/cartesian/barUtil';
+export { upsertNodeDatum } from './chart/series/cartesian/cartesianSeriesUtil';
+export type { IncrementalUpdateContext } from './chart/series/cartesian/cartesianSeriesUtil';
 export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/cartesian/areaUtil';
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {

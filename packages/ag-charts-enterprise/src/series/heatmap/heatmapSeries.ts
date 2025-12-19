@@ -16,7 +16,6 @@ import {
     Logger,
     type Mutable,
     type Point,
-    type Scale,
     type SizedPoint,
     extent,
     formatValue,
@@ -41,6 +40,7 @@ const {
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     updateLabelNode,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -73,34 +73,29 @@ interface HeatmapLabelDatum extends Point {
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
     Required<Omit<AgHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
-/** Internal context for createNodeData() - caches expensive lookups */
-interface HeatmapSeriesNodeDatumContext {
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
+/** Context object caching expensive lookups for createNodeData(). */
+interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
+    // Override yKey to be required for heatmap
+    readonly yKey: string;
+
+    // Heatmap-specific positioning
     readonly xOffset: number;
     readonly yOffset: number;
     readonly width: number;
     readonly height: number;
     readonly textAlignFactor: number;
     readonly verticalAlignFactor: number;
-    readonly xKey: string;
-    readonly yKey: string;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
+
+    // Heatmap-specific data
+    readonly yValues: any[];
     readonly colorKey: string | undefined;
     readonly colorName: string | undefined;
+    readonly colorValues: number[] | undefined;
     readonly colorDomain: number[];
     readonly itemPadding: number;
-    // Data arrays
-    readonly xValues: any[];
-    readonly yValues: any[];
-    readonly colorValues: number[] | undefined;
-    readonly rawData: unknown[];
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    readonly nodes: HeatmapNodeDatum[];
+
+    // Label support
     readonly labels: HeatmapLabelDatum[];
-    nodeIndex: number;
     labelIndex: number;
 }
 
@@ -139,6 +134,7 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly label: HeatmapLabelDatum;
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum>;
     readonly stackContext: never;
+    readonly createNodeDataContext: HeatmapSeriesNodeDatumContext;
 }
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesTypes> {
@@ -262,71 +258,80 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return [Number.NaN, Number.NaN];
     }
 
-    override createNodeData() {
-        const { data, visible, axes, dataModel, processedData } = this;
+    /**
+     * Template method hook: Validates preconditions for createNodeData.
+     * Overrides base to add heatmap-specific category axis validation.
+     */
+    protected override validateCreateNodeDataPreconditions():
+        | { xAxis: _ModuleSupport.ChartAxis; yAxis: _ModuleSupport.ChartAxis }
+        | undefined {
+        const result = super.validateCreateNodeDataPreconditions();
+        if (!result) return undefined;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!(data && visible && xAxis && yAxis)) return;
-
-        // Return empty structure when no data model or processed data
-        if (!dataModel || !processedData) {
-            return {
-                itemId: this.properties.yKey ?? this.id,
-                nodeData: [],
-                labelData: [],
-                scales: this.calculateScaling(),
-                visible: this.visible,
-            };
-        }
+        const { xAxis, yAxis } = result;
 
         if (xAxis.type !== 'category' || yAxis.type !== 'category') {
             Logger.warnOnce(
                 `Heatmap series expected axes to have "category" type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
             );
-            return;
+            return undefined;
         }
 
-        // Create shared context for datum creation (must be done early to access datumCtx.nodes)
-        const datumCtx = this.createNodeDatumContext(xAxis, yAxis, dataModel, processedData);
-        if (!datumCtx) return;
+        return result;
+    }
 
-        // Labels are rebuilt from scratch each time (due to formatLabels complexity)
-        const labelData: HeatmapLabelDatum[] = [];
+    /**
+     * Template method hook: Iterates over data and creates/updates node datums.
+     */
+    protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
+        for (const [datumIndex, datum] of ctx.rawData.entries()) {
+            // Use shared utility for create/update logic
+            const nodeDatum = upsertNodeDatum(
+                ctx,
+                { datumIndex, datum },
+                (c, p) => this.createNodeDatum(c, p.datumIndex, p.datum),
+                (c, n, p) => this.updateNodeDatum(c, n, p.datumIndex, p.datum)
+            );
 
-        for (const [datumIndex, datum] of datumCtx.rawData.entries()) {
-            const nodeDatum = this.upsertNodeDatum(datumCtx, datumIndex, datum);
-
-            const labelDatum = this.createLabelDatum(datumCtx, datumIndex, datum, nodeDatum);
-            if (labelDatum) {
-                labelData.push(labelDatum);
+            if (nodeDatum) {
+                const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);
+                if (labelDatum) {
+                    ctx.labels.push(labelDatum);
+                }
             }
         }
+    }
 
-        // Trim excess nodes if the data shrunk
-        if (datumCtx.nodeIndex < datumCtx.nodes.length) {
-            datumCtx.nodes.length = datumCtx.nodeIndex;
-        }
-
+    /**
+     * Template method hook: Creates the result object shell.
+     */
+    protected override initializeResult(
+        ctx: HeatmapSeriesNodeDatumContext
+    ): _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum> {
         return {
             itemId: this.properties.yKey ?? this.id,
-            nodeData: datumCtx.nodes,
-            labelData,
+            nodeData: ctx.nodes,
+            labelData: ctx.labels,
             scales: this.calculateScaling(),
             visible: this.visible,
         };
     }
 
-    private createNodeDatumContext(
+    /**
+     * Template method hook: Creates the shared context for datum creation.
+     * Caches expensive lookups and computations that are constant across all datums.
+     */
+    protected override createNodeDatumContext(
         xAxis: _ModuleSupport.ChartAxis,
-        yAxis: _ModuleSupport.ChartAxis,
-        dataModel: _ModuleSupport.DataModel<any, any, any>,
-        processedData: _ModuleSupport.ProcessedData<any>
+        yAxis: _ModuleSupport.ChartAxis
     ): HeatmapSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData, contextNodeData } = this;
+
+        // Need dataModel and processedData for data resolution
+        if (!dataModel || !processedData) return undefined;
+
         const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding } =
             this.properties;
-        const { contextNodeData } = this;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -347,30 +352,40 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
         return {
+            // Base context fields
+            xAxis,
+            yAxis,
             xScale,
             yScale,
+            rawData,
+            xValues,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+
+            // Heatmap-specific positioning
             xOffset: (xScale.bandwidth ?? 0) / 2,
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
             textAlignFactor: (width - 2 * itemPadding) * textAlignFactors[textAlign],
             verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
-            xKey,
-            yKey,
-            xName,
-            yName,
+
+            // Heatmap-specific data
+            yValues,
             colorKey,
             colorName,
+            colorValues,
             colorDomain,
             itemPadding,
-            xValues,
-            yValues,
-            colorValues,
-            rawData,
-            canIncrementallyUpdate,
-            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
-            labels: canIncrementallyUpdate ? contextNodeData.labelData : [],
-            nodeIndex: 0,
+
+            // Label support - labels are always rebuilt from scratch (not incrementally updated)
+            labels: [],
             labelIndex: 0,
         };
     }
@@ -460,25 +475,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
         this.updateNodeDatum(ctx, node, datumIndex, datum);
         return node;
-    }
-
-    /**
-     * Handles node creation/update - reuses existing nodes when possible.
-     */
-    private upsertNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: HeatmapNodeDatum;
-        if (canReuseNode) {
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, datumIndex, datum);
-        } else {
-            nodeData = this.createNodeDatum(ctx, datumIndex, datum);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
     }
 
     private createLabelDatum(

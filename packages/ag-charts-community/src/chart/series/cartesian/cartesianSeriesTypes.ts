@@ -1,4 +1,4 @@
-import type { ChartAxisDirection, Scaling } from 'ag-charts-core';
+import type { ChartAxisDirection, Scale, Scaling } from 'ag-charts-core';
 import type { AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -7,6 +7,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
+import type { ChartAxis } from '../../chartAxis';
 import type { DataModelSeriesNodeDataContext, DataModelSeriesNodeDatum } from '../dataModelSeries';
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -31,6 +32,80 @@ export interface CartesianSeriesNodeDataContext<
     animationValid?: boolean;
     visible: boolean;
     segments?: Segment[];
+}
+
+// ============================================================================
+// createNodeData() Context Pattern
+// ============================================================================
+// Base interface for series context objects used during createNodeData().
+// Provides the common shape for incremental update tracking.
+
+/**
+ * Rich base context interface for createNodeData() operations.
+ * Contains common fields used across all CartesianSeries implementations.
+ *
+ * Series-specific contexts should extend this interface and add their own fields.
+ *
+ * @example
+ * ```typescript
+ * interface BarSeriesNodeDatumContext extends CartesianCreateNodeDataContext<BarNodeDatum> {
+ *     readonly barWidth: number;
+ *     readonly groupOffset: number;
+ *     // ... other bar-specific fields
+ * }
+ * ```
+ */
+export interface CartesianCreateNodeDataContext<TDatum extends CartesianSeriesNodeDatum> {
+    /** Whether incremental in-place updates are possible for existing nodes */
+    readonly canIncrementallyUpdate: boolean;
+    /** The node data array being built (may contain existing nodes for reuse) */
+    nodes: TDatum[];
+    /** Current write position in the nodes array */
+    nodeIndex: number;
+
+    // Axes
+    readonly xAxis: ChartAxis;
+    readonly yAxis: ChartAxis;
+
+    // Scales
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+
+    // Data source
+    readonly rawData: any[];
+    readonly xValues: any[];
+
+    // Property keys
+    readonly xKey: string;
+    readonly yKey?: string;
+    readonly xName?: string;
+    readonly yName?: string;
+
+    // Animation flag
+    readonly animationEnabled: boolean;
+}
+
+/**
+ * Specialized context for bar-like series (Bar, Histogram, RangeBar, Waterfall).
+ * Adds bar-specific positioning fields.
+ */
+export interface CartesianBarLikeContext<TDatum extends CartesianSeriesNodeDatum>
+    extends CartesianCreateNodeDataContext<TDatum> {
+    readonly barWidth: number;
+    readonly groupOffset: number;
+    readonly crisp: boolean;
+}
+
+/**
+ * Specialized context for marker-like series (Line, Area, Bubble, Scatter).
+ * Adds marker-specific offset fields for band scale positioning.
+ */
+export interface CartesianMarkerLikeContext<TDatum extends CartesianSeriesNodeDatum>
+    extends CartesianCreateNodeDataContext<TDatum> {
+    /** X offset for band scale center positioning */
+    readonly xOffset: number;
+    /** Y offset for band scale center positioning */
+    readonly yOffset: number;
 }
 
 // ============================================================================
@@ -91,6 +166,11 @@ export interface CartesianSeriesTypes {
     readonly context: CartesianSeriesNodeDataContext<this['datum'], this['label']>;
     /** Stack context for stacked series (AreaSeries), never for most series */
     readonly stackContext: any;
+    /**
+     * Internal context type for createNodeData() operations (template method pattern).
+     * Optional to allow incremental migration - defaults to CartesianCreateNodeDataContext<datum>.
+     */
+    readonly createNodeDataContext?: CartesianCreateNodeDataContext<this['datum']>;
 }
 
 // ============================================================================
@@ -119,6 +199,14 @@ export type ContextOf<T extends CartesianSeriesTypes> = T['context'];
 
 /** Extract the stack context type from a CartesianSeriesTypes interface */
 export type StackContextOf<T extends CartesianSeriesTypes> = T['stackContext'];
+
+/**
+ * Extract the createNodeData internal context type from a CartesianSeriesTypes interface.
+ * Falls back to CartesianCreateNodeDataContext<datum> if not specified.
+ */
+export type CreateNodeDataContextOf<T extends CartesianSeriesTypes> = T['createNodeDataContext'] extends undefined
+    ? CartesianCreateNodeDataContext<DatumOf<T>>
+    : NonNullable<T['createNodeDataContext']>;
 
 // ============================================================================
 // Animation Data Types

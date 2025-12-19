@@ -104,22 +104,16 @@ type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
  * Context object for efficient node datum creation.
  * Caches expensive-to-compute values that are reused across all datum iterations.
  */
-interface RangeAreaSeriesNodeDatumContext {
+interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeAreaMarkerDatum> {
     // Data arrays (from dataModel - cache once)
-    readonly rawData: any[];
-    readonly xValues: any[];
     readonly yHighValues: any[];
     readonly yLowValues: any[];
 
-    // Scales (from axes - cache once)
-    readonly xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] };
-    readonly yScale: { convert: (v: any) => number };
+    // Pre-computed offsets
+    readonly xOffset: number;
 
     // Axis range for visible range filtering
     readonly xAxisRange: [number, number];
-
-    // Pre-computed offsets
-    readonly xOffset: number;
 
     // Aggregation (using shared ExtremesAggregationFilter)
     readonly dataAggregationFilter: RangeAreaSeriesDataAggregationFilter | undefined;
@@ -127,10 +121,8 @@ interface RangeAreaSeriesNodeDatumContext {
 
     // Pre-computed flags
     readonly labelsEnabled: boolean;
-    readonly canIncrementallyUpdate: boolean;
 
     // Property caches
-    readonly xKey: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly item: RangeAreaProperties['item'];
@@ -139,10 +131,8 @@ interface RangeAreaSeriesNodeDatumContext {
     readonly interpolation: RangeAreaProperties['interpolation'];
 
     // Mutable state for building node data
-    markerData: RangeAreaMarkerDatum[];
     labelData: RangeAreaLabelDatum[];
     spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }>;
-    nodeIndex: number;
 }
 
 /**
@@ -190,6 +180,7 @@ interface RangeAreaSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly label: RangeAreaLabelDatum;
     readonly context: RangeAreaContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: RangeAreaSeriesNodeDatumContext;
 }
 
 type GetMarkerStyleArg<I extends number> = Parameters<
@@ -314,15 +305,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
      * Creates the context object for efficient node datum creation.
      * Caches expensive-to-compute values that are reused across all datum iterations.
      */
-    private createNodeDatumContext(
-        xScale: { convert: (v: any) => number; bandwidth?: number; range: number[] },
-        yScale: { convert: (v: any) => number },
-        xAxisRange: [number, number]
+    protected override createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
     ): RangeAreaSeriesNodeDatumContext | undefined {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+        const xAxisRange = xAxis.range;
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
@@ -331,14 +324,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
-        const existingMarkerData = this.contextNodeData?.nodeData;
+        const existingNodes = this.contextNodeData?.nodeData;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate =
-            existingMarkerData != null &&
+            existingNodes != null &&
             (processedData.changeDescription != null ||
                 !processedDataIsAnimatable(processedData) ||
                 dataAggregationFilter != null);
 
         return {
+            xAxis,
+            yAxis,
             rawData,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
             yHighValues: dataModel.resolveColumnById(this, 'yHighValue', processedData),
@@ -350,6 +346,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             dataAggregationFilter,
             range,
             labelsEnabled: this.properties.label.enabled,
+            animationEnabled,
             canIncrementallyUpdate,
             xKey: this.properties.xKey,
             yLowKey: this.properties.yLowKey,
@@ -358,7 +355,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             connectMissingData: this.properties.connectMissingData,
             interpolation: this.properties.interpolation,
-            markerData: canIncrementallyUpdate ? existingMarkerData : [],
+            nodes: canIncrementallyUpdate ? existingNodes : [],
             labelData: [],
             spanPoints: [],
             nodeIndex: 0,
@@ -482,11 +479,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         y: number
     ): void {
         const { size } = ctx.item[itemType].marker;
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length;
+        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 
         if (canReuseNode) {
             // Update existing marker datum in place to avoid allocation
-            const existingNode = ctx.markerData[ctx.nodeIndex] as {
+            const existingNode = ctx.nodes[ctx.nodeIndex] as {
                 -readonly [K in keyof RangeAreaMarkerDatum]: RangeAreaMarkerDatum[K];
             };
             existingNode.index = datumIndex;
@@ -499,7 +496,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             existingNode.xValue = scratch.xValue;
             existingNode.point = { x: scratch.x, y, size };
         } else {
-            ctx.markerData.push({
+            ctx.nodes.push({
                 index: datumIndex,
                 series: this,
                 itemType,
@@ -535,17 +532,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
-    override createNodeData() {
-        const { data, processedData, axes } = this;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!(data && xAxis && yAxis && processedData && this.chart?.seriesRect)) return;
-
-        // Create context with all cached values
-        const ctx = this.createNodeDatumContext(xAxis.scale, yAxis.scale, xAxis.range);
-        if (!ctx) return;
+    protected override populateNodeData(ctx: RangeAreaSeriesNodeDatumContext): void {
+        const { processedData } = this;
+        if (!processedData) return;
 
         // Reusable scratch object to avoid per-datum allocations
         const scratch: RangeAreaNodeDatumScratch = {
@@ -609,11 +598,41 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 );
             }
         }
+    }
 
-        // Cleanup incremental updates - trim markerData if fewer nodes than before
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.markerData.length) {
-            ctx.markerData.length = ctx.nodeIndex;
+    protected override finalizeNodeData(ctx: RangeAreaSeriesNodeDatumContext): void {
+        // Cleanup incremental updates - trim nodes if fewer than before
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
         }
+    }
+
+    protected override initializeResult(ctx: RangeAreaSeriesNodeDatumContext): RangeAreaContext {
+        return {
+            itemId: `${ctx.yLowKey}-${ctx.yHighKey}`,
+            labelData: ctx.labelData,
+            nodeData: ctx.nodes,
+            fillData: { itemType: 'high', spans: [], phantomSpans: [] },
+            highStrokeData: { itemType: 'high', spans: [] },
+            lowStrokeData: { itemType: 'low', spans: [] },
+            scales: this.calculateScaling(),
+            visible: this.visible,
+            styles: {
+                low: this.getLowOrHighMarkerStyles('low'),
+                high: this.getLowOrHighMarkerStyles('high'),
+            },
+            segments: undefined,
+            intersectionSegments: undefined,
+        };
+    }
+
+    protected override assembleResult(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        result: RangeAreaContext
+    ): RangeAreaContext {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
+        if (!xAxis || !yAxis || !this.chart?.seriesRect) return result;
 
         // Build path spans from span points
         const highSpans = ctx.spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
@@ -655,32 +674,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             );
         }
 
+        // Update the result with computed spans and segments
+        result.fillData = { itemType: 'high', spans: highSpans, phantomSpans: lowSpans };
+        result.highStrokeData = { itemType: 'high', spans: highSpans };
+        result.lowStrokeData = { itemType: 'low', spans: lowSpans };
+        result.segments = segments;
+        result.intersectionSegments = intersectionSegments;
+
+        return result;
+    }
+
+    private getLowOrHighMarkerStyles(lowOrHigh: 'low' | 'high') {
         const { fill, fillOpacity, item } = this.properties;
-        const getLowOrHighMarkerStyles = (lowOrHigh: 'low' | 'high') => {
-            const line = item[lowOrHigh];
-            const { stroke, strokeWidth, strokeOpacity } = line;
-            const inheritedStyles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
-            return getMarkerStyles(this, line, line.marker, inheritedStyles);
-        };
-
-        const context: RangeAreaContext = {
-            itemId: `${ctx.yLowKey}-${ctx.yHighKey}`,
-            labelData: ctx.labelData,
-            nodeData: ctx.markerData,
-            fillData: { itemType: 'high', spans: highSpans, phantomSpans: lowSpans },
-            highStrokeData: { itemType: 'high', spans: highSpans },
-            lowStrokeData: { itemType: 'low', spans: lowSpans },
-            scales: this.calculateScaling(),
-            visible: this.visible,
-            styles: {
-                low: getLowOrHighMarkerStyles('low'),
-                high: getLowOrHighMarkerStyles('high'),
-            },
-            segments,
-            intersectionSegments,
-        };
-
-        return context;
+        const line = item[lowOrHigh];
+        const { stroke, strokeWidth, strokeOpacity } = line;
+        const inheritedStyles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+        return getMarkerStyles(this, line, line.marker, inheritedStyles);
     }
 
     private createLabelData({

@@ -5,7 +5,7 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired, Mutable, Scale } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired, Mutable } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -30,6 +30,7 @@ const {
     calculateSegments,
     toHighlightString,
     processedDataIsAnimatable,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -40,7 +41,7 @@ interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesN
  * Consolidated type interface for BoxPlotSeries.
  * Defines all type parameters in one place for the series.
  */
-interface BoxPlotSeriesTypes {
+interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: BoxPlotNode;
     readonly options: AgBoxPlotSeriesOptions;
     readonly properties: BoxPlotSeriesProperties;
@@ -48,26 +49,17 @@ interface BoxPlotSeriesTypes {
     readonly label: BoxPlotNodeDatum;
     readonly context: BoxPlotSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: BoxPlotSeriesNodeDatumContext;
 }
 
-/**
- * Shared context for creating BoxPlotNodeDatum instances.
- * Instantiated once per createNodeData() call and reused across all datum operations
- * to minimize memory allocations.
- */
-interface BoxPlotSeriesNodeDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: any[];
-    readonly xValues: any[];
+/** Context object caching expensive lookups for createNodeData(). */
+interface BoxPlotSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<BoxPlotNodeDatum> {
+    // Box plot specific data arrays
     readonly minValues: any[];
     readonly q1Values: any[];
     readonly medianValues: any[];
     readonly q3Values: any[];
     readonly maxValues: any[];
-
-    // Scales (axis lookups - worth caching)
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
@@ -77,11 +69,6 @@ interface BoxPlotSeriesNodeDatumContext {
     // Pre-computed values
     readonly isVertical: boolean;
     readonly xKey: string;
-
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    readonly nodes: BoxPlotNodeDatum[];
-    nodeIndex: number;
 }
 
 /** Scratch object for computed scaled values - reused across iterations */
@@ -208,7 +195,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      * Creates the shared context for datum creation.
      * Caches expensive lookups and computations that are constant across all datums.
      */
-    private createNodeDatumContext(
+    protected override createNodeDatumContext(
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): BoxPlotSeriesNodeDatumContext | undefined {
@@ -220,8 +207,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const groupOffset = this.groupScale.convert(String(groupIndex));
 
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         return {
+            xAxis,
+            yAxis,
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
             minValues: dataModel.resolveColumnById(this, 'minValue', processedData),
@@ -236,6 +226,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             groupOffset,
             isVertical: this.isVertical(),
             xKey: this.properties.xKey,
+            animationEnabled,
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -372,61 +363,26 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     /**
-     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
+     * Initialize the result object shell before populating node data.
      */
-    private upsertNodeDatum(ctx: BoxPlotSeriesNodeDatumContext, params: BoxPlotNodeDatumParams): BoxPlotNodeDatum {
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        let nodeData: BoxPlotNodeDatum;
-        if (canReuseNode) {
-            // Reuse existing node by updating in place
-            nodeData = ctx.nodes[ctx.nodeIndex];
-            this.updateNodeDatum(ctx, nodeData, params);
-        } else {
-            // Create new node
-            nodeData = this.createNodeDatum(ctx, params);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
-
-        return nodeData;
-    }
-
-    override createNodeData() {
-        const { visible, dataModel, processedData } = this;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!(dataModel && processedData && xAxis && yAxis)) return;
-
-        // Create shared context for datum creation (must be done early to access ctx.nodes)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
-
-        const { xKey } = this.properties;
-
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            xAxis,
-            yAxis,
-            this.chart!.seriesRect!,
-            this.ctx.scene
-        );
-
-        const context: BoxPlotSeriesNodeDataContext = {
-            itemId: xKey,
+    protected override initializeResult(ctx: BoxPlotSeriesNodeDatumContext): BoxPlotSeriesNodeDataContext {
+        return {
+            itemId: this.properties.xKey,
             nodeData: ctx.nodes,
             labelData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
-            segments,
+            // Set by assembleResult()
+            groupScale: undefined,
+            styles: undefined as unknown as _ModuleSupport.SeriesNodeStyleContext<AgBoxPlotSeriesStyle>,
+            segments: undefined,
         };
+    }
 
-        if (!visible) return context;
-
+    /**
+     * Populate node data by iterating over raw data.
+     */
+    protected override populateNodeData(ctx: BoxPlotSeriesNodeDatumContext): void {
         // Scratch objects for reuse across iterations
         const scaledValuesScratch: ScaledBoxPlotValues = {
             xValue: 0,
@@ -465,15 +421,45 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.datum = datum;
 
-            this.upsertNodeDatum(ctx, paramsScratch);
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                paramsScratch,
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
+            );
         }
+    }
 
-        // Trim excess nodes if the data shrunk
-        if (ctx.nodeIndex < ctx.nodes.length) {
+    /**
+     * Finalize node data by trimming excess nodes.
+     */
+    protected override finalizeNodeData(ctx: BoxPlotSeriesNodeDatumContext): void {
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
             ctx.nodes.length = ctx.nodeIndex;
         }
+    }
 
-        return context;
+    /**
+     * Assemble the final result with computed fields.
+     */
+    protected override assembleResult(
+        ctx: BoxPlotSeriesNodeDatumContext,
+        result: BoxPlotSeriesNodeDataContext
+    ): BoxPlotSeriesNodeDataContext {
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            ctx.xAxis,
+            ctx.yAxis,
+            this.chart!.seriesRect!,
+            this.ctx.scene
+        );
+
+        result.groupScale = this.getScaling(this.groupScale);
+        result.styles = getItemStyles(this.getItemStyle.bind(this));
+        result.segments = segments;
+
+        return result;
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {

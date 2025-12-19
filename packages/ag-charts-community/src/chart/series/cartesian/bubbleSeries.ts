@@ -83,9 +83,12 @@ import {
 } from './cartesianSeries';
 import type {
     CartesianAnimationDataOf,
+    CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
+    CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
+import { upsertNodeDatum } from './cartesianSeriesUtil';
 import {
     computeMarkerFocusBounds,
     getMarkerStyles,
@@ -131,7 +134,7 @@ interface BubbleSeriesNodeDataContext
  * Consolidated type interface for BubbleSeries.
  * Defines all type parameters in one place for the series.
  */
-interface BubbleSeriesTypes {
+interface BubbleSeriesTypes extends CartesianSeriesTypes {
     readonly node: Marker;
     readonly options: AgBubbleSeriesOptions;
     readonly properties: BubbleSeriesProperties;
@@ -139,15 +142,15 @@ interface BubbleSeriesTypes {
     readonly label: BubbleScatterNodeDatum;
     readonly context: BubbleSeriesNodeDataContext;
     readonly stackContext: never;
+    readonly createNodeDataContext: BubbleSeriesNodeDatumContext;
 }
 
-/**
- * Context object cached once per createNodeData() call.
- * Avoids repeated property lookups and scale conversions in hot loops.
- */
-interface BubbleSeriesNodeDatumContext {
-    // Data arrays (resolved from dataModel - worth caching)
-    readonly rawData: any[];
+/** Context object caching expensive lookups for createNodeData(). */
+interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<BubbleScatterNodeDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
+
+    // Data arrays (BubbleSeries-specific naming - resolved from dataModel)
     readonly xDataValues: any[];
     readonly yDataValues: any[];
     readonly sizeDataValues: number[] | undefined;
@@ -156,22 +159,12 @@ interface BubbleSeriesNodeDatumContext {
     readonly yFilterDataValues: any[] | undefined;
     readonly sizeFilterDataValues: number[] | undefined;
 
-    // Scales (axis lookups - worth caching)
-    readonly xScale: Scale<any, any>;
-    readonly yScale: Scale<any, any>;
+    // Additional scale (size is BubbleSeries-specific)
     readonly sizeScale: Scale<any, number>;
 
-    // Computed positioning (involves scale conversions - worth caching)
-    readonly xOffset: number;
-    readonly yOffset: number;
-
-    // Property lookups (constant across all datums)
-    readonly xKey: string;
-    readonly yKey: string;
+    // Property lookups (BubbleSeries-specific)
     readonly sizeKey: string | undefined;
     readonly labelKey: string | undefined;
-    readonly xName: string | undefined;
-    readonly yName: string | undefined;
     readonly sizeName: string | undefined;
     readonly labelName: string | undefined;
     readonly legendItemName: string | undefined;
@@ -186,13 +179,7 @@ interface BubbleSeriesNodeDatumContext {
     readonly label: BubbleSeriesProperties['label'];
 
     // Other state
-    readonly animationEnabled: boolean;
     readonly visible: boolean;
-
-    // Incremental update support
-    readonly canIncrementallyUpdate: boolean;
-    nodes: BubbleScatterNodeDatum[];
-    nodeIndex: number;
 }
 
 /**
@@ -446,7 +433,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Creates and returns a context object that caches expensive property lookups
      * and scale conversions. Called once per createNodeData() invocation.
      */
-    private createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): BubbleSeriesNodeDatumContext | undefined {
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): BubbleSeriesNodeDatumContext | undefined {
         const { dataModel, processedData, sizeScale, visible } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -487,10 +477,17 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain = [];
         }
 
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+
         return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
+
             // Data arrays
             rawData,
-            xDataValues: dataModel.resolveColumnById(this, `xValue`, processedData),
+            xValues: xDataValues, // Base interface field
+            xDataValues, // BubbleSeries-specific alias
             yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData),
             sizeDataValues:
                 sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData),
@@ -545,21 +542,19 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         };
     }
 
-    override createNodeData() {
-        const { axes } = this;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+    // ============================================================================
+    // Template Method Hooks
+    // ============================================================================
 
-        if (!xAxis || !yAxis) return;
-
-        // 1. Create shared context (instantiated once per createNodeData call)
-        const ctx = this.createNodeDatumContext(xAxis, yAxis);
-        if (!ctx) return;
-
-        // 2. Set size scale range
+    /**
+     * Populates the node data array by iterating over visible data.
+     * Strategy selection happens inside: simple or aggregation path.
+     */
+    protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
+        // Set size scale range
         this.sizeScale.range = this.getSizeRange();
 
-        // 3. Pre-allocate scratch object for datum state
+        // Pre-allocate scratch object for datum state
         const scratch: PreparedBubbleNodeDatumState = {
             datum: undefined,
             xDatum: undefined,
@@ -575,22 +570,20 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             area: 0,
         };
 
-        // 4. Strategy selection - delegate to specialized methods
-        if (ctx.visible) {
-            const { dataAggregation } = this;
-            if (dataAggregation == null) {
-                this.createNodeDataSimple(ctx, scratch);
-            } else {
-                this.createNodeDataWithAggregation(ctx, scratch, xAxis, yAxis, dataAggregation);
-            }
+        // Strategy selection - delegate to specialized methods
+        const { dataAggregation } = this;
+        if (dataAggregation == null) {
+            this.createNodeDataSimple(ctx, scratch);
+        } else {
+            this.createNodeDataWithAggregation(ctx, scratch, ctx.xAxis, ctx.yAxis, dataAggregation);
         }
+    }
 
-        // 5. Cleanup: trim excess nodes from incremental updates
-        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
-            ctx.nodes.length = ctx.nodeIndex;
-        }
-
-        // 6. Return result
+    /**
+     * Initializes the result context object with default values.
+     * Called before populate phase to allow early return for invisible series.
+     */
+    protected override initializeResult(ctx: BubbleSeriesNodeDatumContext): BubbleSeriesNodeDataContext {
         const { marker } = this.properties;
         type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
         type StylerParams =
@@ -610,6 +603,27 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     /**
+     * Validates datum state and upserts node - centralizes duplicated upsert pattern.
+     */
+    private upsertBubbleNodeDatum(
+        ctx: BubbleSeriesNodeDatumContext,
+        scratch: PreparedBubbleNodeDatumState,
+        datumIndex: number
+    ): void {
+        if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) return;
+        upsertNodeDatum(
+            ctx,
+            { scratch, datumIndex },
+            (c, p) => {
+                const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                return node;
+            },
+            (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+        );
+    }
+
+    /**
      * Simple iteration path for ungrouped data without aggregation.
      */
     private createNodeDataSimple(ctx: BubbleSeriesNodeDatumContext, scratch: PreparedBubbleNodeDatumState): void {
@@ -618,7 +632,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
     }
 
@@ -650,40 +664,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             scratch.count = count;
             scratch.dilation = dilation;
             scratch.area = area;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
         for (const datumIndex of singleDatumIndices) {
             scratch.count = 1;
             scratch.dilation = 1;
             scratch.area = 0;
-            this.upsertNodeDatum(ctx, scratch, datumIndex);
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
-    }
-
-    /**
-     * Decision point: reuse existing node or create new one.
-     * Centralizes the incremental update logic.
-     */
-    private upsertNodeDatum(
-        ctx: BubbleSeriesNodeDatumContext,
-        scratch: PreparedBubbleNodeDatumState,
-        datumIndex: number
-    ): void {
-        const prepared = this.prepareNodeDatumState(ctx, scratch, datumIndex);
-        if (!prepared) return;
-
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
-
-        if (canReuseNode) {
-            // Update existing node in-place
-            this.updateNodeDatum(ctx, ctx.nodes[ctx.nodeIndex], scratch, datumIndex);
-        } else {
-            // Create new node
-            const nodeData = this.createSkeletonNodeDatum(ctx, scratch, datumIndex);
-            this.updateNodeDatum(ctx, nodeData, scratch, datumIndex);
-            ctx.nodes.push(nodeData);
-        }
-        ctx.nodeIndex++;
     }
 
     /**
