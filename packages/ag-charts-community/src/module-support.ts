@@ -184,7 +184,6 @@ export type {
     CartesianAnimationDataOf,
     CartesianBarLikeContext,
     CartesianCreateNodeDataContext,
-    CartesianCreateNodeDataContextBase,
     CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,

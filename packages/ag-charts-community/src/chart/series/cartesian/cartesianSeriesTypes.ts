@@ -41,32 +41,6 @@ export interface CartesianSeriesNodeDataContext<
 // Provides the common shape for incremental update tracking.
 
 /**
- * Base interface for series context objects used in createNodeData().
- *
- * Series should extend this with their specific cached values (scales, data arrays,
- * computed positioning, etc.). The base interface provides incremental update tracking.
- *
- * @example
- * ```typescript
- * interface LineSeriesDatumContext extends CartesianCreateNodeDataContextBase<LineNodeDatum> {
- *     readonly xScale: Scale<any, any>;
- *     readonly yScale: Scale<any, any>;
- *     readonly xValues: any[];
- *     readonly yValues: any[];
- *     // ... other cached values
- * }
- * ```
- */
-export interface CartesianCreateNodeDataContextBase<TDatum extends CartesianSeriesNodeDatum> {
-    /** Whether incremental in-place updates are possible for existing nodes */
-    readonly canIncrementallyUpdate: boolean;
-    /** The node data array being built (may contain existing nodes for reuse) */
-    nodes: TDatum[];
-    /** Current write position in the nodes array */
-    nodeIndex: number;
-}
-
-/**
  * Rich base context interface for createNodeData() operations.
  * Contains common fields used across all CartesianSeries implementations.
  *
@@ -81,8 +55,14 @@ export interface CartesianCreateNodeDataContextBase<TDatum extends CartesianSeri
  * }
  * ```
  */
-export interface CartesianCreateNodeDataContext<TDatum extends CartesianSeriesNodeDatum>
-    extends CartesianCreateNodeDataContextBase<TDatum> {
+export interface CartesianCreateNodeDataContext<TDatum extends CartesianSeriesNodeDatum> {
+    /** Whether incremental in-place updates are possible for existing nodes */
+    readonly canIncrementallyUpdate: boolean;
+    /** The node data array being built (may contain existing nodes for reuse) */
+    nodes: TDatum[];
+    /** Current write position in the nodes array */
+    nodeIndex: number;
+
     // Axes
     readonly xAxis: ChartAxis;
     readonly yAxis: ChartAxis;
