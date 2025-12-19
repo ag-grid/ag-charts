@@ -445,36 +445,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     /**
-     * Creates base incremental update tracking state for context objects.
-     *
-     * Use this to initialize the incremental update fields in your context:
-     * ```
-     * const ctx = {
-     *     ...this.createIncrementalUpdateState(this.contextNodeData?.nodeData, additionalCondition),
-     *     // series-specific fields...
-     * };
-     * ```
-     *
-     * @param existingNodes - The existing node array from previous createNodeData()
-     * @param additionalCondition - Optional series-specific condition for incremental updates
-     */
-    protected createIncrementalUpdateState<T>(
-        existingNodes: T[] | undefined,
-        additionalCondition: boolean = false
-    ): {
-        canIncrementallyUpdate: boolean;
-        nodes: T[];
-        nodeIndex: number;
-    } {
-        const canIncrementallyUpdate = existingNodes != null && this.canIncrementallyUpdateNodes(additionalCondition);
-        return {
-            canIncrementallyUpdate,
-            nodes: canIncrementallyUpdate ? existingNodes : [],
-            nodeIndex: 0,
-        };
-    }
-
-    /**
      * Trims the node array after incremental updates.
      *
      * Call at the end of createNodeData() when using incremental updates:

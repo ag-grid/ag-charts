@@ -432,7 +432,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             ),
             animationEnabled,
             xKey,
-            yKey: yKey,
+            yKey,
             xName,
             yName,
             lineStrokeWidth: line.strokeWidth,
