@@ -359,6 +359,10 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+        if (!this.properties.highlight.enabled) {
+            return false;
+        }
+
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
 
         const { legendItemName } = this.properties;

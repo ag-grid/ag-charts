@@ -307,6 +307,10 @@ export abstract class PolarSeries<
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
+        if (!this.properties.highlight.enabled) {
+            return false;
+        }
+
         const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
 
         const legendItemName = typeof itemId === 'number' ? legendItemValues?.[itemId] : undefined;

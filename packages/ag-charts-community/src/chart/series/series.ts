@@ -672,6 +672,14 @@ export abstract class Series<
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
+        if (!this.properties.highlight.enabled) {
+            return HighlightState.None;
+        }
+
+        if (highlightedDatum?.series?.properties.highlight.enabled === false) {
+            return HighlightState.None;
+        }
+
         if (isHighlight) {
             return HighlightState.Item;
         }
@@ -729,12 +737,17 @@ export abstract class Series<
 
     public bringToFront() {
         return (
+            this.properties.highlight.enabled &&
             this.properties.highlight.bringToFront &&
             this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight())
         );
     }
 
     public isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
+        if (!this.properties.highlight.enabled) {
+            return false;
+        }
+
         return highlightedDatum?.series === this;
     }
 
