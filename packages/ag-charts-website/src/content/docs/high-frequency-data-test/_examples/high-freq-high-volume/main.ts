@@ -1,6 +1,8 @@
 // @ag-skip-fws
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
 
+import { initBenchmark } from './benchmarkHarness';
+
 (window as any).agChartsDebug = ['scene:stats'];
 
 type ValueDatum = {
@@ -985,4 +987,6 @@ function getBenchmarkConfig() {
     };
 }
 
-export {};
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}

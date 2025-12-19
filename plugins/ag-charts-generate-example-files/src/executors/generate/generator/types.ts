@@ -32,7 +32,6 @@ export interface GeneratedContents {
     hasLocale: boolean;
     hasExampleConsoleLog: boolean;
     hasExampleControls: boolean;
-    hasBenchmarkConfig: boolean;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;
