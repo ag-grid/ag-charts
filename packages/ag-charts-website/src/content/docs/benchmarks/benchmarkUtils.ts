@@ -223,16 +223,16 @@ export async function performDatumHighlight(
     container: HTMLElement,
     count: number
 ): Promise<number> {
-    const rect = container.getBoundingClientRect();
-    const chartWidth = rect.width;
-    const chartHeight = rect.height;
+    const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
+    const rect = seriesArea.getBoundingClientRect();
+    const { width, height } = rect;
 
     const start = performance.now();
 
     for (let i = 0; i < count; i++) {
         // Simulate hover at different positions across the chart
-        const x = rect.left + chartWidth * 0.1 + chartWidth * 0.8 * (i / count);
-        const y = rect.top + chartHeight * 0.5;
+        const x = rect.left + (width * 0.1 + width * 0.9) * (i / count);
+        const y = rect.top + height * 0.5;
 
         await hover(container, x, y);
 

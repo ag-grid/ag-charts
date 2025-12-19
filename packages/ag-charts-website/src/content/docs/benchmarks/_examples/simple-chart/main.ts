@@ -3,7 +3,7 @@
 /* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-community';
 
-import { initBenchmark } from './benchmarkHarness';
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import {
     ChartRef,
     SeriesVisibilityState,
@@ -94,7 +94,7 @@ const seriesCount = options.series!.length;
 const visibilityState: SeriesVisibilityState = { visible: new Array(seriesCount).fill(true) };
 
 /** inScope */
-function getBenchmarkConfig() {
+function getBenchmarkConfig(): BenchmarkConfig {
     return {
         testCases: [
             {
