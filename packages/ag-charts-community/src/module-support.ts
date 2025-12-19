@@ -320,7 +320,7 @@ export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
-export { Label } from './chart/label';
+export { Label, LabelStyle } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';
 export { SectorBox } from './scene/sectorBox';

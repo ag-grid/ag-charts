@@ -7,6 +7,7 @@ import {
     arrayOfDefs,
     attachDescription,
     boolean,
+    borderOptionsDef,
     callback,
     callbackDefs,
     callbackOf,
@@ -86,7 +87,10 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     enabled: boolean,
     text: string,
     padding: number,
+    border: borderOptionsDef,
+    cornerRadius: number,
     ...fontOptionsDef,
+    ...fillOptionsDef,
 };
 
 export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptions>(

@@ -37,13 +37,7 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-export class Label<TParams = never, TDatum = any>
-    extends BaseProperties
-    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
-{
-    @Property
-    enabled = false;
-
+export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptions {
     @Property
     border = new LabelBorder();
 
@@ -72,13 +66,21 @@ export class Label<TParams = never, TDatum = any>
     fontFamily!: string;
 
     @Property
+    padding?: Padding;
+}
+
+export class Label<TParams = never, TDatum = any>
+    extends LabelStyle
+    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
+{
+    @Property
+    enabled: boolean = false;
+
+    @Property
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property
     format?: string;
-
-    @Property
-    padding?: Padding;
 
     @Property
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;

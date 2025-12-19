@@ -38,6 +38,12 @@ const options: AgChartOptions = {
                         text: 'Price Peak',
                         position: 'top',
                         fontSize: 14,
+                        fill: '#7290C4',
+                        fillOpacity: 0.4,
+                        cornerRadius: 4,
+                        border: {
+                            stroke: '#7290C4',
+                        },
                     },
                 },
             ],

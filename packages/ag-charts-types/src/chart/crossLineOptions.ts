@@ -1,4 +1,5 @@
-import type { AxisValue, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type { AgChartLabelStyleOptions } from './labelOptions';
+import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions>
     extends Omit<AgBaseCrossLineOptions<LabelType>, 'type' | 'value' | 'range'> {}
@@ -28,23 +29,11 @@ export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions>
     label?: LabelType;
 }
 
-export interface AgBaseCrossLineLabelOptions {
-    /** Whether to show the Cross Line label. */
-    enabled?: boolean;
+export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
     /** The text to show in the label. */
     text?: string;
-    /** The font style to use for the label. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for the label. */
-    fontWeight?: FontWeight;
-    /** The font size in pixels to use for the label. */
-    fontSize?: FontSize;
     /** The font family to use for the label. */
     fontFamily?: FontFamilyFull;
-    /** Padding in pixels between the label and the edge of the Cross Line. */
-    padding?: PixelSize;
-    /** The colour to use for the label. */
-    color?: CssColor;
 }
 
 export type AgCrossLineLabelPosition =

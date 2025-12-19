@@ -1,19 +1,8 @@
-import {
-    BaseProperties,
-    FONT_SIZE,
-    Property,
-    type Scale,
-    clampArray,
-    createId,
-    findMinMax,
-    toRadians,
-} from 'ag-charts-core';
+import { BaseProperties, Property, type Scale, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    FontStyle,
-    FontWeight,
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -22,6 +11,7 @@ import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
+import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
@@ -115,36 +105,16 @@ const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
 
-class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
+class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
+    // TODO: The OptionsGraph autoEnable should set this to a boolean, the undefined should not be needed
     @Property
-    enabled?: boolean;
+    enabled: boolean | undefined = undefined;
+
+    @Property
+    override padding: number = 5;
 
     @Property
     text?: string;
-
-    @Property
-    fontStyle?: FontStyle;
-
-    @Property
-    fontWeight?: FontWeight;
-
-    @Property
-    fontSize: number = FONT_SIZE.LARGE;
-
-    @Property
-    fontFamily: string = 'Verdana, sans-serif';
-
-    /**
-     * The padding between the label and the line.
-     */
-    @Property
-    padding: number = 5;
-
-    /**
-     * The color of the labels.
-     */
-    @Property
-    color?: string = 'rgba(87, 87, 87, 1)';
 
     @Property
     position?: CrossLineLabelPosition;
@@ -210,8 +180,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     readonly rangeGroup = new Group({ name: this.id });
     readonly lineGroup = new Group({ name: this.id });
     readonly labelGroup = new Group({ name: this.id });
-    private readonly crossLineRange = new Range();
-    private readonly crossLineLabel = new TransformableText();
+    private readonly crossLineRange = this.lineGroup.appendChild(new Range());
+    private readonly crossLineLabel = this.labelGroup.appendChild(new TransformableText());
 
     private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
@@ -219,10 +189,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     constructor() {
         super();
-
-        this.lineGroup.append(this.crossLineRange);
-        this.labelGroup.append(this.crossLineLabel);
-
         this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 
@@ -389,12 +355,12 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         if (!label.text) return;
 
-        crossLineLabel.fontStyle = label.fontStyle;
-        crossLineLabel.fontWeight = label.fontWeight;
-        crossLineLabel.fontSize = label.fontSize;
-        crossLineLabel.fontFamily = label.fontFamily;
         crossLineLabel.fill = label.color;
         crossLineLabel.text = label.text;
+        crossLineLabel.textAlign = 'center';
+        crossLineLabel.textBaseline = 'middle';
+        crossLineLabel.setFont(label);
+        crossLineLabel.setBoxing(label);
     }
 
     private get anchor(): Anchor {
@@ -415,8 +381,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { crossLineLabel, label, anchor } = this;
 
         crossLineLabel.rotation = toRadians(label.rotation ?? 0);
-        crossLineLabel.textBaseline = 'middle';
-        crossLineLabel.textAlign = 'center';
 
         const bbox = crossLineLabel.getBBox();
         if (!bbox) return;
