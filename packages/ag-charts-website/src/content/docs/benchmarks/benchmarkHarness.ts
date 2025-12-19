@@ -26,7 +26,8 @@ interface BenchmarkTestCase {
     label?: string;
     minVersion?: string; // e.g., "12.3.0"
     maxVersion?: string; // e.g., "13.0.0"
-    setup?: () => Promise<void>;
+    setup?: () => Promise<void> | void;
+    teardown?: () => Promise<void> | void;
     variants: BenchmarkVariant[];
 }
 
@@ -36,7 +37,7 @@ interface BenchmarkConfigSettings {
     warmupUpdates: number;
 }
 
-interface BenchmarkConfig {
+export interface BenchmarkConfig {
     testCases: BenchmarkTestCase[];
     config: BenchmarkConfigSettings;
     warnings?: string[];
@@ -64,7 +65,8 @@ interface NormalizedVariant {
 interface NormalizedTestCase {
     id: string;
     label?: string;
-    setup?: () => Promise<void>;
+    setup?: () => Promise<void> | void;
+    teardown?: () => Promise<void> | void;
     variants: NormalizedVariant[];
 }
 
@@ -185,6 +187,7 @@ function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
             id: tc.id,
             label: tc.label,
             setup: tc.setup,
+            teardown: tc.teardown,
             variants,
         });
     }
@@ -779,6 +782,10 @@ class BenchmarkRunner {
                     this.updateProgress();
                     const result = await this.runBenchmarkTest(testCase, variant);
                     this.results.push(result);
+                }
+
+                if (testCase.teardown) {
+                    await testCase.teardown();
                 }
             }
 

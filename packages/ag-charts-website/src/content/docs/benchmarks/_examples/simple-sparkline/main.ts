@@ -1,6 +1,11 @@
-/* @ag-options-extract */
-import { AgCharts, AgSparklineOptions } from 'ag-charts-community';
+// @ag-skip-fws
+// @ag-skip-container-check
 
+/* @ag-options-extract */
+import { AgCharts, type AgSparklineOptions, VERSION } from 'ag-charts-community';
+import { AgChartInstance } from 'ag-charts-community';
+
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
 
 (window as any).agChartsDebug = 'scene:stats';
@@ -31,21 +36,126 @@ const options: AgSparklineOptions = {
 };
 /* @ag-options-end */
 
-async function main() {
+const chart = AgCharts.__createSparkline(options);
+
+const charts: AgChartInstance<AgSparklineOptions>[] = [];
+/** inScope */
+async function performSingleCreation(): Promise<number> {
+    const container = document.getElementById('myChart');
+    if (!container) return 0;
+
     const start = performance.now();
 
-    const count = 500;
-    let chart, previousChart;
-    for (let i = 0; i < count; i++) {
-        previousChart = chart;
-        chart = AgCharts.__createSparkline(options);
+    charts.push(
+        AgCharts.__createSparkline({
+            ...options,
+            container,
+        })
+    );
+    await charts.at(-1)!.waitForUpdate();
 
-        await chart.waitForUpdate();
-        previousChart?.destroy();
-    }
-    const duration = performance.now() - start;
-    console.log('Total update time: ', duration);
-    console.log('Average update time: ', duration / count);
+    return performance.now() - start;
 }
 
-main().catch((e) => console.error(e));
+/** inScope */
+async function performPooledCreation(): Promise<number> {
+    const start = performance.now();
+
+    const newChart = AgCharts.__createSparkline({
+        ...options,
+        container: document.createElement('div'),
+    });
+    await newChart.waitForUpdate();
+
+    const result = performance.now() - start;
+    newChart.destroy();
+    return result;
+}
+
+/** inScope */
+async function performDataUpdate(): Promise<number> {
+    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + Math.random() * 0.4) }));
+
+    const start = performance.now();
+    await chart.update({ ...options, data: newData });
+    await chart.waitForUpdate();
+    return performance.now() - start;
+}
+
+/** inScope */
+async function performDeltaUpdate(): Promise<number> {
+    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + Math.random() * 0.4) }));
+
+    const start = performance.now();
+    await chart.updateDelta({ data: newData });
+    await chart.waitForUpdate();
+    return performance.now() - start;
+}
+
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'cold-creation',
+                label: 'Cold Creation',
+                variants: [
+                    {
+                        params: { Operation: 'Create Sparkline' },
+                        run: performSingleCreation,
+                    },
+                ],
+                teardown: () => {
+                    charts.forEach((chart) => chart.destroy());
+                    charts.length = 0;
+                },
+            },
+            {
+                id: 'pooled-creation',
+                label: 'Warm Creation',
+                variants: [
+                    {
+                        params: { Operation: 'Create Sparkline' },
+                        run: performPooledCreation,
+                    },
+                ],
+            },
+            {
+                id: 'data-update',
+                label: 'Data Update',
+                variants: [
+                    {
+                        params: { Operation: 'Full Update' },
+                        run: performDataUpdate,
+                    },
+                ],
+            },
+            {
+                id: 'delta-update',
+                label: 'Delta Update',
+                variants: [
+                    {
+                        params: { Operation: 'Delta Update' },
+                        run: performDeltaUpdate,
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 100,
+            maxCollectionTimeMs: 10000,
+            warmupUpdates: 10,
+        },
+        metadata: {
+            dataPoints: getData().length,
+            seriesCount: 1,
+            version: VERSION,
+            expectedRetainedSizeMB: 2,
+            expectedCanvasCount: 3,
+        },
+    };
+}
+
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}

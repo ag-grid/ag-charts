@@ -136,21 +136,40 @@ export async function performInitialLoad<T extends AgChartOptions>(
 
 /**
  * Perform zoom benchmark by dispatching wheel events.
+ * Recreates the chart before each zoom sequence to match original Jest benchmarks
+ * which use beforeEach() to create a fresh chart before each test iteration.
  *
- * @param chart - Chart instance
+ * @param options - Chart options for recreation
+ * @param chartRef - Mutable reference to chart instance (will be updated)
+ * @param createFn - Function to create chart
  * @param container - Chart container element
  * @param count - Number of zoom steps to perform
- * @returns Elapsed time in milliseconds
+ * @returns Elapsed time in milliseconds (excludes chart recreation time)
  */
-export async function performZoom(chart: AgChartInstance, container: HTMLElement, count: number): Promise<number> {
+export async function performZoom<T extends AgChartOptions>(
+    options: T,
+    chartRef: ChartRef,
+    createFn: (opts: T) => AgChartInstance,
+    container: HTMLElement,
+    count: number
+): Promise<number> {
+    // Recreate chart before zoom (like Jest beforeEach) - NOT timed
+    if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+    }
+    chartRef.current = createFn(options);
+    await chartRef.current.waitForUpdate();
+
     const width = container.clientWidth;
     const height = container.clientHeight;
 
+    // Time only the zoom operations
     const start = performance.now();
     for (let i = 0; i < count; i++) {
         // Dispatch wheel event to trigger zoom (matches Jest benchmark approach)
         scroll(container, width / 2, height / 2, -1, 1); // deltaMode=1 for lines
-        await chart.waitForUpdate();
+        await chartRef.current.waitForUpdate();
     }
     return performance.now() - start;
 }
@@ -215,12 +234,7 @@ export async function performDatumHighlight(
         const x = rect.left + chartWidth * 0.1 + chartWidth * 0.8 * (i / count);
         const y = rect.top + chartHeight * 0.5;
 
-        const moveEvent = new MouseEvent('mousemove', {
-            bubbles: true,
-            clientX: x,
-            clientY: y,
-        });
-        container.dispatchEvent(moveEvent);
+        await hover(container, x, y);
 
         // Small delay to allow rendering
         await new Promise((resolve) => requestAnimationFrame(resolve));
