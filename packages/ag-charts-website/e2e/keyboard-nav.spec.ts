@@ -52,6 +52,22 @@ test.describe('keyboard-nav', () => {
         });
     }
 
+    test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
+        await gotoExample(
+            page,
+            toExamplePageUrl('accessibility-test', 'keyboard-navigation-highlight-disabled-series', 'vanilla').url
+        );
+
+        const canvasCenter = page.locator(SELECTORS.canvasCenter);
+        await page.locator('input').first().click();
+
+        await page.keyboard.press('Tab');
+        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-focus.png');
+
+        await page.keyboard.press('ArrowDown');
+        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-other-series-focus.png');
+    });
+
     test('AG-13051 kbm hover combo', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
 

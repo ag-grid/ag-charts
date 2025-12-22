@@ -399,6 +399,77 @@ describe('Chart highlighting', () => {
         });
     });
 
+    describe('Highlight disabled series', () => {
+        it('ignores highlight on a series with highlight.enabled = false', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                        highlight: {
+                            enabled: false,
+                        },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            await runHighlightSnapshot({
+                name: 'disabled-series-highlight-ignored',
+                options,
+                seriesIndex: 0,
+                datumIndex: 2,
+            });
+        });
+
+        it('does not dim disabled series when another series is highlighted', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                        highlight: {
+                            enabled: false,
+                        },
+                    },
+                ],
+            });
+
+            await runHighlightSnapshot({
+                name: 'disabled-series-no-dim',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+        });
+    });
+
     describe('Delayed unhighlight', () => {
         afterEach(() => {
             jest.useRealTimers();
