@@ -74,7 +74,7 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
         }
     }
 
-    // Use reciporicals to avoid division by zero
+    // Use reciprocals to avoid division by zero
     const positiveMRecip = aspectRatio;
     const centerToTopMRecip = Math.abs((topPointX - cx) / (topPointY - cy));
     const centerToBottomMRecip = Math.abs((bottomPointX - cx) / (bottomPointY - cy));

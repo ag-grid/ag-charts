@@ -1,4 +1,4 @@
-// Branded string: This is used to ensure type safety by disallowing `something.id` to be mistakeningly assigned to a
+// Branded string: This is used to ensure type safety by disallowing `something.id` to be mistakenly assigned to a
 // general-purpose string.
 //
 // Example:

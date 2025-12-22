@@ -68,7 +68,7 @@ export const colorStopsOrderValidator = attachDescription((value) => {
         }
     }
     return true;
-}, 'color stops to be defined in ascending order');
+}, 'colour stops to be defined in ascending order');
 export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
 const gradientBounds = union('axis', 'item', 'series');
 
@@ -84,13 +84,13 @@ const gradientStrictDefs: OptionsDefs<AgGradientColorStrict> = {
 };
 export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     gradientStrictDefs,
-    'a gradient object with color stops'
+    'a gradient object with colour stops'
 );
 
 export interface InternalAgGradientColor extends AgGradientColor {
     /** Format of the gradient */
     gradient?: AgGradientType;
-    /** The domain of the color gradient, defaults to item. */
+    /** The domain of the colour gradient, defaults to item. */
     bounds?: AgGradientColorBounds;
     /** Reverse the order of colour stops. */
     reverse?: boolean;

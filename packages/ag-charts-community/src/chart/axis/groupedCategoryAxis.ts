@@ -171,7 +171,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
                           wrapping: depthOptions[i]?.label.wrapping ?? label.wrapping,
                           truncate: depthOptions[i]?.label.truncate ?? label.truncate,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label roration only applies to label leaves
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label rotation only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }

@@ -430,7 +430,7 @@ describe('DataModel', () => {
 
                 // Verify domains
                 // Key domain includes all valid keys (1, 2, 3), even though items with keys 2 and 3 have invalid y values
-                // This matches processData() behavior where each property domain is independent
+                // This matches processData() behaviour where each property domain is independent
                 expect(reprocessed.domain.keys).toEqual([[1, 3]]);
                 // Value domain only includes valid values (only item 0 with y=10 is fully valid)
                 expect(reprocessed.domain.values).toEqual([[10, 10]]);
@@ -1363,7 +1363,7 @@ describe('DataModel', () => {
                 // Clear warnings
                 expectWarningsCalls();
 
-                // Verify column values are correct - this is the key behavior we need
+                // Verify column values are correct - this is the key behaviour we need
                 expect(reprocessed.columns[0][0]).toBe(10); // y1 first
                 expect(reprocessed.columns[0][1]).toBe(20); // y1 second (valid) - correctly preserved!
                 expect(reprocessed.columns[1][0]).toBe(100); // y2 first
@@ -1372,7 +1372,7 @@ describe('DataModel', () => {
                 expect(reprocessed.domain.values[1]).toEqual([100, 100]);
                 // Note: y1's domain SHOULD include 20 because y1 is valid, even though y2 is null.
                 // Invalid values in one column should not affect domain calculation for other columns.
-                // This enables correct axis behavior: x-axis shows all valid x-values even when
+                // This enables correct axis behaviour: x-axis shows all valid x-values even when
                 // corresponding y-values are null (creating gaps in the line).
                 expect(reprocessed.domain.values[0]).toEqual([10, 20]);
             });

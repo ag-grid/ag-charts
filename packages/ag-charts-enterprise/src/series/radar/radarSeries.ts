@@ -806,7 +806,7 @@ export abstract class RadarSeries<
                 { pick: false }
             );
             if (resolved) {
-                // The return-type of resolvePartial can stealthly introduce `any` (e.g. stylerResult.marker becomes of
+                // The return-type of resolvePartial can stealthily introduce `any` (e.g. stylerResult.marker becomes of
                 // type `any`). So convert back to TStyle to avoid this.
                 stylerResult = resolved as StylerResult<TStyle>;
             }

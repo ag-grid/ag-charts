@@ -6,7 +6,7 @@ import { computeBarAggregation, computeBarAggregationPartial } from './barAggreg
 const EMPTY_INDEX = 0xffffffff;
 
 describe('computeBarAggregation', () => {
-    describe('threshold behavior', () => {
+    describe('threshold behaviour', () => {
         it('should return undefined for datasets below threshold (< 1000 points)', () => {
             const xValues = Array.from({ length: 999 }, (_, i) => i);
             const yValues = Array.from({ length: 999 }, (_, i) => i * 10);
@@ -422,7 +422,7 @@ describe('computeBarAggregation', () => {
 });
 
 describe('computeBarAggregationPartial', () => {
-    describe('threshold behavior', () => {
+    describe('threshold behaviour', () => {
         it('should return undefined for datasets below threshold', () => {
             const xValues = Array.from({ length: 999 }, (_, i) => i);
             const yValues = Array.from({ length: 999 }, (_, i) => i * 10);

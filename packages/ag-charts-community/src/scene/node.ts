@@ -209,7 +209,7 @@ export abstract class Node<TDatum = unknown> {
         return this.childNodeCounts;
     }
 
-    /** Guaranteed isolated render - if there is any failure, the Cavans2D context is returned to its prior state. */
+    /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
     isolatedRender(renderCtx: RenderContext): void {
         renderCtx.ctx.save();
         try {

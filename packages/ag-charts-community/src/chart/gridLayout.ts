@@ -149,7 +149,7 @@ function calculatePage(
         const currentSecondaryDimension = sumSecondary + currentMaxSecondary;
         const returnResult = !forceResult || result.length > 0;
         if (currentSecondaryDimension > secondary.max && returnResult) {
-            // Breached max secondary dimension size, return indices accumlated so far (but not in-progress row/column).
+            // Breached max secondary dimension size, return indices accumulated so far (but not in-progress row/column).
             currentPrimaryIndices = [];
             break;
         }

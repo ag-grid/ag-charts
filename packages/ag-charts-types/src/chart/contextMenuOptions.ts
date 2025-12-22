@@ -101,7 +101,7 @@ interface GetItemsParamsMixin<TDatum, TContext> {
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
-// Using <TContext> instead of <_TDatum, TContext> would make the API very susectible to breaking changes and/or inconsistency.
+// Using <TContext> instead of <_TDatum, TContext> would make the API very susceptible to breaking changes and/or inconsistency.
 //
 // If we ever need to add a `datum: TDatum` property, then changing <TContext> to <TDatum, TContext> would be a breaking
 // change, because code that uses these generic types would need to be updated to shift generic TContext parameter by

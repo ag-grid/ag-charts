@@ -133,7 +133,7 @@ export class MD5 {
 
     /* there needs to be support for Unicode here, * unless we pretend that we can redefine the MD-5
      * algorithm for multi-byte characters (perhaps by adding every four 16-bit characters and
-     * shortening the sum to 32 bits). Otherwise I suthis.ggest performing MD-5 as if every character
+     * shortening the sum to 32 bits). Otherwise I suggest performing MD-5 as if every character
      * was two bytes--e.g., 0040 0025 = @%--but then how will an ordinary MD-5 sum be matched?
      * There is no way to standardize text to something like UTF-8 before transformation; speed cost is
      * utterly prohibitive. The JavaScript standard itself needs to look at this: it should start

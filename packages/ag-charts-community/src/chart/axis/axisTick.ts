@@ -21,7 +21,7 @@ export class AxisTick extends BaseProperties {
     @Property
     size: number = 6;
 
-    /** The color of the axis ticks. */
+    /** The colour of the axis ticks. */
     @Property
     stroke?: string;
 }

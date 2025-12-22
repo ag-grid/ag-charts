@@ -213,7 +213,7 @@ export class RadialColumnShape<D = any> extends Path<D> {
 
     private updateBeveledPath() {
         // Create a path similar to updateRectangularPath().
-        // However we want to improve the visual quality of the beveled path:
+        // However we want to improve the visual quality of the bevelled path:
         // - If the bar is growing outwards and starting from the inner radius, the bottom edge should curve around the inner radius.
         // - If the bar is growing inwards and starting from the outer radius, the top edge should curve around the outer radius.
         // - If the bar spans the entire radius range, both edges should be curved.
@@ -232,7 +232,7 @@ export class RadialColumnShape<D = any> extends Path<D> {
         const isTouchingOuter = isNumberEqual(outerRadius, axisOuterRadius);
         const topCornersBreach = Math.hypot(left, top) > axisOuterRadius || Math.hypot(right, top) > axisOuterRadius;
 
-        // Early exit if no beveling needed
+        // Early exit if no bevelling needed
         if (!isTouchingInner && !isTouchingOuter && !topCornersBreach) {
             this.updateRectangularPath();
             return;

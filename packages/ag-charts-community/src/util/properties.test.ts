@@ -51,7 +51,7 @@ describe('BaseProperties', () => {
 `);
     });
 
-    it('should serialize to JSON correctly', () => {
+    it('should serialise to JSON correctly', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2: number }> {
             @Property
             prop1!: string;

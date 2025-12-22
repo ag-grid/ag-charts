@@ -130,7 +130,7 @@ export interface AgChartHighlightOptions {
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
     /**
-     * Determines the rendering behavior of the highlight relative to existing chart content.
+     * Determines the rendering behaviour of the highlight relative to existing chart content.
      * - `'overlay'` renders the highlight above existing content, both layers remain visible where they overlap.
      * - `'cutout'` removes existing content in overlapping areas, showing only the highlight.
      *
@@ -180,9 +180,9 @@ export interface AgKeyboardOptions {
 }
 
 export interface AgTouchOptions {
-    /** Sets the input handling behavior for single-finger touch drag events.
+    /** Sets the input handling behaviour for single-finger touch drag events.
      *
-     * - `'none'` - ignores these events, typically causing the default page-scrolling behavior.
+     * - `'none'` - ignores these events, typically causing the default page-scrolling behaviour.
      * - `'hover'` - makes these behave like mouse hover events, showing tooltip and crosshairs.
      * - `'drag'` - makes these behave like mouse drag events (moving while holding left-button).
      *
@@ -288,6 +288,6 @@ export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDef
     data?: TDatum[];
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
-    /** The initial state of the chart. This must be a serializable value. */
+    /** The initial state of the chart. This must be a serialisable value. */
     initialState?: AgInitialStateOptions;
 }

@@ -623,7 +623,7 @@ export default {
             ImportDeclaration(node) {
                 const packageName = node.source.value;
 
-                // Track enterprise detection (existing behavior)
+                // Track enterprise detection (existing behaviour)
                 if (packageName === 'ag-charts-enterprise') {
                     isEnterprise = true;
                 }

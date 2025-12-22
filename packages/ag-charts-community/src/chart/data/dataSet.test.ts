@@ -897,7 +897,7 @@ describe('DataSet', () => {
 
     /**
      * Performance tests to verify scalability optimizations.
-     * Tests verify behavioral guarantees (O(changes) not O(data)) rather than implementation details.
+     * Tests verify behavioural guarantees (O(changes) not O(data)) rather than implementation details.
      */
     describe('performance optimizations', () => {
         /**

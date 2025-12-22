@@ -17,7 +17,7 @@ function random() {
     return (seed - 1) / 2147483646;
 }
 
-// Create a set of data with predicatable "randomness"
+// Create a set of data with predictable "randomness"
 export function getRandomizedData(): DataType[] {
     // Vary the datum by a random proportion of the variance +ve or -ve
     const vary = (n: number) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);

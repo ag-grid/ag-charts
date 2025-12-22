@@ -78,11 +78,11 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     label?: TextOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
-    /** Whether the Fibonacci range lines are multicolored. */
+    /** Whether the Fibonacci range lines are multicoloured. */
     isMultiColor?: boolean;
-    /** The colors to cycle through for the strokes of the Fibonacci lines. */
+    /** The colours to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
-    /** The color for the strokes of the Fibonacci lines if isMultiColor is `false`. */
+    /** The colour for the strokes of the Fibonacci lines if isMultiColor is `false`. */
     rangeStroke?: CssColor;
     /** The number of fibonacci range bands. */
     bands?: 10 | 6 | 4;
@@ -232,7 +232,7 @@ export interface AgFibonacciRetracementAnnotation extends AgFibonacciAnnotation 
 
 export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciAnnotation {
     type: 'fibonacci-retracement-trend-based';
-    /** The retracmeent end point of the fibonacci annotation. */
+    /** The retracement end point of the fibonacci annotation. */
     endRetracement: AgAnnotationPoint;
 }
 
@@ -244,7 +244,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visibl
     handle?: AgAnnotationHandle;
     /** Configuration for the channel text. */
     text?: AgChannelAnnotationTextStyles;
-    /** The fill color for the middle of the channel. */
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 

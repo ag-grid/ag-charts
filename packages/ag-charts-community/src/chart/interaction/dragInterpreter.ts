@@ -14,17 +14,17 @@ const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;
 const DOUBLE_TAP_THRESHOLD_PX = 30;
 
-type TSythetic = 'click' | 'dblclick';
+type TSynthetic = 'click' | 'dblclick';
 type Device = MouseWidgetEvent['device'];
 
 /**
- * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by a single
+ * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a synthetic click event fired by a single
  * finger 'touchstart' and 'touchend'.
  */
 export type DragInterpreterClickEvent = NativeMouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
 
 /**
- * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a sythetic click event fired by two
+ * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a synthetic click event fired by two
  * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
  */
 export type DragInterpreterDblClickEvent =
@@ -32,9 +32,9 @@ export type DragInterpreterDblClickEvent =
     | TouchSyntheticMouseWidgetEvent<'dblclick'>;
 
 type WE<D extends Device> = DragWidgetEvent & { device: D };
-function makeSynthetic<T extends TSythetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
-function makeSynthetic<T extends TSythetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
-function makeSynthetic(type: TSythetic, event: DragWidgetEvent) {
+function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
+function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
+function makeSynthetic(type: TSynthetic, event: DragWidgetEvent) {
     const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
@@ -115,8 +115,7 @@ export class DragInterpreter {
     private onTouchEnd(event: TouchWidgetEvent<'touchend'>) {
         // Suppress the browser's MouseEvent emulation on touch devices. Emulation not standardised, iOS Webkit
         // dispatches hover events if the <div> element is blurred, or click events if the <div> element is focused. On
-        // the other hand, Chromium Blink and Firefox Gecko always enumlate a mouse click the on <div>.
-        //
+        // the other hand, Chromium Blink and Firefox Gecko always emulate a mouse click on the <div>.        //
         // We'll emulate mouse click and hover events in this class to ensure consistent and predictable behaviour.
         event.sourceEvent.preventDefault();
     }

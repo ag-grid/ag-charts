@@ -215,7 +215,7 @@ export class DataModel<
             scopeCache: this.scopeCache,
         };
 
-        // Initialize subsystems with shared context
+        // Initialise subsystems with shared context
         this.resolvers = new DataModelResolvers(ctx);
         this.scopeCacheManager = new ScopeCacheManager(ctx);
         this.domainInitializer = new DomainInitializer(ctx);

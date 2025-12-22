@@ -1,4 +1,4 @@
-# we ignore all octokit packages because we dont have any incoming/user driven requests to it and only
+# we ignore all octokit packages because we don't have any incoming/user driven requests to it and only
 # use to create and upload releases
 [[PackageOverrides]]
 name = "octokit"
