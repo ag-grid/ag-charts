@@ -56,6 +56,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: TDatumIndex): any;
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+    isHighlightEnabled(): boolean;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;

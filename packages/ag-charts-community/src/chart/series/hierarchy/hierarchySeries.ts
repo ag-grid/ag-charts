@@ -398,9 +398,6 @@ export abstract class HierarchySeries<
         }
 
         const highlightedNode = this.ctx.highlightManager?.getActiveHighlight() as TNodeClass | undefined;
-        if (highlightedNode?.series?.properties?.highlight?.enabled === false) {
-            return undefined;
-        }
         if (highlightedNode?.series !== this) {
             return undefined;
         }
@@ -458,9 +455,6 @@ export abstract class HierarchySeries<
         _legendItemValues?: string[]
     ): ReturnType<typeof toHierarchyHighlightString> {
         if (!this.properties.highlight.enabled) {
-            return toHierarchyHighlightString(HierarchyHighlightState.None);
-        }
-        if (_datum?.series?.properties?.highlight?.enabled === false) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
         }
         if (datumIndex == null) {

@@ -381,6 +381,10 @@ export abstract class Series<
         this.onDataChange();
     }
 
+    public isHighlightEnabled(): boolean {
+        return this.properties.highlight.enabled;
+    }
+
     setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
@@ -673,10 +677,6 @@ export abstract class Series<
         legendItemValues?: string[]
     ): HighlightState {
         if (!this.properties.highlight.enabled) {
-            return HighlightState.None;
-        }
-
-        if (highlightedDatum?.series?.properties.highlight.enabled === false) {
             return HighlightState.None;
         }
 
