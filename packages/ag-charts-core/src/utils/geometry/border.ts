@@ -1,9 +1,9 @@
-import type { StrokeOptions } from 'ag-charts-types';
+import type { BorderOptions } from 'ag-charts-types';
 
 import { BaseProperties, Property } from '../../state/properties';
 import { ActionOnSet, ProxyPropertyOnWrite } from '../../state/proxy';
 
-export class Border extends BaseProperties implements StrokeOptions {
+export class Border extends BaseProperties implements BorderOptions {
     @ActionOnSet<Border>({
         changeValue(newValue: boolean) {
             if (newValue) {

@@ -288,6 +288,12 @@ export class ChartTheme {
                                 fontWeight: { $ref: 'fontWeight' },
                                 padding: 5,
                                 color: { $ref: 'textColor' },
+                                border: {
+                                    enabled: false,
+                                    stroke: { $ref: 'foregroundColor' },
+                                    strokeOpacity: 1,
+                                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                                },
                             },
                         },
                         undefined,
