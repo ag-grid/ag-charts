@@ -374,7 +374,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
     /**
      * Processes a single datum for the given scope, returning cached key/value results.
-     * Shared between insert and update paths to keep behavior consistent.
+     * Shared between insert and update paths to keep behaviour consistent.
      */
     private processDatum(
         dataSet: DataSet<unknown>,
@@ -1093,7 +1093,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         for (const [scope, invalidArray] of invalidMap) {
             const invalidCount = invalidArray.filter(Boolean).length;
             if (invalidCount === 0) {
-                // Clean up entries with no invalids to match full reprocessing behavior
+                // Clean up entries with no invalids to match full reprocessing behaviour
                 invalidMap.delete(scope);
                 counts.delete(scope);
             } else {

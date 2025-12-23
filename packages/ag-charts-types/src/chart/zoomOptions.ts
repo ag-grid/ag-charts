@@ -62,13 +62,13 @@ export interface AgZoomAutoScaling {
 
 export interface AgZoomOnDataChange {
     /**
-     * The behavior of how to adjust the zoom when chart data changes.
+     * The behaviour of how to adjust the zoom when chart data changes.
      *
      * Default: `'preserveDomain'`
      */
     strategy?: AgZoomOnDataChangeStrategy;
     /**
-     * When `true`, the zoom will be adjusted to ensure that newly appended data is in the viewport. This behavior only
+     * When `true`, the zoom will be adjusted to ensure that newly appended data is in the viewport. This behaviour only
      * happens if the chart's horizontal viewport is panned all the way to the very end of data range; otherwise the current `strategy`
      * is used instead.
      *

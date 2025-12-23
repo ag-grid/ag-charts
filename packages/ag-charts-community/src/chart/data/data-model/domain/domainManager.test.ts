@@ -546,13 +546,13 @@ describe('DomainManager', () => {
                 expect(processedData!.domain.values).toEqual([[0, 11990]]);
 
                 // Simulate scrolling: remove 10 from start, append 10 at end
-                // Expected band behavior after removal (indices shifted):
+                // Expected band behaviour after removal (indices shifted):
                 // Band 0: [0, 100) -> [0, 90) DIRTY (shrunk, needs rescan)
                 // Band 1: [100, 200) -> [90, 190) CLEAN (shifted down)
                 // ...
                 // Band 11: [1100, 1200) -> [1090, 1190) CLEAN (shifted down)
                 //
-                // Expected band behavior after append:
+                // Expected band behaviour after append:
                 // Band 11: [1090, 1190) -> [1090, 1200) DIRTY (extended to include new data)
                 const toRemove = initialData.slice(0, 10);
                 const toAppend = Array.from({ length: 10 }, (_, i) => ({

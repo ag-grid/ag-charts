@@ -1,7 +1,7 @@
 const NUM_DATA_POINTS = 30;
 let _seed = 1234;
 
-// Create a set of data with predicatable "randomness"
+// Create a set of data with predictable "randomness"
 export function getData(
     start = [100, 100, 100, 100],
     variance = 2,

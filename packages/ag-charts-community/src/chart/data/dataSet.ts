@@ -132,7 +132,7 @@ export class DataSet<T = unknown> {
             const currentSize = this.netSize();
 
             if (addIndex === undefined || addIndex >= currentSize) {
-                // Append to end (default behavior)
+                // Append to end (default behaviour)
                 result.append = append ? [...append, ...add] : add;
             } else if (addIndex === 0) {
                 // Prepend to beginning

@@ -1,7 +1,7 @@
 import { computeLineAggregation } from './lineAggregation';
 
 describe('computeLineAggregation', () => {
-    describe('threshold behavior', () => {
+    describe('threshold behaviour', () => {
         it('should return undefined for datasets below threshold (< 1000 points)', () => {
             const xValues = Array.from({ length: 999 }, (_, i) => i);
             const yValues = Array.from({ length: 999 }, (_, i) => Math.sin(i / 10));

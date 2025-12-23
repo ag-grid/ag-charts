@@ -100,7 +100,7 @@ export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
                 if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
 
                 // Direct method bypasses decorators - writes to __x, __y, etc.
-                // Preserves current size (node.size) to match original resetMotion behavior
+                // Preserves current size (node.size) to match original resetMotion behaviour
                 node.resetAnimationProperties(x, y, node.size, 1, 1, 1);
             }
             // Important: cleanup garbage-collected nodes (same as resetMotion does)

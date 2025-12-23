@@ -17,7 +17,7 @@ function random() {
     return (seed - 1) / 2147483646;
 }
 
-// Create a set of data with predicatable "randomness"
+// Create a set of data with predictable "randomness"
 export function getRandomizedData(): DataType[] {
     // Reset:
     seed = 1234;

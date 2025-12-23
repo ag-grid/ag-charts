@@ -471,7 +471,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // createNodeData() Template Method Pattern
     // ============================================================================
     // The template method pattern pulls the common createNodeData() flow into the
-    // base class. Subclasses implement hooks to customize behavior.
+    // base class. Subclasses implement hooks to customize behaviour.
     //
     // Subclasses that have been migrated implement:
     // - createNodeDatumContext() - cache expensive lookups
@@ -489,7 +489,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
      * This implementation provides the common algorithm skeleton:
      * 1. Validate preconditions (axes, dataModel, processedData)
      * 2. Create context with cached values
-     * 3. Initialize result object
+     * 3. Initialise result object
      * 4. Populate node data (strategy selection inside)
      * 5. Finalize (trim arrays, post-processing)
      * 6. Assemble and return result
@@ -509,7 +509,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const ctx = this.createNodeDatumContext(xAxis, yAxis);
         if (!ctx) return this.getEmptyResult();
 
-        // Phase 3: INITIALIZE (abstract hook - subclasses must implement)
+        // Phase 3: INITIALISE (abstract hook - subclasses must implement)
         const result = this.initializeResult(ctx);
         if (!this.visible) return result;
 

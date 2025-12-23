@@ -330,7 +330,7 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
         checkTargetValid(testTarget);
 
         // Implement 'mouseenter' and 'mouseleave' events on this chart.
-        // TODO: the testLastMouseMoveBubbleChain property should be correct setup & teared out by test fixtures.
+        // TODO: the testLastMouseMoveBubbleChain property should be correctly set up & torn down by test fixtures.
         const testChart = chartOrProxy as unknown as { testLastMouseMoveBubbleChain: MockEvent['bubbleChain'] };
         const enterChain: MockEvent['bubbleChain'] = [];
         const leaveChain: MockEvent['bubbleChain'] = [];

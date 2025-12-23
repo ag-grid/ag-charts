@@ -2588,7 +2588,7 @@ describe('DataModel', () => {
             // ever seen (not just currently visible ones). The bands are rebuilt on
             // structure changes, but the full domain history is preserved.
             // Current data is Jan 6-Feb 4 (30 items), but domain includes all seen dates.
-            // The actual length depends on banding behavior, but first and last should match.
+            // The actual length depends on banding behaviour, but first and last should match.
             const domainTimes = result.domain.keys[0]
                 .map((d: Date) => d.getTime())
                 .filter((t: number) => Number.isFinite(t));

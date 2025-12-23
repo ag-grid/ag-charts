@@ -399,7 +399,7 @@ export abstract class OhlcSeriesBase<
         const yScale = yAxis.scale;
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const groupOffset = groupScale.convert(String(groupIndex));
-        // CRT-340 Use atleast 1px width to prevent nothing being drawn.
+        // CRT-340 Use at least 1px width to prevent nothing being drawn.
         const effectiveBarWidth = barWidth >= 1 ? barWidth : groupScale.rawBandwidth;
         const applyWidthOffset = BandScale.is(xScale);
 

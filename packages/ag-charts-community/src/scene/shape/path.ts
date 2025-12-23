@@ -125,7 +125,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
     private lastPixelRatio = Number.NaN;
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
         if (renderCtx.devicePixelRatio !== this.lastPixelRatio) {
-            // Some shapes algin the paths to pixels
+            // Some shapes align the paths to pixels
             // In almost every case, when the pixel ratio changes, the chart will be resized and all paths would be invalidated
             // The only time this wouldn't happen is dragging the browser between monitors with different scaling
             // Since this case is rare, it's easier to just assume any path will align to pixels rather than doing this opt-in

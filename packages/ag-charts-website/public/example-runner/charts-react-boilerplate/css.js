@@ -99,7 +99,7 @@ if (typeof window !== 'undefined') {
     };
 
     exports.fetch = function (load) {
-        // dont reload styles loaded in the head
+        // don't reload styles loaded in the head
         var links = findExistingCSS(load.address);
         if (!cssIsReloadable(links)) return '';
         return loadCSS(load.address, links);

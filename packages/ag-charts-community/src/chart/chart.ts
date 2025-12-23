@@ -1213,7 +1213,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (markerFill.has(label.text)) {
                     if (markerFill.get(label.text) !== marker.fill) {
                         Logger.warnOnce(
-                            `legend item '${toPlainText(label.text)}' has multiple fill colors, this may cause unexpected behaviour.`
+                            `legend item '${toPlainText(label.text)}' has multiple fill colours, this may cause unexpected behaviour.`
                         );
                     }
                 } else {
@@ -1693,7 +1693,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private initSeriesDeclarationOrder(series: UnknownSeries[]) {
-        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        // Ensure declaration order is set, this is used for correct z-index behaviour for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
             series[idx].setSeriesIndex(idx);
         }
@@ -1918,7 +1918,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (listener == null) {
                     continue;
                 }
-                // addEventListener will throw TypeError if listener is not a function, preserving validation behavior
+                // addEventListener will throw TypeError if listener is not a function, preserving validation behaviour
                 source.addEventListener(property, listener);
             }
         }

@@ -81,7 +81,7 @@ type NN<T> = NonNullable<T>;
 /**
  * Helper macro for nested NonNullable key accessors.
  *
- * The maximum depth is capped at 8. This is intentional to keep the implementation simple. A dyanmic & recusive
+ * The maximum depth is capped at 8. This is intentional to keep the implementation simple. A dynamic & recursive
  * implementation is possible and would remove this limitation, however the recursive nature would require memory of
  * exponential complexity (which is impractical, and will choke the TypeScript compiler).
  *

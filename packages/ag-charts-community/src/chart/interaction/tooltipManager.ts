@@ -86,7 +86,7 @@ export class TooltipManager {
     }
 
     public removeTooltip(callerId: string, meta?: TooltipMeta, delayed: boolean = false): void {
-        // Case 1: Immediate removal (default behavior - backward compatible)
+        // Case 1: Immediate removal (default behaviour - backward compatible)
         if (delayed && this.removeDelay > 0) {
             // Case 2: Delayed removal
             // Check if we already have a pending removal for this caller

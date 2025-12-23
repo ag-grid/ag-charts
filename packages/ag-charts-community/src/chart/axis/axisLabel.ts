@@ -75,7 +75,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     minSpacing?: number;
 
     /**
-     * The color of the labels.
+     * The colour of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
     @Property
@@ -128,7 +128,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     /**
      * Labels are rendered perpendicular to the axis line by default.
      * Setting this config to `true` makes labels render parallel to the axis line
-     * and center aligns labels' text at the ticks.
+     * and centre aligns labels' text at the ticks.
      */
     @Property
     parallel: boolean = false;

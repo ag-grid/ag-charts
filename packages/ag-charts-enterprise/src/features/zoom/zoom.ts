@@ -206,7 +206,7 @@ export class Zoom extends AbstractModuleInstance {
             this.isZoomValid.bind(this)
         );
 
-        // FIXME(AG-8627 TC10; AG-16414) `minVisibileItem` should have it own zoom:change-request handling
+        // FIXME(AG-8627 TC10; AG-16414) `minVisibleItems` should have its own zoom:change-request handling
         const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
             if (this.minVisibleItems > 0) {
                 const restrictions = event.stateAsDefinedZoom();
@@ -952,7 +952,7 @@ export class Zoom extends AbstractModuleInstance {
     private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
         // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
         // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
-        // breaking thebehaviour.
+        // breaking the behaviour.
         const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
         const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
         this.updateZoom(sourcing, {
@@ -977,7 +977,7 @@ export class Zoom extends AbstractModuleInstance {
         zoom = this.constrainZoom(zoom);
 
         if (!this.isZoomValid(zoom, validOptions)) {
-            // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
+            // Ensure any lingering zoom interaction elements (e.g. selection rect) are cleared
             this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });
             return false;
         }

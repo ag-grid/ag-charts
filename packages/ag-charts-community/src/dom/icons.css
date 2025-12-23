@@ -1,7 +1,7 @@
 /**
 To create an icon uri:
     1. Copy .svg file contents and paste markup into https://www.svgviewer.dev/svg-to-data-uri
-    2. Keep but ignore any `fill` attributes (these are overriden by the styles below)
+    2. Keep but ignore any `fill` attributes (these are overridden by the styles below)
     3. Press the `Optimize` button
     4. Copy base64 data uri
 */

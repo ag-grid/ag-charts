@@ -65,7 +65,7 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
             await waitForChartStability(chart);
 
             expectWarningMessages([
-                `AG Charts - legend item '1' has multiple fill colors, this may cause unexpected behaviour.`,
+                `AG Charts - legend item '1' has multiple fill colours, this may cause unexpected behaviour.`,
             ]);
 
             const a11yButtons = Array.from(document.querySelectorAll('.ag-charts-proxy-legend-toolbar button'));

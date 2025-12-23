@@ -567,7 +567,7 @@ describe('BoxPlotSeries', () => {
                                 maxKey: 's2_max',
 
                                 stroke: 'gold', // not ignored
-                                cornerRadius: 45, // ignored (overriden by: styler, itemStyler for Manager & Human Resources)
+                                cornerRadius: 45, // ignored (overridden by: styler, itemStyler for Manager & Human Resources)
                                 itemStyler,
                                 styler: styler.frozen,
                             },
