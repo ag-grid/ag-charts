@@ -9,7 +9,6 @@ import type { InternalFramework } from '@ag-grid-types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import { getIsDev } from '@utils/env';
 import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
-import { DISABLE_EXAMPLE_RUNNER } from '@constants';
 import { getGeneratedContents, type GeneratedExampleParams } from '@components/example-generator';
 
 interface Props {
@@ -40,7 +39,7 @@ try {
 ---
 
 {
-    !DISABLE_EXAMPLE_RUNNER && (
+    (
         <ExampleRunnerContainer
             exampleHeight={exampleHeight}
             pageName={pageName}
