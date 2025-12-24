@@ -1242,7 +1242,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const label = datum.calloutLabel;
             if (label == null) return BBox.zero.clone();
 
-            const style = this.getLabelStyle(datum, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
             const padding = expandLabelPadding(style);
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
@@ -1341,10 +1341,15 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private getLabelStyle(
         datum: PieDonutNodeDatum,
         label: Label<AgDonutSeriesLabelFormatterParams>,
+        labelPath: string,
         isHighlight = false
     ) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        return getLabelStyles(this, datum, this.properties, label, isHighlight, activeHighlight);
+        return getLabelStyles(this, datum, this.properties, label, isHighlight, activeHighlight, [
+            'series',
+            `${this.declarationOrder}`,
+            labelPath,
+        ]);
     }
 
     private updateCalloutLabelNodes(seriesRect: BBox) {
@@ -1369,7 +1374,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
 
-            const style = this.getLabelStyle(datum, calloutLabel, isDatumHighlighted);
+            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel', isDatumHighlighted);
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
             const labelRadius = outerRadius + calloutLength + calloutLabel.offset;
@@ -1457,7 +1462,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 continue;
             }
 
-            const style = this.getLabelStyle(datum, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
@@ -1533,7 +1538,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
                 let isTextVisible = false;
                 if (datum.sectorLabel && outerRadius !== 0) {
-                    const style = this.getLabelStyle(datum, properties.sectorLabel, isHighlight);
+                    const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isHighlight);
                     const labelRadius =
                         innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 

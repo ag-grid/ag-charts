@@ -845,6 +845,101 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-16492 calloutLabel.itemStyler', () => {
+        type D = { name: string; size: number };
+        type C = undefined;
+        type M = MockDonutCalloutLineItemStyler<D, C>;
+        let itemStyler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        beforeEach(async () => {
+            itemStyler = newFreezableMock<D, C, M>((p) => {
+                if (p.datum.name === 'Abu Dhabi') {
+                    return { border: { enabled: true, stroke: '#6E6E6E', strokeWidth: 1.25 } };
+                }
+                return { color: 'blue' };
+            });
+            const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
+                data: [
+                    { name: 'Abu Dhabi', size: 1 },
+                    { name: 'Amsterdam', size: 1 },
+                    { name: 'Barcelona', size: 1 },
+                    { name: 'Berlin', size: 1 },
+                    { name: 'Brussels', size: 1 },
+                    { name: 'Cairo', size: 1 },
+                    { name: 'Dublin', size: 1 },
+                    { name: 'Hanoi', size: 1 },
+                    { name: 'Kyiv', size: 1 },
+                    { name: 'London', size: 1 },
+                    { name: 'Madrid', size: 1 },
+                    { name: 'New York', size: 1 },
+                    { name: 'Paris', size: 1 },
+                    { name: 'Rome', size: 1 },
+                    { name: 'San Francisco', size: 1 },
+                    { name: 'Tokyo', size: 1 },
+                    { name: 'Zurich', size: 1 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'size',
+                        calloutLabelKey: 'name',
+                        calloutLabel: {
+                            itemStyler: itemStyler.frozen,
+                        },
+                    },
+                ],
+            };
+            chart = await createChart(opts);
+        });
+        test('calls', () => {
+            expect(itemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+        test('image', async () => {
+            await compare();
+        });
+    });
+
+    describe('AG-16492 sectorLabel.itemStyler', () => {
+        type D = { name: string; size: number };
+        type C = undefined;
+        type M = MockDonutCalloutLineItemStyler<D, C>;
+        let itemStyler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        beforeEach(async () => {
+            itemStyler = newFreezableMock<D, C, M>((p) => {
+                if (p.datum.name === 'Abu Dhabi') {
+                    return { border: { enabled: true, stroke: '#6E6E6E', strokeWidth: 1.25 } };
+                }
+                return { color: 'blue' };
+            });
+            const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
+                data: [
+                    { name: 'Abu Dhabi', size: 1 },
+                    { name: 'Amsterdam', size: 1 },
+                    { name: 'Barcelona', size: 1 },
+                    { name: 'Berlin', size: 1 },
+                    { name: 'Brussels', size: 1 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'size',
+                        sectorLabelKey: 'name',
+                        calloutLabelKey: 'name',
+                        sectorLabel: {
+                            itemStyler: itemStyler.frozen,
+                        },
+                    },
+                ],
+            };
+            chart = await createChart(opts);
+        });
+        test('calls', () => {
+            expect(itemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+        test('image', async () => {
+            await compare();
+        });
+    });
+
     describe('cutout drawing mode', () => {
         it('should render donut series with cutout highlight drawing mode', async () => {
             const cutoutOptions: AgChartOptions = {
