@@ -63,7 +63,9 @@ const showCustomerLogos = section.showCustomerLogos !== false;
                                 `plausible-event-name=${pageContent.analyticsPrefix}-whats-new`,
                             ]}
                         >
-                            <span class={styles.heroSectionVersion}>{productName} v{latestVersion.version}</span>
+                            <span class={styles.heroSectionVersion}>
+                                {productName} v{latestVersion.version}
+                            </span>
                             {latestVersion.landingPageHighlight && (
                                 <span class={styles.heroSectionFeatureHighlight}>
                                     <span>{latestVersion.landingPageHighlight}</span>

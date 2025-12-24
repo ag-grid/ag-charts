@@ -4,7 +4,10 @@
  *
  * Displays an interactive financial charts demo with annotations toolbar.
  */
-import type { FinancialChartsSection as FinancialChartsSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type {
+    FinancialChartsSection as FinancialChartsSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
@@ -18,7 +21,9 @@ interface Props {
 
 const { section, pageContent } = Astro.props;
 const height = section.height ?? 700;
-const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseUrl(`./${pageContent.docsPath}/financial-charts/`);
+const ctaUrl = section.cta?.url
+    ? urlWithBaseUrl(section.cta.url)
+    : urlWithBaseUrl(`./${pageContent.docsPath}/financial-charts/`);
 ---
 
 <LandingPageSection
@@ -32,7 +37,11 @@ const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseU
     ctaId={`${pageContent.analyticsPrefix}-financial-charts-cta`}
 >
     <div class={styles.financialChartsDemo}>
-        <ExampleRunnerContainer pageName="financial-charts" exampleName="financial-charts-showcase" exampleHeight={height}>
+        <ExampleRunnerContainer
+            pageName="financial-charts"
+            exampleName="financial-charts-showcase"
+            exampleHeight={height}
+        >
             <DocsExampleRunner
                 client:only="react"
                 title="Financial Charts Showcase"

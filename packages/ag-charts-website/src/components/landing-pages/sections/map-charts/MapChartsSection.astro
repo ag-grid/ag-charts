@@ -4,7 +4,10 @@
  *
  * Displays a grid of map chart examples in cards.
  */
-import type { MapChartsSection as MapChartsSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type {
+    MapChartsSection as MapChartsSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
@@ -32,24 +35,30 @@ const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseU
     ctaId={`${pageContent.analyticsPrefix}-map-charts-cta`}
 >
     <div class={styles.mapChartsGrid}>
-        {section.cards.map((card) => (
-            <div class={styles.mapChartsCard}>
-                <h4>{card.title}</h4>
-                <p>{card.description}</p>
-                <ExampleRunnerContainer pageName={card.pageName} exampleName={card.exampleName} exampleHeight={cardHeight}>
-                    <DocsExampleRunner
-                        client:only="react"
-                        title={card.title}
-                        name={card.exampleName}
-                        exampleType="generated"
-                        options={{ exampleHeight: cardHeight }}
+        {
+            section.cards.map((card) => (
+                <div class={styles.mapChartsCard}>
+                    <h4>{card.title}</h4>
+                    <p>{card.description}</p>
+                    <ExampleRunnerContainer
                         pageName={card.pageName}
-                        internalFrameworkOverride="vanilla"
-                        hideCode
-                        hideExternalLinks
-                    />
-                </ExampleRunnerContainer>
-            </div>
-        ))}
+                        exampleName={card.exampleName}
+                        exampleHeight={cardHeight}
+                    >
+                        <DocsExampleRunner
+                            client:only="react"
+                            title={card.title}
+                            name={card.exampleName}
+                            exampleType="generated"
+                            options={{ exampleHeight: cardHeight }}
+                            pageName={card.pageName}
+                            internalFrameworkOverride="vanilla"
+                            hideCode
+                            hideExternalLinks
+                        />
+                    </ExampleRunnerContainer>
+                </div>
+            ))
+        }
     </div>
 </LandingPageSection>

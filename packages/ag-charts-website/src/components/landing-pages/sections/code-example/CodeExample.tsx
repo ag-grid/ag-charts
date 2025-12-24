@@ -1,6 +1,7 @@
-import { useState } from 'react';
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { useState } from 'react';
+
 import styles from './CodeExample.module.scss';
 
 interface Props {
@@ -32,11 +33,7 @@ export const CodeExample = ({ code, language = 'ts', fileName = 'main.tsx' }: Pr
                     <span className={styles.trafficLightGreen} />
                 </div>
                 <span className={styles.fileName}>{fileName}</span>
-                <button
-                    onClick={handleCopy}
-                    className={styles.copyButton}
-                    aria-label={copied ? 'Copied' : 'Copy code'}
-                >
+                <button onClick={handleCopy} className={styles.copyButton} aria-label={copied ? 'Copied' : 'Copy code'}>
                     {copied ? (
                         <>
                             <Icon name="check" className={styles.copyIcon} />

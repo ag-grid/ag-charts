@@ -75,7 +75,11 @@ export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framewo
                         {Math.abs(index - activeIndex) <= 1 ||
                         (activeIndex === 0 && index === examples.length - 1) ||
                         (activeIndex === examples.length - 1 && index === 0) ? (
-                            <iframe src={getExampleUrl(example)} title={example.title} className={`${styles.iframe} exampleRunner`} />
+                            <iframe
+                                src={getExampleUrl(example)}
+                                title={example.title}
+                                className={`${styles.iframe} exampleRunner`}
+                            />
                         ) : null}
                     </div>
                 ))}

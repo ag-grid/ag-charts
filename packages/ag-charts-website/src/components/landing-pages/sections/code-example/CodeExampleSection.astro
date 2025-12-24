@@ -8,7 +8,10 @@
  * - Copy to clipboard button
  * - Syntax-highlighted code with line numbers
  */
-import type { CodeExampleSection as CodeExampleSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type {
+    CodeExampleSection as CodeExampleSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { CodeExample } from './CodeExample';
 
@@ -28,10 +31,5 @@ const { section, pageContent } = Astro.props;
     subHeading={section.subHeading}
     showBackgroundGradient={section.showBackgroundGradient}
 >
-    <CodeExample
-        client:visible
-        code={section.code}
-        language={section.language}
-        fileName={section.fileName}
-    />
+    <CodeExample client:visible code={section.code} language={section.language} fileName={section.fileName} />
 </LandingPageSection>

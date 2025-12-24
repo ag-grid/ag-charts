@@ -8,7 +8,10 @@
  * - Title and description
  * - Hover animations
  */
-import type { ChartTypesShowcaseSection as ChartTypesShowcaseSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type {
+    ChartTypesShowcaseSection as ChartTypesShowcaseSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
@@ -38,53 +41,58 @@ const { cta, chartHeight = 150 } = section;
     ctaId={`${pageContent.analyticsPrefix}-chart-types-showcase-cta`}
 >
     <div class={styles.grid}>
-        {section.items.map((item, index) => {
-            const hasIcon = !!item.icon;
-            const isDocsExample = !!item.pageName && !!item.exampleName;
-            const isGalleryExample = !item.pageName && !!item.exampleName;
-            const iframeUrl = isGalleryExample ? getExampleRunnerExampleUrl({ exampleName: item.exampleName! }) : null;
+        {
+            section.items.map((item, index) => {
+                const hasIcon = !!item.icon;
+                const isDocsExample = !!item.pageName && !!item.exampleName;
+                const isGalleryExample = !item.pageName && !!item.exampleName;
+                const iframeUrl = isGalleryExample
+                    ? getExampleRunnerExampleUrl({ exampleName: item.exampleName! })
+                    : null;
 
-            return (
-                <div
-                    class={styles.card}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                    <div
-                        class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
-                        style={{ height: `${chartHeight}px` }}
-                    >
-                        {hasIcon ? (
-                            <div class={styles.iconContainer}>
-                                <Icon name={item.icon!} />
-                            </div>
-                        ) : isDocsExample ? (
-                            <ExampleRunnerContainer pageName={item.pageName!} exampleName={item.exampleName!} exampleHeight={chartHeight}>
-                                <DocsExampleRunner
-                                    client:visible
-                                    title={item.title}
-                                    name={item.exampleName!}
-                                    exampleType="generated"
-                                    options={{ exampleHeight: chartHeight }}
+                return (
+                    <div class={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
+                        <div
+                            class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
+                            style={{ height: `${chartHeight}px` }}
+                        >
+                            {hasIcon ? (
+                                <div class={styles.iconContainer}>
+                                    <Icon name={item.icon!} />
+                                </div>
+                            ) : isDocsExample ? (
+                                <ExampleRunnerContainer
                                     pageName={item.pageName!}
-                                    internalFrameworkOverride="vanilla"
-                                    hideCode
-                                    hideExternalLinks
+                                    exampleName={item.exampleName!}
+                                    exampleHeight={chartHeight}
+                                >
+                                    <DocsExampleRunner
+                                        client:visible
+                                        title={item.title}
+                                        name={item.exampleName!}
+                                        exampleType="generated"
+                                        options={{ exampleHeight: chartHeight }}
+                                        pageName={item.pageName!}
+                                        internalFrameworkOverride="vanilla"
+                                        hideCode
+                                        hideExternalLinks
+                                    />
+                                </ExampleRunnerContainer>
+                            ) : (
+                                <iframe
+                                    title={`${item.title} Preview`}
+                                    src={iframeUrl}
+                                    class={`${styles.iframe} exampleRunner`}
                                 />
-                            </ExampleRunnerContainer>
-                        ) : (
-                            <iframe
-                                title={`${item.title} Preview`}
-                                src={iframeUrl}
-                                class={`${styles.iframe} exampleRunner`}
-                            />
-                        )}
+                            )}
+                        </div>
+                        <div class={styles.cardContent}>
+                            <h3 class={styles.title}>{item.title}</h3>
+                            <p class={styles.description}>{item.description}</p>
+                        </div>
                     </div>
-                    <div class={styles.cardContent}>
-                        <h3 class={styles.title}>{item.title}</h3>
-                        <p class={styles.description}>{item.description}</p>
-                    </div>
-                </div>
-            );
-        })}
+                );
+            })
+        }
     </div>
 </LandingPageSection>

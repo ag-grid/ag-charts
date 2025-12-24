@@ -4,7 +4,10 @@
  *
  * Displays recent version releases with highlights.
  */
-import type { WhatsNewSection as WhatsNewSectionType, LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type {
+    WhatsNewSection as WhatsNewSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
@@ -43,22 +46,24 @@ const filteredVersions = versionsData
     ctaId={`${pageContent.analyticsPrefix}-whats-new-cta`}
 >
     <div class={styles.whatsNewVersions}>
-        {filteredVersions.map((versionInfo, index) => {
-            if (versionInfo.highlights) {
-                const { major, minor } = parseVersion(versionInfo.version);
-                const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
-                return (
-                    <Version
-                        client:load
-                        isLatest={index === 0}
-                        blogUrl={blogUrl}
-                        version={versionInfo.version}
-                        date={versionInfo.date}
-                        highlights={versionInfo.highlights}
-                        notesPath={versionInfo.notesPath}
-                    />
-                );
-            }
-        })}
+        {
+            filteredVersions.map((versionInfo, index) => {
+                if (versionInfo.highlights) {
+                    const { major, minor } = parseVersion(versionInfo.version);
+                    const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                    return (
+                        <Version
+                            client:load
+                            isLatest={index === 0}
+                            blogUrl={blogUrl}
+                            version={versionInfo.version}
+                            date={versionInfo.date}
+                            highlights={versionInfo.highlights}
+                            notesPath={versionInfo.notesPath}
+                        />
+                    );
+                }
+            })
+        }
     </div>
 </LandingPageSection>

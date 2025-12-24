@@ -292,7 +292,9 @@
     margin-left: $spacing-size-2;
     border-radius: var(--radius-md);
     border: 1px solid color-mix(in srgb, var(--color-link), var(--color-bg-primary) 80%);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 
     svg {
         transition: transform 0.2s ease;

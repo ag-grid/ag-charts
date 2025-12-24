@@ -425,7 +425,4 @@ export interface LandingPageContent {
 // Helper type to extract section by type
 // ============================================================================
 
-export type ExtractSection<T extends LandingPageSectionType['type']> = Extract<
-    LandingPageSectionType,
-    { type: T }
->;
+export type ExtractSection<T extends LandingPageSectionType['type']> = Extract<LandingPageSectionType, { type: T }>;
