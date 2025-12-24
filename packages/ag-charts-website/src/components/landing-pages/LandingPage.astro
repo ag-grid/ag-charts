@@ -36,7 +36,9 @@ import type {
 } from '@ag-website-shared/components/landing-pages/types';
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/landing-page.module.scss';
+import frameworkStyles from '@pages-styles/framework-landing-page.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { getHeadingWithLogo } from '@utils/framework-landing-page-utils';
 
 // Shared section components from @ag-website-shared
 import HeroSection from '@ag-website-shared/components/landing-pages/sections/HeroSection.astro';
@@ -76,6 +78,13 @@ interface Props {
 
 const { content, versions } = Astro.props;
 const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?.[0];
+
+// For framework pages, add logo to headings (only for specific framework landing pages)
+// Check against analyticsPrefix since it matches the page slug (e.g., 'angular-charts')
+const frameworkLandingPageSlugs = ['react-charts', 'javascript-charts', 'vue-charts', 'angular-charts'];
+const isFrameworkLandingPage = content.framework && frameworkLandingPageSlugs.includes(content.analyticsPrefix);
+const frameworkKey = isFrameworkLandingPage ? (content.framework || '') : '';
+const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
 <Layout title={content.meta.title} description={content.meta.description} showDocsNav={false} showSearchBar={true}>
@@ -84,15 +93,22 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
             switch (section.type) {
                 case 'hero':
                     // Hero section using shared component with auto-scrolling gallery
+                    // Add logo to heading for framework landing pages only
                     const heroSec = section as HeroSectionType;
+                    const heroSectionWithLogo = isFrameworkLandingPage && frameworkKey
+                        ? {
+                              ...heroSec,
+                              headingHtml: getHeadingWithLogo(frameworkKey, heroSec.heading, urlWithBaseUrl),
+                          }
+                        : heroSec;
 
                     return (
                         <HeroSection
-                            section={heroSec}
+                            section={heroSectionWithLogo}
                             pageContent={content}
                             latestVersion={latestVersion}
                             urlWithBaseUrl={urlWithBaseUrl}
-                            styles={styles}
+                            styles={pageStyles}
                         >
                             {/* Hero demo slot - auto-scrolling gallery carousel */}
                             {heroSec.galleryExamples && heroSec.galleryExamples.length > 0 && (
@@ -115,8 +131,19 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
                     );
 
                 case 'features':
+                    // Add logo to heading for framework landing pages only
+                    const featuresSectionWithLogo = isFrameworkLandingPage && frameworkKey
+                        ? {
+                              ...section,
+                              headingHtml: getHeadingWithLogo(
+                                  frameworkKey,
+                                  section.heading || 'Build, Customise and Expand your Charts',
+                                  urlWithBaseUrl
+                              ),
+                          }
+                        : section;
                     return (
-                        <FeaturesSection section={section} pageContent={content}>
+                        <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
                             <FeaturesWithExamples features={section.items} framework={content.framework} />
                         </FeaturesSection>
                     );
@@ -134,7 +161,7 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
                             section={section}
                             pageContent={content}
                             urlWithBaseUrl={urlWithBaseUrl}
-                            styles={styles}
+                            styles={pageStyles}
                         />
                     );
 
@@ -143,7 +170,7 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
 
                 case 'contact':
                     return (
-                        <ContactSection section={section} pageContent={content} styles={styles}>
+                        <ContactSection section={section} pageContent={content} styles={pageStyles}>
                             <CustomerLogos slot="contact-logos" client:load />
                         </ContactSection>
                     );

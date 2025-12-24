@@ -54,6 +54,7 @@
 }
 
 .copyButton {
+    --icon-color: var(--color-fg-primary);
     display: flex;
     align-items: center;
     gap: $spacing-size-2;

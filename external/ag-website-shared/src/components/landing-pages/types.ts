@@ -25,6 +25,11 @@ export interface HeroSection {
     variant?: 'default' | 'enterprise';
     tag: string;
     heading: string;
+    /**
+     * HTML heading with formatting. If provided, takes precedence over heading.
+     * Use for framework pages that need framework logos in headings.
+     */
+    headingHtml?: string;
     /** Plain text subheading */
     subHeading: string;
     /**
