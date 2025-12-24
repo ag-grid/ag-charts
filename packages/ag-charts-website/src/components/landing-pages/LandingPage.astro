@@ -83,7 +83,7 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
 // Check against analyticsPrefix since it matches the page slug (e.g., 'angular-charts')
 const frameworkLandingPageSlugs = ['react-charts', 'javascript-charts', 'vue-charts', 'angular-charts'];
 const isFrameworkLandingPage = content.framework && frameworkLandingPageSlugs.includes(content.analyticsPrefix);
-const frameworkKey = isFrameworkLandingPage ? (content.framework || '') : '';
+const frameworkKey = isFrameworkLandingPage ? content.framework || '' : '';
 const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
@@ -95,12 +95,13 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                     // Hero section using shared component with auto-scrolling gallery
                     // Add logo to heading for framework landing pages only
                     const heroSec = section as HeroSectionType;
-                    const heroSectionWithLogo = isFrameworkLandingPage && frameworkKey
-                        ? {
-                              ...heroSec,
-                              headingHtml: getHeadingWithLogo(frameworkKey, heroSec.heading, urlWithBaseUrl),
-                          }
-                        : heroSec;
+                    const heroSectionWithLogo =
+                        isFrameworkLandingPage && frameworkKey
+                            ? {
+                                  ...heroSec,
+                                  headingHtml: getHeadingWithLogo(frameworkKey, heroSec.heading, urlWithBaseUrl),
+                              }
+                            : heroSec;
 
                     return (
                         <HeroSection
@@ -132,16 +133,17 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 
                 case 'features':
                     // Add logo to heading for framework landing pages only
-                    const featuresSectionWithLogo = isFrameworkLandingPage && frameworkKey
-                        ? {
-                              ...section,
-                              headingHtml: getHeadingWithLogo(
-                                  frameworkKey,
-                                  section.heading || 'Build, Customise and Expand your Charts',
-                                  urlWithBaseUrl
-                              ),
-                          }
-                        : section;
+                    const featuresSectionWithLogo =
+                        isFrameworkLandingPage && frameworkKey
+                            ? {
+                                  ...section,
+                                  headingHtml: getHeadingWithLogo(
+                                      frameworkKey,
+                                      section.heading || 'Build, Customise and Expand your Charts',
+                                      urlWithBaseUrl
+                                  ),
+                              }
+                            : section;
                     return (
                         <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
                             <FeaturesWithExamples features={section.items} framework={content.framework} />

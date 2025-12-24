@@ -17,31 +17,31 @@ export const frameworkLogoMap: Record<string, { logo: string; name: string }> = 
  */
 export function normalizeFrameworkKey(frameworkKey: string | undefined): string {
     if (!frameworkKey) return '';
-    
+
     // Check if the key exists directly in the map
     if (frameworkLogoMap[frameworkKey]) {
         return frameworkKey;
     }
-    
+
     // Map framework variants to base framework keys
     const variantMapping: Record<string, string> = {
-        'vue3': 'vue',
-        'reactfunctionalt': 'react',
-        'reactFunctionalTs': 'react',
-        'typescript': 'javascript',
-        'vanilla': 'javascript',
+        vue3: 'vue',
+        reactfunctionalt: 'react',
+        reactFunctionalTs: 'react',
+        typescript: 'javascript',
+        vanilla: 'javascript',
     };
-    
+
     const normalized = frameworkKey.toLowerCase();
     if (variantMapping[frameworkKey] || variantMapping[normalized]) {
         return variantMapping[frameworkKey] || variantMapping[normalized] || '';
     }
-    
+
     // Check lowercase version as fallback
     if (frameworkLogoMap[normalized]) {
         return normalized;
     }
-    
+
     return frameworkKey;
 }
 
@@ -61,11 +61,10 @@ export function getHeadingWithLogo(
 
     // Replace framework name with logo + text, adding <br> before it
     const logoHtml = `<span class="frameworkLogoGroup"><img src="${logoUrl}" alt="${frameworkName}" style="display: inline-block; vertical-align: middle; height: 56px; width: auto; margin: 0 0.2em;"/> ${frameworkName}</span>`;
-    
+
     // Add <br> before the framework name to put logo on new line
     const frameworkNameRegex = new RegExp(`\\s+${frameworkName}`, 'i');
-    let heading = headingTemplate.replace(frameworkNameRegex, `<br>${logoHtml}`);
+    const heading = headingTemplate.replace(frameworkNameRegex, `<br>${logoHtml}`);
 
     return heading;
 }
-
