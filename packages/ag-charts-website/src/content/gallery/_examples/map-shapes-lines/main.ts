@@ -58,6 +58,11 @@ const options: AgTopologyChartOptions = {
                 strokeWidth: 4,
             },
         },
+        listeners: {
+            legendItemDoubleClick: (event) => {
+                event.preventDefault();
+            },
+        },
     },
     series: [
         {
@@ -71,6 +76,7 @@ const options: AgTopologyChartOptions = {
             stroke: '#6687990C',
             strokeWidth: 1,
             showInLegend: false,
+            highlight: { enabled: false },
             label: {
                 minimumFontSize: 8,
                 color: '#66879933',
@@ -90,6 +96,7 @@ const options: AgTopologyChartOptions = {
             stroke: '#6687990C',
             strokeWidth: 1,
             showInLegend: false,
+            highlight: { enabled: false },
             label: {
                 enabled: true,
                 minimumFontSize: 8,
