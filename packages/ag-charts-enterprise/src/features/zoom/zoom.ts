@@ -183,7 +183,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly isState = (state: _ModuleSupport.InteractionState) => this.ctx.interactionManager.isState(state);
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
-    private wheelSequencer = new ZoomWheelSequencer();
+    private readonly wheelSequencer = new ZoomWheelSequencer();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
