@@ -117,6 +117,13 @@ const GROUPED_CATEGORY_DATA = [
     },
 ];
 
+const ROTATED_CATEGORY_DATA = [
+    { category: 'International Freight', value: 12 },
+    { category: 'Long Distance Transport', value: 9 },
+    { category: 'Domestic Distribution', value: 6 },
+    { category: 'Customs Clearance', value: 4 },
+];
+
 type OptionsFactory = () => AgCartesianChartOptions;
 
 type Scenario = {
@@ -822,5 +829,56 @@ describe('CartesianAxis crossAt', () => {
 
             await renderAndSnapshot(() => options, 'cartesian-axis-cross-at-10-example');
         });
+    });
+});
+
+describe('CartesianAxis label wrapping', () => {
+    setupMockConsole();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const ctx = setupMockCanvas();
+
+    const compare = async (snapshotId: string) => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: snapshotId,
+        });
+    };
+
+    it('should avoid premature truncation for rotated category labels', async () => {
+        const options: AgCartesianChartOptions = {
+            data: ROTATED_CATEGORY_DATA,
+            axes: {
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    label: {
+                        rotation: 90,
+                        truncate: true,
+                        wrapping: 'never',
+                    },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            seriesArea: {
+                padding: { right: 600 },
+            },
+        };
+
+        prepareTestOptions(options);
+        chart = AgCharts.create(options);
+        await compare('cartesian-axis-rotated-category-label-wrap');
     });
 });

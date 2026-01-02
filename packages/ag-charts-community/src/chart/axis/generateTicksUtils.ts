@@ -12,6 +12,7 @@ import {
     createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
+    getMaxInnerRectSize,
     intervalCeil,
     intervalExtent,
     intervalFloor,
@@ -204,10 +205,20 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             timeInterval,
             tickFormatter
         );
+
+        let maxWidth = isVertical ? sizeLimit : maxBandwidth;
+        let maxHeight = isVertical ? maxBandwidth : sizeLimit;
+
+        if (label.rotation) {
+            const innerRect = getMaxInnerRectSize(label.rotation, maxWidth, maxHeight);
+            maxWidth = innerRect.width;
+            maxHeight = innerRect.height;
+        }
+
         const wrapOptions: WrapOptions = {
             font: label,
-            maxWidth: isVertical ? sizeLimit : maxBandwidth,
-            maxHeight: isVertical ? maxBandwidth : sizeLimit,
+            maxWidth,
+            maxHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
             textWrap: label.wrapping,
         };
