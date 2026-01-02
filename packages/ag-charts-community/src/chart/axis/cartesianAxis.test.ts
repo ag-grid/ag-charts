@@ -474,7 +474,7 @@ const invalidValueScenarios: Scenario[] = [
     },
 ];
 
-describe('CartesianAxis crossAt', () => {
+describe('CartesianAxis', () => {
     setupMockConsole();
     const compare = async (snapshotId: string) => {
         await waitForChartStability(chart);
@@ -505,380 +505,359 @@ describe('CartesianAxis crossAt', () => {
         await compare(snapshotId);
     };
 
-    describe('valid values', () => {
-        it.each(validScenarios)('%s', async ({ name, optionsFactory }) => {
-            await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+    describe('crossAt', () => {
+        describe('valid values', () => {
+            it.each(validScenarios)('%s', async ({ name, optionsFactory }) => {
+                await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+            });
         });
-    });
 
-    describe('out-of-domain values', () => {
-        it.each(outOfDomainScenarios)('%s', async ({ name, optionsFactory }) => {
-            await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        describe('out-of-domain values', () => {
+            it.each(outOfDomainScenarios)('%s', async ({ name, optionsFactory }) => {
+                await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+            });
         });
-    });
 
-    describe('invalid values', () => {
-        it.each(invalidValueScenarios)('%s', async ({ name, optionsFactory }) => {
-            await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        describe('invalid values', () => {
+            it.each(invalidValueScenarios)('%s', async ({ name, optionsFactory }) => {
+                await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+            });
         });
-    });
 
-    describe('sticky property', () => {
-        const stickyScenarios: Scenario[] = [
-            {
-                name: 'cross-at-outside-number-domain-sticky-true',
-                optionsFactory: () => ({
-                    data: NUMERIC_DATA,
-                    theme: THEME,
+        describe('sticky property', () => {
+            const stickyScenarios: Scenario[] = [
+                {
+                    name: 'cross-at-outside-number-domain-sticky-true',
+                    optionsFactory: () => ({
+                        data: NUMERIC_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: true } },
+                            y: { type: 'number', position: 'left' },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'x',
+                                yKey: 'y',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-number-domain-sticky-false',
+                    optionsFactory: () => ({
+                        data: NUMERIC_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: false } },
+                            y: { type: 'number', position: 'left' },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'x',
+                                yKey: 'y',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-category-domain-sticky-true',
+                    optionsFactory: () => ({
+                        data: CATEGORY_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'category', position: 'bottom' },
+                            y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: true } },
+                        },
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'category',
+                                yKey: 'value',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-category-domain-sticky-false',
+                    optionsFactory: () => ({
+                        data: CATEGORY_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'category', position: 'bottom' },
+                            y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: false } },
+                        },
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'category',
+                                yKey: 'value',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-log-domain-sticky-true',
+                    optionsFactory: () => ({
+                        theme: THEME,
+                        data: LOG_DATA,
+                        axes: {
+                            x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: true } },
+                            y: { type: 'log', position: 'left' },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'x2',
+                                yKey: 'y2',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-log-domain-sticky-false',
+                    optionsFactory: () => ({
+                        theme: THEME,
+                        data: LOG_DATA,
+                        axes: {
+                            x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: false } },
+                            y: { type: 'log', position: 'left' },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'x2',
+                                yKey: 'y2',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-time-domain-sticky-true',
+                    optionsFactory: () => ({
+                        data: TIME_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'unit-time', position: 'bottom' },
+                            y: {
+                                type: 'number',
+                                position: 'left',
+                                crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: true },
+                            },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'date',
+                                yKey: 'value',
+                            },
+                        ],
+                    }),
+                },
+                {
+                    name: 'cross-at-outside-time-domain-sticky-false',
+                    optionsFactory: () => ({
+                        data: TIME_DATA,
+                        theme: THEME,
+                        axes: {
+                            x: { type: 'unit-time', position: 'bottom' },
+                            y: {
+                                type: 'number',
+                                position: 'left',
+                                crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: false },
+                            },
+                        },
+                        series: [
+                            {
+                                type: 'line',
+                                xKey: 'date',
+                                yKey: 'value',
+                            },
+                        ],
+                    }),
+                },
+            ];
+
+            it.each(stickyScenarios)('%s', async ({ name, optionsFactory }) => {
+                await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+            });
+        });
+
+        describe('jira examples', () => {
+            const dataNeg = [];
+            for (let x = -6; x <= -0.1; x += 0.05) dataNeg.push({ x, y: 1 / x });
+
+            const dataPos = [];
+            for (let x = 0.1; x <= 6; x += 0.05) dataPos.push({ x, y: 1 / x });
+
+            const data = [...dataNeg, { x: 0, y: null }, ...dataPos];
+
+            it('should render a line chart with both axes crossing at 0', async () => {
+                const options: AgCartesianChartOptions = {
+                    title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
+                    data,
                     axes: {
-                        x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: true } },
-                        y: { type: 'number', position: 'left' },
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            min: -6,
+                            max: 6,
+                            line: {
+                                stroke: 'black',
+                            },
+                            tick: {
+                                size: 12,
+                                stroke: 'black',
+                            },
+                            crossAt: { value: 0 },
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                            min: -6,
+                            max: 6,
+                            line: {
+                                stroke: 'black',
+                            },
+                            crossAt: { value: 0 },
+                        },
+                    },
+                    legend: {
+                        enabled: true,
                     },
                     series: [
                         {
                             type: 'line',
                             xKey: 'x',
                             yKey: 'y',
+                            yName: 'Function plot',
+                            strokeWidth: 3,
+                            marker: { size: 0 },
                         },
                     ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-number-domain-sticky-false',
-                optionsFactory: () => ({
-                    data: NUMERIC_DATA,
-                    theme: THEME,
+                };
+
+                await renderAndSnapshot(() => options, 'cartesian-axes-cross-at-0-example');
+            });
+
+            it('should render a line chart with one axis crossing at 0', async () => {
+                const options: AgCartesianChartOptions = {
+                    title: { text: 'x Axis crossing at 0', fontWeight: 'bold' },
+                    data,
                     axes: {
-                        x: { type: 'number', position: 'bottom', crossAt: { value: 15, sticky: false } },
-                        y: { type: 'number', position: 'left' },
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            min: -6,
+                            max: 6,
+                            line: {
+                                stroke: 'black',
+                            },
+                            tick: {
+                                size: 12,
+                                stroke: 'black',
+                            },
+                            crossAt: { value: 0 },
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                            min: -6,
+                            max: 6,
+                            line: {
+                                stroke: 'black',
+                            },
+                        },
                     },
                     series: [
                         {
                             type: 'line',
                             xKey: 'x',
                             yKey: 'y',
+                            yName: 'Function plot',
+                            strokeWidth: 3,
+                            marker: { size: 0 },
                         },
                     ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-category-domain-sticky-true',
-                optionsFactory: () => ({
-                    data: CATEGORY_DATA,
-                    theme: THEME,
+                    legend: {
+                        enabled: true,
+                    },
+                };
+
+                await renderAndSnapshot(() => options, 'cartesian-axis-cross-at-0-example');
+            });
+
+            it('should render a bar chart with x axis crossing at 10 and all axis labels and ticks rendered under bars', async () => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { x: 0, y: 15 },
+                        { x: 1, y: -3 },
+                        { x: 2, y: 3 },
+                        { x: 3, y: -15 },
+                        { x: 4, y: 2 },
+                    ],
                     axes: {
-                        x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: true } },
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            crossAt: { value: 10 },
+                            line: {
+                                stroke: 'black',
+                            },
+                            tick: {
+                                size: 12,
+                                stroke: 'black',
+                            },
+                            interval: {
+                                values: [0, 1, 2, 3, 4],
+                            },
+                        },
+                        y: { type: 'number', position: 'left', min: -20, max: 20 },
                     },
                     series: [
                         {
                             type: 'bar',
-                            xKey: 'category',
-                            yKey: 'value',
+                            direction: 'vertical',
+                            xKey: 'x',
+                            yKey: 'y',
+                            cornerRadius: 14,
+                            fill: '#22b8ff',
                         },
                     ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-category-domain-sticky-false',
-                optionsFactory: () => ({
-                    data: CATEGORY_DATA,
-                    theme: THEME,
-                    axes: {
-                        x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left', crossAt: { value: 'Z', sticky: false } },
-                    },
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'category',
-                            yKey: 'value',
-                        },
-                    ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-log-domain-sticky-true',
-                optionsFactory: () => ({
-                    theme: THEME,
-                    data: LOG_DATA,
-                    axes: {
-                        x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: true } },
-                        y: { type: 'log', position: 'left' },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'x2',
-                            yKey: 'y2',
-                        },
-                    ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-log-domain-sticky-false',
-                optionsFactory: () => ({
-                    theme: THEME,
-                    data: LOG_DATA,
-                    axes: {
-                        x: { type: 'number', position: 'bottom', crossAt: { value: 200000, sticky: false } },
-                        y: { type: 'log', position: 'left' },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'x2',
-                            yKey: 'y2',
-                        },
-                    ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-time-domain-sticky-true',
-                optionsFactory: () => ({
-                    data: TIME_DATA,
-                    theme: THEME,
-                    axes: {
-                        x: { type: 'unit-time', position: 'bottom' },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                            crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: true },
-                        },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'date',
-                            yKey: 'value',
-                        },
-                    ],
-                }),
-            },
-            {
-                name: 'cross-at-outside-time-domain-sticky-false',
-                optionsFactory: () => ({
-                    data: TIME_DATA,
-                    theme: THEME,
-                    axes: {
-                        x: { type: 'unit-time', position: 'bottom' },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                            crossAt: { value: new Date('2025-01-01T00:00:00Z'), sticky: false },
-                        },
-                    },
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'date',
-                            yKey: 'value',
-                        },
-                    ],
-                }),
-            },
-        ];
+                };
 
-        it.each(stickyScenarios)('%s', async ({ name, optionsFactory }) => {
-            await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+                await renderAndSnapshot(() => options, 'cartesian-axis-cross-at-10-example');
+            });
         });
     });
 
-    describe('jira examples', () => {
-        const dataNeg = [];
-        for (let x = -6; x <= -0.1; x += 0.05) dataNeg.push({ x, y: 1 / x });
-
-        const dataPos = [];
-        for (let x = 0.1; x <= 6; x += 0.05) dataPos.push({ x, y: 1 / x });
-
-        const data = [...dataNeg, { x: 0, y: null }, ...dataPos];
-
-        it('should render a line chart with both axes crossing at 0', async () => {
+    describe('label wrapping', () => {
+        it('should avoid premature truncation for rotated category labels', async () => {
             const options: AgCartesianChartOptions = {
-                title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
-                data,
+                data: ROTATED_CATEGORY_DATA,
                 axes: {
                     x: {
-                        type: 'number',
+                        type: 'category',
                         position: 'bottom',
-                        min: -6,
-                        max: 6,
-                        line: {
-                            stroke: 'black',
+                        label: {
+                            rotation: 90,
+                            truncate: true,
+                            wrapping: 'never',
                         },
-                        tick: {
-                            size: 12,
-                            stroke: 'black',
-                        },
-                        crossAt: { value: 0 },
                     },
-                    y: {
-                        type: 'number',
-                        position: 'left',
-                        min: -6,
-                        max: 6,
-                        line: {
-                            stroke: 'black',
-                        },
-                        crossAt: { value: 0 },
-                    },
+                    y: { type: 'number', position: 'left' },
                 },
-                legend: {
-                    enabled: true,
-                },
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'y',
-                        yName: 'Function plot',
-                        strokeWidth: 3,
-                        marker: { size: 0 },
-                    },
-                ],
-            };
-
-            await renderAndSnapshot(() => options, 'cartesian-axes-cross-at-0-example');
-        });
-
-        it('should render a line chart with one axis crossing at 0', async () => {
-            const options: AgCartesianChartOptions = {
-                title: { text: 'x Axis crossing at 0', fontWeight: 'bold' },
-                data,
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        min: -6,
-                        max: 6,
-                        line: {
-                            stroke: 'black',
-                        },
-                        tick: {
-                            size: 12,
-                            stroke: 'black',
-                        },
-                        crossAt: { value: 0 },
-                    },
-                    y: {
-                        type: 'number',
-                        position: 'left',
-                        min: -6,
-                        max: 6,
-                        line: {
-                            stroke: 'black',
-                        },
-                    },
-                },
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'y',
-                        yName: 'Function plot',
-                        strokeWidth: 3,
-                        marker: { size: 0 },
-                    },
-                ],
-                legend: {
-                    enabled: true,
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                seriesArea: {
+                    padding: { right: 600 },
                 },
             };
 
-            await renderAndSnapshot(() => options, 'cartesian-axis-cross-at-0-example');
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-rotated-category-label-wrap');
         });
-
-        it('should render a bar chart with x axis crossing at 10 and all axis labels and ticks rendered under bars', async () => {
-            const options: AgCartesianChartOptions = {
-                data: [
-                    { x: 0, y: 15 },
-                    { x: 1, y: -3 },
-                    { x: 2, y: 3 },
-                    { x: 3, y: -15 },
-                    { x: 4, y: 2 },
-                ],
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        crossAt: { value: 10 },
-                        line: {
-                            stroke: 'black',
-                        },
-                        tick: {
-                            size: 12,
-                            stroke: 'black',
-                        },
-                        interval: {
-                            values: [0, 1, 2, 3, 4],
-                        },
-                    },
-                    y: { type: 'number', position: 'left', min: -20, max: 20 },
-                },
-                series: [
-                    {
-                        type: 'bar',
-                        direction: 'vertical',
-                        xKey: 'x',
-                        yKey: 'y',
-                        cornerRadius: 14,
-                        fill: '#22b8ff',
-                    },
-                ],
-            };
-
-            await renderAndSnapshot(() => options, 'cartesian-axis-cross-at-10-example');
-        });
-    });
-});
-
-describe('CartesianAxis label wrapping', () => {
-    setupMockConsole();
-
-    let chart: AgChartInstance;
-
-    afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
-    });
-
-    const ctx = setupMockCanvas();
-
-    const compare = async (snapshotId: string) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
-            ...IMAGE_SNAPSHOT_DEFAULTS,
-            customSnapshotIdentifier: snapshotId,
-        });
-    };
-
-    it('should avoid premature truncation for rotated category labels', async () => {
-        const options: AgCartesianChartOptions = {
-            data: ROTATED_CATEGORY_DATA,
-            axes: {
-                x: {
-                    type: 'category',
-                    position: 'bottom',
-                    label: {
-                        rotation: 90,
-                        truncate: true,
-                        wrapping: 'never',
-                    },
-                },
-                y: { type: 'number', position: 'left' },
-            },
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            seriesArea: {
-                padding: { right: 600 },
-            },
-        };
-
-        prepareTestOptions(options);
-        chart = AgCharts.create(options);
-        await compare('cartesian-axis-rotated-category-label-wrap');
     });
 });
