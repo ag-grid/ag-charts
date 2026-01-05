@@ -38,6 +38,7 @@ const commonChartOptions = {
                 ids: arrayOf(string, 'string'),
                 activeIndex: positiveNumber,
             },
+            frozen: boolean,
         },
         chartType: string,
         annotations: defined,

@@ -65,4 +65,6 @@ export interface AgPickedState {
     seriesId: string;
     /** The picked items in this series. If `undefined`, then the entire series is picked. */
     items?: AgPickedItemsState;
+    /** The frozen state. When the picked item is frozen, user interactions with the chart will be ignored and not updated the currently picked item. */
+    frozen: boolean;
 }
