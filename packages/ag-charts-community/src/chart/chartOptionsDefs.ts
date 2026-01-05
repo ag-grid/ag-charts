@@ -11,6 +11,8 @@ import {
     string,
     undocumented,
     union,
+    arrayOf,
+    positiveNumber,
 } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
@@ -30,6 +32,13 @@ const commonChartOptions = {
     annotations: defined,
     navigator: defined,
     initialState: {
+        picked: {
+            seriesId: string,
+            items: {
+                ids: arrayOf(string, 'string'),
+                activeIndex: positiveNumber,
+            },
+        },
         chartType: string,
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(
