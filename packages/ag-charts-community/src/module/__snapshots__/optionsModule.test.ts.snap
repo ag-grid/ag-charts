@@ -13354,7 +13354,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontWeight": 400,
         "rotation": 30,
         "spacing": 11,
-        "wrapping": "on-space",
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,

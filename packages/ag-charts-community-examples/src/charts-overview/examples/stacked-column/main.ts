@@ -81,6 +81,7 @@ const options: AgChartOptions = {
       position: "bottom",
       label: {
         rotation: 30,
+        wrapping: "never"
       },
     },
     y: {
