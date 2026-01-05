@@ -235,7 +235,7 @@
                         {
                             "type": "item",
                             "title": "Datum Picking",
-                            "path": "picking"
+                            "path": "picked"
                         },
                         {
                             "type": "item",
