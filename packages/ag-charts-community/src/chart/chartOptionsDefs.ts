@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     array,
+    arrayOf,
     arrayOfDefs,
     boolean,
     commonChartOptionsDefs,
@@ -8,11 +9,10 @@ import {
     geoJson,
     htmlElement,
     object,
+    positiveNumber,
     string,
     undocumented,
     union,
-    arrayOf,
-    positiveNumber,
 } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
