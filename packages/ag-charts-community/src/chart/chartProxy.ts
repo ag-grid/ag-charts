@@ -328,7 +328,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return cloneProxy;
     }
 
-    private getEnabledOriginators() {
+    private getEnabledOriginators(): MementoOriginator<unknown>[] {
         if (!this.chart) return [];
 
         const {
@@ -337,7 +337,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             modulesManager,
         } = this.chart;
 
-        const originators = [];
+        const originators: MementoOriginator<unknown>[] = [];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);
