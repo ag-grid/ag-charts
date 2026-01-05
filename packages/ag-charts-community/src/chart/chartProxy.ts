@@ -337,7 +337,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             modulesManager,
         } = this.chart;
 
-        const originators: MementoOriginator<unknown>[] = [];
+        const originators: MementoOriginator<unknown>[] = [this.chart.getPickedItemOriginator()];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);

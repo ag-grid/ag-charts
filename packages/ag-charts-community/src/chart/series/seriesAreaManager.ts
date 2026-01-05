@@ -1,4 +1,5 @@
-import { ChartUpdateType, type Point, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
+import type { MementoOriginator, Point } from 'ag-charts-core';
+import { ChartUpdateType, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
@@ -127,7 +128,11 @@ class PickedNodeState {
     }
 }
 
-export class SeriesAreaManager extends BaseManager {
+type PickedMemento = {
+    pickedItem: unknown; // Not-Yet-Implemented
+};
+
+export class SeriesAreaManager extends BaseManager implements MementoOriginator<PickedMemento> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
 
