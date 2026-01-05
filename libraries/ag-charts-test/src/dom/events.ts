@@ -118,7 +118,15 @@ type WheelEventData = {
 
 export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
     const { offsetX, offsetY, clientX, clientY } = mockEvent;
-    const event = new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+    const event = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        clientX,
+        clientY,
+        deltaX,
+        deltaY,
+        deltaMode,
+    });
     Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     return event;
 }

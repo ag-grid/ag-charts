@@ -41,6 +41,7 @@ import {
     scaleZoom,
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
+import { ZoomWheelSequencer, type ZoomWheelSequencerCbResult } from './zoomWheelSequencer';
 
 const { userInteraction, InteractionState } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
@@ -182,14 +183,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly isState = (state: _ModuleSupport.InteractionState) => this.ctx.interactionManager.isState(state);
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
-
-    private isFirstWheelEvent = true;
-    private wasFirstWheelEventZoomCapped?: boolean;
-    private firstWheelEventDirection?: boolean;
-    private readonly debouncedWheelReset = debounce(() => {
-        this.isFirstWheelEvent = true;
-        this.wasFirstWheelEventZoomCapped = undefined;
-    }, 100);
+    private readonly wheelSequencer = new ZoomWheelSequencer();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -673,7 +667,7 @@ export class Zoom extends AbstractModuleInstance {
         const zoom = this.getZoom();
         const isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
 
-        this.handleWheelScrolling(event, isZoomCapped);
+        this.wheelSequencer.onWheel(event, () => this.handleWheelScrolling(event, isZoomCapped));
     }
 
     private onAxisWheel(axisDirection: ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
@@ -699,7 +693,7 @@ export class Zoom extends AbstractModuleInstance {
         event: _ModuleSupport.WheelWidgetEvent,
         isZoomCapped: boolean,
         props: ZoomProperties = this.getModuleProperties()
-    ) {
+    ): ZoomWheelSequencerCbResult {
         const {
             enableIndependentAxes,
             scroller,
@@ -707,7 +701,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return;
+        if (!seriesRect) return 'abort';
 
         let updated = true;
 
@@ -723,32 +717,11 @@ export class Zoom extends AbstractModuleInstance {
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
-            if (newZoom == null) return;
+            if (newZoom == null) return 'abort';
             updated = this.updateUnifiedZoom(sourcing, newZoom, { directional: true });
         }
 
-        isZoomCapped ||= event.deltaY < 0 && !updated;
-
-        // Prevent browser scrolling when the user scrolls over the chart and zooming is possible. If the scroll
-        // direction changes, treat it as a new scroll event.
-        if (this.firstWheelEventDirection != null && this.firstWheelEventDirection !== event.deltaY < 0) {
-            this.isFirstWheelEvent = true;
-        }
-
-        if (this.isFirstWheelEvent) {
-            this.wasFirstWheelEventZoomCapped = isZoomCapped;
-            this.firstWheelEventDirection = event.deltaY < 0;
-            if (!isZoomCapped) {
-                event.sourceEvent.preventDefault();
-            }
-        } else if (this.wasFirstWheelEventZoomCapped === false) {
-            event.sourceEvent.preventDefault();
-        }
-
-        // Prevent browser scrolling when smooth wheel events continue being fired after the chart
-        // reaches a min or max extent
-        this.isFirstWheelEvent = false;
-        this.debouncedWheelReset();
+        return isZoomCapped || (event.deltaY < 0 && !updated) ? 'capped' : 'uncapped';
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
