@@ -234,6 +234,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Datum Picking",
+                            "path": "picking"
+                        },
+                        {
+                            "type": "item",
                             "title": "Tooltips",
                             "path": "tooltips"
                         },
