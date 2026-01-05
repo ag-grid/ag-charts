@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
+
 /**
  * Full benchmark harness implementation that gets compiled to benchmarkHarness.js
  * and included in generated examples that define getBenchmarkConfig().
  *
  * This file is compiled by the normal Nx build and read at runtime.
  */
+import { isVersionInRange } from './benchmarkUtils';
 
 // Type declarations for the benchmark system
 declare const agCharts: { VERSION?: string } | undefined;
@@ -80,50 +82,6 @@ interface NormalizedConfig {
 }
 
 /**
- * Parse version string to [major, minor, patch]
- */
-function parseVersion(version: string): [number, number, number] {
-    const parts = version.split('-')[0].split('.');
-    return [parseInt(parts[0] || '0', 10), parseInt(parts[1] || '0', 10), parseInt(parts[2] || '0', 10)];
-}
-
-/**
- * Check if version meets minimum requirement
- */
-function isVersionAtOrAfter(currentVersion: string, minVersion: string): boolean {
-    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
-    const [minMajor, minMinor, minPatch] = parseVersion(minVersion);
-    if (curMajor > minMajor) return true;
-    if (curMajor < minMajor) return false;
-    if (curMinor > minMinor) return true;
-    if (curMinor < minMinor) return false;
-    return curPatch >= minPatch;
-}
-
-/**
- * Check if version is before maximum
- */
-function isVersionBefore(currentVersion: string, maxVersion: string): boolean {
-    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
-    const [maxMajor, maxMinor, maxPatch] = parseVersion(maxVersion);
-    if (curMajor < maxMajor) return true;
-    if (curMajor > maxMajor) return false;
-    if (curMinor < maxMinor) return true;
-    if (curMinor > maxMinor) return false;
-    return curPatch < maxPatch;
-}
-
-/**
- * Check if version is within range [minVersion, maxVersion)
- */
-function isVersionInRange(currentVersion: string, minVersion?: string, maxVersion?: string): boolean {
-    if (currentVersion === 'unknown') return true; // Can't filter if version unknown
-    if (minVersion && !isVersionAtOrAfter(currentVersion, minVersion)) return false;
-    if (maxVersion && !isVersionBefore(currentVersion, maxVersion)) return false;
-    return true;
-}
-
-/**
  * Format params for display (e.g., in progress indicator)
  */
 function formatParams(params: Record<string, string>): string {
@@ -139,8 +97,9 @@ function formatParams(params: Record<string, string>): string {
 function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
     const warnings = [...(config.warnings || [])];
 
-    // Detect current AG Charts version
-    const currentVersion = agCharts?.VERSION || 'unknown';
+    // Detect current AG Charts version - prefer metadata.version (passed from ES modules),
+    // fall back to global agCharts.VERSION (UMD builds), then 'unknown'
+    const currentVersion = (config.metadata?.version as string) || agCharts?.VERSION || 'unknown';
 
     const testCases: NormalizedTestCase[] = [];
 

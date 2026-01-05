@@ -91,7 +91,7 @@ export function parseVersion(version: string): [number, number, number] {
 }
 
 /**
- * Check if version meets minimum requirement
+ * Check if version meets minimum requirement (numeric arguments)
  */
 export function isVersionAtOrAfter(currentVersion: string, major: number, minor: number, patch: number): boolean {
     const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
@@ -100,6 +100,42 @@ export function isVersionAtOrAfter(currentVersion: string, major: number, minor:
     if (curMinor > minor) return true;
     if (curMinor < minor) return false;
     return curPatch >= patch;
+}
+
+/**
+ * Check if currentVersion >= minVersion (string arguments)
+ */
+export function isVersionStringAtOrAfter(currentVersion: string, minVersion: string): boolean {
+    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
+    const [minMajor, minMinor, minPatch] = parseVersion(minVersion);
+    if (curMajor > minMajor) return true;
+    if (curMajor < minMajor) return false;
+    if (curMinor > minMinor) return true;
+    if (curMinor < minMinor) return false;
+    return curPatch >= minPatch;
+}
+
+/**
+ * Check if currentVersion < maxVersion (string arguments)
+ */
+export function isVersionStringBefore(currentVersion: string, maxVersion: string): boolean {
+    const [curMajor, curMinor, curPatch] = parseVersion(currentVersion);
+    const [maxMajor, maxMinor, maxPatch] = parseVersion(maxVersion);
+    if (curMajor < maxMajor) return true;
+    if (curMajor > maxMajor) return false;
+    if (curMinor < maxMinor) return true;
+    if (curMinor > maxMinor) return false;
+    return curPatch < maxPatch;
+}
+
+/**
+ * Check if version is within range [minVersion, maxVersion)
+ */
+export function isVersionInRange(currentVersion: string, minVersion?: string, maxVersion?: string): boolean {
+    if (currentVersion === 'unknown') return true; // Can't filter if version unknown
+    if (minVersion && !isVersionStringAtOrAfter(currentVersion, minVersion)) return false;
+    if (maxVersion && !isVersionStringBefore(currentVersion, maxVersion)) return false;
+    return true;
 }
 
 // ============================================================================
