@@ -51,46 +51,48 @@ const { cta, chartHeight = 150 } = section;
                     : null;
 
                 return (
-                    <div class={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
-                        <div
-                            class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
-                            style={{ height: `${chartHeight}px` }}
-                        >
-                            {hasIcon ? (
-                                <div class={styles.iconContainer}>
-                                    <Icon name={item.icon!} />
-                                </div>
-                            ) : isDocsExample ? (
-                                <ExampleRunnerContainer
-                                    pageName={item.pageName!}
-                                    exampleName={item.exampleName!}
-                                    exampleHeight={chartHeight}
-                                >
-                                    <DocsExampleRunner
-                                        client:visible
-                                        title={item.title}
-                                        name={item.exampleName!}
-                                        exampleType="generated"
-                                        options={{ exampleHeight: chartHeight }}
+                    <a href={item.link} id={`chart-example-${item.pageName}`}>
+                        <div class={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div
+                                class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
+                                style={{ height: `${chartHeight}px` }}
+                            >
+                                {hasIcon ? (
+                                    <div class={styles.iconContainer}>
+                                        <Icon name={item.icon!} />
+                                    </div>
+                                ) : isDocsExample ? (
+                                    <ExampleRunnerContainer
                                         pageName={item.pageName!}
-                                        internalFrameworkOverride="vanilla"
-                                        hideCode
-                                        hideExternalLinks
+                                        exampleName={item.exampleName!}
+                                        exampleHeight={chartHeight}
+                                    >
+                                        <DocsExampleRunner
+                                            client:visible
+                                            title={item.title}
+                                            name={item.exampleName!}
+                                            exampleType="generated"
+                                            options={{ exampleHeight: chartHeight }}
+                                            pageName={item.pageName!}
+                                            internalFrameworkOverride="vanilla"
+                                            hideCode
+                                            hideExternalLinks
+                                        />
+                                    </ExampleRunnerContainer>
+                                ) : (
+                                    <iframe
+                                        title={`${item.title} Preview`}
+                                        src={iframeUrl}
+                                        class={`${styles.iframe} exampleRunner`}
                                     />
-                                </ExampleRunnerContainer>
-                            ) : (
-                                <iframe
-                                    title={`${item.title} Preview`}
-                                    src={iframeUrl}
-                                    class={`${styles.iframe} exampleRunner`}
-                                />
-                            )}
+                                )}
+                            </div>
+                            <div class={styles.cardContent}>
+                                <h3 class={styles.title}>{item.title}</h3>
+                                <p class={styles.description}>{item.description}</p>
+                            </div>
                         </div>
-                        <div class={styles.cardContent}>
-                            <h3 class={styles.title}>{item.title}</h3>
-                            <p class={styles.description}>{item.description}</p>
-                        </div>
-                    </div>
+                    </a>
                 );
             })
         }

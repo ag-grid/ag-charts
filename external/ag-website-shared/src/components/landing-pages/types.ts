@@ -166,7 +166,9 @@ export interface PricingCard {
     features: string[];
     ctaText: string;
     ctaUrl: string;
+    ctaId?: string;
     isPrimary?: boolean;
+    showTrialButton?: boolean;
 }
 
 export interface PricingSection {
