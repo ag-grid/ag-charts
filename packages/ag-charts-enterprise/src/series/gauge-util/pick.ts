@@ -45,3 +45,15 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
         }
     }
 }
+
+export function findGaugeNodeDatum<D extends SeriesNodeDatum>(
+    nodeData: D[] | undefined,
+    itemId: _ModuleSupport.ItemId
+): D | undefined {
+    for (const node of nodeData ?? []) {
+        if (node.itemId === itemId) {
+            return node;
+        }
+    }
+    return undefined;
+}

@@ -1,5 +1,5 @@
 import type { MementoOriginator, Point } from 'ag-charts-core';
-import { ChartUpdateType, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
+import { ChartUpdateType, Logger, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState, AgPickedState } from 'ag-charts-types';
 
 import type {
@@ -88,6 +88,11 @@ interface PickedNode {
 
 function pickedNodesEqual(a: PickedNode, b: PickedNode) {
     return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
+}
+
+function getItemId(node: PickedNode): AgPickedItemsState['itemId'] {
+    if (node.datum.itemId) return `${node.datum.itemId}`;
+    return `${node.datum.datumIndex}`;
 }
 
 class PickedNodeState {
@@ -641,9 +646,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (result == null || result.matches.length === 0) return;
 
-        const paginationUpdate = this.chart.tooltip.pagination
-            ? this.tooltipCandidates.update(result.matches, this.tooltipCandidates.current)?.current
-            : undefined;
+        const paginationUpdate = this.updateTooltipCandidate(result.matches, this.tooltipCandidates.current);
         const { series, datum } = paginationUpdate ?? result.matches[0];
         const distance = paginationUpdate == null ? result.distance : 0;
 
@@ -684,6 +687,15 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         return false;
+    }
+
+    private updateTooltipCandidate(
+        pickedNodes: PickedNode[],
+        previousPicked: PickedNode | undefined
+    ): PickedNode | undefined {
+        return this.chart.tooltip.pagination
+            ? this.tooltipCandidates.update(pickedNodes, previousPicked)?.current
+            : undefined;
     }
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
@@ -1194,11 +1206,44 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return validationResult.invalid.length > 0;
     }
 
-    public restoreMemento(version: string, mementoVersion: string, memento: AgPickedState | undefined): void {
-        version;
-        mementoVersion;
-        memento;
-        throw new Error('Not Yet Implemented');
+    public restoreMemento(_version: string, _mementoVersion: string, memento: AgPickedState | undefined): void {
+        if (memento == undefined) {
+            this.pickedNodes = undefined;
+            this.tooltipCandidates.reset();
+            return;
+        }
+
+        const matches: PickedNode[] = [];
+
+        for (const { seriesId, itemId } of memento.items ?? []) {
+            const series: PickedNode['series'] | undefined = this.series.find((s) => s.id === seriesId);
+            if (series == undefined) {
+                Logger.warn(`Cannot find series '${seriesId}'`);
+                continue;
+            }
+            const datum: PickedNode['datum'] | undefined = series.findNodeDatum(itemId);
+            if (datum == undefined) {
+                Logger.warn(`Cannot find datum: { seriesId: '${seriesId}', itemId: '${itemId}' }`);
+                continue;
+            }
+
+            const { datumIndex } = datum;
+            matches.push({ series, datum, datumIndex });
+        }
+
+        if (matches.length > 0) {
+            function findActive(pickedNodes: PickedNode[], memento: AgPickedState) {
+                const { items, activeIndex } = memento;
+                if (items == undefined || activeIndex == undefined) return undefined;
+                const activeId: string = items[activeIndex].itemId;
+                return pickedNodes.find((n: PickedNode): boolean => getItemId(n) === activeId);
+            }
+
+            const active: PickedNode | undefined = findActive(matches, memento);
+
+            this.pickedNodes = { matches, distance: 0 };
+            this.updateTooltipCandidate(matches, active);
+        }
     }
 }
 
