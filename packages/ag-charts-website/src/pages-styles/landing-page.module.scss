@@ -5,6 +5,7 @@
 // ============================================================================
 
 .heroSection {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -21,8 +22,8 @@
     top: 0;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 97.5%;
-    height: 15%;
+    width: 97.5vw;
+    height: 150%;
     background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
     z-index: -999;
     border-radius: 8px;
@@ -698,69 +699,82 @@
 
 .pricingContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: $spacing-size-6;
-    margin-bottom: $spacing-size-8;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-size-8;
+    width: 100%;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .pricingCard {
     display: flex;
     flex-direction: column;
-    padding: $spacing-size-6;
+    padding: $spacing-size-8;
+    background: var(--color-bg-primary);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border-primary);
-    background-color: var(--color-bg-primary);
 
     h3 {
         font-size: var(--text-fs-xl);
         font-weight: var(--text-bold);
-        margin: 0 0 $spacing-size-4;
+        margin-bottom: $spacing-size-4;
     }
 }
 
 .pricingPrice {
-    font-size: var(--text-fs-3xl);
+    font-size: 48px;
     font-weight: var(--text-bold);
-    color: var(--color-util-brand-600);
-    margin-bottom: $spacing-size-2;
+    color: var(--color-brand-500);
+    margin-bottom: $spacing-size-1;
 
     #{$selector-darkmode} & {
-        color: var(--color-util-brand-200);
+        color: var(--color-brand-200);
     }
 }
 
 .pricingPriceFree {
-    font-size: var(--text-fs-3xl);
+    font-size: 48px;
     font-weight: var(--text-bold);
-    color: var(--color-util-green-600);
-    margin-bottom: $spacing-size-2;
+    color: var(--color-fg-primary);
+    margin-bottom: $spacing-size-1;
 }
 
 .pricingPriceNote {
     font-size: var(--text-fs-sm);
-    color: var(--color-fg-tertiary);
+    color: var(--color-fg-secondary);
     margin-bottom: $spacing-size-6;
 }
 
 .pricingFeatures {
-    flex: 1;
     list-style: none;
     padding: 0;
-    margin: 0 0 $spacing-size-6;
+    margin: 0 0 $spacing-size-8 0;
+    flex-grow: 1;
 
     li {
-        position: relative;
-        padding-left: $spacing-size-6;
-        margin-bottom: $spacing-size-3;
-        font-size: var(--text-fs-sm);
-        color: var(--color-fg-secondary);
+        padding: $spacing-size-2 0;
+        font-size: var(--text-fs-md);
+        color: var(--color-fg-primary);
+        display: flex;
+        align-items: center;
+        gap: $spacing-size-2;
 
         &::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: var(--color-util-green-600);
-            font-weight: var(--text-bold);
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230E4491'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E")
+                no-repeat center;
+            background-size: contain;
+
+            #{$selector-darkmode} & {
+                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4e3f8'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E")
+                    no-repeat center;
+                background-size: contain;
+            }
         }
     }
 }
@@ -768,6 +782,12 @@
 .pricingCta {
     width: 100%;
     text-align: center;
+}
+
+.pricingTrialCta {
+    width: 100%;
+    text-align: center;
+    margin-top: $spacing-size-2;
 }
 
 .enterpriseTrialSection {

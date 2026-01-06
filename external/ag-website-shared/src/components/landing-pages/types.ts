@@ -338,6 +338,8 @@ export interface FeatureGridItem {
     title: string;
     /** Feature description */
     description: string;
+    /** Link URL for the feature card */
+    link: string;
 }
 
 export interface FeatureGridSection {

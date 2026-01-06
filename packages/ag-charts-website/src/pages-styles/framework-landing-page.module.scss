@@ -2,6 +2,7 @@
 @use './framework-shared' as frameworkShared;
 
 .heroSection {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -18,8 +19,8 @@
     top: 0;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 97.5%;
-    height: 15%;
+    width: 97.5vw;
+    height: 150%;
     background: linear-gradient(0deg, #dde9f9 -61.34%, #ffffff 89.79%);
     z-index: -999;
     border-radius: 8px;
