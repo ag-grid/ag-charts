@@ -143,7 +143,7 @@ class PickedNodeState {
 export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgPickedState | undefined> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
-    mementoOriginatorKey: string = 'series-area-manager';
+    mementoOriginatorKey: string = 'picked';
 
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
