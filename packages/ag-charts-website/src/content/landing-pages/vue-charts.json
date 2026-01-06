@@ -12,9 +12,9 @@
         {
             "type": "hero",
             "tag": "Vue Charts",
-            "heading": "Fast, Interactive Vue Charts",
+            "heading": "Open Source Vue Charts",
             "subHeading": "Build Vue Charts",
-            "subHeadingHtml": "Build <b>high-performance</b>, <b>interactive</b>, and <b>beautiful</b> Vue charts with AG Charts. From simple bar charts to complex financial charts, all for <b>free</b>.",
+            "subHeadingHtml": "Canvas-based Vue charting library with no dependencies. Get started in 60 seconds.",
             "showVersionBadge": true,
             "showCustomerLogos": false,
             "galleryExamples": [
@@ -35,48 +35,21 @@
                     "exampleName": "simple-pie"
                 },
                 {
-                    "title": "Donut",
-                    "exampleName": "simple-donut"
-                },
-                {
                     "title": "Scatter",
                     "exampleName": "simple-scatter"
-                },
-                {
-                    "title": "Bubble",
-                    "exampleName": "bubble-with-negative-values"
-                },
-                {
-                    "title": "Radar",
-                    "exampleName": "simple-radar-area"
-                },
-                {
-                    "title": "Treemap",
-                    "exampleName": "treemap-with-color-range"
-                },
-                {
-                    "title": "Sunburst",
-                    "exampleName": "simple-sunburst"
-                },
-                {
-                    "title": "Heatmap",
-                    "exampleName": "simple-heatmap"
-                },
-                {
-                    "title": "Candlestick",
-                    "exampleName": "candlestick"
                 }
             ],
             "demoHeight": 500,
             "primaryCta": {
-                "text": "Get Started"
+                "text": "Get Started",
+                "url": "./vue/quick-start/"
             }
         },
         {
             "type": "feature-grid",
-            "tag": "Why AG Charts",
+            "tag": "Why AG Charts for Vue Charts",
             "heading": "Why Developers Choose AG Charts",
-            "subHeading": "Built from the ground up for performance, flexibility, and developer experience.",
+            "subHeading": "Built for performance and customisation, with a developer-first approach.",
             "cta": {
                 "text": "Browse Gallery",
                 "url": "./gallery/"
@@ -84,77 +57,88 @@
             "items": [
                 {
                     "icon": "flash",
-                    "title": "Blazing Fast",
-                    "description": "Canvas-powered rendering handles millions of data points at 60fps. No lag, no compromise."
+                    "title": "Canvas-based Performance",
+                    "description": "Render large datasets and update them as fast as your display can refresh, without lag during interactivity.",
+                    "link": "./vue/large-dataset-interactivity/"
                 },
                 {
                     "icon": "colorPalette",
                     "title": "Fully Customisable",
-                    "description": "Every pixel is configurable. Themes, animations, and styles that match your brand perfectly."
+                    "description": "Control every visual element to make your charts match your product with custom themes, formatters and renderers.",
+                    "link": "./vue/themes/"
                 },
                 {
                     "icon": "code",
-                    "title": "Developer First",
-                    "description": "TypeScript definitions, intuitive APIs, and comprehensive documentation for rapid development."
+                    "title": "Developer-First",
+                    "description": "Full type definitions, predictable APIs, and comprehensive docs means less time debugging, and more time building.",
+                    "link": "./options/"
                 },
                 {
                     "icon": "chartsCombination",
                     "title": "30+ Chart Types",
-                    "description": "From simple lines to complex financial charts. All the visualisations you'll ever need."
+                    "description": "Line, bar, area, scatter, pie, treemap, heatmap, candlestick, maps, gauges, and more - all from a single library.",
+                    "link": "./gallery/"
                 },
                 {
                     "icon": "download",
                     "title": "1M+ Weekly Downloads",
-                    "description": "Downloaded over 1 million times per week, by some of the worlds largest companies."
+                    "description": "Trusted by teams at scale with over one million npm downloads per week across all frameworks and versions."
                 },
                 {
                     "icon": "enterprise",
                     "title": "Enterprise Ready",
-                    "description": "Battle-tested in production by Fortune 500 companies. Security and reliability guaranteed."
+                    "description": "Trusted by some of the worlds largest companies - with dedicated support, SLAs, and enterprise-grade features.",
+                    "link": "./license-pricing/"
                 }
             ]
         },
         {
             "type": "chart-types-showcase",
-            "tag": "Chart Types",
-            "heading": "Every Chart You Need",
-            "subHeading": "From basic visualisations to complex financial charts, AG Charts has you covered.",
+            "tag": "Any Vue Chart You Need",
+            "heading": "30+ Chart Types",
+            "subHeading": "Bars, lines, areas and pies, plus advanced charts like treemaps, heatmaps, financial charts, maps, and more.",
             "chartHeight": 350,
             "items": [
                 {
                     "title": "Area Charts",
-                    "description": "Smooth gradients for time series",
+                    "description": "Visualise trends and cumulative values over time",
                     "pageName": "area-series",
-                    "exampleName": "area-no-labels"
+                    "exampleName": "area-no-labels",
+                    "link": "./vue/area-series/"
                 },
                 {
                     "title": "Bar Charts",
-                    "description": "Compare values with precision",
+                    "description": "Compare discrete values across categories",
                     "pageName": "bar-series",
-                    "exampleName": "bar-no-labels"
+                    "exampleName": "bar-no-labels",
+                    "link": "./vue/bar-series/"
                 },
                 {
                     "title": "Line Charts",
-                    "description": "Track trends over time",
+                    "description": "Track changes and trends over time",
                     "pageName": "line-series",
-                    "exampleName": "simple-line-no-labels"
+                    "exampleName": "simple-line-no-labels",
+                    "link": "./vue/line-series/"
                 },
                 {
                     "title": "Pie Charts",
-                    "description": "Visualise proportions beautifully",
+                    "description": "Show proportions of a whole",
                     "pageName": "pie-series",
-                    "exampleName": "pie-no-labels"
+                    "exampleName": "pie-no-labels",
+                    "link": "./vue/pie-series/"
                 },
                 {
                     "title": "Bubble Charts",
-                    "description": "Multi-dimensional data analysis",
+                    "description": "Plot three dimensions of data",
                     "pageName": "bubble-series",
-                    "exampleName": "bubble-no-labels"
+                    "exampleName": "bubble-no-labels",
+                    "link": "./vue/bubble-series/"
                 },
                 {
                     "title": "And More...",
                     "description": "30+ chart types available",
-                    "icon": "chartsCombination"
+                    "icon": "chartsCombination",
+                    "link": "./gallery/"
                 }
             ],
             "cta": {
@@ -165,10 +149,10 @@
         {
             "type": "code-example",
             "tag": "Developer Experience",
-            "heading": "Simple, Intuitive API",
-            "subHeading": "Get started in minutes with our declarative configuration.",
+            "heading": "Declarative API",
+            "subHeading": "Bind your data and options to the AgCharts component. AG Charts handles rendering, updates, and interactivity.",
             "fileName": "RevenueChart.vue",
-            "language": "vue",
+            "language": "ts",
             "code": "<template>\n  <ag-charts :options=\"options\" />\n</template>\n\n<script setup lang=\"ts\">\nimport { ref } from 'vue';\nimport { AgCharts } from 'ag-charts-vue3';\nimport type { AgChartOptions } from 'ag-charts-community';\n\nconst options = ref<AgChartOptions>({\n  data: [\n    { month: 'Jan', revenue: 15200 },\n    { month: 'Feb', revenue: 18400 },\n    { month: 'Mar', revenue: 22100 },\n  ],\n  series: [{\n    type: 'bar',\n    xKey: 'month',\n    yKey: 'revenue',\n    fill: '#3b82f6',\n    cornerRadius: 8,\n  }],\n});\n</script>",
             "cta": {
                 "text": "Get Started",
@@ -177,9 +161,9 @@
         },
         {
             "type": "features",
-            "tag": "Key Features",
-            "heading": "Powerful Features Out of the Box",
-            "subHeading": "AG Charts comes packed with features to help you build beautiful, interactive charts with minimal effort.",
+            "tag": "Key Vue Chart Features",
+            "heading": "Comprehensive Feature Set",
+            "subHeading": "Everything you need to build production-ready charts, from rendering and customisation, to interactivity and enterprise features.",
             "items": [
                 {
                     "id": "displaying-data",
@@ -191,15 +175,18 @@
                     "features": [
                         {
                             "heading": "Series & Data",
-                            "detail": "Multiple series types with flexible data binding using key properties."
+                            "detail": "Bindable series types with flexible key-based data mapping.",
+                            "link": "./vue/data-configuration/"
                         },
                         {
                             "heading": "Axis Types",
-                            "detail": "Categorical, numerical, time, and logarithmic axes with full customisation."
+                            "detail": "Category, number, time, and log axes, with customisable ticks and labels.",
+                            "link": "./vue/axes-types/"
                         },
                         {
-                            "heading": "Secondary Axes",
-                            "detail": "Multiple axes per direction for comparing series with different scales."
+                            "heading": "Multiple Axes",
+                            "detail": "Add secondary axes to compare series with different scales.",
+                            "link": "./vue/axes-secondary/"
                         }
                     ],
                     "docsLink": "./vue/key-features/"
@@ -214,15 +201,18 @@
                     "features": [
                         {
                             "heading": "Legends",
-                            "detail": "Configurable legends with positioning, pagination, and series toggling."
+                            "detail": "Configurable positioning, pagination, and interactive series toggling.",
+                            "link": "./vue/legend/"
                         },
                         {
                             "heading": "Cross Lines",
-                            "detail": "Add reference lines and ranges to highlight important values."
+                            "detail": "Add references lines and ranges to mark thresholds and targets.",
+                            "link": "./vue/axes-cross-lines/"
                         },
                         {
                             "heading": "Conditional Styling",
-                            "detail": "Item stylers for dynamic appearance based on data values."
+                            "detail": "Style individual data points based on their values using item stylers.",
+                            "link": "./vue/stylers/"
                         }
                     ],
                     "docsLink": "./vue/legend/"
@@ -237,15 +227,18 @@
                     "features": [
                         {
                             "heading": "Themes",
-                            "detail": "5 built-in themes with light and dark modes, plus custom theming."
+                            "detail": "Five built-in themes with light and dark variants. Create custom themes to match your design system.",
+                            "link": "./vue/themes/"
                         },
                         {
                             "heading": "Fills & Strokes",
-                            "detail": "Solid colours, gradients, patterns, and images for series styling."
+                            "detail": "Solid colours, gradients, patterns, and image fills for series styling.",
+                            "link": "./vue/fills-borders/"
                         },
                         {
                             "heading": "Markers",
-                            "detail": "Customisable marker shapes, sizes, and styles for data points."
+                            "detail": "Configurable shapes, sizes, and styles for data point markers.",
+                            "link": "./vue/markers/"
                         }
                     ],
                     "docsLink": "./vue/themes/"
@@ -260,15 +253,18 @@
                     "features": [
                         {
                             "heading": "Tooltips",
-                            "detail": "Rich tooltips with multiple modes and custom renderers."
+                            "detail": "Built-in tooltips with multiple display modes and custom renderers.",
+                            "link": "./vue/tooltips/"
                         },
                         {
                             "heading": "Highlighting",
-                            "detail": "Hover highlighting with customisable styles for items and series."
+                            "detail": "Hover states for items and series with configurable styles.",
+                            "link": "./vue/series-highlighting/"
                         },
                         {
                             "heading": "Events",
-                            "detail": "Click, double-click, and zoom events for series, legend, and chart."
+                            "detail": "Event callbacks for series, legend, and chart elements.",
+                            "link": "./vue/events/"
                         }
                     ],
                     "docsLink": "./vue/tooltips/"
@@ -284,15 +280,18 @@
                     "features": [
                         {
                             "heading": "Zoom & Pan",
-                            "detail": "Interactive zoom and pan controls for exploring large datasets."
+                            "detail": "Interactive controls for exploring large datasets. Mouse, touch, and keyboard support.",
+                            "link": "./zoom/"
                         },
                         {
                             "heading": "Context Menu",
-                            "detail": "Right-click menus with customisable actions and download options."
+                            "detail": "Right-click menus with configurable actions and export options.",
+                            "link": "./context-menu/"
                         },
                         {
                             "heading": "Navigator",
-                            "detail": "Mini-chart navigator for quick navigation through time-series data."
+                            "detail": "Mini-chart for navigating through time-series data without losing context.",
+                            "link": "./navigator/"
                         }
                     ],
                     "docsLink": "./vue/zoom/"
@@ -301,9 +300,9 @@
         },
         {
             "type": "performance-demo",
-            "tag": "Large Data",
-            "heading": "Handle Millions of Data Points",
-            "subHeading": "AG Charts is optimised for performance and can render and interact with charts containing millions of data points without lag. Try zooming and panning through the data.",
+            "tag": "Large Data in Vue Charts",
+            "heading": "Render 1M+ Data Points",
+            "subHeading": "AG Charts renders large datasets whilst maintaining interactivity, e.g. zooming, panning and scrolling, at 60fps.",
             "pageName": "large-dataset-interactivity",
             "exampleName": "ordered-data",
             "height": 500,
@@ -314,9 +313,9 @@
         },
         {
             "type": "performance-demo",
-            "tag": "High Frequency Updates",
-            "heading": "Real-time Streaming at 60+ FPS",
-            "subHeading": "Handle continuous data streams with batched updates and efficient rendering. Perfect for live dashboards, monitoring systems, and real-time analytics.",
+            "tag": "High Frequency Updates in Vue Charts",
+            "heading": "Real-Time Streaming at 60+ FPS",
+            "subHeading": "Built for live dashboards and monitoring systems. Batched updates and efficient rendering keep your charts responsive during continuous data streams.",
             "pageName": "high-frequency-data",
             "exampleName": "high-frequency-showcase",
             "height": 500,
@@ -326,58 +325,16 @@
             }
         },
         {
-            "type": "financial-charts",
-            "tag": "Financial Charts",
-            "heading": "Interactive Financial Charts for Trading and Analysis",
-            "subHeading": "Build interactive financial charts featuring advanced annotations with minimal configuration. Use the toolbar to add annotations, change the chart type, and interact with the data in real-time.",
-            "height": 700,
-            "cta": {
-                "text": "View Financial Charts Features",
-                "url": "./vue/financial-charts/"
-            }
-        },
-        {
-            "type": "map-charts",
-            "tag": "Map Charts",
-            "heading": "Customisable Map Charts for Geographical Data",
-            "subHeading": "Visualise geographical areas, overlay routes and connections, and add markers and points of interest.",
-            "cardHeight": 360,
-            "cards": [
-                {
-                    "title": "Geographic Areas",
-                    "description": "Visualise data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values.",
-                    "pageName": "map-shapes",
-                    "exampleName": "multiple-series"
-                },
-                {
-                    "title": "Routes & Connections",
-                    "description": "Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour to represent data values.",
-                    "pageName": "map-lines",
-                    "exampleName": "map-shapes-lines"
-                },
-                {
-                    "title": "Markers & POIs",
-                    "description": "Add markers for geographic points, with the ability to vary the size to represent data values.",
-                    "pageName": "map-markers",
-                    "exampleName": "marker-size"
-                }
-            ],
-            "cta": {
-                "text": "View Map Charts Features",
-                "url": "./vue/maps/"
-            }
-        },
-        {
             "type": "integrated-charts",
             "tag": "AG Grid Integration",
-            "heading": "AG Grid Integrated Charts, Powered by AG Charts",
-            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/vue-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500."
+            "heading": "Integrated Charts for AG Grid",
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/vue-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a>. Users can create charts directly from grid data with a right-click."
         },
         {
             "type": "whats-new",
             "tag": "Latest Releases",
-            "heading": "Regular Releases, Updates, and Enhancements",
-            "subHeading": "Browse the latest updates to AG Charts, including new features, series types, functionality and more.",
+            "heading": "Regular Releases and Updates",
+            "subHeading": "New features, chart types, and improvements ship regularly.",
             "versionsToShow": 3,
             "cta": {
                 "text": "See What's New",
@@ -388,52 +345,51 @@
             "type": "faq",
             "tag": "Vue Charts FAQs",
             "heading": "Frequently Asked Questions",
-            "subHeading": "Answers to common questions about building Vue charts with AG Charts",
+            "subHeading": "Common questions about AG Charts for Vue",
             "items": [
                 {
                     "question": "Is AG Charts free to use?",
-                    "answer": "Yes! AG Charts Community is free and open-source, with no restrictions on usage. [AG Charts Enterprise](/license-pricing/) offers additional features like financial charts, annotations, and advanced interactivity."
+                    "answer": "AG Charts Community is free and open-source under the MIT license. Use it in commercial projects without restrictions. [AG Charts Enterprise](/license-pricing/) adds financial charts, maps, annotations, and advanced interactivity."
                 },
                 {
-                    "question": "What chart types does AG Charts support?",
-                    "answer": "AG Charts supports 30+ chart types including Bar, Line, Area, Scatter, Pie, Donut, Radar, Treemap, Sunburst, Heatmap, Candlestick, Maps, Gauges, and many more. View all chart types in our [Gallery](/gallery/)."
+                    "question": "What chart types are included?",
+                    "answer": "AG Charts includes 30+ chart types: Bar, Line, Area, Scatter, Pie, Donut, Radar, Treemap, Sunburst, Heatmap, Candlestick, OHLC, Maps, Gauges, and more. Browse the [Gallery](/gallery/) to see them all."
                 },
                 {
-                    "question": "Can I use AG Charts with TypeScript?",
-                    "answer": "Yes! AG Charts is written in TypeScript and provides full type definitions. Our Vue 3 integration includes TypeScript support out of the box with the Composition API."
+                    "question": "Does AG Charts support TypeScript?",
+                    "answer": "Yes. AG Charts is written in TypeScript and ships with full type definitions. The Vue 3 integration includes TypeScript support out of the box with the Composition API."
                 },
                 {
-                    "question": "How do I get started with AG Charts in Vue?",
-                    "answer": "Install the package with `npm install ag-charts-vue3 ag-charts-community`, import the `AgCharts` component, and use it in your template. See our [Quick Start guide](./vue/quick-start/) for a complete walkthrough."
+                    "question": "How do I get started?",
+                    "answer": "Install with `npm install ag-charts-vue3 ag-charts-community`, import the `AgCharts` component, and bind your options. The [Quick Start guide](./vue/quick-start/) walks through a complete example."
                 },
                 {
-                    "question": "What Vue versions are supported?",
-                    "answer": "AG Charts supports Vue 3 with both the Composition API and Options API. For Vue 2 projects, you can use the vanilla JavaScript API directly."
+                    "question": "Does AG Charts have any dependencies?",
+                    "answer": "No, AG Charts is a dependency-free library. It uses native browser APIs and the HTML5 canvas for rendering."
                 },
                 {
-                    "question": "What is AG Charts Enterprise?",
-                    "answer": "[AG Charts Enterprise](/license-pricing/) includes advanced features like Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, and more. Try it free with a trial license."
+                    "question": "What's included in AG Charts Enterprise?",
+                    "answer": "[AG Charts Enterprise](/license-pricing/) includes Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, Navigator, and Context Menus. Start a free trial to evaluate."
                 },
                 {
-                    "question": "Can AG Charts handle large datasets?",
-                    "answer": "Yes! AG Charts is optimized for performance and can handle millions of data points smoothly. Our canvas-based rendering ensures fast updates and smooth interactions."
+                    "question": "How does AG Charts handle large datasets?",
+                    "answer": "AG Charts uses canvas-based rendering optimised for large data with the M4 algorithm. Learn more in our [blog](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)."
                 },
                 {
-                    "question": "Is AG Charts compatible with AG Grid?",
-                    "answer": "Yes! AG Charts integrates seamlessly with [AG Grid](https://www.ag-grid.com/) for Integrated Charts, allowing users to create charts directly from grid data."
+                    "question": "Can I use AG Charts with AG Grid?",
+                    "answer": "Yes. AG Charts powers the [Integrated Charts](https://www.ag-grid.com/vue-data-grid/integrated-charts/) feature in AG Grid, allowing users to create charts directly from grid data."
                 }
             ]
         },
         {
             "type": "contact",
             "tag": "Get In Touch",
-            "heading": "Contact Our Team",
-            "subHeading": "Have questions about AG Charts? Get in touch with our team",
+            "heading": "Talk to Our Team",
+            "subHeading": "Questions about AG Charts? We're here to help.",
             "features": [
-                "Expert technical guidance",
-                "Demos & technical walkthroughs",
                 "Licensing and pricing information",
-                "Response within 24 hours"
+                "Explore use-cases for your team",
+                "Technical guidance from our engineering team"
             ]
         }
     ]
