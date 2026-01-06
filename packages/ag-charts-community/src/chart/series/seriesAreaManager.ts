@@ -1167,10 +1167,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     public createMemento(): AgPickedState {
         const frozen = false;
 
-        function toMemento(
-            pickedNodes: PickedNode[] | undefined,
-            activeIndex: number
-        ): AgPickedState | undefined {
+        function toMemento(pickedNodes: PickedNode[] | undefined, activeIndex: number): AgPickedState | undefined {
             if (pickedNodes && pickedNodes.length > 0) {
                 const active: PickedNode | undefined = pickedNodes[activeIndex];
                 if (active != undefined) {
