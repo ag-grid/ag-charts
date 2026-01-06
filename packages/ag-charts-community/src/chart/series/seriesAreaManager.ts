@@ -1,6 +1,6 @@
 import type { MementoOriginator, Point } from 'ag-charts-core';
-import { ChartUpdateType, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
-import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+import { ChartUpdateType, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
+import type { AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState, AgPickedState } from 'ag-charts-types';
 
 import type {
     HighlightChangeEvent,
@@ -30,6 +30,7 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
+import { commonChartOptions } from '../chartOptionsDefs';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -97,6 +98,14 @@ class PickedNodeState {
         return this.active;
     }
 
+    getMementoInfo() {
+        const { candidates, active } = this;
+        return {
+            candidates,
+            activeIndex: PickedNodeState.indexOf(candidates, active),
+        };
+    }
+
     reset() {
         this.candidates.length = 0;
         this.active = undefined;
@@ -105,8 +114,7 @@ class PickedNodeState {
     update(nextCandidates: PickedNode[], previousActive?: PickedNode) {
         this.candidates = nextCandidates;
 
-        let nextIndex =
-            previousActive == null ? -1 : nextCandidates.findIndex((c) => pickedNodesEqual(c, previousActive));
+        let nextIndex = PickedNodeState.indexOf(nextCandidates, previousActive);
         if (nextIndex === -1) nextIndex = 0;
         this.active = nextCandidates[nextIndex];
 
@@ -126,15 +134,16 @@ class PickedNodeState {
 
         return { current: this.active, index: nextIndex, length: this.candidates.length };
     }
+
+    private static indexOf(candidates: PickedNode[], node: PickedNode | undefined): number {
+        return node == undefined ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, node));
+    }
 }
 
-type PickedMemento = {
-    pickedItem: unknown; // Not-Yet-Implemented
-};
-
-export class SeriesAreaManager extends BaseManager implements MementoOriginator<PickedMemento> {
+export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgPickedState | undefined> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
+    mementoOriginatorKey: string = 'series-area-manager';
 
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
@@ -175,6 +184,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
      *       for the mouse event offsets.
      */
     private hoverDevice: 'pointer' | 'keyboard' = 'pointer';
+
+    private pickedNodes?: PickedNodes;
 
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
@@ -1099,6 +1110,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             }
         }
 
+        this.pickedNodes = result;
         return result;
     }
 
@@ -1150,6 +1162,43 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         return result;
+    }
+
+    public createMemento(): AgPickedState | undefined {
+        const frozen = false;
+
+        function toMemento(pickedNodes: PickedNode[] | undefined, activeIndex: number): AgPickedState | undefined {
+            if (pickedNodes && pickedNodes.length > 0) {
+                const active: PickedNode | undefined = pickedNodes[activeIndex];
+                if (active != undefined) {
+                    const items = pickedNodes.map((node: PickedNode): AgPickedItemsState => {
+                        return {
+                            seriesId: node.series.id,
+                            itemId: `${node.datumIndex}`, // TODO: should be `itemId` (not-yet-implemented)
+                        };
+                    });
+                    return { activeIndex, series: undefined, frozen, items };
+                }
+            }
+        }
+
+        const tc = this.tooltipCandidates.getMementoInfo();
+        return toMemento(tc.candidates, tc.activeIndex) ?? toMemento(this.pickedNodes?.matches, 0);
+    }
+
+    public guardMemento(blob: unknown, messages: string[]): blob is AgPickedState | undefined {
+        if (blob == undefined) return true;
+
+        const validationResult = validate(blob, commonChartOptions.initialState.picked);
+        messages.push(...validationResult.invalid.map((err) => err.toString()));
+        return validationResult.invalid.length > 0;
+    }
+
+    public restoreMemento(version: string, mementoVersion: string, memento: AgPickedState | undefined): void {
+        version;
+        mementoVersion;
+        memento;
+        throw new Error('Not Yet Implemented');
     }
 }
 
