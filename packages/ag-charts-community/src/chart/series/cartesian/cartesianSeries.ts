@@ -816,8 +816,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     public getQuadTree(): QuadtreeNearest<DatumOf<TTypes>> {
         if (this.quadtree === undefined) {
-            const { width, height } = this.ctx.scene.canvas;
-            const canvasRect = new BBox(0, 0, width, height);
+            const canvas = this.ctx.scene?.canvas ?? { width: 0, height: 0 };
+            const canvasRect = new BBox(0, 0, canvas.width, canvas.height);
             this.quadtree = new QuadtreeNearest<DatumOf<TTypes>>(100, 10, canvasRect);
             this.initQuadTree(this.quadtree);
         }
