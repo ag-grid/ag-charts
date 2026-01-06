@@ -17,13 +17,23 @@ import {
 import type {
     AgCartesianChartOptions,
     AgInitialStateLegendOptions,
+    AgPickedState,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
+export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
+    seriesId: string,
+    items: {
+        ids: arrayOf(string, 'string'),
+        activeIndex: positiveNumber,
+    },
+    frozen: boolean,
+};
+
 // These options are being validated by other modules
-const commonChartOptions = {
+export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     container: htmlElement,
     context: () => true,
@@ -32,14 +42,7 @@ const commonChartOptions = {
     annotations: defined,
     navigator: defined,
     initialState: {
-        picked: {
-            seriesId: string,
-            items: {
-                ids: arrayOf(string, 'string'),
-                activeIndex: positiveNumber,
-            },
-            frozen: boolean,
-        },
+        picked: initialStatePickedOptionsDef,
         chartType: string,
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(

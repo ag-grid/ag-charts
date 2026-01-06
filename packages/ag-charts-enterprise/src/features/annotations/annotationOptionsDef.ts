@@ -43,6 +43,7 @@ const {
     annotationLineTextDefs,
     annotationDisjointChannelStyleDefs,
     annotationParallelChannelStyleDefs,
+    initialStatePickedOptionsDef,
 } = _ModuleSupport;
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
@@ -204,6 +205,7 @@ export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
         },
         'legend state array'
     ),
+    picked: initialStatePickedOptionsDef,
     zoom: {
         rangeX: {
             start: or(number, serializableDate),
