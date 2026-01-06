@@ -48,6 +48,8 @@ import ExamplesSection from '@ag-website-shared/components/landing-pages/section
 import FAQSection from '@ag-website-shared/components/landing-pages/sections/FAQSection.astro';
 import ContactSection from '@ag-website-shared/components/landing-pages/sections/ContactSection.astro';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { TrialButton } from '@ag-website-shared/components/trial-licence-modal/TrialButton';
+import { EnterpriseTrial } from '@ag-website-shared/components/license-pricing/EnterpriseTrial';
 
 // Charts-specific section components
 import { HeroGallery } from './sections/hero/HeroGallery';
@@ -81,7 +83,13 @@ const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?
 
 // For framework pages, add logo to headings (only for specific framework landing pages)
 // Check against analyticsPrefix since it matches the page slug (e.g., 'angular-charts')
-const frameworkLandingPageSlugs = ['react-charts', 'javascript-charts', 'vue-charts', 'angular-charts'];
+const frameworkLandingPageSlugs = [
+    'react-charts',
+    'javascript-charts',
+    'vue-charts',
+    'angular-charts',
+    'enterprise-charts',
+];
 const isFrameworkLandingPage = content.framework && frameworkLandingPageSlugs.includes(content.analyticsPrefix);
 const frameworkKey = isFrameworkLandingPage ? content.framework || '' : '';
 const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
@@ -125,7 +133,15 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 
                             {/* Install text slot */}
                             <InstallText slot="hero-install" client:load packageName={content.packageName} />
-
+                            {section.primaryCta?.useTrialButton && (
+                                <TrialButton
+                                    slot="hero-trial-button"
+                                    client:load
+                                    className={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${content.analyticsPrefix}-trial-cta`}
+                                >
+                                    {section.primaryCta.text}
+                                </TrialButton>
+                            )}
                             {/* Customer logos slot */}
                             <CustomerLogos slot="hero-logos" client:load />
                         </HeroSection>
@@ -258,6 +274,7 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                                             ))}
                                         </ul>
                                         <a
+                                            id={card.ctaId}
                                             class:list={[
                                                 card.isPrimary ? 'button-tertiary' : 'button-secondary',
                                                 styles.pricingCta,
@@ -271,6 +288,14 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                                         >
                                             {card.ctaText}
                                         </a>
+                                        {card.showTrialButton && (
+                                            <TrialButton
+                                                client:load
+                                                className={`button-secondary ${styles.pricingTrialCta} plausible-event-name=${content.analyticsPrefix}-${card.title.toLowerCase().replace(/\s+/g, '-')}-trial-cta`}
+                                            >
+                                                Free Trial
+                                            </TrialButton>
+                                        )}
                                     </div>
                                 ))}
                             </div>

@@ -18,12 +18,6 @@ const options: AgChartOptions = {
         {
             type: 'bar',
             xKey: 'quarter',
-            yKey: 'iphone',
-            yName: 'iPhone',
-        },
-        {
-            type: 'bar',
-            xKey: 'quarter',
             yKey: 'mac',
             yName: 'Mac',
         },

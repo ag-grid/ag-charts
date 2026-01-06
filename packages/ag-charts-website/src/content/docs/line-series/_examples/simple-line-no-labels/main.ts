@@ -1,5 +1,4 @@
 import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
-import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -73,9 +72,6 @@ const options = {
         x: {
             type: 'category',
             position: 'bottom',
-            bandHighlight: {
-                enabled: true,
-            },
             label: {
                 enabled: false,
             },
