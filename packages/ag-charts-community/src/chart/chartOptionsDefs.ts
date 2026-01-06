@@ -1,7 +1,6 @@
 import {
     type OptionsDefs,
     array,
-    arrayOf,
     arrayOfDefs,
     boolean,
     commonChartOptionsDefs,
@@ -23,12 +22,19 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
+const pickedSeriesStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['series']>> = {
     seriesId: string,
-    items: {
-        ids: arrayOf(string, 'string'),
-        activeIndex: positiveNumber,
-    },
+};
+
+const pickedItemsStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['items']>> = {
+    seriesId: string,
+    itemId: string,
+};
+
+export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
+    activeIndex: positiveNumber,
+    series: arrayOfDefs(pickedSeriesStateOptionsDef),
+    items: arrayOfDefs(pickedItemsStateOptionsDef),
     frozen: boolean,
 };
 
