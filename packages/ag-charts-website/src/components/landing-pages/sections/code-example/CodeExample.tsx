@@ -33,7 +33,11 @@ export const CodeExample = ({ code, language = 'ts', fileName = 'main.tsx' }: Pr
                     <span className={styles.trafficLightGreen} />
                 </div>
                 <span className={styles.fileName}>{fileName}</span>
-                <button onClick={() => void handleCopy()} className={styles.copyButton} aria-label={copied ? 'Copied' : 'Copy code'}>
+                <button
+                    onClick={() => void handleCopy()}
+                    className={styles.copyButton}
+                    aria-label={copied ? 'Copied' : 'Copy code'}
+                >
                     {copied ? (
                         <>
                             <Icon name="check" className={styles.copyIcon} />
