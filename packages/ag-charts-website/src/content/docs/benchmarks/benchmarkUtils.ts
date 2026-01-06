@@ -299,11 +299,11 @@ export async function performAppend<T>(
     generator: DataGenerator<T>,
     batchSize: number
 ): Promise<number> {
-    const append = generator.take(batchSize);
-    dataRef.data = dataRef.data.concat(append);
+    const newItems = generator.take(batchSize);
+    dataRef.data = dataRef.data.concat(newItems);
 
     const start = performance.now();
-    await (chart as any).applyTransaction({ append });
+    await chart.applyTransaction({ add: newItems });
     await chart.waitForUpdate();
     return performance.now() - start;
 }
@@ -321,11 +321,11 @@ export async function performRemove<T>(
     dataRef: DataRef<T>,
     batchSize: number
 ): Promise<number> {
-    const remove = dataRef.data.slice(0, batchSize);
+    const itemsToRemove = dataRef.data.slice(0, batchSize);
     dataRef.data = dataRef.data.slice(batchSize);
 
     const start = performance.now();
-    await (chart as any).applyTransaction({ remove });
+    await chart.applyTransaction({ remove: itemsToRemove });
     await chart.waitForUpdate();
     return performance.now() - start;
 }
@@ -347,13 +347,13 @@ export async function performRollingWindow<T>(
     batchSize: number,
     method: 'applyTransaction' | 'updateDelta'
 ): Promise<number> {
-    const remove = dataRef.data.slice(0, batchSize);
-    const append = generator.take(batchSize);
-    dataRef.data = dataRef.data.slice(batchSize).concat(append);
+    const itemsToRemove = dataRef.data.slice(0, batchSize);
+    const newItems = generator.take(batchSize);
+    dataRef.data = dataRef.data.slice(batchSize).concat(newItems);
 
     const start = performance.now();
     if (method === 'applyTransaction') {
-        await (chart as any).applyTransaction({ append, remove });
+        await chart.applyTransaction({ add: newItems, remove: itemsToRemove });
     } else {
         await chart.updateDelta({ data: dataRef.data });
     }
