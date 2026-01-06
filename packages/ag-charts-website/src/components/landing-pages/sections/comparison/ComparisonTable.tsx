@@ -1,7 +1,7 @@
 import { Collapsible } from '@ag-website-shared/components/collapsible/Collapsible';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { TrialButton } from '@ag-website-shared/components/trial-licence-modal/TrialButton';
-import gridFeaturesData from '@ag-website-shared/content/license-features/gridFeaturesMatrix.json';
+import gridFeaturesData from '@ag-website-shared/content/license-features/chartsFeaturesMatrix.json';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import React, { useState } from 'react';
@@ -57,7 +57,7 @@ const FeatureIcon: React.FC<{ value: boolean | FeatureValue }> = ({ value }) => 
 };
 
 const FeatureLabel: React.FC<{ item: FeatureItem }> = ({ item }) => {
-    const name = item.label?.name || item.name || '';
+    const name = item.label?.name ?? item.name ?? '';
     const link = item.label?.link;
 
     if (link) {
@@ -164,7 +164,7 @@ const ComparisonTable: React.FC = () => {
                     </div>
                     <div className={styles.headerCellEnterprise}>
                         <span className={styles.headerTitle}>Enterprise</span>
-                        <span className={styles.headerSubtitle}>$999/dev</span>
+                        <span className={styles.headerSubtitle}>$499/dev</span>
                     </div>
                 </div>
                 <div className={styles.tableBody}>

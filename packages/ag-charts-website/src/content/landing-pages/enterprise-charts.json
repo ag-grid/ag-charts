@@ -296,7 +296,7 @@
             "height": 700,
             "cta": {
                 "text": "View Financial Charts Features",
-                "url": "./financial-charts/"
+                "url": "./react/financial-charts/"
             }
         },
         {
@@ -335,6 +335,13 @@
                 "text": "View Map Charts Features",
                 "url": "./react/maps/"
             }
+        },
+        {
+            "type": "comparison",
+            "tag": "Community vs Enterprise",
+            "heading": "Choose the Right Edition for Your Needs",
+            "subHeading": "AG Grid Community is free forever and includes powerful features. Enterprise unlocks advanced capabilities for professional applications.",
+            "showBackgroundGradient": true
         },
         {
             "type": "pricing",
@@ -386,11 +393,11 @@
             "items": [
                 {
                     "question": "Can I try AG Charts Enterprise for free?",
-                    "answer": "Yes! You can install and test all AG Charts Enterprise features locally for free. A watermark and console message will appear until you add a licence key. You can also [request a trial licence](/trial-licence/) to remove these during your evaluation period."
+                    "answer": "Yes! You can install and test all AG Charts Enterprise features locally for free. A watermark and console message will appear until you add a licence key. You can also [request a trial licence](./community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence) to remove these during your evaluation period."
                 },
                 {
                     "question": "What is the difference between Community and Enterprise?",
-                    "answer": "[AG Charts Community](./quick-start/) is free and open-source with 7 chart types. [AG Charts Enterprise](/license-pricing/) adds Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, Crosshairs, and more. Visit the [Pricing](./license-pricing/) page for full details."
+                    "answer": "[AG Charts Community](./quick-start/) is free and open-source with 7 chart types. [AG Charts Enterprise](/license-pricing/) adds Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, Crosshairs, and more. Visit the [Pricing](/license-pricing/) page for full details."
                 },
                 {
                     "question": "How much does AG Charts Enterprise cost?",

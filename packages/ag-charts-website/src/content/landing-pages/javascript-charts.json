@@ -361,7 +361,7 @@
                 },
                 {
                     "question": "How do I get started?",
-                    "answer": "Install with `npm install ag-charts-community`, import `AgCharts`, and call `AgCharts.create()` with your options. The [Quick Start guide](./javascript/quick-start/) walks through a complete example."
+                    "answer": "Install with `npm install ag-charts-community`, import `AgCharts`, and call `AgCharts.create()` with your options. The [Quick Start guide](./quick-start/) walks through a complete example."
                 },
                 {
                     "question": "Does AG Charts have any dependencies?",

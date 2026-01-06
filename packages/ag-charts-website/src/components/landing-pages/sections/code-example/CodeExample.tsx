@@ -18,8 +18,8 @@ export const CodeExample = ({ code, language = 'ts', fileName = 'main.tsx' }: Pr
             await navigator.clipboard.writeText(code);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy code:', err);
+        } catch {
+            // Clipboard API may fail in certain contexts (e.g., iframe restrictions)
         }
     };
 
@@ -33,7 +33,7 @@ export const CodeExample = ({ code, language = 'ts', fileName = 'main.tsx' }: Pr
                     <span className={styles.trafficLightGreen} />
                 </div>
                 <span className={styles.fileName}>{fileName}</span>
-                <button onClick={handleCopy} className={styles.copyButton} aria-label={copied ? 'Copied' : 'Copy code'}>
+                <button onClick={() => void handleCopy()} className={styles.copyButton} aria-label={copied ? 'Copied' : 'Copy code'}>
                     {copied ? (
                         <>
                             <Icon name="check" className={styles.copyIcon} />

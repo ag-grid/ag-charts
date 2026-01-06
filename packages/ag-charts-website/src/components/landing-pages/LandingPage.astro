@@ -49,7 +49,7 @@ import FAQSection from '@ag-website-shared/components/landing-pages/sections/FAQ
 import ContactSection from '@ag-website-shared/components/landing-pages/sections/ContactSection.astro';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { TrialButton } from '@ag-website-shared/components/trial-licence-modal/TrialButton';
-import { EnterpriseTrial } from '@ag-website-shared/components/license-pricing/EnterpriseTrial';
+import InstallText from '@ag-website-shared/components/install-text/InstallText';
 
 // Charts-specific section components
 import { HeroGallery } from './sections/hero/HeroGallery';
@@ -65,10 +65,10 @@ import FeaturesWithExamples from './sections/features-with-examples/FeaturesWith
 import CodeExampleSection from './sections/code-example/CodeExampleSection.astro';
 import FeatureGridSection from './sections/feature-grid/FeatureGridSection.astro';
 import ChartTypesShowcaseSection from './sections/chart-types-showcase/ChartTypesShowcaseSection.astro';
+import ComparisonTable from './sections/comparison/ComparisonTable';
 
 // Site-specific components
 import { CustomerLogos } from '@components/customer-logos/CustomerLogos';
-import InstallText from '@ag-website-shared/components/install-text/InstallText';
 
 interface Props {
     content: LandingPageContent;
@@ -231,6 +231,19 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                 case 'performance-demo':
                     return (
                         <PerformanceDemoSection section={section as PerformanceDemoSectionType} pageContent={content} />
+                    );
+
+                case 'comparison':
+                    return (
+                        <LandingPageSection
+                            id="comparison"
+                            tag={section.tag}
+                            heading={section.heading}
+                            subHeading={section.subHeading}
+                            showBackgroundGradient={section.showBackgroundGradient}
+                        >
+                            <ComparisonTable client:load />
+                        </LandingPageSection>
                     );
 
                 case 'code-example':

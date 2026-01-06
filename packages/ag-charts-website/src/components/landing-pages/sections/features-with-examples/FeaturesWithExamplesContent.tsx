@@ -108,7 +108,7 @@ export const FeaturesWithExamplesContent: React.FC<FeaturesWithExamplesContentPr
                 ) : (
                     <a
                         id="get-started"
-                        href={urlWithBaseUrl('./react-data-grid/getting-started/')}
+                        href={urlWithBaseUrl(`${activeFeature.docsLink}`)}
                         className={`button-secondary ${styles.trialCta} plausible-event-name=landing-page-features-get-started-cta`}
                     >
                         Get Started

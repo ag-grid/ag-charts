@@ -1,14 +1,14 @@
-import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams, LegendModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const timeDurationFormatter = (time) => {
+const timeDurationFormatter = (time: number) => {
     const hours = Math.floor(time / 60);
     const minutes = Math.floor(time % 60);
     return `${hours}h ${minutes < 10 ? '0' : ''}${minutes}m`;
 };
 
-const options = {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     theme: {
@@ -20,10 +20,10 @@ const options = {
                         enabled: false,
                     },
                     tooltip: {
-                        renderer: ({ datum, yKey, yName, xKey }) => {
+                        renderer: ({ datum, yKey, yName, xKey }: AgLineSeriesTooltipRendererParams) => {
                             return {
                                 heading: `${datum[xKey]} years`,
-                                data: [{ label: yName, value: timeDurationFormatter(datum[yKey]) }],
+                                data: [{ label: yName ?? yKey, value: timeDurationFormatter(datum[yKey]) }],
                             };
                         },
                     },

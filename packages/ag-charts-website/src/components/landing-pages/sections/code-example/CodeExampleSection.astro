@@ -31,5 +31,5 @@ const { section, pageContent } = Astro.props;
     subHeading={section.subHeading}
     showBackgroundGradient={section.showBackgroundGradient}
 >
-    <CodeExample client:visible code={section.code} language={section.language} fileName={section.fileName} />
+    <CodeExample client:only="react" code={section.code} language={section.language} fileName={section.fileName} />
 </LandingPageSection>

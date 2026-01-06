@@ -189,7 +189,7 @@
                             "link": "./react/axes-secondary/"
                         }
                     ],
-                    "docsLink": "./react/key-features/"
+                    "docsLink": "./react/key-features/#displaying-data"
                 },
                 {
                     "id": "data-elements",
@@ -215,7 +215,7 @@
                             "link": "./react/stylers/"
                         }
                     ],
-                    "docsLink": "./react/legend/"
+                    "docsLink": "./react/key-features/#data-elements"
                 },
                 {
                     "id": "layout-styling",
@@ -241,7 +241,7 @@
                             "link": "./react/markers/"
                         }
                     ],
-                    "docsLink": "./react/themes/"
+                    "docsLink": "./react/key-features/#layout-and-styling"
                 },
                 {
                     "id": "interactivity",
@@ -267,7 +267,7 @@
                             "link": "./react/events/"
                         }
                     ],
-                    "docsLink": "./react/tooltips/"
+                    "docsLink": "./react/key-features/#interactivity"
                 },
                 {
                     "id": "enterprise",
@@ -294,7 +294,7 @@
                             "link": "./navigator/"
                         }
                     ],
-                    "docsLink": "./react/zoom/"
+                    "docsLink": "./key-features/#enterprise-features"
                 }
             ]
         },
@@ -361,7 +361,7 @@
                 },
                 {
                     "question": "How do I get started?",
-                    "answer": "Install with `npm install ag-charts-react`, import the `AgCharts` component, and pass your chart options. The [Quick Start guide](./react/quick-start/) walks through a complete example."
+                    "answer": "Install with `npm install ag-charts-react`, import the `AgCharts` component, and pass your chart options. The [Quick Start guide](./quick-start/) walks through a complete example."
                 },
                 {
                     "question": "Does AG Charts have any dependencies?",

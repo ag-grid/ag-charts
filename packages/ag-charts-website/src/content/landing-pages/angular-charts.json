@@ -361,7 +361,7 @@
                 },
                 {
                     "question": "How do I get started?",
-                    "answer": "Install with `npm install ag-charts-angular ag-charts-community`, import the `AgCharts` component, and bind your options. The [Quick Start guide](./angular/quick-start/) walks through a complete example."
+                    "answer": "Install with `npm install ag-charts-angular ag-charts-community`, import the `AgCharts` component, and bind your options. The [Quick Start guide](./quick-start/) walks through a complete example."
                 },
                 {
                     "question": "Does AG Charts have any dependencies?",
