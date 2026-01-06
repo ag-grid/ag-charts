@@ -140,7 +140,7 @@ class PickedNodeState {
     }
 }
 
-export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgPickedState | undefined> {
+export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgPickedState> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
     mementoOriginatorKey: string = 'picked';
@@ -1164,10 +1164,13 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return result;
     }
 
-    public createMemento(): AgPickedState | undefined {
+    public createMemento(): AgPickedState {
         const frozen = false;
 
-        function toMemento(pickedNodes: PickedNode[] | undefined, activeIndex: number): AgPickedState | undefined {
+        function toMemento(
+            pickedNodes: PickedNode[] | undefined,
+            activeIndex: number
+        ): AgPickedState | undefined {
             if (pickedNodes && pickedNodes.length > 0) {
                 const active: PickedNode | undefined = pickedNodes[activeIndex];
                 if (active != undefined) {
@@ -1183,7 +1186,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         const tc = this.tooltipCandidates.getMementoInfo();
-        return toMemento(tc.candidates, tc.activeIndex) ?? toMemento(this.pickedNodes?.matches, 0);
+        return toMemento(tc.candidates, tc.activeIndex) ?? toMemento(this.pickedNodes?.matches, 0) ?? {};
     }
 
     public guardMemento(blob: unknown, messages: string[]): blob is AgPickedState | undefined {

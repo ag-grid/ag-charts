@@ -62,5 +62,5 @@ export interface AgPickedState {
      */
     activeItem?: AgPickedItemsState;
     /** The frozen state. When the picked item is frozen, user interactions with the chart will be ignored and not updated the currently picked item. */
-    frozen: boolean;
+    frozen?: boolean;
 }
