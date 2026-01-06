@@ -1,7 +1,20 @@
+// @ag-skip-fws
+
 /* @ag-options-extract */
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
+
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
+import {
+    ChartRef,
+    DataRef,
+    performAppend,
+    performInitialLoad,
+    performRemove,
+    performRollingWindow,
+} from './benchmarkUtils';
 
 const INITIAL_POINTS = 100_000;
+const BATCH_SIZE = 100;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 const BASE_VALUE = 50;
@@ -49,16 +62,17 @@ class HighFrequencyRangeBarGenerator {
 
 const dataGenerator = new HighFrequencyRangeBarGenerator();
 dataGenerator.reset();
-const data = dataGenerator.take(INITIAL_POINTS);
+const dataRef: DataRef<Datum> = { data: dataGenerator.take(INITIAL_POINTS) };
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data,
+    data: dataRef.data,
     animation: { enabled: false },
     legend: { enabled: false },
     axes: {
         x: {
             type: 'time',
+            nice: false,
             label: { format: '%H:%M:%S' },
         },
     },
@@ -73,4 +87,93 @@ const options: AgChartOptions = {
 };
 /* @ag-options-end */
 
-AgCharts.create(options);
+const chartRef: ChartRef = { current: AgCharts.create(options) };
+
+/** inScope */
+async function localPerformInitialLoad(): Promise<number> {
+    dataGenerator.reset();
+    dataRef.data = dataGenerator.take(INITIAL_POINTS);
+    options.data = dataRef.data;
+    return performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts));
+}
+
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'initial-load',
+                label: 'Initial Load',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: localPerformInitialLoad,
+                    },
+                ],
+            },
+            {
+                id: 'append-batch',
+                label: 'Append Batch',
+                minVersion: '12.3.0',
+                variants: [
+                    {
+                        params: { Operation: `Append ${BATCH_SIZE} points` },
+                        run: () => performAppend(chartRef.current!, dataRef, dataGenerator, BATCH_SIZE),
+                    },
+                ],
+            },
+            {
+                id: 'remove-batch',
+                label: 'Remove Batch',
+                minVersion: '12.3.0',
+                variants: [
+                    {
+                        params: { Operation: `Remove ${BATCH_SIZE} points` },
+                        run: () => performRemove(chartRef.current!, dataRef, BATCH_SIZE),
+                    },
+                ],
+            },
+            {
+                id: 'rolling-window',
+                label: 'Rolling Window',
+                variants: [
+                    {
+                        params: { 'Update Method': 'applyTransaction()' },
+                        minVersion: '12.3.0',
+                        run: () =>
+                            performRollingWindow(
+                                chartRef.current!,
+                                dataRef,
+                                dataGenerator,
+                                BATCH_SIZE,
+                                'applyTransaction'
+                            ),
+                    },
+                    {
+                        params: { 'Update Method': 'updateDelta()' },
+                        run: () =>
+                            performRollingWindow(chartRef.current!, dataRef, dataGenerator, BATCH_SIZE, 'updateDelta'),
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 100,
+            maxCollectionTimeMs: 10000,
+            warmupUpdates: 10,
+        },
+        metadata: {
+            initialDataPoints: INITIAL_POINTS,
+            batchSize: BATCH_SIZE,
+            dataIntervalMs: DATA_INTERVAL_MS,
+            seriesType: 'range-bar',
+            version: VERSION,
+            expectedRetainedSizeMB: undefined,
+            expectedCanvasCount: 3,
+        },
+    };
+}
+
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}
