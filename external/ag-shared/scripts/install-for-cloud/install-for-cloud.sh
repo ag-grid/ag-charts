@@ -52,6 +52,8 @@ elif is_claude_worktree; then
     RUN_MODE="full"
 else
     log_info "No cloud/worktree environment detected, skipping initialization"
+    log_info "CLAUDE_PROJECT_DIR: $CLAUDE_PROJECT_DIR"
+    log_info "PWD: $PWD"
     exit 0
 fi
 
