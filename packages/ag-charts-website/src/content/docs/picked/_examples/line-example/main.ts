@@ -43,6 +43,7 @@ const options: AgCartesianChartOptions<DatumType> = {
 };
 
 const chart = AgCharts.create(options);
+const version = chart.getState().version;
 
 let country = 'Spain';
 let year = '2010';
@@ -87,6 +88,7 @@ function onFreezeChange(checked: boolean): void {
 
 function onSetState(): void {
     chart.setState({
+        version,
         picked: {
             activeItem: {
                 seriesId: SERIES_ID_MAP[country],
