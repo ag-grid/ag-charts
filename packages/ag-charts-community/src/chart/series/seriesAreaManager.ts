@@ -1189,7 +1189,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
 
         const validationResult = validate(blob, commonChartOptions.initialState.picked);
         messages.push(...validationResult.invalid.map((err) => err.toString()));
-        return validationResult.invalid.length > 0;
+        return validationResult.invalid.length === 0;
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgPickedState | undefined): void {
