@@ -27,7 +27,7 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
-import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
+import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,

@@ -96,20 +96,16 @@ function getItemId(node: PickedNode): AgPickedItemsState['itemId'] {
     return `${node.datum.datumIndex}`;
 }
 
+function toMememto(node: PickedNode): AgPickedItemsState {
+    return { seriesId: node.series.id, itemId: getItemId(node) };
+}
+
 class PickedNodeState {
     private candidates: PickedNode[] = [];
     private active: PickedNode | undefined;
 
     get current(): PickedNode | undefined {
         return this.active;
-    }
-
-    getMementoInfo() {
-        const { candidates, active } = this;
-        return {
-            candidates,
-            activeIndex: PickedNodeState.indexOf(candidates, active),
-        };
     }
 
     reset() {
@@ -647,7 +643,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         if (result == null || result.matches.length === 0) return;
 
-        const paginationUpdate = this.updateTooltipCandidate(result.matches, this.tooltipCandidates.current);
+        const paginationUpdate = this.updateTooltipCandidate(result.matches);
         const { series, datum } = paginationUpdate ?? result.matches[0];
         const distance = paginationUpdate == null ? result.distance : 0;
 
@@ -690,12 +686,9 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return false;
     }
 
-    private updateTooltipCandidate(
-        pickedNodes: PickedNode[],
-        previousPicked: PickedNode | undefined
-    ): PickedNode | undefined {
+    private updateTooltipCandidate(pickedNodes: PickedNode[]): PickedNode | undefined {
         return this.chart.tooltip.pagination
-            ? this.tooltipCandidates.update(pickedNodes, previousPicked)?.current
+            ? this.tooltipCandidates.update(pickedNodes, this.tooltipCandidates.current)?.current
             : undefined;
     }
 
@@ -911,7 +904,13 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         this.tooltip.lastHover = undefined;
     }
 
+    private clearPicked(): void {
+        this.pickedNodes = undefined;
+        this.tooltipCandidates.reset();
+    }
+
     private clearAll(delayed: boolean = false) {
+        this.clearPicked();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
@@ -1178,25 +1177,11 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     }
 
     public createMemento(): AgPickedState {
-        const frozen = false;
-
-        function toMemento(pickedNodes: PickedNode[] | undefined, activeIndex: number): AgPickedState | undefined {
-            if (pickedNodes && pickedNodes.length > 0) {
-                const active: PickedNode | undefined = pickedNodes[activeIndex];
-                if (active != undefined) {
-                    const items = pickedNodes.map((node: PickedNode): AgPickedItemsState => {
-                        return {
-                            seriesId: node.series.id,
-                            itemId: `${node.datumIndex}`, // TODO: should be `itemId` (not-yet-implemented)
-                        };
-                    });
-                    return { activeIndex, series: undefined, frozen, items };
-                }
-            }
-        }
-
-        const tc = this.tooltipCandidates.getMementoInfo();
-        return toMemento(tc.candidates, tc.activeIndex) ?? toMemento(this.pickedNodes?.matches, 0) ?? {};
+        const active: PickedNode | undefined = this.tooltipCandidates.current ?? this.pickedNodes?.matches[0];
+        return {
+            frozen: false,
+            activeItem: active ? toMememto(active) : undefined,
+        };
     }
 
     public guardMemento(blob: unknown, messages: string[]): blob is AgPickedState | undefined {
@@ -1208,43 +1193,40 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgPickedState | undefined): void {
-        if (memento == undefined) {
-            this.pickedNodes = undefined;
-            this.tooltipCandidates.reset();
-            return;
+        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(memento);
+        if (desiredPickedNodes == undefined) {
+            this.clearPicked();
+        } else {
+            this.pickedNodes = desiredPickedNodes;
+            this.updateTooltipCandidate(desiredPickedNodes.matches);
+        }
+    }
+
+    public findPickedNodes(memento: AgPickedState | undefined): PickedNodes | undefined {
+        if (memento == undefined || memento.activeItem == undefined) return undefined;
+
+        const desiredItemId: string | undefined = memento.activeItem.itemId;
+        if (desiredItemId == undefined) return undefined;
+
+        const desiredSeriesId: string = memento.activeItem.seriesId;
+        const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
+        if (desiredSeries == undefined) {
+            Logger.warn(`Cannot find series '${desiredSeries}'`);
+            return undefined;
         }
 
-        const matches: PickedNode[] = [];
-
-        for (const { seriesId, itemId } of memento.items ?? []) {
-            const series: PickedNode['series'] | undefined = this.series.find((s) => s.id === seriesId);
-            if (series == undefined) {
-                Logger.warn(`Cannot find series '${seriesId}'`);
-                continue;
-            }
-            const datum: PickedNode['datum'] | undefined = series.findNodeDatum(itemId);
-            if (datum == undefined) {
-                Logger.warn(`Cannot find datum: { seriesId: '${seriesId}', itemId: '${itemId}' }`);
-                continue;
-            }
-
-            const { datumIndex } = datum;
-            matches.push({ series, datum, datumIndex });
+        const desiredDatum: PickedNode['datum'] | undefined = desiredSeries.findNodeDatum(desiredItemId);
+        if (desiredDatum == undefined) {
+            Logger.warn(`Cannot find datum: { seriesId: '${desiredSeriesId}', itemId: '${desiredItemId}' }`);
+            return undefined;
         }
 
-        if (matches.length > 0) {
-            function findActive(pickedNodes: PickedNode[], memento: AgPickedState) {
-                const { items, activeIndex } = memento;
-                if (items == undefined || activeIndex == undefined) return undefined;
-                const activeId: string = items[activeIndex].itemId;
-                return pickedNodes.find((n: PickedNode): boolean => getItemId(n) === activeId);
-            }
-
-            const active: PickedNode | undefined = findActive(matches, memento);
-
-            this.pickedNodes = { matches, distance: 0 };
-            this.updateTooltipCandidate(matches, active);
-        }
+        const restoredPick: PickedNode = {
+            datum: desiredDatum,
+            datumIndex: desiredDatum.datumIndex,
+            series: desiredSeries,
+        };
+        return { matches: [restoredPick], distance: 0 };
     }
 }
 
