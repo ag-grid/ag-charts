@@ -40,16 +40,22 @@ export function scroll(
     if (!element) throw new Error('No chart element found');
 
     const rect = element.getBoundingClientRect();
+    const clientX = rect.left + x;
+    const clientY = rect.top + y;
     const event = new WheelEvent('wheel', {
         bubbles: true,
-        clientX: rect.left + x,
-        clientY: rect.top + y,
+        clientX,
+        clientY,
         deltaX,
         deltaY,
         deltaMode,
-        offsetX: x,
-        offsetY: y,
-    } as WheelEventInit);
+    });
+    // offsetX/offsetY are read-only getters in real browsers - must use defineProperty
+    // (Jest's jsdom allows Object.assign, but real browsers don't)
+    Object.defineProperty(event, 'offsetX', { value: x, writable: false });
+    Object.defineProperty(event, 'offsetY', { value: y, writable: false });
+    Object.defineProperty(event, 'pageX', { value: clientX, writable: false });
+    Object.defineProperty(event, 'pageY', { value: clientY, writable: false });
     element.dispatchEvent(event);
 }
 
@@ -62,13 +68,19 @@ export function hover(container: HTMLElement, x: number, y: number): void {
     if (!element) throw new Error('No chart element found');
 
     const rect = element.getBoundingClientRect();
+    const clientX = rect.left + x;
+    const clientY = rect.top + y;
     const event = new MouseEvent('mousemove', {
         bubbles: true,
-        clientX: rect.left + x,
-        clientY: rect.top + y,
-        offsetX: x,
-        offsetY: y,
-    } as MouseEventInit);
+        clientX,
+        clientY,
+    });
+    // offsetX/offsetY are read-only getters in real browsers - must use defineProperty
+    // (Jest's jsdom allows Object.assign, but real browsers don't)
+    Object.defineProperty(event, 'offsetX', { value: x, writable: false });
+    Object.defineProperty(event, 'offsetY', { value: y, writable: false });
+    Object.defineProperty(event, 'pageX', { value: clientX, writable: false });
+    Object.defineProperty(event, 'pageY', { value: clientY, writable: false });
     element.dispatchEvent(event);
 }
 
