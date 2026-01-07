@@ -1199,6 +1199,11 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         } else {
             this.pickedNodes = desiredPickedNodes;
             this.updateTooltipCandidate(desiredPickedNodes.matches);
+            const { datum } = desiredPickedNodes.matches[0];
+            this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+            if (this.chart.tooltip.enabled && datum.midPoint) {
+                this.showTooltip(desiredPickedNodes.matches[0], datum.midPoint.x, datum.midPoint.y);
+            }
         }
     }
 
