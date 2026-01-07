@@ -55,7 +55,7 @@ const SERIES_ID_MAP = {
     Ireland: 'LineSeries-3',
     France: 'LineSeries-4',
     Germany: 'LineSeries-5',
-}
+};
 const ITEM_ID_MAP = {
     '2010': '0',
     '2011': '1',
@@ -72,7 +72,7 @@ const ITEM_ID_MAP = {
     '2022': '12',
     '2023': '13',
     '2024': '14',
-}
+};
 
 function onCountryChange(value: string): void {
     country = value;
@@ -95,7 +95,7 @@ function onSetState(): void {
                 itemId: ITEM_ID_MAP[year],
             },
             frozen,
-        }
+        },
     });
 }
 
