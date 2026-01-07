@@ -1,6 +1,9 @@
-/* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+// @ag-skip-fws
 
+/* @ag-options-extract */
+import { AgCharts, VERSION } from 'ag-charts-community';
+
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
 
 (window as any).agChartsDebug = 'scene:stats';
@@ -57,21 +60,89 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-async function main() {
+const chart = AgCharts.create(options);
+
+const seriesCount = options.series!.length;
+
+/** inScope */
+async function performResize(count: number): Promise<number> {
+    const container = document.getElementById('myChart');
+    if (!container) return 0;
+
+    const originalWidth = container.style.width;
+    const originalHeight = container.style.height;
+
     const start = performance.now();
 
-    const count = 100;
-    let chart, previousChart;
     for (let i = 0; i < count; i++) {
-        previousChart = chart;
-        chart = AgCharts.create(options);
+        // Alternate between different sizes
+        const scale = 0.5 + (i % 2) * 0.5; // Alternates between 0.5 and 1.0
+        container.style.width = `${800 * scale}px`;
+        container.style.height = `${400 * scale}px`;
+
+        // Wait for ResizeObserver to fire (it fires asynchronously)
+        await new Promise((resolve) => requestAnimationFrame(resolve));
 
         await chart.waitForUpdate();
-        previousChart?.destroy();
     }
-    const duration = performance.now() - start;
-    console.log('Total update time: ', duration);
-    console.log('Average update time: ', duration / count);
+
+    // Restore original size
+    container.style.width = originalWidth;
+    container.style.height = originalHeight;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await chart.waitForUpdate();
+
+    return performance.now() - start;
 }
 
-main().catch((e) => console.error(e));
+/** inScope */
+async function performInitialLoad(): Promise<number> {
+    const start = performance.now();
+    await chart.update(options);
+    await chart.waitForUpdate();
+    return performance.now() - start;
+}
+
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'initial-load',
+                label: 'Initial Load',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Update' },
+                        run: performInitialLoad,
+                    },
+                ],
+            },
+            {
+                id: 'resize',
+                label: 'Resize',
+                variants: [
+                    {
+                        params: { Repetitions: '10x' },
+                        run: () => performResize(10),
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 20,
+            maxCollectionTimeMs: 10000,
+            warmupUpdates: 5,
+        },
+        metadata: {
+            dataPoints: getData().length,
+            seriesCount: seriesCount,
+            version: VERSION,
+            expectedRetainedSizeMB: 3.5,
+            expectedCanvasCount: 5,
+        },
+    };
+}
+
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}
