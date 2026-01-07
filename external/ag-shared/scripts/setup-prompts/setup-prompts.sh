@@ -1,12 +1,18 @@
 #!/bin/bash
-# tools/setup-prompts.sh - Smart prompts setup for ag-charts
+# external/ag-shared/scripts/setup-prompts/setup-prompts.sh - Smart prompts setup for AG Grid products
 #
 # This script handles detection and user prompts before delegating to the
-# actual setup script in ag-charts-prompts.
+# actual setup script in the prompts repository.
+#
+# Configuration via environment variables:
+#   AG_PROMPTS_REPO - Git URL for prompts repository (default: git@github.com:ag-grid/ag-charts-prompts.git)
+#   AG_PROMPTS_DIR_NAME - Directory name for prompts checkout (default: ag-charts-prompts)
 
 set -euo pipefail
 
-PROMPTS_REPO="git@github.com:ag-grid/ag-charts-prompts.git"
+# Configuration - can be overridden by consuming repo
+PROMPTS_REPO="${AG_PROMPTS_REPO:-git@github.com:ag-grid/ag-charts-prompts.git}"
+PROMPTS_DIR_NAME="${AG_PROMPTS_DIR_NAME:-ag-charts-prompts}"
 
 # Detect if we're in a git worktree and find the main repo
 # In a worktree, .git is a file containing "gitdir: /path/to/main/.git/worktrees/name"
@@ -37,7 +43,10 @@ is_worktree() {
 MAIN_REPO_ROOT=$(get_main_repo_root)
 
 # Prompts directory is always adjacent to the MAIN repo, not the worktree
-PROMPTS_DIR="$MAIN_REPO_ROOT/../ag-charts-prompts"
+PROMPTS_DIR="$MAIN_REPO_ROOT/../$PROMPTS_DIR_NAME"
+
+# Symlink location in external/
+PROMPTS_SYMLINK="external/prompts"
 
 # Detect CI environment
 is_ci() {
@@ -90,6 +99,24 @@ prompt_yes_no() {
     [[ ! $REPLY =~ ^[Nn]$ ]]
 }
 
+# Verify external/prompts symlink resolves correctly (symlink is version-controlled)
+verify_symlink() {
+    if [[ ! -L "$PROMPTS_SYMLINK" ]]; then
+        echo "Warning: $PROMPTS_SYMLINK is not a symlink"
+        return 1
+    fi
+
+    if [[ ! -d "$PROMPTS_SYMLINK" ]]; then
+        echo "Warning: $PROMPTS_SYMLINK does not resolve to a directory"
+        echo "  Symlink target: $(readlink "$PROMPTS_SYMLINK")"
+        echo "  Expected: $PROMPTS_DIR_NAME checkout at $PROMPTS_DIR"
+        return 1
+    fi
+
+    echo "✓ $PROMPTS_SYMLINK resolves correctly"
+    return 0
+}
+
 # Main logic
 main() {
     # Skip in CI
@@ -102,18 +129,22 @@ main() {
     # (bypass agentic tools check - user explicitly cloned the repo)
     if [[ -d "$PROMPTS_DIR" ]]; then
         if is_checkout_clean && is_checkout_behind; then
-            echo "ag-charts-prompts is out of date."
+            echo "$PROMPTS_DIR_NAME is out of date."
             if prompt_yes_no "Update now?"; then
-                echo "Updating ag-charts-prompts..."
+                echo "Updating $PROMPTS_DIR_NAME..."
                 (cd "$PROMPTS_DIR" && git pull --ff-only)
             fi
         fi
+
+        # Verify external/prompts symlink resolves (symlink is version-controlled)
+        verify_symlink
+
         # In worktrees, create a symlink in the parent directory pointing to the real prompts
-        # This allows the version-controlled relative symlink (../../ag-charts-prompts) to work
+        # This allows the version-controlled relative symlink to work
         if is_worktree; then
             local worktree_parent
             worktree_parent=$(dirname "$(pwd)")
-            local parent_prompts_link="$worktree_parent/ag-charts-prompts"
+            local parent_prompts_link="$worktree_parent/$PROMPTS_DIR_NAME"
             local real_prompts
             real_prompts=$(cd "$PROMPTS_DIR" && pwd)
 
@@ -129,7 +160,8 @@ main() {
                 fi
             fi
         fi
-        # Run the actual setup script
+
+        # Run the actual setup script from the prompts repo
         "$PROMPTS_DIR/setup-prompts.sh"
         return 0
     fi
@@ -142,19 +174,23 @@ main() {
 
     # Check repo access before offering to clone
     if ! has_repo_access; then
-        echo "Skipping prompts setup (no access to ag-charts-prompts repo)"
+        echo "Skipping prompts setup (no access to $PROMPTS_DIR_NAME repo)"
         return 0
     fi
 
-    echo "ag-charts-prompts not found at $PROMPTS_DIR"
+    echo "$PROMPTS_DIR_NAME not found at $PROMPTS_DIR"
     if prompt_yes_no "Clone it now?"; then
-        echo "Cloning ag-charts-prompts..."
+        echo "Cloning $PROMPTS_DIR_NAME..."
         git clone "$PROMPTS_REPO" "$PROMPTS_DIR"
+
+        # Verify external/prompts symlink resolves (symlink is version-controlled)
+        verify_symlink
+
         # In worktrees, create parent symlink (same logic as above)
         if is_worktree; then
             local worktree_parent
             worktree_parent=$(dirname "$(pwd)")
-            local parent_prompts_link="$worktree_parent/ag-charts-prompts"
+            local parent_prompts_link="$worktree_parent/$PROMPTS_DIR_NAME"
             local real_prompts
             real_prompts=$(cd "$PROMPTS_DIR" && pwd)
             if [[ ! -e "$parent_prompts_link" ]]; then
@@ -162,6 +198,7 @@ main() {
                 ln -sf "$real_prompts" "$parent_prompts_link"
             fi
         fi
+
         "$PROMPTS_DIR/setup-prompts.sh"
     else
         echo "Skipping prompts setup"

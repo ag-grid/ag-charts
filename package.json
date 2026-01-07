@@ -17,7 +17,7 @@
     "postinstall:nx-daemon-reset-metadata": "(test -e .nx/workspace-data/ && rm -rf .nx/workspace-data/) || echo \"Nx workspace not found\"",
     "postinstall:plugin-build": "nx run-many -p tag:plugin -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
-    "postinstall:setup-prompts": "./tools/setup-prompts.sh"
+    "postinstall:setup-prompts": "./external/ag-shared/scripts/setup-prompts/setup-prompts.sh"
   },
   "private": true,
   "engines": {
