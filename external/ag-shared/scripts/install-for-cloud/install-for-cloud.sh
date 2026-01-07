@@ -159,6 +159,41 @@ symlink_nx_cache() {
     fi
 }
 
+# Try to symlink node_modules from root worktree if lockfiles match
+# Returns 0 if symlink was created, 1 if fallback to install needed
+try_symlink_node_modules() {
+    if ! is_claude_worktree; then
+        return 1
+    fi
+
+    local root_path
+    root_path=$(get_root_worktree_path)
+
+    if [ ! -d "${root_path}/node_modules" ]; then
+        log_info "Root worktree node_modules not found, falling back to install"
+        return 1
+    fi
+
+    if [ ! -f "${root_path}/yarn.lock" ]; then
+        log_info "Root worktree yarn.lock not found, falling back to install"
+        return 1
+    fi
+
+    if ! diff -q "${root_path}/yarn.lock" ./yarn.lock &>/dev/null; then
+        log_info "yarn.lock differs from root worktree, falling back to install"
+        return 1
+    fi
+
+    log_info "yarn.lock matches root worktree, symlinking node_modules"
+    if ln -s "${root_path}/node_modules" ./node_modules; then
+        log_info "Successfully symlinked node_modules from ${root_path}"
+        return 0
+    else
+        log_error "Failed to symlink node_modules"
+        return 1
+    fi
+}
+
 # Function to install/update dependencies when node_modules exists
 install_dependencies() {
     log_info "Checking dependency integrity"
@@ -192,6 +227,9 @@ main() {
         if ! install_dependencies; then
             exit 2
         fi
+    elif try_symlink_node_modules; then
+        # Successfully symlinked node_modules from root worktree
+        log_info "Using symlinked node_modules, skipping install"
     else
         log_info "node_modules directory not found, performing fresh install"
         if ! install_yarn; then
