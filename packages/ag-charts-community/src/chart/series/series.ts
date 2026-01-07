@@ -71,6 +71,7 @@ import type {
     DatumIndexType,
     INodeEvent,
     ISeries,
+    ItemId,
     NodeDataDependencies,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
@@ -644,6 +645,8 @@ export abstract class Series<
 
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
+
+    abstract findNodeDatum(itemId: ItemId): TDatum | undefined;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {

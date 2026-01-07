@@ -166,10 +166,11 @@ export type {
     DatumIndexType,
     ErrorBoundSeriesNodeDatum,
     ISeries,
+    ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
-export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices } from './chart/series/util';
+export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {
     AbstractBarSeriesAnimationData,

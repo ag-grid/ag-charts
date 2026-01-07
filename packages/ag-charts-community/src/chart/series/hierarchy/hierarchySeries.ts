@@ -9,9 +9,10 @@ import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import { createDatumId } from '../../data/processors';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
-import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
 import {
     HierarchyHighlightState,
     type HierarchySeriesProperties,
@@ -49,6 +50,7 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 
     constructor(
         public readonly series: ISeries<any, any, any>,
+        public readonly itemId: ItemId,
         public readonly datumIndex: number[],
         public readonly datum: TDatum | undefined,
         public readonly sizeValue: number,
@@ -66,9 +68,9 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
         return this.children.length > 0;
     }
 
-    walk(callback: (node: This) => void, order = HierarchyNode.Walk.PreOrder) {
+    walk(callback: (node: This | typeof this) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
-            callback(this as any as This);
+            callback(this);
         }
 
         for (const child of this.children) {
@@ -76,8 +78,21 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
         }
 
         if (order === HierarchyNode.Walk.PostOrder) {
-            callback(this as any as This);
+            callback(this);
         }
+    }
+
+    find(predicate: (node: This | typeof this) => boolean): This | typeof this | undefined {
+        if (predicate(this)) {
+            return this;
+        }
+        for (const child of this.children) {
+            const childResult = child.find(predicate);
+            if (childResult != undefined) {
+                return childResult;
+            }
+        }
+        return undefined;
     }
 
     *[Symbol.iterator](): Iterator<This> {
@@ -190,7 +205,19 @@ export abstract class HierarchySeries<
 
             const style = this.getItemStyle({ datumIndex: indexPath, datum, depth, colorValue }, isLeaf, false);
             return appendChildren(
-                new NodeClass(this, indexPath, datum, sizeValue, colorValue, sumSize, depth, parent, [], style),
+                new NodeClass(
+                    this,
+                    createDatumId(indexPath.join(';')),
+                    indexPath,
+                    datum,
+                    sizeValue,
+                    colorValue,
+                    sumSize,
+                    depth,
+                    parent,
+                    [],
+                    style
+                ),
                 children
             );
         };
@@ -208,7 +235,7 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new NodeClass(this, [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
+            new NodeClass(this, 'root', [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
             this.data?.data
         );
 
@@ -279,6 +306,10 @@ export abstract class HierarchySeries<
         if (!this.isProcessedDataAnimatable()) {
             this.ctx.animationManager.skipCurrentBatch();
         }
+    }
+
+    override findNodeDatum(itemId: ItemId): TNodeClass | undefined {
+        return this.rootNode?.find((n) => n.itemId === itemId);
     }
 
     override dataCount(): number {
