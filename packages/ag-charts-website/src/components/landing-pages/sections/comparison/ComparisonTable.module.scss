@@ -211,6 +211,7 @@
 
     &:hover {
         background: color-mix(in srgb, var(--color-bg-tertiary), var(--color-bg-secondary) 50%);
+        color: var(--color-link);
     }
 
     &.expanded .expandIcon {
