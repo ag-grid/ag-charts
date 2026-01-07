@@ -48,6 +48,31 @@ let country = 'Spain';
 let year = '2010';
 let frozen = false;
 
+const SERIES_ID_MAP = {
+    Spain: 'LineSeries-1',
+    UK: 'LineSeries-2',
+    Ireland: 'LineSeries-3',
+    France: 'LineSeries-4',
+    Germany: 'LineSeries-5',
+}
+const ITEM_ID_MAP = {
+    '2010': '0',
+    '2011': '1',
+    '2012': '2',
+    '2013': '3',
+    '2014': '4',
+    '2015': '5',
+    '2016': '6',
+    '2017': '7',
+    '2018': '8',
+    '2019': '9',
+    '2020': '10',
+    '2021': '11',
+    '2022': '12',
+    '2023': '13',
+    '2024': '14',
+}
+
 function onCountryChange(value: string): void {
     country = value;
 }
@@ -58,6 +83,18 @@ function onYearChange(value: string): void {
 
 function onFreezeChange(checked: boolean): void {
     frozen = checked;
+}
+
+function onSetState(): void {
+    chart.setState({
+        picked: {
+            activeItem: {
+                seriesId: SERIES_ID_MAP[country],
+                itemId: ITEM_ID_MAP[year],
+            },
+            frozen,
+        }
+    });
 }
 
 function onGetState(): void {
