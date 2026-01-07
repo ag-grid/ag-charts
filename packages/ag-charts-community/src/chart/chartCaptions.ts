@@ -60,7 +60,11 @@ export class ChartCaptions {
     }
 
     private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
-        if (!caption.text) return;
+        if (!caption.text) {
+            caption.node.visible = false;
+            return;
+        }
+        caption.node.visible = true;
         const { lineMetrics } = isArray(caption.text)
             ? measureTextSegments(caption.text, caption)
             : cachedTextMeasurer(caption).measureLines(toTextString(caption.text));
@@ -72,6 +76,7 @@ export class ChartCaptions {
     }
 
     private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
+        if (!caption.text) return;
         if (caption.layoutStyle === 'block') {
             const bbox = caption.node.getBBox().clone();
             const { spacing = 0 } = caption;
