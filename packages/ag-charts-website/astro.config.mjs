@@ -79,6 +79,10 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
+    experimental: {
+        // Prepare for Astro 6
+        preserveScriptOrder: true,
+    },
     devToolbar: {
         enabled: false,
     },
