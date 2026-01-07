@@ -25,6 +25,16 @@ export interface SeriesVisibilityState {
 }
 
 /**
+ * Wait for async event-triggered chart update.
+ * Yields to the event loop before waiting for the chart update,
+ * ensuring dispatched events are processed.
+ */
+async function waitForAsyncEventTriggeredUpdate(chart: AgChartInstance): Promise<void> {
+    await new Promise((r) => setTimeout(r, 0));
+    await chart.waitForUpdate();
+}
+
+/**
  * Dispatch a scroll/wheel event to trigger zoom (matches Jest benchmark approach)
  */
 export function scroll(
@@ -56,7 +66,9 @@ export function scroll(
     Object.defineProperty(event, 'offsetY', { value: y, writable: false });
     Object.defineProperty(event, 'pageX', { value: clientX, writable: false });
     Object.defineProperty(event, 'pageY', { value: clientY, writable: false });
-    element.dispatchEvent(event);
+    const result = element.dispatchEvent(event);
+
+    if (!result) throw new Error('wheel event not consumed?');
 }
 
 /**
@@ -202,11 +214,7 @@ export async function performZoom<T extends AgChartOptions>(
     count: number
 ): Promise<number> {
     // Recreate chart before zoom (like Jest beforeEach) - NOT timed
-    if (chartRef.current) {
-        chartRef.current.destroy();
-        chartRef.current = null;
-    }
-    chartRef.current = createFn(options);
+    chartRef.current ??= createFn(options);
     await chartRef.current.waitForUpdate();
 
     const width = container.clientWidth;
@@ -214,10 +222,15 @@ export async function performZoom<T extends AgChartOptions>(
 
     // Time only the zoom operations
     const start = performance.now();
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count / 2; i++) {
         // Dispatch wheel event to trigger zoom (matches Jest benchmark approach)
         scroll(container, width / 2, height / 2, -1, 1); // deltaMode=1 for lines
-        await chartRef.current.waitForUpdate();
+        await waitForAsyncEventTriggeredUpdate(chartRef.current);
+    }
+    for (let i = 0; i < count / 2; i++) {
+        // Dispatch wheel event to trigger zoom (matches Jest benchmark approach)
+        scroll(container, width / 2, height / 2, 1, 1); // deltaMode=1 for lines
+        await waitForAsyncEventTriggeredUpdate(chartRef.current);
     }
     return performance.now() - start;
 }
@@ -252,7 +265,7 @@ export async function performLegendToggle(
         }));
 
         await chart.updateDelta({ series: updatedSeries as any });
-        await chart.waitForUpdate();
+        await waitForAsyncEventTriggeredUpdate(chart);
     }
 
     return performance.now() - start;
@@ -278,15 +291,12 @@ export async function performDatumHighlight(
     const start = performance.now();
 
     for (let i = 0; i < count; i++) {
-        // Simulate hover at different positions across the chart
-        const x = rect.left + (width * 0.1 + width * 0.9) * (i / count);
-        const y = rect.top + height * 0.5;
+        // Simulate hover at different positions across the chart (element-relative coordinates)
+        const x = width * 0.1 + width * 0.8 * (i / count);
+        const y = height * 0.5;
 
-        await hover(container, x, y);
-
-        // Small delay to allow rendering
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        await chart.waitForUpdate();
+        hover(container, x, y);
+        await waitForAsyncEventTriggeredUpdate(chart);
     }
 
     // Clear highlight
@@ -316,7 +326,7 @@ export async function performAppend<T>(
 
     const start = performance.now();
     await chart.applyTransaction({ add: newItems });
-    await chart.waitForUpdate();
+    await waitForAsyncEventTriggeredUpdate(chart);
     return performance.now() - start;
 }
 
@@ -338,7 +348,7 @@ export async function performRemove<T>(
 
     const start = performance.now();
     await chart.applyTransaction({ remove: itemsToRemove });
-    await chart.waitForUpdate();
+    await waitForAsyncEventTriggeredUpdate(chart);
     return performance.now() - start;
 }
 
@@ -369,6 +379,6 @@ export async function performRollingWindow<T>(
     } else {
         await chart.updateDelta({ data: dataRef.data });
     }
-    await chart.waitForUpdate();
+    await waitForAsyncEventTriggeredUpdate(chart);
     return performance.now() - start;
 }
