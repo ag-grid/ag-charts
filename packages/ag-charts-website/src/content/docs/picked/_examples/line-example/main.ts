@@ -48,11 +48,11 @@ let country = 'Spain';
 let year = '2010';
 let frozen = false;
 
-function updateCountry(value: string): void {
+function onCountryChange(value: string): void {
     country = value;
 }
 
-function updateYear(value: string): void {
+function onYearChange(value: string): void {
     year = value;
 }
 
