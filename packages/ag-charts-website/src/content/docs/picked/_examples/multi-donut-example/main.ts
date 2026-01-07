@@ -42,6 +42,6 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function logState(): void {
+function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }

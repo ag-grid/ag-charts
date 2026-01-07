@@ -60,6 +60,6 @@ function onFreezeChange(checked: boolean): void {
     frozen = checked;
 }
 
-function logState(): void {
+function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }
