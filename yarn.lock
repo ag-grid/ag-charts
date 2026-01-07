@@ -2,6 +2,31 @@
 # yarn lockfile v1
 
 
+"@ai-sdk/gateway@2.0.24":
+  version "2.0.24"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/gateway/-/gateway-2.0.24.tgz#6b02cb1bb4dac96efd5c6b52eb73ea4aec44d379"
+  integrity sha512-mflk80YF8hj8vrF9e1IHhovGKC1ubX+sY88pesSk3pUiXfH5VPO8dgzNnxjwsqsCZrnkHcztxS5cSl4TzSiEuA==
+  dependencies:
+    "@ai-sdk/provider" "2.0.1"
+    "@ai-sdk/provider-utils" "3.0.20"
+    "@vercel/oidc" "3.0.5"
+
+"@ai-sdk/provider-utils@3.0.20":
+  version "3.0.20"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/provider-utils/-/provider-utils-3.0.20.tgz#61d7741065550833eae3ac6440d943e9d3d25120"
+  integrity sha512-iXHVe0apM2zUEzauqJwqmpC37A5rihrStAih5Ks+JE32iTe4LZ58y17UGBjpQQTCRw9YxMeo2UFLxLpBluyvLQ==
+  dependencies:
+    "@ai-sdk/provider" "2.0.1"
+    "@standard-schema/spec" "^1.0.0"
+    eventsource-parser "^3.0.6"
+
+"@ai-sdk/provider@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/provider/-/provider-2.0.1.tgz#4aba415f1815da33a7a81e5f41a0219af53278c0"
+  integrity sha512-KCUwswvsC5VsW2PWFqF8eJgSCu5Ysj7m1TxiHTVA6g7k360bk0RNQENT8KTMAYEs+8fWPD3Uu4dEmzGHc+jGng==
+  dependencies:
+    json-schema "^0.4.0"
+
 "@algolia/cache-browser-local-storage@4.21.0":
   version "4.21.0"
   resolved "https://registry.yarnpkg.com/@algolia/cache-browser-local-storage/-/cache-browser-local-storage-4.21.0.tgz#f79c2367d7cf76473acbf84173cbd2395aff712b"
@@ -2580,7 +2605,7 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@babel/runtime@^7.1.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.22.6", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.2", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.6", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.12.5", "@babel/runtime@^7.22.6", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.2", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.6", "@babel/runtime@^7.8.4":
   version "7.23.6"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.23.6.tgz#c05e610dc228855dc92ef1b53d07389ed8ab521d"
   integrity sha512-zHd0eUrf5GZoOWVCXp6koAKQTfZV07eit6bGPmJgnZdnSAvvZee6zniW2XMF7Cmc4ISOOnPy3QaSiIJGJkVEDQ==
@@ -2600,6 +2625,11 @@
   integrity sha512-VtPOkrdPHZsKc/clNqyi9WUA8TINkZ4cGk63UUE3u4pmB2k+ZMQRDuIOagv8UVd6j7k0T3+RRIb7beKTebNbcw==
   dependencies:
     regenerator-runtime "^0.14.0"
+
+"@babel/runtime@^7.27.6":
+  version "7.28.4"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.4.tgz#a70226016fabe25c5783b2f22d3e1c9bc5ca3326"
+  integrity sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==
 
 "@babel/template@^7.22.15", "@babel/template@^7.3.3":
   version "7.22.15"
@@ -5584,6 +5614,11 @@
   resolved "https://registry.yarnpkg.com/@oozcitak/util/-/util-8.3.8.tgz#10f65fe1891fd8cde4957360835e78fd1936bfdd"
   integrity sha512-T8TbSnGsxo6TDBJx/Sgv/BlVJL3tshxZP7Aq5R1mSnM5OcHY2dQaxLMu2+E8u3gN0MLOzdjurqN4ZRVuzQycOQ==
 
+"@opentelemetry/api@1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
+  integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
+
 "@oslojs/encoding@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@oslojs/encoding/-/encoding-1.1.0.tgz#55f3d9a597430a01f2a5ef63c6b42f769f9ce34e"
@@ -6481,6 +6516,11 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
+"@standard-schema/spec@^1.0.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"
+  integrity sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==
+
 "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-8.0.0.tgz#4001f5d5dd87fa13303e36ee106e3ff3a7eb8b22"
@@ -7013,10 +7053,10 @@
     "@types/minimatch" "^5.1.2"
     "@types/node" "*"
 
-"@types/google.maps@^3.45.3":
-  version "3.55.4"
-  resolved "https://registry.yarnpkg.com/@types/google.maps/-/google.maps-3.55.4.tgz#66860b5ed623edabcc42f8f7a743584fe60225be"
-  integrity sha512-Ip3IfRs3RZjeC88V8FGnWQTQXeS5gkJedPSosN6DMi9Xs8buGTpsPq6UhREoZsGH+62VoQ6jiRBUR8R77If69w==
+"@types/google.maps@^3.55.12":
+  version "3.58.1"
+  resolved "https://registry.yarnpkg.com/@types/google.maps/-/google.maps-3.58.1.tgz#71ce3dec44de1452f56641d2c87c7dd8ea964b4d"
+  integrity sha512-X9QTSvGJ0nCfMzYOnaVs/k6/4L+7F5uCS+4iUmkLEls6J9S/Phv+m/i3mDeyc49ZBgwab3EFO1HEoBY7k98EGQ==
 
 "@types/graceful-fs@^4.1.3":
   version "4.1.9"
@@ -7639,6 +7679,11 @@
     "@modelcontextprotocol/sdk" "^1.12.0"
     commander "^14.0.0"
     zod "^3.24.2"
+
+"@vercel/oidc@3.0.5":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@vercel/oidc/-/oidc-3.0.5.tgz#bd8db7ee777255c686443413492db4d98ef49657"
+  integrity sha512-fnYhv671l+eTTp48gB4zEsTW/YtRgRPnkI2nT7x6qw5rkI1Lq2hTmQIpHPgyThI0znLK+vX2n9XxKdXZ7BUbbw==
 
 "@vitejs/plugin-basic-ssl@1.1.0":
   version "1.1.0"
@@ -8296,6 +8341,16 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
+ai@^5.0.18:
+  version "5.0.118"
+  resolved "https://registry.yarnpkg.com/ai/-/ai-5.0.118.tgz#c56676c5561aba7a9b7885d04ab55be3a57047e5"
+  integrity sha512-sKJHfhJkvAyq5NC3yJJ4R8Z3tn4pSHF760/jInKAtmLwPLWTHfGo293DSO4un8QUAgJOagHd09VSXOXv+STMNQ==
+  dependencies:
+    "@ai-sdk/gateway" "2.0.24"
+    "@ai-sdk/provider" "2.0.1"
+    "@ai-sdk/provider-utils" "3.0.20"
+    "@opentelemetry/api" "1.9.0"
+
 ajv-draft-04@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/ajv-draft-04/-/ajv-draft-04-1.0.0.tgz#3b64761b268ba0b9e668f0b41ba53fce0ad77fc8"
@@ -8357,17 +8412,10 @@ ajv@^6.12.3, ajv@^6.12.4, ajv@^6.12.5, ajv@^6.12.6:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-algoliasearch-helper@3.14.0:
-  version "3.14.0"
-  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.14.0.tgz#2409c2591952719ab6fba1de77b3bbe5094ab85e"
-  integrity sha512-gXDXzsSS0YANn5dHr71CUXOo84cN4azhHKUbg71vAWnH+1JBiR4jf7to3t3JHXknXkbV0F7f055vUSBKrltHLQ==
-  dependencies:
-    "@algolia/events" "^4.0.1"
-
-algoliasearch-helper@3.16.3:
-  version "3.16.3"
-  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.16.3.tgz#38c3a18e278306f565823cc7f3dd706825b4bfb9"
-  integrity sha512-1OuJT6sONAa9PxcOmWo5WCAT3jQSpCR9/m5Azujja7nhUQwAUDvaaAYrcmUySsrvHh74usZHbE3jFfGnWtZj8w==
+algoliasearch-helper@3.27.0:
+  version "3.27.0"
+  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.27.0.tgz#987c18b715ed0ecb303711feaa14335e5b8516e1"
+  integrity sha512-eNYchRerbsvk2doHOMfdS1/B6Tm70oGtu8mzQlrNzbCeQ8p1MjCW8t/BL6iZ5PD+cL5NNMgTMyMnmiXZ1sgmNw==
   dependencies:
     "@algolia/events" "^4.0.1"
 
@@ -9631,7 +9679,7 @@ cjs-module-lexer@^1.0.0:
   resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.2.3.tgz#6c370ab19f8a3394e318fe682686ec0ac684d107"
   integrity sha512-0TNiGstbQmCFwt4akjjBg5pLRTSyj/PkWQ1ZoO2zntmg9yLqSRxwEa4iCfQLGjqhiqBfOJa7W/E8wfGrTDmlZQ==
 
-classnames@^2.2.5, classnames@^2.3.2:
+classnames@^2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
   integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
@@ -11825,6 +11873,11 @@ eventsource-parser@^3.0.0, eventsource-parser@^3.0.1:
   resolved "https://registry.yarnpkg.com/eventsource-parser/-/eventsource-parser-3.0.3.tgz#e9af1d40b77e6268cdcbc767321e8b9f066adea8"
   integrity sha512-nVpZkTMM9rF6AQ9gPJpFsNAMt48wIzB5TQgiTLdHiuO8XEDhUgZEhqKlZWXbIzo9VmJ/HvysHqEaVeD5v9TPvA==
 
+eventsource-parser@^3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/eventsource-parser/-/eventsource-parser-3.0.6.tgz#292e165e34cacbc936c3c92719ef326d4aeb4e90"
+  integrity sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==
+
 eventsource@^3.0.2:
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/eventsource/-/eventsource-3.0.7.tgz#1157622e2f5377bb6aef2114372728ba0c156989"
@@ -13599,30 +13652,38 @@ inline-style-parser@0.2.2:
   resolved "https://registry.yarnpkg.com/inline-style-parser/-/inline-style-parser-0.2.2.tgz#d498b4e6de0373458fc610ff793f6b14ebf45633"
   integrity sha512-EcKzdTHVe8wFVOGEYXiW9WmJXPjqi1T+234YpJr98RiFYKHV3cdy1+3mkTE+KHTHxFFLH51SfaGOoUdW+v7ViQ==
 
-instantsearch-ui-components@0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/instantsearch-ui-components/-/instantsearch-ui-components-0.4.0.tgz#0aabc136107b1adac42bbb93c6dc3cfb1942b24e"
-  integrity sha512-Isa9Ankm89e9PUXsUto6TxYzcQpXKlWZMsKLXc//dO4i9q5JS8s0Es+c+U65jRLK2j1DiVlNx/Z6HshRIZwA8w==
+instantsearch-ui-components@0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/instantsearch-ui-components/-/instantsearch-ui-components-0.16.0.tgz#4105885c2bc1e7d77c6a9b05e29e4f2397a82f6d"
+  integrity sha512-3CoUlEqiFgQ1cd/y90aPi355JVMY757XSrpojC1m8blLPW0nokx4AwH723dHUGU2MtvI0U49dB2F5EGUS0FZkA==
   dependencies:
-    "@babel/runtime" "^7.1.2"
+    "@babel/runtime" "^7.27.6"
+    ai "^5.0.18"
+    markdown-to-jsx "^7.7.15"
+    zod "^3.25.76 || ^4"
+    zod-to-json-schema "3.24.6"
 
-instantsearch.js@4.66.0:
-  version "4.66.0"
-  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.66.0.tgz#86107edd260918cb498d9a9d4d8ba60fd745a55a"
-  integrity sha512-85HVTVBfO0QUBPfbCx2wPE9wEsnWQqWl8IHEOni4567IhH//CwbWv8PwHhT7rBrxSCHsxrgnMTe5dFMz7yc+/A==
+instantsearch.js@4.86.1:
+  version "4.86.1"
+  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.86.1.tgz#eb6a608e84324f96a2e9a2cf6830023416a20675"
+  integrity sha512-ETazkxnWj3aOsHgQem1JQ4roqhfpkA32CZEW+ccP+rQqSbO4sCEEMJTy1A1BMiTD1iCoBFWD+x+8Bx73DOm/Gg==
   dependencies:
     "@algolia/events" "^4.0.1"
     "@types/dom-speech-recognition" "^0.0.1"
-    "@types/google.maps" "^3.45.3"
+    "@types/google.maps" "^3.55.12"
     "@types/hogan.js" "^3.0.0"
     "@types/qs" "^6.5.3"
-    algoliasearch-helper "3.16.3"
+    ai "^5.0.18"
+    algoliasearch-helper "3.27.0"
     hogan.js "^3.0.2"
     htm "^3.0.0"
-    instantsearch-ui-components "0.4.0"
+    instantsearch-ui-components "0.16.0"
     preact "^10.10.0"
-    qs "^6.5.1 < 6.10"
-    search-insights "^2.13.0"
+    qs "^6.5.1"
+    react ">= 0.14.0"
+    search-insights "^2.17.2"
+    zod "^3.25.76 || ^4"
+    zod-to-json-schema "3.24.6"
 
 internal-slot@^1.0.5:
   version "1.0.6"
@@ -14884,7 +14945,7 @@ json-schema-traverse@^1.0.0:
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz#ae7bcb3656ab77a73ba5c49bf654f38e6b6860e2"
   integrity sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==
 
-json-schema@0.4.0:
+json-schema@0.4.0, json-schema@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.4.0.tgz#f7de4cf6efab838ebaeb3236474cbba5a1930ab5"
   integrity sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==
@@ -15505,6 +15566,11 @@ markdown-table@^3.0.0:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/markdown-table/-/markdown-table-3.0.3.tgz#e6331d30e493127e031dd385488b5bd326e4a6bd"
   integrity sha512-Z1NL3Tb1M9wH4XESsCDEksWoKTdlUafKc4pt0GRwjUyXaCFZ+dc3g2erqB6zm3szA2IUSi7VnPI+o/9jnxh9hw==
+
+markdown-to-jsx@^7.7.15:
+  version "7.7.17"
+  resolved "https://registry.yarnpkg.com/markdown-to-jsx/-/markdown-to-jsx-7.7.17.tgz#6e997d6aa4dbe2e69c423c65745541846777483c"
+  integrity sha512-7mG/1feQ0TX5I7YyMZVDgCC/y2I3CiEhIRQIhyov9nGBP5eoVrOXXHuL5ZP8GRfxVZKRiXWJgwXkb9It+nQZfQ==
 
 match-sorter@^6.0.2:
   version "6.3.1"
@@ -18151,7 +18217,7 @@ prompts@2.4.2, prompts@^2.0.1, prompts@^2.4.2:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.5.10, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@^15.5.10, prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -18299,10 +18365,12 @@ qs@^6.14.0:
   dependencies:
     side-channel "^1.1.0"
 
-"qs@^6.5.1 < 6.10":
-  version "6.9.7"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.7.tgz#4610846871485e1e048f44ae3b94033f0e675afe"
-  integrity sha512-IhMFgUmuNpyRfxA90umL7ByLlgRXu6tIfKPpF5TmcfRLlLCckfP/g3IQmju6jjpu+Hh8rA+2p6A27ZSPOOHdKw==
+qs@^6.5.1:
+  version "6.14.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.14.1.tgz#a41d85b9d3902f31d27861790506294881871159"
+  integrity sha512-4EK3+xJl8Ts67nLYNwqw/dsFVnCf+qR7RgXSK9jEEm9unao3njwMDdmsdvoKBKHzxd7tCYz5e5M+SnMjdtXGQQ==
+  dependencies:
+    side-channel "^1.1.0"
 
 qs@~6.5.2:
   version "6.5.3"
@@ -18430,57 +18498,33 @@ react-dom@^18.2.0:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
 
-react-fast-compare@^3.0.0:
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.2.tgz#929a97a532304ce9fee4bcae44234f1ce2c21d49"
-  integrity sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==
-
 react-hook-form@^7.62.0:
   version "7.64.0"
   resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.64.0.tgz#7820961b773d0b4706baa506e8aa53a0e904b6f7"
   integrity sha512-fnN+vvTiMLnRqKNTVhDysdrUay0kUUAymQnFIznmgDvapjveUWOOPqMNzPg+A+0yf9DuE2h6xzBjN1s+Qx8wcg==
 
-react-instantsearch-core@6.40.4:
-  version "6.40.4"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-6.40.4.tgz#74feaa94436a20df91febe64b7d8ef0f7b3e657a"
-  integrity sha512-sEOgRU2MKL8edO85sNHvKlZ5yq9OFw++CDsEqYpHJvbWLE/2J2N49XAUY90kior09I2kBkbgowBbov+Py1AubQ==
+react-instantsearch-core@7.22.1:
+  version "7.22.1"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.22.1.tgz#92cffbfa5c661b55d546ffc2284416bca364671b"
+  integrity sha512-fumuQbLKzEnZ3pX9LHXCbxfol8OiStWa63ujDin9SMb2k6cCMXbkuRC/eRe1EDLYPSfkVAKV+r6elOwT6fTVYQ==
   dependencies:
-    "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "3.14.0"
-    prop-types "^15.6.2"
-    react-fast-compare "^3.0.0"
-
-react-instantsearch-core@7.7.0:
-  version "7.7.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.7.0.tgz#a29d34ccf1b7b05a211a6396848ddf660b855be8"
-  integrity sha512-omUwh5JoYBOn/aa7iNtyD7t3FkJqcyscWdKaJ6VStsdAt1biDZQPpYkTG5xyZiSQ2mht99GqMm1OY1VM+zDumg==
-  dependencies:
-    "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "3.16.3"
-    instantsearch.js "4.66.0"
+    "@babel/runtime" "^7.27.6"
+    ai "^5.0.18"
+    algoliasearch-helper "3.27.0"
+    instantsearch.js "4.86.1"
     use-sync-external-store "^1.0.0"
+    zod "^3.25.76 || ^4"
+    zod-to-json-schema "3.24.6"
 
-react-instantsearch-dom@^6.40.1:
-  version "6.40.4"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-dom/-/react-instantsearch-dom-6.40.4.tgz#9e56bb66626a66da523bd343e2cb5cd6362efbe4"
-  integrity sha512-Oy8EKEOg/dfTE8tHc7GZRlzUdbZY4Mxas1x2OtvSNui+YAbIWafIf1g98iOGyVTB2qI5WH91YyUJTLPNfLrs6Q==
+react-instantsearch@^7.22.1:
+  version "7.22.1"
+  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.22.1.tgz#7ce1b09d0765db291d480851eee24a0d3a705647"
+  integrity sha512-sTZ8z2JcSyveP0RmClmP9KFkJMQ9ZZmZKI05uSmfx7fP21N8Ry9CCyn2EvalGFm2gTPaB7VMFZrC9q7HXvG9wA==
   dependencies:
-    "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "3.14.0"
-    classnames "^2.2.5"
-    prop-types "^15.6.2"
-    react-fast-compare "^3.0.0"
-    react-instantsearch-core "6.40.4"
-
-react-instantsearch@^7.7.0:
-  version "7.7.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.7.0.tgz#b535fb7fa17c932a762433ce1649b27e7de2634f"
-  integrity sha512-WDHPkmCiXxaWlgeuxcT6PKxs/xr27DO40dZZGh3Psai6/1M/BT8y4M0vLJ46gZoiQID6SfbVFKpUd2yRZznO4w==
-  dependencies:
-    "@babel/runtime" "^7.1.2"
-    instantsearch-ui-components "0.4.0"
-    instantsearch.js "4.66.0"
-    react-instantsearch-core "7.7.0"
+    "@babel/runtime" "^7.27.6"
+    instantsearch-ui-components "0.16.0"
+    instantsearch.js "4.86.1"
+    react-instantsearch-core "7.22.1"
 
 react-is@^16.13.1:
   version "16.13.1"
@@ -18568,6 +18612,11 @@ react-textarea-autosize@~8.5.7:
     "@babel/runtime" "^7.20.13"
     use-composed-ref "^1.3.0"
     use-latest "^1.2.1"
+
+"react@>= 0.14.0":
+  version "19.2.3"
+  resolved "https://registry.yarnpkg.com/react/-/react-19.2.3.tgz#d83e5e8e7a258cf6b4fe28640515f99b87cd19b8"
+  integrity sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==
 
 react@^18.0.0:
   version "18.3.1"
@@ -19491,10 +19540,10 @@ scslre@0.3.0:
     refa "^0.12.0"
     regexp-ast-analysis "^0.7.0"
 
-search-insights@^2.13.0:
-  version "2.13.0"
-  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.13.0.tgz#a79fdcf4b5dad2fba8975b06f2ebc37a865032b7"
-  integrity sha512-Orrsjf9trHHxFRuo9/rzm0KIWmgzE8RMlZMzuhZOJ01Rnz3D0YBAe+V6473t6/H6c7irs6Lt48brULAiRWb3Vw==
+search-insights@^2.17.2:
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.17.3.tgz#8faea5d20507bf348caba0724e5386862847b661"
+  integrity sha512-RQPdCYTa8A68uM2jwxoY842xDhvx3E5LFL1LxvxCNMev4o5mLuokczhzjAgGwUZBAmOKZknArSxLKmXtIi2AxQ==
 
 select-hose@^2.0.0:
   version "2.0.0"
@@ -22614,7 +22663,7 @@ yoctocolors@^2.1.1:
   resolved "https://registry.yarnpkg.com/yoctocolors/-/yoctocolors-2.1.1.tgz#e0167474e9fbb9e8b3ecca738deaa61dd12e56fc"
   integrity sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==
 
-zod-to-json-schema@^3.22.4, zod-to-json-schema@^3.24.1:
+zod-to-json-schema@3.24.6, zod-to-json-schema@^3.22.4, zod-to-json-schema@^3.24.1:
   version "3.24.6"
   resolved "https://registry.yarnpkg.com/zod-to-json-schema/-/zod-to-json-schema-3.24.6.tgz#5920f020c4d2647edfbb954fa036082b92c9e12d"
   integrity sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==
@@ -22643,6 +22692,11 @@ zod@^3.24.2:
   version "3.25.56"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.56.tgz#4cff0340b7cd3778314dac1e74d6a663ffeef914"
   integrity sha512-rd6eEF3BTNvQnR2e2wwolfTmUTnp70aUTqr0oaGbHifzC3BKJsoV+Gat8vxUMR1hwOKBs6El+qWehrHbCpW6SQ==
+
+"zod@^3.25.76 || ^4":
+  version "4.3.5"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-4.3.5.tgz#aeb269a6f9fc259b1212c348c7c5432aaa474d2a"
+  integrity sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==
 
 zone.js@~0.14.10:
   version "0.14.10"
