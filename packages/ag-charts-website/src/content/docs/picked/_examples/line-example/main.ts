@@ -46,6 +46,7 @@ const chart = AgCharts.create(options);
 
 let country = 'Spain';
 let year = '2010';
+let frozen = false;
 
 function updateCountry(value: string): void {
     country = value;
@@ -55,9 +56,9 @@ function updateYear(value: string): void {
     year = value;
 }
 
-function freezeHoverFocus(): void {}
-
-function unfreezeHoverFocus(): void {}
+function onFreezeChange(checked: boolean): void {
+    frozen = checked;
+}
 
 function logState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
