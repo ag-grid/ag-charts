@@ -174,7 +174,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     /**
      * A11y Requirements for Tooltip/Highlight (see AG-13051 for details):
      *
-     *   -   When the series-area is blurred, always the mouse to update the tooltip/highlight.
+     *   -   When the series-area is blurred, allow the mouse to update the tooltip/highlight.
      *
      *   -   When the series-area receives a `focus` event, use `:focus-visible` to guess the input device.
      *       (this is decided by the browser).
