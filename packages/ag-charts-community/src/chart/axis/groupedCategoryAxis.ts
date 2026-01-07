@@ -457,18 +457,28 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        let rawTicks: Array<string[]>;
-        if (tickScale.step > MIN_CATEGORY_SPACING) {
-            const tickParams: ScaleTickParams<number> = {
-                nice: [false, false],
-                interval: undefined,
-                tickCount: undefined,
-                minTickCount: 0,
-                maxTickCount: Infinity,
-            };
-            rawTicks = tickScale.ticks(tickParams, undefined, visibleRange).ticks;
-        } else {
-            rawTicks = [];
+        const tickParams: ScaleTickParams<number> = {
+            nice: [false, false],
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+
+        let { ticks: rawTicks } = tickScale.ticks(tickParams, undefined, visibleRange);
+
+        const depthsMap = new Map(
+            rawTicks.map((tickLabel) => {
+                const node = this.tickNodes?.get(tickLabel);
+                const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
+                return [tickLabel, depth];
+            })
+        );
+        const tickDepth = (tickLabel: string[]) => depthsMap.get(tickLabel) ?? maxDepth - 1;
+
+        // If there is not enough space to show all ticks, filter out the leafs.
+        if (tickScale.step < MIN_CATEGORY_SPACING) {
+            rawTicks = rawTicks.filter(tickDepth);
         }
 
         const gridLineData = rawTicks.map(
@@ -487,10 +497,9 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         );
         this.tickLineGroupSelection.update(
             tick.enabled
-                ? rawTicks.map((t, index) => {
+                ? rawTicks.map((tickLabel, index) => {
                       const { tickId, translation: offset } = gridLineData[index];
-                      const node = this.tickNodes?.get(t);
-                      const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
+                      const depth = tickDepth(tickLabel);
 
                       const tickOptions = this.depthOptions[depth]?.tick;
                       let tickSize = depthLabelMaxSize[0];
