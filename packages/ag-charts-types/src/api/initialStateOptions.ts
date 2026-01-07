@@ -49,29 +49,18 @@ export interface AgInitialStateZoomRatio {
     end?: Ratio;
 }
 
-export interface AgPickedSeriesState {
-    /** The unique identifier of the series that is picked in its entirety. */
-    seriesId: string;
-}
-
 export interface AgPickedItemsState {
     /** The unique identifier of the series that this picked datum belongs to. */
     seriesId: string;
     /** The unique identifier of the picked datum. */
-    itemId: string;
+    itemId?: string;
 }
 
 export interface AgPickedState {
     /**
-     * The active picked series datum shapes.
-     *
-     * This is usually `0`, but can be another positive number when tooltip pagination is enabled. The active item corresponds to the item that is currently shown in the tooltip pagination.
+     * The active series datum shape. If the entire series is active, then `itemId` will be set to `undefined`.
      */
-    activeIndex?: number;
-    /** List of series that are picked in their entirety. */
-    series?: AgPickedSeriesState[];
-    /** List of items that are picked individually. If an entire series is picked, then that series will be included in the `series` property. */
-    items?: AgPickedItemsState[];
+    activeItem?: AgPickedItemsState;
     /** The frozen state. When the picked item is frozen, user interactions with the chart will be ignored and not updated the currently picked item. */
     frozen: boolean;
 }
