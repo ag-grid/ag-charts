@@ -91,6 +91,7 @@ function pickedNodesEqual(a: PickedNode, b: PickedNode) {
 }
 
 function getItemId(node: PickedNode): AgPickedItemsState['itemId'] {
+    // FIXME: How to serialise/deserialise datums is still TBD.
     if (node.datum.itemId) return `${node.datum.itemId}`;
     return `${node.datum.datumIndex}`;
 }
