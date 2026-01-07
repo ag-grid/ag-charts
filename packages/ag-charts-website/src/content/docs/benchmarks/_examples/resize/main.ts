@@ -1,7 +1,7 @@
 // @ag-skip-fws
 
 /* @ag-options-extract */
-import { AgCharts, VERSION } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-community';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
