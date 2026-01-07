@@ -20,7 +20,7 @@ log_error() {
 # Uses CLAUDE_PROJECT_DIR (set by Claude Code hooks) or PWD for detection
 is_claude_worktree() {
     local check_path="${CLAUDE_PROJECT_DIR:-$PWD}"
-    [[ "${CLAUDECODE:-}" == "1" ]] && [[ "$check_path" == *".claude-worktrees"* ]]
+    [[ "$check_path" == *".claude-worktrees"* ]]
 }
 
 # Derive the root worktree path from current directory
