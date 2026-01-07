@@ -16,15 +16,40 @@ log_error() {
     echo "[install-for-cloud] ERROR: $*" >&2
 }
 
+# Check if running in a Claude Code worktree (Claude Desktop)
+is_claude_worktree() {
+    [[ "${CLAUDECODE:-}" == "1" ]] && [[ "$PWD" == *".claude-worktrees"* ]]
+}
+
+# Derive the root worktree path from current directory
+# e.g., /path/to/repo/.claude-worktrees/branch-name -> /path/to/repo
+get_root_worktree_path() {
+    if [[ -n "${ROOT_WORKTREE_PATH:-}" ]]; then
+        echo "$ROOT_WORKTREE_PATH"
+    elif [[ "$PWD" == *".claude-worktrees"* ]]; then
+        echo "${PWD%%/.claude-worktrees/*}"
+    else
+        echo "$PWD"
+    fi
+}
+
+# Determine run mode
+RUN_MODE="skip"
 if [ "${AG_CLOUD_INSTALL:-}" == "1" ]; then
     log_info "AG_CLOUD_INSTALL set, initializing environment"
+    RUN_MODE="full"
 elif [ "${AG_CLOUD_INSTALL:-}" == "0" ]; then
     log_info "Disabled by AG_CLOUD_INSTALL, skipping environment initialization"
     exit 0
-elif [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
-    # Check if running in Claude Code remote environment
-    log_info "AG_CLOUD_INSTALL or CLAUDE_CODE_REMOTE not set, skipping environment initialization"
-    exit 1
+elif [ "${CLAUDE_CODE_REMOTE:-}" == "true" ]; then
+    log_info "CLAUDE_CODE_REMOTE set, initializing environment"
+    RUN_MODE="full"
+elif is_claude_worktree; then
+    log_info "Claude Code worktree detected, symlinking nx cache only"
+    RUN_MODE="full"
+else
+    log_info "No cloud/worktree environment detected, skipping initialization"
+    exit 0
 fi
 
 # Ensure we're in the project directory
@@ -106,21 +131,26 @@ EOF
 
 symlink_nx_cache() {
     if [ -d .nx ]; then
+        log_info "nx cache directory already exists, skipping"
         return 0
     fi
-    if [ ! -d ${$ROOT_WORKTREE_PATH:-$PWD}/.nx ]; then
-        log_error "Root worktree .nx directory not found"
+
+    local root_path
+    root_path=$(get_root_worktree_path)
+
+    if [ ! -d "${root_path}/.nx" ]; then
+        log_info "Root worktree .nx directory not found at ${root_path}"
         return 0
     fi
-    
+
     mkdir -p .nx
-    if [ -d ${$ROOT_WORKTREE_PATH}/.nx/cache ]; then
-        log_info "Symlinking nx cache"
-        ln -sf ${$ROOT_WORKTREE_PATH}/.nx/cache .nx/cache
+    if [ -d "${root_path}/.nx/cache" ]; then
+        log_info "Symlinking nx cache from ${root_path}"
+        ln -sf "${root_path}/.nx/cache" .nx/cache
     fi
-    if [ -d ${$ROOT_WORKTREE_PATH}/.nx/workspace-data ]; then
-        log_info "Symlinking nx workspace data"
-        cp -r ${$ROOT_WORKTREE_PATH}/.nx/workspace-data .nx/workspace-data
+    if [ -d "${root_path}/.nx/workspace-data" ]; then
+        log_info "Copying nx workspace data from ${root_path}"
+        cp -r "${root_path}/.nx/workspace-data" .nx/workspace-data
     fi
 }
 
@@ -149,8 +179,9 @@ install_dependencies() {
 
 # Main installation logic
 main() {
-    log_info "Starting installation process"
+    log_info "Starting installation process (mode: ${RUN_MODE})"
 
+    # Full mode: install dependencies, yarn, nx, etc.
     if [ -d node_modules ]; then
         log_info "node_modules directory exists, checking dependencies"
         if ! install_dependencies; then
