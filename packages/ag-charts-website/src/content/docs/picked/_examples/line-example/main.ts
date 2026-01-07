@@ -15,27 +15,27 @@ const options: AgCartesianChartOptions<DatumType> = {
     data: getData(),
     series: [
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'Year',
             yKey: 'Spain',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'Year',
             yKey: 'UK',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'Year',
             yKey: 'Ireland',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'Year',
             yKey: 'France',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'Year',
             yKey: 'Germany',
         },
