@@ -17,19 +17,22 @@ log_error() {
 }
 
 # Check if running in a Claude Code worktree (Claude Desktop)
+# Uses CLAUDE_PROJECT_DIR (set by Claude Code hooks) or PWD for detection
 is_claude_worktree() {
-    [[ "${CLAUDECODE:-}" == "1" ]] && [[ "$PWD" == *".claude-worktrees"* ]]
+    local check_path="${CLAUDE_PROJECT_DIR:-$PWD}"
+    [[ "${CLAUDECODE:-}" == "1" ]] && [[ "$check_path" == *".claude-worktrees"* ]]
 }
 
 # Derive the root worktree path from current directory
 # e.g., /path/to/repo/.claude-worktrees/branch-name -> /path/to/repo
 get_root_worktree_path() {
+    local check_path="${CLAUDE_PROJECT_DIR:-$PWD}"
     if [[ -n "${ROOT_WORKTREE_PATH:-}" ]]; then
         echo "$ROOT_WORKTREE_PATH"
-    elif [[ "$PWD" == *".claude-worktrees"* ]]; then
-        echo "${PWD%%/.claude-worktrees/*}"
+    elif [[ "$check_path" == *".claude-worktrees"* ]]; then
+        echo "${check_path%%/.claude-worktrees/*}"
     else
-        echo "$PWD"
+        echo "$check_path"
     fi
 }
 
