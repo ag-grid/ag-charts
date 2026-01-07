@@ -11,7 +11,11 @@ export {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from './chart/axesOptionsEnterpriseDefs';
-export { standaloneChartOptionsDefs, topologyChartOptionsDefs } from './chart/chartOptionsDefs';
+export {
+    standaloneChartOptionsDefs,
+    topologyChartOptionsDefs,
+    initialStatePickedOptionsDef,
+} from './chart/chartOptionsDefs';
 export {
     annotationCalloutStylesDefs,
     annotationChannelTextDefs,

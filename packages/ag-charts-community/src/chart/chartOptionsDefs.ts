@@ -8,6 +8,7 @@ import {
     geoJson,
     htmlElement,
     object,
+    positiveNumber,
     string,
     undocumented,
     union,
@@ -15,13 +16,30 @@ import {
 import type {
     AgCartesianChartOptions,
     AgInitialStateLegendOptions,
+    AgPickedState,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
+const pickedSeriesStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['series']>> = {
+    seriesId: string,
+};
+
+const pickedItemsStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['items']>> = {
+    seriesId: string,
+    itemId: string,
+};
+
+export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
+    activeIndex: positiveNumber,
+    series: arrayOfDefs(pickedSeriesStateOptionsDef),
+    items: arrayOfDefs(pickedItemsStateOptionsDef),
+    frozen: boolean,
+};
+
 // These options are being validated by other modules
-const commonChartOptions = {
+export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     container: htmlElement,
     context: () => true,
@@ -30,6 +48,7 @@ const commonChartOptions = {
     annotations: defined,
     navigator: defined,
     initialState: {
+        picked: initialStatePickedOptionsDef,
         chartType: string,
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(
