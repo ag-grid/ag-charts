@@ -6,7 +6,7 @@ import {
     validateDependency,
 } from '@nx/devkit';
 import { lstatSync, readdirSync, readlinkSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { dirname, join, relative, resolve } from 'path';
 
 /**
  * Find symlinks in a directory and resolve them to workspace-relative paths.
@@ -26,8 +26,12 @@ function findSymlinkTargets(projectRoot: string): string[] {
                     const linkTarget = readlinkSync(filePath);
                     // Resolve relative to the symlink's directory to get workspace-relative path
                     const resolvedPath = join(dirname(filePath), linkTarget);
-                    // Normalize the path (resolves '..' segments)
-                    const normalizedPath = resolve(resolvedPath).replace(process.cwd() + '/', '');
+                    // Normalize the path (resolves '..' segments) and make workspace-relative
+                    // Use path.relative() for cross-platform compatibility (handles both / and \ separators)
+                    const absolutePath = resolve(resolvedPath);
+                    const workspaceRelativePath = relative(process.cwd(), absolutePath);
+                    // Normalize to forward slashes for Nx inputs
+                    const normalizedPath = workspaceRelativePath.split(/[/\\]/).join('/');
                     symlinks.push(`{workspaceRoot}/${normalizedPath}`);
                 }
             } catch {

@@ -196,15 +196,15 @@ export async function performInitialLoad<T extends AgChartOptions>(
 
 /**
  * Perform zoom benchmark by dispatching wheel events.
- * Recreates the chart before each zoom sequence to match original Jest benchmarks
- * which use beforeEach() to create a fresh chart before each test iteration.
+ * Uses the existing chart from chartRef, or creates one if needed.
+ * Typically called after performInitialLoad which sets up the chart.
  *
- * @param options - Chart options for recreation
- * @param chartRef - Mutable reference to chart instance (will be updated)
+ * @param options - Chart options for creation if needed
+ * @param chartRef - Mutable reference to chart instance (will be created if null)
  * @param createFn - Function to create chart
  * @param container - Chart container element
  * @param count - Number of zoom steps to perform
- * @returns Elapsed time in milliseconds (excludes chart recreation time)
+ * @returns Elapsed time in milliseconds (excludes chart creation time if chart was null)
  */
 export async function performZoom<T extends AgChartOptions>(
     options: T,
@@ -213,7 +213,7 @@ export async function performZoom<T extends AgChartOptions>(
     container: HTMLElement,
     count: number
 ): Promise<number> {
-    // Recreate chart before zoom (like Jest beforeEach) - NOT timed
+    // Ensure chart exists (typically already created by performInitialLoad) - NOT timed
     chartRef.current ??= createFn(options);
     await chartRef.current.waitForUpdate();
 
