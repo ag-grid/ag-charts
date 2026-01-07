@@ -146,16 +146,16 @@ export function getItemStyles<TNodeDatum, TStyle>(
     return result;
 }
 
-export function getItemStylesPerItemId<ItemId extends string, TNodeDatum, TStyle>(
+export function getItemStylesPerItemId<TItemId extends string, TNodeDatum, TStyle>(
     getItemStyle: (
         nodeDatum: TNodeDatum | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState,
-        itemId?: ItemId
+        itemId?: TItemId
     ) => TStyle,
-    ...itemIds: ItemId[]
+    ...itemIds: TItemId[]
 ) {
-    const result = {} as Record<ItemId, Record<HighlightState, TStyle>>;
+    const result = {} as Record<TItemId, Record<HighlightState, TStyle>>;
     for (const itemId of itemIds ?? ['default']) {
         for (const state of highlightStates) {
             const states = (result[itemId] ??= {} as Record<HighlightState, TStyle>);
