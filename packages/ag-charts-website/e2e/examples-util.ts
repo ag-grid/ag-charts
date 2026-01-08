@@ -1,4 +1,4 @@
-import { type Locator, Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import {
@@ -16,6 +16,7 @@ export type ClickOrder = 'normal' | 'reverse';
 type ExampleCommonOptions = {
     status: Status;
     clickOrder: ClickOrder;
+    skipCanvasInitCheck: boolean;
     skipCanvasUpdateCheck: boolean | string[];
     ignoreConsoleWarnings: boolean;
     randomData: boolean;
@@ -111,6 +112,7 @@ export function convertPageUrls(
         frameworks,
         status = 'ok',
         clickOrder = 'normal',
+        skipCanvasInitCheck = false,
         skipCanvasUpdateCheck = false,
         ignoreConsoleWarnings = false,
         randomData = false,
@@ -131,6 +133,7 @@ export function convertPageUrls(
                 framework,
                 status,
                 clickOrder,
+                skipCanvasInitCheck,
                 skipCanvasUpdateCheck,
                 ignoreConsoleWarnings,
                 randomData,
@@ -146,7 +149,8 @@ export function createTestCase(
     initialCallback?: (page: Page) => Promise<void>,
     finalCallback?: (page: Page) => Promise<void>
 ) {
-    const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
+    const { url, status, framework, clickOrder, skipCanvasInitCheck, skipCanvasUpdateCheck, ignoreConsoleWarnings } =
+        opts;
 
     // Use a special test title suffix to indicate console warnings should be ignored
     const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
@@ -156,7 +160,7 @@ export function createTestCase(
             test.slow(framework === 'angular', 'allow more time for Angular load times');
 
             // Load example and wait for things to settle.
-            await gotoExample(page, url);
+            await gotoExample(page, url, { skipCanvasInitCheck });
 
             await initialCallback?.(page);
 

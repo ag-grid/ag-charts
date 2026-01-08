@@ -179,11 +179,12 @@ export async function gotoUrl(page: Page, url: string) {
 export async function gotoExample(
     page: Page,
     url: string,
-    opts = { skipStabilityChecks: false, skipNetworkIdle: false }
+    opts: { skipCanvasInitCheck?: boolean; skipStabilityChecks?: boolean; skipNetworkIdle?: boolean } = {}
 ) {
+    const { skipCanvasInitCheck = false, skipStabilityChecks = false, skipNetworkIdle = false } = opts;
     await gotoUrl(page, url + '#e2e=true');
 
-    if (opts.skipNetworkIdle) {
+    if (skipNetworkIdle) {
         await page.waitForLoadState('load');
     } else {
         await page.waitForLoadState('networkidle');
@@ -193,13 +194,14 @@ export async function gotoExample(
 
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
+    if (skipCanvasInitCheck) return;
     await page.evaluate(() => 1);
     await expect(page.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 10_000 });
     for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }
 
-    if (opts.skipStabilityChecks) return;
+    if (skipStabilityChecks) return;
     await waitForAllChartUpdates(page);
 }
 

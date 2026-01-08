@@ -85,4 +85,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'pie-series-test': {
         'duplicate-labels': { ignoreConsoleWarnings: true },
     },
+    'zoom-test': {
+        'zoomOnDataChange-test': { skipCanvasInitCheck: true },
+    },
 };

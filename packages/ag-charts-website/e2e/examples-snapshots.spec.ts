@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+
 import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
 import { expect, test } from './fixture';
 import { SELECTORS, getExamples, setupIntrinsicAssertions } from './util';
@@ -66,7 +68,7 @@ test.describe('examples snapshots', () => {
             // eslint-disable-next-line @typescript-eslint/unbound-method
             const testFn = affected ? test : test.skip;
 
-            const finalCallback = async (page) => {
+            const finalCallback = async (page: Page) => {
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
                 return await expect(canvasCenter).toHaveScreenshot(`${pagePath}-${example}-${framework}.png`);
             };
