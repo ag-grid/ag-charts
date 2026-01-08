@@ -44,7 +44,7 @@ interface TestFixture<D> {
     insertMiddleDatumNegative(): Promise<void>;
 }
 
-const meta: Meta = {
+const META: Meta = {
     'numberAxis-preserveDomain': {
         options: {
             data: [
@@ -85,19 +85,19 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data, { x: 8, y: 50 }];
         },
         prependDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [{ x: -1, y: 50 }, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
         },
     },
@@ -142,19 +142,19 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data, { x: 8, y: 50 }];
         },
         prependDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [{ x: -1, y: 50 }, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
         },
     },
@@ -213,22 +213,22 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: 30 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -285,22 +285,22 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -361,22 +361,22 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: 20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -434,22 +434,22 @@ const meta: Meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -510,7 +510,7 @@ describe('Strategies', () => {
         let initialRatioY: Pick<AgZoomEvent, 'ratioY'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture = await prepareChart(meta['numberAxis-preserveDomain']);
+            fixture = await prepareChart(META['numberAxis-preserveDomain']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ rangeX: { start: 2.5, end: 5.75 } });
@@ -575,7 +575,7 @@ describe('Strategies', () => {
         let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture = await prepareChart(meta['numberAxis-preserveRatios']);
+            fixture = await prepareChart(META['numberAxis-preserveRatios']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
@@ -649,7 +649,7 @@ describe('Strategies', () => {
         } as const);
 
         beforeEach(async () => {
-            fixture = await prepareChart(meta['ordinalTimeAxis-preserveDomain']);
+            fixture = await prepareChart(META['ordinalTimeAxis-preserveDomain']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject(expectedRangeXSerialized);
@@ -714,7 +714,7 @@ describe('Strategies', () => {
         let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture = await prepareChart(meta['ordinalTimeAxis-preserveRatios']);
+            fixture = await prepareChart(META['ordinalTimeAxis-preserveRatios']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.7 } });
@@ -788,7 +788,7 @@ describe('Strategies', () => {
         } as const);
 
         beforeEach(async () => {
-            fixture = await prepareChart(meta['continuousTimeAxis-preserveDomain']);
+            fixture = await prepareChart(META['continuousTimeAxis-preserveDomain']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject(expectedRangeXSerialized);
@@ -853,7 +853,7 @@ describe('Strategies', () => {
         let initialRangeX: Pick<AgZoomEvent, 'rangeX'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeX'>;
         let initialRangeY: Pick<AgZoomEvent, 'rangeY'> | Pick<NonNullable<AgChartState['zoom']>, 'rangeY'>;
         beforeEach(async () => {
-            fixture = await prepareChart(meta['continuousTimeAxis-preserveRatios']);
+            fixture = await prepareChart(META['continuousTimeAxis-preserveRatios']);
 
             const { zoom } = chart.getState();
             expect(zoom).toMatchObject({ ratioX: { start: 0.25, end: 0.75 } });
