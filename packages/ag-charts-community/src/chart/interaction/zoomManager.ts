@@ -9,6 +9,7 @@ import {
     definedZoomState,
     isFiniteNumber,
     isObject,
+    jsonDiff,
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
@@ -17,6 +18,7 @@ import type {
     BoxBounds,
     CartesianAxisDirection,
     DeepReadonly,
+    DeepRequired,
     DefinedZoomState,
     OptionsDefs,
     RequireOptional,
@@ -135,6 +137,36 @@ export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D
     return { source: 'user-interaction' as const, sourceDetail };
 }
 
+type StrictZoomMemento = RequireOptional<ZoomMemento> & {
+    ratioX: Required<AgZoomRatio>;
+    ratioY: Required<AgZoomRatio>;
+};
+
+class APIZoomEventDispatcher {
+    private pendingSource: AgZoomEventSource | undefined;
+    private lastDispatchedMemento: StrictZoomMemento = {
+        autoScaledAxes: undefined,
+        rangeX: { end: undefined, start: undefined },
+        rangeY: { end: undefined, start: undefined },
+        ratioX: { end: NaN, start: NaN },
+        ratioY: { end: NaN, start: NaN },
+    };
+
+    schedule(source: AgZoomEventSource): void {
+        this.pendingSource = source;
+    }
+
+    nextEvent(memento: StrictZoomMemento): AgZoomEvent | undefined {
+        const { pendingSource: source } = this;
+        // AG-16317 Use `jsonDiff` to only dispatch the event if there's been a change:
+        if (source != undefined && jsonDiff(memento, this.lastDispatchedMemento) != null) {
+            this.pendingSource = undefined;
+            this.lastDispatchedMemento = memento;
+            return { type: 'zoom', source, ...memento };
+        }
+    }
+}
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -145,7 +177,7 @@ export class ZoomManager extends BaseManager {
     private state: CoreZoomStateSafeRetrieval = {};
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
-    private pendingZoomEventSource?: AgZoomEventSource;
+    private apiZoomEventDispatcher = new APIZoomEventDispatcher();
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
@@ -186,10 +218,9 @@ export class ZoomManager extends BaseManager {
             }),
             updateService.addListener('update-complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
-                if (this.pendingZoomEventSource) {
-                    const source = this.pendingZoomEventSource;
-                    this.fireChartEvent<AgZoomEvent>({ type: 'zoom', source, ...this.getMementoRanges() });
-                    this.pendingZoomEventSource = undefined;
+                const event = this.apiZoomEventDispatcher.nextEvent(this.getMementoRanges());
+                if (event) {
+                    this.fireChartEvent(event);
                 }
             })
         );
@@ -574,12 +605,9 @@ export class ZoomManager extends BaseManager {
         return boundSeries.size === 0;
     }
 
-    private getMementoRanges() {
+    private getMementoRanges(): StrictZoomMemento {
         const zoom = definedZoomState(this.getZoom());
-        const memento: RequireOptional<ZoomMemento> & {
-            ratioX: Required<AgZoomRatio>;
-            ratioY: Required<AgZoomRatio>;
-        } = {
+        const memento: StrictZoomMemento = {
             rangeX: this.getRangeDirection(ChartAxisDirection.X, zoom.x),
             rangeY: this.getRangeDirection(ChartAxisDirection.Y, zoom.y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
@@ -644,8 +672,8 @@ export class ZoomManager extends BaseManager {
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
-            this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
         }
+        this.apiZoomEventDispatcher.schedule(source); // (maybe) emit API AgZoomEvent when the redraw completes
         return changeAccepted;
     }
 
