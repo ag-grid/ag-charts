@@ -2,7 +2,7 @@
 import type { AgChartInstance, AgChartOptions, AgZoomEvent } from 'ag-charts-enterprise';
 import { AgCharts } from 'ag-charts-enterprise';
 
-const meta = {
+const META = {
     'numberAxis-preserveDomain': {
         options: {
             data: [
@@ -43,19 +43,19 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data, { x: 8, y: 50 }];
         },
         prependDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [{ x: -1, y: 50 }, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['numberAxis-preserveDomain'].options;
+            const { data } = META['numberAxis-preserveDomain'].options;
             return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
         },
     },
@@ -100,19 +100,19 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data, { x: 8, y: 50 }];
         },
         prependDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [{ x: -1, y: 50 }, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data.slice(0, 4), { x: 3.5, y: 50 }, ...data.slice(4)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['numberAxis-preserveRatios'].options;
+            const { data } = META['numberAxis-preserveRatios'].options;
             return [...data.slice(0, 4), { x: 3.5, y: -20 }, ...data.slice(4)];
         },
     },
@@ -171,22 +171,22 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: 30 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['ordinalTimeAxis-preserveDomain'].options;
+            const { data } = META['ordinalTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -243,22 +243,22 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['ordinalTimeAxis-preserveRatios'].options;
+            const { data } = META['ordinalTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -319,22 +319,22 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: 20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['continuousTimeAxis-preserveDomain'].options;
+            const { data } = META['continuousTimeAxis-preserveDomain'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -392,22 +392,22 @@ const meta = {
             },
         },
         appendDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-30'), value: 50 }; // Tuesday
             return [...data, datum];
         },
         prependDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-18'), value: 50 }; // Thursday
             return [datum, ...data];
         },
         insertMiddleDatum: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: 50 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
         insertMiddleDatumNegative: () => {
-            const { data } = meta['continuousTimeAxis-preserveRatios'].options;
+            const { data } = META['continuousTimeAxis-preserveRatios'].options;
             const datum = { date: new Date('2024-04-24'), value: -20 }; // Wednesday
             return [...data.slice(0, 3), datum, ...data.slice(3)];
         },
@@ -457,8 +457,8 @@ let chart: AgChartInstance | undefined;
 
 function readMeta() {
     const elem = document.getElementById('meta') as HTMLOptionElement;
-    const value = elem.value as keyof typeof meta;
-    return meta[value];
+    const value = elem.value as keyof typeof META;
+    return META[value];
 }
 function setEvent(o: unknown) {
     const json = JSON.stringify(o, null, 2);
