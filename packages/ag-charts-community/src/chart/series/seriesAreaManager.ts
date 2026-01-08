@@ -1208,7 +1208,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     }
 
     public findPickedNodes(memento: AgPickedState | undefined): PickedNodes | undefined {
-        if (memento == undefined || memento.activeItem == undefined) return undefined;
+        if (memento?.activeItem == undefined) return undefined;
 
         const desiredItemId: string | undefined = memento.activeItem.itemId;
         if (desiredItemId == undefined) return undefined;
