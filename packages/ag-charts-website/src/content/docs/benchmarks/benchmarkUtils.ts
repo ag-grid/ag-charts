@@ -236,11 +236,12 @@ export async function performZoom<T extends AgChartOptions>(
 }
 
 /**
- * Perform legend toggle benchmark by toggling series visibility.
+ * Perform legend toggle benchmark by clicking legend items.
+ * Uses DOM-based legend clicks to match the original Jest benchmark approach.
  *
  * @param chart - Chart instance
- * @param options - Chart options (series array will be read)
- * @param visibilityState - Mutable visibility state object
+ * @param options - Chart options (container and series array will be read)
+ * @param visibilityState - Mutable visibility state object (updated to track toggles)
  * @param count - Number of toggles to perform
  * @returns Elapsed time in milliseconds
  */
@@ -250,21 +251,24 @@ export async function performLegendToggle(
     visibilityState: SeriesVisibilityState,
     count: number
 ): Promise<number> {
+    const container = options.container;
+    if (!container) return 0;
+
     const seriesCount = options.series?.length ?? 0;
     if (seriesCount === 0) return 0;
+
+    // Ensure chart is stable before timing (matches performZoom pattern)
+    await chart.waitForUpdate();
 
     const start = performance.now();
 
     for (let i = 0; i < count; i++) {
         const seriesIndex = i % seriesCount;
+        // Update visibility state to track what we're toggling (for consistency)
         visibilityState.visible[seriesIndex] = !visibilityState.visible[seriesIndex];
 
-        const updatedSeries = options.series!.map((s, idx) => ({
-            ...s,
-            visible: visibilityState.visible[idx],
-        }));
-
-        await chart.updateDelta({ series: updatedSeries as any });
+        // Click the legend button (matches Jest benchmark approach)
+        legendToggle(container, seriesIndex);
         await waitForAsyncEventTriggeredUpdate(chart);
     }
 
