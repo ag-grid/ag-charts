@@ -50,7 +50,7 @@ import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
-type HoverDevice = 'keyboard' | 'pointer';
+type HoverDevice = 'keyboard' | 'pointer' | 'setState';
 
 enum PickedFocusStatus {
     SUCCESS,
@@ -231,7 +231,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
-            chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
+            chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -273,8 +273,10 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             this.clearHighlight();
         }
 
-        this.chart.ctx.tooltipManager.removeTooltip(this.id);
-        this.focusIndicator?.clear();
+        if (this.hoverDevice !== 'setState') {
+            this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            this.focusIndicator?.clear();
+        }
     }
 
     private preSceneRender() {
@@ -337,6 +339,12 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         this.chart.ctx.widgets.seriesWidget.setBounds(event.series.rect);
         if (this.chart.ctx.domManager.mode === 'normal') {
             this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
+        }
+    }
+
+    private onAnimationStart(): void {
+        if (this.hoverDevice !== 'setState') {
+            this.clearAll();
         }
     }
 
@@ -1199,6 +1207,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         if (desiredPickedNodes == undefined) {
             this.clearPicked();
         } else {
+            this.hoverDevice = 'setState';
             this.pickedNodes = desiredPickedNodes;
             this.updateTooltipCandidate(desiredPickedNodes.matches);
             const { datum } = desiredPickedNodes.matches[0];
