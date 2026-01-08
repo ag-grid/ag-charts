@@ -8,7 +8,6 @@ import {
     geoJson,
     htmlElement,
     object,
-    positiveNumber,
     string,
     undocumented,
     union,
@@ -22,19 +21,11 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-const pickedSeriesStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['series']>> = {
-    seriesId: string,
-};
-
-const pickedItemsStateOptionsDef: OptionsDefs<NonNullable<AgPickedState['items']>> = {
-    seriesId: string,
-    itemId: string,
-};
-
 export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
-    activeIndex: positiveNumber,
-    series: arrayOfDefs(pickedSeriesStateOptionsDef),
-    items: arrayOfDefs(pickedItemsStateOptionsDef),
+    activeItem: {
+        seriesId: string,
+        itemId: string,
+    },
     frozen: boolean,
 };
 
