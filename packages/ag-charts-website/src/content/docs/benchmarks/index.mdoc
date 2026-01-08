@@ -39,15 +39,6 @@ Exercise:
 
 {% chartExampleRunner title="Multi-Series" name="multi-series" type="generated" initialLoadDeferred=true /%}
 
-## Multi-Chart Test
-
-Exercise:
-
--   Initial load time.
--   Series toggle redraw time.
-
-{% chartExampleRunner title="Multi-Chart" name="multi-chart" type="generated" initialLoadDeferred=true /%}
-
 ## Large Multi-Series Scale Test
 
 Exercise:
@@ -137,3 +128,35 @@ Exercise:
 -   Interactive hover redraw time.
 
 {% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}
+
+## High-Frequency Data Updates
+
+Exercise incremental data update operations (append, remove, rolling window) with large datasets:
+
+### Area Series
+
+{% chartExampleRunner title="Area Series" name="high-freq-area" type="generated" initialLoadDeferred=true /%}
+
+### Line Series
+
+{% chartExampleRunner title="Line Series" name="high-freq-line" type="generated" initialLoadDeferred=true /%}
+
+### Bar Series
+
+{% chartExampleRunner title="Bar Series" name="high-freq-bar" type="generated" initialLoadDeferred=true /%}
+
+### Candlestick Series
+
+{% chartExampleRunner title="Candlestick Series" name="high-freq-candlestick" type="generated" initialLoadDeferred=true /%}
+
+### OHLC Series
+
+{% chartExampleRunner title="OHLC Series" name="high-freq-ohlc" type="generated" initialLoadDeferred=true /%}
+
+### Range Area Series
+
+{% chartExampleRunner title="Range Area Series" name="high-freq-range-area" type="generated" initialLoadDeferred=true /%}
+
+### Range Bar Series
+
+{% chartExampleRunner title="Range Bar Series" name="high-freq-range-bar" type="generated" initialLoadDeferred=true /%}

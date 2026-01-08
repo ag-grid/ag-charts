@@ -1,18 +1,22 @@
+// @ag-skip-fws
+
 /* @ag-options-extract */
 import {
     AgCartesianChartOptions,
     AgCharts,
     AgOrdinalTimeAxisOptions,
-    ContextMenuModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NavigatorModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
+    VERSION,
     ZoomModule,
 } from 'ag-charts-enterprise';
 
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
+import { ChartRef, performInitialLoad, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
@@ -22,7 +26,6 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ZoomModule,
-    ContextMenuModule,
 ]);
 
 (window as any).agChartsDebug = 'scene:stats:verbose';
@@ -54,14 +57,58 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-const start = performance.now();
-const chart = AgCharts.create(options);
+const chartRef: ChartRef = { current: AgCharts.create(options) };
+const container = document.getElementById('myChart')!;
 
-chart.waitForUpdate().then(() => {
-    console.log('Total update time: ', performance.now() - start);
-});
+const seriesCount = options.series!.length;
+const data = getData();
 
 function setParentLevel(enabled: boolean) {
-    (options.axes!.y! as AgOrdinalTimeAxisOptions).parentLevel = { enabled };
-    chart.update(options);
+    (options.axes!.x! as AgOrdinalTimeAxisOptions).parentLevel = { enabled };
+    chartRef.current?.update(options);
+}
+
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'initial-load',
+                label: 'Initial Load',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
+                    },
+                ],
+            },
+            {
+                id: 'zoom',
+                label: 'Zoom',
+                variants: [
+                    {
+                        params: { Repetitions: '20x' },
+                        run: () => performZoom(options, chartRef, (opts) => AgCharts.create(opts), container, 20),
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 10,
+            maxCollectionTimeMs: 30000,
+            warmupUpdates: 2,
+        },
+        metadata: {
+            dataPoints: data.length,
+            seriesCount: seriesCount,
+            axisType: 'ordinal-time',
+            version: VERSION,
+            expectedRetainedSizeMB: 60,
+            expectedCanvasCount: 5,
+        },
+    };
+}
+
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
 }

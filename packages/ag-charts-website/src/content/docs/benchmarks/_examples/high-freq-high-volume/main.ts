@@ -268,5 +268,3 @@ if (methodSelect) {
     setBatchSize(parseInt(size, 10));
 };
 (window as any).rollBatch = rollBatch;
-
-export {};

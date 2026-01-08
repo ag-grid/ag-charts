@@ -6,10 +6,8 @@ import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './cons
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents, InternalFramework } from './types';
-import { benchmarkRunner } from './utils/benchmarkRunner';
 import {
     getEntryFileName,
-    getHasBenchmarkConfig,
     getHasExampleConsoleLog,
     getHasExampleControls,
     getHasLocale,
@@ -19,7 +17,6 @@ import {
     getTransformTsFileExt,
 } from './utils/fileUtils';
 import { type TransformEntryFile, frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
-import { getBenchmarkSnippet } from './utils/getBenchmarkSnippet';
 import { getConsoleLogSnippet } from './utils/getConsoleLogSnippet';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
 import { getExampleConfig } from './utils/getExampleConfig';
@@ -156,11 +153,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
                 transformedEntryFile + '\n' + getConsoleLogSnippet({ pageName, exampleName, logError: isDev });
         }
 
-        // Add benchmark loader snippet if getBenchmarkConfig() is detected
-        if (hasBenchmarkConfig) {
-            transformedEntryFile = transformedEntryFile + '\n' + getBenchmarkSnippet();
-        }
-
         return transformedEntryFile;
     };
 
@@ -178,7 +170,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     });
     const hasExampleConsoleLog = getHasExampleConsoleLog({ contents: entryFile });
     const hasExampleControls = getHasExampleControls({ contents: indexHtml });
-    const hasBenchmarkConfig = getHasBenchmarkConfig({ entryFile });
     const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
@@ -249,17 +240,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         files['_options.json'] = JSON.stringify(jsonOptions);
     }
 
-    // Add benchmarkHarness.js if getBenchmarkConfig() is detected
-    if (hasBenchmarkConfig) {
-        files['benchmarkHarness.js'] = benchmarkRunner;
-    }
-
     const result: GeneratedContents = {
         isEnterprise,
         hasLocale,
         hasExampleConsoleLog,
         hasExampleControls,
-        hasBenchmarkConfig,
         exampleConfig,
         scriptFiles,
         styleFiles: Object.keys(styleFiles),

@@ -11,7 +11,14 @@ export default [
         rules: reactHooksPlugin.configs.recommended.rules,
     },
     {
-        ignores: ['.astro/', '**/_examples/', 'scripts/', '**/.angular'],
+        ignores: [
+            '.astro/',
+            '**/_examples/',
+            'scripts/',
+            '**/.angular',
+            '**/benchmarkHarness.ts',
+            '**/benchmarkUtils.ts',
+        ],
     },
     {
         rules: {

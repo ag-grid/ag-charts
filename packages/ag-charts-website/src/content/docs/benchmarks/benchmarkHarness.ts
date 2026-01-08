@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
+
 /**
  * Full benchmark harness implementation that gets compiled to benchmarkHarness.js
  * and included in generated examples that define getBenchmarkConfig().
  *
  * This file is compiled by the normal Nx build and read at runtime.
  */
+import { isVersionInRange } from './benchmarkUtils';
 
 // Type declarations for the benchmark system
 declare const agCharts: { VERSION?: string } | undefined;
@@ -16,13 +18,18 @@ declare const agCharts: { VERSION?: string } | undefined;
 interface BenchmarkVariant {
     params?: Record<string, string>;
     available?: boolean;
+    minVersion?: string; // e.g., "12.3.0"
+    maxVersion?: string; // e.g., "13.0.0"
     run: () => Promise<number>;
 }
 
 interface BenchmarkTestCase {
     id: string;
     label?: string;
-    setup?: () => Promise<void>;
+    minVersion?: string; // e.g., "12.3.0"
+    maxVersion?: string; // e.g., "13.0.0"
+    setup?: () => Promise<void> | void;
+    teardown?: () => Promise<void> | void;
     variants: BenchmarkVariant[];
 }
 
@@ -32,7 +39,7 @@ interface BenchmarkConfigSettings {
     warmupUpdates: number;
 }
 
-interface BenchmarkConfig {
+export interface BenchmarkConfig {
     testCases: BenchmarkTestCase[];
     config: BenchmarkConfigSettings;
     warnings?: string[];
@@ -60,7 +67,8 @@ interface NormalizedVariant {
 interface NormalizedTestCase {
     id: string;
     label?: string;
-    setup?: () => Promise<void>;
+    setup?: () => Promise<void> | void;
+    teardown?: () => Promise<void> | void;
     variants: NormalizedVariant[];
 }
 
@@ -70,52 +78,6 @@ interface NormalizedConfig {
     warnings: string[];
     metadata?: Record<string, unknown>;
     onComplete?: () => Promise<void>;
-    paramKeys: string[];
-}
-
-/**
- * Normalize config to internal format
- */
-function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
-    const warnings = [...(config.warnings || [])];
-
-    const testCases: NormalizedTestCase[] = config.testCases.map((tc) => {
-        const variants: NormalizedVariant[] = tc.variants.map((v) => ({
-            params: v.params || {},
-            available: v.available !== false,
-            run: v.run,
-        }));
-
-        return {
-            id: tc.id,
-            label: tc.label,
-            setup: tc.setup,
-            variants,
-        };
-    });
-
-    // Preserve discovery order by iterating test cases and variants in order
-    const paramKeys: string[] = [];
-    for (const tc of config.testCases) {
-        for (const variant of tc.variants) {
-            if (variant.params) {
-                for (const key of Object.keys(variant.params)) {
-                    if (!paramKeys.includes(key)) {
-                        paramKeys.push(key);
-                    }
-                }
-            }
-        }
-    }
-
-    return {
-        testCases,
-        config: config.config,
-        warnings,
-        metadata: config.metadata,
-        onComplete: config.onComplete,
-        paramKeys,
-    };
 }
 
 /**
@@ -124,8 +86,76 @@ function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
 function formatParams(params: Record<string, string>): string {
     const keys = Object.keys(params);
     if (keys.length === 0) return '';
-    if (keys.length === 1) return params[keys[0]];
     return keys.map((k) => `${k}: ${params[k]}`).join(', ');
+}
+
+/**
+ * Normalize config to internal format
+ */
+function normalizeConfig(config: BenchmarkConfig): NormalizedConfig {
+    const warnings = [...(config.warnings || [])];
+
+    // Detect current AG Charts version - prefer metadata.version (passed from ES modules),
+    // fall back to global agCharts.VERSION (UMD builds), then 'unknown'
+    const currentVersion = (config.metadata?.version as string) || agCharts?.VERSION || 'unknown';
+
+    const testCases: NormalizedTestCase[] = [];
+
+    for (const tc of config.testCases) {
+        // Check if test case meets version constraints
+        const testCaseVersionOk = isVersionInRange(currentVersion, tc.minVersion, tc.maxVersion);
+
+        if (!testCaseVersionOk) {
+            // Skip entire test case if version doesn't match
+            const constraint = tc.minVersion
+                ? tc.maxVersion
+                    ? `${tc.minVersion} - ${tc.maxVersion}`
+                    : `>= ${tc.minVersion}`
+                : `< ${tc.maxVersion}`;
+            warnings.push(`Skipped "${tc.label || tc.id}" (requires ${constraint})`);
+            continue;
+        }
+
+        const variants: NormalizedVariant[] = [];
+
+        for (const v of tc.variants) {
+            // Check if variant meets version constraints
+            const variantVersionOk = isVersionInRange(currentVersion, v.minVersion, v.maxVersion);
+
+            if (!variantVersionOk) {
+                // Mark variant as unavailable if version doesn't match
+                const constraint = v.minVersion
+                    ? v.maxVersion
+                        ? `${v.minVersion} - ${v.maxVersion}`
+                        : `>= ${v.minVersion}`
+                    : `< ${v.maxVersion}`;
+                const paramDesc = v.params ? ` (${formatParams(v.params)})` : '';
+                warnings.push(`Skipped "${tc.label || tc.id}${paramDesc}" (requires ${constraint})`);
+            }
+
+            variants.push({
+                params: v.params || {},
+                available: v.available !== false && variantVersionOk,
+                run: v.run,
+            });
+        }
+
+        testCases.push({
+            id: tc.id,
+            label: tc.label,
+            setup: tc.setup,
+            teardown: tc.teardown,
+            variants,
+        });
+    }
+
+    return {
+        testCases,
+        config: config.config,
+        warnings,
+        metadata: config.metadata,
+        onComplete: config.onComplete,
+    };
 }
 
 /**
@@ -452,16 +482,14 @@ class BenchmarkUI {
 
     displayResults(
         results: BenchmarkResult[],
-        paramKeys: string[],
         formatTestCase: (testCase: string) => string,
         version: string,
         metadata?: Record<string, unknown>
     ): void {
         if (!this.resultsElement) return;
 
-        // Calculate which columns need right-alignment (numeric columns start after params)
-        const numParamCols = paramKeys.length;
-        const firstNumericCol = 1 + numParamCols + 1; // Test Case + params + first numeric (Avg Time)
+        // Calculate which columns need right-alignment (numeric columns start after Parameters)
+        const firstNumericCol = 3; // Test Case + Parameters + first numeric (Avg Time)
 
         let html = `
             <style>
@@ -523,9 +551,7 @@ class BenchmarkUI {
         html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
         html += '<th>Test Case</th>';
-        for (const key of paramKeys) {
-            html += `<th>${key}</th>`;
-        }
+        html += '<th>Parameters</th>';
         html += '<th>Avg Time (ms)</th>';
         html += '<th>Min Time (ms)</th>';
         html += '<th>Max Time (ms)</th>';
@@ -535,10 +561,7 @@ class BenchmarkUI {
         results.forEach((result) => {
             html += '<tr>';
             html += `<td>${formatTestCase(result.testCase)}</td>`;
-            for (const key of paramKeys) {
-                const value = result.params[key] || '';
-                html += `<td><span class="benchmark-param">${value}</span></td>`;
-            }
+            html += `<td><span class="benchmark-param">${formatParams(result.params)}</span></td>`;
             html += `<td>${result.averageTime.toFixed(3)}</td>`;
             html += `<td>${result.minTime.toFixed(3)}</td>`;
             html += `<td>${result.maxTime.toFixed(3)}</td>`;
@@ -555,9 +578,36 @@ class BenchmarkUI {
         const exportButton = document.getElementById('exportBenchmarkResults');
         if (exportButton) {
             exportButton.addEventListener('click', () => {
+                // Capture environment details at export time
+                const chartElement = document.getElementById('myChart');
+                const chartRect = chartElement?.getBoundingClientRect();
+
+                // Derive parameter keys from results
+                const parameterKeys: string[] = [];
+                for (const r of results) {
+                    for (const key of Object.keys(r.params)) {
+                        if (!parameterKeys.includes(key)) {
+                            parameterKeys.push(key);
+                        }
+                    }
+                }
+
                 const exportData = {
                     version,
-                    parameterKeys: paramKeys,
+                    parameterKeys,
+                    environment: {
+                        viewport: {
+                            width: window.innerWidth,
+                            height: window.innerHeight,
+                        },
+                        chart: chartRect
+                            ? {
+                                  width: Math.round(chartRect.width),
+                                  height: Math.round(chartRect.height),
+                              }
+                            : null,
+                        devicePixelRatio: window.devicePixelRatio,
+                    },
                     metadata: metadata || {},
                     results: results.map((r) => ({
                         testCase: formatTestCase(r.testCase),
@@ -580,20 +630,15 @@ class BenchmarkUI {
             });
         }
 
-        // Log to console with dynamic columns
-        const consoleData = results.map((r) => {
-            const row: Record<string, string | number> = {
-                testCase: formatTestCase(r.testCase),
-            };
-            for (const key of paramKeys) {
-                row[key] = r.params[key] || '';
-            }
-            row.avgMs = r.averageTime.toFixed(3);
-            row.minMs = r.minTime.toFixed(3);
-            row.maxMs = r.maxTime.toFixed(3);
-            row.samples = r.sampleCount;
-            return row;
-        });
+        // Log to console
+        const consoleData = results.map((r) => ({
+            testCase: formatTestCase(r.testCase),
+            params: formatParams(r.params),
+            avgMs: r.averageTime.toFixed(3),
+            minMs: r.minTime.toFixed(3),
+            maxMs: r.maxTime.toFixed(3),
+            samples: r.sampleCount,
+        }));
         console.table(consoleData);
     }
 
@@ -694,6 +739,10 @@ class BenchmarkRunner {
                     this.updateProgress();
                     const result = await this.runBenchmarkTest(testCase, variant);
                     this.results.push(result);
+                }
+
+                if (testCase.teardown) {
+                    await testCase.teardown();
                 }
             }
 
@@ -821,7 +870,6 @@ class BenchmarkRunner {
         this.updateProgress(true);
         this.ui.displayResults(
             this.results,
-            this.config.paramKeys,
             (testCase) => {
                 const tc = this.config.testCases.find((t) => t.id === testCase);
                 return tc?.label || testCase;

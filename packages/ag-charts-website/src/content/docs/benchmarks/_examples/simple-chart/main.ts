@@ -1,6 +1,16 @@
-/* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+// @ag-skip-fws
 
+/* @ag-options-extract */
+import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-community';
+
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
+import {
+    ChartRef,
+    SeriesVisibilityState,
+    performDatumHighlight,
+    performInitialLoad,
+    performLegendToggle,
+} from './benchmarkUtils';
 import { getData } from './data';
 
 (window as any).agChartsDebug = 'scene:stats';
@@ -76,21 +86,71 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-async function main() {
-    const start = performance.now();
+const chartRef: ChartRef = { current: AgCharts.create(options) };
+const container = document.getElementById('myChart')!;
 
-    const count = 100;
-    let chart, previousChart;
-    for (let i = 0; i < count; i++) {
-        previousChart = chart;
-        chart = AgCharts.create(options);
+// Store series visibility states
+const seriesCount = options.series!.length;
+const visibilityState: SeriesVisibilityState = { visible: new Array(seriesCount).fill(true) };
 
-        await chart.waitForUpdate();
-        previousChart?.destroy();
-    }
-    const duration = performance.now() - start;
-    console.log('Total update time: ', duration);
-    console.log('Average update time: ', duration / count);
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'initial-load',
+                label: 'Initial Load',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
+                    },
+                ],
+            },
+            {
+                id: 'legend-toggle',
+                label: 'Legend Toggle',
+                variants: [
+                    {
+                        params: { Repetitions: '1x' },
+                        run: () => performLegendToggle(chartRef.current!, options, visibilityState, 2), // Toggle on/off
+                    },
+                    {
+                        params: { Repetitions: '10x' },
+                        run: () => performLegendToggle(chartRef.current!, options, visibilityState, 10),
+                    },
+                ],
+            },
+            {
+                id: 'datum-highlight',
+                label: 'Datum Highlight',
+                variants: [
+                    {
+                        params: { Repetitions: '1x' },
+                        run: () => performDatumHighlight(chartRef.current!, container, 1),
+                    },
+                    {
+                        params: { Repetitions: '15x' },
+                        run: () => performDatumHighlight(chartRef.current!, container, 15),
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 20,
+            maxCollectionTimeMs: 10000,
+            warmupUpdates: 5,
+        },
+        metadata: {
+            dataPoints: getData().length,
+            seriesCount: seriesCount,
+            version: VERSION,
+            expectedRetainedSizeMB: 8.5,
+            expectedCanvasCount: 5,
+        },
+    };
 }
 
-main().catch((e) => console.error(e));
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}
