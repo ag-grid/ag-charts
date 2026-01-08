@@ -50,6 +50,8 @@ import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
+type HoverDevice = 'keyboard' | 'pointer';
+
 enum PickedFocusStatus {
     SUCCESS,
     SERIES_NOT_FOUND,
@@ -185,7 +187,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
      *   -   For keyboard users, `mousemove` events update the tooltip/highlight iff `pickNode` finds a match
      *       for the mouse event offsets.
      */
-    private hoverDevice: 'pointer' | 'keyboard' = 'pointer';
+    private hoverDevice: HoverDevice = 'pointer';
 
     private pickedNodes?: PickedNodes;
 
