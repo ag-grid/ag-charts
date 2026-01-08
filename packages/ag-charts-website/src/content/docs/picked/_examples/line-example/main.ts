@@ -45,8 +45,10 @@ const options: AgCartesianChartOptions<DatumType> = {
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
-let country = 'Spain';
-let year = '2010';
+type Country = keyof typeof SERIES_ID_MAP;
+type Year = keyof typeof ITEM_ID_MAP;
+let country: Country = 'Spain';
+let year: Year  = '2010';
 let frozen = false;
 
 const SERIES_ID_MAP = {
@@ -74,11 +76,11 @@ const ITEM_ID_MAP = {
     '2024': '14',
 };
 
-function onCountryChange(value: string): void {
+function onCountryChange(value: Country): void {
     country = value;
 }
 
-function onYearChange(value: string): void {
+function onYearChange(value: Year): void {
     year = value;
 }
 
