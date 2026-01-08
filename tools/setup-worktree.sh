@@ -49,4 +49,4 @@ fix_prompts_symlink || log_error "Failed to fix prompts symlink, continuing anyw
 
 # Run install
 export AG_CLOUD_INSTALL=1
-exec ./tools/install-for-cloud.sh
+exec ./external/ag-shared/scripts/install-for-cloud/install-for-cloud.sh
