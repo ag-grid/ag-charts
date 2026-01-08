@@ -101,6 +101,7 @@ describe('HierarchySeries', () => {
         delete series.rootNode.series;
 
         expect(series.rootNode).toEqual({
+            itemId: 'root',
             datumIndex: [],
             datum: undefined,
             sizeValue: 0,

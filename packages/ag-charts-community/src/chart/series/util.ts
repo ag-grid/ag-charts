@@ -2,7 +2,7 @@ import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { Transformable } from '../../scene/transformable';
 import { type HighlightState, highlightStates } from './seriesProperties';
-import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, ItemId, SeriesNodeDatum } from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (datum == null || domain.length === 0) {
@@ -146,16 +146,16 @@ export function getItemStyles<TNodeDatum, TStyle>(
     return result;
 }
 
-export function getItemStylesPerItemId<ItemId extends string, TNodeDatum, TStyle>(
+export function getItemStylesPerItemId<TItemId extends string, TNodeDatum, TStyle>(
     getItemStyle: (
         nodeDatum: TNodeDatum | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState,
-        itemId?: ItemId
+        itemId?: TItemId
     ) => TStyle,
-    ...itemIds: ItemId[]
+    ...itemIds: TItemId[]
 ) {
-    const result = {} as Record<ItemId, Record<HighlightState, TStyle>>;
+    const result = {} as Record<TItemId, Record<HighlightState, TStyle>>;
     for (const itemId of itemIds ?? ['default']) {
         for (const state of highlightStates) {
             const states = (result[itemId] ??= {} as Record<HighlightState, TStyle>);
@@ -167,4 +167,16 @@ export function getItemStylesPerItemId<ItemId extends string, TNodeDatum, TStyle
 
 export function hasDimmedOpacity(style?: { opacity?: number; fillOpacity?: number; strokeOpacity?: number }) {
     return (style?.opacity ?? 1) < 1 || (style?.fillOpacity ?? 1) < 1 || (style?.strokeOpacity ?? 1) < 1;
+}
+
+export function findNodeDatumInArray<I extends DatumIndexType, D extends SeriesNodeDatum<I>>(
+    itemId: ItemId,
+    nodeData: D[] | undefined
+): D | undefined {
+    for (const node of nodeData ?? []) {
+        if (node.itemId === itemId) {
+            return node;
+        }
+    }
+    return undefined;
 }

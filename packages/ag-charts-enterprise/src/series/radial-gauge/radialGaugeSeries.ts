@@ -52,6 +52,7 @@ import {
 } from './radialGaugeUtil';
 
 const {
+    findNodeDatumInArray,
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
@@ -770,6 +771,10 @@ export class RadialGaugeSeries
             scaleData,
             tickData,
         };
+    }
+
+    override findNodeDatum(itemId: _ModuleSupport.ItemId): RadialGaugeNodeDatum | undefined {
+        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 
     updateSelections(resize: boolean) {

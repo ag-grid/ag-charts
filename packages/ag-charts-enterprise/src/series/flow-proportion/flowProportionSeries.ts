@@ -11,8 +11,17 @@ import type {
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const { Series, DataController, keyProperty, valueProperty, Selection, Group, TransformableText, HighlightState } =
-    _ModuleSupport;
+const {
+    findNodeDatumInArray,
+    keyProperty,
+    valueProperty,
+    DataController,
+    Group,
+    HighlightState,
+    Selection,
+    Series,
+    TransformableText,
+} = _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -338,6 +347,10 @@ export abstract class FlowProportionSeries<
         }
 
         this.processedNodes = processedNodes;
+    }
+
+    override findNodeDatum(itemId: _ModuleSupport.ItemId): TDatum<TNodeDatum, TLinkDatum> | undefined {
+        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 
     protected abstract getNodeStyle(

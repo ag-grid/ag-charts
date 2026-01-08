@@ -45,6 +45,7 @@ import {
 } from './linearGaugeUtil';
 
 const {
+    findNodeDatumInArray,
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
@@ -772,6 +773,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             labelData,
             scaleData,
         };
+    }
+
+    override findNodeDatum(itemId: _ModuleSupport.ItemId): LinearGaugeNodeDatum | undefined {
+        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 
     updateSelections(resize: boolean) {

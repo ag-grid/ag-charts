@@ -11,7 +11,8 @@ import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, ItemId, SeriesNodeDatum } from './seriesTypes';
+import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
 
@@ -126,6 +127,10 @@ export abstract class DataModelSeries<
     protected abstract computeFocusBounds(opts: PickFocusInputs): Path | BBox | undefined;
 
     public abstract getNodeData(): TDatum[] | undefined;
+
+    override findNodeDatum(itemId: ItemId): TDatum | undefined {
+        return findNodeDatumInArray(itemId, this.getNodeData());
+    }
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();
