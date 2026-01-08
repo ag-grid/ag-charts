@@ -9,7 +9,6 @@
             "Bash(gh pr list:*)",
             "Bash(gh pr review:*)",
             "Bash(gh pr view:*)",
-            "Bash(find:*)",
             "Bash(git fetch:*)",
             "Bash(git ls-tree:*)",
             "Bash(grep:*)",
@@ -50,7 +49,10 @@
         ],
         "deny": []
     },
-    "includeCoAuthoredBy": false,
+    "attribution": {
+        "commit": "",
+        "pr": ""
+    },
     "hooks": {
         "PostToolUse": [
             {
