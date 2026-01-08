@@ -6,9 +6,7 @@ import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePage
 test.describe('keyboard-nav', () => {
     setupIntrinsicAssertions(test);
 
-    const testUrls = toExamplePageUrls('accessibility', 'keyboard-navigation');
-
-    for (const { framework, url } of testUrls) {
+    for (const { framework, url } of toExamplePageUrls('accessibility', 'keyboard-navigation')) {
         test.describe(`for ${framework}`, () => {
             test('basic keyboard navigation', async ({ page }) => {
                 await gotoExample(page, url);
