@@ -527,6 +527,8 @@ test.describe('keyboard-nav', () => {
          * (2)  It does not mean that is should hide a focus indicator that is already.
          *
          * We are testing (2), with the "Zoom-In" and "Undo" actions.
+         *
+         * Related ticket: AG-13041
          */
         test.beforeEach(async ({ page }) => {
             const { url } = toExamplePageUrl('accessibility-test', 'activatesFocusIndicator-false', 'vanilla');
