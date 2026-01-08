@@ -81,6 +81,6 @@ const options: AgCartesianChartOptions<DatumType> = {
 
 const chart = AgCharts.create(options);
 
-function logState(): void {
+function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }
