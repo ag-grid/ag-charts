@@ -171,16 +171,6 @@ export class SeriesAreaManager extends BaseManager {
      */
     private hoverDevice: 'pointer' | 'keyboard' = 'pointer';
 
-    /**
-     * This is the "second last" input event. It can be useful for keydown
-     * events that for which don't to set the isFocusVisible state
-     * (e.g. Backspace/Delete key on FC annotations, see AG-13041).
-     *
-     * Use with caution! The focus indicator must ALWAYS be visible for
-     * keyboard-only users.
-     */
-    private previousInputDevice: 'pointer' | 'keyboard' = 'keyboard';
-
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
         series: undefined as UnknownSeries | undefined,
@@ -408,7 +398,7 @@ export class SeriesAreaManager extends BaseManager {
     private onWheel(_event: WheelWidgetEvent): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
-        this.previousInputDevice = 'pointer';
+        this.hoverDevice = 'pointer';
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
@@ -437,7 +427,6 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.hoverDevice = 'pointer';
-        this.previousInputDevice = 'pointer';
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -581,7 +570,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         if (action?.activatesFocusIndicator === false) {
-            this.focusIndicator?.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+            this.focusIndicator?.overrideFocusVisible(this.hoverDevice === 'keyboard');
         }
 
         switch (action?.name) {
@@ -609,7 +598,6 @@ export class SeriesAreaManager extends BaseManager {
     private onArrow(seriesIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'keyboard';
-        this.previousInputDevice = 'keyboard';
         this.focusIndicator?.overrideFocusVisible(true);
         this.focus.seriesIndex += seriesIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
