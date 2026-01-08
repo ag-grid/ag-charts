@@ -48,7 +48,7 @@ const version = chart.getState().version;
 type Country = keyof typeof SERIES_ID_MAP;
 type Year = keyof typeof ITEM_ID_MAP;
 let country: Country = 'Spain';
-let year: Year  = '2010';
+let year: Year = '2010';
 let frozen = false;
 
 const SERIES_ID_MAP = {
