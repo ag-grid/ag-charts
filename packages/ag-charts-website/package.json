@@ -61,7 +61,7 @@
     "vitest": "2.1.9"
   },
   "devDependencies": {
-    "@playwright/test": "1.45.0",
+    "@playwright/test": "1.57.0",
     "algoliasearch": "4.20.0",
     "puppeteer-core": "24.13.0"
   }
