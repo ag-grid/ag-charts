@@ -2,11 +2,8 @@ import type { Scaling } from 'ag-charts-core';
 import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
@@ -26,6 +23,9 @@ import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
     @Property
     direction: Direction = 'vertical';
+
+    @Property
+    width?: number = undefined;
 }
 
 export interface AbstractBarSeriesNodeDataContext<
@@ -54,11 +54,6 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
 >;
 
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
-    /**
-     * Used to get the position of bars within each group.
-     */
-    protected groupScale = new CategoryScale<string>();
-
     protected smallestDataInterval?: number = undefined;
     protected largestDataInterval?: number = undefined;
 
@@ -144,37 +139,48 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return [Math.min(...ys), Math.max(...ys)];
     }
 
-    protected updateGroupScale(xAxis: ChartAxis) {
-        const domain = [];
-        const { groupScale } = this;
-        const xBandWidth = this.getBandwidth(xAxis);
-        const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+    protected getBarDimensions() {
+        const categoryAxis = this.getCategoryAxis()!;
+        const bandwidth = this.getBandwidth(categoryAxis) ?? 0;
 
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
+        this.ctx.seriesStateManager.updateGroupScale(this, bandwidth, categoryAxis);
+
+        const groupOffset = this.getGroupOffset();
+        const barWidth = this.getBarWidth();
+        const barOffset = this.getBarOffset(barWidth);
+
+        return { groupOffset, barOffset, barWidth };
+    }
+
+    protected getGroupOffset() {
+        return this.ctx.seriesStateManager.getGroupOffset(this);
+    }
+
+    protected getBarOffset(barWidth: number) {
+        const xAxis = this.getCategoryAxis()!;
+        const barOffset = ContinuousScale.is(xAxis.scale) ? -barWidth / 2 : 0;
+        const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
+
+        return barOffset + stackOffset;
+    }
+
+    protected getBarWidth() {
+        const { width } = this.properties;
+
+        if (width != null) {
+            return width;
         }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
 
-        if (xAxis instanceof GroupedCategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-            // To get exactly `0` padding we need to turn off rounding
-            groupScale.round = groupScale.padding !== 0;
-        } else {
-            // Number or Time axis
-            groupScale.padding = 0;
+        const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
+        const bandwidth = groupScale?.bandwidth ?? 0;
+
+        // Handle high-volume bar charts gracefully.
+        if (bandwidth < 1 && groupScale) {
+            return groupScale.rawBandwidth;
         }
 
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
-
-        return { barWidth, groupIndex };
+        // Pixel-rounded value for low-volume bar charts.
+        return bandwidth;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {

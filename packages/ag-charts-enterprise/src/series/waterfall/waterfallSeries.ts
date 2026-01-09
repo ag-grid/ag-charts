@@ -363,7 +363,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             labelData: ctx.nodes,
             pointData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
             styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
         };

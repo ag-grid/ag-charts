@@ -1,3 +1,7 @@
+import type { PlainObject } from 'ag-charts-core';
+
+import { IrregularBandScale } from '../../scale/irregularBandScale';
+
 export type SeriesGrouping = {
     groupIndex: number;
     groupCount: number;
@@ -18,18 +22,22 @@ type SeriesIdLike = {
 
 type SeriesLike = SeriesIdLike & {
     seriesGrouping?: SeriesGrouping;
+    width?: number;
     visible: boolean;
 };
 
 type SeriesGroupingEntry = {
     grouping: SeriesGrouping;
+    width?: number;
     visible: boolean;
 };
 
 export class SeriesStateManager {
     private readonly groups: Map<string, Map<string, SeriesGroupingEntry>> = new Map();
 
-    public registerSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
+    private readonly groupScales: Map<string, IrregularBandScale> = new Map();
+
+    public registerSeries({ internalId, seriesGrouping, visible, width, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
         let group = this.groups.get(type);
@@ -37,15 +45,16 @@ export class SeriesStateManager {
             group = new Map();
             this.groups.set(type, group);
         }
-        group.set(internalId, { grouping: seriesGrouping, visible });
+        group.set(internalId, { grouping: seriesGrouping, visible, width });
     }
 
-    public updateSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
+    public updateSeries({ internalId, seriesGrouping, visible, width, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
         const entry = this.groups.get(type)?.get(internalId);
         if (entry) {
             entry.grouping = seriesGrouping;
+            entry.width = width;
             entry.visible = visible;
         }
     }
@@ -86,5 +95,82 @@ export class SeriesStateManager {
             visibleSameStackCount: visibleSameStackSet.size,
             index: visibleGroups.indexOf(seriesGrouping.groupIndex),
         };
+    }
+
+    public updateGroupScale(
+        { type }: SeriesLike,
+        bandwidth: number,
+        axis: PlainObject // TODO: ChartAxis circular dependency
+    ) {
+        const groupScale = this.groupScales.get(type) ?? new IrregularBandScale();
+        groupScale.domain = []; // reset domain and band ranges
+
+        const group = this.groups.get(type);
+        for (const entry of group?.values() ?? []) {
+            if (!entry.visible) continue;
+            groupScale.addBand(entry.grouping.groupIndex, entry.grouping.stackIndex, entry.width);
+        }
+
+        // When no series have been added to a group, instead add a single band that occupies the full range.
+        if (groupScale.domain.length === 0) {
+            groupScale.addBand(0, 0, undefined);
+        }
+
+        groupScale.range = [0, bandwidth];
+        groupScale.update(); // TODO: don't hardcode this
+
+        this.groupScales.set(type, groupScale);
+
+        if (axis.type === 'grouped-category') {
+            // TODO: `instanceof GroupedCategoryAxis` circular dependency
+            groupScale.paddingInner = axis.groupPaddingInner;
+        } else if (axis.type === 'category' || axis.type === 'unit-time') {
+            // TODO: `instanceof CategoryAxis` circular dependency
+            groupScale.paddingInner = axis.groupPaddingInner;
+            // To get exactly `0` padding we need to turn off rounding
+            groupScale.round = groupScale.padding !== 0; // TODO: can this just be `groupScale.round = true;` since padding is never set?
+        } else {
+            // Number or Time axis
+            groupScale.padding = 0;
+        }
+    }
+
+    public getGroupScale({ type }: SeriesLike): IrregularBandScale | undefined {
+        return this.groupScales.get(type);
+    }
+
+    public getGroupOffset(series: SeriesLike): number {
+        const { seriesGrouping } = series;
+        if (!seriesGrouping) return 0;
+
+        const groupScale = this.getGroupScale(series);
+        if (!groupScale) return 0;
+
+        const domainValue = groupScale.getDomainValue(seriesGrouping.groupIndex, seriesGrouping.stackIndex);
+        return groupScale.convert(domainValue);
+    }
+
+    public getStackOffset(series: SeriesLike, barWidth: number): number {
+        const { seriesGrouping } = series;
+        if (!seriesGrouping) return 0;
+
+        const group = this.groups.get(series.type);
+        if (!group) return 0;
+
+        const scale = this.getGroupScale(series);
+        if (!scale) return 0;
+
+        const stackCount = seriesGrouping?.stackCount ?? 0;
+        if (stackCount < 1) return 0;
+
+        let maxStackWidth = 0;
+        for (const entry of group.values()) {
+            if (!entry.visible) continue;
+            if (entry.grouping.groupIndex !== seriesGrouping.groupIndex) continue;
+            maxStackWidth = Math.max(maxStackWidth, entry.width ?? scale.bandwidth);
+        }
+        if (maxStackWidth === 0) return 0;
+
+        return maxStackWidth / 2 - barWidth / 2;
     }
 }

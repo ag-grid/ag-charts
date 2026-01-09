@@ -56,6 +56,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     segmentation: shapeSegmentation,
+    width: number,
 };
 
 // @ts-expect-error undocumented option

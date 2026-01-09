@@ -23,7 +23,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     @Invalidating
     round = false;
 
-    private _bandwidth: number = 1;
+    protected _bandwidth: number = 1;
     override get bandwidth(): number {
         this.refresh();
         return this._bandwidth;
@@ -35,13 +35,13 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return this._step;
     }
 
-    private _inset: number = 1;
+    protected _inset: number = 1;
     override get inset(): number {
         this.refresh();
         return this._inset;
     }
 
-    private _rawBandwidth: number = 1;
+    protected _rawBandwidth: number = 1;
     get rawBandwidth(): number {
         this.refresh();
         return this._rawBandwidth;

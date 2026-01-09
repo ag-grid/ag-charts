@@ -400,7 +400,14 @@ export abstract class Series<
             this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({
+                internalId,
+                type,
+                visible,
+                seriesGrouping: next,
+                // TODO: is there a better way to pass width through here?
+                width: 'width' in this.properties ? (this.properties.width as number) : 0,
+            });
         }
 
         this.fireEvent(new SeriesGroupingChangedEvent(this, next));
@@ -656,7 +663,16 @@ export abstract class Series<
     }
 
     private visibleMaybeChanged() {
-        this.ctx.seriesStateManager.updateSeries(this);
+        const { internalId, seriesGrouping, type, visible } = this;
+
+        this.ctx.seriesStateManager.updateSeries({
+            internalId,
+            type,
+            visible,
+            seriesGrouping,
+            // TODO: is there a better way to pass width through here?
+            width: 'width' in this.properties ? (this.properties.width as number) : 0,
+        });
     }
 
     // Produce data joins and update selection's nodes using node data.
