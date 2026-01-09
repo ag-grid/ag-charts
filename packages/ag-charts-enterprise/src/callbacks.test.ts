@@ -87,7 +87,12 @@ describe('AG-14631 context enterprise', () => {
         await scrollAction(400, 300, 1)(chart);
 
         expect(Object.isFrozen(context)).toBe(false);
-        zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
+        zoomListener.expect().toHaveBeenCalledTimes(3).withContext(context);
+        expect(zoomListener.mock.mock.calls).toEqual([
+            [expect.objectContaining({ source: 'chart-update' })], // callback event from `createChart`
+            [expect.objectContaining({ source: 'user-interaction' })], // callback event from 1st `scrollAction`
+            [expect.objectContaining({ source: 'user-interaction' })], // callback event from 2nd `scrollAction`
+        ]);
     });
 
     test('annotations', async () => {
