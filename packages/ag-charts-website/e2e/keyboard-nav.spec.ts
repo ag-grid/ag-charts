@@ -1,4 +1,4 @@
-import { Locator } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
@@ -6,9 +6,7 @@ import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePage
 test.describe('keyboard-nav', () => {
     setupIntrinsicAssertions(test);
 
-    const testUrls = toExamplePageUrls('accessibility', 'keyboard-navigation');
-
-    for (const { framework, url } of testUrls) {
+    for (const { framework, url } of toExamplePageUrls('accessibility', 'keyboard-navigation')) {
         test.describe(`for ${framework}`, () => {
             test('basic keyboard navigation', async ({ page }) => {
                 await gotoExample(page, url);
@@ -519,5 +517,66 @@ test.describe('keyboard-nav', () => {
 
         await page.keyboard.press('ArrowRight');
         await expect(label2).toHaveText('1.9');
+    });
+
+    test.describe('AG-16523 activatesFocusIndicator:false should not remove focus indicator', () => {
+        /**
+         * activatesFocusIndicator:false means that...
+         *
+         * (1)  ...if the focus is currently hidden, then this keyboard-action will not summon the focus indicator.
+         * (2)  It does not mean that is should hide a focus indicator that is already.
+         *
+         * We are testing (2), with the "Zoom-In" and "Undo" actions.
+         *
+         * Related ticket: AG-13041
+         */
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('accessibility-test', 'activatesFocusIndicator-false', 'vanilla');
+            await gotoExample(page, url);
+
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Tab');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+
+            // Click chart:
+            // (clear focus-indicator, because we entered "pointer-mode")
+            await page.mouse.click(400, 300);
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-hidden.png');
+
+            // Blur the chart:
+            await page.keyboard.press('Tab');
+            await expect(page).toHaveScreenshot('AG-16523-blurred.png');
+        });
+
+        test('zoom-in', async ({ page }) => {
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Shift+Tab');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+
+            // Adjust zoom:
+            // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
+            await page.keyboard.press('+');
+            await expect(page).toHaveScreenshot('AG-16523-zoomed-focus-visible.png');
+        });
+
+        test('undo', async ({ page }) => {
+            // Delete the annotations:
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('Space');
+
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Shift+Tab');
+            await expect(page).toHaveScreenshot('AG-16523-deleted-focus-visible.png');
+
+            // Undo zoom:
+            // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
+            await page.keyboard.press('ControlOrMeta+z');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+        });
     });
 });
