@@ -152,7 +152,7 @@ class APIZoomEventDispatcher {
     };
 
     schedule(source: AgZoomEventSource): void {
-        this.pendingSource = source;
+        this.pendingSource ??= source;
     }
 
     nextEvent(memento: StrictZoomMemento): AgZoomEvent | undefined {
