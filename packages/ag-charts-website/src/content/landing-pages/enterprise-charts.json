@@ -1,0 +1,449 @@
+{
+    "meta": {
+        "title": "AG Charts Enterprise: Advanced Charting Features for Enterprise Applications",
+        "description": "Unlock AG Charts' full potential with Enterprise features including Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, and more. Start your free trial today."
+    },
+    "productName": "AG Charts",
+    "framework": "reactFunctionalTs",
+    "packageName": "ag-charts-enterprise",
+    "docsPath": "react",
+    "analyticsPrefix": "enterprise-charts",
+    "sections": [
+        {
+            "type": "hero",
+            "variant": "enterprise",
+            "tag": "Enterprise Charts",
+            "heading": "Enterprise Grade Charts for Web Apps",
+            "subHeading": "JavaScript charting library built for React, Angular & Vue, with advanced features and chart types. Start your free trial today.",
+            "showVersionBadge": true,
+            "showCustomerLogos": false,
+            "galleryExamples": [
+                {
+                    "title": "Heatmap",
+                    "exampleName": "simple-heatmap"
+                },
+                {
+                    "title": "OHLC",
+                    "exampleName": "ohlc"
+                },
+                {
+                    "title": "Box Plot",
+                    "exampleName": "simple-box-plot"
+                },
+                {
+                    "title": "Treemap",
+                    "exampleName": "simple-treemap"
+                },
+                {
+                    "title": "Nightingale",
+                    "exampleName": "simple-nightingale"
+                },
+                {
+                    "title": "Gauge",
+                    "exampleName": "simple-radial-gauge"
+                },
+                {
+                    "title": "Range Area",
+                    "exampleName": "simple-range-area"
+                }
+            ],
+            "demoHeight": 500,
+            "primaryCta": {
+                "text": "Start Free Trial",
+                "useTrialButton": true
+            }
+        },
+        {
+            "type": "feature-grid",
+            "tag": "Why AG Charts Enterprise",
+            "heading": "Why Developers Choose AG Charts Enterprise",
+            "subHeading": "Built for performance and customisation, with a developer-first approach.",
+            "items": [
+                {
+                    "icon": "support",
+                    "title": "Dedicated Support",
+                    "description": "Direct access to our engineering team via Zendesk for help and support, with priority patches and bug fixes.",
+                    "link": "https://ag-grid.zendesk.com/hc/en-us"
+                },
+                {
+                    "icon": "eye",
+                    "title": "Fully Accessible",
+                    "description": "WCAG 2.0 AA compliant with full keyboard navigation and screen reader support, meeting ADA and Section 508 standards.",
+                    "link": "./react/accessibility/"
+                },
+                {
+                    "icon": "tick",
+                    "title": "Secure by Design",
+                    "description": "Zero third-party runtime dependencies, open source code, and continuously tested with SonarQube against OWASP Top 10.",
+                    "link": "./react/security/"
+                },
+                {
+                    "icon": "alarm",
+                    "title": "Regular Updates",
+                    "description": "Minor releases every 6 weeks and major releases twice yearly, with continuous improvements and rapid bug fixes.",
+                    "link": "./whats-new/"
+                },
+                {
+                    "icon": "flash",
+                    "title": "Large Data Performance",
+                    "description": "Render 1M+ data points with smooth interactivity, or 50K+ points with real-time updates at 60fps.",
+                    "link": "./react/large-dataset-interactivity/"
+                },
+                {
+                    "icon": "code",
+                    "title": "TypeScript-First",
+                    "description": "Full type definitions and predictable APIs means less time debugging and more time building.",
+                    "link": "./options/"
+                }
+            ]
+        },
+        {
+            "type": "chart-types-showcase",
+            "tag": "Any Chart You Need",
+            "heading": "30+ Chart Types",
+            "subHeading": "Standard visualisations and specialised charts for financial, geographic, and hierarchical data.",
+            "chartHeight": 350,
+            "items": [
+                {
+                    "title": "Heatmaps",
+                    "description": "Visualise data density and patterns",
+                    "pageName": "heatmap-series",
+                    "exampleName": "heatmap-no-labels"
+                },
+                {
+                    "title": "Box Plots",
+                    "description": "Show statistical distributions",
+                    "pageName": "box-plot-series",
+                    "exampleName": "box-plot-no-labels"
+                },
+                {
+                    "title": "Treemaps",
+                    "description": "Display hierarchical data as nested rectangles",
+                    "pageName": "treemap-series",
+                    "exampleName": "treemap-no-labels"
+                },
+                {
+                    "title": "Nightingale",
+                    "description": "Radial charts for cyclical or categorical comparisons",
+                    "pageName": "nightingale-series",
+                    "exampleName": "nightingale-no-labels"
+                },
+                {
+                    "title": "Radial Gauge",
+                    "description": "Display single values on circular scales",
+                    "pageName": "radial-gauge",
+                    "exampleName": "radial-gauge-no-labels"
+                },
+                {
+                    "title": "And More...",
+                    "description": "30+ chart types available",
+                    "icon": "chartsCombination"
+                }
+            ],
+            "cta": {
+                "text": "Explore All Chart Types",
+                "url": "./gallery/"
+            }
+        },
+        {
+            "type": "features",
+            "tag": "Why Upgrade to AG Charts Enterprise?",
+            "heading": "Advanced Features for Data-Intensive Applications",
+            "subHeading": "Explore large datasets with interactive zoom and pan, build financial charts with annotations, implement custom content menus and synchronise multiple charts.",
+            "items": [
+                {
+                    "id": "interactivity",
+                    "title": "Zoom & Navigation",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "enterprise-features-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Zoom & Pan",
+                            "detail": "Mouse wheel scrolling, click-and-drag selection, and keyboard shortcuts for exploring large datasets.",
+                            "link": "./react/zoom/"
+                        },
+                        {
+                            "heading": "Navigator",
+                            "detail": "A mini-chart showing the full dataset, allowing users to see context while zoomed into a specific region.",
+                            "link": "./react/navigator/"
+                        },
+                        {
+                            "heading": "Crosshairs",
+                            "detail": "Display crosshair lines that follow the cursor, showing exact axis values at any position.",
+                            "link": "./react/axes-crosshairs/"
+                        }
+                    ],
+                    "docsLink": "./zoom/"
+                },
+                {
+                    "id": "annotations",
+                    "title": "Annotations",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "annotations",
+                        "exampleName": "simple-annotations"
+                    },
+                    "features": [
+                        {
+                            "heading": "Drawing Tools",
+                            "detail": "Add trend lines, horizontal/vertical lines, parallel channels, and arrows directly onto charts.",
+                            "link": "./react/annotations/"
+                        },
+                        {
+                            "heading": "Text Annotations",
+                            "detail": "Place text labels, comments, callouts, and notes anywhere on the chart with customisable styling.",
+                            "link": "./react/annotations/"
+                        },
+                        {
+                            "heading": "Interactive Editing",
+                            "detail": "Drag to reposition, resize with handles, and use the floating toolbar for quick style adjustments.",
+                            "link": "./react/annotations/"
+                        }
+                    ],
+                    "docsLink": "./annotations/"
+                },
+                {
+                    "id": "animation",
+                    "title": "Animation",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "animation",
+                        "exampleName": "initial-load"
+                    },
+                    "features": [
+                        {
+                            "heading": "Initial Load",
+                            "detail": "Smooth entrance animations when charts first render, drawing attention to data visualisations.",
+                            "link": "./react/animation/"
+                        },
+                        {
+                            "heading": "Data Updates",
+                            "detail": "Animated transitions when data changes, with sequential remove, update, and add phases.",
+                            "link": "./react/animation/#data-updates"
+                        },
+                        {
+                            "heading": "Configurable Duration",
+                            "detail": "Control animation speed and easing functions to match your application's feel.",
+                            "link": "./react/animation/#duration"
+                        }
+                    ],
+                    "docsLink": "./animation/"
+                },
+                {
+                    "id": "context-menu",
+                    "title": "Context Menu",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "context-menu",
+                        "exampleName": "context-menu-submenus"
+                    },
+                    "features": [
+                        {
+                            "heading": "Right-Click Actions",
+                            "detail": "Built-in context menu with zoom controls, download options, and navigation actions.",
+                            "link": "./react/context-menu/"
+                        },
+                        {
+                            "heading": "Custom Menu Items",
+                            "detail": "Add custom actions with icons, keyboard shortcuts, and nested submenus.",
+                            "link": "./react/context-menu/#custom-actions"
+                        },
+                        {
+                            "heading": "Dynamic Menus",
+                            "detail": "Show different menu items based on the clicked element for context-aware interactions.",
+                            "link": "./react/context-menu/#dynamic-items"
+                        }
+                    ],
+                    "docsLink": "./context-menu/"
+                },
+                {
+                    "id": "sync",
+                    "title": "Synchronized Charts",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "sync",
+                        "exampleName": "basic-sync"
+                    },
+                    "features": [
+                        {
+                            "heading": "Linked Interactions",
+                            "detail": "Synchronize zoom, pan, and crosshairs across multiple charts for coordinated data exploration.",
+                            "link": "./react/sync/"
+                        },
+                        {
+                            "heading": "Shared Axis Domains",
+                            "detail": "Keep axis ranges aligned across charts. Changes in one chart update all synchronized charts.",
+                            "link": "./react/sync/#axes-domain"
+                        },
+                        {
+                            "heading": "Synced Groups",
+                            "detail": "Synchronize charts within the same group to create multiple independent groups on a single page.",
+                            "link": "./react/sync/#synchronization-groups"
+                        }
+                    ],
+                    "docsLink": "./sync/"
+                }
+            ]
+        },
+        {
+            "type": "financial-charts",
+            "tag": "Financial Charts",
+            "heading": "Financial Charts with Built-In Annotations",
+            "subHeading": "Candlestick, OHLC, and range charts with drawing tools, technical overlays, and real-time updates. Use the toolbar to add annotations and interact with the data.",
+            "height": 700,
+            "cta": {
+                "text": "View Financial Charts Features",
+                "url": "./react/financial-charts/"
+            }
+        },
+        {
+            "type": "integrated-charts",
+            "tag": "AG Grid Integration",
+            "heading": "Integrated Charts for AG Grid",
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/react-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a>. Users can create charts directly from grid data with a right-click."
+        },
+        {
+            "type": "map-charts",
+            "tag": "Map Charts",
+            "heading": "Customisable Map Charts for Geographical Data",
+            "subHeading": "Visualise geographical areas, overlay routes and connections, and add markers and points of interest.",
+            "cardHeight": 360,
+            "cards": [
+                {
+                    "title": "Geographic Areas",
+                    "description": "Visualise data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values.",
+                    "pageName": "map-shapes",
+                    "exampleName": "multiple-series"
+                },
+                {
+                    "title": "Routes & Connections",
+                    "description": "Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour to represent data values.",
+                    "pageName": "map-lines",
+                    "exampleName": "map-shapes-lines"
+                },
+                {
+                    "title": "Markers & POIs",
+                    "description": "Add markers for geographic points, with the ability to vary the size to represent data values.",
+                    "pageName": "map-markers",
+                    "exampleName": "marker-size"
+                }
+            ],
+            "cta": {
+                "text": "View Map Charts Features",
+                "url": "./react/maps/"
+            }
+        },
+        {
+            "type": "comparison",
+            "tag": "Community vs Enterprise",
+            "heading": "Choose the Right Edition for Your Needs",
+            "subHeading": "AG Grid Community is free forever and includes powerful features. Enterprise unlocks advanced capabilities for professional applications.",
+            "showBackgroundGradient": true
+        },
+        {
+            "type": "pricing",
+            "tag": "Ready to Get Started?",
+            "heading": "Simple, Transparent Pricing",
+            "subHeading": "One-time perpetual licence with 1 year of support and updates.",
+            "showBackgroundGradient": true,
+            "cards": [
+                {
+                    "title": "Community",
+                    "price": "Free",
+                    "priceNote": "forever",
+                    "features": ["15+ chart types", "High-performance rendering", "MIT licensed"],
+                    "ctaText": "Get Started",
+                    "ctaUrl": "./r/quick-start/",
+                    "ctaId": "get-started"
+                },
+                {
+                    "title": "Enterprise",
+                    "price": "$499",
+                    "priceNote": "per developer, perpetual licence",
+                    "features": ["All Enterprise features", "Buy once, use forever", "1 year of support & updates"],
+                    "ctaText": "Buy Now",
+                    "ctaUrl": "https://www.ag-grid.com/ecommerce/#/ecommerce/?licenseType=single&productType=chartsEnterprise",
+                    "isPrimary": true,
+                    "ctaId": "buy-now"
+                },
+                {
+                    "title": "Enterprise Bundle",
+                    "price": "$1,498",
+                    "priceNote": "per developer, perpetual licence",
+                    "features": [
+                        "AG Grid + AG Charts Enterprise",
+                        "Buy once, use forever",
+                        "1 year of support & updates"
+                    ],
+                    "ctaText": "Buy Now",
+                    "ctaUrl": "https://www.ag-grid.com/ecommerce/#/ecommerce/?licenseType=single&productType=both",
+                    "ctaId": "bundle-buy-now",
+                    "showTrialButton": true
+                }
+            ]
+        },
+        {
+            "type": "faq",
+            "tag": "Enterprise FAQs",
+            "heading": "Frequently Asked Questions",
+            "subHeading": "Common questions about AG Charts Enterprise features and licensing",
+            "items": [
+                {
+                    "question": "Can I try AG Charts Enterprise for free?",
+                    "answer": "Yes! You can install and test all AG Charts Enterprise features locally for free. A watermark and console message will appear until you add a licence key. You can also [request a trial licence](./community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence) to remove these during your evaluation period."
+                },
+                {
+                    "question": "What is the difference between Community and Enterprise?",
+                    "answer": "[AG Charts Community](./quick-start/) is free and open-source with 7 chart types. [AG Charts Enterprise](/license-pricing/) adds Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, Crosshairs, and more. Visit the [Pricing](/license-pricing/) page for full details."
+                },
+                {
+                    "question": "How much does AG Charts Enterprise cost?",
+                    "answer": "AG Charts Enterprise costs $499 USD per developer for a perpetual licence. This includes 1 year of support and updates. Visit the [Pricing page](/license-pricing/) for full details."
+                },
+                {
+                    "question": "What is included in the Enterprise Bundle?",
+                    "answer": "The Enterprise Bundle includes both AG Grid Enterprise and AG Charts Enterprise for $1,498 per developer. This is ideal if you need both advanced grid features and charting capabilities."
+                },
+                {
+                    "question": "What chart types are Enterprise-only?",
+                    "answer": "Enterprise chart types include Financial Charts (Candlestick, OHLC), Maps (shapes, markers, lines), Gauges (radial and linear), Treemap, Sunburst, Sankey, Chord, Funnel, Pyramid, Waterfall, Box Plot, and Range charts."
+                },
+                {
+                    "question": "What interactivity features are Enterprise-only?",
+                    "answer": "Enterprise interactivity features include Zoom & Pan, Navigator with mini-chart, Crosshairs, Context Menus, Annotations with drawing tools, and Synchronized Charts."
+                },
+                {
+                    "question": "Does AG Charts Enterprise have Financial Charts?",
+                    "answer": "[Financial Charts](./financial-charts/) provide a pre-configured solution for financial data with built-in annotations, range buttons, and a toolbar for technical analysis. Real-time updates are supported at 60+ FPS."
+                },
+                {
+                    "question": "What support is included with an Enterprise licence?",
+                    "answer": "Enterprise licences include access to our dedicated [support portal](https://ag-grid.zendesk.com/hc/en-us). You'll receive priority support from our engineering team, plus access to all updates and new features during your support period."
+                },
+                {
+                    "question": "Is the Enterprise licence perpetual?",
+                    "answer": "Yes, AG Charts Enterprise licences are perpetual. You can use the version you licensed forever. The annual support and updates subscription is optional for renewal, but recommended to access new features and fixes."
+                },
+                {
+                    "question": "Can I upgrade from Community to Enterprise?",
+                    "answer": "Yes, upgrading is simple. Just install `ag-charts-enterprise` alongside your existing AG Charts packages and add your licence key. All your existing code will continue to work, and Enterprise features become available immediately."
+                }
+            ]
+        },
+        {
+            "type": "contact",
+            "variant": "sales",
+            "tag": "Get In Touch",
+            "heading": "Contact Our Sales Team",
+            "subHeading": "Questions about AG Charts? We're here to help.",
+            "features": [
+                "Licensing and pricing information",
+                "Explore use-cases for your team",
+                "Technical guidance from our engineering team"
+            ]
+        }
+    ]
+}

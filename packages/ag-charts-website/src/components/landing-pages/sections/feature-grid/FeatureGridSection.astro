@@ -1,0 +1,35 @@
+---
+/**
+ * FeatureGridSection.astro - Displays a grid of feature cards with icons
+ *
+ * Shows a responsive grid of feature highlights with:
+ * - Icon
+ * - Title
+ * - Description
+ * - Hover animations
+ */
+import type {
+    FeatureGridSection as FeatureGridSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { FeatureGrid } from './FeatureGrid';
+
+interface Props {
+    section: FeatureGridSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+---
+
+<LandingPageSection
+    id="feature-grid"
+    tag={section.tag}
+    heading={section.heading}
+    headingHtml={section.headingHtml}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <FeatureGrid client:visible items={section.items} />
+</LandingPageSection>
