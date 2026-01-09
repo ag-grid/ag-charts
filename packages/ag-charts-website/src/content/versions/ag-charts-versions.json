@@ -10,6 +10,7 @@
             { "text": "Improved Highlighting Defaults", "path": "./series-highlighting" },
             { "text": "Dynamic Context Menu Items", "path": "./context-menu/#dynamic-items" }
         ],
+        "landingPageHighlight": "Reduced bundle size and optimised performance for high frequency data updates.",
         "notesPath": "./upgrade-to-ag-charts-13"
     },
     {

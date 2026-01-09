@@ -1,0 +1,396 @@
+{
+    "meta": {
+        "title": "AG Charts: High-Performance Angular Charts Library",
+        "description": "Build interactive, high-performance Angular charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
+    },
+    "productName": "AG Charts",
+    "framework": "angular",
+    "packageName": "ag-charts-angular",
+    "docsPath": "angular",
+    "analyticsPrefix": "angular-charts",
+    "sections": [
+        {
+            "type": "hero",
+            "tag": "Angular Charts",
+            "heading": "Open Source Angular Charts",
+            "subHeading": "Build Angular Charts",
+            "subHeadingHtml": "Canvas-based Angular charting library with no dependencies. Get started in 60 seconds.",
+            "showVersionBadge": true,
+            "showCustomerLogos": false,
+            "galleryExamples": [
+                {
+                    "title": "Line",
+                    "exampleName": "line-with-time-axis"
+                },
+                {
+                    "title": "Stacked Bar",
+                    "exampleName": "stacked-bar"
+                },
+                {
+                    "title": "Stacked Area",
+                    "exampleName": "stacked-area"
+                },
+                {
+                    "title": "Pie",
+                    "exampleName": "simple-pie"
+                },
+                {
+                    "title": "Scatter",
+                    "exampleName": "simple-scatter"
+                }
+            ],
+            "demoHeight": 500,
+            "primaryCta": {
+                "text": "Get Started",
+                "url": "./angular/quick-start/"
+            }
+        },
+        {
+            "type": "feature-grid",
+            "tag": "Why AG Charts for Angular Charts",
+            "heading": "Why Developers Choose AG Charts",
+            "subHeading": "Built for performance and customisation, with a developer-first approach.",
+            "cta": {
+                "text": "Browse Gallery",
+                "url": "./gallery/"
+            },
+            "items": [
+                {
+                    "icon": "flash",
+                    "title": "Canvas-based Performance",
+                    "description": "Render large datasets and update them as fast as your display can refresh, without lag during interactivity.",
+                    "link": "./angular/large-dataset-interactivity/"
+                },
+                {
+                    "icon": "colorPalette",
+                    "title": "Fully Customisable",
+                    "description": "Control every visual element to make your charts match your product with custom themes, formatters and renderers.",
+                    "link": "./angular/themes/"
+                },
+                {
+                    "icon": "code",
+                    "title": "Developer-First",
+                    "description": "Full type definitions, predictable APIs, and comprehensive docs means less time debugging, and more time building.",
+                    "link": "./options/"
+                },
+                {
+                    "icon": "chartsCombination",
+                    "title": "30+ Chart Types",
+                    "description": "Line, bar, area, scatter, pie, treemap, heatmap, candlestick, maps, gauges, and more - all from a single library.",
+                    "link": "./gallery/"
+                },
+                {
+                    "icon": "download",
+                    "title": "1M+ Weekly Downloads",
+                    "description": "Trusted by teams at scale with over one million npm downloads per week across all frameworks and versions."
+                },
+                {
+                    "icon": "enterprise",
+                    "title": "Enterprise Ready",
+                    "description": "Trusted by some of the worlds largest companies - with dedicated support, SLAs, and enterprise-grade features.",
+                    "link": "./license-pricing/"
+                }
+            ]
+        },
+        {
+            "type": "chart-types-showcase",
+            "tag": "Any Angular Chart You Need",
+            "heading": "30+ Chart Types",
+            "subHeading": "Bars, lines, areas and pies, plus advanced charts like treemaps, heatmaps, financial charts, maps, and more.",
+            "chartHeight": 350,
+            "items": [
+                {
+                    "title": "Area Charts",
+                    "description": "Visualise trends and cumulative values over time",
+                    "pageName": "area-series",
+                    "exampleName": "area-no-labels",
+                    "link": "./angular/area-series/"
+                },
+                {
+                    "title": "Bar Charts",
+                    "description": "Compare discrete values across categories",
+                    "pageName": "bar-series",
+                    "exampleName": "bar-no-labels",
+                    "link": "./angular/bar-series/"
+                },
+                {
+                    "title": "Line Charts",
+                    "description": "Track changes and trends over time",
+                    "pageName": "line-series",
+                    "exampleName": "simple-line-no-labels",
+                    "link": "./angular/line-series/"
+                },
+                {
+                    "title": "Pie Charts",
+                    "description": "Show proportions of a whole",
+                    "pageName": "pie-series",
+                    "exampleName": "pie-no-labels",
+                    "link": "./angular/pie-series/"
+                },
+                {
+                    "title": "Bubble Charts",
+                    "description": "Plot three dimensions of data",
+                    "pageName": "bubble-series",
+                    "exampleName": "bubble-no-labels",
+                    "link": "./angular/bubble-series/"
+                },
+                {
+                    "title": "And More...",
+                    "description": "30+ chart types available",
+                    "icon": "chartsCombination",
+                    "link": "./gallery/"
+                }
+            ],
+            "cta": {
+                "text": "Explore All Chart Types",
+                "url": "./gallery/"
+            }
+        },
+        {
+            "type": "code-example",
+            "tag": "Developer Experience",
+            "heading": "Declarative API",
+            "subHeading": "Bind your data and options to the AgCharts component. AG Charts handles rendering, updates, and interactivity.",
+            "fileName": "revenue-chart.component.ts",
+            "language": "ts",
+            "code": "import { Component } from '@angular/core';\nimport { AgCharts } from 'ag-charts-angular';\nimport { AgChartOptions } from 'ag-charts-community';\n\n@Component({\n  selector: 'revenue-chart',\n  standalone: true,\n  imports: [AgCharts],\n  template: `<ag-charts [options]=\"options\" />`,\n})\nexport class RevenueChart {\n  options: AgChartOptions = {\n    data: [\n      { month: 'Jan', revenue: 15200 },\n      { month: 'Feb', revenue: 18400 },\n      { month: 'Mar', revenue: 22100 },\n    ],\n    series: [{\n      type: 'bar',\n      xKey: 'month',\n      yKey: 'revenue',\n      fill: '#3b82f6',\n      cornerRadius: 8,\n    }],\n  };\n}",
+            "cta": {
+                "text": "Get Started",
+                "url": "./angular/quick-start/"
+            }
+        },
+        {
+            "type": "features",
+            "tag": "Key Angular Chart Features",
+            "heading": "Comprehensive Feature Set",
+            "subHeading": "Everything you need to build production-ready charts, from rendering and customisation, to interactivity and enterprise features.",
+            "items": [
+                {
+                    "id": "displaying-data",
+                    "title": "Displaying Data",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "configuring-axes-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Series & Data",
+                            "detail": "Bindable series types with flexible key-based data mapping.",
+                            "link": "./angular/data-configuration/"
+                        },
+                        {
+                            "heading": "Axis Types",
+                            "detail": "Category, number, time, and log axes, with customisable ticks and labels.",
+                            "link": "./angular/axes-types/"
+                        },
+                        {
+                            "heading": "Multiple Axes",
+                            "detail": "Add secondary axes to compare series with different scales.",
+                            "link": "./angular/axes-secondary/"
+                        }
+                    ],
+                    "docsLink": "./angular/key-features/"
+                },
+                {
+                    "id": "data-elements",
+                    "title": "Data Elements",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "enhancing-data-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Legends",
+                            "detail": "Configurable positioning, pagination, and interactive series toggling.",
+                            "link": "./angular/legend/"
+                        },
+                        {
+                            "heading": "Cross Lines",
+                            "detail": "Add references lines and ranges to mark thresholds and targets.",
+                            "link": "./angular/axes-cross-lines/"
+                        },
+                        {
+                            "heading": "Conditional Styling",
+                            "detail": "Style individual data points based on their values using item stylers.",
+                            "link": "./angular/stylers/"
+                        }
+                    ],
+                    "docsLink": "./angular/legend/"
+                },
+                {
+                    "id": "layout-styling",
+                    "title": "Layout & Styling",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "customizing-charts-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Themes",
+                            "detail": "Five built-in themes with light and dark variants. Create custom themes to match your design system.",
+                            "link": "./angular/themes/"
+                        },
+                        {
+                            "heading": "Fills & Strokes",
+                            "detail": "Solid colours, gradients, patterns, and image fills for series styling.",
+                            "link": "./angular/fills-borders/"
+                        },
+                        {
+                            "heading": "Markers",
+                            "detail": "Configurable shapes, sizes, and styles for data point markers.",
+                            "link": "./angular/markers/"
+                        }
+                    ],
+                    "docsLink": "./angular/themes/"
+                },
+                {
+                    "id": "interactivity",
+                    "title": "Interactivity",
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "user-interactions-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Tooltips",
+                            "detail": "Built-in tooltips with multiple display modes and custom renderers.",
+                            "link": "./angular/tooltips/"
+                        },
+                        {
+                            "heading": "Highlighting",
+                            "detail": "Hover states for items and series with configurable styles.",
+                            "link": "./angular/series-highlighting/"
+                        },
+                        {
+                            "heading": "Events",
+                            "detail": "Event callbacks for series, legend, and chart elements.",
+                            "link": "./angular/events/"
+                        }
+                    ],
+                    "docsLink": "./angular/tooltips/"
+                },
+                {
+                    "id": "enterprise",
+                    "title": "Enterprise",
+                    "isEnterprise": true,
+                    "example": {
+                        "pageName": "key-features",
+                        "exampleName": "enterprise-features-example"
+                    },
+                    "features": [
+                        {
+                            "heading": "Zoom & Pan",
+                            "detail": "Interactive controls for exploring large datasets. Mouse, touch, and keyboard support.",
+                            "link": "./zoom/"
+                        },
+                        {
+                            "heading": "Context Menu",
+                            "detail": "Right-click menus with configurable actions and export options.",
+                            "link": "./context-menu/"
+                        },
+                        {
+                            "heading": "Navigator",
+                            "detail": "Mini-chart for navigating through time-series data without losing context.",
+                            "link": "./navigator/"
+                        }
+                    ],
+                    "docsLink": "./angular/zoom/"
+                }
+            ]
+        },
+        {
+            "type": "performance-demo",
+            "tag": "Large Data in Angular Charts",
+            "heading": "Render 1M+ Data Points",
+            "subHeading": "AG Charts renders large datasets whilst maintaining interactivity, e.g. zooming, panning and scrolling, at 60fps.",
+            "pageName": "large-dataset-interactivity",
+            "exampleName": "ordered-data",
+            "height": 500,
+            "cta": {
+                "text": "Learn More About Large Data",
+                "url": "./angular/large-dataset-interactivity/"
+            }
+        },
+        {
+            "type": "performance-demo",
+            "tag": "High Frequency Updates in Angular Charts",
+            "heading": "Real-Time Streaming at 60+ FPS",
+            "subHeading": "Built for live dashboards and monitoring systems. Batched updates and efficient rendering keep your charts responsive during continuous data streams.",
+            "pageName": "high-frequency-data",
+            "exampleName": "high-frequency-showcase",
+            "height": 500,
+            "cta": {
+                "text": "Learn More About High Frequency Data",
+                "url": "./angular/high-frequency-data/"
+            }
+        },
+        {
+            "type": "integrated-charts",
+            "tag": "AG Grid Integration",
+            "heading": "Integrated Charts for AG Grid",
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/angular-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a>. Users can create charts directly from grid data with a right-click."
+        },
+        {
+            "type": "whats-new",
+            "tag": "Latest Releases",
+            "heading": "Regular Releases and Updates",
+            "subHeading": "New features, chart types, and improvements ship regularly.",
+            "versionsToShow": 3,
+            "cta": {
+                "text": "See What's New",
+                "url": "./whats-new/"
+            }
+        },
+        {
+            "type": "faq",
+            "tag": "Angular Charts FAQs",
+            "heading": "Frequently Asked Questions",
+            "subHeading": "Common questions about AG Charts for Angular",
+            "items": [
+                {
+                    "question": "Is AG Charts free to use?",
+                    "answer": "AG Charts Community is free and open-source under the MIT license. Use it in commercial projects without restrictions. [AG Charts Enterprise](/license-pricing/) adds financial charts, maps, annotations, and advanced interactivity."
+                },
+                {
+                    "question": "What chart types are included?",
+                    "answer": "AG Charts includes 30+ chart types: Bar, Line, Area, Scatter, Pie, Donut, Radar, Treemap, Sunburst, Heatmap, Candlestick, OHLC, Maps, Gauges, and more. Browse the [Gallery](/gallery/) to see them all."
+                },
+                {
+                    "question": "Does AG Charts support TypeScript?",
+                    "answer": "Yes. AG Charts is written in TypeScript and ships with full type definitions. The Angular integration works seamlessly with Angular's strict type checking."
+                },
+                {
+                    "question": "How do I get started?",
+                    "answer": "Install with `npm install ag-charts-angular ag-charts-community`, import the `AgCharts` component, and bind your options. The [Quick Start guide](./quick-start/) walks through a complete example."
+                },
+                {
+                    "question": "Does AG Charts have any dependencies?",
+                    "answer": "No, AG Charts is a dependency-free library. It uses native browser APIs and the HTML5 canvas for rendering."
+                },
+                {
+                    "question": "What's included in AG Charts Enterprise?",
+                    "answer": "[AG Charts Enterprise](/license-pricing/) includes Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, Navigator, and Context Menus. Start a free trial to evaluate."
+                },
+                {
+                    "question": "How does AG Charts handle large datasets?",
+                    "answer": "AG Charts uses canvas-based rendering optimised for large data with the M4 algorithm. Learn more in our [blog](https://blog.ag-grid.com/optimizing-large-data-set-visualisations-with-the-m4-algorithm/)."
+                },
+                {
+                    "question": "Can I use AG Charts with AG Grid?",
+                    "answer": "Yes. AG Charts powers the [Integrated Charts](https://www.ag-grid.com/angular-data-grid/integrated-charts/) feature in AG Grid, allowing users to create charts directly from grid data."
+                }
+            ]
+        },
+        {
+            "type": "contact",
+            "tag": "Get In Touch",
+            "heading": "Talk to Our Team",
+            "subHeading": "Questions about AG Charts? We're here to help.",
+            "features": [
+                "Licensing and pricing information",
+                "Explore use-cases for your team",
+                "Technical guidance from our engineering team"
+            ]
+        }
+    ]
+}
