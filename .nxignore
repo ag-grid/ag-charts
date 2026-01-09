@@ -4,3 +4,6 @@ __diff_output__
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
 .rulesync/
+
+# Ignore external repos.
+external/prompts/
