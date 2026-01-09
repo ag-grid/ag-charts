@@ -634,7 +634,7 @@ If the API is unavailable or access fails, use this fallback approach:
 
 1. **Navigate to the Plnkr URL** and take a screenshot to capture the editor view
 2. **Use page text extraction** to parse the visible code:
-    - Use browser automation (e.g., `puppeteer_evaluate`) to extract text content
+    - Use browser automation (e.g., `mcp__claude-in-chrome__javascript_tool` or `mcp__claude-in-chrome__get_page_text`) to extract text content
     - Look for file content in the DOM or use `document.body.innerText`
 3. **Copy the visible code manually from the screenshot** if extraction fails:
     - Read the line numbers and code visually from the screenshot
