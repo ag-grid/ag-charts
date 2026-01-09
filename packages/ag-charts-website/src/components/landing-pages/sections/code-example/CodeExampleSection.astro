@@ -1,0 +1,35 @@
+---
+/**
+ * CodeExampleSection.astro - Displays a code snippet with syntax highlighting
+ *
+ * Shows a code block with:
+ * - Window-style header with traffic light dots
+ * - Filename display
+ * - Copy to clipboard button
+ * - Syntax-highlighted code with line numbers
+ */
+import type {
+    CodeExampleSection as CodeExampleSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { CodeExample } from './CodeExample';
+
+interface Props {
+    section: CodeExampleSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+---
+
+<LandingPageSection
+    id="code-example"
+    tag={section.tag}
+    heading={section.heading}
+    headingHtml={section.headingHtml}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <CodeExample client:only="react" code={section.code} language={section.language} fileName={section.fileName} />
+</LandingPageSection>

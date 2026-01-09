@@ -1,0 +1,46 @@
+---
+/**
+ * PerformanceDemoSection.astro - Performance demo section for docs examples
+ *
+ * Displays a full-width interactive chart demo from the docs with a CTA button.
+ * Used for showcasing performance features like Large Data and High Frequency Updates.
+ */
+import type {
+    PerformanceDemoSection as PerformanceDemoSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import ExampleRunner from '../example-runner/ExampleRunner.astro';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './PerformanceDemoSection.module.scss';
+
+interface Props {
+    section: PerformanceDemoSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const { pageName, exampleName, height = 500, cta } = section;
+const framework = pageContent.framework ?? 'reactFunctionalTs';
+---
+
+<LandingPageSection
+    id={`performance-demo-${exampleName}`}
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+    ctaTitle={cta?.text}
+    ctaUrl={cta ? urlWithBaseUrl(cta.url) : undefined}
+    ctaId={`${pageContent.analyticsPrefix}-${pageName}-cta`}
+>
+    <div class={styles.demoContainer}>
+        <ExampleRunner
+            title={section.heading}
+            name={exampleName}
+            pageName={pageName}
+            exampleHeight={height}
+            framework={framework}
+        />
+    </div>
+</LandingPageSection>

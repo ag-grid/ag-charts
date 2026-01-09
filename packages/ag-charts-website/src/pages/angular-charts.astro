@@ -1,0 +1,18 @@
+---
+/**
+ * Angular Charts Landing Page
+ *
+ * Content is defined in: src/content/landing-pages/angular-charts.json
+ */
+
+import LandingPage from '@components/landing-pages/LandingPage.astro';
+import { getEntry } from 'astro:content';
+
+const contentEntry = await getEntry('landingPages', 'angular-charts');
+const versionsEntry = await getEntry('versions', 'ag-charts-versions');
+
+const content = contentEntry?.data;
+const versions = versionsEntry?.data;
+---
+
+{content && <LandingPage content={content} versions={versions} />}

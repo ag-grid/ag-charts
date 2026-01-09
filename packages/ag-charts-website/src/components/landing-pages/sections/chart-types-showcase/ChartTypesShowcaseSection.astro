@@ -1,0 +1,100 @@
+---
+/**
+ * ChartTypesShowcaseSection.astro - Displays a grid of chart type previews
+ *
+ * Shows a responsive grid of chart type cards with:
+ * - Live embedded chart preview via iframe (gallery) or DocsExampleRunner (docs)
+ * - Static icon option for "And More..." type cards
+ * - Title and description
+ * - Hover animations
+ */
+import type {
+    ChartTypesShowcaseSection as ChartTypesShowcaseSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
+import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
+import { getExampleRunnerExampleUrl } from '@components/gallery/utils/urlPaths';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './ChartTypesShowcase.module.scss';
+
+interface Props {
+    section: ChartTypesShowcaseSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const { cta, chartHeight = 150 } = section;
+---
+
+<LandingPageSection
+    id="chart-types-showcase"
+    tag={section.tag}
+    heading={section.heading}
+    headingHtml={section.headingHtml}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+    ctaTitle={cta?.text}
+    ctaUrl={cta ? urlWithBaseUrl(cta.url) : undefined}
+    ctaId={`${pageContent.analyticsPrefix}-chart-types-showcase-cta`}
+>
+    <div class={styles.grid}>
+        {
+            section.items.map((item, index) => {
+                const hasIcon = !!item.icon;
+                const isDocsExample = !!item.pageName && !!item.exampleName;
+                const isGalleryExample = !item.pageName && !!item.exampleName;
+                const iframeUrl = isGalleryExample
+                    ? getExampleRunnerExampleUrl({ exampleName: item.exampleName! })
+                    : null;
+
+                return (
+                    <a href={item.link} id={`chart-example-${item.pageName}`}>
+                        <div class={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div
+                                class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
+                                style={{ height: `${chartHeight}px` }}
+                            >
+                                {hasIcon ? (
+                                    <div class={styles.iconContainer}>
+                                        <Icon name={item.icon!} />
+                                    </div>
+                                ) : isDocsExample ? (
+                                    <ExampleRunnerContainer
+                                        pageName={item.pageName!}
+                                        exampleName={item.exampleName!}
+                                        exampleHeight={chartHeight}
+                                    >
+                                        <DocsExampleRunner
+                                            client:visible
+                                            title={item.title}
+                                            name={item.exampleName!}
+                                            exampleType="generated"
+                                            options={{ exampleHeight: chartHeight }}
+                                            pageName={item.pageName!}
+                                            internalFrameworkOverride="vanilla"
+                                            hideCode
+                                            hideExternalLinks
+                                        />
+                                    </ExampleRunnerContainer>
+                                ) : (
+                                    <iframe
+                                        title={`${item.title} Preview`}
+                                        src={iframeUrl}
+                                        class={`${styles.iframe} exampleRunner`}
+                                    />
+                                )}
+                            </div>
+                            <div class={styles.cardContent}>
+                                <h3 class={styles.title}>{item.title}</h3>
+                                <p class={styles.description}>{item.description}</p>
+                            </div>
+                        </div>
+                    </a>
+                );
+            })
+        }
+    </div>
+</LandingPageSection>

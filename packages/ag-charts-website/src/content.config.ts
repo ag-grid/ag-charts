@@ -230,6 +230,22 @@ const moduleMappings = defineCollection({
     }),
 });
 
+const landingPages = defineCollection({
+    loader: glob({ base: './src/content/landing-pages', pattern: '*.json' }),
+    schema: z.object({
+        meta: z.object({
+            title: z.string(),
+            description: z.string(),
+        }),
+        productName: z.string().optional(),
+        framework: z.string().optional(),
+        packageName: z.string().optional(),
+        docsPath: z.string(),
+        analyticsPrefix: z.string(),
+        sections: z.array(z.any()), // Flexible for various section types
+    }),
+});
+
 export const collections = {
     docs,
     apiMenu,
@@ -242,4 +258,5 @@ export const collections = {
     gallery,
     homepageGallery,
     moduleMappings,
+    landingPages,
 };

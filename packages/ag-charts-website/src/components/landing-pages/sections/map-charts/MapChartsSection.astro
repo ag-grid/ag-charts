@@ -1,0 +1,64 @@
+---
+/**
+ * MapChartsSection.astro - Map charts showcase section
+ *
+ * Displays a grid of map chart examples in cards.
+ */
+import type {
+    MapChartsSection as MapChartsSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from '@components/docs/components/DocsExampleRunner';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './MapChartsSection.module.scss';
+
+interface Props {
+    section: MapChartsSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+const cardHeight = section.cardHeight ?? 360;
+const ctaUrl = section.cta?.url ? urlWithBaseUrl(section.cta.url) : urlWithBaseUrl(`./${pageContent.docsPath}/maps/`);
+---
+
+<LandingPageSection
+    id="map-charts"
+    tag={section.tag}
+    heading={section.heading}
+    subHeading={section.subHeading}
+    showBackgroundGradient={section.showBackgroundGradient}
+    ctaTitle={section.cta?.text}
+    ctaUrl={ctaUrl}
+    ctaId={`${pageContent.analyticsPrefix}-map-charts-cta`}
+>
+    <div class={styles.mapChartsGrid}>
+        {
+            section.cards.map((card) => (
+                <div class={styles.mapChartsCard}>
+                    <h4>{card.title}</h4>
+                    <p>{card.description}</p>
+                    <ExampleRunnerContainer
+                        pageName={card.pageName}
+                        exampleName={card.exampleName}
+                        exampleHeight={cardHeight}
+                    >
+                        <DocsExampleRunner
+                            client:only="react"
+                            title={card.title}
+                            name={card.exampleName}
+                            exampleType="generated"
+                            options={{ exampleHeight: cardHeight }}
+                            pageName={card.pageName}
+                            internalFrameworkOverride="vanilla"
+                            hideCode
+                            hideExternalLinks
+                        />
+                    </ExampleRunnerContainer>
+                </div>
+            ))
+        }
+    </div>
+</LandingPageSection>
