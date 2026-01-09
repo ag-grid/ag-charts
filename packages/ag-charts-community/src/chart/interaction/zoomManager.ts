@@ -18,7 +18,6 @@ import type {
     BoxBounds,
     CartesianAxisDirection,
     DeepReadonly,
-    DeepRequired,
     DefinedZoomState,
     OptionsDefs,
     RequireOptional,
