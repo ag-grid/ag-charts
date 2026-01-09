@@ -147,8 +147,8 @@ class APIZoomEventDispatcher {
         autoScaledAxes: undefined,
         rangeX: { end: undefined, start: undefined },
         rangeY: { end: undefined, start: undefined },
-        ratioX: { end: NaN, start: NaN },
-        ratioY: { end: NaN, start: NaN },
+        ratioX: { end: Number.NaN, start: Number.NaN },
+        ratioY: { end: Number.NaN, start: Number.NaN },
     };
 
     schedule(source: AgZoomEventSource): void {
@@ -176,7 +176,7 @@ export class ZoomManager extends BaseManager {
     private state: CoreZoomStateSafeRetrieval = {};
     private readonly axes: CartesianAxisLike[] = [];
     private didLayoutAxes = false;
-    private apiZoomEventDispatcher = new APIZoomEventDispatcher();
+    private readonly apiZoomEventDispatcher = new APIZoomEventDispatcher();
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private independentAxes = false;
