@@ -1,0 +1,1 @@
+../../external/prompts/commands/release-docs-review.md

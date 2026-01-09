@@ -1,3 +1,10 @@
+---
+root: true
+targets: ['*']
+description: 'AG Charts project overview and development guidelines'
+globs: ['**/*']
+---
+
 # AI Agent Instructions
 
 This file provides guidance to AI Agents when working with code in this repository.
