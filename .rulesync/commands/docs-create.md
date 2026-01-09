@@ -1,0 +1,1 @@
+../../external/prompts/commands/docs-create.md

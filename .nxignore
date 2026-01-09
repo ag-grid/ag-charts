@@ -1,3 +1,6 @@
 __diff_output__
+
+# Ignore symlinks as nx format doesn't handle these well.
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
+.rulesync/

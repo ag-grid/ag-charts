@@ -1,3 +1,9 @@
+---
+root: true
+targets: ['*']
+description: 'AG Charts project overview and development guidelines'
+globs: ['**/*']
+---
 
 # AI Agent Instructions
 
