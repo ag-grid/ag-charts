@@ -8,11 +8,26 @@ import type { DatumType } from './data';
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const options: AgCartesianChartOptions<DatumType> = {
+    theme: {
+        overrides: {
+            line: {
+                series: {
+                    highlight: {
+                        highlightedItem: {
+                            stroke: 'lime',
+                            strokeWidth: 7,
+                        },
+                    },
+                },
+            },
+        },
+    },
     container: document.getElementById('myChart'),
     title: {
         text: 'Net migration',
     },
     data: getData(),
+    animation: { enabled: false },
     series: [
         {
             type: 'line',
