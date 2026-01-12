@@ -38,6 +38,12 @@
       "ag-charts-locale": [
         "packages/ag-charts-locale/src/main.ts"
       ],
+      "ag-charts-server-side": [
+        "packages/ag-charts-server-side/src/main.ts"
+      ],
+      "ag-charts-server-side/test": [
+        "packages/ag-charts-server-side/src/test/index.ts"
+      ],
       "ag-charts-types": [
         "packages/ag-charts-types/src/main.ts"
       ]

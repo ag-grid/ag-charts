@@ -1,0 +1,64 @@
+{
+  "name": "ag-charts-server-side",
+  "version": "13.0.0-beta.20260111",
+  "description": "Server-side rendering for AG Charts",
+  "main": "./dist/package/main.cjs.js",
+  "module": "./dist/package/main.esm.mjs",
+  "type": "module",
+  "types": "./dist/types/src/main.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/package/main.esm.mjs",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/types/src/main.d.ts"
+    },
+    "./test": {
+      "import": "./dist/package/test/index.esm.mjs",
+      "require": "./dist/package/test/index.cjs.js",
+      "types": "./dist/types/src/test/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ag-grid/ag-charts.git"
+  },
+  "keywords": [
+    "charts",
+    "server-side",
+    "rendering",
+    "node",
+    "canvas",
+    "image",
+    "png",
+    "jpeg"
+  ],
+  "author": "AG Grid <info@ag-grid.com>",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "bugs": {
+    "url": "https://github.com/ag-grid/ag-charts/issues"
+  },
+  "homepage": "https://www.ag-grid.com/charts/",
+  "dependencies": {
+    "ag-charts-community": "13.0.0-beta.20260111",
+    "jsdom": "^24.0.0",
+    "skia-canvas": "^2.0.2"
+  },
+  "devDependencies": {
+    "ag-charts-community": "13.0.0-beta.20260111",
+    "jest-image-snapshot": "^6.4.0"
+  },
+  "peerDependencies": {
+    "ag-charts-enterprise": "13.0.0-beta.20260111"
+  },
+  "peerDependenciesMeta": {
+    "ag-charts-enterprise": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
