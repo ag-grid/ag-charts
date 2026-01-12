@@ -1,0 +1,1 @@
+../../external/prompts/guides/competitor-analysis.md

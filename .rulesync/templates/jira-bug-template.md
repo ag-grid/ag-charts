@@ -1,0 +1,1 @@
+../../external/prompts/templates/jira-bug-template.md

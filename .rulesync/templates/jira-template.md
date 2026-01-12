@@ -1,0 +1,1 @@
+../../external/prompts/templates/jira-template.md
