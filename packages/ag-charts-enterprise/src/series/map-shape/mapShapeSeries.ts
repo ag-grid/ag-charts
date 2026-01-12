@@ -383,6 +383,10 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
+        if (!this.visible) {
+            return { itemId: seriesId, nodeData: [], labelData: [] };
+        }
+
         const scaling = scale == null ? Number.NaN : (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width;
         const columns = this.resolveShapeDataColumns(processedData);
 

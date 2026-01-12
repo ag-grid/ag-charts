@@ -530,6 +530,10 @@ export class MapMarkerSeries
 
         if (dataModel == null || processedData == null || scale == null) return;
 
+        if (!this.visible) {
+            return { itemId: seriesId, nodeData: [], labelData: [] };
+        }
+
         const columns = this.resolveDataColumns(processedData);
 
         const markerMaxSize = properties.maxSize ?? properties.size;
