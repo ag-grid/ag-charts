@@ -147,7 +147,7 @@ class PickedNodeState {
 export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgActiveState> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
-    mementoOriginatorKey: string = 'picked';
+    mementoOriginatorKey: string = 'active';
 
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
