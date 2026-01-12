@@ -12,6 +12,7 @@
       "dependsOn": [
         "ag-charts-community:build:package",
         "ag-charts-enterprise:build:package",
+        "ag-charts-server-side:build:package",
         "ag-charts-generate-example-files:build",
         "ag-shared:build"
       ],

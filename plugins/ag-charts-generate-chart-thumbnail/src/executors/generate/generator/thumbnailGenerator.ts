@@ -1,11 +1,12 @@
 import { JSDOM } from 'jsdom';
 import path from 'path';
 import sharp from 'sharp';
-import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
+import type { Canvas, CanvasRenderingContext2D } from 'skia-canvas';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
+import { NodeCanvas } from 'ag-charts-server-side/test';
 import { mockCanvas } from 'ag-charts-test';
 
 import {
@@ -49,7 +50,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
     let output: { multiple: true; canvas: Canvas; ctx: CanvasRenderingContext2D } | { multiple: false; buffer: Buffer };
     if (charts.length > 1) {
-        const canvas = new mockCanvas.ConfiguredCanvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
+        const canvas = new NodeCanvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = BACKGROUND_COLORS[theme];
