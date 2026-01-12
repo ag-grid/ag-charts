@@ -1082,7 +1082,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        if (newSeries == null || lastSeries == null) {
+        if (this.hoverDevice === 'setState' || newSeries == null || lastSeries == null) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
