@@ -927,6 +927,13 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
+        if (this.hoverDevice === 'setState') {
+            if (this.pickedNodes) {
+                this.handleHoverFromState(this.pickedNodes);
+            }
+            return;
+        }
+
         if (!this.tooltip.lastHover && !this.highlight.pendingHoverEvent) return;
 
         if (this.chart.getUpdateType() <= ChartUpdateType.SERIES_UPDATE) {
@@ -943,6 +950,15 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             this.handleHoverTooltip(this.tooltip.lastHover, false);
         }
     });
+
+    private handleHoverFromState(pickedNodes: PickedNodes): void {
+        this.updateTooltipCandidate(pickedNodes.matches);
+        const { datum } = pickedNodes.matches[0];
+        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+        if (this.chart.tooltip.enabled && datum.midPoint) {
+            this.showTooltip(pickedNodes.matches[0], datum.midPoint.x, datum.midPoint.y);
+        }
+    }
 
     private handleHoverHighlight(redisplay: boolean) {
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
@@ -1209,12 +1225,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         } else {
             this.hoverDevice = 'setState';
             this.pickedNodes = desiredPickedNodes;
-            this.updateTooltipCandidate(desiredPickedNodes.matches);
-            const { datum } = desiredPickedNodes.matches[0];
-            this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            if (this.chart.tooltip.enabled && datum.midPoint) {
-                this.showTooltip(desiredPickedNodes.matches[0], datum.midPoint.x, datum.midPoint.y);
-            }
+            this.hoverScheduler.schedule();
         }
     }
 
