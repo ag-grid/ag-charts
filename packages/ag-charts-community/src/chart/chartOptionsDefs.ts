@@ -13,15 +13,15 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
+    AgActiveState,
     AgCartesianChartOptions,
     AgInitialStateLegendOptions,
-    AgPickedState,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-export const initialStatePickedOptionsDef: OptionsDefs<AgPickedState> = {
+export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
         seriesId: string,
         itemId: string,
@@ -39,7 +39,7 @@ export const commonChartOptions = {
     annotations: defined,
     navigator: defined,
     initialState: {
-        picked: initialStatePickedOptionsDef,
+        active: initialStatePickedOptionsDef,
         chartType: string,
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(

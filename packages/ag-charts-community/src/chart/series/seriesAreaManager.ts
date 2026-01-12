@@ -1,6 +1,6 @@
 import type { MementoOriginator, Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
-import type { AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState, AgPickedState } from 'ag-charts-types';
+import type { AgActiveState, AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState } from 'ag-charts-types';
 
 import type {
     HighlightChangeEvent,
@@ -144,7 +144,7 @@ class PickedNodeState {
     }
 }
 
-export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgPickedState> {
+export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgActiveState> {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
     mementoOriginatorKey: string = 'picked';
@@ -1205,7 +1205,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return result;
     }
 
-    public createMemento(): AgPickedState {
+    public createMemento(): AgActiveState {
         const active: PickedNode | undefined = this.tooltipCandidates.current ?? this.pickedNodes?.matches[0];
         return {
             frozen: false,
@@ -1213,15 +1213,15 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         };
     }
 
-    public guardMemento(blob: unknown, messages: string[]): blob is AgPickedState | undefined {
+    public guardMemento(blob: unknown, messages: string[]): blob is AgActiveState | undefined {
         if (blob == undefined) return true;
 
-        const validationResult = validate(blob, commonChartOptions.initialState.picked);
+        const validationResult = validate(blob, commonChartOptions.initialState.active);
         messages.push(...validationResult.invalid.map((err) => err.toString()));
         return validationResult.invalid.length === 0;
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AgPickedState | undefined): void {
+    public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
         const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(memento);
         if (desiredPickedNodes == undefined) {
             this.clearPicked();
@@ -1232,7 +1232,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
     }
 
-    public findPickedNodes(memento: AgPickedState | undefined): PickedNodes | undefined {
+    public findPickedNodes(memento: AgActiveState | undefined): PickedNodes | undefined {
         if (memento?.activeItem == undefined) return undefined;
 
         const desiredItemId: string | undefined = memento.activeItem.itemId;
