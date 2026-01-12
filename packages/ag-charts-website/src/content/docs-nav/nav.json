@@ -234,8 +234,8 @@
                         },
                         {
                             "type": "item",
-                            "title": "Datum Picking",
-                            "path": "picked"
+                            "title": "Programmatic Highlighting",
+                            "path": "active"
                         },
                         {
                             "type": "item",
