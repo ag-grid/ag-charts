@@ -60,6 +60,6 @@ jobs:
               env:
                   SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
               run: |
-                  npx tsx tools/prompts/commands/sonar-fix/scripts/sync-sonar-issues.ts \
+                  npx tsx external/prompts/commands/sonar-fix/scripts/sync-sonar-issues.ts \
                     --source ${SONAR_SOURCE_PROJECT} \
                     --target ${SONAR_PROJECT}

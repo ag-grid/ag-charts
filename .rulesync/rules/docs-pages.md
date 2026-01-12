@@ -2,7 +2,11 @@
 root: false
 targets: ['*']
 description: 'Comprehensive guidance for creating high-quality, consistent AG Charts documentation pages'
-globs: ['packages/ag-charts-website/src/content/docs/**/*.mdoc', 'packages/ag-charts-website/src/content/docs/**/_examples/**/*']
+globs:
+    [
+        'packages/ag-charts-website/src/content/docs/**/*.mdoc',
+        'packages/ag-charts-website/src/content/docs/**/_examples/**/*',
+    ]
 ---
 
 # Documentation Pages Guide

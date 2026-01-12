@@ -2,7 +2,12 @@
 root: false
 targets: ['*']
 description: 'CSS architecture and design system for the AG Charts website including dark mode support'
-globs: ['packages/ag-charts-website/src/**/*.scss', 'packages/ag-charts-website/src/**/*.css', 'external/ag-website-shared/src/design-system/**/*.scss']
+globs:
+    [
+        'packages/ag-charts-website/src/**/*.scss',
+        'packages/ag-charts-website/src/**/*.css',
+        'external/ag-website-shared/src/design-system/**/*.scss',
+    ]
 ---
 
 # Website CSS & Styling Guide
