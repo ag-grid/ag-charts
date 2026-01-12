@@ -248,7 +248,19 @@
         "forwardAllArgs": true
       }
     },
-    "snykIgnore": {
+    "snyk:test": {
+      "command": "npx snyk test --yarn-workspaces --dev --strict-out-of-sync=false --severity-threshold=high --exclude=.nx,project.json,dist --remote-repo-url=https://github.com/ag-grid/ag-charts",
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "snyk:code": {
+      "command": "npx snyk code test",
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "snyk:ignore": {
       "command": "node ./external/ag-shared/scripts/snyk/getSnykIgnore.mjs",
       "options": {
         "cwd": "{workspaceRoot}"
