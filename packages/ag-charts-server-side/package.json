@@ -33,7 +33,16 @@
     "jpeg"
   ],
   "author": "AG Grid <info@ag-grid.com>",
-  "license": "SEE LICENSE IN LICENSE.txt",
+  "license": "Commercial",
+  "sideEffects": [
+    "*.css",
+    "*.html"
+  ],
+  "files": [
+    "dist",
+    "fonts",
+    "LICENSE.html"
+  ],
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },

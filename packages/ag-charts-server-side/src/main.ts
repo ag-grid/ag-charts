@@ -1,5 +1,7 @@
 export { AgChartsServerSide } from './agChartsServerSide';
 export type {
+    BaseRenderOptions,
+    ChartRenderOptions,
     RenderOptions,
     GaugeRenderOptions,
     FinancialChartRenderOptions,

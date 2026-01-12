@@ -1,4 +1,5 @@
-import { ExportFormat, FontLibrary, Image } from 'skia-canvas';
+import type { ExportFormat } from 'skia-canvas';
+import { FontLibrary, Image } from 'skia-canvas';
 
 import { AgCharts } from 'ag-charts-community';
 
@@ -7,6 +8,11 @@ import { createIsolatedEnvironment } from './environment';
 import type { FinancialChartRenderOptions, FontDefinition, GaugeRenderOptions, RenderOptions } from './types';
 
 const DEFAULT_TIMEOUT = 30000;
+
+/** Document with overridable createElement for mock canvas injection */
+interface MockableDocument extends Document {
+    createElement: (tagName: string, options?: ElementCreationOptions) => HTMLElement;
+}
 
 export class AgChartsServerSide {
     /**
@@ -101,34 +107,45 @@ export class AgChartsServerSide {
         const canvasStack: NodeCanvas[] = [mainCanvas];
 
         try {
-            const realCreateElement = env.document.createElement.bind(env.document);
-            (env.document as any).createElement = (tag: string, opts?: any) => {
+            const doc = env.document as MockableDocument;
+            const realCreateElement = doc.createElement.bind(doc);
+            doc.createElement = (tag: string, opts?: ElementCreationOptions): HTMLElement => {
                 if (tag === 'canvas') {
                     const canvas = canvasStack.shift() ?? new NodeCanvas(width * pixelRatio, height * pixelRatio);
-                    const mockElement = realCreateElement(tag, opts);
+                    const mockElement = realCreateElement(tag, opts) as HTMLCanvasElement;
 
                     const originalGetContext = mockElement.getContext.bind(mockElement);
-                    (mockElement as any).getContext = (type: string, _attrs?: any) => {
-                        if (type === '2d') {
-                            return canvas.getContext('2d');
-                        }
-                        return originalGetContext(type);
-                    };
+                    Object.defineProperty(mockElement, 'getContext', {
+                        value: (contextId: string, _options?: unknown) => {
+                            if (contextId === '2d') {
+                                return canvas.getContext('2d');
+                            }
+                            return originalGetContext(contextId as '2d');
+                        },
+                        writable: true,
+                        configurable: true,
+                    });
 
-                    (mockElement as any).toDataURL = (mimeType = 'image/png') => {
-                        return canvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
-                    };
+                    Object.defineProperty(mockElement, 'toDataURL', {
+                        value: (mimeType = 'image/png') => {
+                            return canvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
+                        },
+                        writable: true,
+                        configurable: true,
+                    });
 
                     return mockElement;
                 }
                 if (tag === 'img') {
-                    return new Image();
+                    return new Image() as unknown as HTMLImageElement;
                 }
                 return realCreateElement(tag, opts);
             };
 
             const container = env.document.getElementById('container')!;
 
+            // Note: as any is required because AgCharts API methods have incompatible union types
+            // that TypeScript cannot narrow properly when api is a union of method names
             const chart = AgCharts[api]({
                 ...options,
                 container,

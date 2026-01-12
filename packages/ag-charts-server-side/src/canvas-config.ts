@@ -2,8 +2,10 @@ import * as path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, FontLibrary } from 'skia-canvas';
 
-// Something is causing this to not be imported as a value
-const { CanvasRenderingContext2D } = SkiaCanvas as any;
+// skia-canvas exports CanvasRenderingContext2D as a class but TypeScript types don't reflect this
+const { CanvasRenderingContext2D } = SkiaCanvas as typeof SkiaCanvas & {
+    CanvasRenderingContext2D: { prototype: CanvasRenderingContext2D & { outlineText(text: string): Path2D } };
+};
 
 export class NodeCanvas extends Canvas {
     constructor(width: number, height: number) {
@@ -40,7 +42,9 @@ export function applySkiaPatches(): void {
     patchesApplied = true;
 
     // https://github.com/samizdatco/skia-canvas/issues/241
-    const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient;
+    const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient.bind(
+        CanvasRenderingContext2D.prototype
+    );
     Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
         value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
             return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
@@ -49,9 +53,16 @@ export function applySkiaPatches(): void {
         configurable: true,
     });
 
+    // skia-canvas Path2D has a transform method that returns a transformed copy
+    type SkiaPath2D = Path2D & { transform(matrix: DOMMatrix): SkiaPath2D };
+
     Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
-        value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
-            // @ts-expect-error Skia api
+        value: function (
+            this: CanvasRenderingContext2D & { outlineText(text: string): SkiaPath2D },
+            text: string,
+            x: number,
+            y: number
+        ) {
             let path2d = this.outlineText(text);
             path2d = path2d.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
             this.fill(path2d);

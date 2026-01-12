@@ -80,7 +80,8 @@ describe('createIsolatedEnvironment', () => {
         const env = createIsolatedEnvironment();
 
         try {
-            expect((env.window as any).agChartsSceneRenderModel).toBe('composite');
+            const win = env.window as Window & { agChartsSceneRenderModel?: string };
+            expect(win.agChartsSceneRenderModel).toBe('composite');
         } finally {
             env.dispose();
         }
