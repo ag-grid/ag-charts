@@ -148,7 +148,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
 
         buttonBackgroundColor: color,
         buttonBorder: boolean,
-        buttonFontWeight: number,
+        buttonFontWeight: or(string, number),
         buttonTextColor: color,
 
         inputBackgroundColor: color,
