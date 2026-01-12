@@ -1,6 +1,8 @@
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
 import { JSDOM } from 'jsdom';
-import { DOMMatrix, Path2D } from 'skia-canvas';
+import { DOMMatrix, Image, Path2D } from 'skia-canvas';
+
+import { NodeCanvas } from './src/canvas-config';
 
 // Extend Jest matchers with image snapshot support
 declare module 'expect' {
@@ -23,6 +25,8 @@ interface BrowserGlobals {
     Node: typeof Node;
     Path2D: typeof Path2D;
     DOMMatrix: typeof DOMMatrix;
+    OffscreenCanvas: typeof OffscreenCanvas;
+    Image: typeof HTMLImageElement;
 }
 
 // Provide browser globals that ag-charts-community expects
@@ -35,3 +39,7 @@ globals.Node = dom.window.Node;
 // Provide canvas-related globals from skia-canvas
 globals.Path2D = Path2D;
 globals.DOMMatrix = DOMMatrix;
+// @ts-expect-error NodeCanvas is compatible with OffscreenCanvas for rendering purposes
+globals.OffscreenCanvas = NodeCanvas;
+// @ts-expect-error skia-canvas Image is compatible with HTMLImageElement for rendering purposes
+globals.Image = Image;

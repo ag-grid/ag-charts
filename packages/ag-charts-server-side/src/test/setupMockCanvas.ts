@@ -1,4 +1,5 @@
-import { ExportFormat, Image } from 'skia-canvas';
+import type { ExportFormat } from 'skia-canvas';
+import { Image } from 'skia-canvas';
 
 import { NodeCanvas } from '../canvas-config';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants';
@@ -7,6 +8,16 @@ export interface MockCanvasContext {
     nodeCanvas: NodeCanvas;
     snapshot: () => ImageData;
     getRenderContext2D: () => CanvasRenderingContext2D;
+}
+
+/** Document with overridable createElement for mock canvas injection */
+interface MockableDocument extends Document {
+    createElement: (tagName: string, options?: ElementCreationOptions) => HTMLElement;
+}
+
+/** Global scope with AG Charts feature flags */
+interface AgChartsGlobal {
+    agChartsSceneRenderModel?: string;
 }
 
 interface MockContextState {
@@ -29,29 +40,38 @@ export function setupMockCanvas(opts: { width?: number; height?: number } = {}):
         };
 
         // Setup global canvas mocking
-        (globalThis as any).agChartsSceneRenderModel = 'composite';
+        (globalThis as AgChartsGlobal).agChartsSceneRenderModel = 'composite';
 
         // Patch document.createElement
-        (document as any).createElement = (tag: string, options?: any) => {
+        const doc = document as MockableDocument;
+        doc.createElement = (tag: string, options?: ElementCreationOptions): HTMLElement => {
             if (tag === 'canvas') {
                 const mockElement = mockState!.realCreateElement.call(document, tag, options) as HTMLCanvasElement;
 
                 const originalGetContext = mockElement.getContext.bind(mockElement);
-                (mockElement as any).getContext = (type: string, _attrs?: any) => {
-                    if (type === '2d') {
-                        return canvas.getContext('2d');
-                    }
-                    return originalGetContext(type);
-                };
+                Object.defineProperty(mockElement, 'getContext', {
+                    value: (contextId: string, _options?: unknown) => {
+                        if (contextId === '2d') {
+                            return canvas.getContext('2d');
+                        }
+                        return originalGetContext(contextId as '2d');
+                    },
+                    writable: true,
+                    configurable: true,
+                });
 
-                (mockElement as any).toDataURL = (mimeType = 'image/png') => {
-                    return canvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
-                };
+                Object.defineProperty(mockElement, 'toDataURL', {
+                    value: (mimeType = 'image/png') => {
+                        return canvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
+                    },
+                    writable: true,
+                    configurable: true,
+                });
 
                 return mockElement;
             }
             if (tag === 'img') {
-                return new Image();
+                return new Image() as unknown as HTMLImageElement;
             }
             return mockState!.realCreateElement.call(document, tag, options);
         };
@@ -59,7 +79,7 @@ export function setupMockCanvas(opts: { width?: number; height?: number } = {}):
 
     afterEach(() => {
         if (mockState) {
-            (document as any).createElement = mockState.realCreateElement;
+            (document as MockableDocument).createElement = mockState.realCreateElement;
             mockState = null;
         }
     });

@@ -147,4 +147,83 @@ describe('AgChartsServerSide', () => {
             }
         });
     });
+
+    describe('visual regression', () => {
+        const IMAGE_SNAPSHOT_OPTIONS = {
+            failureThreshold: 0,
+            failureThresholdType: 'percent' as const,
+        };
+
+        it('should render line chart correctly', async () => {
+            const buffer = await AgChartsServerSide.render({
+                options: {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 25 },
+                        { x: 3, y: 15 },
+                        { x: 4, y: 30 },
+                        { x: 5, y: 20 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                width: 400,
+                height: 300,
+            });
+
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+        });
+
+        it('should render bar chart correctly', async () => {
+            const buffer = await AgChartsServerSide.render({
+                options: {
+                    data: [
+                        { category: 'A', value: 30 },
+                        { category: 'B', value: 45 },
+                        { category: 'C', value: 25 },
+                        { category: 'D', value: 60 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                },
+                width: 400,
+                height: 300,
+            });
+
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+        });
+
+        it('should render pie chart correctly', async () => {
+            const buffer = await AgChartsServerSide.render({
+                options: {
+                    data: [
+                        { label: 'A', value: 30 },
+                        { label: 'B', value: 45 },
+                        { label: 'C', value: 25 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }],
+                },
+                width: 400,
+                height: 300,
+            });
+
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+        });
+
+        it('should render area chart correctly', async () => {
+            const buffer = await AgChartsServerSide.render({
+                options: {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 25 },
+                        { x: 3, y: 15 },
+                        { x: 4, y: 30 },
+                    ],
+                    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                },
+                width: 400,
+                height: 300,
+            });
+
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+        });
+    });
 });

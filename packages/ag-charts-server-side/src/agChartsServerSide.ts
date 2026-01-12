@@ -3,7 +3,7 @@ import { FontLibrary, Image } from 'skia-canvas';
 
 import { AgCharts } from 'ag-charts-community';
 
-import { NodeCanvas, registerFallbackFonts } from './canvas-config';
+import { NodeCanvas } from './canvas-config';
 import { createIsolatedEnvironment } from './environment';
 import type { FinancialChartRenderOptions, FontDefinition, GaugeRenderOptions, RenderOptions } from './types';
 
@@ -73,13 +73,6 @@ export class AgChartsServerSide {
         for (const font of fonts) {
             FontLibrary.use(font.family, font.path);
         }
-    }
-
-    /**
-     * Register bundled fallback fonts.
-     */
-    static registerFallbackFonts(fontsDir: string): void {
-        registerFallbackFonts(fontsDir);
     }
 
     private static async renderInternal(

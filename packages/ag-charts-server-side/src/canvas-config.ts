@@ -1,6 +1,5 @@
-import * as path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
-import { Canvas, DOMMatrix, FontLibrary } from 'skia-canvas';
+import { Canvas, DOMMatrix } from 'skia-canvas';
 
 // skia-canvas exports CanvasRenderingContext2D as a class but TypeScript types don't reflect this
 const { CanvasRenderingContext2D } = SkiaCanvas as typeof SkiaCanvas & {
@@ -70,10 +69,6 @@ export function applySkiaPatches(): void {
         writable: true,
         configurable: true,
     });
-}
-
-export function registerFallbackFonts(fontsDir: string): void {
-    FontLibrary.use('Verdana', [path.resolve(fontsDir, 'Arimo-Regular.ttf'), path.resolve(fontsDir, 'Arimo-Bold.ttf')]);
 }
 
 // Apply patches on module load
