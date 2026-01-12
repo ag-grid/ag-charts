@@ -329,6 +329,10 @@ export class MapLineSeries
 
         if (dataModel == null || processedData == null) return;
 
+        if (!this.visible) {
+            return { itemId: seriesId, nodeData: [], labelData: [] };
+        }
+
         const columns = this.resolveLineDataColumns(processedData);
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;

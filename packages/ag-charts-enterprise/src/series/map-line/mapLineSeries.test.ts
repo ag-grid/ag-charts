@@ -13,8 +13,10 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningMessages,
     extractImageData,
     hoverAction,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -156,6 +158,26 @@ describe('MapLineSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('Legend Toggling', () => {
+        it('should not warn when toggling legend item', async () => {
+            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Clear any warnings from initial render
+            resetMockConsole();
+
+            // Toggle series visibility via legend
+            const series = chart.series[0];
+            series.toggleSeriesItem(false, 'category', series.id, undefined);
+            await waitForChartStability(chart);
+
+            expectWarningMessages([]);
         });
     });
 
