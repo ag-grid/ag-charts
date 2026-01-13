@@ -37,10 +37,6 @@
     "*.css",
     "*.html"
   ],
-  "files": [
-    "dist",
-    "LICENSE.html"
-  ],
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },

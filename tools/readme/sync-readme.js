@@ -14,7 +14,13 @@ const glob = require('glob');
 const prettier = require('prettier');
 const packageReadmeList = glob.sync('packages/*/README.md');
 const rootReadme = fs.readFileSync('./README.md').toString();
-const libraries = ['ag-charts-community', 'ag-charts-enterprise', 'ag-charts-types', 'ag-charts-locale'];
+const libraries = [
+    'ag-charts-community',
+    'ag-charts-enterprise',
+    'ag-charts-types',
+    'ag-charts-locale',
+    'ag-charts-server-side',
+];
 
 function titleCase(name) {
     return `${name.substring(0, 1).toLocaleUpperCase()}${name.substring(1)}`;
