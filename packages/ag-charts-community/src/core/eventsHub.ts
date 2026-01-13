@@ -59,6 +59,9 @@ export interface DataModelDiffEvent {
 
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
+    'active:clear': null;
+    'active:datum': ActiveDatumChangeEvent;
+    'active:legend': ActiveLegendChangeEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;
@@ -99,6 +102,15 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
+}
+
+export interface ActiveDatumChangeEvent {
+    seriesId: string;
+    itemId: string;
+}
+
+export interface ActiveLegendChangeEvent {
+    seriesId: string;
 }
 
 interface AnnotationsRestoreEvent {

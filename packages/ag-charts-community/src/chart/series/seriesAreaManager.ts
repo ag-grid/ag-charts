@@ -1,8 +1,9 @@
-import type { MementoOriginator, Point } from 'ag-charts-core';
-import { ChartUpdateType, Logger, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
-import type { AgActiveState, AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState } from 'ag-charts-types';
+import type { Point } from 'ag-charts-core';
+import { ChartUpdateType, Logger, Vec4, clamp, createId, objectsEqual } from 'ag-charts-core';
+import type { AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState } from 'ag-charts-types';
 
 import type {
+    ActiveDatumChangeEvent,
     HighlightChangeEvent,
     HighlightNodeDatum,
     LayoutCompleteEvent,
@@ -30,7 +31,6 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import { commonChartOptions } from '../chartOptionsDefs';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -92,14 +92,10 @@ function pickedNodesEqual(a: PickedNode, b: PickedNode) {
     return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
 }
 
-function getItemId(node: PickedNode): AgPickedItemsState['itemId'] {
+function getItemId(node: PickedNode): NonNullable<AgPickedItemsState['itemId']> {
     // FIXME: How to serialise/deserialise datums is still TBD.
     if (node.datum.itemId) return `${node.datum.itemId}`;
     return JSON.stringify(node.datum.datumIndex);
-}
-
-function toMememto(node: PickedNode): AgPickedItemsState {
-    return { seriesId: node.series.id, itemId: getItemId(node) };
 }
 
 class PickedNodeState {
@@ -144,10 +140,9 @@ class PickedNodeState {
     }
 }
 
-export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgActiveState> {
+export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
-    mementoOriginatorKey: string = 'active';
 
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
@@ -232,6 +227,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
+            chart.ctx.eventsHub.on('active:clear', (event) => this.onActiveClear(event)),
+            chart.ctx.eventsHub.on('active:datum', (event) => this.onActiveDatum(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -663,6 +660,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             const nextTooltipCandidate =
                 defaultBehavior && this.chart.tooltip.pagination ? this.tooltipCandidates.next() : undefined;
             if (nextTooltipCandidate != null) {
+                this.updateActive(nextTooltipCandidate.current);
                 event.sourceEvent.preventDefault();
                 const { currentX, currentY } = event;
                 const canvasX = currentX + (this.hoverRect?.x ?? 0);
@@ -1151,7 +1149,11 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             }
         }
 
-        this.pickedNodes = result;
+        const first = result?.matches[0];
+        if (first !== undefined) {
+            this.updateActive(first);
+        }
+
         return result;
     }
 
@@ -1205,40 +1207,24 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return result;
     }
 
-    public createMemento(): AgActiveState {
-        const active: PickedNode | undefined = this.tooltipCandidates.current ?? this.pickedNodes?.matches[0];
-        return {
-            frozen: false,
-            activeItem: active ? toMememto(active) : undefined,
-        };
+    private updateActive(node: PickedNode): void {
+        this.chart.ctx.activeManager.update({ type: 'datum', seriesId: node.series.id, itemId: getItemId(node) });
     }
 
-    public guardMemento(blob: unknown, messages: string[]): blob is AgActiveState | undefined {
-        if (blob == undefined) return true;
-
-        const validationResult = validate(blob, commonChartOptions.initialState.active);
-        messages.push(...validationResult.invalid.map((err) => err.toString()));
-        return validationResult.invalid.length === 0;
+    private onActiveClear(_event: null) {
+        this.clearPicked();
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
-        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(memento);
-        if (desiredPickedNodes == undefined) {
-            this.clearPicked();
-        } else {
+    private onActiveDatum(event: ActiveDatumChangeEvent) {
+        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(event.seriesId, event.itemId);
+        if (desiredPickedNodes != undefined) {
             this.hoverDevice = 'setState';
             this.pickedNodes = desiredPickedNodes;
             this.hoverScheduler.schedule();
         }
     }
 
-    public findPickedNodes(memento: AgActiveState | undefined): PickedNodes | undefined {
-        if (memento?.activeItem == undefined) return undefined;
-
-        const desiredItemId: string | undefined = memento.activeItem.itemId;
-        if (desiredItemId == undefined) return undefined;
-
-        const desiredSeriesId: string = memento.activeItem.seriesId;
+    private findPickedNodes(desiredSeriesId: string, desiredItemId: string): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
             Logger.warn(`Cannot find series '${desiredSeries}'`);

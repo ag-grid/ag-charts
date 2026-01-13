@@ -9,7 +9,6 @@ import {
     Color,
     Debug,
     Logger,
-    type MementoOriginator,
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
@@ -464,10 +463,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     getModuleContext(): ModuleContext {
         return this.ctx;
-    }
-
-    getPickedItemOriginator(): MementoOriginator<unknown> {
-        return this.seriesAreaManager;
     }
 
     abstract getChartType(): ChartType;
