@@ -3,39 +3,48 @@ import { useRef, useState } from 'react';
 
 import styles from './InstallText.module.scss';
 
-const PLAUSIBLE_EVENT_NAME = 'copy-install-code';
-
 interface InstallTextProps {
     packageName: string;
-    plausibleEventName?: string;
 }
 
-const InstallText = ({ packageName }: InstallTextProps) => {
-    const [isCopied, setIsCopied] = useState(false);
+export function InstallText({ packageName }: InstallTextProps) {
+    const [iconState, setIconState] = useState<'copy' | 'animating' | 'tick'>('copy');
     const installTextRef = useRef<HTMLSpanElement>(null);
 
+    const installCommand = `npm install ${packageName}`;
+
     const copyToClipboard = () => {
-        const text = installTextRef?.current?.innerText?.replace('$', '').trim();
-        navigator.clipboard.writeText(text || '').then(() => {
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
+        navigator.clipboard.writeText(installCommand).then(() => {
+            setIconState('animating');
+
+            setTimeout(() => {
+                setIconState('tick');
+
+                setTimeout(() => {
+                    setIconState('copy');
+                }, 2000);
+            }, 200);
         });
     };
 
     return (
-        <>
+        <div className={styles.installTextContainer} onClick={copyToClipboard}>
             <span ref={installTextRef} className={styles.installText}>
-                $ npm install {packageName}
+                <span className={styles.installCommand}>
+                    <span className={styles.noSelection}>$ </span>
+                    {installCommand}
+                </span>
             </span>
-            <span
-                id="copy-install-code"
-                className={`plausible-event-name=${PLAUSIBLE_EVENT_NAME}`}
-                onClick={copyToClipboard}
-            >
-                <Icon svgClasses={styles.copyToClipboardIcon} name={isCopied ? 'tick' : 'copy'} />
-            </span>
-        </>
-    );
-};
 
-export default InstallText;
+            <span className={`${styles.copyButton} ${styles.copyIconAnimationContainer}`}>
+                {iconState === 'copy' && (
+                    <Icon key="copy-icon" svgClasses={`${styles.copyToClipboardIcon} ${styles.copyIcon}`} name="copy" />
+                )}
+                {iconState === 'animating' && <div className={styles.iconPlaceholder}></div>}
+                {iconState === 'tick' && (
+                    <Icon key="tick-icon" svgClasses={`${styles.copyToClipboardIcon} ${styles.tickIcon}`} name="tick" />
+                )}
+            </span>
+        </div>
+    );
+}
