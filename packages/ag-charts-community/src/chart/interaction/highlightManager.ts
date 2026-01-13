@@ -58,15 +58,7 @@ export class HighlightManager {
 
             // Apply unhighlight immediately
             this.highlightStates.delete(callerId);
-            const currentHighlight = this.getActiveHighlight();
-
-            if (!this.isEqual(currentHighlight, previousHighlight)) {
-                this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
-                    callerId,
-                    currentHighlight,
-                    previousHighlight,
-                });
-            }
+            this.maybeEmitChange(callerId, previousHighlight);
             return;
         }
 
@@ -79,6 +71,10 @@ export class HighlightManager {
 
         // Apply the highlight immediately (always instant visual feedback)
         this.highlightStates.set(callerId, highlightedDatum);
+        this.maybeEmitChange(callerId, previousHighlight);
+    }
+
+    private maybeEmitChange(callerId: string, previousHighlight: HighlightNodeDatum | undefined): void {
         const currentHighlight = this.getActiveHighlight();
 
         if (!this.isEqual(currentHighlight, previousHighlight)) {
