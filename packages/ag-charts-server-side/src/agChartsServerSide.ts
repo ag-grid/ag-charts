@@ -114,6 +114,7 @@ export class AgChartsServerSide {
                 container,
                 document: env.document,
                 window: env.window,
+                skipCss: true,
                 width,
                 height,
                 overrideDevicePixelRatio: pixelRatio,

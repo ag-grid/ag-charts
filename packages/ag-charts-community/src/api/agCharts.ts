@@ -207,7 +207,7 @@ class AgChartsInternal {
             chart = poolResult.item;
         }
 
-        const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
+        const { document, window: userWindow, styleContainer, skipCss, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
         const chartOptions = new ChartOptions(
             baseOptions,
@@ -218,6 +218,7 @@ class AgChartsInternal {
                 document,
                 window: userWindow,
                 styleContainer,
+                skipCss,
             },
             optionsMetadata,
             deltaOptions,
