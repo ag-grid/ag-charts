@@ -4,6 +4,7 @@ import {
     callWithContext,
     createElement,
     isArray,
+    isHTMLElement,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
@@ -61,13 +62,13 @@ export class Overlay extends BaseProperties {
             const params: AgChartOverlayRendererParams<DatumDefault> = {};
             const htmlContent = callWithContext(callers, this.renderer, params);
 
-            if (htmlContent instanceof HTMLElement) {
+            if (isHTMLElement(htmlContent)) {
                 this.content = htmlContent;
             } else {
                 const tempDiv = createElement('div');
                 tempDiv.innerHTML = htmlContent;
                 const { firstElementChild } = tempDiv;
-                if (firstElementChild instanceof HTMLElement && tempDiv.childElementCount === 1) {
+                if (isHTMLElement(firstElementChild) && tempDiv.childElementCount === 1) {
                     this.content = firstElementChild;
                 } else {
                     this.content = tempDiv;

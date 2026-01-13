@@ -37,36 +37,6 @@ export class AgChartsServerSide {
     }
 
     /**
-     * Render chart directly to a file.
-     */
-    static async renderToFile(renderOptions: RenderOptions, filePath: string): Promise<void> {
-        const fs = await import('fs/promises');
-        const buffer = await this.render(renderOptions);
-        await fs.writeFile(filePath, buffer);
-    }
-
-    /**
-     * Render gauge directly to a file.
-     */
-    static async renderGaugeToFile(renderOptions: GaugeRenderOptions, filePath: string): Promise<void> {
-        const fs = await import('fs/promises');
-        const buffer = await this.renderGauge(renderOptions);
-        await fs.writeFile(filePath, buffer);
-    }
-
-    /**
-     * Render financial chart directly to a file.
-     */
-    static async renderFinancialChartToFile(
-        renderOptions: FinancialChartRenderOptions,
-        filePath: string
-    ): Promise<void> {
-        const fs = await import('fs/promises');
-        const buffer = await this.renderFinancialChart(renderOptions);
-        await fs.writeFile(filePath, buffer);
-    }
-
-    /**
      * Load custom fonts for rendering.
      */
     static loadFonts(fonts: FontDefinition[]): void {

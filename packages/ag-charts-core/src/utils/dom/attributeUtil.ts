@@ -3,6 +3,7 @@ import type { Direction } from 'ag-charts-types';
 import type { Nullable } from '../../types/global';
 import type { ElementID } from '../../types/idBranding';
 import { entries } from '../data/iterators';
+import { isHTMLElement } from './globalsProxy';
 
 export type StrictHTMLElement = HTMLElement & { id: ElementID };
 
@@ -164,7 +165,7 @@ export function getAttribute<A extends keyof BaseAttributeTypeMap>(
     qualifiedName: A,
     defaultValue?: BaseAttributeTypeMap[A]
 ): BaseAttributeTypeMap[A] | undefined {
-    if (!(e instanceof HTMLElement)) return undefined;
+    if (!isHTMLElement(e)) return undefined;
 
     const value = e.getAttribute(qualifiedName);
     if (value === null) return defaultValue;

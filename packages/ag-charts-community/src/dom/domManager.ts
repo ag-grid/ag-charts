@@ -6,6 +6,7 @@ import {
     entries,
     getDocument,
     getWindow,
+    isDocumentFragment,
     kebabCase,
     setAttribute,
     stopPageScrolling,
@@ -470,7 +471,7 @@ export class DOMManager extends BaseManager {
             if (current === docRoot) {
                 return undefined;
             }
-            if (current.parentNode instanceof DocumentFragment) {
+            if (isDocumentFragment(current.parentNode)) {
                 // parentNode is a Shadow DOM.
                 return current;
             }

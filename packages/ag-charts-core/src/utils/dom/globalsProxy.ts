@@ -83,3 +83,39 @@ export function getDOMMatrix(): typeof DOMMatrix {
 export function getImage(): typeof HTMLImageElement {
     return (verifiedGlobals.window as any)?.Image ?? globalThis.Image;
 }
+
+// Standard DOM nodeType constants (SSR-safe, no global references needed)
+const ELEMENT_NODE = 1;
+const DOCUMENT_FRAGMENT_NODE = 11;
+
+/**
+ * SSR-safe check for whether an object is a DOM Node.
+ * Uses duck-typing via nodeType property instead of instanceof.
+ */
+export function isNode(obj: unknown): obj is Node {
+    return obj != null && typeof (obj as Node).nodeType === 'number';
+}
+
+/**
+ * SSR-safe check for whether an object is a DOM Element.
+ * Uses duck-typing via nodeType property instead of instanceof.
+ */
+export function isElement(obj: unknown): obj is Element {
+    return obj != null && (obj as Node).nodeType === ELEMENT_NODE;
+}
+
+/**
+ * SSR-safe check for whether an object is a DocumentFragment (e.g. Shadow DOM root).
+ * Uses duck-typing via nodeType property instead of instanceof.
+ */
+export function isDocumentFragment(obj: unknown): obj is DocumentFragment {
+    return obj != null && (obj as Node).nodeType === DOCUMENT_FRAGMENT_NODE;
+}
+
+/**
+ * SSR-safe check for whether an object is an HTMLElement.
+ * Uses duck-typing via nodeType and style property instead of instanceof.
+ */
+export function isHTMLElement(obj: unknown): obj is HTMLElement {
+    return obj != null && (obj as Node).nodeType === ELEMENT_NODE && 'style' in (obj as HTMLElement);
+}
