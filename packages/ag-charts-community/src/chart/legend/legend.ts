@@ -1192,7 +1192,7 @@ export class Legend extends BaseProperties {
     private updateHighlight(
         enabled: boolean | undefined,
         legendDatum: CategoryLegendDatum | undefined,
-        series: ((typeof this.ctx.chartService.series)[0]) | undefined
+        series: (typeof this.ctx.chartService.series)[0] | undefined
     ): void {
         const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
