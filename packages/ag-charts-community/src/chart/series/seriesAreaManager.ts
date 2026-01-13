@@ -1082,6 +1082,9 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
+        // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
+        // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
+        // this is unknown, further investigation may be required.
         if (this.hoverDevice === 'setState' || newSeries == null || lastSeries == null) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
