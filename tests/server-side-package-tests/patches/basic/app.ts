@@ -14,6 +14,7 @@ import * as path from 'path';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
 interface TestResult {
     name: string;
@@ -93,6 +94,8 @@ async function main() {
     if (updateSnapshots) {
         console.log('UPDATE MODE: Generating new snapshots\n');
     }
+
+    ModuleRegistry.registerModules([AllCommunityModule]);
 
     // Test 1: Basic bar chart rendering with snapshot
     await runTest('Render bar chart to PNG', async () => {
