@@ -7,6 +7,7 @@ import {
     type LicenseManager,
     ModuleRegistry,
     deepClone,
+    getDocument,
 } from 'ag-charts-core';
 import type {
     AgChartInstance,
@@ -255,7 +256,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
-            container: document.createElement('div'),
+            container: getDocument().createElement('div'),
             width,
             height,
         };
