@@ -982,19 +982,19 @@ export class Legend extends BaseProperties {
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
         this.doClick(params.event, datum, proxyButton);
-        this.updateHighlight();
+        this.clearHighlight();
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
         this.doDoubleClick(params.event, this.findNode(params).datum);
-        this.updateHighlight();
+        this.clearHighlight();
     }
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.datum;
 
-        this.updateHighlight();
+        this.clearHighlight();
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
@@ -1182,13 +1182,17 @@ export class Legend extends BaseProperties {
 
     onLeave() {
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.updateHighlight();
+        this.clearHighlight();
+    }
+
+    private clearHighlight(): void {
+        this.updateHighlight(undefined, undefined, undefined);
     }
 
     private updateHighlight(
-        enabled?: boolean,
-        legendDatum?: CategoryLegendDatum,
-        series?: (typeof this.ctx.chartService.series)[0]
+        enabled: boolean | undefined,
+        legendDatum: CategoryLegendDatum | undefined,
+        series: ((typeof this.ctx.chartService.series)[0]) | undefined
     ): void {
         const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
