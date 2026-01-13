@@ -4,7 +4,6 @@
   "description": "Server-side rendering for AG Charts",
   "main": "./dist/package/main.cjs.js",
   "module": "./dist/package/main.esm.mjs",
-  "type": "module",
   "types": "./dist/types/src/main.d.ts",
   "exports": {
     ".": {

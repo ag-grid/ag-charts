@@ -1,0 +1,35 @@
+{
+  "name": "server-side-package-tests",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tests/server-side-package-tests",
+  "projectType": "application",
+  "targets": {
+    "test:package": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": ["test:package:basic:local"]
+    },
+    "test:package:basic:local": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -u"
+        }
+      }
+    },
+    "test:package:basic:editor": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh -n -e"
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-core",
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-server-side"
+  ]
+}
