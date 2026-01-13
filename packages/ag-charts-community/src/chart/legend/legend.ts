@@ -1194,15 +1194,24 @@ export class Legend extends BaseProperties {
         legendDatum: CategoryLegendDatum | undefined,
         series: (typeof this.ctx.chartService.series)[0] | undefined
     ): void {
+        const updateManagers = (nodeDatum: HighlightNodeDatum | undefined): void => {
+            this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
+            if (nodeDatum !== undefined) {
+                this.ctx.activeManager.update({ type: 'legend', seriesId: nodeDatum.series.id });
+            } else {
+                this.ctx.activeManager.update({ type: 'inactive' });
+            }
+        };
+
         const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
-                this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
+                updateManagers(nodeDatum);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
                 // Updating the highlight can interrupt animations, so only clear the highlight if the chart
                 // is in a state when highlighting is possible.
                 this.pendingHighlightDatum = nodeDatum;
                 this.ctx.animationManager.onBatchStop(() => {
-                    this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
+                    updateManagers(this.pendingHighlightDatum);
                 });
             }
         };
