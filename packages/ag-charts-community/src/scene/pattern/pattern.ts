@@ -3,6 +3,7 @@ import {
     Logger,
     type RequiredInternalAgPatternColor,
     createSvgElement,
+    getDOMMatrix,
     normalizeAngle360FromDegrees,
 } from 'ag-charts-core';
 import type { AgPatternName, CssColor } from 'ag-charts-types';
@@ -121,7 +122,8 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
 
-        pattern.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
+        const DOMMatrixCtor = getDOMMatrix();
+        pattern.setTransform(new DOMMatrixCtor([cos, sin, -sin, cos, tx, ty]));
     }
 
     private _cache:

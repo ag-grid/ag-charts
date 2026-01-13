@@ -51,3 +51,35 @@ export function setDocument(document: Document) {
 export function setWindow(window: Window) {
     verifiedGlobals.window = window;
 }
+
+/**
+ * Retrieves the OffscreenCanvas constructor from the injected window.
+ * Falls back to globalThis if window doesn't have it.
+ */
+export function getOffscreenCanvas(): typeof OffscreenCanvas {
+    return (verifiedGlobals.window as any)?.OffscreenCanvas ?? globalThis.OffscreenCanvas;
+}
+
+/**
+ * Retrieves the Path2D constructor from the injected window.
+ * Falls back to globalThis if window doesn't have it.
+ */
+export function getPath2D(): typeof Path2D {
+    return (verifiedGlobals.window as any)?.Path2D ?? globalThis.Path2D;
+}
+
+/**
+ * Retrieves the DOMMatrix constructor from the injected window.
+ * Falls back to globalThis if window doesn't have it.
+ */
+export function getDOMMatrix(): typeof DOMMatrix {
+    return (verifiedGlobals.window as any)?.DOMMatrix ?? globalThis.DOMMatrix;
+}
+
+/**
+ * Retrieves the Image constructor from the injected window.
+ * Falls back to globalThis if window doesn't have it.
+ */
+export function getImage(): typeof HTMLImageElement {
+    return (verifiedGlobals.window as any)?.Image ?? globalThis.Image;
+}
