@@ -1026,7 +1026,7 @@ export class Legend extends BaseProperties {
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {
         const {
             listeners: { legendItemClick },
-            ctx: { chartService, highlightManager },
+            ctx: { chartService },
             preventHidingAll,
             toggleSeries,
         } = this;
@@ -1069,17 +1069,7 @@ export class Legend extends BaseProperties {
             });
         }
 
-        if (newEnabled) {
-            highlightManager.updateHighlight(this.id, {
-                series,
-                itemId,
-                datum: undefined,
-                datumIndex: typeof itemId === 'number' ? itemId : undefined,
-                legendItemName,
-            });
-        } else {
-            highlightManager.updateHighlight(this.id);
-        }
+        this.updateHighlight(newEnabled, datum, series);
 
         this.ctx.legendManager.update();
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, {
@@ -1187,17 +1177,7 @@ export class Legend extends BaseProperties {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         }
 
-        if (datum?.enabled && series) {
-            this.updateHighlight({
-                series,
-                itemId: datum?.itemId,
-                datum: undefined,
-                datumIndex: typeof datum?.itemId === 'number' ? datum.itemId : undefined,
-                legendItemName: datum?.legendItemName,
-            });
-        } else {
-            this.updateHighlight();
-        }
+        this.updateHighlight(datum?.enabled, datum, series);
     }
 
     onLeave() {
@@ -1205,16 +1185,34 @@ export class Legend extends BaseProperties {
         this.updateHighlight();
     }
 
-    private updateHighlight(datum?: HighlightNodeDatum) {
-        if (this.ctx.interactionManager.isState(InteractionState.Default) || datum == null) {
-            this.ctx.highlightManager.updateHighlight(this.id, datum);
-        } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-            // Updating the highlight can interrupt animations, so only clear the highlight if the chart
-            // is in a state when highlighting is possible.
-            this.pendingHighlightDatum = datum;
-            this.ctx.animationManager.onBatchStop(() => {
-                this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
+    private updateHighlight(
+        enabled?: boolean,
+        legendDatum?: CategoryLegendDatum,
+        series?: (typeof this.ctx.chartService.series)[0]
+    ): void {
+        const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
+            if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
+                this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
+            } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
+                // Updating the highlight can interrupt animations, so only clear the highlight if the chart
+                // is in a state when highlighting is possible.
+                this.pendingHighlightDatum = nodeDatum;
+                this.ctx.animationManager.onBatchStop(() => {
+                    this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
+                });
+            }
+        };
+
+        if (enabled === true && series !== undefined && legendDatum !== undefined) {
+            highlightNodeDatum({
+                series,
+                itemId: legendDatum?.itemId,
+                datum: undefined,
+                datumIndex: typeof legendDatum?.itemId === 'number' ? legendDatum.itemId : undefined,
+                legendItemName: legendDatum?.legendItemName,
             });
+        } else {
+            highlightNodeDatum(undefined);
         }
     }
 
