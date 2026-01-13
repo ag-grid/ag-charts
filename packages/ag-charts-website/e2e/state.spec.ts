@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
@@ -28,6 +28,8 @@ test.describe('state', () => {
 
     test.describe('active', () => {
         test.describe('line-example', () => {
+            let canvas: Locator;
+
             async function pickDatum(page: Page, datum: { country: string; year: string }): Promise<void> {
                 await page.selectOption('#myCountry', datum.country);
                 await page.selectOption('#myYear', datum.year);
@@ -43,16 +45,13 @@ test.describe('state', () => {
                 await page.mouse.move(20, 20);
             }
 
-            function expectCanvas(page: Page) {
-                return expect(page.locator(SELECTORS.canvasCenter));
-            }
-
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('picked', 'line-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
             });
 
             test('3 setState calls', async ({ page }) => {
-                await expectCanvas(page).toHaveScreenshot('line-example-canvas-inactive.png');
+                await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
                 await pickDatum(page, { country: 'Spain', year: '2010' });
                 await expect(page).toHaveScreenshot('line-example-page-active-Spain-2010.png');
@@ -69,10 +68,10 @@ test.describe('state', () => {
                 await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
 
                 await hoverInCenter(page);
-                await expectCanvas(page).toHaveScreenshot('line-example-canvas-hover-center.png');
+                await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
 
                 await hoverInTopLeft(page);
-                await expectCanvas(page).toHaveScreenshot('line-example-canvas-inactive.png');
+                await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
             });
         });
     });
