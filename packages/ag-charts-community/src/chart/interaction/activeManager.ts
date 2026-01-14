@@ -51,13 +51,20 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
-        const { seriesId, itemId } = memento?.activeItem ?? {};
+        this.currentState = this.performRestoration(memento?.activeItem);
+    }
+
+    private performRestoration(activeItem: AgActiveState['activeItem']): ActiveState {
+        const { seriesId, itemId } = activeItem ?? {};
         if (seriesId === undefined) {
             this.eventsHub.emit('active:clear', null);
+            return { type: 'inactive' };
         } else if (itemId === undefined) {
             this.eventsHub.emit('active:legend', { seriesId });
+            return { type: 'legend', seriesId };
         } else {
             this.eventsHub.emit('active:datum', { seriesId, itemId });
+            return { type: 'datum', seriesId, itemId };
         }
     }
 }
