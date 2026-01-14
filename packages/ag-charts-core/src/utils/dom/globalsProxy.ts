@@ -84,6 +84,15 @@ export function getImage(): typeof HTMLImageElement {
     return (verifiedGlobals.window as any)?.Image ?? globalThis.Image;
 }
 
+/**
+ * Retrieves the ResizeObserver constructor from the injected window.
+ * Falls back to globalThis if window doesn't have it.
+ * Returns undefined in SSR environments without a polyfill.
+ */
+export function getResizeObserver(): typeof ResizeObserver | undefined {
+    return (verifiedGlobals.window as any)?.ResizeObserver ?? globalThis.ResizeObserver;
+}
+
 // Standard DOM nodeType constants (SSR-safe, no global references needed)
 const ELEMENT_NODE = 1;
 const DOCUMENT_FRAGMENT_NODE = 11;

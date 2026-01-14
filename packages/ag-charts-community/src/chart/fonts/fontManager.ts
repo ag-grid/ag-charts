@@ -1,4 +1,4 @@
-import { ChartUpdateType, cachedTextMeasurer, getDocument } from 'ag-charts-core';
+import { ChartUpdateType, cachedTextMeasurer, getDocument, getResizeObserver } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { UpdateService } from '../updateService';
@@ -36,7 +36,8 @@ export class FontManager {
 
     private observeFontStatus(font: string) {
         // Skip font observation in SSR environments where ResizeObserver is not available
-        if (typeof ResizeObserver === 'undefined') return;
+        const ResizeObserverCtor = getResizeObserver();
+        if (ResizeObserverCtor === undefined) return;
 
         const doc = getDocument();
         if (!doc) return;
@@ -59,7 +60,7 @@ export class FontManager {
         this.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);
 
         // Observe changes to the element size as a proxy for the font loading
-        const fontCheckObserver = new ResizeObserver((entries) => {
+        const fontCheckObserver = new ResizeObserverCtor((entries) => {
             const width = entries?.at(0)?.contentBoxSize.at(0)?.inlineSize;
             if (width != null && width > 0) {
                 // Clear the text measurer pool to ensure the font metrics are recalculated on update
