@@ -54,12 +54,10 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const { seriesId, itemId } = memento?.activeItem ?? {};
         if (seriesId === undefined) {
             this.eventsHub.emit('active:clear', null);
+        } else if (itemId === undefined) {
+            this.eventsHub.emit('active:legend', { seriesId });
         } else {
-            if (itemId !== undefined) {
-                this.eventsHub.emit('active:datum', { seriesId, itemId });
-            } else {
-                this.eventsHub.emit('active:legend', { seriesId });
-            }
+            this.eventsHub.emit('active:datum', { seriesId, itemId });
         }
     }
 }
