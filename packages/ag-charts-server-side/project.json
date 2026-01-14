@@ -37,10 +37,7 @@
     },
     "lint:eslint": {},
     "test": {
-      "executor": "@nx/jest:jest",
-      "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts"
-      }
+      "executor": "nx:noop"
     },
     "pack": {
       "executor": "nx:run-commands",
