@@ -5,6 +5,26 @@ import type { AgChartState } from 'ag-charts-types';
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
+async function getChartState(page: Page): Promise<AgChartState> {
+    const state = await page.evaluate(() => {
+        const chart: unknown = (window as any)?.agE2E?.chart;
+        if (!chart) {
+            throw new Error('window.agE2E.chart is not defined');
+        } else if (typeof chart !== 'object') {
+            throw new Error('window.agE2E.chart is not an object');
+        } else if (!('getState' in chart)) {
+            throw new Error('window.agE2E.chart does not have getState property');
+        } else if (typeof chart.getState !== 'function') {
+            throw new Error('window.agE2E.chart.getState is not a function');
+        }
+        return chart.getState();
+    });
+
+    expect(state).toBeDefined();
+    expect(typeof state).toBe('object');
+    return state;
+}
+
 test.describe('state', () => {
     setupIntrinsicAssertions(test);
 
@@ -45,26 +65,6 @@ test.describe('state', () => {
 
             async function hoverInTopLeft(page: Page): Promise<void> {
                 await page.mouse.move(20, 20);
-            }
-
-            async function getChartState(page: Page): Promise<AgChartState> {
-                const state = await page.evaluate(() => {
-                    const chart: unknown = (window as any)?.agE2E?.chart;
-                    if (!chart) {
-                        throw new Error('window.agE2E.chart is not defined');
-                    } else if (typeof chart !== 'object') {
-                        throw new Error('window.agE2E.chart is not an object');
-                    } else if (!('getState' in chart)) {
-                        throw new Error('window.agE2E.chart does not have getState property');
-                    } else if (typeof chart.getState !== 'function') {
-                        throw new Error('window.agE2E.chart.getState is not a function');
-                    }
-                    return chart.getState();
-                });
-
-                expect(state).toBeDefined();
-                expect(typeof state).toBe('object');
-                return state;
             }
 
             test.beforeEach(async ({ page }) => {
@@ -145,6 +145,52 @@ test.describe('state', () => {
                     });
 
                     await hoverInTopLeft(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+        });
+
+        test.describe('donut-example', () => {
+            let canvas: Locator;
+
+            async function hoverOnCurrentYearBond(page: Page): Promise<void> {
+                await page.mouse.move(354, 368);
+            }
+
+            async function hoverSeriesAreaMiss(page: Page): Promise<void> {
+                await page.mouse.move(400, 330);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active', 'multi-donut-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('pick-misses clears active state', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+
+                    await hoverOnCurrentYearBond(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+
+                    await hoverSeriesAreaMiss(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await hoverOnCurrentYearBond(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '1', seriesId: 'DonutSeries-2' },
+                    });
+
+                    await hoverSeriesAreaMiss(page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
                 });
