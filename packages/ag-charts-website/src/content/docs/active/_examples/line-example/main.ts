@@ -106,7 +106,7 @@ function onFreezeChange(checked: boolean): void {
 function onSetState(): void {
     chart.setState({
         version,
-        picked: {
+        active: {
             activeItem: {
                 seriesId: SERIES_ID_MAP[country],
                 itemId: ITEM_ID_MAP[year],

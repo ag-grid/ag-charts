@@ -46,7 +46,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('picked', 'line-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active', 'line-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 

@@ -205,7 +205,7 @@ export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
         },
         'legend state array'
     ),
-    picked: initialStatePickedOptionsDef,
+    active: initialStatePickedOptionsDef,
     zoom: {
         rangeX: {
             start: or(number, serializableDate),
