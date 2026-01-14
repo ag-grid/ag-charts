@@ -10,6 +10,7 @@ import {
     isDefined,
     isFiniteNumber,
     isFunction,
+    isHtmlElement,
     isObject,
     isString,
     isValidDate,
@@ -416,11 +417,8 @@ export const number = attachDescription(isFiniteNumber, 'a number');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
 
-// Pass validator if HTMLElement doesn't exist, for server-side environments.
-export const htmlElement = attachDescription(
-    (value) => typeof HTMLElement === 'undefined' || value instanceof HTMLElement,
-    'an html element'
-);
+// SSR-safe HTML element validation using duck-typing.
+export const htmlElement = attachDescription(isHtmlElement, 'an html element');
 
 export const arrayLength = (minLength: number, maxLength = Infinity) => {
     let message: string;

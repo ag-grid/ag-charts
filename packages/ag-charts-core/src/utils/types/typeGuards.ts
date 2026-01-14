@@ -70,7 +70,8 @@ export function isFiniteNumber(value: unknown): value is number {
 }
 
 export function isHtmlElement(value: unknown): value is HTMLElement {
-    return typeof globalThis.window !== 'undefined' && value instanceof HTMLElement;
+    // SSR-safe: use duck-typing via nodeType and style property instead of instanceof
+    return value != null && (value as Node).nodeType === 1 && 'style' in (value as HTMLElement);
 }
 
 export function isEnumKey<T extends object>(enumObject: T, enumKey: keyof T): enumKey is keyof T {

@@ -1,7 +1,7 @@
 import { CleanupRegistry } from '../../state/cleanupRegistry';
 import { getAttribute, setAttribute } from './attributeUtil';
 import { attachListener } from './domEvents';
-import { getWindow } from './globalsProxy';
+import { getWindow, isElement, isNode } from './globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,
@@ -37,10 +37,10 @@ export function addTouchCloseListener(menu: HTMLElement, hideCallback: () => voi
 }
 
 function containsEvent(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
-    if (event.target instanceof Element && event.target.shadowRoot != null) {
+    if (isElement(event.target) && event.target.shadowRoot != null) {
         return true;
     }
-    return event.target instanceof Node && container.contains(event.target);
+    return isNode(event.target) && container.contains(event.target);
 }
 
 export function addOverrideFocusVisibleEventListener(
@@ -149,8 +149,9 @@ export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
 }
 
 export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | undefined {
-    if (sourceEvent?.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
-        return sourceEvent.target;
+    const target = sourceEvent?.target;
+    if (isElement(target) && 'tabindex' in (target as HTMLElement).attributes) {
+        return target as HTMLElement;
     }
     return undefined;
 }
