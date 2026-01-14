@@ -196,5 +196,76 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('bubble-example', () => {
+            const THREE_CANDIDATED_COORDS = { x: 383, y: 313 } as const;
+            let canvas: Locator;
+
+            async function hoverOnThreeCandidates(page: Page): Promise<void> {
+                await page.mouse.move(THREE_CANDIDATED_COORDS.x, THREE_CANDIDATED_COORDS.y);
+            }
+
+            async function nextCandidate(page: Page): Promise<void> {
+                await page.mouse.click(THREE_CANDIDATED_COORDS.x, THREE_CANDIDATED_COORDS.y);
+            }
+
+            async function hoverInTopLeft(page: Page): Promise<void> {
+                await page.mouse.move(0, 0);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active', 'bubble-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('activeItem is current tooltip candidate', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+
+                    await hoverOnThreeCandidates(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate0.png');
+
+                    await nextCandidate(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate1.png');
+
+                    await nextCandidate(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate2.png');
+
+                    await hoverInTopLeft(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await hoverOnThreeCandidates(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                    });
+
+                    await nextCandidate(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                    });
+
+                    await nextCandidate(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-1' },
+                    });
+
+                    await hoverInTopLeft(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+        });
     });
 });
