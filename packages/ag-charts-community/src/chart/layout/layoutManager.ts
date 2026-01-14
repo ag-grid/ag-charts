@@ -1,4 +1,5 @@
-import type { EventListener } from 'ag-charts-core';
+import type { AxisID, EventListener } from 'ag-charts-core';
+import type { AgScrollbarPlacement } from 'ag-charts-types';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import { BBox } from '../../scene/bbox';
@@ -7,7 +8,17 @@ export interface LayoutContext {
     width: number;
     height: number;
     layoutBox: BBox;
+    scrollbars: ScrollbarLayoutMap;
 }
+
+export interface ScrollbarLayout {
+    enabled: boolean;
+    thickness: number;
+    spacing: number;
+    placement: AgScrollbarPlacement;
+}
+
+export type ScrollbarLayoutMap = Partial<Record<AxisID, ScrollbarLayout>>;
 
 export interface LayoutState {
     axes?: Record<string, AxisLayout>;
@@ -20,6 +31,7 @@ export enum LayoutElement {
     Legend,
     ToolbarLeft,
     ToolbarBottom,
+    Scrollbar,
     Navigator,
     Overlay,
 }
@@ -39,7 +51,7 @@ export class LayoutManager {
     }
 
     createContext(width: number, height: number): LayoutContext {
-        const context = { width, height, layoutBox: new BBox(0, 0, width, height) };
+        const context: LayoutContext = { width, height, layoutBox: new BBox(0, 0, width, height), scrollbars: {} };
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
             const listeners = this.elements.get(element);

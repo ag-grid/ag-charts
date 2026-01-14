@@ -25,6 +25,7 @@ export { DataSourceModule } from './features/data-source/dataSourceModule';
 export { ErrorBarsModule } from './features/error-bar/errorBarModule';
 export { FlashOnUpdateModule } from './features/flash-on-update/flashOnUpdateModule';
 export { NavigatorModule } from './features/navigator/navigatorModule';
+export { ScrollbarModule } from './features/scrollbar/scrollbarModule';
 export { RangesModule } from './features/ranges/rangesModule';
 export { StatusBarModule } from './features/status-bar/statusBarModule';
 export { SyncModule } from './features/sync/syncModule';

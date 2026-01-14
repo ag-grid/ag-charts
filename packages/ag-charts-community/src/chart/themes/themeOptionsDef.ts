@@ -11,10 +11,12 @@ import {
     commonChartOptionsDefs,
     constant,
     defined,
+    fillOptionsDef,
     fontOptionsDef,
     isFunction,
     isObject,
     isSymbol,
+    lineDashOptionsDef,
     linearGaugeSeriesThemeableOptionsDef,
     linearGaugeTargetOptionsDef,
     number,
@@ -27,9 +29,11 @@ import {
     ratio,
     required,
     string,
+    strokeOptionsDef,
     textOrSegments,
     themeOperator,
     undocumented,
+    union,
     unionSymbol,
     without,
 } from 'ag-charts-core';
@@ -40,6 +44,10 @@ import type {
     AgNavigatorHandleOptions,
     AgNavigatorThemeableOptions,
     AgPolarAxesTheme,
+    AgScrollbarBaseOptions,
+    AgScrollbarHorizontalOrientationOptions,
+    AgScrollbarOptions,
+    AgScrollbarVerticalOrientationOptions,
     AgSeriesTooltip,
     AgStateSerializableDate,
     AgThemeOverrides,
@@ -168,6 +176,52 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     },
 };
 
+const scrollbarTrackOptionsDef = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+    opacity: ratio,
+};
+
+const scrollbarThumbOptionsDef = {
+    ...scrollbarTrackOptionsDef,
+    minSize: positiveNumber,
+    accentColor: undocumented(color),
+};
+
+const scrollbarBaseOptionsDef: OptionsDefs<AgScrollbarBaseOptions> = {
+    enabled: boolean,
+    thickness: positiveNumber,
+    spacing: positiveNumber,
+    visible: union('auto', 'always', 'never'),
+    placement: union('outer', 'inner'),
+    track: scrollbarTrackOptionsDef,
+    thumb: scrollbarThumbOptionsDef,
+};
+
+const scrollbarHorizontalOrientationOptionsDef: OptionsDefs<AgScrollbarHorizontalOrientationOptions> = {
+    ...scrollbarBaseOptionsDef,
+    position: union('top', 'bottom'),
+};
+
+const scrollbarVerticalOrientationOptionsDef: OptionsDefs<AgScrollbarVerticalOrientationOptions> = {
+    ...scrollbarBaseOptionsDef,
+    position: union('left', 'right'),
+};
+
+export const scrollbarOptionsDef: OptionsDefs<AgScrollbarOptions> = {
+    enabled: boolean,
+    thickness: positiveNumber,
+    spacing: positiveNumber,
+    visible: union('auto', 'always', 'never'),
+    placement: union('outer', 'inner'),
+    track: scrollbarTrackOptionsDef,
+    thumb: scrollbarThumbOptionsDef,
+    horizontal: scrollbarHorizontalOrientationOptionsDef,
+    vertical: scrollbarVerticalOrientationOptionsDef,
+};
+
 const cartesianCrossLineThemeableOptionsDefs = without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']);
 
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
@@ -268,6 +322,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
     common: {
         ...commonChartOptionsDefs,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         axes: {
             ...cartesianAxesThemeDef,
             ...polarAxesThemeDef,
@@ -332,6 +387,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: lineSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     scatter: {
@@ -339,6 +395,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: scatterSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
         // @ts-expect-error undocumented option - required by grid
         paired: undocumented(boolean),
@@ -348,6 +405,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: bubbleSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     area: {
@@ -355,6 +413,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: areaSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     bar: {
@@ -362,6 +421,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: barSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     'box-plot': {
@@ -369,6 +429,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: boxPlotSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     candlestick: {
@@ -376,6 +437,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: candlestickSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     'cone-funnel': {
@@ -383,6 +445,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: coneFunnelSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     funnel: {
@@ -390,6 +453,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: funnelSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     ohlc: {
@@ -397,6 +461,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: ohlcSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     histogram: {
@@ -404,6 +469,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: without(cartesianAxesThemeDef, ['category', 'grouped-category', 'unit-time', 'ordinal-time']),
         series: histogramSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     heatmap: {
@@ -411,6 +477,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: heatmapSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     waterfall: {
@@ -418,6 +485,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: waterfallSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     'range-bar': {
@@ -425,6 +493,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: rangeBarSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     'range-area': {
@@ -432,6 +501,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         axes: cartesianAxesThemeDef,
         series: rangeAreaSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
+        scrollbar: scrollbarOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },
     donut: {

@@ -12,6 +12,7 @@ import type { AgChartLegendOptions } from './legendOptions';
 import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
+import type { AgScrollbarOptions } from './scrollbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type {
     ContextDefault,
@@ -273,6 +274,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions<TDatum, TContext>;
+    /** Configuration for the Scrollbars. */
+    scrollbar?: AgScrollbarOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */

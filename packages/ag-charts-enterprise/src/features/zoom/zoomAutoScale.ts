@@ -61,6 +61,8 @@ export class ZoomAutoScaler {
     }
 
     private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        this.manuallyAdjusted = event.manualAdjustment ?? this.manuallyAdjusted;
+
         if (event.isReset) {
             for (const id of event.changedAxes) {
                 if (event.state[id]?.direction === ChartAxisDirection.Y) {

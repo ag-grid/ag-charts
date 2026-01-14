@@ -495,6 +495,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     styleNonce: string,
     sync: defined,
     zoom: defined,
+    scrollbar: defined,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
 };
 

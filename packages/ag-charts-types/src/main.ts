@@ -25,6 +25,7 @@ export * from './chart/legendOptions';
 export * from './chart/localeOptions';
 export * from './chart/navigatorOptions';
 export * from './chart/operationOptions';
+export * from './chart/scrollbarOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/radiusAxisOptions';
 export * from './chart/rangesOptions';

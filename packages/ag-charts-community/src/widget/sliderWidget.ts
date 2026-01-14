@@ -80,6 +80,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         const elem = this.getElement();
         elem.value = `${value}`;
         elem.ariaValueText = ariaValueText;
+        elem.ariaValueNow = `${value}`;
     }
 
     getValueRatio() {

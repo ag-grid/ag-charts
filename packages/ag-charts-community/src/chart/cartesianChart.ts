@@ -23,7 +23,7 @@ import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
-import type { LayoutContext } from './layout/layoutManager';
+import type { LayoutContext, ScrollbarLayoutMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
 
@@ -126,7 +126,7 @@ export class CartesianChart extends Chart {
     private lastLayoutHeight = Number.NaN;
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
+        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx);
 
         this.seriesRoot.visible = visible;
         this.seriesRect = seriesRect;
@@ -191,8 +191,9 @@ export class CartesianChart extends Chart {
         stackCartesianSeries(this.series);
     }
 
-    updateAxes(layoutBox: BBox) {
-        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox);
+    updateAxes(layoutContext: LayoutContext) {
+        const { layoutBox, scrollbars } = layoutContext;
+        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars);
 
         for (const axis of this.axes) {
             axis.update();
@@ -207,7 +208,7 @@ export class CartesianChart extends Chart {
     // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
     // and vice-versa, we need to iteratively try and find a fit for the axes and their
     // ticks/labels.
-    private resolveAxesLayout(layoutBox: BBox) {
+    private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap) {
         let newState;
         let prevState;
         let iterations = 0;
@@ -220,7 +221,12 @@ export class CartesianChart extends Chart {
             // Start with a good approximation from the last update.
             // This should mean that in many resize cases that only a single pass is needed.
             prevState = newState ?? this.getDefaultState();
-            newState = this.updateAxesPass(new Map(prevState.axisAreaWidths), layoutBox.clone(), crossAtAxes);
+            newState = this.updateAxesPass(
+                new Map(prevState.axisAreaWidths),
+                layoutBox.clone(),
+                crossAtAxes,
+                scrollbars
+            );
 
             if (iterations++ > maxIterations) {
                 Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
@@ -233,7 +239,12 @@ export class CartesianChart extends Chart {
         return newState;
     }
 
-    private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox, crossAtAxes: CartesianAxis[]) {
+    private updateAxesPass(
+        axisAreaWidths: AreaWidthMap,
+        axisAreaBound: BBox,
+        crossAtAxes: CartesianAxis[],
+        scrollbars: ScrollbarLayoutMap
+    ) {
         const axisWidths: Map<string, number> = new Map();
         const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
 
@@ -287,9 +298,15 @@ export class CartesianChart extends Chart {
                 axisWidth = axis.thickness;
             }
 
+            const chartLayout = {
+                sizeLimit: axisWidth - axis.label.spacing,
+                padding: this.padding,
+                scrollbars,
+            };
+
             const { primaryTickCount, bbox } = axis.calculateLayout(
                 axis.nice ? primaryTickCounts[direction] : undefined,
-                { sizeLimit: axisWidth - axis.label.spacing, padding: this.padding }
+                chartLayout
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;

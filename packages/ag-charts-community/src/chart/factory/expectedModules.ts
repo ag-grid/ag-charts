@@ -436,6 +436,13 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 enterprise: true,
                 moduleId: 'NavigatorModule',
             },
+            {
+                type: 'plugin',
+                name: 'scrollbar',
+                chartType: 'cartesian',
+                enterprise: true,
+                moduleId: 'ScrollbarModule',
+            },
 
             {
                 type: 'axis:plugin',

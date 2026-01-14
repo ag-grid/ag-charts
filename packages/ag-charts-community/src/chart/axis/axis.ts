@@ -304,12 +304,13 @@ export abstract class Axis<
 
     readonly translation = { x: 0, y: 0 };
 
-    protected readonly layout: Pick<AxisLayout, 'label'> = {
+    protected readonly layout: Pick<AxisLayout, 'label'> & Partial<Pick<AxisLayout, 'labelThickness' | 'scrollbar'>> = {
         label: {
             fractionDigits: 0,
             spacing: this.label.spacing,
             format: this.label.format,
         },
+        labelThickness: 0,
     };
 
     protected axisContext: AxisContext | undefined = undefined;
@@ -971,10 +972,15 @@ export abstract class Axis<
         return { domain: [...d.domain], clipped: false };
     }
 
+    protected getLayoutTranslation(): { x: number; y: number } {
+        return this.translation;
+    }
+
     getLayoutState(): AxisLayout {
         return {
             id: this.id,
             rect: this.getBBox(),
+            translation: this.getLayoutTranslation(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
