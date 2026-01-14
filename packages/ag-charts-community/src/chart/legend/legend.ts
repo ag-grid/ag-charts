@@ -1202,10 +1202,10 @@ export class Legend extends BaseProperties {
     ): void {
         const updateManagers = (nodeDatum: HighlightNodeDatum | undefined): void => {
             this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
-            if (nodeDatum !== undefined) {
-                this.ctx.activeManager.update({ type: 'legend', seriesId: nodeDatum.series.id });
-            } else {
+            if (nodeDatum === undefined) {
                 this.ctx.activeManager.update({ type: 'inactive' });
+            } else {
+                this.ctx.activeManager.update({ type: 'legend', seriesId: nodeDatum.series.id });
             }
         };
 
