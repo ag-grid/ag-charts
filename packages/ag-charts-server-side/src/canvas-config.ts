@@ -71,5 +71,7 @@ export function applySkiaPatches(): void {
     });
 }
 
-// Apply patches on module load
+// Apply patches on module load to fix skia-canvas rendering bugs. The patches modify
+// skia-canvas's CanvasRenderingContext2D prototype (not browser APIs), are guarded
+// against multiple applications, and are necessary for correct SSR chart rendering.
 applySkiaPatches();
