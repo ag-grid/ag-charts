@@ -1,5 +1,7 @@
+import type { Locator, Page } from '@playwright/test';
+
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('state', () => {
     setupIntrinsicAssertions(test);
@@ -22,5 +24,55 @@ test.describe('state', () => {
 
         await page.locator('.example-controls button').getByText('Restore').click();
         await expect(page).toHaveScreenshot('state-legend-zoom-1-restored.png', { animations: 'disabled' });
+    });
+
+    test.describe('active', () => {
+        test.describe('line-example', () => {
+            let canvas: Locator;
+
+            async function pickDatum(page: Page, datum: { country: string; year: string }): Promise<void> {
+                await page.selectOption('#myCountry', datum.country);
+                await page.selectOption('#myYear', datum.year);
+                await page.click('#mySetState');
+            }
+
+            async function hoverInCenter(page: Page): Promise<void> {
+                const { width, height } = await locateCanvas(page);
+                await page.mouse.move(width / 2, height / 2);
+            }
+
+            async function hoverInTopLeft(page: Page): Promise<void> {
+                await page.mouse.move(20, 20);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('picked', 'line-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test('3 setState calls', async ({ page }) => {
+                await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                await pickDatum(page, { country: 'Spain', year: '2010' });
+                await expect(page).toHaveScreenshot('line-example-page-active-Spain-2010.png');
+
+                await pickDatum(page, { country: 'France', year: '2014' });
+                await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+
+                await pickDatum(page, { country: 'UK', year: '2023' });
+                await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+            });
+
+            test('hover events clear unfrozen setState', async ({ page }) => {
+                await pickDatum(page, { country: 'UK', year: '2023' });
+                await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                await hoverInCenter(page);
+                await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+
+                await hoverInTopLeft(page);
+                await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+            });
+        });
     });
 });
