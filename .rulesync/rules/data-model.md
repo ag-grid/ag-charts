@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Data model principles and patterns for AG Charts series data processing'
-globs: ['**/data-model/**/*.ts', '**/data-model/**/*.test.ts']
+globs: ['packages/ag-charts-*/src/**/data-model/**/*.ts']
 ---
 
 # DataModel Principles

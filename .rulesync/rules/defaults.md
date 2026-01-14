@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Understanding the three-tier default system and theme configuration in AG Charts'
-globs: ['**/*Module.ts', '**/*Properties.ts', '**/*Options.ts']
+globs: ['packages/ag-charts-*/src/**/*Module.ts', 'packages/ag-charts-*/src/**/*Properties.ts', 'packages/ag-charts-*/src/**/*Options.ts']
 ---
 
 # Default Values and Configuration Hierarchy
