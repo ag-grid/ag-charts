@@ -1,4 +1,10 @@
-import { type InternalAgImageFill, Logger, createSvgElement, normalizeAngle360FromDegrees } from 'ag-charts-core';
+import {
+    type InternalAgImageFill,
+    Logger,
+    createSvgElement,
+    getDOMMatrix,
+    normalizeAngle360FromDegrees,
+} from 'ag-charts-core';
 import type { AgColorRepeat, AgImageFillFit } from 'ag-charts-types';
 
 import type { BBox } from '../bbox';
@@ -100,8 +106,9 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const shapeCenterX = rotatedW / 2;
         const shapeCenterY = rotatedH / 2;
 
+        const DOMMatrixCtor = getDOMMatrix();
         pattern?.setTransform(
-            new DOMMatrix([
+            new DOMMatrixCtor([
                 cos * widthScale,
                 sin * heightScale,
                 -sin * widthScale,

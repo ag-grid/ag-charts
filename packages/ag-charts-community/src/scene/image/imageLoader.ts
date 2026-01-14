@@ -1,4 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
+import { EventEmitter, getImage } from 'ag-charts-core';
 
 type NotifiableNode = { markDirty: () => void };
 
@@ -30,7 +30,8 @@ export class ImageLoader extends EventEmitter<EventMap> {
         }
 
         const nextEntry: CacheEntry = { image: undefined, nodes: new Set([affectedNode]) };
-        const image = new Image();
+        const ImageCtor = getImage();
+        const image = new ImageCtor();
         this.imageLoadingCount++;
         image.onload = () => {
             nextEntry.image = image;

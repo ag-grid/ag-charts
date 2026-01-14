@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getDocument, getWindow, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, getDocument, getWindow, isHTMLElement, setAttribute } from 'ag-charts-core';
 
 export class GuardedElement {
     private readonly cleanup = new CleanupRegistry();
@@ -70,7 +70,7 @@ export class GuardedElement {
     private static queryFocusable(element: Document | Element, selectors: string) {
         const myWindow = getWindow();
         return Array.from(element.querySelectorAll(selectors)).filter((e): e is HTMLElement => {
-            if (e instanceof HTMLElement) {
+            if (isHTMLElement(e)) {
                 const style = myWindow.getComputedStyle(e);
                 return style.display !== 'none' && style.visibility !== 'none';
             }

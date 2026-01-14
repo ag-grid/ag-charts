@@ -1,4 +1,4 @@
-import { SceneRefChangeDetection } from 'ag-charts-core';
+import { SceneRefChangeDetection, getPath2D } from 'ag-charts-core';
 import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
 import { Path } from './path';
@@ -28,7 +28,8 @@ export class SegmentedPath<D = any> extends Path<D> {
 
         // Draw the gaps
         ctx.save();
-        const inverse = new Path2D();
+        const Path2DCtor = getPath2D();
+        const inverse = new Path2DCtor();
         rect(inverse, { x0: 0, y0: 0, x1: ctx.canvas.width, y1: ctx.canvas.height }, false);
         for (const s of this.segments) {
             rect(inverse, s.clipRect);
@@ -56,7 +57,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             segmentPath.fill = this.fill == null ? 'none' : fill;
             segmentPath.stroke = this.stroke == null ? 'none' : stroke;
 
-            const clipPath = new Path2D();
+            const clipPath = new Path2DCtor();
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 

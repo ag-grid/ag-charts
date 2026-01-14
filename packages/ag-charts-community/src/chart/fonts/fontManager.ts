@@ -1,4 +1,4 @@
-import { ChartUpdateType, cachedTextMeasurer } from 'ag-charts-core';
+import { ChartUpdateType, cachedTextMeasurer, getDocument } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { UpdateService } from '../updateService';
@@ -35,7 +35,13 @@ export class FontManager {
     }
 
     private observeFontStatus(font: string) {
-        const fontCheckElement = globalThis.document.createElement('div');
+        // Skip font observation in SSR environments where ResizeObserver is not available
+        if (typeof ResizeObserver === 'undefined') return;
+
+        const doc = getDocument();
+        if (!doc) return;
+
+        const fontCheckElement = doc.createElement('div');
         fontCheckElement.style.setProperty('position', 'absolute');
         fontCheckElement.style.setProperty('top', '0');
         fontCheckElement.style.setProperty('margin', '0');

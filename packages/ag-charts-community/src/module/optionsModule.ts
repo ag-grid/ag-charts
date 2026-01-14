@@ -61,6 +61,7 @@ export interface ChartSpecialOverrides {
     document: Document;
     window: Window;
     styleContainer?: HTMLElement;
+    skipCss?: boolean;
 }
 
 export interface ChartInternalOptionMetadata {
