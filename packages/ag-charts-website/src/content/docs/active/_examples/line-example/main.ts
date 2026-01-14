@@ -119,3 +119,6 @@ function onSetState(): void {
 function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }
+
+// For e2e testing:
+(window as any).agE2E = { chart };
