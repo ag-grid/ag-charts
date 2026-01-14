@@ -1,0 +1,73 @@
+{
+  "name": "ag-charts-server-side",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/ag-charts-server-side/src",
+  "tags": ["package"],
+  "targets": {
+    "build": {
+      "executor": "nx:noop",
+      "dependsOn": ["build:package", "build:types"],
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:types": {
+      "options": {
+        "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/test/index.ts"]
+      }
+    },
+    "build:package": {
+      "dependsOn": ["^build:types", "^build:package"],
+      "options": {
+        "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/test/index.ts"],
+        "external": ["ag-charts-community", "jsdom", "skia-canvas"],
+        "platform": "node"
+      }
+    },
+    "lint": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint:eslint"],
+      "configurations": { "fix": {} }
+    },
+    "lint:eslint": {},
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "{projectRoot}/jest.config.ts"
+      }
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "parallel": false,
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-server-side.tgz"]
+      }
+    },
+    "pack:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack"],
+      "inputs": ["allOutputs"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-server-side/"],
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+    },
+    "pack:verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack:extract"],
+      "inputs": ["allOutputs"],
+      "options": {
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-server-side/package"]
+      }
+    }
+  },
+  "implicitDependencies": ["ag-charts-community"]
+}

@@ -138,6 +138,7 @@
       "packages/ag-charts-angular",
       "packages/ag-charts-locale",
       "packages/ag-charts-react",
+      "packages/ag-charts-server-side",
       "packages/ag-charts-types",
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
