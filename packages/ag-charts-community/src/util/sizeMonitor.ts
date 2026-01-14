@@ -1,4 +1,4 @@
-import { getDocument, getWindow } from 'ag-charts-core';
+import { getDocument, getResizeObserver, getWindow } from 'ag-charts-core';
 
 import { PixelRatioObserver } from './pixelRatioObserver';
 
@@ -21,8 +21,9 @@ export class SizeMonitor {
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     constructor() {
-        if (typeof ResizeObserver !== 'undefined') {
-            this.resizeObserver = new ResizeObserver((entries) => {
+        const ResizeObserverCtor = getResizeObserver();
+        if (ResizeObserverCtor !== undefined) {
+            this.resizeObserver = new ResizeObserverCtor((entries) => {
                 for (const {
                     target,
                     contentRect: { width, height },

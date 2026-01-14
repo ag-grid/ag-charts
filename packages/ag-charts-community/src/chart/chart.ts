@@ -304,6 +304,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
         const styleContainer = resources?.styleContainer ?? options.specialOverrides.styleContainer;
+        const skipCss = options.specialOverrides.skipCss;
         if (scene) {
             this._firstAutoSize = false;
             this._lastAutoSize = [scene.width, scene.height, scene.pixelRatio];
@@ -331,6 +332,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             root,
             container,
             styleContainer,
+            skipCss,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),

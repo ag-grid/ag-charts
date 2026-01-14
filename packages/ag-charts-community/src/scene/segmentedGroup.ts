@@ -1,4 +1,4 @@
-import { SceneRefChangeDetection } from 'ag-charts-core';
+import { SceneRefChangeDetection, getPath2D } from 'ag-charts-core';
 
 import { TranslatableGroup } from './group';
 import { type RenderContext } from './node';
@@ -23,7 +23,8 @@ export class SegmentedGroup extends TranslatableGroup {
 
         // Draw the gaps
         ctx.save();
-        const inverse = new Path2D();
+        const Path2DCtor = getPath2D();
+        const inverse = new Path2DCtor();
         rect(inverse, { x0: 0, y0: 0, x1: ctx.canvas.width, y1: ctx.canvas.height }, false);
         for (const s of this.segments) {
             rect(inverse, s.clipRect);
@@ -41,7 +42,7 @@ export class SegmentedGroup extends TranslatableGroup {
         for (const { clipRect, ...styles } of this.segments) {
             ctx.save();
 
-            const clipPath = new Path2D();
+            const clipPath = new Path2DCtor();
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 

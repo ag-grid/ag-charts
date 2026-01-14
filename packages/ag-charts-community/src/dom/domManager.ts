@@ -6,6 +6,7 @@ import {
     entries,
     getDocument,
     getWindow,
+    isDocumentFragment,
     kebabCase,
     setAttribute,
     stopPageScrolling,
@@ -125,6 +126,7 @@ export class DOMManager extends BaseManager {
         private readonly chart: { styleNonce?: string },
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
+        private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal'
     ) {
         super();
@@ -470,7 +472,7 @@ export class DOMManager extends BaseManager {
             if (current === docRoot) {
                 return undefined;
             }
-            if (current.parentNode instanceof DocumentFragment) {
+            if (isDocumentFragment(current.parentNode)) {
                 // parentNode is a Shadow DOM.
                 return current;
             }
@@ -512,6 +514,10 @@ export class DOMManager extends BaseManager {
         this.styles.set(id, styles);
 
         if (this.container == null) return;
+
+        // Skip CSS injection in SSR - CSS is not needed for canvas-based image rendering
+        // and jsdom cannot parse modern CSS features like :has(), causing console errors.
+        if (this.skipCss) return;
 
         const checkId = (el: Element) => {
             return el.getAttribute(dataAttribute) === id;

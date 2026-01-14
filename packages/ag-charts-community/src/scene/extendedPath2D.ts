@@ -2,6 +2,7 @@ import {
     bezier2DDistance,
     bezier2DExtrema,
     evaluateBezier,
+    getPath2D,
     lineDistanceSquared,
     normalizeAngle360,
 } from 'ag-charts-core';
@@ -22,7 +23,12 @@ export class ExtendedPath2D {
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
 
-    private path2d = new Path2D();
+    private path2d: Path2D;
+
+    constructor() {
+        const Path2DCtor = getPath2D();
+        this.path2d = new Path2DCtor();
+    }
 
     private previousCommands: Command[] = [];
     private previousParams: number[] = [];
@@ -445,7 +451,8 @@ export class ExtendedPath2D {
             this.commandsLength = 0;
             this.paramsLength = 0;
         }
-        this.path2d = new Path2D();
+        const Path2DCtor = getPath2D();
+        this.path2d = new Path2DCtor();
         this.openedPath = false;
         this.closedPath = false;
     }
