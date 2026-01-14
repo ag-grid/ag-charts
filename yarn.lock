@@ -14695,19 +14695,6 @@ jest-image-snapshot@^6.0.0:
     rimraf "^2.6.2"
     ssim.js "^3.1.1"
 
-jest-image-snapshot@^6.4.0:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/jest-image-snapshot/-/jest-image-snapshot-6.5.1.tgz#cc714aff86187ecf38f90c506b443769aff87499"
-  integrity sha512-xlJFufgfY2Z4DsRsjcnTwxuynvo1bKdhf4OfcEftNuUAK+BwSCUtPmwlBGJhQ0XJXfm9JMAi/4BhQiHbaV8HrA==
-  dependencies:
-    chalk "^4.0.0"
-    get-stdin "^5.0.1"
-    glur "^1.1.2"
-    lodash "^4.17.4"
-    pixelmatch "^5.1.0"
-    pngjs "^3.4.0"
-    ssim.js "^3.1.1"
-
 jest-junit@^16.0.0:
   version "16.0.0"
   resolved "https://registry.yarnpkg.com/jest-junit/-/jest-junit-16.0.0.tgz#d838e8c561cf9fdd7eb54f63020777eee4136785"
