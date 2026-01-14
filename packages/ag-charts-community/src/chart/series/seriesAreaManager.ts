@@ -912,13 +912,18 @@ export class SeriesAreaManager extends BaseManager {
         this.tooltip.lastHover = undefined;
     }
 
+    private clearActive(): void {
+        this.chart.ctx.activeManager.update({ type: 'inactive' });
+        this.clearPicked();
+    }
+
     private clearPicked(): void {
         this.pickedNodes = undefined;
         this.tooltipCandidates.reset();
     }
 
     private clearAll(delayed: boolean = false) {
-        this.clearPicked();
+        this.clearActive();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
