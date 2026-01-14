@@ -45,7 +45,12 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum, LegendChangeEvent, LegendChangePartialEvent } from '../../core/eventsHub';
+import type {
+    ActiveLegendChangeEvent,
+    HighlightNodeDatum,
+    LegendChangeEvent,
+    LegendChangePartialEvent,
+} from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -334,6 +339,7 @@ export class Legend extends BaseProperties {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
+            ctx.eventsHub.on('active:legend', (event) => this.onActiveLegend(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -1226,6 +1232,18 @@ export class Legend extends BaseProperties {
             });
         } else {
             highlightNodeDatum(undefined);
+        }
+    }
+
+    private onActiveLegend(event: ActiveLegendChangeEvent): void {
+        const datum = this.data.find((d) => d.seriesId === event.seriesId);
+        const series = this.ctx.chartService.series.find((s) => s.id === event.seriesId);
+        if (series === undefined) {
+            Logger.error(`cannot series with id '${event.seriesId}'`);
+        } else if (datum === undefined) {
+            Logger.error(`cannot find legend item for seriesId '${event.seriesId}'`);
+        } else {
+            this.updateHighlight(datum.enabled, datum, series);
         }
     }
 
