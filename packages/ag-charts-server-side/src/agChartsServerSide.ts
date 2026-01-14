@@ -14,7 +14,25 @@ interface MockableDocument extends Document {
     createElement: (tagName: string, options?: ElementCreationOptions) => HTMLElement;
 }
 
+// Module-level mutex to serialize renders (prevents global document/window races)
+let renderLock: Promise<void> = Promise.resolve();
+
 export class AgChartsServerSide {
+    /**
+     * Acquire exclusive access for rendering.
+     * Returns a release function to call when done.
+     */
+    private static async acquireLock(): Promise<() => void> {
+        let release!: () => void;
+        const acquired = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        const previousLock = renderLock;
+        renderLock = acquired;
+        await previousLock;
+        return release;
+    }
+
     /**
      * Render a standard chart to an image buffer.
      */
@@ -63,11 +81,16 @@ export class AgChartsServerSide {
             throw new Error(`Invalid dimensions: width=${width}, height=${height}`);
         }
 
+        // Serialize renders to prevent global document/window races
+        const release = await this.acquireLock();
+
         const env = createIsolatedEnvironment();
 
-        // Local canvas stack for this render (thread-safe for concurrent renders)
+        // Local canvas stack for this render
         const mainCanvas = new NodeCanvas(width * pixelRatio, height * pixelRatio);
         const canvasStack: NodeCanvas[] = [mainCanvas];
+
+        let chart: { destroy(): void } | undefined;
 
         try {
             const doc = env.document as MockableDocument;
@@ -109,7 +132,7 @@ export class AgChartsServerSide {
 
             // Note: as any is required because AgCharts API methods have incompatible union types
             // that TypeScript cannot narrow properly when api is a union of method names
-            const chart = AgCharts[api]({
+            const createdChart = AgCharts[api]({
                 ...options,
                 container,
                 document: env.document,
@@ -119,17 +142,18 @@ export class AgChartsServerSide {
                 height,
                 overrideDevicePixelRatio: pixelRatio,
             } as any);
+            chart = createdChart;
 
-            await this.waitWithTimeout(chart.waitForUpdate(), timeout);
+            await this.waitWithTimeout(createdChart.waitForUpdate(), timeout);
 
             const exportOptions = format === 'jpeg' && quality !== undefined ? { quality: quality / 100 } : undefined;
             const buffer = mainCanvas.toBufferSync(format, exportOptions);
 
-            chart.destroy();
-
             return buffer;
         } finally {
+            chart?.destroy();
             env.dispose();
+            release();
         }
     }
 
