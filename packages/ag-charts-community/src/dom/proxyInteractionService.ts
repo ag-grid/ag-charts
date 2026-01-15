@@ -47,7 +47,7 @@ type ProxyMeta = {
         result: ButtonWidget;
     };
     slider: {
-        params: ParentProperties<ToolbarWidget> &
+        params: ParentProperties<ToolbarWidget | GroupWidget> &
             InteractParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly role?: string };
         result: SliderWidget;
     };

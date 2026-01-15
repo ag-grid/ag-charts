@@ -7,7 +7,7 @@ const { SliderWidget } = _ModuleSupport;
 type ScrollbarDOMProxyCtx = Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>;
 
 export class ScrollbarDOMProxy {
-    private readonly toolbar: _ModuleSupport.ToolbarWidget;
+    private readonly container: _ModuleSupport.GroupWidget;
     private readonly slider: _ModuleSupport.SliderWidget;
 
     private span = 1;
@@ -21,11 +21,10 @@ export class ScrollbarDOMProxy {
         private readonly onChange: (min: number, max: number) => void,
         private readonly onHoverChange: (hovered: boolean) => void
     ) {
-        this.toolbar = ctx.proxyInteractionService.createProxyContainer({
-            type: 'toolbar',
+        this.container = ctx.proxyInteractionService.createProxyContainer({
+            type: 'group',
             domManagerId: `scrollbar-${orientation}`,
             classList: ['ag-charts-proxy-scrollbar', `ag-charts-proxy-scrollbar-${orientation}`],
-            orientation,
             ariaLabel: { id: 'ariaLabelNavigatorRange' },
         });
 
@@ -34,7 +33,7 @@ export class ScrollbarDOMProxy {
             domIndex: 0,
             ariaLabel: { id: 'ariaLabelNavigatorRange' },
             role: 'slider',
-            parent: this.toolbar,
+            parent: this.container,
         });
         const element = this.slider.getElement();
         element.ariaValueMin = '0';
@@ -54,16 +53,16 @@ export class ScrollbarDOMProxy {
     }
 
     destroy() {
-        this.toolbar.destroy();
+        this.container.destroy();
     }
 
     updateBounds(bounds: BoxBounds) {
-        this.toolbar.setBounds(bounds);
+        this.container.setBounds(bounds);
         this.slider.setBounds({ x: 0, y: 0, width: bounds.width, height: bounds.height });
     }
 
     updateVisibility(visible: boolean) {
-        this.toolbar.setHidden(!visible);
+        this.container.setHidden(!visible);
     }
 
     updateMinMax(min: number, max: number) {
@@ -84,7 +83,7 @@ export class ScrollbarDOMProxy {
     }
 
     private onDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
-        const bounds = this.toolbar.getBounds();
+        const bounds = this.container.getBounds();
         if (!bounds.width || !bounds.height) return;
 
         event.sourceEvent.preventDefault();
@@ -119,7 +118,7 @@ export class ScrollbarDOMProxy {
     }
 
     private onTrackClick(event: _ModuleSupport.MouseWidgetEvent<'click'> | _ModuleSupport.DragWidgetEvent) {
-        const bounds = this.toolbar.getElement().getBoundingClientRect();
+        const bounds = this.container.getElement().getBoundingClientRect();
         const { width, height, left, top } = bounds;
         if (!width || !height) return;
 

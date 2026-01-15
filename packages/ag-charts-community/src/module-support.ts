@@ -348,6 +348,7 @@ export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialCol
 export { Rect, clippedRoundRect, type CornerRadii } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape, type CanvasContext } from './scene/shape/shape';
+export { GroupWidget } from './widget/groupWidget';
 export { NativeWidget } from './widget/nativeWidget';
 export { SliderWidget } from './widget/sliderWidget';
 export { ToolbarWidget } from './widget/toolbarWidget';
