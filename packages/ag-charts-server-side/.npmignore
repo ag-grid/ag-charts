@@ -9,6 +9,7 @@ project.json
 .esbuild.*
 .env*
 __image_snapshots__/
+benchmarks/
 eslint.*
 
 dist/*.d.ts
