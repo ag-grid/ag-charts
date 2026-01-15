@@ -50,6 +50,7 @@ export * from './utils/geometry/boxBounds';
 export * from './utils/data/binarySearch';
 export * from './utils/format/color';
 export * from './utils/canvas';
+export * from './utils/configuredCanvasMixin';
 export * from './state/caching';
 export * from './utils/time/date';
 export * from './state/cleanupRegistry';

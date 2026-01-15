@@ -29,9 +29,9 @@ export function setupMockCanvas(opts: { width?: number; height?: number } = {}):
     return {
         nodeCanvas: canvas,
         snapshot: () => {
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
             return ctx.getImageData(0, 0, width, height);
         },
-        getRenderContext2D: () => canvas.getContext('2d') as unknown as CanvasRenderingContext2D,
+        getRenderContext2D: () => canvas.getContext('2d') as CanvasRenderingContext2D,
     };
 }

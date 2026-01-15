@@ -17,17 +17,19 @@
       }
     },
     "build:types": {
-      // Alias target so dependents build:types can depend on ^build:types.
+      "metadata": {
+        "description": "Alias target - using noop without build dependency to avoid circular dep with ag-charts-core"
+      },
       "executor": "nx:noop",
-      "dependsOn": ["build"],
       "cache": false,
       "inputs": [],
       "outputs": []
     },
     "build:package": {
-      // Alias target so dependents build:types can depend on ^build:types.
+      "metadata": {
+        "description": "Alias target - using noop without build dependency to avoid circular dep with ag-charts-core"
+      },
       "executor": "nx:noop",
-      "dependsOn": ["build"],
       "cache": false,
       "inputs": [],
       "outputs": []
