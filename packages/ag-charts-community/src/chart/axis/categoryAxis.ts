@@ -201,7 +201,13 @@ export class CategoryAxis<
         const { horizontal, interval, primaryTick, scale, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks, scrollbarThickness);
+            return super.calculateTickLine(
+                { isPrimary, tickId, translation },
+                index,
+                direction,
+                ticks,
+                scrollbarThickness
+            );
         }
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;

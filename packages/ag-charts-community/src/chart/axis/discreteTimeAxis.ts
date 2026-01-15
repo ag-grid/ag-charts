@@ -76,7 +76,13 @@ export class DiscreteTimeAxis<
         const { horizontal, interval, primaryTick, range, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks, scrollbarThickness);
+            return super.calculateTickLine(
+                { isPrimary, tickId, translation },
+                index,
+                direction,
+                ticks,
+                scrollbarThickness
+            );
         }
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
