@@ -1,6 +1,6 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
-import type { FeatureGridItem } from '../../types';
 
+import type { FeatureGridItem } from '../../types';
 import styles from './FeatureGrid.module.scss';
 
 interface Props {
