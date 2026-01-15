@@ -15,11 +15,6 @@ interface MockableDocument extends Document {
     createElement: (tagName: string, options?: ElementCreationOptions) => HTMLElement;
 }
 
-/** Global scope with AG Charts feature flags */
-interface AgChartsGlobal {
-    agChartsSceneRenderModel?: string;
-}
-
 interface MockContextState {
     canvas: NodeCanvas;
     realCreateElement: Document['createElement'];
@@ -38,9 +33,6 @@ export function setupMockCanvas(opts: { width?: number; height?: number } = {}):
             canvas,
             realCreateElement: document.createElement.bind(document),
         };
-
-        // Setup global canvas mocking
-        (globalThis as AgChartsGlobal).agChartsSceneRenderModel = 'composite';
 
         // Patch document.createElement
         const doc = document as MockableDocument;

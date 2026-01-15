@@ -168,8 +168,6 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
-
     const realCreateElement = document.createElement;
     mockCtx.realCreateElement = realCreateElement;
 

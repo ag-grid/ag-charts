@@ -13,7 +13,6 @@ interface ServerSideWindow extends Omit<Window, 'requestAnimationFrame' | 'cance
     DOMMatrix: typeof SkiaDOMMatrix;
     Image: typeof SkiaImage;
     Path2D: typeof SkiaPath2D;
-    agChartsSceneRenderModel: string;
 }
 
 export function createIsolatedEnvironment(): IsolatedEnvironment {
@@ -30,7 +29,6 @@ export function createIsolatedEnvironment(): IsolatedEnvironment {
     win.DOMMatrix = DOMMatrix;
     win.Image = Image;
     win.Path2D = Path2D;
-    win.agChartsSceneRenderModel = 'composite';
 
     return {
         window: win as unknown as Window & typeof globalThis,
