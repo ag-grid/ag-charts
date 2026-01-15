@@ -23,7 +23,7 @@ export function createIsolatedEnvironment(): IsolatedEnvironment {
 
     const win = dom.window as unknown as ServerSideWindow;
 
-    win.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(cb, 0) as unknown as number;
+    win.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 0) as unknown as number;
     win.cancelAnimationFrame = (handle: number) => clearTimeout(handle);
 
     win.OffscreenCanvas = NodeCanvas;
