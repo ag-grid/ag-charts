@@ -1,7 +1,7 @@
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
-import { NodeCanvas } from './src/canvas-config';
+import { NodeCanvas } from './src/canvasConfig';
 
 // Extend Jest matchers with image snapshot support
 declare module 'expect' {

@@ -1,90 +1,66 @@
 import { createIsolatedEnvironment } from './environment';
+import type { IsolatedEnvironment } from './types';
 
 describe('createIsolatedEnvironment', () => {
-    it('should create an isolated environment with window and document', () => {
-        const env = createIsolatedEnvironment();
+    let env: IsolatedEnvironment | undefined;
 
-        try {
-            expect(env.window).toBeDefined();
-            expect(env.document).toBeDefined();
-            expect(typeof env.dispose).toBe('function');
-        } finally {
-            env.dispose();
-        }
+    afterEach(() => {
+        env?.dispose();
+        env = undefined;
+    });
+
+    it('should create an isolated environment with window and document', () => {
+        env = createIsolatedEnvironment();
+
+        expect(env.window).toBeDefined();
+        expect(env.document).toBeDefined();
+        expect(typeof env.dispose).toBe('function');
     });
 
     it('should provide a container element', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            const container = env.document.getElementById('container');
-            expect(container).toBeDefined();
-            expect(container?.tagName.toLowerCase()).toBe('div');
-        } finally {
-            env.dispose();
-        }
+        const container = env.document.getElementById('container');
+        expect(container).toBeDefined();
+        expect(container?.tagName.toLowerCase()).toBe('div');
     });
 
     it('should polyfill requestAnimationFrame', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            expect(typeof env.window.requestAnimationFrame).toBe('function');
-            expect(typeof env.window.cancelAnimationFrame).toBe('function');
-        } finally {
-            env.dispose();
-        }
+        expect(typeof env.window.requestAnimationFrame).toBe('function');
+        expect(typeof env.window.cancelAnimationFrame).toBe('function');
     });
 
     it('should provide OffscreenCanvas', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            expect(env.window.OffscreenCanvas).toBeDefined();
-        } finally {
-            env.dispose();
-        }
+        expect(env.window.OffscreenCanvas).toBeDefined();
     });
 
     it('should provide DOMMatrix', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            expect(env.window.DOMMatrix).toBeDefined();
-        } finally {
-            env.dispose();
-        }
+        expect(env.window.DOMMatrix).toBeDefined();
     });
 
     it('should provide Image', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            expect(env.window.Image).toBeDefined();
-        } finally {
-            env.dispose();
-        }
+        expect(env.window.Image).toBeDefined();
     });
 
     it('should provide Path2D', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            expect(env.window.Path2D).toBeDefined();
-        } finally {
-            env.dispose();
-        }
+        expect(env.window.Path2D).toBeDefined();
     });
 
     it('should set agChartsSceneRenderModel to composite', () => {
-        const env = createIsolatedEnvironment();
+        env = createIsolatedEnvironment();
 
-        try {
-            const win = env.window as Window & { agChartsSceneRenderModel?: string };
-            expect(win.agChartsSceneRenderModel).toBe('composite');
-        } finally {
-            env.dispose();
-        }
+        const win = env.window as Window & { agChartsSceneRenderModel?: string };
+        expect(win.agChartsSceneRenderModel).toBe('composite');
     });
 
     it('should create independent environments', () => {
@@ -106,9 +82,9 @@ describe('createIsolatedEnvironment', () => {
     });
 
     it('should properly dispose environment', () => {
-        const env = createIsolatedEnvironment();
+        const localEnv = createIsolatedEnvironment();
 
         // Dispose should not throw
-        expect(() => env.dispose()).not.toThrow();
+        expect(() => localEnv.dispose()).not.toThrow();
     });
 });

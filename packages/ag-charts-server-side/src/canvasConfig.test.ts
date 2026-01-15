@@ -1,4 +1,4 @@
-import { NodeCanvas } from './canvas-config';
+import { NodeCanvas } from './canvasConfig';
 
 describe('NodeCanvas', () => {
     it('should create a canvas with specified dimensions', () => {

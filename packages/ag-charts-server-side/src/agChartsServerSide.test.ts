@@ -6,6 +6,11 @@ import type { RenderOptions } from './types';
 // Register community modules for testing
 ModuleRegistry.registerModules(AllCommunityModule);
 
+const IMAGE_SNAPSHOT_OPTIONS = {
+    failureThreshold: 0,
+    failureThresholdType: 'percent' as const,
+};
+
 describe('AgChartsServerSide', () => {
     describe('render', () => {
         it('should render a simple line chart to buffer', async () => {
@@ -25,14 +30,14 @@ describe('AgChartsServerSide', () => {
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
-            expect(buffer).toBeInstanceOf(Buffer);
-            expect(buffer.length).toBeGreaterThan(0);
-
-            // Check PNG magic bytes
+            // Verify PNG format
             expect(buffer[0]).toBe(0x89);
             expect(buffer[1]).toBe(0x50); // P
             expect(buffer[2]).toBe(0x4e); // N
             expect(buffer[3]).toBe(0x47); // G
+
+            // Verify image content
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should render a bar chart to buffer', async () => {
@@ -51,8 +56,7 @@ describe('AgChartsServerSide', () => {
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
-            expect(buffer).toBeInstanceOf(Buffer);
-            expect(buffer.length).toBeGreaterThan(0);
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should render JPEG format when specified', async () => {
@@ -72,27 +76,47 @@ describe('AgChartsServerSide', () => {
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
-            expect(buffer).toBeInstanceOf(Buffer);
-            // Check JPEG magic bytes
+            // NOTE: jest-image-snapshot only supports PNG snapshots so its not possible to test JPEG output
+            // so we just verify the magic bytes and that the buffer is not empty
+
+            // Verify JPEG format (magic bytes) and non-empty output
             expect(buffer[0]).toBe(0xff);
             expect(buffer[1]).toBe(0xd8);
+            expect(buffer.length).toBeGreaterThan(1000); // JPEG should have substantial content
         });
 
-        it('should respect pixelRatio', async () => {
-            const baseOptions: RenderOptions = {
+        it('should respect pixelRatio 1x', async () => {
+            const buffer = await AgChartsServerSide.render({
                 options: {
-                    data: [{ x: 1, y: 10 }],
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 20 },
+                    ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 },
-                width: 100,
-                height: 100,
-            };
+                width: 200,
+                height: 150,
+                pixelRatio: 1,
+            });
 
-            const buffer1x = await AgChartsServerSide.render({ ...baseOptions, pixelRatio: 1 });
-            const buffer2x = await AgChartsServerSide.render({ ...baseOptions, pixelRatio: 2 });
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+        });
 
-            // 2x buffer should be larger due to more pixels
-            expect(buffer2x.length).toBeGreaterThan(buffer1x.length);
+        it('should respect pixelRatio 2x', async () => {
+            const buffer = await AgChartsServerSide.render({
+                options: {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 20 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                width: 200,
+                height: 150,
+                pixelRatio: 2,
+            });
+
+            expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should throw error for invalid dimensions', async () => {
@@ -124,36 +148,33 @@ describe('AgChartsServerSide', () => {
 
     describe('concurrent rendering', () => {
         it('should handle multiple concurrent renders', async () => {
-            const createOptions = (id: number): RenderOptions => ({
+            // Use identical options to ensure consistent snapshots
+            const options: RenderOptions = {
                 options: {
                     data: [
-                        { x: id, y: id * 10 },
-                        { x: id + 1, y: id * 20 },
+                        { x: 1, y: 10 },
+                        { x: 2, y: 20 },
                     ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 },
                 width: 200,
                 height: 150,
-            });
+            };
 
-            const promises = [1, 2, 3, 4, 5].map((id) => AgChartsServerSide.render(createOptions(id)));
+            const promises = [1, 2, 3, 4, 5].map(() => AgChartsServerSide.render(options));
 
             const buffers = await Promise.all(promises);
 
             expect(buffers).toHaveLength(5);
+
+            // Verify each buffer produces correct output
             for (const buffer of buffers) {
-                expect(buffer).toBeInstanceOf(Buffer);
-                expect(buffer.length).toBeGreaterThan(0);
+                expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
             }
         });
     });
 
     describe('visual regression', () => {
-        const IMAGE_SNAPSHOT_OPTIONS = {
-            failureThreshold: 0,
-            failureThresholdType: 'percent' as const,
-        };
-
         it('should render line chart correctly', async () => {
             const buffer = await AgChartsServerSide.render({
                 options: {

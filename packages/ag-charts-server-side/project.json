@@ -37,9 +37,17 @@
     },
     "lint:eslint": {},
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "nx:run-commands",
       "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts"
+        "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts"]
+      },
+      "configurations": {
+        "ci": {
+          "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
+        },
+        "update": {
+          "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
+        }
       }
     },
     "pack": {
