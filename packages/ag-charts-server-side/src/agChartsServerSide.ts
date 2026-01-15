@@ -1,6 +1,7 @@
 import { FontLibrary } from 'skia-canvas';
 
 import { AgCharts } from 'ag-charts-community';
+import { withTimeout } from 'ag-charts-core';
 
 import { NodeCanvas } from './canvasConfig';
 import { patchDocumentCreateElement } from './documentPatch';
@@ -108,7 +109,7 @@ export class AgChartsServerSide {
             } as any);
             chart = createdChart;
 
-            await this.waitWithTimeout(createdChart.waitForUpdate(), timeout);
+            await withTimeout(createdChart.waitForUpdate(), timeout, `Render timeout after ${timeout}ms`);
 
             const exportOptions = format === 'jpeg' && quality !== undefined ? { quality: quality / 100 } : undefined;
             const buffer = mainCanvas.toBufferSync(format, exportOptions);
@@ -118,18 +119,6 @@ export class AgChartsServerSide {
             chart?.destroy();
             env.dispose();
             release();
-        }
-    }
-
-    private static async waitWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-        let timer: ReturnType<typeof setTimeout>;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-            timer = setTimeout(() => reject(new Error(`Render timeout after ${timeoutMs}ms`)), timeoutMs);
-        });
-        try {
-            return await Promise.race([promise, timeoutPromise]);
-        } finally {
-            clearTimeout(timer!);
         }
     }
 }
