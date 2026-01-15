@@ -1,8 +1,6 @@
 const { TestEnvironment } = require('jest-environment-jsdom');
-const { DOMMatrix, Image } = require('skia-canvas');
+const { DOMMatrix, Image, Canvas } = require('skia-canvas');
 const timezoneMock = require('timezone-mock');
-
-const { mockCanvas } = require('ag-charts-test');
 
 /**
  * Timezone-aware jsdom Jest environment. Supports `@timezone` JSDoc
@@ -16,7 +14,7 @@ module.exports = class TimezoneAwareJSDOMEnvironment extends TestEnvironment {
 
         super(config, context);
 
-        this.global.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
+        this.global.OffscreenCanvas = ConfiguredCanvasMixin(Canvas);
         this.global.DOMMatrix = DOMMatrix;
         this.global.Image = Image;
     }

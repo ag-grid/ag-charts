@@ -1,13 +1,22 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
-
 import * as Logger from '../logging/logger';
 import { isPlainObject } from '../utils/types/typeGuards';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 
 describe('Memento Caretaker', () => {
-    setupMockConsole(undefined, { includeAllLevels: false });
+    beforeEach(() => {
+        jest.spyOn(console, 'warn').mockImplementation(() => void 0);
+        jest.spyOn(console, 'error').mockImplementation(() => void 0);
+        jest.spyOn(console, 'trace').mockImplementation(() => void 0);
+        jest.spyOn(console, 'debug').mockImplementation(() => void 0);
+        jest.spyOn(console, 'info').mockImplementation(() => void 0);
+        jest.spyOn(console, 'log').mockImplementation(() => void 0);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
     class TestMemento {
         type = 'test';
@@ -146,19 +155,15 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(otherOriginator);
         caretaker.restore(blob, originator);
 
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Could not restore [test] data, value was invalid, ignoring.",
-    {
-      "data": {
-        "hello": "world",
-      },
-      "type": "other-test",
-    },
-  ],
-]
-`);
+        expect(console.warn).toHaveBeenCalledWith(
+            'AG Charts - Could not restore [test] data, value was invalid, ignoring.',
+            {
+                data: {
+                    hello: 'world',
+                },
+                type: 'other-test',
+            }
+        );
         expect(originator.restored).toBeUndefined();
     });
 
@@ -166,33 +171,26 @@ describe('Memento Caretaker', () => {
         caretaker.restore(null, originator);
         caretaker.restore('invalid', originator);
         caretaker.restore({ some: 'nonsense' }, originator);
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Could not restore data of type [null], expecting an object, ignoring.",
-  ],
-  [
-    "AG Charts - Could not restore data of type [string], expecting an object, ignoring.",
-  ],
-  [
-    "AG Charts - Could not restore data, missing [version] string in object, ignoring.",
-  ],
-]
-`);
+        expect(console.warn).toHaveBeenCalledWith(
+            'AG Charts - Could not restore data of type [null], expecting an object, ignoring.'
+        );
+        expect(console.warn).toHaveBeenCalledWith(
+            'AG Charts - Could not restore data of type [string], expecting an object, ignoring.'
+        );
+        expect(console.warn).toHaveBeenCalledWith(
+            'AG Charts - Could not restore data, missing [version] string in object, ignoring.'
+        );
     });
 
     it('should handle an invalid memento', () => {
         caretaker.restore({ version: '10.0.0', test: { type: 'invalid' } }, originator);
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Could not restore [test] data, value was invalid, ignoring.",
-    {
-      "type": "invalid",
-    },
-  ],
-]
-`);
+        expect(console.warn).toHaveBeenCalledWith(
+            'AG Charts - Could not restore [test] data, value was invalid, ignoring.',
+            {
+                type: 'invalid',
+            }
+        );
+        expect(originator.restored).toBeUndefined();
     });
 
     it('should ignore an unknown memento', () => {
