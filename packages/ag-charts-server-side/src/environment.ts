@@ -2,7 +2,7 @@ import { JSDOM } from 'jsdom';
 import type { Canvas, DOMMatrix as SkiaDOMMatrix, Image as SkiaImage, Path2D as SkiaPath2D } from 'skia-canvas';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
-import { NodeCanvas } from './canvas-config';
+import { NodeCanvas } from './canvasConfig';
 import type { IsolatedEnvironment } from './types';
 
 /** Extended window interface for server-side rendering environment */
