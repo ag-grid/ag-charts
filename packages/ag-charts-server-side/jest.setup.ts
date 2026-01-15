@@ -1,7 +1,15 @@
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { DOMMatrix, Image, Path2D } from 'skia-canvas';
+import path from 'path';
+import { DOMMatrix, FontLibrary, Image, Path2D } from 'skia-canvas';
 
 import { NodeCanvas } from './src/canvasConfig';
+
+// Register consistent fonts for visual regression testing.
+// Uses Arimo (free Google Font) as Verdana substitute for cross-environment consistency.
+FontLibrary.use('Verdana', [
+    path.resolve(__dirname, 'test/fonts/Arimo-Regular.ttf'),
+    path.resolve(__dirname, 'test/fonts/Arimo-Bold.ttf'),
+]);
 
 // Extend Jest matchers with image snapshot support
 declare module 'expect' {
