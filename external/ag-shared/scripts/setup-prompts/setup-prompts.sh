@@ -399,33 +399,36 @@ generate_config() {
     if [[ "$verbose" == "true" ]]; then
         echo -e "${BLUE}Generating configurations for: ${NC}$targets"
         echo ""
+    fi
 
-        # Run rulesync with detected targets (verbose)
-        npx rulesync generate \
-            --targets="$targets" \
-            --features="rules,ignore,mcp,commands,subagents" \
-            --delete
+    # Run rulesync and capture output + exit code
+    local output
+    local exit_code=0
+    output=$(npx rulesync generate \
+        --targets="$targets" \
+        --features="rules,ignore,mcp,commands,subagents" \
+        --delete 2>&1) || exit_code=$?
 
-        # Copy extra configs
+    if [[ $exit_code -eq 0 ]]; then
         copy_extra_configs "$verbose" "$targets"
 
-        echo ""
-        echo -e "${GREEN}✓ Configuration generated successfully${NC}"
+        if [[ "$verbose" == "true" ]]; then
+            echo "$output"
+            echo ""
+            echo -e "${GREEN}✓ Configuration generated successfully${NC}"
+        else
+            local summary
+            summary=$(echo "$output" | grep -o '🎉.*' || echo "Configuration generated")
+            echo -e "${GREEN}✓${NC} $summary"
+        fi
     else
-        # Run rulesync quietly and capture output for summary
-        local output
-        output=$(npx rulesync generate \
-            --targets="$targets" \
-            --features="rules,ignore,mcp,commands,subagents" \
-            --delete 2>&1)
-
-        # Copy extra configs
-        copy_extra_configs "$verbose" "$targets"
-
-        # Extract the summary line from rulesync output
-        local summary
-        summary=$(echo "$output" | grep -o '🎉.*' || echo "Configuration generated")
-        echo -e "${GREEN}✓${NC} $summary"
+        echo -e "${YELLOW}Warning: rulesync failed - some configuration may be incomplete${NC}"
+        if [[ "$verbose" == "true" ]]; then
+            echo "$output"
+            echo -e "${YELLOW}This may be due to missing external/prompts (ag-charts-prompts not cloned)${NC}"
+        else
+            echo "$output" | grep -i "error" | head -3 || true
+        fi
     fi
 }
 
