@@ -23,6 +23,13 @@
       "inputs": [],
       "outputs": []
     },
+    "build:package": {
+      "executor": "nx:noop",
+      "dependsOn": ["build"],
+      "cache": false,
+      "inputs": [],
+      "outputs": []
+    },
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint:eslint"],
