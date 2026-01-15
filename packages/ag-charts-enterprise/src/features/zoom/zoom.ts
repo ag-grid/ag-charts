@@ -303,7 +303,7 @@ export class Zoom extends AbstractModuleInstance {
             return;
         }
 
-        const axis = this.domProxy.pickAxisAtPoint(event.x, event.y);
+        const axis = this.domProxy.pickAxisAtPoint(event);
         if (axis) {
             this.domProxy.setHoveredAxis(axis.axisId);
             this.ctx.domManager.updateCursor(CURSOR_ID, this.domProxy.getCursor(axis.direction));
@@ -315,7 +315,7 @@ export class Zoom extends AbstractModuleInstance {
     private onSeriesAreaClickEvent(event: SeriesAreaClickEvent) {
         if (!this.shouldHandleAxisClick(event)) return;
 
-        const axis = this.domProxy.pickAxisAtPoint(event.x, event.y);
+        const axis = this.domProxy.pickAxisAtPoint(event);
         if (axis && event.sourceEvent?.type === 'dblclick') {
             this.onAxisDoubleClick(axis.axisId);
         }

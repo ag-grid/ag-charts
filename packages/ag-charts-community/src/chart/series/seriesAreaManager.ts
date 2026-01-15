@@ -536,16 +536,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
-        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
-        if (coords == null) return;
-
-        const payload: SeriesAreaHoverEvent = {
-            x: coords.x,
-            y: coords.y,
-            consumed,
-            sourceEvent: event.sourceEvent,
-        };
-
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
     }
 
@@ -555,24 +547,15 @@ export class SeriesAreaManager extends BaseManager {
     ): void {
         if (!('currentX' in event)) return;
 
-        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
-        if (coords == null) return;
-
-        const payload: SeriesAreaClickEvent = {
-            x: coords.x,
-            y: coords.y,
-            consumed,
-            sourceEvent: event.sourceEvent,
-        };
-
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const payload: SeriesAreaClickEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
-    private toCanvasCoordinates(x: number, y: number) {
+    private toCanvasCoordinates(event: { currentX: number; currentY: number }): { canvasX: number; canvasY: number } {
         const offsetX = this.hoverRect?.x ?? this.seriesRect?.x ?? 0;
         const offsetY = this.hoverRect?.y ?? this.seriesRect?.y ?? 0;
-
-        return { x: x + offsetX, y: y + offsetY };
+        return { canvasX: event.currentY + offsetX, canvasY: event.currentX + offsetY };
     }
 
     private onFocus(): void {
@@ -662,9 +645,7 @@ export class SeriesAreaManager extends BaseManager {
             if (nextTooltipCandidate != null) {
                 this.updateActive(nextTooltipCandidate.current);
                 event.sourceEvent.preventDefault();
-                const { currentX, currentY } = event;
-                const canvasX = currentX + (this.hoverRect?.x ?? 0);
-                const canvasY = currentY + (this.hoverRect?.y ?? 0);
+                const { canvasX, canvasY } = this.toCanvasCoordinates(event);
                 this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
                 this.handleHoverHighlight(false);
                 this.showTooltip(nextTooltipCandidate.current, canvasX, canvasY, {
@@ -970,9 +951,7 @@ export class SeriesAreaManager extends BaseManager {
         const event = this.highlight.appliedHoverEvent;
         if (!event || !this.isState(InteractionState.Clickable)) return;
 
-        const { currentX, currentY } = event;
-        const canvasX = event.currentX + (this.hoverRect?.x ?? 0);
-        const canvasY = event.currentY + (this.hoverRect?.y ?? 0);
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
@@ -980,7 +959,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const pick = this.pickNodes({ x: currentX, y: currentY }, intent);
+        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
         if (!pick || pick.matches.length === 0) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
             return;
@@ -1002,9 +981,7 @@ export class SeriesAreaManager extends BaseManager {
         this.tooltipCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
-        const { currentX, currentY } = event;
-        const canvasX = currentX + (this.hoverRect?.x ?? 0);
-        const canvasY = currentY + (this.hoverRect?.y ?? 0);
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             if (this.hoverDevice == 'pointer') this.clearTooltip();
