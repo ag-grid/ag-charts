@@ -37,12 +37,25 @@
     },
     "lint:eslint": {},
     "test": {
-      "executor": "nx:noop"
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts"]
+      },
+      "configurations": {
+        "ci": {
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u --passWithNoTests"
+          ]
+        },
+        "update": {
+          "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
+        }
+      }
     },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "inputs": ["allTransitiveOutputs"],
+      "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}",
