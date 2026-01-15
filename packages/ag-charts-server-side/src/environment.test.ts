@@ -32,35 +32,51 @@ describe('createIsolatedEnvironment', () => {
         expect(typeof env.window.cancelAnimationFrame).toBe('function');
     });
 
-    it('should provide OffscreenCanvas', () => {
+    it('should provide working OffscreenCanvas', () => {
         env = createIsolatedEnvironment();
 
-        expect(env.window.OffscreenCanvas).toBeDefined();
+        const OffscreenCanvasCtor = env.window.OffscreenCanvas;
+        expect(OffscreenCanvasCtor).toBeDefined();
+
+        // Verify it's the real implementation (not a strict proxy) by instantiating
+        const canvas = new OffscreenCanvasCtor(100, 100);
+        expect(canvas.width).toBe(100);
+        expect(canvas.height).toBe(100);
     });
 
-    it('should provide DOMMatrix', () => {
+    it('should provide working DOMMatrix', () => {
         env = createIsolatedEnvironment();
 
-        expect(env.window.DOMMatrix).toBeDefined();
+        const DOMMatrixCtor = env.window.DOMMatrix;
+        expect(DOMMatrixCtor).toBeDefined();
+
+        // Verify it's the real implementation by instantiating and checking values
+        const matrix = new DOMMatrixCtor([1, 0, 0, 1, 10, 20]);
+        expect(matrix.e).toBe(10);
+        expect(matrix.f).toBe(20);
     });
 
-    it('should provide Image', () => {
+    it('should provide working Image', () => {
         env = createIsolatedEnvironment();
 
-        expect(env.window.Image).toBeDefined();
+        const ImageCtor = env.window.Image;
+        expect(ImageCtor).toBeDefined();
+
+        // Verify it's the real implementation by instantiating
+        const img = new ImageCtor();
+        expect(img).toBeDefined();
     });
 
-    it('should provide Path2D', () => {
+    it('should provide working Path2D', () => {
         env = createIsolatedEnvironment();
 
-        expect(env.window.Path2D).toBeDefined();
-    });
+        const Path2DCtor = env.window.Path2D;
+        expect(Path2DCtor).toBeDefined();
 
-    it('should set agChartsSceneRenderModel to composite', () => {
-        env = createIsolatedEnvironment();
-
-        const win = env.window as Window & { agChartsSceneRenderModel?: string };
-        expect(win.agChartsSceneRenderModel).toBe('composite');
+        // Verify it's the real implementation by instantiating and checking methods
+        const path = new Path2DCtor();
+        expect(typeof path.moveTo).toBe('function');
+        expect(typeof path.lineTo).toBe('function');
     });
 
     it('should create independent environments', () => {

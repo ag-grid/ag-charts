@@ -147,27 +147,70 @@ describe('AgChartsServerSide', () => {
     });
 
     describe('concurrent rendering', () => {
-        it('should handle multiple concurrent renders', async () => {
-            // Use identical options to ensure consistent snapshots
-            const options: RenderOptions = {
-                options: {
+        it('should handle multiple concurrent renders with different options', async () => {
+            // Use different data and dimensions to verify canvas isolation
+            const renderConfigs = [
+                {
                     data: [
                         { x: 1, y: 10 },
                         { x: 2, y: 20 },
                     ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    width: 200,
+                    height: 150,
                 },
-                width: 200,
-                height: 150,
-            };
+                {
+                    data: [
+                        { x: 1, y: 30 },
+                        { x: 2, y: 40 },
+                    ],
+                    width: 250,
+                    height: 180,
+                },
+                {
+                    data: [
+                        { x: 1, y: 50 },
+                        { x: 2, y: 60 },
+                        { x: 3, y: 70 },
+                    ],
+                    width: 300,
+                    height: 200,
+                },
+                {
+                    data: [
+                        { x: 1, y: 5 },
+                        { x: 2, y: 15 },
+                        { x: 3, y: 25 },
+                        { x: 4, y: 35 },
+                    ],
+                    width: 350,
+                    height: 220,
+                },
+                {
+                    data: [
+                        { x: 1, y: 100 },
+                        { x: 2, y: 80 },
+                    ],
+                    width: 180,
+                    height: 140,
+                },
+            ];
 
-            const promises = [1, 2, 3, 4, 5].map(() => AgChartsServerSide.render(options));
+            const promises = renderConfigs.map((config) =>
+                AgChartsServerSide.render({
+                    options: {
+                        data: config.data,
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    },
+                    width: config.width,
+                    height: config.height,
+                })
+            );
 
             const buffers = await Promise.all(promises);
 
             expect(buffers).toHaveLength(5);
 
-            // Verify each buffer produces correct output
+            // Each buffer should match its own unique snapshot
             for (const buffer of buffers) {
                 expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
             }
