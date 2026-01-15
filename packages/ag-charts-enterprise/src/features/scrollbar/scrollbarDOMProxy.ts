@@ -33,7 +33,7 @@ export class ScrollbarDOMProxy {
             type: 'slider',
             domIndex: 0,
             ariaLabel: { id: 'ariaLabelNavigatorRange' },
-            role: 'scrollbar',
+            role: 'slider',
             parent: this.toolbar,
         });
         const element = this.slider.getElement();
