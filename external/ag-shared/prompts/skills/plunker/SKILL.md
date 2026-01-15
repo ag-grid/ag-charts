@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: plunker
-description: 'Create and manage Plunker examples for AG Charts. Use when creating shareable code demos, forking existing plunks, or troubleshooting Plunker structure issues.'
+description: 'Create and manage Plunker (plnkr.co) examples for AG Charts. Use when working with plnkr.co URLs, creating shareable code demos, forking existing plunks, or troubleshooting Plunker structure issues.'
 context: fork
 ---
 
