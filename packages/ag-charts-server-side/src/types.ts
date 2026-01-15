@@ -16,7 +16,7 @@ export interface BaseRenderOptions {
 
 /** Generic render options parameterized by chart options type */
 export interface ChartRenderOptions<T> extends BaseRenderOptions {
-    options: T;
+    options: Omit<T, 'width' | 'height' | 'container'>;
 }
 
 /** Render options for standard charts */
