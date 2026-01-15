@@ -89,7 +89,6 @@ function validateChanges(changes: UpdateZoomChanges): void {
 export type UpdateZoomSourcing = {
     source: AgZoomEventSource;
     sourceDetail: ZoomEventSourceDetail;
-    manualAdjustment?: boolean;
 };
 export type UpdateZoomChanges = Record<AxisID, ZoomMinMax | undefined>;
 export type UpdateZoomParams = UpdateZoomSourcing & {
@@ -355,9 +354,9 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom({ source, sourceDetail, manualAdjustment }: UpdateZoomSourcing, newZoom?: ZoomState): boolean {
+    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: ZoomState): boolean {
         const changes = this.toCoreZoomState(newZoom ?? {});
-        return this.updateChanges({ source, sourceDetail, changes, isReset: false, manualAdjustment });
+        return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
 
     private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
@@ -378,7 +377,7 @@ export class ZoomManager extends BaseManager {
     }
 
     public updateChanges(params: UpdateZoomParams): boolean {
-        const { source, sourceDetail, isReset, changes, manualAdjustment } = params;
+        const { source, sourceDetail, isReset, changes } = params;
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
@@ -392,7 +391,7 @@ export class ZoomManager extends BaseManager {
         }
         this.state = newState;
 
-        return this.dispatch(source, sourceDetail, changedAxes, isReset, manualAdjustment);
+        return this.dispatch(source, sourceDetail, changedAxes, isReset);
     }
 
     public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
@@ -596,8 +595,7 @@ export class ZoomManager extends BaseManager {
         source: AgZoomEventSource,
         sourceDetail: ZoomEventSourceDetail,
         changedAxes: readonly AxisID[],
-        isReset: boolean,
-        manualAdjustment?: boolean
+        isReset: boolean
     ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
@@ -612,7 +610,6 @@ export class ZoomManager extends BaseManager {
             state,
             x,
             y,
-            manualAdjustment,
             stateAsDefinedZoom(): DefinedZoomState {
                 return definedZoomState(zoomManager.toZoomState(event.state));
             },

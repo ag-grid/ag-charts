@@ -232,7 +232,6 @@ export interface ZoomChangeRequestEvent {
     readonly sourceDetail: ZoomEventSourceDetail;
     readonly isReset: boolean;
     readonly changedAxes: readonly AxisID[];
-    readonly manualAdjustment?: boolean;
     readonly state: ZoomChangeState;
     readonly x?: Readonly<ZoomMinMax>;
     readonly y?: Readonly<ZoomMinMax>;

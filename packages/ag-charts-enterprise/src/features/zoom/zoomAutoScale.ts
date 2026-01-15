@@ -61,14 +61,12 @@ export class ZoomAutoScaler {
     }
 
     private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        this.manuallyAdjusted = event.manualAdjustment ?? this.manuallyAdjusted;
-
-        if (event.isReset) {
-            for (const id of event.changedAxes) {
-                if (event.state[id]?.direction === ChartAxisDirection.Y) {
-                    this.manuallyAdjusted = false;
-                }
-            }
+        const hasYAxisChange = this.hasYAxisChange(event);
+        if (event.sourceDetail === 'scrollbar' && hasYAxisChange) {
+            this.manuallyAdjusted = true;
+        }
+        if (event.isReset && hasYAxisChange) {
+            this.manuallyAdjusted = false;
         }
         if (this.enabled) {
             const constrainedZoom = this.autoScaleYZoom(event.state);
@@ -76,6 +74,15 @@ export class ZoomAutoScaler {
                 event.constrainChanges(constrainedZoom);
             }
         }
+    }
+
+    private hasYAxisChange(event: _ModuleSupport.ZoomChangeRequestEvent): boolean {
+        for (const id of event.changedAxes) {
+            if (event.state[id]?.direction === ChartAxisDirection.Y) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private onSaveMemento(event: _ModuleSupport.ZoomSaveMementoEvent) {
