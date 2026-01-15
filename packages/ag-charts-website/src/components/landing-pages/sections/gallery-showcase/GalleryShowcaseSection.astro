@@ -5,10 +5,8 @@
  * Shows selected gallery examples as clickable cards with thumbnails.
  * Uses the existing GalleryExampleImage component for theme-aware images.
  */
-import type {
-    GalleryShowcaseSection as GalleryShowcaseSectionType,
-    LandingPageContent,
-} from '@ag-website-shared/components/landing-pages/types';
+import type { LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type { GalleryShowcaseSection as GalleryShowcaseSectionType } from '../../types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { GalleryExampleImage } from '@components/gallery/components/GalleryExampleImage';

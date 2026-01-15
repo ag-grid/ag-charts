@@ -10,7 +10,13 @@ interface Props {
 const { section } = Astro.props;
 ---
 
-<LandingPageSection id="features" tag={section.tag} heading={section.heading} subHeading={section.subHeading}>
+<LandingPageSection
+    id="features"
+    tag={section.tag}
+    heading={section.heading}
+    headingHtml={section.headingHtml}
+    subHeading={section.subHeading}
+>
     <slot>
         <!-- Fallback: simple feature list without live examples -->
         <div class="features-fallback">

@@ -94,14 +94,7 @@ const showCustomerLogos = section.showCustomerLogos !== false;
             <div class={styles.heroSectionButtonContainer}>
                 {
                     section.primaryCta?.useTrialButton ? (
-                        <slot name="hero-trial-button">
-                            <a
-                                class={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${primaryCtaAnalytics}`}
-                                href={primaryCtaUrl}
-                            >
-                                {section.primaryCta.text}
-                            </a>
-                        </slot>
+                        <slot name="hero-trial-button" />
                     ) : section.primaryCta ? (
                         <a
                             id="get-started"
@@ -132,7 +125,7 @@ const showCustomerLogos = section.showCustomerLogos !== false;
                     <a
                         id="view-demos"
                         class:list={[
-                            'button',
+                            'button-tertiary',
                             styles.heroSectionViewAllDemosLink,
                             `plausible-event-name=${secondaryCtaAnalytics}`,
                         ]}
