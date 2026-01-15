@@ -272,7 +272,7 @@
       "cache": true
     },
     "pack": {
-      "inputs": ["allTransitiveOutputs"],
+      "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "cache": true
     },
     "@nx/jest:jest": {
