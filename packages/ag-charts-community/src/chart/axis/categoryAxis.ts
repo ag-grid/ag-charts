@@ -169,8 +169,12 @@ export class CategoryAxis<
         return { tickId, x1, y1, x2, y2, fill, fillOpacity };
     }
 
-    protected override calculateTickLines(ticks: TickDatum[], direction: number): AxisLineDatum[] {
-        const tickLines = super.calculateTickLines(ticks, direction);
+    protected override calculateTickLines(
+        ticks: TickDatum[],
+        direction: number,
+        scrollbarThickness: number = 0
+    ): AxisLineDatum[] {
+        const tickLines = super.calculateTickLines(ticks, direction, scrollbarThickness);
 
         if (this.interval.placement === 'between' && ticks.length > 0) {
             tickLines.push(
@@ -178,7 +182,8 @@ export class CategoryAxis<
                     { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
                     ticks.length,
                     direction,
-                    ticks
+                    ticks,
+                    scrollbarThickness
                 )
             );
         }
@@ -190,19 +195,23 @@ export class CategoryAxis<
         { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
         index: number,
         direction: number,
-        ticks: TickDatum[]
+        ticks: TickDatum[],
+        scrollbarThickness: number = 0
     ): AxisLineDatum {
         const { horizontal, interval, primaryTick, scale, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks);
+            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks, scrollbarThickness);
         }
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
         const offset = translation - halfStep;
-        const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
+        const tickOffset = scrollbarThickness ? -direction * scrollbarThickness : 0;
+        const [x1, y1, x2, y2] = horizontal
+            ? [offset, tickOffset, offset, tickOffset + h]
+            : [tickOffset, offset, tickOffset + h, offset];
         const { stroke, width: strokeWidth } = datumTick;
         const lineDash = undefined;
 

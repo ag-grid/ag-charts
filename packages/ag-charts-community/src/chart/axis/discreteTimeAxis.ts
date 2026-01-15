@@ -70,19 +70,23 @@ export class DiscreteTimeAxis<
         { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
         index: number,
         direction: number,
-        ticks: TickDatum[]
+        ticks: TickDatum[],
+        scrollbarThickness: number = 0
     ): AxisLineDatum {
         const { horizontal, interval, primaryTick, range, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks);
+            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks, scrollbarThickness);
         }
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const prevTick = ticks[index - 1];
         const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
-        const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
+        const tickOffset = scrollbarThickness ? -direction * scrollbarThickness : 0;
+        const [x1, y1, x2, y2] = horizontal
+            ? [offset, tickOffset, offset, tickOffset + h]
+            : [tickOffset, offset, tickOffset + h, offset];
         const { stroke, width: strokeWidth } = datumTick;
         const lineDash = undefined;
 

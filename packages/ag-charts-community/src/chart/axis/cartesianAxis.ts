@@ -234,14 +234,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             this.tick.enabled === false &&
             this.gridLine.enabled === false
         ) {
-            const { bbox, spacing, scrollbarLayout } = this.measureAxisLayout(
-                domain,
-                [],
-                [],
-                scrollbar,
-                scrollbarThickness
-            );
-            this.layout.scrollbar = scrollbarLayout;
+            const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
             const layout: GeneratedTicks = {
                 ticks: [],
@@ -321,14 +314,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const gridLines = this.calculateGridLines(ticks, p1, p2);
         const gridFills = this.calculateGridFills(ticks, p1, p2);
         const tickLines = this.calculateTickLines(ticks, direction, scrollbarThickness);
-        const { bbox, spacing, scrollbarLayout } = this.measureAxisLayout(
-            tickDomain,
-            ticks,
-            labels,
-            scrollbar,
-            scrollbarThickness
-        );
-        this.layout.scrollbar = scrollbarLayout;
+        const { bbox, spacing } = this.measureAxisLayout(tickDomain, ticks, labels, scrollbar, scrollbarThickness);
         const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
@@ -556,12 +542,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return tempCaption.node.getBBox();
     }
 
-    private getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
+    protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
         if (!scrollbar) return 0;
         return scrollbar.placement === 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
     }
 
-    private resolveScrollbarLayout(
+    protected resolveScrollbarLayout(
         scrollbar: ScrollbarLayout | undefined,
         labelThickness: number
     ): (ScrollbarLayout & { offset: number }) | undefined {
@@ -581,6 +567,29 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 : -labelThickness - scrollbar.spacing - scrollbar.thickness;
 
         return { ...scrollbar, offset };
+    }
+
+    protected applyScrollbarLayout(
+        boxes: BBox[],
+        labelThickness: number,
+        scrollbar: ScrollbarLayout | undefined
+    ): { spacing: number; scrollbarLayout: (ScrollbarLayout & { offset: number }) | undefined } {
+        const scrollbarLayout = this.resolveScrollbarLayout(scrollbar, labelThickness);
+
+        let spacing = labelThickness;
+        if (scrollbarLayout) {
+            const { offset, thickness, placement } = scrollbarLayout;
+            if (placement === 'outer') {
+                spacing += scrollbarLayout.spacing + thickness;
+            }
+            if (this.horizontal) {
+                boxes.push(new BBox(0, offset, 0, thickness));
+            } else {
+                boxes.push(new BBox(offset, 0, thickness, 0));
+            }
+        }
+
+        return { spacing, scrollbarLayout };
     }
 
     private measureAxisLayout(
@@ -645,29 +654,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const combined = BBox.merge(boxes);
         const labelThickness = horizontal ? combined.height : combined.width;
+        const { spacing, scrollbarLayout } = this.applyScrollbarLayout(boxes, labelThickness, scrollbar);
         this.layout.labelThickness = labelThickness;
-
-        const scrollbarLayout = this.resolveScrollbarLayout(scrollbar, labelThickness);
-
-        let spacing = labelThickness;
-        if (scrollbarLayout) {
-            const { offset, thickness, placement } = scrollbarLayout;
-            if (placement === 'outer') {
-                spacing += scrollbarLayout.spacing + thickness;
-            }
-            if (horizontal) {
-                boxes.push(new BBox(0, offset, 0, thickness));
-            } else {
-                boxes.push(new BBox(offset, 0, thickness, 0));
-            }
-        }
+        this.layout.scrollbar = scrollbarLayout;
 
         if (title.enabled) {
             boxes.push(this.titleBBox(domain, spacing));
         }
 
         const bbox = BBox.merge(boxes);
-        return { bbox, spacing, scrollbarLayout };
+        return { bbox, spacing };
     }
 
     protected titleProps(caption: Caption, domain: D[], spacing: number) {
