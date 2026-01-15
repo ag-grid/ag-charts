@@ -109,6 +109,7 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private resolveProperties(orientation: ScrollbarOrientation) {
+        // base properties are merged with orientation-specific properties in theme processing
         return orientation === 'horizontal' ? this.horizontal : this.vertical;
     }
 
@@ -312,7 +313,6 @@ export class Scrollbar extends AbstractModuleInstance {
             {
                 source: 'user-interaction',
                 sourceDetail: 'scrollbar',
-                manualAdjustment: true,
             },
             zoom
         );
