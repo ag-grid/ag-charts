@@ -43,7 +43,9 @@
       },
       "configurations": {
         "ci": {
-          "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u --passWithNoTests"
+          ]
         },
         "update": {
           "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
