@@ -231,6 +231,38 @@ test.describe('state', () => {
                     await consoleLogs.expectLogs([]);
                 });
             });
+
+            test.describe('series-area focus events clear unfrozen setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await expect(page).toHaveScreenshot('line-example-page-focus-Spain-2010.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                    });
+
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                    });
+                });
+            });
         });
 
         test.describe('donut-example', () => {
