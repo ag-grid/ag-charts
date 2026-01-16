@@ -240,7 +240,7 @@ test.describe('state', () => {
                     await page.keyboard.press('Tab');
                     await page.keyboard.press('Tab');
                     await page.keyboard.press('Tab');
-                    await expect(page).toHaveScreenshot('line-example-page-focus-Spain-2010.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -260,6 +260,67 @@ test.describe('state', () => {
                     expect(state.active).toMatchObject({
                         frozen: false,
                         activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                    });
+                });
+            });
+
+            test.describe('series-area keydown events clear unfrozen setState', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowRight');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011.png');
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                    await page.keyboard.press('ArrowRight');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2012.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    await page.keyboard.press('Tab');
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                    });
+
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowRight');
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '1', seriesId: 'LineSeries-3' },
+                    });
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await page.keyboard.press('ArrowRight');
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '2', seriesId: 'LineSeries-3' },
                     });
                 });
             });
