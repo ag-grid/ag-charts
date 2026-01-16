@@ -206,7 +206,7 @@ test.describe('state', () => {
                     await setStateInvalidNodeId(consoleLogs, page, version);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
-                    consoleLogs.expectLogs([]);
+                    await consoleLogs.expectLogs([]);
                 });
 
                 test('states', async ({ page }) => {
@@ -228,7 +228,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
 
-                    consoleLogs.expectLogs([]);
+                    await consoleLogs.expectLogs([]);
                 });
             });
         });
