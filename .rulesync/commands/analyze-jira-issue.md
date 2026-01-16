@@ -1,0 +1,1 @@
+../../external/prompts/commands/analyze-jira-issue.md

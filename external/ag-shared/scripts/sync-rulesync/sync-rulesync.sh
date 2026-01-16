@@ -237,6 +237,116 @@ apply_remove_stale_symlinks() {
     return 0
 }
 
+# Check for missing symlinks in .rulesync/commands/ that should exist based on source files
+check_missing_rulesync_symlinks() {
+    local commands_dir="$REPO_ROOT/.rulesync/commands"
+    local missing_count=0
+    local missing_links=()
+
+    if [[ ! -d "$commands_dir" ]]; then
+        return 0
+    fi
+
+    # Check external/ag-shared/prompts/commands/ (required)
+    local shared_commands="$REPO_ROOT/external/ag-shared/prompts/commands"
+    if [[ -d "$shared_commands" ]]; then
+        # Find all .md files in subdirectories (pattern: subdir/file.md -> subdir-file.md)
+        while IFS= read -r -d '' source_file; do
+            local rel_path="${source_file#$shared_commands/}"
+            local dir_name=$(dirname "$rel_path")
+            local file_name=$(basename "$rel_path")
+
+            # Compute expected symlink name: dir/file.md -> dir-file.md
+            local symlink_name="${dir_name}-${file_name}"
+            local symlink_path="$commands_dir/$symlink_name"
+            local expected_target="../../external/ag-shared/prompts/commands/$rel_path"
+
+            if [[ ! -e "$symlink_path" ]]; then
+                ((missing_count++)) || true
+                missing_links+=("$symlink_name -> $expected_target")
+            fi
+        done < <(find "$shared_commands" -mindepth 2 -name "*.md" -type f -print0 2>/dev/null)
+    fi
+
+    # Check external/prompts/commands/ (optional - only if it exists)
+    local private_commands="$REPO_ROOT/external/prompts/commands"
+    if [[ -d "$private_commands" ]] && [[ -e "$private_commands" ]]; then
+        # Find all top-level .md files (pattern: file.md -> file.md)
+        while IFS= read -r -d '' source_file; do
+            local file_name=$(basename "$source_file")
+            local symlink_path="$commands_dir/$file_name"
+            local expected_target="../../external/prompts/commands/$file_name"
+
+            if [[ ! -e "$symlink_path" ]]; then
+                ((missing_count++)) || true
+                missing_links+=("$file_name -> $expected_target")
+            fi
+        done < <(find "$private_commands" -maxdepth 1 -name "*.md" -type f -print0 2>/dev/null)
+    fi
+
+    if [[ $missing_count -gt 0 ]]; then
+        log_warn "Found $missing_count missing symlink(s) in .rulesync/commands/"
+        for link in "${missing_links[@]}"; do
+            log_info "  $link"
+        done
+        # Store for apply phase
+        MISSING_SYMLINKS=("${missing_links[@]}")
+        return 1
+    fi
+
+    log_success "No missing symlinks in .rulesync/commands/"
+    return 0
+}
+
+# Create missing symlinks in .rulesync/commands/
+apply_create_missing_symlinks() {
+    local commands_dir="$REPO_ROOT/.rulesync/commands"
+
+    if [[ ! -d "$commands_dir" ]]; then
+        mkdir -p "$commands_dir"
+    fi
+
+    local created=0
+
+    # Check external/ag-shared/prompts/commands/ (required)
+    local shared_commands="$REPO_ROOT/external/ag-shared/prompts/commands"
+    if [[ -d "$shared_commands" ]]; then
+        while IFS= read -r -d '' source_file; do
+            local rel_path="${source_file#$shared_commands/}"
+            local dir_name=$(dirname "$rel_path")
+            local file_name=$(basename "$rel_path")
+
+            local symlink_name="${dir_name}-${file_name}"
+            local symlink_path="$commands_dir/$symlink_name"
+            local expected_target="../../external/ag-shared/prompts/commands/$rel_path"
+
+            if [[ ! -e "$symlink_path" ]]; then
+                ln -s "$expected_target" "$symlink_path"
+                log_fixed "Created symlink: .rulesync/commands/$symlink_name"
+                ((created++)) || true
+            fi
+        done < <(find "$shared_commands" -mindepth 2 -name "*.md" -type f -print0 2>/dev/null)
+    fi
+
+    # Check external/prompts/commands/ (optional)
+    local private_commands="$REPO_ROOT/external/prompts/commands"
+    if [[ -d "$private_commands" ]] && [[ -e "$private_commands" ]]; then
+        while IFS= read -r -d '' source_file; do
+            local file_name=$(basename "$source_file")
+            local symlink_path="$commands_dir/$file_name"
+            local expected_target="../../external/prompts/commands/$file_name"
+
+            if [[ ! -e "$symlink_path" ]]; then
+                ln -s "$expected_target" "$symlink_path"
+                log_fixed "Created symlink: .rulesync/commands/$file_name"
+                ((created++)) || true
+            fi
+        done < <(find "$private_commands" -maxdepth 1 -name "*.md" -type f -print0 2>/dev/null)
+    fi
+
+    return 0
+}
+
 # Check if postinstall includes patch-package
 check_postinstall() {
     local package_json="$REPO_ROOT/package.json"
@@ -266,9 +376,17 @@ check_postinstall() {
     fi
 
     # Indirect via npm-run-all: postinstall runs postinstall:* and postinstall:patch exists
-    if [[ "$postinstall_script" == *"postinstall:*"* ]] && [[ "$postinstall_patch_script" == *"patch-package"* ]]; then
-        log_success "package.json postinstall:patch includes patch-package"
-        return 0
+    if [[ "$postinstall_script" == *"postinstall:*"* ]]; then
+        # Check for direct patch-package in postinstall:patch
+        if [[ "$postinstall_patch_script" == *"patch-package"* ]]; then
+            log_success "package.json postinstall:patch includes patch-package"
+            return 0
+        fi
+        # Check for apply-patches.sh script (calls patch-package internally)
+        if [[ "$postinstall_patch_script" == *"apply-patches.sh"* ]]; then
+            log_success "package.json postinstall:patch uses apply-patches.sh"
+            return 0
+        fi
     fi
 
     log_warn "postinstall script does not invoke patch-package"
@@ -293,6 +411,8 @@ show_help() {
     echo "  - patches/$PATCH_FILE symlink points to shared location"
     echo "  - package.json postinstall includes patch-package"
     echo "  - .rulesync/ has no stale symlinks to external/ag-shared/ or external/prompts/"
+    echo "  - .rulesync/commands/ has all expected symlinks from external/ag-shared/prompts/commands/"
+    echo "    and external/prompts/commands/ (if present)"
     echo ""
     echo "Shared patch location: $SHARED_PATCHES_REL/$PATCH_FILE"
 }
@@ -339,6 +459,7 @@ main() {
             check_patch_symlink || true
             check_postinstall || true
             check_stale_rulesync_symlinks || true
+            check_missing_rulesync_symlinks || true
             ;;
         apply)
             # Check and fix patches directory
@@ -357,6 +478,11 @@ main() {
             # Check and remove stale symlinks
             if ! check_stale_rulesync_symlinks; then
                 apply_remove_stale_symlinks
+            fi
+
+            # Check and create missing symlinks
+            if ! check_missing_rulesync_symlinks; then
+                apply_create_missing_symlinks
             fi
             ;;
     esac
