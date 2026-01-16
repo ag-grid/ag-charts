@@ -55,16 +55,24 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     }
 
     private performRestoration(activeItem: AgActiveState['activeItem']): ActiveState {
+        const [rejection, newState] = this.emitRestoration(activeItem);
+        return rejection ? { type: 'inactive' } : newState;
+    }
+
+    private emitRestoration(activeItem: AgActiveState['activeItem']): [boolean, ActiveState] {
         const { seriesId, itemId } = activeItem ?? {};
+        let rejection = false;
+        const reject = () => (rejection = true);
+
         if (seriesId === undefined) {
             this.eventsHub.emit('active:clear', null);
-            return { type: 'inactive' };
+            return [rejection, { type: 'inactive' }];
         } else if (itemId === undefined) {
-            this.eventsHub.emit('active:legend', { seriesId });
-            return { type: 'legend', seriesId };
+            this.eventsHub.emit('active:legend', { seriesId, reject });
+            return [rejection, { type: 'legend', seriesId }];
         } else {
-            this.eventsHub.emit('active:datum', { seriesId, itemId });
-            return { type: 'datum', seriesId, itemId };
+            this.eventsHub.emit('active:datum', { seriesId, itemId, reject });
+            return [rejection, { type: 'datum', seriesId, itemId }];
         }
     }
 }

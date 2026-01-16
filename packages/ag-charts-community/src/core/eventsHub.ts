@@ -107,10 +107,12 @@ export interface EventsHubMap {
 export interface ActiveDatumChangeEvent {
     seriesId: string;
     itemId: string;
+    reject(): void;
 }
 
 export interface ActiveLegendChangeEvent {
     seriesId: string;
+    reject(): void;
 }
 
 interface AnnotationsRestoreEvent {

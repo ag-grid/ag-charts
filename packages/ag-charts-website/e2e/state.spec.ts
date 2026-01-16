@@ -3,7 +3,17 @@ import type { Locator, Page } from '@playwright/test';
 import type { AgChartState } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    createConsoleLogs,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForChartUpdate,
+} from './util';
+
+type ConsoleLogs = ReturnType<typeof createConsoleLogs>;
 
 async function getChartState(page: Page): Promise<AgChartState> {
     const state = await page.evaluate(() => {
@@ -23,6 +33,26 @@ async function getChartState(page: Page): Promise<AgChartState> {
     expect(state).toBeDefined();
     expect(typeof state).toBe('object');
     return state;
+}
+
+async function setChartState(page: Page, state: AgChartState): Promise<void> {
+    await page.evaluate(
+        ({ newState }) => {
+            const chart: unknown = (window as any)?.agE2E?.chart;
+            if (!chart) {
+                throw new Error('window.agE2E.chart is not defined');
+            } else if (typeof chart !== 'object') {
+                throw new Error('window.agE2E.chart is not an object');
+            } else if (!('setState' in chart)) {
+                throw new Error('window.agE2E.chart does not have setState property');
+            } else if (typeof chart.setState !== 'function') {
+                throw new Error('window.agE2E.chart.setState is not a function');
+            }
+            return chart.setState(newState);
+        },
+        { newState: state }
+    );
+    await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
 }
 
 test.describe('state', () => {
@@ -65,6 +95,20 @@ test.describe('state', () => {
 
             async function hoverInTopLeft(page: Page): Promise<void> {
                 await page.mouse.move(20, 20);
+            }
+
+            async function setStateInvalidNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: { itemId: '10000', seriesId: 'LineSeries-1' },
+                    },
+                });
+                expect(consoleLogs.getLogs()).toEqual([
+                    "AG Charts - Cannot find datum: { seriesId: 'LineSeries-1', itemId: '10000' }",
+                ]);
+                consoleLogs.clear();
             }
 
             test.beforeEach(async ({ page }) => {
@@ -147,6 +191,44 @@ test.describe('state', () => {
                     await hoverInTopLeft(page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactive', () => {
+                const consoleLogs = createConsoleLogs();
+
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                    await setStateInvalidNodeId(consoleLogs, page, version);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                    consoleLogs.expectLogs([]);
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                    });
+
+                    await setStateInvalidNodeId(consoleLogs, page, version);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    consoleLogs.expectLogs([]);
                 });
             });
         });
