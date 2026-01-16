@@ -4,6 +4,16 @@ __diff_output__
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
 .rulesync/
+.patches/
+patches/
+
+# Files without Prettier parsers
+*.sh
+*.patch
+.gitrepo
+.nxignore
+.prettierignore
 
 # Ignore external repos.
 external/prompts/
+external/ag-shared/
