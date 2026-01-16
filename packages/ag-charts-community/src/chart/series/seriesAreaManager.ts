@@ -108,7 +108,7 @@ type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number
  *       correct data)
  *
  *   3.  Track tooltip candidates (if pagination is enabled).
-*/
+ */
 interface IPickManager {
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
@@ -1258,7 +1258,7 @@ export class SeriesAreaManager extends BaseManager {
                     return { active: this.active, paginationState };
                 }
 
-                return { active: this.active };
+                return { active: this.updateActive(pickedNodes?.matches[0]) };
             }
 
             onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void {
