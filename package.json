@@ -11,7 +11,7 @@
     "preinstall": "npx --yes --package=npm-run-all -- run-s preinstall:*",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "npx run-s postinstall:*",
-    "postinstall:patch": "patch-package",
+    "postinstall:patch": "./external/ag-shared/scripts/apply-patches.sh",
     "postinstall:nx-stop-watch": "pkill -f \"nx dev\" || echo \"Nx watch not running\"",
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:nx-daemon-reset-metadata": "(test -e .nx/workspace-data/ && rm -rf .nx/workspace-data/) || echo \"Nx workspace not found\"",
