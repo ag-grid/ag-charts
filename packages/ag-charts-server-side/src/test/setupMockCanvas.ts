@@ -1,9 +1,10 @@
-import { NodeCanvas } from '../canvasConfig';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-core';
+
+import { NodeCanvas, type NodeCanvasInstance } from '../canvasConfig';
 import { type DocumentPatchResult, patchDocumentCreateElement } from '../documentPatch';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants';
 
 export interface MockCanvasContext {
-    nodeCanvas: NodeCanvas;
+    nodeCanvas: NodeCanvasInstance;
     snapshot: () => ImageData;
     getRenderContext2D: () => CanvasRenderingContext2D;
 }
@@ -29,9 +30,9 @@ export function setupMockCanvas(opts: { width?: number; height?: number } = {}):
     return {
         nodeCanvas: canvas,
         snapshot: () => {
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
             return ctx.getImageData(0, 0, width, height);
         },
-        getRenderContext2D: () => canvas.getContext('2d') as unknown as CanvasRenderingContext2D,
+        getRenderContext2D: () => canvas.getContext('2d') as CanvasRenderingContext2D,
     };
 }

@@ -45,7 +45,7 @@
           "updateSnapshot": true
         }
       },
-      "dependsOn": ["build:test"]
+      "dependsOn": ["build:test", "build:package"]
     },
     "pack": {
       "executor": "nx:run-commands",

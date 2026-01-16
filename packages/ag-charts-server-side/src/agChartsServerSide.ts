@@ -3,7 +3,7 @@ import { FontLibrary } from 'skia-canvas';
 import { AgCharts } from 'ag-charts-community';
 import { withTimeout } from 'ag-charts-core';
 
-import { NodeCanvas } from './canvasConfig';
+import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
 import { patchDocumentCreateElement } from './documentPatch';
 import { createIsolatedEnvironment } from './environment';
 import type { FinancialChartRenderOptions, FontDefinition, GaugeRenderOptions, RenderOptions } from './types';
@@ -84,7 +84,7 @@ export class AgChartsServerSide {
 
         // Local canvas stack for this render
         const mainCanvas = new NodeCanvas(width * pixelRatio, height * pixelRatio);
-        const canvasStack: NodeCanvas[] = [mainCanvas];
+        const canvasStack: NodeCanvasInstance[] = [mainCanvas];
 
         let chart: { destroy(): void } | undefined;
 
