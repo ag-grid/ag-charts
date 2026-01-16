@@ -238,7 +238,7 @@ test.describe('state', () => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
 
-                    repeat(3, async () => await page.keyboard.press('Tab'));
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
                 });
 
@@ -252,7 +252,7 @@ test.describe('state', () => {
                         activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
-                    repeat(3, async () => await page.keyboard.press('Tab'));
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
                     expect(state.active).toMatchObject({
                         frozen: false,
@@ -265,7 +265,7 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     const { version } = await getChartState(page);
 
-                    repeat(6, async () => await page.keyboard.press('Tab'));
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
 
                     await page.keyboard.press('ArrowDown');
@@ -284,7 +284,7 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
                     let state: AgChartState;
 
-                    repeat(6, async () => await page.keyboard.press('Tab'));
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
                     expect(state.active).toMatchObject({
                         frozen: false,
