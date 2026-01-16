@@ -44,7 +44,23 @@ async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
     }
 }
 
-function compareImages(actualBuffer: Buffer, snapshotName: string): { pass: boolean; diffPercent: number } {
+function assertPngDimensions(buffer: Buffer, expectedWidth: number, expectedHeight: number): void {
+    if (!buffer) {
+        throw new Error('Buffer is null or undefined');
+    }
+
+    // Verify PNG magic bytes
+    if (buffer[0] !== 0x89 || buffer[1] !== 0x50 || buffer[2] !== 0x4e || buffer[3] !== 0x47) {
+        throw new Error('Invalid PNG magic bytes');
+    }
+
+    const png = PNG.sync.read(buffer);
+    if (png.width !== expectedWidth || png.height !== expectedHeight) {
+        throw new Error(`PNG dimensions incorrect: expected ${expectedWidth}x${expectedHeight}, got ${png.width}x${png.height}`);
+    }
+}
+
+function assertMatchesSnapshot(actualBuffer: Buffer, snapshotName: string): void {
     const snapshotPath = path.join(snapshotsDir, `${snapshotName}.png`);
     const actualPath = path.join(outputDir, `${snapshotName}.png`);
 
@@ -57,7 +73,7 @@ function compareImages(actualBuffer: Buffer, snapshotName: string): { pass: bool
             fs.mkdirSync(snapshotsDir, { recursive: true });
         }
         fs.writeFileSync(snapshotPath, actualBuffer);
-        return { pass: true, diffPercent: 0 };
+        return;
     }
 
     if (!fs.existsSync(snapshotPath)) {
@@ -83,9 +99,8 @@ function compareImages(actualBuffer: Buffer, snapshotName: string): { pass: bool
         // Write diff image for debugging
         const diffPath = path.join(outputDir, `${snapshotName}-diff.png`);
         fs.writeFileSync(diffPath, PNG.sync.write(diff));
+        throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
     }
-
-    return { pass: diffPercent <= 0.1, diffPercent };
 }
 
 async function main() {
@@ -113,19 +128,8 @@ async function main() {
             height: 300,
         });
 
-        if (!buffer || buffer.length < 1000) {
-            throw new Error(`Invalid buffer size: ${buffer?.length ?? 0}`);
-        }
-
-        // Verify PNG magic bytes
-        if (buffer[0] !== 0x89 || buffer[1] !== 0x50 || buffer[2] !== 0x4e || buffer[3] !== 0x47) {
-            throw new Error('Invalid PNG magic bytes');
-        }
-
-        const { pass, diffPercent } = compareImages(buffer, 'bar-chart');
-        if (!pass) {
-            throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
-        }
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'bar-chart');
     });
 
     // Test 2: JPEG output format
@@ -169,14 +173,8 @@ async function main() {
             height: 200,
         });
 
-        if (!buffer || buffer.length < 1000) {
-            throw new Error(`Invalid buffer size: ${buffer?.length ?? 0}`);
-        }
-
-        const { pass, diffPercent } = compareImages(buffer, 'line-chart');
-        if (!pass) {
-            throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
-        }
+        assertPngDimensions(buffer, 300, 200);
+        assertMatchesSnapshot(buffer, 'line-chart');
     });
 
     // Test 4: Pie chart with snapshot
@@ -194,14 +192,8 @@ async function main() {
             height: 300,
         });
 
-        if (!buffer || buffer.length < 1000) {
-            throw new Error(`Invalid buffer size: ${buffer?.length ?? 0}`);
-        }
-
-        const { pass, diffPercent } = compareImages(buffer, 'pie-chart');
-        if (!pass) {
-            throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
-        }
+        assertPngDimensions(buffer, 300, 300);
+        assertMatchesSnapshot(buffer, 'pie-chart');
     });
 
     // Test 5: Area chart with snapshot
@@ -219,14 +211,8 @@ async function main() {
             height: 200,
         });
 
-        if (!buffer || buffer.length < 1000) {
-            throw new Error(`Invalid buffer size: ${buffer?.length ?? 0}`);
-        }
-
-        const { pass, diffPercent } = compareImages(buffer, 'area-chart');
-        if (!pass) {
-            throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
-        }
+        assertPngDimensions(buffer, 300, 200);
+        assertMatchesSnapshot(buffer, 'area-chart');
     });
 
     // Test 6: High pixel ratio rendering with snapshot
@@ -245,38 +231,78 @@ async function main() {
             pixelRatio: 2,
         });
 
-        if (!buffer || buffer.length < 1000) {
-            throw new Error(`Invalid buffer size: ${buffer?.length ?? 0}`);
-        }
-
-        const { pass, diffPercent } = compareImages(buffer, 'high-dpi-chart');
-        if (!pass) {
-            throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
-        }
+        // Verify that actual dimensions are 2x the logical dimensions
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'high-dpi-chart');
     });
 
-    // Test 7: Concurrent rendering
+    // Test 7: Concurrent rendering with distinct chart options
     await runTest('Concurrent rendering (5 charts)', async () => {
-        const renderPromises = Array.from({ length: 5 }, (_, i) =>
-            AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { x: 0, y: i * 10 },
-                        { x: 1, y: i * 15 },
-                    ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                },
+        // Use different data and dimensions to verify canvas isolation
+        const renderConfigs = [
+            {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
                 width: 200,
                 height: 150,
+            },
+            {
+                data: [
+                    { x: 1, y: 30 },
+                    { x: 2, y: 40 },
+                ],
+                width: 250,
+                height: 180,
+            },
+            {
+                data: [
+                    { x: 1, y: 50 },
+                    { x: 2, y: 60 },
+                    { x: 3, y: 70 },
+                ],
+                width: 300,
+                height: 200,
+            },
+            {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 35 },
+                ],
+                width: 350,
+                height: 220,
+            },
+            {
+                data: [
+                    { x: 1, y: 100 },
+                    { x: 2, y: 80 },
+                ],
+                width: 180,
+                height: 140,
+            },
+        ];
+
+        const renderPromises = renderConfigs.map((config) =>
+            AgChartsServerSide.render({
+                options: {
+                    data: config.data,
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                width: config.width,
+                height: config.height,
             })
         );
 
         const buffers = await Promise.all(renderPromises);
 
+        // Verify each buffer matches its expected dimensions and snapshot
         for (let i = 0; i < buffers.length; i++) {
-            if (!buffers[i] || buffers[i].length < 100) {
-                throw new Error(`Chart ${i} failed: invalid buffer size`);
-            }
+            const config = renderConfigs[i];
+            assertPngDimensions(buffers[i], config.width, config.height);
+            assertMatchesSnapshot(buffers[i], `concurrent-chart-${i}`);
         }
     });
 
