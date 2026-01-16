@@ -33,6 +33,7 @@
   "devDependencies": {
     "@babel/types": "7.12.7",
     "@carbon/icons-react": "^11.21.0",
+    "@cspell/dict-en-gb": "^5.0.21",
     "@eslint/js": "^9.14.0",
     "@kazuph/mcp-fetch": "^1.5.0",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
@@ -71,6 +72,7 @@
     "cheerio": "^1.0.0-rc.12",
     "classnames": "^2.3.2",
     "concurrently": "^9.2.1",
+    "cspell": "^9.6.0",
     "cssnano": "^7.0.2",
     "cssnano-preset-lite": "^4.0.0",
     "dependency-cruiser": "^13.1.5",

@@ -58,9 +58,24 @@
       }
     },
     "lint:eslint": {},
+    "lint:spell": {
+      "command": "npx cspell --no-progress --show-context --config ../../cspell.json \"src/**/*.{mdoc,astro}\" \"src/content/**/*.json\"",
+      "cache": true,
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.mdoc",
+        "{projectRoot}/src/**/*.astro",
+        "{projectRoot}/src/content/**/*.json",
+        "{workspaceRoot}/cspell.json",
+        "{projectRoot}/dictionaries/**"
+      ],
+      "outputs": []
+    },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "format:mdoc:check"],
+      "dependsOn": ["lint:eslint", "lint:spell", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }

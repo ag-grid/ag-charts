@@ -12,11 +12,15 @@ and compile-time validation.
 The `TData` (default: `any`) generic parameter is used to specify the interface
 of datums in the data.
 
+<!-- cspell:disable -->
+
 {% chartExampleRunner
     title="TDatum Generic Parameter"
     name="type-tdatum"
     type="generated"
 /%}
+
+<!-- cspell:enable -->
 
 ```ts
 type MyDatumType = {
@@ -83,12 +87,16 @@ the interface of the `context` properties.
 The [Context Object](./context) is arbitrary user-defined data that will be passed to all
 callbacks. This useful for attaching a custom state to your chart.
 
+<!-- cspell:disable -->
+
 {% chartExampleRunner
     title="TContext Generic Parameter"
     name="type-tcontext"
     type="generated"
     options={ "enterprise": true }
 /%}
+
+<!-- cspell:enable -->
 
 In this example the `TContext` generic parameter is set to a `CurrencyConverter`
 object to convert stock prices from USD to a user-defined target currency.
