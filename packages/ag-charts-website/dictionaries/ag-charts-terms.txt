@@ -1,0 +1,60 @@
+# AG Charts Custom Dictionary
+# MINIMAL: Only words that cspell cannot resolve from built-in dictionaries.
+# For one-off cases, use inline <!-- cspell:ignore word --> comments in source files.
+
+# Series Type Names (not in standard dictionaries)
+donut
+Donut
+ohlc
+OHLC
+treemap
+Treemap
+treemaps
+Treemaps
+
+# Sparklines feature
+sparkline
+Sparkline
+sparklines
+
+# Accessibility
+WCAG
+Voiceover
+
+# Technical terms not in standard dictionaries
+autosize
+Bindable
+centered
+crosslines
+Crosslines
+darkmode
+Darkmode
+flexbox
+lerp
+logomark
+offs
+reflow
+rgba
+standalone
+svgs
+timezone
+unhighlighted
+zoompan
+Zoompan
+
+# Chart terminology
+itemstyler
+polychroma
+
+# Documentation tooling
+markdoc
+Plunkr
+
+# External tools
+formatjs
+SonarQube
+
+# Region codes
+EMEA
+AMER
+APAC
