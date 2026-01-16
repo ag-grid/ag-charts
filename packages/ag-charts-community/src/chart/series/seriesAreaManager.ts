@@ -96,7 +96,18 @@ function getItemId(node: PickedNode): NonNullable<AgPickedItemsState['itemId']> 
 
 type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number; length: number } };
 
-// IPickManager mediates the `active` node state between SeriesAreaManager and ActiveManager
+/**
+ * IPickManager mediates the `active` node state between SeriesAreaManager and ActiveManager.
+ *
+ * It tracks the active node by:
+ *
+ *   1.  Listening for `setState` calls from ActiveManager
+ *
+ *   2.  Notifying ActiveManager of state change (so that `getState` receives the
+ *       correct data)
+ *
+ *   3.  Track tooltip candidates (if pagination is enabled).
+*/
 interface IPickManager {
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
