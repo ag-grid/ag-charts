@@ -52,27 +52,6 @@ if [[ ${mode} == "container" ]] ; then
         npx tsx app.ts
     fi
 
-    # Verify output
-    if [ -f output.png ]; then
-        echo ""
-        echo "======================================"
-        echo "SUCCESS: SSR rendering test passed"
-        echo "======================================"
-        echo ""
-
-        # Check file size as a sanity check
-        size=$(stat -c%s output.png 2>/dev/null || stat -f%z output.png 2>/dev/null)
-        echo "File size: ${size} bytes"
-    else
-        echo ""
-        echo "======================================"
-        echo "FAILURE: SSR rendering test failed"
-        echo "======================================"
-        echo ""
-        echo "No output.png file was created"
-        exit 1
-    fi
-
     exit 0
 fi
 
@@ -149,46 +128,6 @@ if ${update} ; then
     npx tsx app.ts --update
 else
     npx tsx app.ts
-fi
-
-# Verify output
-if [ -f output.png ]; then
-    echo ""
-    echo "======================================"
-    echo "SUCCESS: SSR rendering test passed"
-    echo "======================================"
-    echo ""
-    echo "Output file: ${project}/output.png"
-
-    # Check file size as a sanity check
-    size=$(stat -f%z output.png 2>/dev/null || stat -c%s output.png 2>/dev/null)
-    echo "File size: ${size} bytes"
-
-    if ${editor} ; then
-        echo "Opening output in default viewer..."
-        if [[ $(uname) == "Darwin" ]] ; then
-            open output.png
-        else
-            xdg-open output.png 2>/dev/null || echo "Unable to open image automatically"
-        fi
-    fi
-
-    # Copy updated snapshots back to source if in update mode
-    if ${update} && [ -d "${project}/snapshots" ]; then
-        echo ""
-        echo ">>> copying updated snapshots back to source..."
-        mkdir -p ${snapshots_dir}
-        cp -r ${project}/snapshots/* ${snapshots_dir}/
-        echo "Snapshots updated in: ${snapshots_dir}"
-    fi
-else
-    echo ""
-    echo "======================================"
-    echo "FAILURE: SSR rendering test failed"
-    echo "======================================"
-    echo ""
-    echo "No output.png file was created"
-    exit 1
 fi
 
 # Cleanup temp project unless in editor mode

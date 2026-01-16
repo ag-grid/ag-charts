@@ -15,7 +15,7 @@ describe('Memento Caretaker', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     class TestMemento {

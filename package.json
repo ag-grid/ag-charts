@@ -151,6 +151,7 @@
       "libraries/ag-charts-test",
       "tests/angular-package-tests",
       "tests/react-package-tests",
+      "tests/server-side-package-tests",
       "tests/vue-package-tests"
     ],
     "nohoist": [

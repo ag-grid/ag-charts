@@ -126,9 +126,6 @@ async function main() {
         if (!pass) {
             throw new Error(`Snapshot mismatch: ${diffPercent.toFixed(2)}% pixels different`);
         }
-
-        // Also write output.png for backwards compatibility
-        fs.writeFileSync('output.png', buffer);
     });
 
     // Test 2: JPEG output format

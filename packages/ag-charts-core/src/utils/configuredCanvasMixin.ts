@@ -37,7 +37,7 @@ export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
  * ```
  */
 export function ConfiguredCanvasMixin<T extends Constructor<CanvasLike>>(Base: T) {
-    return class ConfiguredCanvas extends Base {
+    const ConfiguredCanvasClass = class ConfiguredCanvas extends Base {
         constructor(...args: any[]) {
             super(...args);
             this.gpu = false;
@@ -49,8 +49,7 @@ export function ConfiguredCanvasMixin<T extends Constructor<CanvasLike>>(Base: T
 
         transferToImageBitmap(): CanvasLike {
             const { width, height } = this;
-            const Ctor = this.constructor as T;
-            const bitmap = new Ctor(Math.max(1, width), Math.max(1, height));
+            const bitmap = new ConfiguredCanvasClass(Math.max(1, width), Math.max(1, height));
             if (width > 0 && height > 0) {
                 try {
                     (bitmap.getContext('2d') as any).drawCanvas(this, 0, 0, width, height);
@@ -64,6 +63,7 @@ export function ConfiguredCanvasMixin<T extends Constructor<CanvasLike>>(Base: T
             return bitmap;
         }
     };
+    return ConfiguredCanvasClass;
 }
 
 let patchesApplied = false;
