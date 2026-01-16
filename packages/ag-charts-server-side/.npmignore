@@ -24,3 +24,5 @@ dist/**/package.json
 
 # Exclude source maps (must be after !dist/ to take effect)
 **/*.map
+
+.snyk
