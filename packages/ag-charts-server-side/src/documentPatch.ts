@@ -1,7 +1,7 @@
 import type { ExportFormat } from 'skia-canvas';
 import { Image } from 'skia-canvas';
 
-import { NodeCanvas } from './canvasConfig';
+import type { NodeCanvasInstance } from './canvasConfig';
 
 /** Document with overridable createElement for canvas injection */
 export interface MockableDocument extends Document {
@@ -10,7 +10,7 @@ export interface MockableDocument extends Document {
 
 export interface DocumentPatchOptions {
     /** Factory function to get a canvas for each createElement('canvas') call */
-    getCanvas: () => NodeCanvas;
+    getCanvas: () => NodeCanvasInstance;
 }
 
 export interface DocumentPatchResult {
