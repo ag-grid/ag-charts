@@ -169,6 +169,12 @@ runs:
               restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
               # fail-on-cache-miss: true
 
+        - name: Setup Node.js
+          id: setup_node
+          uses: actions/setup-node@v4
+          with:
+              node-version-file: package.json
+
         - name: Tidy Nx Cache
           uses: ./.github/actions/tidy-nx-cache
           if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
@@ -180,12 +186,6 @@ runs:
           shell: bash
           run: |
               brew install fontconfig libpng jpeg giflib librsvg
-
-        - name: Setup Node.js
-          id: setup_node
-          uses: actions/setup-node@v4
-          with:
-              node-version-file: package.json
 
         - name: yarn install
           if: inputs.yarn_postinstall == 'true'
