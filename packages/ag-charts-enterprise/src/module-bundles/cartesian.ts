@@ -11,6 +11,7 @@ import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { FlashOnUpdateModule } from '../features/flash-on-update/flashOnUpdateModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
 import { RangesModule } from '../features/ranges/rangesModule';
+import { ScrollbarModule } from '../features/scrollbar/scrollbarModule';
 import { StatusBarModule } from '../features/status-bar/statusBarModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
@@ -34,6 +35,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     GradientLegendModule,
     NavigatorModule,
     RangesModule,
+    ScrollbarModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

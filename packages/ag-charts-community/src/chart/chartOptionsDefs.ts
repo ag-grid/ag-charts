@@ -38,6 +38,7 @@ export const commonChartOptions = {
     series: array,
     annotations: defined,
     navigator: defined,
+    scrollbar: defined,
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,

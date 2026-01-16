@@ -12,7 +12,9 @@ import { EventEmitter } from 'ag-charts-core';
 import type {
     AgAnnotation,
     AgAutoScaledAxes,
+    AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
+    AgScrollbarPlacement,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AgZoomEventSource,
@@ -222,7 +224,8 @@ export type ZoomEventSourceDetail =
     | `zoom-seriesarea-panner`
     | `zoom-seriesarea-selector`
     | `zoom-seriesarea-twofingers`
-    | `zoom-seriesarea-wheel`;
+    | `zoom-seriesarea-wheel`
+    | `scrollbar`;
 
 export interface ZoomChangeRequestEvent {
     readonly source: AgZoomEventSource;
@@ -262,9 +265,19 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
 export interface AxisLayout {
     id: string;
     rect: BBox;
+    translation: { x: number; y: number };
+    position?: AgCartesianAxisPosition;
     gridPadding: number;
     seriesAreaPadding: number;
     tickSize: number;
+    labelThickness?: number;
+    scrollbar?: {
+        enabled: boolean;
+        placement: AgScrollbarPlacement;
+        spacing: number;
+        thickness: number;
+        offset: number;
+    };
     label: {
         fractionDigits: number;
         spacing: number;

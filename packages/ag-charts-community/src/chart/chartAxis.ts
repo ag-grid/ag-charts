@@ -31,6 +31,7 @@ import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { CrossLine } from './crossline/crossLine';
+import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -63,6 +64,7 @@ export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 export interface ChartLayout {
     padding: Padding;
     sizeLimit: number;
+    scrollbars?: ScrollbarLayoutMap;
 }
 
 export interface ChartAxis {
