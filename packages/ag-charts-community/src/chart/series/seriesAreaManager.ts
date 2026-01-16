@@ -45,7 +45,7 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
+import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -88,56 +88,26 @@ interface PickedNode {
     datumIndex: unknown;
 }
 
-function pickedNodesEqual(a: PickedNode, b: PickedNode) {
-    return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
-}
-
 function getItemId(node: PickedNode): NonNullable<AgPickedItemsState['itemId']> {
     // FIXME: How to serialise/deserialise datums is still TBD.
     if (node.datum.itemId) return `${node.datum.itemId}`;
     return JSON.stringify(node.datum.datumIndex);
 }
 
-class PickedNodeState {
-    private candidates: PickedNode[] = [];
-    private active: PickedNode | undefined;
+type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number; length: number } };
 
-    get current(): PickedNode | undefined {
-        return this.active;
-    }
+// IPickManager mediates the `active` node state between SeriesAreaManager and ActiveManager
+interface IPickManager {
+    onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
+    onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
+    onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void;
+    onPickedNodesAPI(pickedNodes: PickedNodes): void;
+    onPickedNodesAPIDebounced(): TooltipCandidate;
 
-    reset() {
-        this.candidates.length = 0;
-        this.active = undefined;
-    }
+    onClearUI(): void;
+    onClearAPI(event: null): void;
 
-    update(nextCandidates: PickedNode[], previousActive?: PickedNode) {
-        this.candidates = nextCandidates;
-
-        let nextIndex = PickedNodeState.indexOf(nextCandidates, previousActive);
-        if (nextIndex === -1) nextIndex = 0;
-        this.active = nextCandidates[nextIndex];
-
-        return { current: this.active, index: nextIndex, length: nextCandidates.length };
-    }
-
-    next() {
-        const { candidates, active } = this;
-        const hoverIndex = active == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, active));
-        if (hoverIndex === -1) return undefined;
-
-        let nextIndex = hoverIndex + 1;
-        if (nextIndex >= candidates.length) {
-            nextIndex = 0;
-        }
-        this.active = candidates[nextIndex];
-
-        return { current: this.active, index: nextIndex, length: this.candidates.length };
-    }
-
-    private static indexOf(candidates: PickedNode[], node: PickedNode | undefined): number {
-        return node == undefined ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, node));
-    }
+    nextCandidate(): TooltipCandidate;
 }
 
 export class SeriesAreaManager extends BaseManager {
@@ -184,7 +154,7 @@ export class SeriesAreaManager extends BaseManager {
      */
     private hoverDevice: HoverDevice = 'pointer';
 
-    private pickedNodes?: PickedNodes;
+    private readonly pickManager: IPickManager = this.initPickManager();
 
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
@@ -518,7 +488,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
-            const consumed = Boolean(this.checkSeriesNodeClick(event));
+            const consumed: boolean = this.checkSeriesNodeClick(event);
             if (consumed) {
                 this.emitSeriesAreaClickEvent(event, true);
                 this.update(ChartUpdateType.SERIES_UPDATE);
@@ -629,31 +599,25 @@ export class SeriesAreaManager extends BaseManager {
         sourceEvent.preventDefault();
     }
 
-    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
-        const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        if (result == null || result.matches.length === 0) return;
+    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): boolean {
+        const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
+        if (pickedNodes === undefined || updated.active === undefined) return false;
 
-        const paginationUpdate = this.updateTooltipCandidate(result.matches);
-        const { series, datum } = paginationUpdate ?? result.matches[0];
-        const distance = paginationUpdate == null ? result.distance : 0;
+        const { series, datum } = updated.active;
+        const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
         if (event.type === 'click') {
             const defaultBehavior = series.fireNodeClickEvent(event.sourceEvent, datum);
-
-            const nextTooltipCandidate =
-                defaultBehavior && this.chart.tooltip.pagination ? this.tooltipCandidates.next() : undefined;
-            if (nextTooltipCandidate != null) {
-                this.updateActive(nextTooltipCandidate.current);
-                event.sourceEvent.preventDefault();
-                const { canvasX, canvasY } = this.toCanvasCoordinates(event);
-                this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
-                this.handleHoverHighlight(false);
-                this.showTooltip(nextTooltipCandidate.current, canvasX, canvasY, {
-                    index: nextTooltipCandidate.index,
-                    length: nextTooltipCandidate.length,
-                });
+            if (defaultBehavior) {
+                const next = this.pickManager.nextCandidate();
+                if (next.active !== undefined) {
+                    const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+                    this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
+                    this.handleHoverHighlight(false);
+                    this.showTooltip(next.active, canvasX, canvasY, next.paginationState);
+                }
             }
-
             return true;
         }
 
@@ -673,12 +637,6 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return false;
-    }
-
-    private updateTooltipCandidate(pickedNodes: PickedNode[]): PickedNode | undefined {
-        return this.chart.tooltip.pagination
-            ? this.tooltipCandidates.update(pickedNodes, this.tooltipCandidates.current)?.current
-            : undefined;
     }
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
@@ -745,6 +703,12 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
+    private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
+        const pick = series.pickFocus(opts);
+        this.pickManager.onPickedNodesFocus(pick);
+        return pick;
+    }
+
     private updatePickedFocus(
         datumIndex: number,
         datumIndexDelta: number,
@@ -756,7 +720,8 @@ export class SeriesAreaManager extends BaseManager {
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
-        const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
+        const pick = this.pickFocus(focus.series, focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
 
         const { datum } = pick;
@@ -893,18 +858,8 @@ export class SeriesAreaManager extends BaseManager {
         this.tooltip.lastHover = undefined;
     }
 
-    private clearActive(): void {
-        this.chart.ctx.activeManager.update({ type: 'inactive' });
-        this.clearPicked();
-    }
-
-    private clearPicked(): void {
-        this.pickedNodes = undefined;
-        this.tooltipCandidates.reset();
-    }
-
     private clearAll(delayed: boolean = false) {
-        this.clearActive();
+        this.pickManager.onClearUI();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
@@ -912,10 +867,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (this.hoverDevice === 'setState') {
-            if (this.pickedNodes) {
-                this.handleHoverFromState(this.pickedNodes);
-            }
-            return;
+            return this.handleHoverFromState();
         }
 
         if (!this.tooltip.lastHover && !this.highlight.pendingHoverEvent) return;
@@ -935,12 +887,14 @@ export class SeriesAreaManager extends BaseManager {
         }
     });
 
-    private handleHoverFromState(pickedNodes: PickedNodes): void {
-        this.updateTooltipCandidate(pickedNodes.matches);
-        const { datum } = pickedNodes.matches[0];
-        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-        if (this.chart.tooltip.enabled && datum.midPoint) {
-            this.showTooltip(pickedNodes.matches[0], datum.midPoint.x, datum.midPoint.y);
+    private handleHoverFromState(): void {
+        const { active, paginationState } = this.pickManager.onPickedNodesAPIDebounced();
+        if (active === undefined) return;
+
+        this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
+        if (this.chart.tooltip.enabled && active.datum.midPoint) {
+            const { x: canvasX, y: canvasY } = active.datum.midPoint;
+            this.showTooltip(active, canvasX, canvasY, paginationState);
         }
     }
 
@@ -960,25 +914,17 @@ export class SeriesAreaManager extends BaseManager {
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
-        if (!pick || pick.matches.length === 0) {
+
+        const active: PickedNode | undefined = this.pickManager.onPickedNodesHighlight(pick);
+        if (active === undefined) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
-            return;
+        } else {
+            this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum, false);
+            this.hoverDevice = 'pointer';
         }
-
-        const { current: tooltipPick } = this.tooltipCandidates;
-        const tooltipMatch =
-            tooltipPick == null ? undefined : pick.matches.find((m) => pickedNodesEqual(m, tooltipPick));
-
-        const datum = tooltipMatch?.datum ?? pick.matches[0].datum;
-
-        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-        this.hoverDevice = 'pointer';
     }
 
-    private readonly tooltipCandidates = new PickedNodeState();
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
-        const { current: previousHover } = this.tooltipCandidates;
-        this.tooltipCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
@@ -998,22 +944,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
-        if (!pick || pick.matches.length === 0) {
-            if (this.hoverDevice == 'pointer') this.clearTooltip(true); // true = delayed
-            return;
-        }
 
-        this.hoverDevice = 'pointer';
-
-        if (pick.distance === 0) {
-            const { current, index, length } = this.tooltipCandidates.update(
-                pick.matches,
-                this.chart.tooltip.pagination ? previousHover : undefined
-            );
-
-            this.showTooltip(current, canvasX, canvasY, { index, length });
+        const { active, paginationState } = this.pickManager.onPickedNodesTooltip(pick);
+        if (active === undefined) {
+            if (this.hoverDevice == 'pointer') {
+                this.clearTooltip(true); // true = delayed
+            }
         } else {
-            this.showTooltip(pick.matches[0], canvasX, canvasY);
+            this.showTooltip(active, canvasX, canvasY, paginationState);
+            this.hoverDevice = 'pointer';
         }
     }
 
@@ -1131,11 +1070,6 @@ export class SeriesAreaManager extends BaseManager {
             }
         }
 
-        const first = result?.matches[0];
-        if (first !== undefined) {
-            this.updateActive(first);
-        }
-
         return result;
     }
 
@@ -1189,19 +1123,17 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private updateActive(node: PickedNode): void {
-        this.chart.ctx.activeManager.update({ type: 'datum', seriesId: node.series.id, itemId: getItemId(node) });
-    }
-
-    private onActiveClear(_event: null) {
-        this.clearPicked();
+    private onActiveClear(event: null) {
+        this.pickManager.onClearAPI(event);
+        this.clearHighlight(true);
+        this.clearTooltip(true);
     }
 
     private onActiveDatum(event: ActiveDatumChangeEvent) {
         const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(event.seriesId, event.itemId);
         if (desiredPickedNodes != undefined) {
+            this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             this.hoverDevice = 'setState';
-            this.pickedNodes = desiredPickedNodes;
             this.hoverScheduler.schedule();
         }
     }
@@ -1225,6 +1157,131 @@ export class SeriesAreaManager extends BaseManager {
             series: desiredSeries,
         };
         return { matches: [restoredPick], distance: 0 };
+    }
+
+    private initPickManager(): IPickManager {
+        const that: SeriesAreaManager = this;
+
+        function pickedNodesEqual(a: PickedNode, b: PickedNode) {
+            return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
+        }
+
+        function indexOf(candidates: PickedNode[], node: PickedNode | undefined): number {
+            return node == undefined ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, node));
+        }
+
+        class PickManager implements IPickManager {
+            private candidates: PickedNode[] = [];
+
+            private active: PickedNode | undefined;
+            private pendingPickedNodes?: PickedNodes;
+
+            private clear(): void {
+                this.active = undefined;
+                this.candidates.length = 0;
+                this.pendingPickedNodes = undefined;
+            }
+
+            private updateActive(active: PickedNode | undefined): PickedNode | undefined {
+                this.active = active;
+                if (this.active === undefined) {
+                    that.chart.ctx.activeManager.update({ type: 'inactive' });
+                } else {
+                    const seriesId: string = this.active.series.id;
+                    const itemId: string = getItemId(this.active);
+                    that.chart.ctx.activeManager.update({ type: 'datum', seriesId, itemId });
+                }
+                return this.active;
+            }
+
+            private popPendingPickedNodes(): PickedNodes | undefined {
+                const result = this.pendingPickedNodes;
+                this.pendingPickedNodes = undefined;
+                return result;
+            }
+
+            // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
+            onClearUI(): void {
+                that.chart.ctx.activeManager.update({ type: 'inactive' });
+                this.clear();
+            }
+
+            // Active datum was cleared using the `setState` API
+            onClearAPI(): void {
+                this.clear();
+            }
+
+            onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined {
+                if (pickedNodes !== undefined) {
+                    const previousActive = this.active;
+                    if (that.chart.tooltip.pagination && previousActive !== undefined) {
+                        const tooltipMatch = pickedNodes.matches.find((m) => pickedNodesEqual(m, previousActive));
+                        if (tooltipMatch) {
+                            return tooltipMatch;
+                        }
+                    }
+                }
+
+                return this.updateActive(pickedNodes?.matches[0]);
+            }
+
+            onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate {
+                if (pickedNodes !== undefined && that.chart.tooltip.pagination) {
+                    const previous = this.active;
+                    const nextCandidates = pickedNodes.matches;
+
+                    this.candidates = nextCandidates;
+
+                    let nextIndex = indexOf(nextCandidates, previous);
+                    if (nextIndex === -1) nextIndex = 0;
+                    this.updateActive(nextCandidates[nextIndex]);
+
+                    const paginationState = { index: nextIndex, length: nextCandidates.length };
+                    return { active: this.active, paginationState };
+                }
+
+                return { active: this.active };
+            }
+
+            onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void {
+                const { series } = that.focus;
+                this.clear();
+                if (series !== undefined && pickedFocus !== undefined) {
+                    const { datum, datumIndex } = pickedFocus;
+                    this.updateActive({ series, datum, datumIndex });
+                }
+            }
+
+            onPickedNodesAPI(debouncedPickedNodes: PickedNodes): void {
+                this.pendingPickedNodes = debouncedPickedNodes;
+            }
+
+            onPickedNodesAPIDebounced(): TooltipCandidate {
+                return { active: this.onPickedNodesHighlight(this.popPendingPickedNodes()) };
+            }
+
+            nextCandidate(): TooltipCandidate {
+                if (that.chart.tooltip.pagination) {
+                    const { candidates, active: previous } = this;
+                    const hoverIndex =
+                        previous == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, previous));
+                    if (hoverIndex === -1) return { active: undefined, paginationState: undefined };
+
+                    let nextIndex = hoverIndex + 1;
+                    if (nextIndex >= candidates.length) {
+                        nextIndex = 0;
+                    }
+                    const nextActive = this.updateActive(candidates[nextIndex]);
+
+                    const paginationState = { index: nextIndex, length: this.candidates.length };
+                    return { active: nextActive, paginationState };
+                }
+
+                return { active: this.active };
+            }
+        }
+
+        return new PickManager();
     }
 }
 
