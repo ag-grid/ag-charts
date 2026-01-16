@@ -1,5 +1,5 @@
 diff --git a/node_modules/rulesync/dist/index.js b/node_modules/rulesync/dist/index.js
-index 23dce30..ff07e86 100755
+index 23dce30..0d9de20 100755
 --- a/node_modules/rulesync/dist/index.js
 +++ b/node_modules/rulesync/dist/index.js
 @@ -86,7 +86,7 @@ import { resolve as resolve2 } from "path";
@@ -11,7 +11,7 @@ index 23dce30..ff07e86 100755
  import { mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
  import os from "os";
  import { dirname, join, relative, resolve } from "path";
-@@ -171,13 +171,25 @@ async function listDirectoryFiles(dir) {
+@@ -171,13 +171,28 @@ async function listDirectoryFiles(dir) {
  async function findFilesByGlobs(globs, options = {}) {
    const { type = "all" } = options;
    const items = globSync(globs, { withFileTypes: true });
@@ -21,8 +21,11 @@ index 23dce30..ff07e86 100755
 +      try {
 +        statSync(join(item.parentPath, item.name));
 +        return true;
-+      } catch {
-+        return false;
++      } catch (err) {
++        if (err.code === "ENOENT") {
++          return false;
++        }
++        throw err;
 +      }
 +    }
 +    return true;
@@ -40,7 +43,7 @@ index 23dce30..ff07e86 100755
      default:
        throw new Error(`Invalid type: ${type}`);
    }
-@@ -10595,12 +10607,7 @@ var toolRuleFactories = /* @__PURE__ */ new Map([
+@@ -10595,12 +10610,7 @@ var toolRuleFactories = /* @__PURE__ */ new Map([
        meta: {
          extension: "md",
          supportsGlobal: false,
@@ -54,7 +57,7 @@ index 23dce30..ff07e86 100755
        }
      }
    ],
-@@ -10653,10 +10660,7 @@ var toolRuleFactories = /* @__PURE__ */ new Map([
+@@ -10653,10 +10663,7 @@ var toolRuleFactories = /* @__PURE__ */ new Map([
        meta: {
          extension: "md",
          supportsGlobal: true,
