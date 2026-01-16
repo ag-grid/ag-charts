@@ -1,9 +1,10 @@
-import { NodeCanvas } from '../canvasConfig';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-core';
+
+import { NodeCanvas, type NodeCanvasInstance } from '../canvasConfig';
 import { type DocumentPatchResult, patchDocumentCreateElement } from '../documentPatch';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants';
 
 export interface MockCanvasContext {
-    nodeCanvas: NodeCanvas;
+    nodeCanvas: NodeCanvasInstance;
     snapshot: () => ImageData;
     getRenderContext2D: () => CanvasRenderingContext2D;
 }

@@ -9,10 +9,8 @@ const { CanvasRenderingContext2D } = SkiaCanvas as typeof SkiaCanvas & {
 };
 
 // Create configured canvas class using the mixin
-const NodeCanvasClass = ConfiguredCanvasMixin(Canvas);
-export const NodeCanvas = NodeCanvasClass;
-// Export type for use in type annotations (declaration merging)
-export type NodeCanvas = InstanceType<typeof NodeCanvasClass>;
+export const NodeCanvas = ConfiguredCanvasMixin(Canvas);
+export type NodeCanvasInstance = InstanceType<typeof NodeCanvas>;
 
 // Apply patches on module load to fix skia-canvas rendering bugs. The patches modify
 // skia-canvas's CanvasRenderingContext2D prototype (not browser APIs), are guarded

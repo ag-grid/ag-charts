@@ -51,11 +51,7 @@ export function ConfiguredCanvasMixin<T extends Constructor<CanvasLike>>(Base: T
             const { width, height } = this;
             const bitmap = new ConfiguredCanvasClass(Math.max(1, width), Math.max(1, height));
             if (width > 0 && height > 0) {
-                try {
-                    (bitmap.getContext('2d') as any).drawCanvas(this, 0, 0, width, height);
-                } catch {
-                    // Skia-canvas can throw dimensionless errors even when width/height checks pass
-                }
+                (bitmap.getContext('2d') as any).drawCanvas(this, 0, 0, width, height);
             }
             Object.defineProperty(bitmap, 'close', {
                 value: () => {},
