@@ -1,0 +1,10 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+    SNYK-JS-GLOB-14040952:
+        - 'skia-canvas@2.0.2 > glob@11.0.2':
+              reason: skia-canvas uses glob's library API (glob.sync) for font file resolution, and not glob CLI, so the vulnerable CLI path is not exercised.
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-01-16T09:24:00.007Z
+patch: {}
