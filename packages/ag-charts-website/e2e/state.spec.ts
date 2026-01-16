@@ -274,7 +274,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011.png');
 
                     await setChartState(page, { version, active: { activeItem: undefined } });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011-inactive.png');
 
                     await page.keyboard.press('ArrowRight');
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2012.png');
