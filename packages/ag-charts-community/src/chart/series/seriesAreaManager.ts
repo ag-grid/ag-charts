@@ -536,9 +536,10 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private toCanvasCoordinates(event: { currentX: number; currentY: number }): { canvasX: number; canvasY: number } {
-        const offsetX = this.hoverRect?.x ?? this.seriesRect?.x ?? 0;
-        const offsetY = this.hoverRect?.y ?? this.seriesRect?.y ?? 0;
-        return { canvasX: event.currentY + offsetX, canvasY: event.currentX + offsetY };
+        return {
+            canvasX: event.currentX + (this.hoverRect?.x ?? this.seriesRect?.x ?? 0),
+            canvasY: event.currentY + (this.hoverRect?.y ?? this.seriesRect?.y ?? 0),
+        };
     }
 
     private onFocus(): void {
