@@ -11,7 +11,7 @@ export interface CanvasLike {
     height: number;
     gpu: boolean;
     getContext(type: '2d'): unknown;
-    toBuffer(format: string, options?: { quality?: number; msaa?: boolean }): Promise<Buffer>;
+    toBuffer(format: string, options?: { quality?: number; msaa?: boolean }): Promise<Uint8Array>;
     toDataURLSync?(mimeType: string): string;
 }
 
@@ -43,7 +43,7 @@ export function ConfiguredCanvasMixin<T extends Constructor<CanvasLike>>(Base: T
             this.gpu = false;
         }
 
-        override toBuffer(format: string, options?: { quality?: number; msaa?: boolean }): Promise<Buffer> {
+        override toBuffer(format: string, options?: { quality?: number; msaa?: boolean }): Promise<Uint8Array> {
             return super.toBuffer(format, { ...options, msaa: false });
         }
 

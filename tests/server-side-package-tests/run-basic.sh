@@ -103,10 +103,6 @@ if [[ ${mode} == "docker" ]] ; then
         echo "Snapshots updated in: ${snapshots_dir}"
     fi
 
-    # Cleanup temp project
-    cd ${project_dir}
-    rm -rf ${project}
-
     exit ${exitCode}
 fi
 
