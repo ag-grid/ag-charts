@@ -4,6 +4,7 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState } f
 
 import type {
     ActiveDatumChangeEvent,
+    ActiveLegendChangeEvent,
     HighlightChangeEvent,
     HighlightNodeDatum,
     LayoutCompleteEvent,
@@ -209,6 +210,7 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:clear', (event) => this.onActiveClear(event)),
+            chart.ctx.eventsHub.on('active:legend', (event) => this.onActiveLegend(event)),
             chart.ctx.eventsHub.on('active:datum', (event) => this.onActiveDatum(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
@@ -1140,6 +1142,10 @@ export class SeriesAreaManager extends BaseManager {
         this.clearTooltip(true);
     }
 
+    private onActiveLegend(_event: ActiveLegendChangeEvent) {
+        this.pickManager.onClearAPI(null);
+    }
+
     private onActiveDatum(event: ActiveDatumChangeEvent) {
         const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(event.seriesId, event.itemId);
         if (desiredPickedNodes != undefined) {
@@ -1217,7 +1223,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.clear();
             }
 
-            // Active datum was cleared using the `setState` API
+            // Active datum was cleared by ActiveManager (`setState` or legend).
             onClearAPI(): void {
                 this.clear();
             }
