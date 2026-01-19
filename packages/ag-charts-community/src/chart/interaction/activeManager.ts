@@ -51,7 +51,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
-        this.currentState = this.performRestoration(memento?.activeItem);
+        this.update(this.performRestoration(memento?.activeItem));
     }
 
     private performRestoration(activeItem: AgActiveState['activeItem']): ActiveState {
