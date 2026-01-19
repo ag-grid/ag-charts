@@ -173,9 +173,11 @@ export function createConsoleLogs() {
     };
 }
 
-export function repeat(repCount: number, fn: () => unknown) {
+export async function repeat(repCount: number, fn: () => Promise<void>): Promise<void>;
+export function repeat(repCount: number, fn: () => void): void;
+export async function repeat(repCount: number, fn: () => void | Promise<void>): Promise<void> {
     for (let i = 0; i < repCount; i++) {
-        fn();
+        await fn();
     }
 }
 

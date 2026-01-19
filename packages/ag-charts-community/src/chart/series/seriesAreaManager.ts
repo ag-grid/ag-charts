@@ -678,7 +678,9 @@ export class SeriesAreaManager extends BaseManager {
 
     private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
         const pick = series.pickFocus(opts);
-        this.pickManager.onPickedNodesFocus(pick);
+        if (this.hoverDevice === 'keyboard') {
+            this.pickManager.onPickedNodesFocus(pick);
+        }
         return pick;
     }
 
@@ -1098,6 +1100,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onActiveClear(event: null) {
         this.pickManager.onClearAPI(event);
+        this.hoverDevice = 'setState';
         this.clearHighlight(true);
         this.clearTooltip(true);
     }

@@ -8,6 +8,7 @@ import {
     createConsoleLogs,
     gotoExample,
     locateCanvas,
+    repeat,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForChartUpdate,
@@ -37,7 +38,7 @@ async function getChartState(page: Page): Promise<AgChartState> {
 
 async function setChartState(page: Page, state: AgChartState): Promise<void> {
     await page.evaluate(
-        ({ newState }) => {
+        async ({ newState }) => {
             const chart: unknown = (window as any)?.agE2E?.chart;
             if (!chart) {
                 throw new Error('window.agE2E.chart is not defined');
@@ -48,7 +49,12 @@ async function setChartState(page: Page, state: AgChartState): Promise<void> {
             } else if (typeof chart.setState !== 'function') {
                 throw new Error('window.agE2E.chart.setState is not a function');
             }
-            return chart.setState(newState);
+
+            const setStateReturn = chart.setState(newState);
+            if (!(setStateReturn instanceof Promise)) {
+                throw new Error('window.agE2E.chart.setState did not return a Promise');
+            }
+            await setStateReturn;
         },
         { newState: state }
     );
@@ -194,6 +200,34 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('setState with undefined active clears current highlight', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                    });
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
             test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactive', () => {
                 const consoleLogs = createConsoleLogs();
 
@@ -229,6 +263,86 @@ test.describe('state', () => {
                     expect(state.active?.activeItem).toBeUndefined();
 
                     await consoleLogs.expectLogs([]);
+                });
+            });
+
+            test.describe('series-area focus events clear unfrozen setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                    });
+
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                    });
+                });
+            });
+
+            test.describe('series-area keydown events clear unfrozen setState', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowRight');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011.png');
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011-inactive.png');
+
+                    await page.keyboard.press('ArrowRight');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2012.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                    });
+
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowDown');
+                    await page.keyboard.press('ArrowRight');
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '1', seriesId: 'LineSeries-3' },
+                    });
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await page.keyboard.press('ArrowRight');
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '2', seriesId: 'LineSeries-3' },
+                    });
                 });
             });
         });
