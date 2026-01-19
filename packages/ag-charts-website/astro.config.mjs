@@ -8,7 +8,9 @@ import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
 
+import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSitemap';
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
+import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
@@ -142,6 +144,10 @@ export default defineConfig({
         agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
+        }),
+
+        agCacheSitemap({
+            cacheFolder: SITEMAP_CACHE_DIR,
         }),
     ],
     redirects: getAstroRedirectRules(),
