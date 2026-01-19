@@ -7,7 +7,7 @@
  * second build that uses the sitemap cache to generate the sitemap page.
  *
  * Flags:
- * - --skip-second-build / --no-skip-second-build / --skip-second-build=false
+ * - --run-second-build / --no-run-second-build / --run-second-build=false
  * - --clean-cache / --no-clean-cache / --clean-cache=false
  * - All other params are passed through to Astro
  */
@@ -42,11 +42,11 @@ const getFlagValue = (flag: string) => {
     return value;
 };
 const hasFlag = (flag: string) => getFlagValue(flag) ?? false;
-const skipSecondBuild = hasFlag('--skip-second-build');
+const runSecondBuild = hasFlag('--run-second-build');
 const cleanCache = hasFlag('--clean-cache');
 const astroArgs = [
     'build',
-    ...rawArgs.filter((arg) => !arg.startsWith('--skip-second-build') && !arg.startsWith('--clean-cache')),
+    ...rawArgs.filter((arg) => !arg.startsWith('--run-second-build') && !arg.startsWith('--clean-cache')),
 ];
 
 const cleanSitemapCache = async () => {
@@ -68,7 +68,7 @@ if (cleanCache) {
 
 runBuild();
 
-if (!skipSecondBuild) {
+if (runSecondBuild) {
     console.log('♻️ Building again to use latest sitemap');
 
     runBuild();

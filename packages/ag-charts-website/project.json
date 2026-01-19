@@ -21,23 +21,19 @@
         }
       ],
       "cache": false,
-      "command": "tsx ../../external/ag-website-shared/scripts/buildWithSitemapCache.ts",
+      "command": "tsx ../../external/ag-website-shared/scripts/buildWithSitemapCache.ts --silent",
       "options": {
-        "cwd": "{projectRoot}",
-        "silent": true
+        "cwd": "{projectRoot}"
       },
       "configurations": {
         "staging": {
-          "silent": true,
-          "clean-cache": true
+          "args": "--clean-cache=true --run-second-build=true"
         },
         "archive": {
-          "silent": true,
-          "clean-cache": true
+          "args": "--clean-cache=true --run-second-build=true"
         },
         "production": {
-          "silent": true,
-          "clean-cache": true
+          "args": "--clean-cache=true --run-second-build=true"
         }
       }
     },
