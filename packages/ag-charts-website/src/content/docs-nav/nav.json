@@ -273,6 +273,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Scrollbar",
+                            "path": "scrollbar",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Synchronization",
                             "path": "sync",
                             "isEnterprise": true
