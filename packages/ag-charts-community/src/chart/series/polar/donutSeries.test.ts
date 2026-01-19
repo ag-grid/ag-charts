@@ -8,7 +8,7 @@ import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
-import { MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,

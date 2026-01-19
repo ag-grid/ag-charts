@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, AgChartInstance, AgCharts } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
 

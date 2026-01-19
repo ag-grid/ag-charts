@@ -3,7 +3,7 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalCeil, intervalFloor, intervalRange } from './index';
 

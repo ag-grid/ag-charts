@@ -1,6 +1,6 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 

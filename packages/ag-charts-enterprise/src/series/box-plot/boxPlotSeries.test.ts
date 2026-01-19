@@ -1,18 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
-    AgBoxPlotSeriesItemStylerParams,
-    AgBoxPlotSeriesStyle,
-    AgBoxPlotSeriesStylerParams,
-    AgCartesianChartOptions,
-    AgChartInstance,
+    type AgBoxPlotSeriesItemStylerParams,
+    type AgBoxPlotSeriesStyle,
+    type AgBoxPlotSeriesStylerParams,
+    type AgCartesianChartOptions,
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
-    MockBoxPlotStyler,
+    type MockBoxPlotStyler,
     extractImageData,
     hoverAction,
     newFreezableMock,

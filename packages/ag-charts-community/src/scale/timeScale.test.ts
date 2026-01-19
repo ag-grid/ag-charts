@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { durationDay, durationHour, durationMinute, durationMonth, durationWeek, durationYear } from 'ag-charts-core';
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { TimeScale } from './timeScale';
 

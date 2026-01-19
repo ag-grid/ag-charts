@@ -1,4 +1,4 @@
-import { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgPolarChartOptions } from 'ag-charts-community';
 
 import { DATA_REVENUE_BY_PRODUCT_CATEGORY } from './data';
 

@@ -11,6 +11,6 @@ globs: ['packages/ag-charts-*/src/chart/**/*.ts', 'packages/ag-charts-*/src/seri
 2. Adjust public API surface in `packages/ag-charts-types` if signatures change
 3. Sync any dependent docs/examples
 4. Run verification:
-   - `yarn nx test ag-charts-community`
-   - `yarn nx test ag-charts-enterprise`
-   - `yarn nx benchmark` when performance is at risk
+    - `yarn nx test ag-charts-community`
+    - `yarn nx test ag-charts-enterprise`
+    - `yarn nx benchmark` when performance is at risk

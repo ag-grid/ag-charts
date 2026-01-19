@@ -1,5 +1,5 @@
 import { getDocument } from 'ag-charts-core';
-import {
+import type {
     AgAxisLabelFormatterParams,
     AgBarSeriesItemStylerParams,
     AgCartesianChartOptions,

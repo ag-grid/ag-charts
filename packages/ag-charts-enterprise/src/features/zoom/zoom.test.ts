@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
-    AgChartInstance,
+    type AgCartesianChartOptions,
+    type AgChartInstance,
     type AgChartOptions,
-    AgChartState,
+    type AgChartState,
     AgCharts,
-    AgInitialStateZoomOptions,
+    type AgInitialStateZoomOptions,
 } from 'ag-charts-community';
 import {
     clickAction,
@@ -27,7 +27,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { DeepReadonly } from 'ag-charts-core';
+import type { DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';

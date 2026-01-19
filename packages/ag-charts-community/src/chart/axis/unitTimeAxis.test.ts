@@ -9,9 +9,9 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { ChartAxis } from '../chartAxis';
+import type { ChartAxis } from '../chartAxis';
 import {
-    ChartOrProxy,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgPatternName } from 'ag-charts-types';
+import type { AgPatternName } from 'ag-charts-types';
 
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

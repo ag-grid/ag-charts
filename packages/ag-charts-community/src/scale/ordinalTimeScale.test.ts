@@ -9,7 +9,7 @@ import {
     durationWeek,
     durationYear,
 } from 'ag-charts-core';
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { OrdinalTimeScale } from './ordinalTimeScale';
 

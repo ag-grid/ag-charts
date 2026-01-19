@@ -1,6 +1,6 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
-import { AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
