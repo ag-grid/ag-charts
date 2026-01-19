@@ -354,6 +354,10 @@ test.describe('state', () => {
                 await page.mouse.move(354, 368);
             }
 
+            async function hoverOnRealEstateLegendItem(page: Page): Promise<void> {
+                await page.mouse.move(455, 555);
+            }
+
             async function hoverSeriesAreaMiss(page: Page): Promise<void> {
                 await page.mouse.move(400, 330);
             }
@@ -389,6 +393,34 @@ test.describe('state', () => {
                     await hoverSeriesAreaMiss(page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
+            test.describe('legend hover clear active state from mouse', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnCurrentYearBond(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+
+                    await hoverOnRealEstateLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnCurrentYearBond(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '1', seriesId: 'DonutSeries-2' },
+                    });
+
+                    await hoverOnRealEstateLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: 3, seriesId: 'DonutSeries-1' },
+                    });
                 });
             });
         });
