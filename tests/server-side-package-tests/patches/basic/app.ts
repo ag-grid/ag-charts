@@ -24,7 +24,7 @@ interface TestResult {
 
 const results: TestResult[] = [];
 const updateSnapshots = process.argv.includes('--update');
-const snapshotsDir = path.join(process.cwd(), 'snapshots');
+const snapshotsDir = path.join(process.cwd(), 'e2e', 'basic-snapshots');
 const outputDir = path.join(process.cwd(), 'output');
 
 // Ensure output directory exists
