@@ -1,8 +1,10 @@
-import type { MementoOriginator, Point } from 'ag-charts-core';
-import { ChartUpdateType, Logger, Vec4, clamp, createId, objectsEqual, validate } from 'ag-charts-core';
-import type { AgActiveState, AgChartClickEvent, AgChartDoubleClickEvent, AgPickedItemsState } from 'ag-charts-types';
+import type { Point } from 'ag-charts-core';
+import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
+import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
+    ActiveDatumChangeEvent,
+    ActiveLegendChangeEvent,
     HighlightChangeEvent,
     HighlightNodeDatum,
     LayoutCompleteEvent,
@@ -30,7 +32,6 @@ import type {
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import { commonChartOptions } from '../chartOptionsDefs';
 import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -45,7 +46,8 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
+import { type IPickManager, PickManager, type PickedNode, type PickedNodes } from './pickManager';
+import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -77,77 +79,9 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
-type PickedNodes = {
-    matches: PickedNode[];
-    distance: number;
-};
-
-interface PickedNode {
-    series: UnknownSeries;
-    datum: SeriesNodeDatum<DatumIndexType>;
-    datumIndex: unknown;
-}
-
-function pickedNodesEqual(a: PickedNode, b: PickedNode) {
-    return a.series === b.series && objectsEqual(a.datumIndex, b.datumIndex);
-}
-
-function getItemId(node: PickedNode): AgPickedItemsState['itemId'] {
-    // FIXME: How to serialise/deserialise datums is still TBD.
-    if (node.datum.itemId) return `${node.datum.itemId}`;
-    return JSON.stringify(node.datum.datumIndex);
-}
-
-function toMememto(node: PickedNode): AgPickedItemsState {
-    return { seriesId: node.series.id, itemId: getItemId(node) };
-}
-
-class PickedNodeState {
-    private candidates: PickedNode[] = [];
-    private active: PickedNode | undefined;
-
-    get current(): PickedNode | undefined {
-        return this.active;
-    }
-
-    reset() {
-        this.candidates.length = 0;
-        this.active = undefined;
-    }
-
-    update(nextCandidates: PickedNode[], previousActive?: PickedNode) {
-        this.candidates = nextCandidates;
-
-        let nextIndex = PickedNodeState.indexOf(nextCandidates, previousActive);
-        if (nextIndex === -1) nextIndex = 0;
-        this.active = nextCandidates[nextIndex];
-
-        return { current: this.active, index: nextIndex, length: nextCandidates.length };
-    }
-
-    next() {
-        const { candidates, active } = this;
-        const hoverIndex = active == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, active));
-        if (hoverIndex === -1) return undefined;
-
-        let nextIndex = hoverIndex + 1;
-        if (nextIndex >= candidates.length) {
-            nextIndex = 0;
-        }
-        this.active = candidates[nextIndex];
-
-        return { current: this.active, index: nextIndex, length: this.candidates.length };
-    }
-
-    private static indexOf(candidates: PickedNode[], node: PickedNode | undefined): number {
-        return node == undefined ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, node));
-    }
-}
-
-export class SeriesAreaManager extends BaseManager implements MementoOriginator<AgActiveState> {
+export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
-    mementoOriginatorKey: string = 'active';
 
     private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
@@ -189,7 +123,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
      */
     private hoverDevice: HoverDevice = 'pointer';
 
-    private pickedNodes?: PickedNodes;
+    private readonly pickManager: IPickManager;
 
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
@@ -205,6 +139,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
+
+        this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip, this.focus);
 
         const initialAltText = chart.ctx.localeManager.t('ariaInitSeriesArea');
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
@@ -232,6 +168,9 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
+            chart.ctx.eventsHub.on('active:clear', (event) => this.onActiveClear(event)),
+            chart.ctx.eventsHub.on('active:legend', (event) => this.onActiveLegend(event)),
+            chart.ctx.eventsHub.on('active:datum', (event) => this.onActiveDatum(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -521,7 +460,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         if (isSeriesWidget) {
-            const consumed = Boolean(this.checkSeriesNodeClick(event));
+            const consumed: boolean = this.checkSeriesNodeClick(event);
             if (consumed) {
                 this.emitSeriesAreaClickEvent(event, true);
                 this.update(ChartUpdateType.SERIES_UPDATE);
@@ -539,16 +478,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     }
 
     private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
-        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
-        if (coords == null) return;
-
-        const payload: SeriesAreaHoverEvent = {
-            x: coords.x,
-            y: coords.y,
-            consumed,
-            sourceEvent: event.sourceEvent,
-        };
-
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
     }
 
@@ -558,24 +489,16 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
     ): void {
         if (!('currentX' in event)) return;
 
-        const coords = this.toCanvasCoordinates(event.currentX, event.currentY);
-        if (coords == null) return;
-
-        const payload: SeriesAreaClickEvent = {
-            x: coords.x,
-            y: coords.y,
-            consumed,
-            sourceEvent: event.sourceEvent,
-        };
-
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+        const payload: SeriesAreaClickEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
-    private toCanvasCoordinates(x: number, y: number) {
-        const offsetX = this.hoverRect?.x ?? this.seriesRect?.x ?? 0;
-        const offsetY = this.hoverRect?.y ?? this.seriesRect?.y ?? 0;
-
-        return { x: x + offsetX, y: y + offsetY };
+    private toCanvasCoordinates(event: { currentX: number; currentY: number }): { canvasX: number; canvasY: number } {
+        return {
+            canvasX: event.currentX + (this.hoverRect?.x ?? this.seriesRect?.x ?? 0),
+            canvasY: event.currentY + (this.hoverRect?.y ?? this.seriesRect?.y ?? 0),
+        };
     }
 
     private onFocus(): void {
@@ -649,32 +572,25 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         sourceEvent.preventDefault();
     }
 
-    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }) {
-        const result = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        if (result == null || result.matches.length === 0) return;
+    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): boolean {
+        const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
+        if (pickedNodes === undefined || updated.active === undefined) return false;
 
-        const paginationUpdate = this.updateTooltipCandidate(result.matches);
-        const { series, datum } = paginationUpdate ?? result.matches[0];
-        const distance = paginationUpdate == null ? result.distance : 0;
+        const { series, datum } = updated.active;
+        const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
         if (event.type === 'click') {
             const defaultBehavior = series.fireNodeClickEvent(event.sourceEvent, datum);
-
-            const nextTooltipCandidate =
-                defaultBehavior && this.chart.tooltip.pagination ? this.tooltipCandidates.next() : undefined;
-            if (nextTooltipCandidate != null) {
-                event.sourceEvent.preventDefault();
-                const { currentX, currentY } = event;
-                const canvasX = currentX + (this.hoverRect?.x ?? 0);
-                const canvasY = currentY + (this.hoverRect?.y ?? 0);
-                this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
-                this.handleHoverHighlight(false);
-                this.showTooltip(nextTooltipCandidate.current, canvasX, canvasY, {
-                    index: nextTooltipCandidate.index,
-                    length: nextTooltipCandidate.length,
-                });
+            if (defaultBehavior) {
+                const next = this.pickManager.nextCandidate();
+                if (next.active !== undefined) {
+                    const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+                    this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
+                    this.handleHoverHighlight(false);
+                    this.showTooltip(next.active, canvasX, canvasY, next.paginationState);
+                }
             }
-
             return true;
         }
 
@@ -694,12 +610,6 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         return false;
-    }
-
-    private updateTooltipCandidate(pickedNodes: PickedNode[]): PickedNode | undefined {
-        return this.chart.tooltip.pagination
-            ? this.tooltipCandidates.update(pickedNodes, this.tooltipCandidates.current)?.current
-            : undefined;
     }
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
@@ -766,6 +676,12 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         );
     }
 
+    private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
+        const pick = series.pickFocus(opts);
+        this.pickManager.onPickedNodesFocus(pick);
+        return pick;
+    }
+
     private updatePickedFocus(
         datumIndex: number,
         datumIndexDelta: number,
@@ -777,7 +693,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
-        const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
+        const pick = this.pickFocus(focus.series, focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
 
         const { datum } = pick;
@@ -914,13 +831,8 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         this.tooltip.lastHover = undefined;
     }
 
-    private clearPicked(): void {
-        this.pickedNodes = undefined;
-        this.tooltipCandidates.reset();
-    }
-
     private clearAll(delayed: boolean = false) {
-        this.clearPicked();
+        this.pickManager.onClearUI();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
@@ -928,10 +840,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (this.hoverDevice === 'setState') {
-            if (this.pickedNodes) {
-                this.handleHoverFromState(this.pickedNodes);
-            }
-            return;
+            return this.handleHoverFromState();
         }
 
         if (!this.tooltip.lastHover && !this.highlight.pendingHoverEvent) return;
@@ -951,12 +860,14 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
     });
 
-    private handleHoverFromState(pickedNodes: PickedNodes): void {
-        this.updateTooltipCandidate(pickedNodes.matches);
-        const { datum } = pickedNodes.matches[0];
-        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-        if (this.chart.tooltip.enabled && datum.midPoint) {
-            this.showTooltip(pickedNodes.matches[0], datum.midPoint.x, datum.midPoint.y);
+    private handleHoverFromState(): void {
+        const { active, paginationState } = this.pickManager.onPickedNodesAPIDebounced();
+        if (active === undefined) return;
+
+        this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
+        if (this.chart.tooltip.enabled && active.datum.midPoint) {
+            const { x: canvasX, y: canvasY } = active.datum.midPoint;
+            this.showTooltip(active, canvasX, canvasY, paginationState);
         }
     }
 
@@ -967,9 +878,7 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         const event = this.highlight.appliedHoverEvent;
         if (!event || !this.isState(InteractionState.Clickable)) return;
 
-        const { currentX, currentY } = event;
-        const canvasX = event.currentX + (this.hoverRect?.x ?? 0);
-        const canvasY = event.currentY + (this.hoverRect?.y ?? 0);
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
@@ -977,31 +886,21 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const pick = this.pickNodes({ x: currentX, y: currentY }, intent);
-        if (!pick || pick.matches.length === 0) {
+        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
+
+        const active: PickedNode | undefined = this.pickManager.onPickedNodesHighlight(pick);
+        if (active === undefined) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
-            return;
+        } else {
+            this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum, false);
+            this.hoverDevice = 'pointer';
         }
-
-        const { current: tooltipPick } = this.tooltipCandidates;
-        const tooltipMatch =
-            tooltipPick == null ? undefined : pick.matches.find((m) => pickedNodesEqual(m, tooltipPick));
-
-        const datum = tooltipMatch?.datum ?? pick.matches[0].datum;
-
-        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-        this.hoverDevice = 'pointer';
     }
 
-    private readonly tooltipCandidates = new PickedNodeState();
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
-        const { current: previousHover } = this.tooltipCandidates;
-        this.tooltipCandidates.reset();
         if (!this.isState(InteractionState.Clickable)) return;
 
-        const { currentX, currentY } = event;
-        const canvasX = currentX + (this.hoverRect?.x ?? 0);
-        const canvasY = currentY + (this.hoverRect?.y ?? 0);
+        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             if (this.hoverDevice == 'pointer') this.clearTooltip();
@@ -1018,22 +917,15 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         }
 
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
-        if (!pick || pick.matches.length === 0) {
-            if (this.hoverDevice == 'pointer') this.clearTooltip(true); // true = delayed
-            return;
-        }
 
-        this.hoverDevice = 'pointer';
-
-        if (pick.distance === 0) {
-            const { current, index, length } = this.tooltipCandidates.update(
-                pick.matches,
-                this.chart.tooltip.pagination ? previousHover : undefined
-            );
-
-            this.showTooltip(current, canvasX, canvasY, { index, length });
+        const { active, paginationState } = this.pickManager.onPickedNodesTooltip(pick);
+        if (active === undefined) {
+            if (this.hoverDevice == 'pointer') {
+                this.clearTooltip(true); // true = delayed
+            }
         } else {
-            this.showTooltip(pick.matches[0], canvasX, canvasY);
+            this.showTooltip(active, canvasX, canvasY, paginationState);
+            this.hoverDevice = 'pointer';
         }
     }
 
@@ -1151,7 +1043,6 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
             }
         }
 
-        this.pickedNodes = result;
         return result;
     }
 
@@ -1205,40 +1096,29 @@ export class SeriesAreaManager extends BaseManager implements MementoOriginator<
         return result;
     }
 
-    public createMemento(): AgActiveState {
-        const active: PickedNode | undefined = this.tooltipCandidates.current ?? this.pickedNodes?.matches[0];
-        return {
-            frozen: false,
-            activeItem: active ? toMememto(active) : undefined,
-        };
+    private onActiveClear(event: null) {
+        this.pickManager.onClearAPI(event);
+        this.clearHighlight(true);
+        this.clearTooltip(true);
     }
 
-    public guardMemento(blob: unknown, messages: string[]): blob is AgActiveState | undefined {
-        if (blob == undefined) return true;
-
-        const validationResult = validate(blob, commonChartOptions.initialState.active);
-        messages.push(...validationResult.invalid.map((err) => err.toString()));
-        return validationResult.invalid.length === 0;
+    private onActiveLegend(_event: ActiveLegendChangeEvent) {
+        this.pickManager.onClearAPI(null);
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
-        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(memento);
-        if (desiredPickedNodes == undefined) {
-            this.clearPicked();
+    private onActiveDatum(event: ActiveDatumChangeEvent) {
+        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(event.seriesId, event.itemId);
+        if (desiredPickedNodes === undefined) {
+            event.reject();
+            this.onActiveClear(null);
         } else {
+            this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             this.hoverDevice = 'setState';
-            this.pickedNodes = desiredPickedNodes;
             this.hoverScheduler.schedule();
         }
     }
 
-    public findPickedNodes(memento: AgActiveState | undefined): PickedNodes | undefined {
-        if (memento?.activeItem == undefined) return undefined;
-
-        const desiredItemId: string | undefined = memento.activeItem.itemId;
-        if (desiredItemId == undefined) return undefined;
-
-        const desiredSeriesId: string = memento.activeItem.seriesId;
+    private findPickedNodes(desiredSeriesId: string, desiredItemId: string): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
             Logger.warn(`Cannot find series '${desiredSeries}'`);

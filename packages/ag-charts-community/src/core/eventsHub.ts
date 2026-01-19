@@ -32,15 +32,15 @@ import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEven
 export type EventsHub = EventEmitter<EventsHubMap>;
 
 export interface SeriesAreaHoverEvent {
-    readonly x: number;
-    readonly y: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly consumed: boolean;
     readonly sourceEvent: Event;
 }
 
 export interface SeriesAreaClickEvent {
-    readonly x: number;
-    readonly y: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly consumed: boolean;
     readonly sourceEvent: Event;
 }
@@ -61,6 +61,9 @@ export interface DataModelDiffEvent {
 
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
+    'active:clear': null;
+    'active:datum': ActiveDatumChangeEvent;
+    'active:legend': ActiveLegendChangeEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;
@@ -101,6 +104,17 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
+}
+
+export interface ActiveDatumChangeEvent {
+    seriesId: string;
+    itemId: string;
+    reject(): void;
+}
+
+export interface ActiveLegendChangeEvent {
+    seriesId: string;
+    reject(): void;
 }
 
 interface AnnotationsRestoreEvent {

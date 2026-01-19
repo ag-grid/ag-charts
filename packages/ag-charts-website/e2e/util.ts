@@ -64,7 +64,7 @@ export function toGalleryPageUrls(example: string) {
 
 export function setupIntrinsicAssertions(
     testFn: {
-        beforeEach: (fn: ({ page }: { page: Page }, testInfo: { title?: string }) => Promise<void>) => void;
+        beforeEach: (fn: ({ page }: { page: Page }, testInfo: { titlePath?: string[] }) => Promise<void>) => void;
         afterEach: (fn: () => void) => void;
     },
     opts: { viewportSize?: { width: number; height: number } } = {}
@@ -72,13 +72,22 @@ export function setupIntrinsicAssertions(
     let consoleWarnOrErrors: string[] = [];
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
+    function titlePathIncludes(testInfo: { titlePath?: string[] }, searchString: string): boolean {
+        for (const pathComponent of testInfo.titlePath ?? []) {
+            if (pathComponent.includes(searchString)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Create setup functions that can be called with any test instance
     testFn.beforeEach(async ({ page }, testInfo) => {
         consoleWarnOrErrors = [];
         // Check if this is a 404 test by examining the test title
-        config.ignore404s = testInfo?.title?.includes('should 404 on') ?? false;
+        config.ignore404s = titlePathIncludes(testInfo, 'should 404 on');
         // Check if console warnings should be ignored for this test
-        config.ignoreConsoleWarnings = testInfo?.title?.includes('[ignoreConsoleWarnings]') ?? false;
+        config.ignoreConsoleWarnings = titlePathIncludes(testInfo, '[ignoreConsoleWarnings]');
 
         if (opts?.viewportSize) {
             await page.setViewportSize(opts.viewportSize);

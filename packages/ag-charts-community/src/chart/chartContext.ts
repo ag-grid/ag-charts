@@ -27,6 +27,7 @@ import { DataService } from './data/dataService';
 import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
+import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
@@ -46,6 +47,7 @@ import { type UpdateCallback, UpdateService } from './updateService';
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
 
+    readonly activeManager = new ActiveManager(this.eventsHub);
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
