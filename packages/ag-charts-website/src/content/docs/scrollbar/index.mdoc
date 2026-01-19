@@ -1,0 +1,120 @@
+---
+title: 'Scrollbar'
+enterprise: true
+---
+
+The Scrollbar provides a familiar interface for panning around a chart, similar to native browser and operating system scrollbars.
+
+Unlike the [Navigator](./navigator/), which allows both zooming and panning with resize handles, the Scrollbar is a pure panning control. This makes it ideal for users who are already zoomed in and need to navigate through their data.
+
+## Enabling the Scrollbar
+
+{% chartExampleRunner title="Scrollbar" name="scrollbar" type="generated" /%}
+
+The Scrollbar is disabled by default. To enable it, add the following configuration:
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+    },
+}
+```
+
+The Scrollbar appears when the chart is zoomed in. Use the [Zoom](./zoom/) feature to enable zooming, or set the initial zoom level using the [Chart State API](./api-state/).
+
+## Visibility
+
+The `visible` property controls when the Scrollbar is displayed:
+
+-   `'auto'` (default) - shows the Scrollbar only when zoomed in
+-   `'always'` - always shows the Scrollbar
+-   `'never'` - hides the Scrollbar even when zoomed in
+
+{% chartExampleRunner title="Scrollbar Visibility" name="scrollbar-visibility" type="generated" /%}
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+        visible: 'always',
+    },
+}
+```
+
+## Vertical Scrollbar
+
+By default, the Scrollbar appears horizontally at the bottom of the chart. A vertical Scrollbar can be configured for the y-axis.
+
+{% chartExampleRunner title="Vertical Scrollbar" name="vertical-scrollbar" type="generated" /%}
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+        vertical: {
+            enabled: true,
+            position: 'right',
+        },
+    },
+}
+```
+
+The `position` can be set to `'left'` or `'right'` for vertical scrollbars, and `'top'` or `'bottom'` for horizontal scrollbars.
+
+## Placement
+
+The `placement` property determines whether the Scrollbar appears inside or outside the chart area:
+
+-   `'outer'` (default) - positions the Scrollbar outside the chart, reserving space in the layout
+-   `'inner'` - overlays the Scrollbar on top of the chart area
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+        placement: 'inner',
+    },
+}
+```
+
+## Customisation
+
+The Scrollbar's appearance can be customised through its `track` and `thumb` properties.
+
+{% chartExampleRunner title="Scrollbar Styling" name="scrollbar-styling" type="generated" /%}
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+        thickness: 16,
+        track: {
+            fill: '#e0e0e0',
+            cornerRadius: 8,
+        },
+        thumb: {
+            fill: '#666666',
+            cornerRadius: 8,
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   `thickness` sets the height of horizontal scrollbars or width of vertical scrollbars
+-   `track` styles the background area of the Scrollbar
+-   `thumb` styles the draggable indicator showing the current viewport position
+
+Both `track` and `thumb` support standard fill and stroke options including `fill`, `stroke`, `fillOpacity`, `strokeWidth`, and `cornerRadius`.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgScrollbarOptions" label="Scrollbar" %}
+{% apiReference id="AgScrollbarOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
