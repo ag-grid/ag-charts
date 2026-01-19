@@ -1029,6 +1029,7 @@ export class MapMarkerSeries
                 domain,
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
@@ -1046,6 +1047,7 @@ export class MapMarkerSeries
                 domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
         }

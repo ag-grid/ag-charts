@@ -53,12 +53,20 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
-    override tickFormatParams(_domain: number[], _ticks: number[], fractionDigits?: number): AxisTickFormatParams {
-        return { type: 'number', fractionDigits };
+    protected getVisibleDomain(domain: number[]): [number, number] {
+        const [d0, d1] = domain;
+        const [r0, r1] = this.visibleRange;
+        const length = d1 - d0;
+        return [d0 + r0 * length, d1 - (1 - r1) * length];
+    }
+
+    override tickFormatParams(domain: number[], _ticks: number[], fractionDigits?: number): AxisTickFormatParams {
+        return { type: 'number', visibleDomain: this.getVisibleDomain(domain), fractionDigits };
     }
 
     override datumFormatParams(value: any, params: FormatDatumParams, fractionDigits?: number): FormatterParams<any> {
         const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
+        const visibleDomain = this.getVisibleDomain(domain);
         return {
             type: 'number',
             value,
@@ -69,6 +77,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
             source,
             property,
             domain,
+            visibleDomain,
             boundSeries,
             fractionDigits,
         };

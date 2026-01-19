@@ -625,6 +625,7 @@ export class ChordSeries extends FlowProportionSeries<
                 domain: [],
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
         }

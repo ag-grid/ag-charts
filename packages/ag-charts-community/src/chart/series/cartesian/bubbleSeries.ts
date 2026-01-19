@@ -1225,6 +1225,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                     boundSeries: this.getFormatterContext('size'),
                     domain,
                     fractionDigits: undefined,
+                    visibleDomain: undefined,
                 });
                 data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
             }

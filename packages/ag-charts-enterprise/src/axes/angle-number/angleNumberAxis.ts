@@ -165,7 +165,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         _ticks: number[],
         fractionDigits?: number
     ): _ModuleSupport.AxisTickFormatParams {
-        return { type: 'number', fractionDigits };
+        return { type: 'number', visibleDomain: undefined, fractionDigits };
     }
 
     override datumFormatParams(
@@ -186,6 +186,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             domain,
             boundSeries,
             fractionDigits,
+            visibleDomain: undefined,
         };
     }
 }

@@ -86,6 +86,7 @@ export type AxisTickFormatParams =
     | {
           type: 'number';
           fractionDigits: number | undefined;
+          visibleDomain?: [number, number];
       }
     | {
           type: 'date';

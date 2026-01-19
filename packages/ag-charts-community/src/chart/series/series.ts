@@ -1080,6 +1080,7 @@ export abstract class Series<
                     domain,
                     boundSeries,
                     fractionDigits,
+                    visibleDomain: undefined,
                 });
             }
 

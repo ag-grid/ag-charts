@@ -1678,6 +1678,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 domain,
                 boundSeries: this.getFormatterContext('angle'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             }) ?? formatValue(angleRawValue, 3);
 
         return this.formatTooltipWithContext(

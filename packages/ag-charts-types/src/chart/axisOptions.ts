@@ -165,6 +165,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly domain: any[];
     /** Context for this callback. */
     readonly context?: TContext;
+    /** The currently visible domain. [min, max] */
+    readonly visibleDomain?: [number, number];
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
