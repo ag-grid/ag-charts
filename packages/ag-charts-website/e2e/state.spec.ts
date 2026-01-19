@@ -195,6 +195,34 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('setState with undefined active clears current highlight', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                    });
+
+                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
             test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactive', () => {
                 const consoleLogs = createConsoleLogs();
 
