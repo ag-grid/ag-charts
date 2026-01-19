@@ -44,6 +44,7 @@ export class ScrollbarDOMProxy {
         this.slider.orientation = orientation;
         this.slider.setPreventsDefault(false);
         this.slider.addListener('change', () => this.onSliderChange());
+        this.slider.addListener('keydown', (ev) => this.onSliderKeyDown(ev));
         this.slider.addListener('drag-start', (ev) => this.onDragStart(ev));
         this.slider.addListener('drag-move', (ev) => this.onDragMove(ev));
         this.slider.addListener('drag-end', (ev) => this.onDragEnd(ev));
@@ -80,6 +81,25 @@ export class ScrollbarDOMProxy {
         const max = min + this.span;
         this.onChange(min, max);
         this.updateMinMax(min, max);
+    }
+
+    private onSliderKeyDown(event: _ModuleSupport.KeyboardWidgetEvent<'keydown'>) {
+        if (this.orientation !== 'vertical') return;
+
+        const { code } = event.sourceEvent;
+        if (code !== 'ArrowUp' && code !== 'ArrowDown') return;
+
+        event.sourceEvent.preventDefault();
+
+        const element = this.slider.getElement();
+        element.step = this.slider.keyboardStep?.attributeValue ?? '1';
+        if (code === 'ArrowUp') {
+            element.stepDown();
+        } else {
+            element.stepUp();
+        }
+
+        this.onSliderChange();
     }
 
     private onDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
