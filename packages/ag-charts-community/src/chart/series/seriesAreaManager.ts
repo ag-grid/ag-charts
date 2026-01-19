@@ -1098,6 +1098,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onActiveClear(event: null) {
         this.pickManager.onClearAPI(event);
+        this.hoverDevice = 'setState';
         this.clearHighlight(true);
         this.clearTooltip(true);
     }
