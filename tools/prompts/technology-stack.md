@@ -60,7 +60,7 @@ This document outlines the preferred technologies and architectural constraints 
 
 ## Version Requirements
 
--   **Node.js**: ^20.19.4
+-   **Node.js**: ^22.21.1
 -   **Yarn**: ^1.22.21
 -   **Build Target**: ES2020 (excludes IE)
 -   **TypeScript**: Strict mode enabled across all packages
