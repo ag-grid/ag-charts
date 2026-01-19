@@ -12,7 +12,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockErrorBarStyler,
