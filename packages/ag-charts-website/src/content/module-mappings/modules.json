@@ -363,6 +363,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "ScrollbarModule",
+                    "name": "Scrollbar",
+                    "path": "scrollbar",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "SyncModule",
                     "name": "Synchronization",
                     "path": "sync",
