@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
     zoom: {
         enabled: true,
     },
-    initialState: { zoom: { rangeX: { start: 0, end: 0.4 } } },
+    initialState: { zoom: { ratioX: { start: 0, end: 0.4 } } },
     scrollbar: {
         enabled: true,
         thickness: 16,

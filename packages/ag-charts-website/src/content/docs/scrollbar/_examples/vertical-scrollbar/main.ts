@@ -52,15 +52,15 @@ const options: AgCartesianChartOptions = {
     },
     initialState: {
         zoom: {
-            rangeX: { start: 0, end: 0.5 },
-            rangeY: { start: 0.3, end: 0.8 },
+            ratioX: { start: 0, end: 0.5 },
+            ratioY: { start: 0.3, end: 0.8 },
         },
     },
     scrollbar: {
         enabled: true,
         vertical: {
             enabled: true,
-            position: 'right',
+            position: 'left',
         },
     },
 };
