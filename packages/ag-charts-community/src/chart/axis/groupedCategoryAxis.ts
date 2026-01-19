@@ -232,7 +232,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         const tempText = new TransformableText();
 
         const optionsMap = this.getDepthOptionsMap(maxDepth);
-        const labelSpacing = sideFlag * (optionsMap[0].spacing + scrollbarThickness);
+        const labelSpacing = sideFlag * (optionsMap[0].spacing + this.getTickSpacing() + scrollbarThickness);
 
         const tickFormatter = this.tickFormatter(this.scale.domain, this.scale.domain, false);
 
@@ -523,7 +523,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
                       const stroke = tickOptions?.stroke ?? tick.stroke;
                       const strokeWidth = tickOptions?.enabled === false ? 0 : tickOptions?.width ?? tick.width;
                       const h = -direction * tickSize;
-                      const tickOffset = scrollbarThickness ? -direction * scrollbarThickness : 0;
+                      const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing());
                       const [x1, y1, x2, y2] = horizontal
                           ? [offset, tickOffset, offset, tickOffset + h]
                           : [tickOffset, offset, tickOffset + h, offset];

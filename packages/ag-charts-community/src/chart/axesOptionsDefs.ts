@@ -180,6 +180,7 @@ const cartesianAxisTick = {
     enabled: boolean,
     width: positiveNumber,
     size: positiveNumber,
+    spacing: positiveNumber,
     stroke: color,
 };
 

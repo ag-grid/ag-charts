@@ -532,6 +532,10 @@ export abstract class Axis<
         return tick.enabled ? tick.size : 0;
     }
 
+    protected getTickSpacing(tick: AxisTick = this.tick) {
+        return tick.enabled ? tick.spacing : 0;
+    }
+
     processData() {
         // Invalidate layout cache
         this.invalidateLayoutCache();

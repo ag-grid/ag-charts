@@ -214,6 +214,7 @@ export class ChartTheme {
                         enabled: { $path: '../../tick/enabled' },
                         width: { $path: '../../tick/width' },
                         size: { $path: '../../tick/size' },
+                        spacing: { $path: '../../tick/spacing' },
                         stroke: { $path: '../../tick/stroke' },
                     },
                 },
@@ -250,6 +251,7 @@ export class ChartTheme {
                     enabled: false,
                     size: 6,
                     width: 1,
+                    spacing: 0,
                     stroke: { $ref: 'axisColor' },
                 },
                 gridLine: {

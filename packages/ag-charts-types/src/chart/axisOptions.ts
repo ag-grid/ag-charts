@@ -129,6 +129,8 @@ export interface AgAxisBaseTickOptions {
     width?: PixelSize;
     /** The length in pixels of the axis ticks. */
     size?: PixelSize;
+    /** Spacing in pixels between the inner scrollbar and the ticks. Ignored when no inner scrollbar is visible. */
+    spacing?: PixelSize;
     /** The colour of the axis ticks. */
     stroke?: CssColor;
 }

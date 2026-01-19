@@ -21,6 +21,10 @@ export class AxisTick extends BaseProperties {
     @Property
     size: number = 6;
 
+    /** The spacing in pixels between the inner scrollbar and the ticks. Ignored when no inner scrollbar is visible. */
+    @Property
+    spacing: number = 0;
+
     /** The colour of the axis ticks. */
     @Property
     stroke?: string;

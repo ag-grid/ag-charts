@@ -214,7 +214,7 @@ export class CategoryAxis<
         const h = -direction * this.getTickSize(datumTick);
         const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
         const offset = translation - halfStep;
-        const tickOffset = scrollbarThickness ? -direction * scrollbarThickness : 0;
+        const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
         const [x1, y1, x2, y2] = horizontal
             ? [offset, tickOffset, offset, tickOffset + h]
             : [tickOffset, offset, tickOffset + h, offset];
