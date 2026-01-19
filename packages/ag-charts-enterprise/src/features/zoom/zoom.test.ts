@@ -1,16 +1,37 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-
-
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, type AgChartState, AgCharts, type AgInitialStateZoomOptions } from 'ag-charts-community';
-import { clickAction, delay, deproxy, doubleClickAction, doubleTapAction, dragAction, extractImageData, hoverAction, mouseDownAction, mouseMoveAction, mouseUpAction, scrollAction, setupMockCanvas, setupMockConsole, twoFingerEnd, twoFingerMove, twoFingerStart, waitForChartStability } from 'ag-charts-community-test';
+import {
+    type AgCartesianChartOptions,
+    type AgChartInstance,
+    type AgChartOptions,
+    type AgChartState,
+    AgCharts,
+    type AgInitialStateZoomOptions,
+} from 'ag-charts-community';
+import {
+    clickAction,
+    delay,
+    deproxy,
+    doubleClickAction,
+    doubleTapAction,
+    dragAction,
+    extractImageData,
+    hoverAction,
+    mouseDownAction,
+    mouseMoveAction,
+    mouseUpAction,
+    scrollAction,
+    setupMockCanvas,
+    setupMockConsole,
+    twoFingerEnd,
+    twoFingerMove,
+    twoFingerStart,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
-
-
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
 
 describe('Zoom', () => {
     setupMockConsole();
