@@ -38,7 +38,7 @@ async function getChartState(page: Page): Promise<AgChartState> {
 
 async function setChartState(page: Page, state: AgChartState): Promise<void> {
     await page.evaluate(
-        ({ newState }) => {
+        async ({ newState }) => {
             const chart: unknown = (window as any)?.agE2E?.chart;
             if (!chart) {
                 throw new Error('window.agE2E.chart is not defined');
@@ -48,8 +48,13 @@ async function setChartState(page: Page, state: AgChartState): Promise<void> {
                 throw new Error('window.agE2E.chart does not have setState property');
             } else if (typeof chart.setState !== 'function') {
                 throw new Error('window.agE2E.chart.setState is not a function');
+            } else {
+                const setStateReturn = chart.setState(newState);
+                if (!(setStateReturn instanceof Promise)) {
+                    throw new Error('window.agE2E.chart.setState did not return a Promise');
+                }
+                await setStateReturn;
             }
-            return chart.setState(newState);
         },
         { newState: state }
     );
