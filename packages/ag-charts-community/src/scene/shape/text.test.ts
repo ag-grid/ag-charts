@@ -5,7 +5,7 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { IScene } from '../node';
+import type { IScene } from '../node';
 import { Text } from './text';
 
 function setUpMockScene(canvasCtx: any): IScene {

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
-    AgChartOptions,
+    type AgCartesianChartOptions,
+    type AgChartOptions,
     AgCharts,
-    AgWaterfallSeriesLabelPlacement,
-    AgWaterfallSeriesOptions,
-    WaterfallSeriesTotalMeta,
+    type AgWaterfallSeriesLabelPlacement,
+    type AgWaterfallSeriesOptions,
+    type WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
-import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
+import { Canvas, DOMMatrix, type ExportFormat, FontLibrary } from 'skia-canvas';
 
 import { CANVAS_TO_BUFFER_DEFAULTS, ConfiguredCanvasMixin, applySkiaPatches } from 'ag-charts-core';
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { PlainObject } from 'ag-charts-core';
+import type { PlainObject } from 'ag-charts-core';
 
 import { OptionsGraph } from './optionsGraph';
 

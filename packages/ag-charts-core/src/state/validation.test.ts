@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, jest } from '@jest/globals';
 import { reset as resetLogger } from '../logging/logger';
 import {
     type OptionsDefs,
-    Validator,
+    type Validator,
     type ValidatorContext,
-    ValidatorResult,
+    type ValidatorResult,
     and,
     array,
     arrayLength,

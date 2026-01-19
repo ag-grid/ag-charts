@@ -4,7 +4,7 @@ import type { AgChartInstance, AgChartOptions, AgGaugeOptions } from 'ag-charts-
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
-    TestCase,
+    type TestCase,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,

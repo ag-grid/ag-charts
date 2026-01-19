@@ -13,8 +13,8 @@ globs: ['packages/ag-charts-website/src/content/docs/**/*']
 4. Update `nav.json` if navigation changes
 5. Create/update examples in `_examples/` (all MUST be framework-compatible)
 6. Generate and validate:
-   - `yarn nx generate-examples ag-charts-website`
-   - `yarn nx validate-examples`
+    - `yarn nx generate-examples ag-charts-website`
+    - `yarn nx validate-examples`
 7. Test in dev server across all frameworks
 8. For significant changes: `yarn nx e2e ag-charts-website`
 9. Review [Documentation Checklist](.rulesync/rules/docs-checklist.md)

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
+import {
+    type AgCartesianChartOptions,
+    type AgChartOptions,
+    AgCharts,
+    type AgNumberAxisOptions,
+} from 'ag-charts-community';
 import {
     clickAction,
     delay,

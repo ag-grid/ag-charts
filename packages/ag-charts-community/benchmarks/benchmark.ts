@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
-    SizeMetadata,
+    type SizeMetadata,
     WheelDeltaMode,
     flushTimings,
     loadBuiltExampleOptions,
@@ -18,7 +18,7 @@ import {
     sizeOf,
     wheelEvent,
 } from 'ag-charts-test';
-import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../src/main';
 import {
