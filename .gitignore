@@ -80,6 +80,7 @@ vitest.config.*.timestamp*
 **/AGENTS.md
 **/.agent/
 **/.agents/
+**/.ai/
 **/.augmentignore
 **/.augment/rules/
 **/.augment-guidelines
@@ -113,8 +114,7 @@ vitest.config.*.timestamp*
 **/.github/agents/
 **/.github/skills/
 **/.vscode/mcp.json
-**/.junie/guidelines.md
-**/.junie/mcp.json
+**/.junie/
 **/.kilocode/rules/
 **/.kilocode/skills/
 **/.kilocode/workflows/
