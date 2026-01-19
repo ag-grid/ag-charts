@@ -103,6 +103,10 @@ test.describe('state', () => {
                 await page.mouse.move(20, 20);
             }
 
+            async function hoverOnUKLegend(page: Page): Promise<void> {
+                await page.mouse.move(304, 556);
+            }
+
             async function setStateInvalidNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
                 await setChartState(page, {
                     version,
@@ -342,6 +346,34 @@ test.describe('state', () => {
                     expect(state.active).toMatchObject({
                         frozen: false,
                         activeItem: { itemId: '2', seriesId: 'LineSeries-3' },
+                    });
+                });
+            });
+
+            test.describe('legend hover clear active state from mouse', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverInCenter(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+
+                    await hoverOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverInCenter(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { itemId: '6', seriesId: 'LineSeries-5' },
+                    });
+
+                    await hoverOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toMatchObject({
+                        frozen: false,
+                        activeItem: { seriesId: 'LineSeries-2' },
                     });
                 });
             });
