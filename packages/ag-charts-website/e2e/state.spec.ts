@@ -48,13 +48,13 @@ async function setChartState(page: Page, state: AgChartState): Promise<void> {
                 throw new Error('window.agE2E.chart does not have setState property');
             } else if (typeof chart.setState !== 'function') {
                 throw new Error('window.agE2E.chart.setState is not a function');
-            } else {
-                const setStateReturn = chart.setState(newState);
-                if (!(setStateReturn instanceof Promise)) {
-                    throw new Error('window.agE2E.chart.setState did not return a Promise');
-                }
-                await setStateReturn;
             }
+
+            const setStateReturn = chart.setState(newState);
+            if (!(setStateReturn instanceof Promise)) {
+                throw new Error('window.agE2E.chart.setState did not return a Promise');
+            }
+            await setStateReturn;
         },
         { newState: state }
     );
