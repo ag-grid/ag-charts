@@ -39,17 +39,11 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts"]
+        "command": "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts"
       },
       "configurations": {
-        "ci": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u --passWithNoTests"
-          ]
-        },
-        "update": {
-          "commands": ["node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts -u"]
-        }
+        "ci": { "args": "-u --passWithNoTests" },
+        "update": { "args": "-u" }
       }
     },
     "pack": {

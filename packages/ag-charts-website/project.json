@@ -136,9 +136,7 @@
         "watch": {
           "watch": true
         },
-        "update": {
-          "command": "npx vitest -u"
-        }
+        "update": { "args": "-u" }
       }
     },
     "test:e2e": {
@@ -223,20 +221,15 @@
       }
     },
     "update-algolia": {
-      "command": "node update-algolia.js -d --local",
+      "command": "node update-algolia.js",
       "options": {
-        "cwd": "{projectRoot}"
+        "cwd": "{projectRoot}",
+        "args": "-d --local"
       },
       "configurations": {
-        "staging": {
-          "command": "node update-algolia.js -i ag-charts-dev"
-        },
-        "archive": {
-          "command": "node update-algolia.js -i ag-charts-dev"
-        },
-        "production": {
-          "command": "node update-algolia.js -i ag-charts"
-        }
+        "staging": { "args": "-i ag-charts-dev" },
+        "archive": { "args": "-i ag-charts-dev" },
+        "production": { "args": "-i ag-charts" }
       }
     },
     "update-versions-data": {
