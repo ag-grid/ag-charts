@@ -338,6 +338,7 @@ test.describe('state', () => {
                     expect(state.active?.activeItem).toBeUndefined();
 
                     await page.keyboard.press('ArrowRight');
+                    state = await getChartState(page);
                     expect(state.active).toMatchObject({
                         frozen: false,
                         activeItem: { itemId: '2', seriesId: 'LineSeries-3' },
