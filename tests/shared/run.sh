@@ -63,12 +63,11 @@ while getopts ":eniupc" opt; do
 done
 shift $((OPTIND - 1))
 
+project=${2:-/project}
 if [[ ${test_type} == "ssr" ]] ; then
     version=${1:-}
-    project=${2:-/project}
 else
     version=$1
-    project=${2:-/project}
 fi
 
 if declare -F init_fw >/dev/null ; then
