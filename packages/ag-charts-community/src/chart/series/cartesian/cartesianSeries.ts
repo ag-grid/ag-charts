@@ -1140,7 +1140,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected zoomFittingVisibleItems(
         crossAxisKey: string,
-        _axisKeys: string[],
+        _axisKeys: string[], // TODO: remove this parameter
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,
         minVisibleItems: number

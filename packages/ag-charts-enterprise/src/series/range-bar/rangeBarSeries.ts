@@ -51,7 +51,6 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     createDatumId,
-    ContinuousScale,
     Rect,
     PointerEvents,
     motion,
@@ -358,7 +357,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): RangeBarSeriesNodeDatumContext | undefined {
-        const { dataModel, processedData, groupScale } = this;
+        const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources?.get(this.id)?.data;
@@ -366,10 +365,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-
-        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
-        const groupOffset = groupScale.convert(String(groupIndex));
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const crisp = checkCrisp(
@@ -394,6 +389,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 !processedDataIsAnimatable(processedData) ||
                 dataAggregationFilter != null);
 
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
+
         return {
             xAxis,
             yAxis,
@@ -403,9 +400,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData),
             xScale,
             yScale,
-            barWidth,
             groupOffset,
             barOffset,
+            barWidth,
             barAlongX,
             crisp,
             dataAggregationFilter,
@@ -786,7 +783,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeData: ctx.nodes,
             labelData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
             styles: getItemStyles(this.getItemStyle.bind(this)),
             segments,

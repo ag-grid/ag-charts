@@ -24,7 +24,6 @@ const {
     computeBarFocusBounds,
     createDatumId,
     HighlightState,
-    ContinuousScale,
     motion,
     getItemStyles,
     calculateSegments,
@@ -202,12 +201,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { dataModel, processedData, contextNodeData } = this;
         if (!dataModel || !processedData) return undefined;
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
-        const groupOffset = this.groupScale.convert(String(groupIndex));
-
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         return {
             xAxis,
@@ -221,9 +218,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData),
             xScale: xAxis.scale,
             yScale: yAxis.scale,
-            barWidth,
-            barOffset,
             groupOffset,
+            barOffset,
+            barWidth,
             isVertical: this.isVertical(),
             xKey: this.properties.xKey,
             animationEnabled,
@@ -455,7 +452,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             this.ctx.scene
         );
 
-        result.groupScale = this.getScaling(this.groupScale);
+        result.groupScale = this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!);
         result.styles = getItemStyles(this.getItemStyle.bind(this));
         result.segments = segments;
 

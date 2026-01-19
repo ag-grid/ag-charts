@@ -107,6 +107,8 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions, AgBarHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
+    /** Fixed width of each bar in the series. */
+    width?: PixelSize;
 }
 
 export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {

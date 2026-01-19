@@ -25,7 +25,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    ContinuousScale,
     Group,
     Selection,
     PointerEvents,
@@ -273,7 +272,6 @@ export abstract class BaseFunnelSeries<
             hasData,
             data,
             dataModel,
-            groupScale,
             processedData,
             id: seriesId,
             ctx: { legendManager },
@@ -299,7 +297,7 @@ export abstract class BaseFunnelSeries<
             labelData: [],
             connectorData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
         };
 
@@ -309,8 +307,7 @@ export abstract class BaseFunnelSeries<
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         const crisp = checkCrisp(
             xAxis?.scale,
@@ -333,7 +330,7 @@ export abstract class BaseFunnelSeries<
             const xDatum = xValues[datumIndex];
             if (xDatum == null) continue;
 
-            const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
+            const x = Math.round(xScale.convert(xDatum)) + groupOffset + barOffset;
 
             const yDatum = yValues[datumIndex];
             const yNegative = Math.round(yScale.convert(-yDatum));

@@ -25,7 +25,6 @@ import type {
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
@@ -38,7 +37,7 @@ import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
-import type { PropertyDefinition } from '../../data/dataModelTypes';
+import type { GroupedData, PropertyDefinition } from '../../data/dataModelTypes';
 import {
     LARGEST_KEY_INTERVAL,
     SMALLEST_KEY_INTERVAL,
@@ -502,7 +501,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         xAxis: ChartAxis,
         yAxis: ChartAxis
     ): BarSeriesNodeDatumContext | undefined {
-        const { dataModel, processedData, groupScale } = this;
+        const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
         const rawData = processedData.dataSources?.get(this.id);
@@ -510,7 +509,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-        const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
         const range = Math.abs(xScale.range[1] - xScale.range[0]);
 
         // Ensure we have the aggregation level needed for the current range
@@ -521,6 +519,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, `yValue-start`);
         const { label } = this.properties;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
+
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         return {
             dataSource: rawData,
@@ -536,8 +536,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yScale,
             xAxis,
             yAxis,
-            groupOffset: groupScale.convert(String(groupScaleIndex)),
-            barOffset: ContinuousScale.is(xScale) ? barWidth * -0.5 : 0,
+            groupOffset,
+            barOffset,
             barWidth,
             range,
             yReversed: yAxis.isReversed(),
@@ -937,7 +937,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         xPosition: (index: number) => number,
         nodeDatumParamsScratch: NodeDatumParams
     ): void {
-        const processedData = this.processedData! as import('../../data/dataModelTypes').GroupedData<any>;
+        const processedData = this.processedData! as GroupedData<any>;
         const invalidData = processedData.invalidData?.get(this.id);
         const width = ctx.barWidth;
         const yRangeIndex = ctx.isStacked ? this.dataModel!.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
@@ -1137,7 +1137,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelData: ctx.labels,
             scales: this.calculateScaling(),
             visible: this.visible || ctx.animationEnabled,
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             styles: getItemStyles(this.getItemStyle.bind(this)),
             segments: undefined,
         };
