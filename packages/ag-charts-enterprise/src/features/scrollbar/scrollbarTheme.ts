@@ -36,9 +36,8 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     placement: 'outer',
     visible: 'auto',
     track: {
-        fill: { $ref: 'foregroundColor' },
-        stroke: { $foregroundBackgroundMix: 0.15 },
-        fillOpacity: 0.05,
+        fill: { $foregroundBackgroundMix: 0.03 },
+        stroke: { $foregroundBackgroundMix: 0.177 },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
@@ -46,9 +45,8 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         cornerRadius: 6,
     },
     thumb: {
-        fill: { $ref: 'foregroundColor' },
-        stroke: { $foregroundBackgroundMix: 0.15 },
-        fillOpacity: 0.1,
+        fill: { $foregroundBackgroundMix: 0.125 },
+        stroke: { $foregroundBackgroundMix: 0.364 },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
@@ -56,7 +54,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         cornerRadius: 6,
         minSize: 10,
         // @ts-expect-error undocumented option
-        accentColor: { $ref: 'accentColor' },
+        accentColor: { $foregroundBackgroundMix: 0.2 },
     },
     vertical: SCROLLBAR_ORIENTATION_THEME,
     horizontal: SCROLLBAR_ORIENTATION_THEME,
