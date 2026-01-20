@@ -476,7 +476,7 @@ test.describe('state', () => {
                 });
             });
 
-            test.describe('legend hover clear active state from mouse', () => {
+            test.describe('legend hover events clear active state from series-area mouse events', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverOnCurrentYearBond(page);
                     await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
