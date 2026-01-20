@@ -11,6 +11,7 @@ import {
 import {
     clickAction,
     delay,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
     dragAction,
@@ -27,7 +28,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { DeepReadonly } from 'ag-charts-core';
+import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -147,6 +148,60 @@ describe('Zoom', () => {
             customSnapshotIdentifier,
         });
     };
+
+    describe('visibleDomain', () => {
+        it('should match the zoomed domain for cartesian number axes', async () => {
+            let lastVisibleDomain: [number, number] | undefined;
+            const baseOptions: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 0 },
+                    { x: 10, y: 5 },
+                    { x: 20, y: 10 },
+                    { x: 30, y: 15 },
+                    { x: 40, y: 20 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        nice: false,
+                        label: {
+                            formatter: (params) => {
+                                lastVisibleDomain = params.visibleDomain;
+                                return String(params.value);
+                            },
+                        },
+                    },
+                    y: { type: 'number', position: 'left', nice: false },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            };
+            const initialState: AgInitialStateZoomOptions = {
+                ratioX: { start: 0.2, end: 0.6 },
+            };
+
+            await prepareChart(undefined, initialState, baseOptions, false);
+            await waitForChartStability(chart);
+
+            const axes = deproxy(chart).axes;
+            const xAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X && axis.type === 'number');
+            expect(xAxis).toBeDefined();
+            if (xAxis == null) return;
+
+            const domain = xAxis.scale.domain;
+            const length = domain[1] - domain[0];
+            const ratioX = chart.getState().zoom?.ratioX;
+            const ratioStart = ratioX?.start ?? 0;
+            const ratioEnd = ratioX?.end ?? 1;
+            const expectedVisibleDomain: [number, number] = [
+                domain[0] + ratioStart * length,
+                domain[1] - (1 - ratioEnd) * length,
+            ];
+
+            expect(lastVisibleDomain).toEqual(expectedVisibleDomain);
+        });
+    });
 
     describe('scrolling', () => {
         it('should zoom in', async () => {
