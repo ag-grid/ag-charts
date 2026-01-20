@@ -207,7 +207,7 @@ test.describe('state', () => {
             test.describe('series-area mouse events clear unfrozen setState from legend', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: 'Legend' });
-                    await expect(page).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
 
                     await hoverInCenter(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
