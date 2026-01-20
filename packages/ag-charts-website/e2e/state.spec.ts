@@ -486,7 +486,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: 3, seriesId: 'DonutSeries-1' },
+                        activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
                     });
                 });
             });
