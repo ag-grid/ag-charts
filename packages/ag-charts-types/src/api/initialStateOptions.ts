@@ -50,6 +50,8 @@ export interface AgInitialStateZoomRatio {
 }
 
 export interface AgActiveItemState {
+    /** Where the item activation originates from. */
+    type: 'series-area' | 'legend';
     /** The unique identifier of the series that this picked datum belongs to. */
     seriesId: string;
     /** The unique identifier of the picked datum. */

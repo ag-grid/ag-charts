@@ -31,11 +31,11 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
                 return { frozen };
             case 'datum': {
                 const { seriesId, itemId } = this.currentState;
-                return { frozen, activeItem: { seriesId, itemId } };
+                return { frozen, activeItem: { type: 'series-area', seriesId, itemId } };
             }
             case 'legend': {
                 const { seriesId } = this.currentState;
-                return { frozen, activeItem: { seriesId } };
+                return { frozen, activeItem: { type: 'legend', seriesId } };
             }
             default:
                 return this.currentState satisfies never;
