@@ -4,7 +4,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> = AgChartLabelOptions<
     TDatum,
@@ -38,7 +38,8 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends LineDashOptions {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
+        LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
