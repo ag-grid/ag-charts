@@ -89,6 +89,7 @@ const ITEM_ID_MAP = {
     '2022': '12',
     '2023': '13',
     '2024': '14',
+    Legend: undefined,
 };
 
 function onCountryChange(value: Country): void {
