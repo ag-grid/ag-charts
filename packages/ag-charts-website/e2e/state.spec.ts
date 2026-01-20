@@ -429,6 +429,19 @@ test.describe('state', () => {
                 await page.mouse.move(400, 330);
             }
 
+            async function setStateRealEstateLegend(version: string, page: Page): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        activeItem: {
+                            type: 'legend',
+                            seriesId: 'DonutSeries-1',
+                            itemId: 3,
+                        },
+                    },
+                });
+            }
+
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active', 'multi-donut-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -483,6 +496,37 @@ test.describe('state', () => {
                     });
 
                     await hoverOnRealEstateLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
+                    });
+                });
+            });
+
+            test.describe('setState for legend highlights both donuts', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await hoverOnCurrentYearBond(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+
+                    await setStateRealEstateLegend(version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await hoverOnCurrentYearBond(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                    });
+
+                    await setStateRealEstateLegend(version, page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
