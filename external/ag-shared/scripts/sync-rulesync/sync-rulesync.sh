@@ -347,6 +347,30 @@ apply_create_missing_symlinks() {
     return 0
 }
 
+# Regenerate AGENTS.md using rulesync
+regenerate_agents_md() {
+    log_info "Regenerating AGENTS.md..."
+
+    cd "$REPO_ROOT"
+
+    # Run rulesync to regenerate AGENTS.md using the dedicated agentsmd target
+    local output
+    local exit_code=0
+    output=$(npx rulesync generate \
+        --targets=agentsmd \
+        --features=rules \
+        --delete 2>&1) || exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
+        log_fixed "Regenerated AGENTS.md"
+        return 0
+    else
+        log_error "Failed to regenerate AGENTS.md"
+        log_info "  $output"
+        return 1
+    fi
+}
+
 # Check if postinstall includes patch-package
 check_postinstall() {
     local package_json="$REPO_ROOT/package.json"
@@ -406,13 +430,14 @@ show_help() {
     echo "  --apply   Apply fixes for any issues found"
     echo "  --help    Show this help message"
     echo ""
-    echo "What it checks:"
+    echo "What it checks/applies:"
     echo "  - patches/ directory exists"
     echo "  - patches/$PATCH_FILE symlink points to shared location"
     echo "  - package.json postinstall includes patch-package"
     echo "  - .rulesync/ has no stale symlinks to external/ag-shared/ or external/prompts/"
     echo "  - .rulesync/commands/ has all expected symlinks from external/ag-shared/prompts/commands/"
     echo "    and external/prompts/commands/ (if present)"
+    echo "  - AGENTS.md is regenerated (--apply only)"
     echo ""
     echo "Shared patch location: $SHARED_PATCHES_REL/$PATCH_FILE"
 }
@@ -484,6 +509,9 @@ main() {
             if ! check_missing_rulesync_symlinks; then
                 apply_create_missing_symlinks
             fi
+
+            # Regenerate AGENTS.md to ensure it's up to date
+            regenerate_agents_md || true
             ;;
     esac
 
