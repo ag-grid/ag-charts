@@ -26,9 +26,7 @@
         "cwd": "{projectRoot}"
       },
       "configurations": {
-        "staging": {
-          "args": "--clean-cache=true --run-second-build=true"
-        },
+        "staging": {},
         "archive": {
           "args": "--clean-cache=true --run-second-build=true"
         },
