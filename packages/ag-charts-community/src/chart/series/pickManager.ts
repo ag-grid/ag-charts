@@ -1,5 +1,5 @@
 import { objectsEqual } from 'ag-charts-core';
-import type { AgPickedItemsState } from 'ag-charts-types';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import type { ActiveManager } from '../interaction/activeManager';
 import type { PickFocusOutputs, UnknownSeries } from './series';
@@ -16,7 +16,7 @@ export type PickedNodes = {
     distance: number;
 };
 
-function getItemId(node: PickedNode): NonNullable<AgPickedItemsState['itemId']> {
+function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
     // FIXME: How to serialise/deserialise datums is still TBD.
     if (node.datum.itemId) return `${node.datum.itemId}`;
     return JSON.stringify(node.datum.datumIndex);
