@@ -101,8 +101,7 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
             return super.update();
         }
 
-        const r0 = this.range[0];
-        const r1 = this.range[1];
+        const [r0, r1] = this.range;
         let { paddingInner } = this;
         const { paddingOuter } = this;
         const bandCount = this.getBandCountForUpdate();
@@ -141,10 +140,12 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
 
         let inset = r0;
         const rawBandwidth =
-            bandCountWithUnfixedWidths > 0 ? rangeDiff / bandCountWithUnfixedWidths : (r1 - r0) / bandCount;
+            bandCountWithUnfixedWidths > 0 && rangeDiff >= 0
+                ? rangeDiff / bandCountWithUnfixedWidths
+                : targetRangeDistance / bandCount;
         let bandwidth = rawBandwidth;
 
-        if (bandCountWithOnlyFixedWidths === bandCount) {
+        if (bandCountWithOnlyFixedWidths === bandCount && rangeDiff > 0) {
             inset += rangeDiff / 2;
         }
 

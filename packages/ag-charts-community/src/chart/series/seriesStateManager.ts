@@ -103,6 +103,8 @@ export class SeriesStateManager {
         axis: PlainObject // TODO: ChartAxis circular dependency
     ) {
         const groupScale = this.groupScales.get(type) ?? new IrregularBandScale();
+        this.groupScales.set(type, groupScale);
+
         groupScale.domain = []; // reset domain and band ranges
 
         const group = this.groups.get(type);
@@ -117,9 +119,6 @@ export class SeriesStateManager {
         }
 
         groupScale.range = [0, bandwidth];
-        groupScale.update(); // TODO: don't hardcode this
-
-        this.groupScales.set(type, groupScale);
 
         if (axis.type === 'grouped-category') {
             // TODO: `instanceof GroupedCategoryAxis` circular dependency
@@ -133,6 +132,8 @@ export class SeriesStateManager {
             // Number or Time axis
             groupScale.padding = 0;
         }
+
+        groupScale.update(); // TODO: don't hardcode this
     }
 
     public getGroupScale({ type }: SeriesLike): IrregularBandScale | undefined {
