@@ -1121,7 +1121,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private findPickedNodes(desiredSeriesId: string, desiredItemId: string): PickedNodes | undefined {
+    private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
             Logger.warn(`Cannot find series '${desiredSeries}'`);

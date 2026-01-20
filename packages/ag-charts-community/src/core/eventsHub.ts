@@ -108,12 +108,13 @@ export interface EventsHubMap {
 
 export interface ActiveDatumChangeEvent {
     seriesId: string;
-    itemId: string;
+    itemId: string | number;
     reject(): void;
 }
 
 export interface ActiveLegendChangeEvent {
     seriesId: string;
+    itemId: string | number;
     reject(): void;
 }
 

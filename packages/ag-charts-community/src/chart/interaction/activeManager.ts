@@ -6,8 +6,8 @@ import type { EventsHub } from '../../core/eventsHub';
 import { commonChartOptions } from '../chartOptionsDefs';
 
 type ActiveStateNone = { type: 'inactive'; seriesId?: never; itemId?: never };
-type ActiveStateDatum = { type: 'datum'; seriesId: string; itemId: string };
-type ActiveStateLegend = { type: 'legend'; seriesId: string; itemId?: never };
+type ActiveStateDatum = { type: 'datum'; seriesId: string; itemId: string | number };
+type ActiveStateLegend = { type: 'legend'; seriesId: string; itemId: string | number };
 type ActiveState = ActiveStateNone | ActiveStateDatum | ActiveStateLegend;
 
 /**
@@ -34,8 +34,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
                 return { frozen, activeItem: { type: 'series-area', seriesId, itemId } };
             }
             case 'legend': {
-                const { seriesId } = this.currentState;
-                return { frozen, activeItem: { type: 'legend', seriesId } };
+                const { seriesId, itemId } = this.currentState;
+                return { frozen, activeItem: { type: 'legend', seriesId, itemId } };
             }
             default:
                 return this.currentState satisfies never;
@@ -60,16 +60,16 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     }
 
     private emitRestoration(activeItem: AgActiveState['activeItem']): [boolean, ActiveState] {
-        const { seriesId, itemId } = activeItem ?? {};
+        const { type, seriesId, itemId } = activeItem ?? {};
         let rejection = false;
         const reject = () => (rejection = true);
 
-        if (seriesId === undefined) {
+        if (seriesId === undefined || itemId === undefined) {
             this.eventsHub.emit('active:clear', null);
             return [rejection, { type: 'inactive' }];
-        } else if (itemId === undefined) {
-            this.eventsHub.emit('active:legend', { seriesId, reject });
-            return [rejection, { type: 'legend', seriesId }];
+        } else if (type === 'legend') {
+            this.eventsHub.emit('active:legend', { seriesId, itemId, reject });
+            return [rejection, { type: 'legend', seriesId, itemId }];
         } else {
             this.eventsHub.emit('active:datum', { seriesId, itemId, reject });
             return [rejection, { type: 'datum', seriesId, itemId }];

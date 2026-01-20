@@ -55,7 +55,7 @@ export interface AgActiveItemState {
     /** The unique identifier of the series that this picked datum belongs to. */
     seriesId: string;
     /** The unique identifier of the picked datum. */
-    itemId?: string;
+    itemId: string | number;
 }
 
 export interface AgActiveState {
