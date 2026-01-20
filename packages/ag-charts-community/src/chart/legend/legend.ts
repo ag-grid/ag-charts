@@ -1251,13 +1251,14 @@ export class Legend extends BaseProperties {
         const { activeItem } = event;
         if (activeItem?.type !== 'legend') return;
 
-        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId);
+        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
             Logger.error(`cannot series with id '${activeItem.seriesId}'`);
             event.reject();
         } else if (datum === undefined) {
-            Logger.error(`cannot find legend item for seriesId '${activeItem.seriesId}'`);
+            const json = JSON.stringify({ seriesId: activeItem.seriesId, itemId: activeItem.itemId });
+            Logger.error(`cannot find legend item: ${json}`);
             event.reject();
         } else {
             this.updateHighlight(datum.enabled, datum, series);
