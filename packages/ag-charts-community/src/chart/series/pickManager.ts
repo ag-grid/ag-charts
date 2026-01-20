@@ -52,7 +52,7 @@ export interface IPickManager {
     onPickedNodesAPIDebounced(): TooltipCandidate;
 
     onClearUI(): void;
-    onClearAPI(event: null): void;
+    onClearAPI(): void;
 
     nextCandidate(): TooltipCandidate;
 }
@@ -78,11 +78,11 @@ export class PickManager implements IPickManager {
     private updateActive(active: PickedNode | undefined): PickedNode | undefined {
         this.active = active;
         if (this.active === undefined) {
-            this.activeManager.update({ type: 'inactive' });
+            this.activeManager.update(undefined);
         } else {
             const seriesId: string = this.active.series.id;
             const itemId: string | number = getItemId(this.active);
-            this.activeManager.update({ type: 'datum', seriesId, itemId });
+            this.activeManager.update({ type: 'series-area', seriesId, itemId });
         }
         return this.active;
     }
@@ -95,7 +95,7 @@ export class PickManager implements IPickManager {
 
     // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
     onClearUI(): void {
-        this.activeManager.update({ type: 'inactive' });
+        this.activeManager.update(undefined);
         this.clear();
     }
 

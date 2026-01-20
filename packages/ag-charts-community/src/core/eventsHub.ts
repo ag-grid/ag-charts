@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-core';
 import { EventEmitter } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgAnnotation,
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
@@ -61,9 +62,7 @@ export interface DataModelDiffEvent {
 
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
-    'active:clear': null;
-    'active:datum': ActiveDatumChangeEvent;
-    'active:legend': ActiveLegendChangeEvent;
+    'active:load-memento': ActiveLoadMementoEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;
@@ -106,15 +105,8 @@ export interface EventsHubMap {
     'zoom:pan-start': ZoomPanStartEvent;
 }
 
-export interface ActiveDatumChangeEvent {
-    seriesId: string;
-    itemId: string | number;
-    reject(): void;
-}
-
-export interface ActiveLegendChangeEvent {
-    seriesId: string;
-    itemId: string | number;
+export interface ActiveLoadMementoEvent {
+    readonly activeItem: Readonly<AgActiveItemState> | undefined;
     reject(): void;
 }
 
