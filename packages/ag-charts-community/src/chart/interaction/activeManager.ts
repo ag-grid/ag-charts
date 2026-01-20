@@ -26,8 +26,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         switch (this.currentItem?.type) {
             case 'series-area':
             case 'legend': {
-                const { seriesId, itemId } = this.currentItem;
-                return { frozen, activeItem: { type: 'series-area', seriesId, itemId } };
+                const { type, seriesId, itemId } = this.currentItem;
+                return { frozen, activeItem: { type, seriesId, itemId } };
             }
             default:
                 this.currentItem?.type satisfies undefined;
