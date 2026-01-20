@@ -204,6 +204,41 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('series-area mouse events clear unfrozen setState from legend', () => {
+                test('screenshots', async ({ page }) => {
+                    await pickDatum(page, { country: 'UK', year: 'Legend' });
+                    await expect(page).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+
+                    await hoverInCenter(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+
+                    await hoverInTopLeft(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await pickDatum(page, { country: 'UK', year: 'Legend' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 'UK', seriesId: 'LineSeries-2' },
+                    });
+
+                    await hoverInCenter(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
+                    });
+
+                    await hoverInTopLeft(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
             test.describe('setState with undefined active clears current highlight', () => {
                 test('screenshots', async ({ page }) => {
                     const { version } = await getChartState(page);
