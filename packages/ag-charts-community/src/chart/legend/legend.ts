@@ -46,7 +46,7 @@ import type {
 } from 'ag-charts-types';
 
 import type {
-    ActiveLegendChangeEvent,
+    ActiveLoadMementoEvent,
     HighlightNodeDatum,
     LegendChangeEvent,
     LegendChangePartialEvent,
@@ -73,6 +73,8 @@ import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
+
+type StrictHighlightNodeDatum = HighlightNodeDatum & { itemId: CategoryLegendDatum['itemId'] };
 
 class LegendLabel extends BaseProperties {
     @Property
@@ -324,7 +326,7 @@ export class Legend extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
-    private pendingHighlightDatum?: HighlightNodeDatum;
+    private pendingHighlightDatum?: StrictHighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -339,7 +341,7 @@ export class Legend extends BaseProperties {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
-            ctx.eventsHub.on('active:legend', (event) => this.onActiveLegend(event)),
+            ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -1200,16 +1202,18 @@ export class Legend extends BaseProperties {
         legendDatum: CategoryLegendDatum | undefined,
         series: (typeof this.ctx.chartService.series)[0] | undefined
     ): void {
-        const updateManagers = (nodeDatum: HighlightNodeDatum | undefined): void => {
+        const updateManagers = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
             this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
             if (nodeDatum === undefined) {
-                this.ctx.activeManager.update({ type: 'inactive' });
+                this.ctx.activeManager.update(undefined);
             } else {
-                this.ctx.activeManager.update({ type: 'legend', seriesId: nodeDatum.series.id });
+                const seriesId = nodeDatum.series.id;
+                const itemId = nodeDatum.itemId;
+                this.ctx.activeManager.update({ type: 'legend', seriesId, itemId });
             }
         };
 
-        const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
+        const highlightNodeDatum = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
                 updateManagers(nodeDatum);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
@@ -1225,7 +1229,7 @@ export class Legend extends BaseProperties {
         if (enabled === true && series !== undefined && legendDatum !== undefined) {
             highlightNodeDatum({
                 series,
-                itemId: legendDatum?.itemId,
+                itemId: legendDatum.itemId,
                 datum: undefined,
                 datumIndex: typeof legendDatum?.itemId === 'number' ? legendDatum.itemId : undefined,
                 legendItemName: legendDatum?.legendItemName,
@@ -1235,13 +1239,16 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onActiveLegend(event: ActiveLegendChangeEvent): void {
-        const datum = this.data.find((d) => d.seriesId === event.seriesId);
-        const series = this.ctx.chartService.series.find((s) => s.id === event.seriesId);
+    private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
+        const { activeItem } = event;
+        if (activeItem?.type !== 'legend') return;
+
+        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId);
+        const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
-            Logger.error(`cannot series with id '${event.seriesId}'`);
+            Logger.error(`cannot series with id '${activeItem.seriesId}'`);
         } else if (datum === undefined) {
-            Logger.error(`cannot find legend item for seriesId '${event.seriesId}'`);
+            Logger.error(`cannot find legend item for seriesId '${activeItem.seriesId}'`);
         } else {
             this.updateHighlight(datum.enabled, datum, series);
         }
