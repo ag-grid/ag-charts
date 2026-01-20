@@ -267,7 +267,7 @@ test.describe('state', () => {
                 });
             });
 
-            test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactive', () => {
+            test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactivate', () => {
                 const consoleLogs = createConsoleLogs();
 
                 test('screenshots', async ({ page }) => {

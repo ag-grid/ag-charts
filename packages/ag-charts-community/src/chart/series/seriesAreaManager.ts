@@ -1098,9 +1098,8 @@ export class SeriesAreaManager extends BaseManager {
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
         switch (event.activeItem?.type) {
             case undefined:
-                return this.onActiveClear();
             case 'legend':
-                return this.onActiveLegend();
+                return this.onActiveClear();
             case 'series-area':
                 return this.onActiveDatum(event.activeItem, event);
             default:
@@ -1113,10 +1112,6 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverDevice = 'setState';
         this.clearHighlight(true);
         this.clearTooltip(true);
-    }
-
-    private onActiveLegend() {
-        this.pickManager.onClearAPI();
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
