@@ -148,23 +148,23 @@ test.describe('state', () => {
 
                     await pickDatum(page, { country: 'Spain', year: '2010' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     });
 
                     await pickDatum(page, { country: 'France', year: '2014' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
                     });
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
                 });
             });
@@ -186,16 +186,16 @@ test.describe('state', () => {
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
                     await hoverInCenter(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '6', seriesId: 'LineSeries-5' },
+                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
                     });
 
                     await hoverInTopLeft(page);
@@ -256,9 +256,9 @@ test.describe('state', () => {
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
                     await setChartState(page, { version, active: { activeItem: undefined } });
@@ -292,9 +292,9 @@ test.describe('state', () => {
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
@@ -319,16 +319,16 @@ test.describe('state', () => {
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
                     await repeat(3, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     });
                 });
             });
@@ -358,18 +358,18 @@ test.describe('state', () => {
 
                     await repeat(6, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     });
 
                     await page.keyboard.press('ArrowDown');
                     await page.keyboard.press('ArrowDown');
                     await page.keyboard.press('ArrowRight');
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '1', seriesId: 'LineSeries-3' },
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'LineSeries-3' },
                     });
 
                     await setChartState(page, { version, active: { activeItem: undefined } });
@@ -378,9 +378,9 @@ test.describe('state', () => {
 
                     await page.keyboard.press('ArrowRight');
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '2', seriesId: 'LineSeries-3' },
+                        activeItem: { type: 'series-area', itemId: '2', seriesId: 'LineSeries-3' },
                     });
                 });
             });
@@ -399,16 +399,16 @@ test.describe('state', () => {
 
                     await hoverInCenter(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '6', seriesId: 'LineSeries-5' },
+                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
                     });
 
                     await hoverOnUKLegend(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'legend', itemId: 'UK', seriesId: 'LineSeries-2' },
                     });
                 });
             });
@@ -452,9 +452,9 @@ test.describe('state', () => {
 
                     await hoverOnCurrentYearBond(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
                     });
 
                     await hoverSeriesAreaMiss(page);
@@ -477,14 +477,14 @@ test.describe('state', () => {
 
                     await hoverOnCurrentYearBond(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
                     });
 
                     await hoverOnRealEstateLegendItem(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
                         activeItem: { itemId: 3, seriesId: 'DonutSeries-1' },
                     });
@@ -537,23 +537,23 @@ test.describe('state', () => {
 
                     await hoverOnThreeCandidates(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
-                    expect(state.active).toMatchObject({
+                    expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { itemId: 'crashRate', seriesId: 'BubbleSeries-1' },
+                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-1' },
                     });
 
                     await hoverInTopLeft(page);
