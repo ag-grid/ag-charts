@@ -420,7 +420,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
     }
 
-    override getSeriesRange(direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] | [] {
+    override getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [] {
         const selfDirection = this.properties.direction === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
         if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);

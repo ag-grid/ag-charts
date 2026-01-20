@@ -60,7 +60,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
-    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [];
     getZoomRangeFittingItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,
