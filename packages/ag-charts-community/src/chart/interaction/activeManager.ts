@@ -19,6 +19,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
     public update(newItemState: ActiveItem): void {
         this.currentItem = newItemState;
+        this.eventsHub.emit('active:update', newItemState);
     }
 
     public createMemento(): AgActiveState {

@@ -63,6 +63,7 @@ export interface DataModelDiffEvent {
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
+    'active:update': AgActiveItemState | undefined;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;

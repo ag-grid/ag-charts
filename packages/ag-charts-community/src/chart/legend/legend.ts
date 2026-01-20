@@ -29,6 +29,7 @@ import {
     truncateLine,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
     AgChartLegendDoubleClickEvent,
@@ -342,6 +343,7 @@ export class Legend extends BaseProperties {
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
             ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -1236,6 +1238,12 @@ export class Legend extends BaseProperties {
             });
         } else {
             highlightNodeDatum(undefined);
+        }
+    }
+
+    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
+        if (activeItem?.type === 'series-area') {
+            this.ctx.highlightManager.updateHighlight(this.id, undefined);
         }
     }
 
