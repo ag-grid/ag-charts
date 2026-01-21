@@ -436,6 +436,20 @@ test.describe('state', () => {
                 await page.mouse.move(400, 330);
             }
 
+            async function setStateCurrentYearBond(version: string, page: Page): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: {
+                            type: 'series-area',
+                            seriesId: 'DonutSeries-2',
+                            itemId: '1',
+                        },
+                    },
+                });
+            }
+
             async function setStateRealEstateLegend(version: string, page: Page): Promise<void> {
                 await setChartState(page, {
                     version,
@@ -584,6 +598,44 @@ test.describe('state', () => {
                     expect(state.active).toEqual({
                         frozen: false,
                         activeItem: { type: 'legend', itemId: 1, seriesId: 'DonutSeries-1' },
+                    });
+
+                    await setStateInactive(version, page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({ frozen: false });
+                });
+            });
+
+            test.describe('setState for series-area overwrites state from legend mouse events', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await hoverOnRealEstateLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+
+                    await setStateCurrentYearBond(version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+
+                    await setStateInactive(version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await hoverOnRealEstateLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
+                    });
+
+                    await setStateCurrentYearBond(version, page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
                     });
 
                     await setStateInactive(version, page);
