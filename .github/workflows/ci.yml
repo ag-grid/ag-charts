@@ -59,6 +59,7 @@ jobs:
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
+            pkg_tests_modified: ${{ steps.matrix.outputs.pkg_tests_modified }}
         steps:
             - name: Checkout
               id: checkout
@@ -123,6 +124,14 @@ jobs:
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
+
+                  # Check if package test files are directly modified in PR
+                  pkg_tests_modified="false"
+                  if git diff --name-only ${{ steps.setup.outputs.base }}...HEAD 2>/dev/null | grep -q "^tests/.*-package-tests/"; then
+                    pkg_tests_modified="true"
+                  fi
+                  echo "pkg_tests_modified=${pkg_tests_modified}" >> $GITHUB_OUTPUT
+                  echo "Package tests modified: ${pkg_tests_modified}"
 
             - name: Prepare Snapshot Branch
               uses: ./.github/actions/snapshot-prepare
@@ -445,7 +454,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
-        if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release')
+        if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
