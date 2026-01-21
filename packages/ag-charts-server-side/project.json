@@ -26,7 +26,7 @@
       "options": {
         "main": "{projectRoot}/src/main.ts",
         "additionalEntryPoints": ["{projectRoot}/src/test/index.ts"],
-        "external": ["ag-charts-community", "jsdom", "skia-canvas"],
+        "external": ["ag-charts-community", "ag-charts-core", "jsdom", "skia-canvas"],
         "platform": "node"
       }
     },

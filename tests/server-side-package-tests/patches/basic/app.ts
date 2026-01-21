@@ -15,7 +15,7 @@ import { AgChartsServerSide } from 'ag-charts-server-side';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
-import { AllEnterpriseModule, LicenseManager } from 'ag-charts-enterprise';
+// Note: Enterprise is imported via require() at runtime to prevent watermark on community tests
 
 interface TestResult {
     name: string;
@@ -331,6 +331,10 @@ async function main() {
     // Enterprise Tests
     // =====================
     console.log('\n--- Enterprise Tests ---\n');
+
+    // Load enterprise at runtime to avoid watermark on community tests above
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllEnterpriseModule, LicenseManager } = require('ag-charts-enterprise');
 
     // Register enterprise modules for enterprise-specific tests
     ModuleRegistry.registerModules([AllEnterpriseModule]);
