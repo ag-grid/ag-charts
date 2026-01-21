@@ -444,7 +444,7 @@ test.describe('state', () => {
                         activeItem: {
                             type: 'series-area',
                             seriesId: 'DonutSeries-2',
-                            itemId: '1',
+                            itemId: 1,
                         },
                     },
                 });
