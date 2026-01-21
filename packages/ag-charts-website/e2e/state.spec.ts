@@ -544,7 +544,7 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
                     let state: AgChartState;
 
-                    await hoverOnCurrentYearBond(page);
+                    await hoverOnRealEstateLegendItem(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
