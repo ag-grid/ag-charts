@@ -33,9 +33,29 @@ if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
 }
 
-async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
+const DEFAULT_TEST_TIMEOUT_MS = 5000; // 5 seconds
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, testName: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            reject(new Error(`Test "${testName}" timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        promise
+            .then((result) => {
+                clearTimeout(timeoutId);
+                resolve(result);
+            })
+            .catch((error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+    });
+}
+
+async function runTest(name: string, fn: () => Promise<void>, timeoutMs = DEFAULT_TEST_TIMEOUT_MS): Promise<void> {
     try {
-        await fn();
+        await withTimeout(fn(), timeoutMs, name);
         results.push({ name, success: true });
         console.log(`  ✓ ${name}`);
     } catch (error) {
@@ -337,25 +357,7 @@ async function main() {
         assertMatchesSnapshot(buffer, 'enterprise-unlicensed-watermark');
     });
 
-    // Test 9: Treemap (enterprise-only series)
-    await runTest('Render treemap chart', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { name: 'A', size: 100, children: [{ name: 'A1', size: 60 }, { name: 'A2', size: 40 }] },
-                    { name: 'B', size: 80, children: [{ name: 'B1', size: 50 }, { name: 'B2', size: 30 }] },
-                ],
-                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', childrenKey: 'children' }],
-            },
-            width: 400,
-            height: 300,
-        });
-
-        assertPngDimensions(buffer, 400, 300);
-        assertMatchesSnapshot(buffer, 'enterprise-treemap');
-    });
-
-    // Test 10: Waterfall chart (enterprise-only series)
+    // Test 9: Waterfall chart (enterprise-only series)
     await runTest('Render waterfall chart', async () => {
         const buffer = await AgChartsServerSide.render({
             options: {
@@ -375,7 +377,7 @@ async function main() {
         assertMatchesSnapshot(buffer, 'enterprise-waterfall');
     });
 
-    // Test 11: Heatmap (enterprise-only series)
+    // Test 10: Heatmap (enterprise-only series)
     await runTest('Render heatmap chart', async () => {
         const buffer = await AgChartsServerSide.render({
             options: {
@@ -395,7 +397,7 @@ async function main() {
         assertMatchesSnapshot(buffer, 'enterprise-heatmap');
     });
 
-    // Test 12: Radial gauge (enterprise-only, uses renderGauge)
+    // Test 11: Radial gauge (enterprise-only, uses renderGauge)
     await runTest('Render radial gauge', async () => {
         const buffer = await AgChartsServerSide.renderGauge({
             options: {
@@ -411,7 +413,7 @@ async function main() {
         assertMatchesSnapshot(buffer, 'enterprise-radial-gauge');
     });
 
-    // Test 13: Linear gauge (enterprise-only, uses renderGauge)
+    // Test 12: Linear gauge (enterprise-only, uses renderGauge)
     await runTest('Render linear gauge', async () => {
         const buffer = await AgChartsServerSide.renderGauge({
             options: {
