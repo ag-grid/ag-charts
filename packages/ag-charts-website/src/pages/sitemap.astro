@@ -7,13 +7,12 @@ import { PRODUCTION_CHARTS_SITE_URL, LIVE_SITEMAP_URL } from '../constants';
 import { getSitemapXml } from '@ag-website-shared/utils/getSitemapXml';
 import { SITEMAP_CACHE_DIR } from '@ag-website-shared/constants';
 
-let parsedSitemap = [];
 const sitemapUrl = LIVE_SITEMAP_URL || `${PRODUCTION_CHARTS_SITE_URL}/sitemap-0.xml`;
 const xmlSitemap = await getSitemapXml({
     cacheDir: SITEMAP_CACHE_DIR,
     sitemapUrl,
 });
-parsedSitemap = parseSitemap(xmlSitemap);
+const parsedSitemap = parseSitemap(xmlSitemap);
 ---
 
 <Layout
