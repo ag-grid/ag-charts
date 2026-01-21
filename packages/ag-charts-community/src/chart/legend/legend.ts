@@ -1249,7 +1249,9 @@ export class Legend extends BaseProperties {
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
         const { activeItem } = event;
-        if (activeItem?.type !== 'legend') return;
+        if (activeItem?.type !== 'legend') {
+            return this.ctx.highlightManager.updateHighlight(this.id, undefined);
+        }
 
         const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
