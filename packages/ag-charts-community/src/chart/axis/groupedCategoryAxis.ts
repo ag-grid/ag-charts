@@ -489,12 +489,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             maxDepth
         );
         const minDepthToShow = getMinDepthToShow(minSpacingByDepth);
-        const visibleTickInfos = selectVisibleTickInfos(
-            allTickInfos,
-            minDepthToShow,
-            maxDepth,
-            minSpacingByDepth
-        );
+        const visibleTickInfos = selectVisibleTickInfos(allTickInfos, minDepthToShow, maxDepth, minSpacingByDepth);
 
         const gridLineData = visibleTickInfos.map(
             ({ tickLabel, position: tickPosition }, index): GridLineStyleTickDatum => ({
@@ -662,62 +657,46 @@ function getMinDepthToShow(minSpacingByDepth: number[]) {
     return minSpacingByDepth.length;
 }
 
+function getTickStepForSpacing(minSpacing: number) {
+    if (!Number.isFinite(minSpacing) || minSpacing <= 0) {
+        return 1;
+    }
+    return Math.max(1, Math.ceil(MIN_CATEGORY_SPACING / minSpacing));
+}
+
 function selectVisibleTickInfos(
     allTickInfos: TickInfo[],
     minDepthToShow: number,
     maxDepth: number,
     minSpacingByDepth: number[]
 ) {
+    if (minDepthToShow <= 0) {
+        return allTickInfos;
+    }
+
+    const removedDepth = Math.min(minDepthToShow - 1, maxDepth - 1);
+    if (removedDepth < 0) {
+        return allTickInfos;
+    }
+
+    const tickStep = getTickStepForSpacing(minSpacingByDepth[removedDepth]);
     const visibleTickInfos: TickInfo[] = [];
-    const depthPresence = new Array<boolean>(maxDepth).fill(false);
-    let depthCount = 0;
+    let removedIndex = 0;
 
     for (const info of allTickInfos) {
-        if (info.depth < minDepthToShow) continue;
-        visibleTickInfos.push(info);
-        if (!depthPresence[info.depth]) {
-            depthPresence[info.depth] = true;
-            depthCount++;
-        }
-    }
-
-    if (depthCount > 1) {
-        return visibleTickInfos;
-    }
-
-    const fallbackDepth = Math.max(0, maxDepth - 1);
-    let baseTickInfos = visibleTickInfos;
-    if (baseTickInfos.length === 0) {
-        baseTickInfos = [];
-        for (const info of allTickInfos) {
-            if (info.depth >= fallbackDepth) {
-                baseTickInfos.push(info);
-            }
-        }
-    }
-
-    const depthForSpacing = visibleTickInfos.length > 0 ? minDepthToShow : fallbackDepth;
-    const minSpacing = minSpacingByDepth[depthForSpacing];
-    if (!Number.isFinite(minSpacing) || minSpacing >= MIN_CATEGORY_SPACING) {
-        return baseTickInfos;
-    }
-
-    const filteredBySpacing: TickInfo[] = [];
-    let lastPosition = Number.NaN;
-    for (const info of baseTickInfos) {
-        const { position } = info;
-        if (!Number.isFinite(position)) {
-            filteredBySpacing.push(info);
-            lastPosition = Number.NaN;
+        if (info.depth >= minDepthToShow) {
+            visibleTickInfos.push(info);
             continue;
         }
-        if (!Number.isFinite(lastPosition) || Math.abs(position - lastPosition) >= MIN_CATEGORY_SPACING) {
-            filteredBySpacing.push(info);
-            lastPosition = position;
+
+        if (info.depth !== removedDepth) continue;
+        if (removedIndex % tickStep === 0) {
+            visibleTickInfos.push(info);
         }
+        removedIndex++;
     }
 
-    return filteredBySpacing;
+    return visibleTickInfos;
 }
 
 function convertIntegratedCategoryValue(datum: unknown): string[] {
