@@ -4,6 +4,8 @@ export interface LicenseManager {
     validateLicense: () => void;
     isDisplayWatermark: () => boolean;
     getWatermarkMessage: () => string;
+    getWatermarkForegroundConfig: () => object | undefined;
+    getWatermarkForegroundConfigForBrowser: () => object | undefined;
     getLicenseDetails: (licenseKey: string) => object;
 }
 
