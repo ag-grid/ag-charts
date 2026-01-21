@@ -533,6 +533,15 @@ export abstract class Axis<
         return tick.enabled ? tick.size : 0;
     }
 
+    protected getTickSpacing(tick: AxisTick = this.tick) {
+        if (!tick.enabled) return 0;
+
+        const scrollbar = this.chartLayout?.scrollbars?.[this.id];
+        if (!scrollbar?.enabled || scrollbar.placement !== 'inner') return 0;
+
+        return scrollbar.tickSpacing ?? 0;
+    }
+
     processData() {
         // Invalidate layout cache
         this.invalidateLayoutCache();

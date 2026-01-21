@@ -19,6 +19,7 @@ export interface AgScrollbarThumbStyle extends AgScrollbarStyle {
 export interface AgScrollbarBaseOptions extends Toggleable {
     thickness?: number;
     spacing?: number;
+    tickSpacing?: number;
     track?: AgScrollbarTrackStyle;
     thumb?: AgScrollbarThumbStyle;
     visible?: AgScrollbarVisibility;

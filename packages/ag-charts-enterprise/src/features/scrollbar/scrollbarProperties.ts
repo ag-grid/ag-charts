@@ -64,6 +64,10 @@ export class ScrollbarProperties extends ChangeDetectableProperties {
 
     @Property
     @SceneChangeDetection()
+    tickSpacing: number = 0;
+
+    @Property
+    @SceneChangeDetection()
     placement: 'inner' | 'outer' = 'outer';
 
     @Property

@@ -44,6 +44,9 @@ export class Scrollbar extends AbstractModuleInstance {
     public spacing?: number;
 
     @Property
+    public tickSpacing?: number;
+
+    @Property
     public placement?: 'inner' | 'outer';
 
     @Property
@@ -141,11 +144,12 @@ export class Scrollbar extends AbstractModuleInstance {
 
             if (!show || axisId == null) continue;
 
-            const { thickness, spacing, placement } = properties;
+            const { thickness, spacing, placement, tickSpacing } = properties;
             scrollbars[axisId] = {
                 enabled: show,
                 thickness,
                 spacing,
+                tickSpacing,
                 placement,
             };
 
