@@ -15,6 +15,7 @@ import { AgChartsServerSide } from 'ag-charts-server-side';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, LicenseManager } from 'ag-charts-enterprise';
 
 interface TestResult {
     name: string;
@@ -304,6 +305,126 @@ async function main() {
             assertPngDimensions(buffers[i], config.width, config.height);
             assertMatchesSnapshot(buffers[i], `concurrent-chart-${i}`);
         }
+    });
+
+    // =====================
+    // Enterprise Tests
+    // =====================
+    console.log('\n--- Enterprise Tests ---\n');
+
+    // Register enterprise modules for enterprise-specific tests
+    ModuleRegistry.registerModules([AllEnterpriseModule]);
+
+    // Test 8: Unlicensed enterprise shows watermark
+    await runTest('Enterprise unlicensed shows watermark', async () => {
+        // Ensure no license is set
+        LicenseManager.setLicenseKey(undefined);
+
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-unlicensed-watermark');
+    });
+
+    // Test 9: Treemap (enterprise-only series)
+    await runTest('Render treemap chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { name: 'A', size: 100, children: [{ name: 'A1', size: 60 }, { name: 'A2', size: 40 }] },
+                    { name: 'B', size: 80, children: [{ name: 'B1', size: 50 }, { name: 'B2', size: 30 }] },
+                ],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', childrenKey: 'children' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-treemap');
+    });
+
+    // Test 10: Waterfall chart (enterprise-only series)
+    await runTest('Render waterfall chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'Start', value: 100 },
+                    { category: 'Add', value: 50 },
+                    { category: 'Subtract', value: -30 },
+                    { category: 'End', value: 120 },
+                ],
+                series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-waterfall');
+    });
+
+    // Test 11: Heatmap (enterprise-only series)
+    await runTest('Render heatmap chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 'A', y: '1', value: 10 },
+                    { x: 'A', y: '2', value: 20 },
+                    { x: 'B', y: '1', value: 30 },
+                    { x: 'B', y: '2', value: 40 },
+                ],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-heatmap');
+    });
+
+    // Test 12: Radial gauge (enterprise-only, uses renderGauge)
+    await runTest('Render radial gauge', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'radial-gauge',
+                value: 75,
+                scale: { min: 0, max: 100 },
+            },
+            width: 300,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 300, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-radial-gauge');
+    });
+
+    // Test 13: Linear gauge (enterprise-only, uses renderGauge)
+    await runTest('Render linear gauge', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'linear-gauge',
+                value: 60,
+                scale: { min: 0, max: 100 },
+            },
+            width: 400,
+            height: 100,
+        });
+
+        assertPngDimensions(buffer, 400, 100);
+        assertMatchesSnapshot(buffer, 'enterprise-linear-gauge');
     });
 
     // Summary
