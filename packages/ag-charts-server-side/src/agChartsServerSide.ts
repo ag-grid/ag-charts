@@ -97,17 +97,21 @@ export class AgChartsServerSide {
 
             const container = env.document.getElementById('container')!;
 
-            // Check if enterprise is registered and we need to show watermark for unlicensed use
+            // Check if enterprise is registered and we need to show watermark for unlicensed use.
+            // Note: We use getWatermarkMessage() directly rather than isDisplayWatermark() because
+            // isDisplayWatermark() suppresses the watermark for localhost/development environments,
+            // but SSR exports should always show the watermark when unlicensed.
             let chartOptions: any = options;
             if (ModuleRegistry.isEnterprise()) {
-                const licenseManager = enterpriseRegistry.licenseManager?.({} as any);
+                const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
                 licenseManager?.validateLicense();
 
-                if (licenseManager?.isDisplayWatermarkForImageExport()) {
+                const watermarkMessage = licenseManager?.getWatermarkMessage();
+                if (watermarkMessage) {
                     chartOptions = {
                         ...options,
                         foreground: {
-                            text: licenseManager.getWatermarkMessage(),
+                            text: watermarkMessage,
                             image: {
                                 url: WATERMARK_SVG_DATA_URL,
                                 width: 170,

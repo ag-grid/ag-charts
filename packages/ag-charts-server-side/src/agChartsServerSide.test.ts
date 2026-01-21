@@ -294,7 +294,8 @@ describe('AgChartsServerSide', () => {
 
 describe('AgChartsServerSide enterprise licensing', () => {
     beforeAll(async () => {
-        // Register enterprise modules for this test suite using dynamic import
+        // Dynamic import required: static import would cause enterprise module registration
+        // at file load time, affecting community tests that run first in this file
         const { AllEnterpriseModule } = await import('ag-charts-enterprise');
         ModuleRegistry.registerModules(AllEnterpriseModule);
     });

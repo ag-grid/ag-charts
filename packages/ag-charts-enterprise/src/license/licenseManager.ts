@@ -182,10 +182,6 @@ export class LicenseManager {
         return this.watermarkMessage ?? '';
     }
 
-    public isDisplayWatermarkForImageExport(): boolean {
-        return !missingOrEmpty(this.watermarkMessage);
-    }
-
     private getHostname(): string {
         if (!this.document) {
             return 'localhost';
