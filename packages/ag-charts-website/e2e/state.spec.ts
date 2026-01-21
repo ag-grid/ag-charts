@@ -526,6 +526,34 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('series-area hover events clear active state from series-area mouse events', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnRealEstateLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+
+                    await hoverOnCurrentYearBond(page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnRealEstateLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
+                    });
+
+                    await hoverOnCurrentYearBond(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                    });
+                });
+            });
+
             test.describe('setState for legend overwrites state from legend mouse events', () => {
                 test('screenshots', async ({ page }) => {
                     const { version } = await getChartState(page);
