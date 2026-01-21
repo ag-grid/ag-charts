@@ -1247,8 +1247,10 @@ export class Legend extends BaseProperties {
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
             Logger.error(`cannot series with id '${activeItem.seriesId}'`);
+            event.reject();
         } else if (datum === undefined) {
             Logger.error(`cannot find legend item for seriesId '${activeItem.seriesId}'`);
+            event.reject();
         } else {
             this.updateHighlight(datum.enabled, datum, series);
         }
