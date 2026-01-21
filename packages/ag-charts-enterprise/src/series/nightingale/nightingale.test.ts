@@ -3,16 +3,16 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import {
     type AgChartOptions,
     AgCharts,
-    AgNightingaleSeriesOptions,
-    AgPolarChartOptions,
-    AgRadialSeriesItemStylerParams,
-    AgRadialSeriesStyle,
-    AgRadialSeriesStylerParams,
+    type AgNightingaleSeriesOptions,
+    type AgPolarChartOptions,
+    type AgRadialSeriesItemStylerParams,
+    type AgRadialSeriesStyle,
+    type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
-    MockNightingaleStyler,
+    type MockNightingaleStyler,
     clickAction,
     deproxy,
     doubleClickAction,

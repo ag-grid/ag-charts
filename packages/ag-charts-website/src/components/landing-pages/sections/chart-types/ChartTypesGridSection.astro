@@ -1,14 +1,13 @@
 ---
+// cspell:ignore charttype
 /**
  * ChartTypesGridSection.astro - Display available chart types with thumbnails
  *
  * Shows all available chart types organized in a grid, with representative
  * example thumbnails and enterprise badges where applicable.
  */
-import type {
-    ChartTypesGridSection as ChartTypesGridSectionType,
-    LandingPageContent,
-} from '@ag-website-shared/components/landing-pages/types';
+import type { LandingPageContent } from '@ag-website-shared/components/landing-pages/types';
+import type { ChartTypesGridSection as ChartTypesGridSectionType } from '../../types';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { GalleryExampleImage } from '@components/gallery/components/GalleryExampleImage';

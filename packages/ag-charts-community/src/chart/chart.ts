@@ -9,7 +9,6 @@ import {
     Color,
     Debug,
     Logger,
-    type MementoOriginator,
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
@@ -304,6 +303,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
         const styleContainer = resources?.styleContainer ?? options.specialOverrides.styleContainer;
+        const skipCss = options.specialOverrides.skipCss;
         if (scene) {
             this._firstAutoSize = false;
             this._lastAutoSize = [scene.width, scene.height, scene.pixelRatio];
@@ -331,6 +331,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             root,
             container,
             styleContainer,
+            skipCss,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
@@ -464,10 +465,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     getModuleContext(): ModuleContext {
         return this.ctx;
-    }
-
-    getPickedItemOriginator(): MementoOriginator<unknown> {
-        return this.seriesAreaManager;
     }
 
     abstract getChartType(): ChartType;
@@ -1465,8 +1462,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const navigatorModule: any = this.modulesManager.getModule('navigator');
         const zoomModule: any = this.modulesManager.getModule('zoom');
+        const scrollbarModule: any = this.modulesManager.getModule('scrollbar');
 
-        if (!navigatorModule?.enabled && !zoomModule?.enabled) {
+        if (!navigatorModule?.enabled && !zoomModule?.enabled && !scrollbarModule?.enabled) {
             // reset zoom to initial state
             this.ctx.zoomManager.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
@@ -1538,7 +1536,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
-        if ((options.navigator?.enabled || options.zoom?.enabled) && initialState?.zoom != null) {
+        if (
+            (options.navigator?.enabled || options.zoom?.enabled || options.scrollbar?.enabled) &&
+            initialState?.zoom != null
+        ) {
             stateManager.setState(zoomManager, initialState.zoom);
         }
 

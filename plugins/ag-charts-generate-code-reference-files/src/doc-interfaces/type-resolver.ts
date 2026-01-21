@@ -1,5 +1,5 @@
 import { TypeMapper } from './type-mapper';
-import { InterfaceNode, MemberNode, MultiTypeNode, NodeTypes, TypeNode, TypeReferenceNode } from './types';
+import type { InterfaceNode, MemberNode, MultiTypeNode, NodeTypes, TypeNode, TypeReferenceNode } from './types';
 
 export class TypeResolver {
     protected nodeMap: Map<string, NodeTypes> = new Map();

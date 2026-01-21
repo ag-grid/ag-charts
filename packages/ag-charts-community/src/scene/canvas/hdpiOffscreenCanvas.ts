@@ -1,3 +1,5 @@
+import { getOffscreenCanvas } from 'ag-charts-core';
+
 import { clearContext, debugContext } from './canvasUtil';
 
 interface CanvasOptions {
@@ -14,7 +16,8 @@ function canvasDimensions(width: number, height: number, pixelRatio: number) {
 
 let fallbackCanvas: OffscreenCanvas | undefined;
 function getFallbackCanvas(): OffscreenCanvas {
-    fallbackCanvas ??= new OffscreenCanvas(1, 1);
+    const OffscreenCanvasCtor = getOffscreenCanvas();
+    fallbackCanvas ??= new OffscreenCanvasCtor(1, 1);
     return fallbackCanvas;
 }
 
@@ -38,7 +41,8 @@ export class HdpiOffscreenCanvas {
         this.pixelRatio = pixelRatio;
 
         const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
-        this.canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
+        const OffscreenCanvasCtor = getOffscreenCanvas();
+        this.canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
 
         this.context = this.canvas.getContext('2d', { willReadFrequently })!;
         this.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);

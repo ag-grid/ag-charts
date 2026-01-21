@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 

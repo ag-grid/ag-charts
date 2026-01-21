@@ -44,3 +44,20 @@ export function pause(delayMilliseconds = 0) {
 
     return new Promise(resolveAfterDelay);
 }
+
+/** Wraps a promise with a timeout. Rejects with an error if the timeout expires before resolution. */
+export async function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    errorMessage = `Timeout after ${timeoutMs}ms`
+): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+    });
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
+        clearTimeout(timer!);
+    }
+}

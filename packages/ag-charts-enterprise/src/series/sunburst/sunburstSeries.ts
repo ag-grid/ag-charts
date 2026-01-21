@@ -606,6 +606,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 boundSeries: this.getFormatterContext('size'),
                 domain: sizeDomain,
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey!, value: content ?? formatValue(datumSize) });
         }
@@ -625,6 +626,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 boundSeries: this.getFormatterContext('color'),
                 domain: colorDomain,
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(datumColor) });
         }

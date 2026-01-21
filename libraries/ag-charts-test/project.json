@@ -17,7 +17,6 @@
       }
     },
     "build:types": {
-      // Alias target so dependents build:types can depend on ^build:types.
       "executor": "nx:noop",
       "dependsOn": ["build"],
       "cache": false,
@@ -25,7 +24,6 @@
       "outputs": []
     },
     "build:package": {
-      // Alias target so dependents build:types can depend on ^build:types.
       "executor": "nx:noop",
       "dependsOn": ["build"],
       "cache": false,

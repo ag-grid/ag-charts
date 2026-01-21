@@ -132,10 +132,10 @@ export class ZoomDOMProxy {
         }
     }
 
-    public pickAxisAtPoint(x: number, y: number): AxisHit | undefined {
+    public pickAxisAtPoint(point: { canvasX: number; canvasY: number }): AxisHit | undefined {
         for (const axis of this.axes) {
             if (!this.overlappingAxisIds.has(axis.axisId)) continue;
-            if (axis.bounds?.containsPoint(x, y)) {
+            if (axis.bounds?.containsPoint(point.canvasX, point.canvasY)) {
                 return { axisId: axis.axisId, direction: axis.direction };
             }
         }

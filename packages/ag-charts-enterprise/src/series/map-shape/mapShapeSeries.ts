@@ -821,6 +821,7 @@ export class MapShapeSeries
                 domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
         }

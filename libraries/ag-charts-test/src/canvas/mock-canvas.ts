@@ -1,65 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
-import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
+import { Canvas, DOMMatrix, type ExportFormat, FontLibrary } from 'skia-canvas';
+
+import { CANVAS_TO_BUFFER_DEFAULTS, ConfiguredCanvasMixin, applySkiaPatches } from 'ag-charts-core';
 
 // Something is causing this to not be imported as a value
 const { CanvasRenderingContext2D } = SkiaCanvas as any;
+
+// Apply skia-canvas patches for consistent rendering
+applySkiaPatches(CanvasRenderingContext2D, DOMMatrix);
 
 FontLibrary.use('Verdana', [
     path.resolve(__dirname, '../../../fonts/Arimo-Regular.ttf'),
     path.resolve(__dirname, '../../../fonts/Arimo-Bold.ttf'),
 ]);
 
-export class ConfiguredCanvas extends Canvas {
-    constructor(width: number, height: number) {
-        super(width, height);
-        this.gpu = false;
-    }
+// Create configured canvas class using the mixin
+export const ConfiguredCanvas = ConfiguredCanvasMixin(Canvas);
 
-    override toBuffer(format: SkiaCanvas.ExportFormat, options?: SkiaCanvas.RenderOptions): Promise<Buffer> {
-        // @ts-expect-error Incorrect types
-        return super.toBuffer(format, { ...options, msaa: false });
-    }
-
-    transferToImageBitmap() {
-        const { width, height } = this;
-        const bitmap = new ConfiguredCanvas(Math.max(1, width), Math.max(1, height));
-        if (width > 0 && height > 0) {
-            try {
-                bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
-            } catch {
-                // Skia-canvas can throw dimensionless errors even when width/height checks pass
-            }
-        }
-        Object.defineProperty(bitmap, 'close', {
-            // no-op
-            value: () => {},
-        });
-        return bitmap;
-    }
-}
-
-// https://github.com/samizdatco/skia-canvas/issues/241
-const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
-    value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
-        return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
-    },
-    writable: true,
-    configurable: true,
-});
-
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
-    value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
-        // @ts-expect-error Skia api
-        let path2d = this.outlineText(text);
-        path2d = path2d.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
-        this.fill(path2d);
-    },
-    writable: true,
-    configurable: true,
-});
+export { CANVAS_TO_BUFFER_DEFAULTS } from 'ag-charts-core';
 
 export class MockContext {
     ctx: {
@@ -168,8 +128,6 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    (globalThis as any)['agChartsSceneRenderModel'] = 'composite';
-
     const realCreateElement = document.createElement;
     mockCtx.realCreateElement = realCreateElement;
 
@@ -214,8 +172,6 @@ export function teardown(mockContext: MockContext) {
     }
     mockContext.destroy();
 }
-
-export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
 
 export function extractImageData({
     nodeCanvas,

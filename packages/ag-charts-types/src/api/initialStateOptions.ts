@@ -14,7 +14,7 @@ export interface AgInitialStateThemeableOptions {
 // Options
 export interface AgInitialStateOptions {
     /** The initial picked item. */
-    picked?: AgPickedState;
+    active?: AgActiveState;
     /** The initial set of annotations to display on the chart. */
     annotations?: AgAnnotation[];
     /* The initial chart type. */
@@ -56,7 +56,7 @@ export interface AgPickedItemsState {
     itemId?: string;
 }
 
-export interface AgPickedState {
+export interface AgActiveState {
     /**
      * The active series datum shape. If the entire series is active, then `itemId` will be set to `undefined`.
      */

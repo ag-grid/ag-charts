@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgBarSeriesItemStylerParams,
-    AgBarSeriesStyle,
-    AgCartesianChartOptions,
+    type AgBarSeriesItemStylerParams,
+    type AgBarSeriesStyle,
+    type AgCartesianChartOptions,
     type AgErrorBarItemStylerParams,
     type AgErrorBarThemeableOptions,
     type AgScatterSeriesOptions,
@@ -12,10 +12,10 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
-    MockErrorBarStyler,
+    type MockErrorBarStyler,
     clickAction,
     computeLegendBBox,
     extractImageData,

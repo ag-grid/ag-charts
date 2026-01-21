@@ -1,0 +1,5 @@
+# Temporary test projects
+.tmp/
+
+# Test output (actual results during test run)
+output/

@@ -20,7 +20,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockBarStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockBarStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
@@ -2070,6 +2070,148 @@ describe('BarSeries', () => {
             expect(updatedNodeData![Math.floor(updatedNodeData!.length / 2)]).toBe(middleNode);
 
             chart.destroy();
+        });
+    });
+
+    describe('fixed width', () => {
+        const data = [
+            { quarter: "Q1'18", iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: "Q2'18", iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: "Q3'18", iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: "Q4'18", iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
+
+        const zeroPadding = { paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 };
+
+        const cases: [string, any, any][] = [
+            ['single series', [{ type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 }], zeroPadding],
+            [
+                'grouped series',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with groupPaddingInner',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+            [
+                'grouped series with unfixed width at start',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 40 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables', width: 20 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed width in middle',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables', width: 20 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed width at end',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 40 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed widths and groupPaddingInner',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+            [
+                'grouped series with unfixed widths and default padding',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
+                ],
+                {},
+            ],
+            [
+                'stacked series',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 40, stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30, stackGroup: 'two' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables', width: 20, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'stacked series with unfixed widths',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', stackGroup: 'two' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables', width: 20, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'stacked series with one unfixed width',
+                [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac', width: 10, stackGroup: 'one' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', stackGroup: 'two' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables', width: 30, stackGroup: 'two' },
+                ],
+                {},
+            ],
+        ];
+
+        it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+            const options: AgCartesianChartOptions = {
+                data: data,
+                series: seriesOptions,
+                axes: {
+                    x: axisOptions,
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('changing width', async () => {
+            const options: AgCartesianChartOptions = {
+                data: data,
+                series: [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            (options.series as any)[0].width = 40;
+            await chart.update(options);
+            await compare();
         });
     });
 });

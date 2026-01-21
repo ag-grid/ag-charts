@@ -50,26 +50,12 @@
       "cache": true,
       "parallelism": false,
       "options": {
-        "commands": [
-          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
-        ]
+        "command": "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
       },
       "configurations": {
-        "ci": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
-          ]
-        },
-        "watch": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' --watch"
-          ]
-        },
-        "update": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
-          ]
-        }
+        "ci": { "args": "-u" },
+        "watch": { "args": "--watch" },
+        "update": { "args": "-u" }
       },
       "dependsOn": [
         "build:test",
@@ -97,7 +83,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "inputs": ["allTransitiveOutputs"],
+      "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}",

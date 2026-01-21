@@ -78,7 +78,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         _ticks: number[],
         fractionDigits?: number
     ): _ModuleSupport.AxisTickFormatParams {
-        return { type: 'number', fractionDigits };
+        return { type: 'number', visibleDomain: undefined, fractionDigits };
     }
 
     override datumFormatParams(
@@ -99,6 +99,7 @@ export class RadiusNumberAxis extends RadiusAxis {
             domain,
             boundSeries,
             fractionDigits,
+            visibleDomain: undefined,
         };
     }
 }

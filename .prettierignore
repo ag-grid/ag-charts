@@ -24,3 +24,12 @@ packages/ag-charts-website/src/components/example-runner/components/FrameworkTem
 
 .prettierrc
 tsconfig.base.json
+
+# Files without Prettier parsers
+*.patch
+*.sh
+.gitrepo
+.nxignore
+
+# External subrepo (managed separately)
+external/ag-shared/

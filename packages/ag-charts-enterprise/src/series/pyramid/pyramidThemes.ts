@@ -54,7 +54,6 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
             yOffset: 3,
             blur: 5,
         },
-        // @ts-expect-error undocumented option
         highlight: {
             unhighlightedItem: {
                 opacity: 0.4,

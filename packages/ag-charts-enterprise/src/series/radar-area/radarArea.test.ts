@@ -1,17 +1,17 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import {
     type AgChartOptions,
     AgCharts,
-    AgMarkerShapeFn,
-    AgPolarChartOptions,
-    AgRadarAreaSeriesOptions,
-    AgRadarAreaSeriesStyle,
+    type AgMarkerShapeFn,
+    type AgPolarChartOptions,
+    type AgRadarAreaSeriesOptions,
+    type AgRadarAreaSeriesStyle,
 } from 'ag-charts-community';
 import {
     MIN_UNHIGHLIGHT_DELAY,
-    MockRadarAreaStyler,
+    type MockRadarAreaStyler,
     extractImageData,
     hoverAction,
     looserSnapshotDefaults,
@@ -22,7 +22,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { NonNullablePath } from 'ag-charts-core';
+import type { NonNullablePath } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

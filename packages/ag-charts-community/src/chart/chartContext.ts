@@ -27,6 +27,7 @@ import { DataService } from './data/dataService';
 import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
+import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
@@ -46,6 +47,7 @@ import { type UpdateCallback, UpdateService } from './updateService';
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
 
+    readonly activeManager = new ActiveManager(this.eventsHub);
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
@@ -86,6 +88,7 @@ export class ChartContext implements ModuleContext {
             syncManager: SyncManager;
             container?: HTMLElement;
             styleContainer?: HTMLElement;
+            skipCss?: boolean;
             domMode?: 'normal' | 'minimal';
             withDragInterpretation: boolean;
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
@@ -102,6 +105,7 @@ export class ChartContext implements ModuleContext {
             updateCallback,
             updateMutex,
             styleContainer,
+            skipCss,
             chartType,
             domMode,
             withDragInterpretation,
@@ -109,7 +113,14 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(this.eventsHub, this.chartService, container, styleContainer, domMode);
+        this.domManager = new DOMManager(
+            this.eventsHub,
+            this.chartService,
+            container,
+            styleContainer,
+            skipCss,
+            domMode
+        );
         this.widgets = new WidgetSet(this.domManager, { withDragInterpretation });
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor

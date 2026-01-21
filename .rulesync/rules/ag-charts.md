@@ -160,30 +160,8 @@ Essential practices:
 
 ## Common Development Tasks
 
-### Quick Playbooks
-
--   **Bug fix or feature work (core/community/enterprise)**
-    1. Update the affected implementation (typically under `packages/ag-charts-*/src/chart`).
-    2. Adjust public API surface in `packages/ag-charts-types` if signatures change.
-    3. Sync any dependent docs/examples.
-    4. Run `yarn nx test ag-charts-community`, `yarn nx test ag-charts-enterprise`, and targeted `yarn nx benchmark` commands when performance is at risk.
--   **Documentation/content update**
-    1. Consult the [Documentation Pages Guide](.rulesync/rules/docs-pages.md) for structure and patterns.
-    2. If creating a new page, use `/docs-create` command or select appropriate template from `external/prompts/templates/`.
-    3. Modify the relevant `.mdoc` under `packages/ag-charts-website/src/content/docs/`.
-    4. Update `packages/ag-charts-website/src/content/docs-nav/nav.json` if navigation changes.
-    5. Create or update examples in `_examples/` folder following the [Examples Guide](.rulesync/rules/examples.md).
-    6. Ensure all examples are framework-compatible (NO `@ag-skip-fws` for public documentation).
-    7. Run `yarn nx generate-examples ag-charts-website` to generate framework variants.
-    8. Run `yarn nx validate-examples` to verify examples typecheck correctly.
-    9. Test page in dev server with `yarn nx dev` across all frameworks.
-    10. For significant doc changes, sanity-check with `yarn nx e2e ag-charts-website`.
-    11. Optionally run `/docs-review` command to validate technical accuracy.
-    12. Review [Documentation Checklist](.rulesync/rules/docs-checklist.md) before finalizing.
--   **Example-only change** (see [Examples Guide](.rulesync/rules/examples.md))
-    1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`).
-    2. Mirror updates in the sibling `index.mdoc` docs page.
-    3. Run the relevant generation/typecheck command plus `yarn nx validate-examples`.
+Task-specific playbooks are loaded automatically based on the files you're working with.
+See specialized guides linked above for detailed workflows.
 
 ### Adding New Chart Types
 

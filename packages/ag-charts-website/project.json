@@ -12,6 +12,7 @@
         "production",
         "!{projectRoot}/vitest.config.mjs",
         "{workspaceRoot}/external/ag-website-shared/**",
+        "{projectRoot}/.astro/cache/sitemap/**",
         {
           "externalDependencies": ["npm:astro"]
         },
@@ -20,15 +21,18 @@
         }
       ],
       "cache": false,
-      "command": "astro build",
+      "command": "tsx ../../external/ag-website-shared/scripts/buildWithSitemapCache.ts --silent",
       "options": {
-        "cwd": "packages/ag-charts-website",
-        "silent": true
+        "cwd": "{projectRoot}"
       },
       "configurations": {
         "staging": {},
-        "archive": {},
-        "production": {}
+        "archive": {
+          "args": "--clean-cache=true --run-second-build=true"
+        },
+        "production": {
+          "args": "--clean-cache=true --run-second-build=true"
+        }
       }
     },
     "dev": {
@@ -58,9 +62,24 @@
       }
     },
     "lint:eslint": {},
+    "lint:spell": {
+      "command": "npx cspell --no-progress --show-context --config ../../cspell.json \"src/**/*.{mdoc,astro}\" \"src/content/**/*.json\"",
+      "cache": true,
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.mdoc",
+        "{projectRoot}/src/**/*.astro",
+        "{projectRoot}/src/content/**/*.json",
+        "{workspaceRoot}/cspell.json",
+        "{projectRoot}/dictionaries/**"
+      ],
+      "outputs": []
+    },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "format:mdoc:check"],
+      "dependsOn": ["lint:eslint", "lint:spell", "format:mdoc:check"],
       "configurations": {
         "fix": {}
       }
@@ -121,9 +140,7 @@
         "watch": {
           "watch": true
         },
-        "update": {
-          "command": "npx vitest -u"
-        }
+        "update": { "args": "-u" }
       }
     },
     "test:e2e": {
@@ -138,7 +155,7 @@
       },
       "configurations": {
         "update": {
-          "command": "./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)"
+          "command": "./playwright.sh --host test -u changed $(grep -lR 'toHaveScreenshot' e2e)"
         },
         "without-snapshots": {
           "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e)"
@@ -208,20 +225,15 @@
       }
     },
     "update-algolia": {
-      "command": "node update-algolia.js -d --local",
+      "command": "node update-algolia.js",
       "options": {
-        "cwd": "{projectRoot}"
+        "cwd": "{projectRoot}",
+        "args": "-d --local"
       },
       "configurations": {
-        "staging": {
-          "command": "node update-algolia.js -i ag-charts-dev"
-        },
-        "archive": {
-          "command": "node update-algolia.js -i ag-charts-dev"
-        },
-        "production": {
-          "command": "node update-algolia.js -i ag-charts"
-        }
+        "staging": { "args": "-i ag-charts-dev" },
+        "archive": { "args": "-i ag-charts-dev" },
+        "production": { "args": "-i ag-charts" }
       }
     },
     "update-versions-data": {

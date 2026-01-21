@@ -234,8 +234,8 @@
                         },
                         {
                             "type": "item",
-                            "title": "Datum Picking",
-                            "path": "picked"
+                            "title": "Programmatic Highlighting",
+                            "path": "active"
                         },
                         {
                             "type": "item",
@@ -269,6 +269,12 @@
                             "type": "item",
                             "title": "Navigator",
                             "path": "navigator",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Scrollbar",
+                            "path": "scrollbar",
                             "isEnterprise": true
                         },
                         {

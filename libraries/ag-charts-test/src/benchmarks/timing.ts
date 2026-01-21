@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { SizeMetadata } from './size-of';
+import type { SizeMetadata } from './size-of';
 
 export interface BenchmarkMeasurement {
     timeMs: number;

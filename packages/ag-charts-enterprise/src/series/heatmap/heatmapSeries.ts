@@ -741,6 +741,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(colorValue) });
         }

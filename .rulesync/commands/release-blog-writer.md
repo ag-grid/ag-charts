@@ -1,0 +1,1 @@
+../../external/prompts/commands/release-blog-writer.md

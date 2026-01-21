@@ -7,6 +7,7 @@ import {
     type LicenseManager,
     ModuleRegistry,
     deepClone,
+    getDocument,
 } from 'ag-charts-core';
 import type {
     AgChartInstance,
@@ -255,7 +256,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
-            container: document.createElement('div'),
+            container: getDocument().createElement('div'),
             width,
             height,
         };
@@ -337,7 +338,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             modulesManager,
         } = this.chart;
 
-        const originators: MementoOriginator<unknown>[] = [this.chart.getPickedItemOriginator()];
+        const originators: MementoOriginator<unknown>[] = [this.chart.ctx.activeManager];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);

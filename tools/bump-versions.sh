@@ -19,6 +19,7 @@ PACKAGES=(
     ag-charts-angular
     ag-charts-react
     ag-charts-vue3
+    ag-charts-server-side
     ag-charts-test
     ag-charts-generate-example-files
     ag-charts-generate-code-reference-files

@@ -28,6 +28,8 @@ import { PointerEvents } from '../../scene/node';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
+import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
+import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
@@ -207,6 +209,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
 
         const { step } = this.scale;
         const { title, label, range, depthOptions, horizontal, line } = this;
+        const scrollbar = this.chartLayout?.scrollbars?.[this.id];
+        const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         this.lineNode.datum = horizontal
             ? { x1: range[0], x2: range[1], y1: 0, y2: 0 }
@@ -228,7 +232,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         const tempText = new TransformableText();
 
         const optionsMap = this.getDepthOptionsMap(maxDepth);
-        const labelSpacing = sideFlag * optionsMap[0].spacing;
+        const labelSpacing = sideFlag * (optionsMap[0].spacing + scrollbarThickness);
 
         const tickFormatter = this.tickFormatter(this.scale.domain, this.scale.domain, false);
 
@@ -404,16 +408,20 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             }
         }
 
+        const maxTickSizeWithScrollbar = maxTickSize + scrollbarThickness;
         const bboxes = [
             this.lineNodeBBox(),
             BBox.merge(labelBBoxes.values()),
-            new BBox(0, 0, maxTickSize * sideFlag, 0),
+            new BBox(0, 0, maxTickSizeWithScrollbar * sideFlag, 0),
         ];
 
-        let spacing = 0;
+        const combined = BBox.merge(bboxes);
+        const labelThickness = horizontal ? combined.height : combined.width;
+        const { spacing, scrollbarLayout } = this.applyScrollbarLayout(bboxes, labelThickness, scrollbar);
+        this.layout.labelThickness = labelThickness;
+        this.layout.scrollbar = scrollbarLayout;
+
         if (title.enabled) {
-            const withoutTitle = BBox.merge(bboxes);
-            spacing = horizontal ? withoutTitle.height : withoutTitle.width;
             bboxes.push(this.titleBBox(this.scale.domain, spacing));
         }
 
@@ -451,6 +459,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         const { depthLabelMaxSize, spacing } = this.computedLayout;
         const { depth: maxDepth } = tickTreeLayout;
         const optionsMap = this.getDepthOptionsMap(maxDepth);
+        const scrollbar = this.chartLayout?.scrollbars?.[this.id];
+        const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         const { position, horizontal, gridPadding } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
@@ -513,7 +523,10 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
                       const stroke = tickOptions?.stroke ?? tick.stroke;
                       const strokeWidth = tickOptions?.enabled === false ? 0 : tickOptions?.width ?? tick.width;
                       const h = -direction * tickSize;
-                      const [x1, x2, y1, y2] = horizontal ? [offset, offset, 0, h] : [0, h, offset, offset];
+                      const tickOffset = scrollbarThickness ? -direction * scrollbarThickness : 0;
+                      const [x1, y1, x2, y2] = horizontal
+                          ? [offset, tickOffset, offset, tickOffset + h]
+                          : [tickOffset, offset, tickOffset + h, offset];
                       const lineDash = undefined;
                       return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
                   })
@@ -531,7 +544,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         this.resetSelectionNodes();
     }
 
-    override calculateLayout() {
+    override calculateLayout(_primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {
+        this.chartLayout = chartLayout;
         const { depthLabelMaxSize, tickLabelLayout, spacing, bbox } = this.computeLayout();
         this.computedLayout = { depthLabelMaxSize, tickLabelLayout, spacing };
         return { bbox, niceDomain: this.scale.domain };

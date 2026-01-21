@@ -154,6 +154,7 @@ export class AxisTicks {
                 domain,
                 boundSeries,
                 fractionDigits,
+                visibleDomain: undefined,
             };
 
             return (

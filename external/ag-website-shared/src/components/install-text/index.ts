@@ -1,1 +1,1 @@
-export { default as InstallText } from './InstallText';
+export { InstallText } from './InstallText';

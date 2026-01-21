@@ -78,6 +78,8 @@ export interface NumberFormatterParams<TDatum, TContext> extends BaseFormatterPa
     type: 'number';
     /** The recommended precision to format the value. */
     fractionDigits: number | undefined;
+    /** The currently visible domain. [min, max] */
+    visibleDomain: [number, number] | undefined;
 }
 
 export type DateFormatterStyle = 'long' | 'component';

@@ -1,5 +1,5 @@
-import { type AgChartOptions, AgCharts, AgGaugeOptions } from 'ag-charts-community';
-import { Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
+import { type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
+import { type Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
 

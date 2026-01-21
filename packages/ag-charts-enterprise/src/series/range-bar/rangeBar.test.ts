@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
+    type AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
-    AgRangeBarSeriesItemStylerParams,
-    AgRangeBarSeriesLabelPlacement,
-    AgRangeBarSeriesStyle,
-    AgRangeBarSeriesStylerParams,
+    type AgRangeBarSeriesItemStylerParams,
+    type AgRangeBarSeriesLabelPlacement,
+    type AgRangeBarSeriesStyle,
+    type AgRangeBarSeriesStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
-    MockRangeBarStyler,
+    type MockRangeBarStyler,
     extractImageData,
     hoverAction,
     newFreezableMock,

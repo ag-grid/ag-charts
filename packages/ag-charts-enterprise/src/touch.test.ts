@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     extractImageData,
     setupMockCanvas,

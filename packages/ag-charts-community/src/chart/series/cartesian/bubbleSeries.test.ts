@@ -15,7 +15,7 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
-import { MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

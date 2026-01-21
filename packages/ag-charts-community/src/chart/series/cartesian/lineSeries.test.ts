@@ -21,7 +21,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockLineStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockLineStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {

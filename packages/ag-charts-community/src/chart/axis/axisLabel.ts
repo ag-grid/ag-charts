@@ -179,7 +179,17 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         let result: TextOrSegments | undefined;
         if (formatter != null) {
             const step = params.type === 'date' ? params.step : undefined;
-            result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });
+            const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
+            result = callWithContext(formatter, {
+                value,
+                index,
+                domain,
+                fractionDigits,
+                unit,
+                step,
+                boundSeries,
+                visibleDomain,
+            });
         }
 
         if (format != null && result == null) {

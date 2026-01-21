@@ -45,12 +45,12 @@
           "updateSnapshot": true
         }
       },
-      "dependsOn": ["build:test"]
+      "dependsOn": ["build:test", "build:package"]
     },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "inputs": ["allTransitiveOutputs"],
+      "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}",

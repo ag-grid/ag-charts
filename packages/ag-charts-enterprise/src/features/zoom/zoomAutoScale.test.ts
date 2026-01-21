@@ -1,9 +1,9 @@
 import { afterEach, describe } from '@jest/globals';
 
-import { AgChartInstance, AgChartState, AgCharts } from 'ag-charts-community';
 import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { type AgChartInstance, type AgChartState, AgCharts } from 'ag-charts-community';
 import {
-    MockZoomListener,
+    type MockZoomListener,
     newFreezableMockInferred,
     scrollAction,
     setupMockCanvas,

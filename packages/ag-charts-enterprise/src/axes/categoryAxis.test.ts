@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    ChartOrProxy,
+    type ChartOrProxy,
     DOCS_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
