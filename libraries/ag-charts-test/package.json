@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-test",
-  "version": "13.0.0",
+  "version": "13.0.1-beta.20260121",
   "dependencies": {
     "skia-canvas": "^2.0.2",
     "pixelmatch": "^5.2.1",
