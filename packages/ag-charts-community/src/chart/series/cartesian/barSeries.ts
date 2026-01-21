@@ -55,10 +55,10 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
+import { type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { type ErrorBoundSeriesNodeDatum, type PickFocusInputs, SeriesNodePickMode } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,

@@ -20,7 +20,7 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import type { DatumIndexType, ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, IProperties, ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
@@ -167,7 +167,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 }
 
 export function minimumTimeAxisDatumGranularity(
-    boundSeries: ISeries<DatumIndexType, unknown, unknown, unknown>[],
+    boundSeries: ISeries<DatumIndexType, unknown, IProperties, unknown>[],
     direction: ChartAxisDirection,
     // eslint-disable-next-line sonarjs/use-type-alias
     min: Date | number | undefined,
@@ -185,7 +185,7 @@ export function minimumTimeAxisDatumGranularity(
 }
 
 export function calculateDefaultUnit(
-    boundSeries: ISeries<DatumIndexType, unknown, unknown, unknown>[],
+    boundSeries: ISeries<DatumIndexType, unknown, IProperties, unknown>[],
     direction: ChartAxisDirection,
     min: Date | number | undefined,
     max: Date | number | undefined

@@ -52,14 +52,10 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    type SeriesNodeStyleContext,
-} from '../series';
+import type { SeriesNodePickMatch, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
+import { type PickFocusInputs, SeriesNodePickMode } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,

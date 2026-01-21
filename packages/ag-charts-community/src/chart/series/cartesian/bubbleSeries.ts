@@ -57,15 +57,15 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    type SeriesNodeStyleContext,
-} from '../series';
+import type { SeriesNodePickMatch, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import {
+    type ErrorBoundSeriesNodeDatum,
+    type PickFocusInputs,
+    type SeriesNodeEventTypes,
+    SeriesNodePickMode,
+} from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,

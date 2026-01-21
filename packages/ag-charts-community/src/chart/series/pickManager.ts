@@ -2,19 +2,7 @@ import { objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
 import type { ActiveManager } from '../interaction/activeManager';
-import type { PickFocusOutputs, UnknownSeries } from './series';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
-
-export interface PickedNode {
-    series: UnknownSeries;
-    datum: SeriesNodeDatum<DatumIndexType>;
-    datumIndex: unknown;
-}
-
-export type PickedNodes = {
-    matches: PickedNode[];
-    distance: number;
-};
+import type { PickFocusOutputs, PickedNode, PickedNodes, PickedSeries } from './seriesTypes';
 
 function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
     // FIXME: How to serialise/deserialise datums is still TBD.
@@ -66,7 +54,7 @@ export class PickManager implements IPickManager {
     constructor(
         private readonly activeManager: ActiveManager,
         private readonly tooltipProperties: { readonly pagination: boolean },
-        private readonly focusState: { readonly series: UnknownSeries | undefined }
+        private readonly focusState: { readonly series: PickedSeries | undefined }
     ) {}
 
     private clear(): void {

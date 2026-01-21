@@ -45,9 +45,17 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type IPickManager, PickManager, type PickedNode, type PickedNodes } from './pickManager';
-import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import { type IPickManager, PickManager } from './pickManager';
+import type {
+    DatumIndexType,
+    PickFocusInputs,
+    PickFocusOutputs,
+    PickedNode,
+    PickedNodes,
+    PickedSeries,
+    SeriesNodeDatum,
+    SeriesNodePickIntent,
+} from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -64,7 +72,7 @@ export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex extends DatumIndexType>(
-        series: UnknownSeries,
+        series: PickedSeries,
         datumIndex: DatumIndex,
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
@@ -82,7 +90,7 @@ export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
 
-    private series: UnknownSeries[] = [];
+    private series: PickedSeries[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     public readonly focusIndicator?: FocusIndicator;
@@ -125,16 +133,15 @@ export class SeriesAreaManager extends BaseManager {
     private readonly pickManager: IPickManager;
 
     private readonly focus = {
-        sortedSeries: [] as UnknownSeries[],
-        series: undefined as UnknownSeries | undefined,
+        sortedSeries: [] as PickedSeries[],
+        series: undefined as PickedSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<DatumIndexType> | undefined,
     };
 
-    private cachedTooltipContent:
-        | { series: UnknownSeries; datumIndex: unknown; content: TooltipContent[] }
-        | undefined = undefined;
+    private cachedTooltipContent: { series: PickedSeries; datumIndex: unknown; content: TooltipContent[] } | undefined =
+        undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -251,7 +258,7 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.updateService.update(type, opts);
     }
 
-    public seriesChanged(series: UnknownSeries[]) {
+    public seriesChanged(series: PickedSeries[]) {
         this.focus.sortedSeries = [...series].sort((a, b) => {
             let fpA = a.properties.focusPriority ?? Infinity;
             let fpB = b.properties.focusPriority ?? Infinity;
@@ -673,7 +680,7 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
-    private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
+    private pickFocus(series: PickedSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
         const pick = series.pickFocus(opts);
         if (this.hoverDevice === 'keyboard') {
             this.pickManager.onPickedNodesFocus(pick);
@@ -993,7 +1000,7 @@ export class SeriesAreaManager extends BaseManager {
 
         // Check if any series with 'area' tooltip range contains the point
         const { x, y } = point;
-        const seriesContainingPoint = new Set<UnknownSeries>();
+        const seriesContainingPoint = new Set<PickedSeries>();
         for (const series of reverseSeries) {
             if (series.visible && series.contentGroup.visible && series.properties.tooltip.range === 'area') {
                 if (series.isPointInArea?.(x, y)) {
@@ -1045,28 +1052,28 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private isTooltipEnabled(series: UnknownSeries): boolean {
+    private isTooltipEnabled(series: PickedSeries): boolean {
         return series.tooltipEnabled ?? this.chart.tooltip.enabled;
     }
 
     // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
     // (CRT-869, CRT-901, CRT-871, CRT-909).
     private getTooltipContent(
-        series: UnknownSeries,
+        series: PickedSeries,
         datumIndex: unknown,
         datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'aria-label'
     ): TooltipContent[];
 
     private getTooltipContent(
-        series: UnknownSeries,
+        series: PickedSeries,
         datumIndex: unknown,
         datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'tooltip'
     ): TooltipContent[] | undefined;
 
     private getTooltipContent(
-        series: UnknownSeries,
+        series: PickedSeries,
         datumIndex: DatumIndexType,
         datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'aria-label' | 'tooltip'

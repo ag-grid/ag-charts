@@ -50,7 +50,7 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { DatumIndexType, ISeries } from '../series/seriesTypes';
+import type { DatumIndexType, IProperties, ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -242,7 +242,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
+    boundSeries: ISeries<DatumIndexType, unknown, IProperties>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

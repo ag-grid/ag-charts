@@ -11,8 +11,15 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
-import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
-import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
+import { Series } from '../series';
+import {
+    type ISeries,
+    type ItemId,
+    type PickFocusInputs,
+    type PickFocusOutputs,
+    type SeriesNodeDatum,
+    SeriesNodePickMode,
+} from '../seriesTypes';
 import {
     HierarchyHighlightState,
     type HierarchySeriesProperties,

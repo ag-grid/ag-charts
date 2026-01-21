@@ -87,7 +87,7 @@ export class FlowProportionSeriesNodeEvent<
         series: _ModuleSupport.ISeries<
             FlowProportionNodeDatumIndex,
             _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
-            unknown
+            _ModuleSupport.IProperties
         > & {
             contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
                 FlowProportionNodeDatumIndex,

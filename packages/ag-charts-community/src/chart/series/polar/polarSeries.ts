@@ -17,8 +17,8 @@ import {
     type DataModelSeriesNodeDataContext,
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { type SeriesProperties } from '../seriesProperties';
+import { type PickFocusInputs, SeriesNodePickMode } from '../seriesTypes';
 import type { ShapeFillBBox } from '../shapeUtil';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';

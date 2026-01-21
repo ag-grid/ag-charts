@@ -139,16 +139,15 @@ export { InteractionManager, InteractionState } from './chart/interaction/intera
 export { TooltipManager } from './chart/interaction/tooltipManager';
 export { userInteraction, type UpdateZoomSourcing, ZoomManager } from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
-export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
+export { Series, SeriesNodeEvent } from './chart/series/series';
 export type {
-    PickFocusInputs,
-    PickFocusOutputs,
     SeriesDataEvent,
     SeriesNodeDataContext,
     SeriesNodePickMatch,
     SeriesNodeStyleContext,
     UnknownSeries,
 } from './chart/series/series';
+
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export {
     FillGradientDefaults,
@@ -165,11 +164,15 @@ export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
     DatumIndexType,
     ErrorBoundSeriesNodeDatum,
+    IProperties,
     ISeries,
     ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
+    PickFocusInputs,
+    PickFocusOutputs,
 } from './chart/series/seriesTypes';
+export { SeriesNodePickMode } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {

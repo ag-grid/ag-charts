@@ -52,7 +52,6 @@ import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
-import type { Path } from '../../scene/shape/path';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
@@ -67,14 +66,20 @@ import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type {
-    DatumIndexType,
-    INodeEvent,
-    ISeries,
-    ItemId,
-    NodeDataDependencies,
-    SeriesNodeDatum,
-    SeriesNodeEventTypes,
+import {
+    type DatumIndexType,
+    type INodeEvent,
+    type IProperties,
+    type ISeries,
+    type ItemId,
+    type NodeDataDependencies,
+    type PickFocusInputs,
+    type PickFocusOutputs,
+    type PickResult,
+    type SeriesNodeDatum,
+    type SeriesNodeEventTypes,
+    type SeriesNodePickIntent,
+    SeriesNodePickMode,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity } from './util';
@@ -84,45 +89,8 @@ export interface SeriesDataEvent {
     readonly processedData: ProcessedData<any>;
 }
 
-/** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
-export enum SeriesNodePickMode {
-    /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
-    EXACT_SHAPE_MATCH,
-    /** Pick matches based upon distance to ideal position */
-    NEAREST_NODE,
-    /** Pick matches based upon distance from axis */
-    AXIS_ALIGNED,
-}
-
-export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
-
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum<DatumIndexType>;
-    distance: number;
-};
-
-export type PickFocusInputs = {
-    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
-    readonly datumIndex: number;
-    readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
-    readonly otherIndex: number;
-    readonly otherIndexDelta: number;
-    readonly seriesRect?: BBox;
-};
-
-export type PickFocusOutputs = {
-    datumIndex: number;
-    datum: SeriesNodeDatum<DatumIndexType>;
-    otherIndex?: number;
-    bounds: BBox | Path;
-    movedBounds?: BBox;
-    clipFocusBox: boolean;
-};
-
-export type PickResult = {
-    pickMode: SeriesNodePickMode;
-    datums: SeriesNodeDatum<DatumIndexType>[];
     distance: number;
 };
 
@@ -148,7 +116,7 @@ export class SeriesNodeEvent<
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
+        series: ISeries<DatumIndexType, TDatum, IProperties, unknown>
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;

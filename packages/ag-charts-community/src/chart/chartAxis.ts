@@ -32,7 +32,7 @@ import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { CrossLine } from './crossline/crossLine';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
-import type { DatumIndexType, ISeries } from './series/seriesTypes';
+import type { DatumIndexType, IProperties, ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
@@ -123,7 +123,7 @@ export interface ChartAxis {
     update(animated?: boolean): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
-    boundSeries: ISeries<DatumIndexType, unknown, unknown>[];
+    boundSeries: ISeries<DatumIndexType, unknown, IProperties>[];
     crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
