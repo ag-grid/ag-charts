@@ -17,7 +17,7 @@ import type {
 } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     expectWarningsCalls,

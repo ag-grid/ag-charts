@@ -47,6 +47,12 @@ interface ComputedGroupAxisLayout {
     spacing: number;
 }
 
+interface TickInfo {
+    tickLabel: string[];
+    depth: number;
+    position: number;
+}
+
 class DepthLabelProperties extends BaseProperties {
     @Property
     enabled = true;
@@ -475,27 +481,26 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             maxTickCount: Infinity,
         };
 
-        let { ticks: rawTicks } = tickScale.ticks(tickParams, undefined, visibleRange);
-
-        const depthsMap = new Map(
-            rawTicks.map((tickLabel) => {
-                const node = this.tickNodes?.get(tickLabel);
-                const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
-                return [tickLabel, depth];
-            })
+        const { ticks: allTicks } = tickScale.ticks(tickParams, undefined, visibleRange);
+        const { tickInfos: allTickInfos, minSpacingByDepth } = buildTickInfos(
+            allTicks,
+            this.tickNodes,
+            tickScale,
+            maxDepth
         );
-        const tickDepth = (tickLabel: string[]) => depthsMap.get(tickLabel) ?? maxDepth - 1;
+        const minDepthToShow = getMinDepthToShow(minSpacingByDepth);
+        const visibleTickInfos = selectVisibleTickInfos(
+            allTickInfos,
+            minDepthToShow,
+            maxDepth,
+            minSpacingByDepth
+        );
 
-        // If there is not enough space to show all ticks, filter out the leafs.
-        if (tickScale.step < MIN_CATEGORY_SPACING) {
-            rawTicks = rawTicks.filter(tickDepth);
-        }
-
-        const gridLineData = rawTicks.map(
-            (t, index): GridLineStyleTickDatum => ({
-                index: tickScale.findIndex(t)!,
-                tickId: createDatumId(index, ...t),
-                translation: Math.round(tickScale.convert(t)),
+        const gridLineData = visibleTickInfos.map(
+            ({ tickLabel, position: tickPosition }, index): GridLineStyleTickDatum => ({
+                index: tickScale.findIndex(tickLabel)!,
+                tickId: createDatumId(index, ...tickLabel),
+                translation: Math.round(tickPosition),
             })
         );
 
@@ -507,9 +512,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         );
         this.tickLineGroupSelection.update(
             tick.enabled
-                ? rawTicks.map((tickLabel, index) => {
+                ? visibleTickInfos.map(({ depth }, index) => {
                       const { tickId, translation: offset } = gridLineData[index];
-                      const depth = tickDepth(tickLabel);
 
                       const tickOptions = this.depthOptions[depth]?.tick;
                       let tickSize = depthLabelMaxSize[0];
@@ -616,6 +620,104 @@ function separatorDepth2(node: TreeNode) {
         current = current.parent;
     }
     return depth;
+}
+
+function buildTickInfos(
+    ticks: string[][],
+    tickNodes: Map<string[], TreeNode> | undefined,
+    tickScale: GroupedCategoryScale<string[]>,
+    maxDepth: number
+): { tickInfos: TickInfo[]; minSpacingByDepth: number[] } {
+    const tickInfos = new Array<TickInfo>(ticks.length);
+    const minSpacingByDepth = new Array<number>(maxDepth).fill(Infinity);
+    const lastPositionByDepth = new Array<number>(maxDepth).fill(Number.NaN);
+
+    for (let i = 0; i < ticks.length; i++) {
+        const tickLabel = ticks[i];
+        const node = tickNodes?.get(tickLabel);
+        const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
+        const position = tickScale.convert(tickLabel);
+        tickInfos[i] = { tickLabel, depth, position };
+
+        if (!Number.isFinite(position)) continue;
+        for (let d = 0; d <= depth; d++) {
+            const lastPosition = lastPositionByDepth[d];
+            if (Number.isFinite(lastPosition)) {
+                minSpacingByDepth[d] = Math.min(minSpacingByDepth[d], Math.abs(position - lastPosition));
+            }
+            lastPositionByDepth[d] = position;
+        }
+    }
+
+    return { tickInfos, minSpacingByDepth };
+}
+
+function getMinDepthToShow(minSpacingByDepth: number[]) {
+    for (let depth = 0; depth < minSpacingByDepth.length; depth++) {
+        const minSpacing = minSpacingByDepth[depth];
+        if (!Number.isFinite(minSpacing) || minSpacing >= MIN_CATEGORY_SPACING) {
+            return depth;
+        }
+    }
+    return minSpacingByDepth.length;
+}
+
+function selectVisibleTickInfos(
+    allTickInfos: TickInfo[],
+    minDepthToShow: number,
+    maxDepth: number,
+    minSpacingByDepth: number[]
+) {
+    const visibleTickInfos: TickInfo[] = [];
+    const depthPresence = new Array<boolean>(maxDepth).fill(false);
+    let depthCount = 0;
+
+    for (const info of allTickInfos) {
+        if (info.depth < minDepthToShow) continue;
+        visibleTickInfos.push(info);
+        if (!depthPresence[info.depth]) {
+            depthPresence[info.depth] = true;
+            depthCount++;
+        }
+    }
+
+    if (depthCount > 1) {
+        return visibleTickInfos;
+    }
+
+    const fallbackDepth = Math.max(0, maxDepth - 1);
+    let baseTickInfos = visibleTickInfos;
+    if (baseTickInfos.length === 0) {
+        baseTickInfos = [];
+        for (const info of allTickInfos) {
+            if (info.depth >= fallbackDepth) {
+                baseTickInfos.push(info);
+            }
+        }
+    }
+
+    const depthForSpacing = visibleTickInfos.length > 0 ? minDepthToShow : fallbackDepth;
+    const minSpacing = minSpacingByDepth[depthForSpacing];
+    if (!Number.isFinite(minSpacing) || minSpacing >= MIN_CATEGORY_SPACING) {
+        return baseTickInfos;
+    }
+
+    const filteredBySpacing: TickInfo[] = [];
+    let lastPosition = Number.NaN;
+    for (const info of baseTickInfos) {
+        const { position } = info;
+        if (!Number.isFinite(position)) {
+            filteredBySpacing.push(info);
+            lastPosition = Number.NaN;
+            continue;
+        }
+        if (!Number.isFinite(lastPosition) || Math.abs(position - lastPosition) >= MIN_CATEGORY_SPACING) {
+            filteredBySpacing.push(info);
+            lastPosition = position;
+        }
+    }
+
+    return filteredBySpacing;
 }
 
 function convertIntegratedCategoryValue(datum: unknown): string[] {
