@@ -291,3 +291,51 @@ describe('AgChartsServerSide', () => {
         });
     });
 });
+
+describe('AgChartsServerSide enterprise licensing', () => {
+    beforeAll(async () => {
+        // Register enterprise modules for this test suite using dynamic import
+        const { AllEnterpriseModule } = await import('ag-charts-enterprise');
+        ModuleRegistry.registerModules(AllEnterpriseModule);
+    });
+
+    beforeEach(async () => {
+        // Reset license state between tests
+        const { LicenseManager } = await import('ag-charts-enterprise');
+        LicenseManager.setLicenseKey(undefined);
+    });
+
+    it('should render watermark when enterprise registered without license', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on bar chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'A', value: 30 },
+                    { category: 'B', value: 45 },
+                    { category: 'C', value: 25 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+});

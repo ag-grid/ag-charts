@@ -3,6 +3,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 export interface LicenseManager {
     validateLicense: () => void;
     isDisplayWatermark: () => boolean;
+    isDisplayWatermarkForImageExport: () => boolean;
     getWatermarkMessage: () => string;
     getLicenseDetails: (licenseKey: string) => object;
 }

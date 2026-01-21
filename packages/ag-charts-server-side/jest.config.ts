@@ -30,6 +30,10 @@ export default {
     },
     moduleNameMapper: {
         '^ag-charts-community$': '<rootDir>/../ag-charts-community/src/main.ts',
+        '^ag-charts-core$': '<rootDir>/../ag-charts-core/src/main.ts',
+        '^ag-charts-enterprise$': '<rootDir>/../ag-charts-enterprise/src/main.ts',
+        '^ag-charts-types$': '<rootDir>/../ag-charts-types/src/main.ts',
+        '^ag-charts-locale$': '<rootDir>/../ag-charts-locale/src/main.ts',
     },
     testMatch: ['**/src/**/*.test.ts'],
 };

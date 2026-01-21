@@ -182,6 +182,10 @@ export class LicenseManager {
         return this.watermarkMessage ?? '';
     }
 
+    public isDisplayWatermarkForImageExport(): boolean {
+        return !missingOrEmpty(this.watermarkMessage);
+    }
+
     private getHostname(): string {
         if (!this.document) {
             return 'localhost';
@@ -190,10 +194,12 @@ export class LicenseManager {
         if (!win) {
             return 'localhost';
         }
-        const loc = win.location;
-        const { hostname = '' } = loc;
-
-        return hostname;
+        try {
+            const hostname = win.location?.hostname ?? '';
+            return hostname || 'localhost';
+        } catch {
+            return 'localhost';
+        }
     }
 
     private isForceWatermark(): boolean {
@@ -205,7 +211,7 @@ export class LicenseManager {
             return false;
         }
 
-        const { pathname } = win.location;
+        const pathname = win.location?.pathname;
         return pathname ? pathname.includes('forceWatermark') : false;
     }
 
