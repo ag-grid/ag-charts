@@ -14,6 +14,11 @@ export interface PreDomUpdateEvent {
     readonly type: 'pre-dom-update';
 }
 
+export interface PreSeriesUpdateEvent {
+    readonly type: 'pre-series-update';
+    readonly requiredWidthRatio: number;
+}
+
 export interface PreSceneRenderEvent {
     readonly type: 'pre-scene-render';
 }
@@ -36,6 +41,7 @@ export interface UpdateOpts {
 interface EventMap {
     'update-complete': UpdateCompleteEvent;
     'pre-dom-update': PreDomUpdateEvent;
+    'pre-series-update': PreSeriesUpdateEvent;
     'pre-scene-render': PreSceneRenderEvent;
     'process-data': ProcessDataEvent;
 }
@@ -63,6 +69,10 @@ export class UpdateService {
 
     public dispatchPreDomUpdate() {
         this.events.emit('pre-dom-update', { type: 'pre-dom-update' });
+    }
+
+    public dispatchPreSeriesUpdate(requiredWidthRatio: number) {
+        this.events.emit('pre-series-update', { type: 'pre-series-update', requiredWidthRatio });
     }
 
     public dispatchPreSceneRender() {

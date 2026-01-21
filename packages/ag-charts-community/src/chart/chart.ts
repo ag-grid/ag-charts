@@ -206,6 +206,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private _firstAutoSize = true;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
+    private _requiredWidth = 0;
+
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
     }
@@ -782,12 +784,26 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.updateSplits('⛰️');
             // fallthrough
 
+            case ChartUpdateType.PROCESS_RANGE:
+                if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DOMAIN)) break;
+
+                this.processRanges();
+                this.updateSplits('📐');
+            // fallthrough
+
             case ChartUpdateType.PERFORM_LAYOUT:
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
                 await this.processLayout();
                 this.updateSplits('⌖');
+            // fallthrough
+
+            case ChartUpdateType.PRE_SERIES_UPDATE:
+                if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
+
+                this.preSeriesUpdate();
+                this.updateSplits('❓');
             // fallthrough
 
             case ChartUpdateType.SERIES_UPDATE: {
@@ -1156,6 +1172,30 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
+    processRanges() {
+        const seriesRanges: Record<string, number[]> = {};
+        const chartRanges: Record<string, number> = {};
+        const seriesTypes = new Map();
+
+        // First apply the minimum range from each series by type.
+        for (const series of this.series) {
+            if (!series.visible) continue;
+            seriesRanges[series.type] ??= [];
+            series.getMinimumRangeSeries(seriesRanges[series.type]);
+            if (!seriesTypes.has(series.type)) {
+                seriesTypes.set(series.type, series);
+            }
+        }
+
+        // Then apply the minimum range required by a group of series by type. For example, bar series have padding
+        // between each series which should only be applied once and is calculated from the width of the bars.
+        for (const [type, firstSeries] of seriesTypes) {
+            chartRanges[type] = firstSeries.getMinimumRangeChart(seriesRanges[type]);
+        }
+
+        this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
+    }
+
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             switch (module.name) {
@@ -1258,6 +1298,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } catch {
             return { background: bg };
         }
+    }
+
+    protected preSeriesUpdate() {
+        const { _requiredWidth } = this;
+        const seriesRectWidth = this.seriesRect?.width ?? 0;
+        const requiredWidthRatio = _requiredWidth / seriesRectWidth;
+
+        // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
+        this.ctx.updateService.dispatchPreSeriesUpdate(requiredWidthRatio);
     }
 
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {

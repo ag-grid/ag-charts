@@ -623,6 +623,14 @@ export abstract class Series<
         return this.getSeriesRange(direction, visibleRange);
     }
 
+    getMinimumRangeSeries(_range: number[]) {
+        // Not implemented here.
+    }
+
+    getMinimumRangeChart(_ranges: number[]): number {
+        return 0;
+    }
+
     getZoomRangeFittingItems(
         _xVisibleRange: [number, number],
         _yVisibleRange: [number, number] | undefined,
