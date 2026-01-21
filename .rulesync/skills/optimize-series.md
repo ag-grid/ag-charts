@@ -1,0 +1,1 @@
+../../../ag-charts-prompts/skills/optimize-series/SKILL.md

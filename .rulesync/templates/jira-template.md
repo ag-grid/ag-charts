@@ -1,0 +1,1 @@
+../../external/ag-shared/tools/prompts/templates/jira-template.md

@@ -5,81 +5,49 @@ description: 'Guidelines for searching and creating JIRA tickets in AG products'
 
 # JIRA Guide
 
-This guide covers working with JIRA tickets in AG products.
+This guide covers working with JIRA tickets in AG products (Charts and Grid).
 
-## JIRA Ticket Search Guidelines
+**Canonical source**: Detailed JIRA documentation is in `external/ag-shared/tools/prompts/` and symlinked via `.rulesync/`.
 
--   When searching for JIRA tickets using the MCP server `atlassian`, filter by the `AG` project.
--   Use the component appropriate for the product you're working on (e.g., `Grid` for ag-grid, `Charts` for ag-charts).
--   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
+## Quick Reference
 
-## JIRA Ticket Creation Guidelines
+-   **Search**: Project `AG`, Component `Charts`, Status `Needs Review` for review
+-   **Summary prefix**: `[Charts]`
+-   **Required fields**: Summary, Description, Component, Track
 
-When creating JIRA tickets in the AG project, ensure the following required fields are set:
+## Creating Tickets
 
-### Required Fields
+Use the `jira-create` skill for guided ticket creation. It will:
 
--   **Track** (`customfield_10501`): REQUIRED. Choose one:
-    -   `"Housekeeping"` - for tech-debt, refactoring, or infrastructure work
-    -   `"Feature Request"` - for new features
-    -   `"Bug"` - for bug fixes
-    -   `"Improvement"` - for enhancements to existing features
-    -   `"Doc change"` - for documentation updates
--   **Components**: REQUIRED. Set to the appropriate component for your product:
-    -   For ag-grid: `[{"name": "Grid"}]`
-    -   For ag-charts: `[{"name": "Charts"}]`
--   **Summary**: REQUIRED. Clear, concise title with appropriate prefix (e.g., `[Grid]` or `[Charts]`)
--   **Description**: REQUIRED. See format guidelines below
+1. Help you choose the right ticket type
+2. Load the appropriate template
+3. Guide you through required fields
 
-### Optional but Recommended Fields
+## Templates
 
--   **Priority**: Set appropriately (`"Critical"`, `"High"`, `"Medium"`, `"Low"`, `"None"`)
--   **Labels**: Use `["tech-debt"]` for technical debt tickets
--   **Fix versions**: Set target release version if known
+-   `.rulesync/templates/jira-bug-template.md` - Bug reports with reproduction steps
+-   `.rulesync/templates/jira-template.md` - Features, improvements, tech-debt
 
-### Description Format
+## Track Values
 
-Keep descriptions concise (10-15 lines of content max) with clear sections:
+| Value           | Use For                |
+| --------------- | ---------------------- |
+| Bug             | Bug fixes              |
+| Feature Request | New features           |
+| Improvement     | Enhancements           |
+| Housekeeping    | Tech-debt, refactoring |
+| Doc change      | Documentation updates  |
 
-```markdown
-## Context
+## Detailed Documentation
 
-Brief background on why this work is needed
+-   **Skill**: `.rulesync/skills/jira-create.md`
+-   **Guide**: `.rulesync/rules/jira.md`
 
-## Problem
+## Bug Version Investigation
 
-What issue or limitation exists
+When creating bug tickets, test affected versions **from the browser** (not by analysing code):
 
-## Proposed Solution
-
-High-level approach to address the problem
-
-## Acceptance Criteria
-
--   Simple, testable criteria (not "Success Criteria")
--   Use bullet points with action verbs
--   Keep focused on outcomes
-```
-
-### Linking Tickets
-
--   Link to design documents using `docs.ag-grid.com` URLs (not gists or GitHub links)
--   To link issues: Add comments to both tickets mentioning each other (e.g., "Relates to AG-12345")
--   The direct issue linking API may not work reliably via MCP
-
-### Example: Tech-Debt Ticket
-
-```json
-{
-    "projectKey": "AG",
-    "issueTypeName": "Task",
-    "summary": "[Grid] Revisit column definition update architecture",
-    "description": "## Context\n\n...\n\n## Problem\n\n...\n\n## Proposed Solution\n\n...\n\n## Acceptance Criteria\n\n- Design alternative approaches\n- Prototype and benchmark\n- Maintain current functionality",
-    "additional_fields": {
-        "components": [{ "name": "Grid" }],
-        "labels": ["tech-debt"],
-        "priority": { "name": "Low" },
-        "customfield_10501": [{ "value": "Housekeeping" }]
-    }
-}
-```
+1. Use the reproduction Plunker and change AG Charts version
+2. Binary search versions to find when the bug was introduced
+3. Set `versions` field to earliest affected version
+4. Note: Charts v9 = Grid v31 (offset +22)
