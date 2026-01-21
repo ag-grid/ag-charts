@@ -85,6 +85,13 @@ test.describe('state', () => {
     });
 
     test.describe('active', () => {
+        async function setStateInactive(version: string, page: Page): Promise<void> {
+            await setChartState(page, {
+                version,
+                active: { frozen: false, activeItem: undefined },
+            });
+        }
+
         test.describe('line-example', () => {
             let canvas: Locator;
 
@@ -246,7 +253,7 @@ test.describe('state', () => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
 
-                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await setStateInactive(version, page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
                 });
 
@@ -261,7 +268,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
                     });
 
-                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await setStateInactive(version, page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
                 });
@@ -345,7 +352,7 @@ test.describe('state', () => {
                     await page.keyboard.press('ArrowRight');
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011.png');
 
-                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await setStateInactive(version, page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011-inactive.png');
 
                     await page.keyboard.press('ArrowRight');
@@ -372,7 +379,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: '1', seriesId: 'LineSeries-3' },
                     });
 
-                    await setChartState(page, { version, active: { activeItem: undefined } });
+                    await setStateInactive(version, page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
 
@@ -429,17 +436,11 @@ test.describe('state', () => {
                 await page.mouse.move(400, 330);
             }
 
-            async function setStateInactive(version: string, page: Page): Promise<void> {
-                await setChartState(page, {
-                    version,
-                    active: { activeItem: undefined },
-                });
-            }
-
             async function setStateRealEstateLegend(version: string, page: Page): Promise<void> {
                 await setChartState(page, {
                     version,
                     active: {
+                        frozen: false,
                         activeItem: {
                             type: 'legend',
                             seriesId: 'DonutSeries-1',
@@ -453,6 +454,7 @@ test.describe('state', () => {
                 await setChartState(page, {
                     version,
                     active: {
+                        frozen: false,
                         activeItem: {
                             type: 'legend',
                             seriesId: 'DonutSeries-1',
