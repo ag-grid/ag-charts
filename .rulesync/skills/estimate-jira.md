@@ -1,1 +1,0 @@
-../../external/prompts/skills/estimate-jira/SKILL.md
