@@ -45,7 +45,12 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum, LegendChangeEvent, LegendChangePartialEvent } from '../../core/eventsHub';
+import type {
+    ActiveLoadMementoEvent,
+    HighlightNodeDatum,
+    LegendChangeEvent,
+    LegendChangePartialEvent,
+} from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -68,6 +73,8 @@ import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
+
+type StrictHighlightNodeDatum = HighlightNodeDatum & { itemId: CategoryLegendDatum['itemId'] };
 
 class LegendLabel extends BaseProperties {
     @Property
@@ -319,7 +326,7 @@ export class Legend extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
-    private pendingHighlightDatum?: HighlightNodeDatum;
+    private pendingHighlightDatum?: StrictHighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -334,6 +341,7 @@ export class Legend extends BaseProperties {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
+            ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -1194,15 +1202,26 @@ export class Legend extends BaseProperties {
         legendDatum: CategoryLegendDatum | undefined,
         series: (typeof this.ctx.chartService.series)[0] | undefined
     ): void {
-        const highlightNodeDatum = (nodeDatum: HighlightNodeDatum | undefined): void => {
+        const updateManagers = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
+            this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
+            if (nodeDatum === undefined) {
+                this.ctx.activeManager.update(undefined);
+            } else {
+                const seriesId = nodeDatum.series.id;
+                const itemId = nodeDatum.itemId;
+                this.ctx.activeManager.update({ type: 'legend', seriesId, itemId });
+            }
+        };
+
+        const highlightNodeDatum = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
-                this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
+                updateManagers(nodeDatum);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
                 // Updating the highlight can interrupt animations, so only clear the highlight if the chart
                 // is in a state when highlighting is possible.
                 this.pendingHighlightDatum = nodeDatum;
                 this.ctx.animationManager.onBatchStop(() => {
-                    this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
+                    updateManagers(this.pendingHighlightDatum);
                 });
             }
         };
@@ -1210,13 +1229,30 @@ export class Legend extends BaseProperties {
         if (enabled === true && series !== undefined && legendDatum !== undefined) {
             highlightNodeDatum({
                 series,
-                itemId: legendDatum?.itemId,
+                itemId: legendDatum.itemId,
                 datum: undefined,
                 datumIndex: typeof legendDatum?.itemId === 'number' ? legendDatum.itemId : undefined,
                 legendItemName: legendDatum?.legendItemName,
             });
         } else {
             highlightNodeDatum(undefined);
+        }
+    }
+
+    private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
+        const { activeItem } = event;
+        if (activeItem?.type !== 'legend') return;
+
+        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId);
+        const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
+        if (series === undefined) {
+            Logger.error(`cannot series with id '${activeItem.seriesId}'`);
+            event.reject();
+        } else if (datum === undefined) {
+            Logger.error(`cannot find legend item for seriesId '${activeItem.seriesId}'`);
+            event.reject();
+        } else {
+            this.updateHighlight(datum.enabled, datum, series);
         }
     }
 
