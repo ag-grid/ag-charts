@@ -614,7 +614,9 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
 
                     await setStateCurrentYearBond(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                    // Same as 'donut-example-canvas-active-currentyearbond-midpoint.png', but with the tooltip is
+                    // slightly different point (based on datum.midPoint)
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond-midpoint.png');
 
                     await setStateInactive(version, page);
                     await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
