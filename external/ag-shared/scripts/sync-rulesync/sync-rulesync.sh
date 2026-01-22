@@ -238,6 +238,7 @@ apply_remove_stale_symlinks() {
 }
 
 # Check for missing symlinks in .rulesync/commands/ that should exist based on source files
+# Skip files with _ prefix as they are internal helper files (e.g., _review-core.md)
 check_missing_rulesync_symlinks() {
     local commands_dir="$REPO_ROOT/.rulesync/commands"
     local missing_count=0
@@ -255,6 +256,11 @@ check_missing_rulesync_symlinks() {
             local rel_path="${source_file#$shared_commands/}"
             local dir_name=$(dirname "$rel_path")
             local file_name=$(basename "$rel_path")
+
+            # Skip internal helper files (prefixed with _)
+            if [[ "$file_name" == _* ]]; then
+                continue
+            fi
 
             # Compute expected symlink name: dir/file.md -> dir-file.md
             local symlink_name="${dir_name}-${file_name}"
@@ -299,6 +305,7 @@ check_missing_rulesync_symlinks() {
 }
 
 # Create missing symlinks in .rulesync/commands/
+# Skip files with _ prefix as they are internal helper files (e.g., _review-core.md)
 apply_create_missing_symlinks() {
     local commands_dir="$REPO_ROOT/.rulesync/commands"
 
@@ -315,6 +322,11 @@ apply_create_missing_symlinks() {
             local rel_path="${source_file#$shared_commands/}"
             local dir_name=$(dirname "$rel_path")
             local file_name=$(basename "$rel_path")
+
+            # Skip internal helper files (prefixed with _)
+            if [[ "$file_name" == _* ]]; then
+                continue
+            fi
 
             local symlink_name="${dir_name}-${file_name}"
             local symlink_path="$commands_dir/$symlink_name"
