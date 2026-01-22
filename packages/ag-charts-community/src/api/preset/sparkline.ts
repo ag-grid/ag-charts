@@ -176,6 +176,7 @@ const setInitialBaseTheme = simpleMemorize(createInitialBaseTheme);
 
 interface SparklineUndocumentedProperties {
     overrideDevicePixelRatio?: number;
+    foreground?: object;
 }
 
 type SparklineSeries = AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
@@ -317,6 +318,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const {
         background,
         container,
+        foreground,
         height,
         listeners,
         locale,
@@ -340,6 +342,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const chartOpts: AgCartesianChartOptions & SparklineUndocumentedProperties = {
         background,
         container,
+        foreground,
         height,
         listeners: listeners as AgCartesianChartOptions['listeners'],
         locale,

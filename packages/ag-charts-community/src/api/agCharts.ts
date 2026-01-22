@@ -80,10 +80,10 @@ export abstract class AgCharts {
             });
 
             if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
-                enterpriseRegistry.injectWatermark?.(
-                    chart.chart!.ctx.domManager,
-                    this.licenseManager.getWatermarkMessage()
-                );
+                const watermarkMessage = this.licenseManager.getWatermarkMessage();
+                if (watermarkMessage) {
+                    enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, watermarkMessage);
+                }
             }
             return chart as unknown as AgChartInstance<O>;
         });

@@ -196,7 +196,11 @@ export class LicenseManager {
         if (!this.isDisplayWatermark()) {
             return undefined;
         }
-        return this.buildWatermarkConfig(this.getWatermarkMessage());
+        const message = this.getWatermarkMessage();
+        if (!message) {
+            return undefined;
+        }
+        return this.buildWatermarkConfig(message);
     }
 
     private buildWatermarkConfig(text: string): object {

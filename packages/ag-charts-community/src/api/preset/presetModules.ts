@@ -108,6 +108,8 @@ const commonSparklineOptionsDef: OptionsDefs<
 
 // @ts-expect-error undocumented option
 commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
+// @ts-expect-error undocumented option
+commonSparklineOptionsDef.foreground = undocumented(defined);
 
 export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = {
     type: 'preset',
