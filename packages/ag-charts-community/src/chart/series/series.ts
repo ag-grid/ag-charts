@@ -53,6 +53,7 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
+import { Transformable } from '../../scene/transformable';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
@@ -654,6 +655,11 @@ export abstract class Series<
     abstract createNodeData(): TContext | undefined;
 
     abstract findNodeDatum(itemId: ItemId): TDatum | undefined;
+
+    toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
+        const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};
+        return Transformable.toCanvasPoint(this.contentGroup, x, y);
+    }
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {

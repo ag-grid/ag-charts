@@ -865,7 +865,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
         if (this.chart.tooltip.enabled && active.datum.midPoint) {
-            const { x: canvasX, y: canvasY } = active.datum.midPoint;
+            const { x: canvasX, y: canvasY } = active.series.toCanvasFromMidPoint(active.datum);
             this.showTooltip(active, canvasX, canvasY, paginationState);
         }
     }
