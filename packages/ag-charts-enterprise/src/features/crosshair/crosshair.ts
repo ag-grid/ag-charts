@@ -133,6 +133,7 @@ export class Crosshair extends AbstractModuleInstance {
         this.updateSelections(crosshairKeys);
         this.updateLines();
         this.updateLabels(crosshairKeys);
+        this.refreshPositions();
     }
 
     private updateSelections(data: string[]) {
@@ -252,6 +253,12 @@ export class Crosshair extends AbstractModuleInstance {
 
     private isInRange(value: number) {
         return this.axisCtx.inRange(value);
+    }
+
+    private refreshPositions() {
+        if (this.activeHighlight) {
+            this.updatePositions(this.getActiveHighlightData(this.activeHighlight));
+        }
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
