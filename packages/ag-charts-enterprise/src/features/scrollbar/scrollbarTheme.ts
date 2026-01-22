@@ -4,6 +4,7 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
     enabled: { $path: '../enabled' },
     thickness: { $path: '../thickness' },
     spacing: { $path: '../spacing' },
+    tickSpacing: { $path: '../tickSpacing' },
     placement: { $path: '../placement' },
     visible: { $path: '../visible' },
     track: {
@@ -33,6 +34,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     enabled: false,
     thickness: 12,
     spacing: 16,
+    tickSpacing: 0,
     placement: 'outer',
     visible: 'auto',
     track: {

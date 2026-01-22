@@ -15,6 +15,7 @@ export interface ScrollbarLayout {
     enabled: boolean;
     thickness: number;
     spacing: number;
+    tickSpacing: number;
     placement: AgScrollbarPlacement;
 }
 
