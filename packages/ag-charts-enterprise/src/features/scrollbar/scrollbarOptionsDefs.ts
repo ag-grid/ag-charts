@@ -1,13 +1,11 @@
 import {
     type OptionsDefs,
     boolean,
-    color,
     fillOptionsDef,
     lineDashOptionsDef,
     positiveNumber,
     ratio,
     strokeOptionsDef,
-    undocumented,
     union,
 } from 'ag-charts-core';
 import type {
@@ -28,7 +26,10 @@ const scrollbarTrackOptionsDef = {
 const scrollbarThumbOptionsDef = {
     ...scrollbarTrackOptionsDef,
     minSize: positiveNumber,
-    accentColor: undocumented(color),
+    hoverStyle: {
+        fill: fillOptionsDef.fill,
+        stroke: strokeOptionsDef.stroke,
+    },
 };
 
 const scrollbarBaseOptionsDef: OptionsDefs<AgScrollbarBaseOptions> = {

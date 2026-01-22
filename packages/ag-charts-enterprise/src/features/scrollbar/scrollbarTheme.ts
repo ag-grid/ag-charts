@@ -27,6 +27,10 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
         opacity: { $path: '../../thumb/opacity' },
         cornerRadius: { $path: '../../thumb/cornerRadius' },
         minSize: { $path: '../../thumb/minSize' },
+        hoverStyle: {
+            fill: { $path: '../../../thumb/hoverStyle/fill' },
+            stroke: { $path: '../../../thumb/hoverStyle/stroke' },
+        },
     },
 };
 
@@ -38,9 +42,8 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     placement: 'outer',
     visible: 'auto',
     track: {
-        fill: { $ref: 'foregroundColor' },
-        stroke: { $foregroundBackgroundMix: 0.15 },
-        fillOpacity: 0.05,
+        fill: { $foregroundBackgroundMix: 0.03 },
+        stroke: { $foregroundBackgroundMix: 0.177 },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
@@ -48,17 +51,18 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         cornerRadius: 6,
     },
     thumb: {
-        fill: { $ref: 'foregroundColor' },
-        stroke: { $foregroundBackgroundMix: 0.15 },
-        fillOpacity: 0.1,
+        fill: { $foregroundBackgroundMix: 0.125 },
+        stroke: { $foregroundBackgroundMix: 0.364 },
         strokeWidth: 1,
         lineDash: [0],
         lineDashOffset: 0,
         opacity: 1,
         cornerRadius: 6,
         minSize: 10,
-        // @ts-expect-error undocumented option
-        accentColor: { $ref: 'accentColor' },
+        hoverStyle: {
+            fill: { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, 0.075] },
+            stroke: { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, 0.075] },
+        },
     },
     vertical: SCROLLBAR_ORIENTATION_THEME,
     horizontal: SCROLLBAR_ORIENTATION_THEME,
