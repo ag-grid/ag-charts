@@ -79,11 +79,11 @@ export abstract class AgCharts {
                 apiStartTime,
             });
 
-            if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
-                const watermarkMessage = this.licenseManager.getWatermarkMessage();
-                if (watermarkMessage) {
-                    enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, watermarkMessage);
-                }
+            if (this.licenseManager?.isDisplayWatermark()) {
+                enterpriseRegistry.injectWatermark?.(
+                    chart.chart!.ctx.domManager,
+                    this.licenseManager.getWatermarkMessage()
+                );
             }
             return chart as unknown as AgChartInstance<O>;
         });
