@@ -66,15 +66,15 @@ jobs:
               with:
                   fetch-depth: 1
 
-            - name: Verify rulesync configuration
-              run: ./external/ag-shared/scripts/sync-rulesync/sync-rulesync.sh --check
-
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
+
+            - name: Verify rulesync configuration
+              run: ./external/ag-shared/scripts/sync-rulesync/sync-rulesync.sh --check
 
             - name: nx build and generate cacheable examples
               id: build
