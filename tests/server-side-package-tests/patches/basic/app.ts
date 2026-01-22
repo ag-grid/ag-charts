@@ -15,6 +15,7 @@ import { AgChartsServerSide } from 'ag-charts-server-side';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+// Note: Enterprise is imported via require() at runtime to prevent watermark on community tests
 
 interface TestResult {
     name: string;
@@ -32,9 +33,29 @@ if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
 }
 
-async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
+const DEFAULT_TEST_TIMEOUT_MS = 5000; // 5 seconds
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, testName: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            reject(new Error(`Test "${testName}" timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        promise
+            .then((result) => {
+                clearTimeout(timeoutId);
+                resolve(result);
+            })
+            .catch((error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+    });
+}
+
+async function runTest(name: string, fn: () => Promise<void>, timeoutMs = DEFAULT_TEST_TIMEOUT_MS): Promise<void> {
     try {
-        await fn();
+        await withTimeout(fn(), timeoutMs, name);
         results.push({ name, success: true });
         console.log(`  ✓ ${name}`);
     } catch (error) {
@@ -304,6 +325,112 @@ async function main() {
             assertPngDimensions(buffers[i], config.width, config.height);
             assertMatchesSnapshot(buffers[i], `concurrent-chart-${i}`);
         }
+    });
+
+    // =====================
+    // Enterprise Tests
+    // =====================
+    console.log('\n--- Enterprise Tests ---\n');
+
+    // Load enterprise at runtime to avoid watermark on community tests above
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllEnterpriseModule, LicenseManager } = require('ag-charts-enterprise');
+
+    // Register enterprise modules for enterprise-specific tests
+    ModuleRegistry.registerModules([AllEnterpriseModule]);
+
+    // Test 8: Unlicensed enterprise shows watermark
+    await runTest('Enterprise unlicensed shows watermark', async () => {
+        // Ensure no license is set
+        LicenseManager.setLicenseKey(undefined);
+
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-unlicensed-watermark');
+    });
+
+    // Test 9: Waterfall chart (enterprise-only series)
+    await runTest('Render waterfall chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'Start', value: 100 },
+                    { category: 'Add', value: 50 },
+                    { category: 'Subtract', value: -30 },
+                    { category: 'End', value: 120 },
+                ],
+                series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-waterfall');
+    });
+
+    // Test 10: Heatmap (enterprise-only series)
+    await runTest('Render heatmap chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 'A', y: '1', value: 10 },
+                    { x: 'A', y: '2', value: 20 },
+                    { x: 'B', y: '1', value: 30 },
+                    { x: 'B', y: '2', value: 40 },
+                ],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 400, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-heatmap');
+    });
+
+    // Test 11: Radial gauge (enterprise-only, uses renderGauge)
+    await runTest('Render radial gauge', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'radial-gauge',
+                value: 75,
+                scale: { min: 0, max: 100 },
+            },
+            width: 300,
+            height: 300,
+        });
+
+        assertPngDimensions(buffer, 300, 300);
+        assertMatchesSnapshot(buffer, 'enterprise-radial-gauge');
+    });
+
+    // Test 12: Linear gauge (enterprise-only, uses renderGauge)
+    await runTest('Render linear gauge', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'linear-gauge',
+                value: 60,
+                scale: { min: 0, max: 100 },
+            },
+            width: 400,
+            height: 100,
+        });
+
+        assertPngDimensions(buffer, 400, 100);
+        assertMatchesSnapshot(buffer, 'enterprise-linear-gauge');
     });
 
     // Summary

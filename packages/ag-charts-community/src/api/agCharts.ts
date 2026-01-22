@@ -79,7 +79,7 @@ export abstract class AgCharts {
                 apiStartTime,
             });
 
-            if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
+            if (this.licenseManager?.isDisplayWatermark()) {
                 enterpriseRegistry.injectWatermark?.(
                     chart.chart!.ctx.domManager,
                     this.licenseManager.getWatermarkMessage()

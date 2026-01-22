@@ -16,6 +16,7 @@ import {
 
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
+    foreground?: object;
 }
 
 type GaugeTooltip = Exclude<AgGaugeOptions['tooltip'], undefined>;
@@ -55,6 +56,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
         contextMenu,
         context,
         footnote,
+        foreground,
         height,
         listeners,
         locale,
@@ -133,6 +135,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
         contextMenu,
         context,
         footnote,
+        foreground,
         height,
         listeners,
         locale,
@@ -157,6 +160,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
         contextMenu,
         context,
         footnote,
+        foreground,
         height,
         listeners,
         locale,
@@ -218,6 +222,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
         contextMenu,
         context,
         footnote,
+        foreground,
         height,
         listeners,
         locale,

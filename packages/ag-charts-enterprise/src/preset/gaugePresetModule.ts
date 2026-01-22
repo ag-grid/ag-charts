@@ -43,6 +43,8 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
 
 // @ts-expect-error undocumented option
 commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+commonGaugeOptions.foreground = undocumented(defined);
 
 export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',

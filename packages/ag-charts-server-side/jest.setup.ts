@@ -11,6 +11,10 @@ FontLibrary.use('Verdana', [
     path.resolve(__dirname, 'test/fonts/Arimo-Bold.ttf'),
 ]);
 
+// Register Impact font using Arimo-Bold for watermark rendering consistency.
+// Impact is not a web-safe font and differs between macOS/Linux.
+FontLibrary.use('Impact', [path.resolve(__dirname, 'test/fonts/Arimo-Bold.ttf')]);
+
 // Extend Jest matchers with image snapshot support
 declare module 'expect' {
     interface Matchers<R> {

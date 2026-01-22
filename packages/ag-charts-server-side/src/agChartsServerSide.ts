@@ -1,7 +1,7 @@
 import { FontLibrary } from 'skia-canvas';
 
-import { AgCharts } from 'ag-charts-community';
-import { withTimeout } from 'ag-charts-core';
+import { AgCharts, ModuleRegistry } from 'ag-charts-community';
+import { enterpriseRegistry, withTimeout } from 'ag-charts-core';
 
 import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
 import { patchDocumentCreateElement } from './documentPatch';
@@ -95,10 +95,26 @@ export class AgChartsServerSide {
 
             const container = env.document.getElementById('container')!;
 
-            // Note: as any is required because AgCharts API methods have incompatible union types
-            // that TypeScript cannot narrow properly when api is a union of method names
+            // Check if enterprise is registered and we need to show watermark for unlicensed use.
+            // Note: We use getWatermarkForegroundConfig() (not getWatermarkForegroundConfigForBrowser())
+            // because SSR exports should always show the watermark when unlicensed, even for
+            // localhost/development environments.
+            // Create a fresh LicenseManager instance per render (not cached like browser path).
+            // This is intentional: each SSR render needs its own isolated document reference
+            // for hostname detection. The static licenseKey is shared across instances.
+            let chartOptions: any = options;
+            if (ModuleRegistry.isEnterprise()) {
+                const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
+                licenseManager?.validateLicense();
+
+                const foreground = licenseManager?.getWatermarkForegroundConfig();
+                if (foreground) {
+                    chartOptions = { ...options, foreground };
+                }
+            }
+
             const createdChart = AgCharts[api]({
-                ...options,
+                ...chartOptions,
                 container,
                 document: env.document,
                 window: env.window,
@@ -106,7 +122,7 @@ export class AgChartsServerSide {
                 width,
                 height,
                 overrideDevicePixelRatio: pixelRatio,
-            } as any);
+            });
             chart = createdChart;
 
             await withTimeout(createdChart.waitForUpdate(), timeout, `Render timeout after ${timeout}ms`);

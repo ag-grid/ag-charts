@@ -7,7 +7,7 @@ patch_subdir=basic
 
 ssr_test_deps="tsx pixelmatch pngjs"
 ssr_test_entry="app.ts"
-ssr_packages="ag-charts-types ag-charts-locale ag-charts-community ag-charts-core ag-charts-server-side"
+ssr_packages="ag-charts-types ag-charts-locale ag-charts-community ag-charts-core ag-charts-enterprise ag-charts-server-side"
 
 function install_fw {
     npm init -y >/dev/null
