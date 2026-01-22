@@ -75,6 +75,7 @@ export class Crosshair extends AbstractModuleInstance {
         this.hideCrosshairs();
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
+            if (this.checkInteractionState()) return;
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.crosshairGroup.visible && !isSeriesAreaChild) {
                 this.hideCrosshairs();
@@ -104,6 +105,10 @@ export class Crosshair extends AbstractModuleInstance {
                 seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
             );
         }
+    }
+
+    private checkInteractionState(): boolean {
+        return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
