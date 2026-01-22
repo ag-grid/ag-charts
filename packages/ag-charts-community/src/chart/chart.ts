@@ -1193,7 +1193,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             chartRanges[type] = firstSeries.getMinimumRangeChart(seriesRanges[type]);
         }
 
-        this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
+        if (Object.keys(chartRanges).length === 0) {
+            this._requiredWidth = 0;
+        } else {
+            this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
+        }
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {
@@ -1302,8 +1306,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected preSeriesUpdate() {
         const { _requiredWidth } = this;
-        const seriesRectWidth = this.seriesRect?.width ?? 0;
-        const requiredWidthRatio = _requiredWidth / seriesRectWidth;
+        if (this.seriesRect == null) return;
+
+        const requiredWidthRatio = _requiredWidth / this.seriesRect.width;
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
         this.ctx.updateService.dispatchPreSeriesUpdate(requiredWidthRatio);
