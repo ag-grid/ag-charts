@@ -108,7 +108,7 @@ test.describe('state', () => {
                     version,
                     active: {
                         frozen: false,
-                        activeItem: { itemId: '10000', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-area', itemId: '10000', seriesId: 'LineSeries-1' },
                     },
                 });
                 expect(consoleLogs.getLogs()).toEqual([

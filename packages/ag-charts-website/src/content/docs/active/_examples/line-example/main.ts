@@ -105,16 +105,20 @@ function onFreezeChange(checked: boolean): void {
 }
 
 function onSetState(): void {
-    chart.setState({
-        version,
-        active: {
-            activeItem: {
-                seriesId: SERIES_ID_MAP[country],
-                itemId: ITEM_ID_MAP[year],
-            },
-            frozen,
-        },
-    });
+    const seriesId: string = SERIES_ID_MAP[country];
+    const itemId: string | undefined = ITEM_ID_MAP[year];
+
+    if (itemId === undefined) {
+        chart.setState({
+            version,
+            active: { activeItem: { type: 'legend', seriesId, itemId: country }, frozen },
+        });
+    } else {
+        chart.setState({
+            version,
+            active: { activeItem: { type: 'series-area', seriesId, itemId }, frozen },
+        });
+    }
 }
 
 function onGetState(): void {

@@ -1,10 +1,9 @@
 import type { Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
-import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type {
-    ActiveDatumChangeEvent,
-    ActiveLegendChangeEvent,
+    ActiveLoadMementoEvent,
     HighlightChangeEvent,
     HighlightNodeDatum,
     LayoutCompleteEvent,
@@ -168,9 +167,7 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
-            chart.ctx.eventsHub.on('active:clear', (event) => this.onActiveClear(event)),
-            chart.ctx.eventsHub.on('active:legend', (event) => this.onActiveLegend(event)),
-            chart.ctx.eventsHub.on('active:datum', (event) => this.onActiveDatum(event)),
+            chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -1098,22 +1095,36 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private onActiveClear(event: null) {
-        this.pickManager.onClearAPI(event);
+    private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
+        switch (event.activeItem?.type) {
+            case undefined:
+                return this.onActiveClear();
+            case 'legend':
+                return this.onActiveLegend();
+            case 'series-area':
+                return this.onActiveDatum(event.activeItem, event);
+            default:
+                return event.activeItem?.type satisfies undefined;
+        }
+    }
+
+    private onActiveClear() {
+        this.pickManager.onClearAPI();
         this.hoverDevice = 'setState';
         this.clearHighlight(true);
         this.clearTooltip(true);
     }
 
-    private onActiveLegend(_event: ActiveLegendChangeEvent) {
-        this.pickManager.onClearAPI(null);
+    private onActiveLegend() {
+        this.pickManager.onClearAPI();
     }
 
-    private onActiveDatum(event: ActiveDatumChangeEvent) {
-        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(event.seriesId, event.itemId);
+    private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
+        const { seriesId, itemId } = activeItem;
+        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
         if (desiredPickedNodes === undefined) {
             event.reject();
-            this.onActiveClear(null);
+            this.onActiveClear();
         } else {
             this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             this.hoverDevice = 'setState';
@@ -1121,7 +1132,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private findPickedNodes(desiredSeriesId: string, desiredItemId: string): PickedNodes | undefined {
+    private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
             Logger.warn(`Cannot find series '${desiredSeries}'`);

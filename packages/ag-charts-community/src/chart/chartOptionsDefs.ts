@@ -8,11 +8,16 @@ import {
     geoJson,
     htmlElement,
     object,
+    or,
+    positiveNumber,
+    required,
+    strictUnion,
     string,
     undocumented,
     union,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
     AgInitialStateLegendOptions,
@@ -23,8 +28,9 @@ import type {
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
+        type: strictUnion<AgActiveItemState['type']>()('series-area', 'legend'),
         seriesId: string,
-        itemId: string,
+        itemId: required(or(string, positiveNumber)),
     },
     frozen: boolean,
 };
