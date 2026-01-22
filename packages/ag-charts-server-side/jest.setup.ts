@@ -1,4 +1,3 @@
-import { existsSync } from 'fs';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
 import path from 'path';
 import { DOMMatrix, FontLibrary, Image, Path2D } from 'skia-canvas';
@@ -7,25 +6,14 @@ import { NodeCanvas } from './src/canvasConfig';
 
 // Register consistent fonts for visual regression testing.
 // Uses Arimo (free Google Font) as Verdana substitute for cross-environment consistency.
-const fontPaths = [
+FontLibrary.use('Verdana', [
     path.resolve(__dirname, 'test/fonts/Arimo-Regular.ttf'),
     path.resolve(__dirname, 'test/fonts/Arimo-Bold.ttf'),
-];
+]);
 
-// Verify font files exist before registering (helps diagnose CI issues)
-for (const fontPath of fontPaths) {
-    if (!existsSync(fontPath)) {
-        throw new Error(`Font file not found: ${fontPath}\n__dirname: ${__dirname}`);
-    }
-}
-
-const registered = FontLibrary.use('Verdana', fontPaths);
-if (!registered) {
-    throw new Error(`Failed to register Verdana font from: ${fontPaths.join(', ')}`);
-}
-if (!FontLibrary.has('Verdana')) {
-    throw new Error(`Verdana font not available after registration`);
-}
+// Register Impact font using Arimo-Bold for watermark rendering consistency.
+// Impact is not a web-safe font and differs between macOS/Linux.
+FontLibrary.use('Impact', [path.resolve(__dirname, 'test/fonts/Arimo-Bold.ttf')]);
 
 // Extend Jest matchers with image snapshot support
 declare module 'expect' {
