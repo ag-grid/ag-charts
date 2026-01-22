@@ -277,13 +277,13 @@
             "name": "Gauges",
             "children": [
                 {
-                    "moduleName": "RadialGaugeSeriesModule",
+                    "moduleName": "RadialGaugeModule",
                     "name": "Radial Gauge",
                     "path": "radial-gauge",
                     "isEnterprise": true
                 },
                 {
-                    "moduleName": "LinearGaugeSeriesModule",
+                    "moduleName": "LinearGaugeModule",
                     "name": "Linear Gauge",
                     "path": "linear-gauge",
                     "isEnterprise": true
