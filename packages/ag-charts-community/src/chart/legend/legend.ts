@@ -416,6 +416,10 @@ export class Legend extends BaseProperties {
         return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
     }
 
+    private checkInteractionState(): boolean {
+        return this.ctx.interactionManager.isState(InteractionState.Frozen);
+    }
+
     attachLegend(scene: Scene) {
         scene.appendChild(this.group);
     }
@@ -1001,6 +1005,7 @@ export class Legend extends BaseProperties {
     }
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
+        if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.datum;
 
@@ -1024,6 +1029,7 @@ export class Legend extends BaseProperties {
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {
+        if (this.checkInteractionState()) return;
         if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
@@ -1091,6 +1097,7 @@ export class Legend extends BaseProperties {
     }
 
     onDoubleClick(event: Event, datum: CategoryLegendDatum) {
+        if (this.checkInteractionState()) return;
         if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
@@ -1172,6 +1179,7 @@ export class Legend extends BaseProperties {
     }
 
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+        if (this.checkInteractionState()) return;
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
         this.pagination.setPage(node.pageIndex);
@@ -1191,6 +1199,7 @@ export class Legend extends BaseProperties {
     }
 
     onLeave() {
+        if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         this.clearHighlight();
     }
