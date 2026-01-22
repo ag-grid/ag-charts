@@ -29,6 +29,7 @@ import {
     truncateLine,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
     AgChartLegendDoubleClickEvent,
@@ -342,6 +343,7 @@ export class Legend extends BaseProperties {
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
             ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
@@ -1239,17 +1241,26 @@ export class Legend extends BaseProperties {
         }
     }
 
+    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
+        if (activeItem?.type === 'series-area') {
+            this.ctx.highlightManager.updateHighlight(this.id, undefined);
+        }
+    }
+
     private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
         const { activeItem } = event;
-        if (activeItem?.type !== 'legend') return;
+        if (activeItem?.type !== 'legend') {
+            return this.ctx.highlightManager.updateHighlight(this.id, undefined);
+        }
 
-        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId);
+        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
             Logger.error(`cannot series with id '${activeItem.seriesId}'`);
             event.reject();
         } else if (datum === undefined) {
-            Logger.error(`cannot find legend item for seriesId '${activeItem.seriesId}'`);
+            const json = JSON.stringify({ seriesId: activeItem.seriesId, itemId: activeItem.itemId });
+            Logger.error(`cannot find legend item: ${json}`);
             event.reject();
         } else {
             this.updateHighlight(datum.enabled, datum, series);

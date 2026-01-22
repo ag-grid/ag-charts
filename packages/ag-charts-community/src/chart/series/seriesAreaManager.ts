@@ -865,7 +865,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
         if (this.chart.tooltip.enabled && active.datum.midPoint) {
-            const { x: canvasX, y: canvasY } = active.datum.midPoint;
+            const { x: canvasX, y: canvasY } = active.series.toCanvasFromMidPoint(active.datum);
             this.showTooltip(active, canvasX, canvasY, paginationState);
         }
     }
@@ -1098,9 +1098,8 @@ export class SeriesAreaManager extends BaseManager {
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
         switch (event.activeItem?.type) {
             case undefined:
-                return this.onActiveClear();
             case 'legend':
-                return this.onActiveLegend();
+                return this.onActiveClear();
             case 'series-area':
                 return this.onActiveDatum(event.activeItem, event);
             default:
@@ -1113,10 +1112,6 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverDevice = 'setState';
         this.clearHighlight(true);
         this.clearTooltip(true);
-    }
-
-    private onActiveLegend() {
-        this.pickManager.onClearAPI();
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
