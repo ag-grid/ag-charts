@@ -4,6 +4,8 @@ import type { AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { commonChartOptions } from '../chartOptionsDefs';
+import type { InteractionManager } from './interactionManager';
+import { InteractionState } from './interactionManager';
 
 type ActiveItem = AgActiveItemState | undefined;
 
@@ -15,7 +17,10 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
     private currentItem?: ActiveItem;
 
-    constructor(private readonly eventsHub: EventsHub) {}
+    constructor(
+        private readonly eventsHub: EventsHub,
+        private readonly interactionManager: InteractionManager
+    ) {}
 
     public update(newItemState: ActiveItem): void {
         this.currentItem = newItemState;
@@ -46,6 +51,11 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
         this.update(this.performRestoration(memento?.activeItem));
+        if (memento?.frozen) {
+            this.interactionManager.pushState(InteractionState.Frozen);
+        } else {
+            this.interactionManager.popState(InteractionState.Frozen);
+        }
     }
 
     private performRestoration(activeItem: ActiveItem): ActiveItem {
