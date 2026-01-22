@@ -176,6 +176,39 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('2 duplicate setState calls', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                    await pickDatum(page, { country: 'France', year: '2014' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+
+                    await pickDatum(page, { country: 'France', year: '2014' });
+                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await pickDatum(page, { country: 'France', year: '2014' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                    });
+
+                    await pickDatum(page, { country: 'France', year: '2014' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                    });
+                });
+            });
+
             test.describe('hover events clear unfrozen setState', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
