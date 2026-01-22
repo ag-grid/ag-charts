@@ -1,4 +1,5 @@
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { setupMockConsole } from 'ag-charts-test';
 
 import { AgChartsServerSide } from './agChartsServerSide';
 import type { RenderOptions } from './types';
@@ -293,6 +294,19 @@ describe('AgChartsServerSide', () => {
 });
 
 describe('AgChartsServerSide enterprise licensing', () => {
+    // Define afterEach BEFORE setupMockConsole so it runs first (Jest runs afterEach in registration order)
+    afterEach(() => {
+        // Allow expected license messages (start with *), fail on unexpected errors
+        const errorMock = console.error as jest.Mock;
+        const unexpectedErrors = errorMock.mock.calls
+            .map((args) => String(args[0] ?? ''))
+            .filter((msg) => !msg.startsWith('*'));
+        errorMock.mockClear();
+        expect(unexpectedErrors).toEqual([]);
+    });
+
+    setupMockConsole();
+
     beforeAll(async () => {
         // Dynamic import required: static import would cause enterprise module registration
         // at file load time, affecting community tests that run first in this file
