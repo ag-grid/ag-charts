@@ -142,7 +142,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active', 'line-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'line-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -624,7 +624,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active', 'multi-donut-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'multi-donut-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -840,7 +840,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active', 'bubble-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'bubble-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
