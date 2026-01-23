@@ -315,8 +315,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             common.forceValue = 0;
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any, any>[] = [
-            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
             ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),
         ];

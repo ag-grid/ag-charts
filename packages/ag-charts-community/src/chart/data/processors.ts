@@ -90,11 +90,12 @@ export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial
 }
 
 export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'value',
         valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
+        validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
     return result;

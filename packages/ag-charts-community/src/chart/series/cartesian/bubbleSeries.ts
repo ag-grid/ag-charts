@@ -272,10 +272,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
         const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: `xValue` }),
-                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
                 ...(xFilterKey == null ? [] : [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })]),
                 ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })]),
                 ...(sizeFilterKey == null

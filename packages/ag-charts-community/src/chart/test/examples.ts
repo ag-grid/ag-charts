@@ -4210,6 +4210,53 @@ export const SCATTER_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
 };
 
+// NULL CATEGORY KEY ALLOWED TEST EXAMPLES (with allowNullKeys: true) =============================
+
+export const BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const LINE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const BUBBLE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
+};
+
+export const SCATTER_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
 export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
     data: [
         { label: 'A', value: 10 },

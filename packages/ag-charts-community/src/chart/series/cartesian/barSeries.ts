@@ -307,8 +307,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any>[] = [
-            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
         ];
 

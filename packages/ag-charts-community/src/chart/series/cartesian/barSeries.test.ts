@@ -310,6 +310,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
         warnings: [['AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:', '[null]']],
     },
+    BAR_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {

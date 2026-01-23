@@ -331,13 +331,20 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     abstract tooltip: SeriesTooltip<never>;
 
-    // user pass-through option: no validation-decorator required.
+    // User pass-through option: no validation-decorator required.
     context?: unknown;
+
+    // Internal option to allow null values as discrete keys (undocumented).
+    allowNullKeys?: boolean;
 
     override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
         if ('context' in properties) {
             this.context = properties.context;
             unknownKeys.delete('context');
+        }
+        if ('allowNullKeys' in properties) {
+            this.allowNullKeys = (properties as { allowNullKeys?: boolean }).allowNullKeys;
+            unknownKeys.delete('allowNullKeys');
         }
     }
 }
