@@ -389,6 +389,18 @@ copy_extra_configs() {
     fi
 }
 
+# Get rulesync command - prefer patched versions over npx (which downloads fresh unpatched)
+# Priority: RULESYNC_BIN env var > local node_modules > npx fallback
+get_rulesync_cmd() {
+    if [[ -n "${RULESYNC_BIN:-}" && -x "$RULESYNC_BIN" ]]; then
+        echo "$RULESYNC_BIN"
+    elif [[ -x "$REPO_ROOT/node_modules/.bin/rulesync" ]]; then
+        echo "$REPO_ROOT/node_modules/.bin/rulesync"
+    else
+        echo "npx rulesync"
+    fi
+}
+
 # Generate rulesync configuration
 generate_config() {
     local targets="$1"
@@ -401,10 +413,14 @@ generate_config() {
         echo ""
     fi
 
+    # Prefer local rulesync (with patches applied) over npx (downloads fresh unpatched version)
+    local rulesync_cmd
+    rulesync_cmd=$(get_rulesync_cmd)
+
     # Run rulesync and capture output + exit code
     local output
     local exit_code=0
-    output=$(npx rulesync generate \
+    output=$($rulesync_cmd generate \
         --targets="$targets" \
         --features="rules,ignore,mcp,commands,subagents" \
         --delete 2>&1) || exit_code=$?
