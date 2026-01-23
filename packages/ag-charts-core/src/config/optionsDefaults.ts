@@ -329,13 +329,14 @@ export const lineSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesLineSeg
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
+export const fontWeight = or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter'));
 
 export const fontOptionsDef: OptionsDefs<TextOptions> = {
     color: color,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
     fontStyle: union('normal', 'italic', 'oblique'),
-    fontWeight: or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter')),
+    fontWeight: fontWeight,
 };
 
 export const paddingOptions = optionsDefs<PaddingOptions>(
