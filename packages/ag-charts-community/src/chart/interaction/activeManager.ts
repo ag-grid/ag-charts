@@ -28,7 +28,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     }
 
     public createMemento(): AgActiveState {
-        const frozen = false;
+        const frozen = this.interactionManager.isState(InteractionState.Frozen);
         switch (this.currentItem?.type) {
             case 'series-area':
             case 'legend': {
