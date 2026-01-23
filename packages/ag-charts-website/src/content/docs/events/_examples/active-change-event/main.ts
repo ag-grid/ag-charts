@@ -1,4 +1,5 @@
 import {
+    AgActiveChangeEvent,
     AgChartOptions,
     AgCharts,
     BarSeriesModule,
@@ -151,6 +152,16 @@ const options: AgChartOptions = {
             fill: '#6f7bd9',
         },
     ],
+    listeners: {
+        activeChange: (ev: AgActiveChangeEvent<unknown>): void => {
+            const item = ev.activeItem;
+            const asString: string =
+                item === undefined
+                    ? '[inactive]'
+                    : `type: ${item.type}, seriesId: ${item.seriesId}, itemId: ${item.itemId}`;
+            console.log(`source: ${ev.source}, ${asString}`);
+        },
+    },
 };
 
 AgCharts.create(options);

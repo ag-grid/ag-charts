@@ -71,6 +71,22 @@ This event is fired when the [active](./active/) state (highlight) is changed.
 
 {% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}
 
+```js format="snippet"
+{
+    listeners: {
+        activeChange: (ev) => {
+            const item = ev.activeItem;
+            const asString =
+                item === undefined
+                    ? "[inactive]"
+                    : `type: ${item.type}, seriesId: ${item.seriesId}, itemId: ${item.itemId}`;
+
+            console.log(`source: ${ev.source}, ${asString}`);
+        },
+    },
+}
+```
+
 In this example:
 
 -   Whenever a user interaction (mouse, touch, keyboard) changes the highlight state, a message in shown in the console.
