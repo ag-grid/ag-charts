@@ -47,7 +47,6 @@ import { type UpdateCallback, UpdateService } from './updateService';
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
 
-    readonly activeManager = new ActiveManager(this.eventsHub);
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
@@ -58,6 +57,7 @@ export class ChartContext implements ModuleContext {
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
     readonly cleanup = new CleanupRegistry();
 
+    readonly activeManager: ActiveManager;
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
@@ -143,6 +143,7 @@ export class ChartContext implements ModuleContext {
         this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
+        this.activeManager = new ActiveManager(this.eventsHub, this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
         this.updateService = new UpdateService(updateCallback);

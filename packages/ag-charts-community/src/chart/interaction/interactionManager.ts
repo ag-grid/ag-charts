@@ -6,12 +6,13 @@
 // intentionally kept for maintainability and self-documentation. Converting to literal
 // numbers would harm readability and make the bitflag combinations harder to understand.
 export enum InteractionState {
-    Default = 32,
-    ZoomDrag = 16,
-    Annotations = 8,
-    ContextMenu = 4,
-    Animation = 2,
-    AnnotationsSelected = 1,
+    Default = 64,
+    ZoomDrag = 32,
+    Annotations = 16,
+    ContextMenu = 8,
+    Animation = 4,
+    AnnotationsSelected = 2,
+    Frozen = 1,
 
     Clickable = Default | Annotations | AnnotationsSelected,
     Focusable = Default | Animation,
