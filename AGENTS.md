@@ -203,7 +203,7 @@ Key points:
 
 ## Technical Requirements
 
--   **Node.js**: ^20.19.4
+-   **Node.js**: ^22.21.1
 -   **Package Manager**: Yarn v1.22.21
 -   **Build Target**: ES2020 (excludes IE)
 -   **TypeScript**: Strict mode enabled across all packages
