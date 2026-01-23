@@ -521,6 +521,7 @@ jobs:
               uses: ./.github/actions/snapshot-notify
               with:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
+                  run_started_at: ${{ github.run_started_at }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -550,7 +551,7 @@ jobs:
               if: always()
               run: |
                   WORKFLOW_STATUS="success"
-                  if [[ "${{steps.snapshot-notify.outputs.updated}}"  == 'true' ]] ; then
+                  if [[ "${{steps.snapshot-notify.outputs.updated}}" == 'true' ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [[ "${{ needs.lint.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
