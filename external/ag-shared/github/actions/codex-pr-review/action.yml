@@ -90,13 +90,23 @@ runs:
         - name: Fetch PR refs
           if: steps.check-auth.outputs.skipped != 'true'
           shell: bash
+          env:
+              PR_NUMBER: ${{ inputs.pr-number }}
+              BASE_REF: ${{ inputs.base-ref }}
           run: |
               # Fetch PR head ref and base branch for git diff access
               # This allows Codex to use git commands to analyze the PR changes
-              echo "Fetching PR #${{ inputs.pr-number }} refs..."
+
+              # Validate PR number is numeric to prevent shell injection
+              if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+                echo "::error::Invalid PR number: must be numeric"
+                exit 1
+              fi
+
+              echo "Fetching PR #${PR_NUMBER} refs..."
               git fetch --no-tags origin \
-                ${{ inputs.base-ref }} \
-                +refs/pull/${{ inputs.pr-number }}/head:refs/remotes/origin/pr/${{ inputs.pr-number }}
+                "${BASE_REF}" \
+                "+refs/pull/${PR_NUMBER}/head:refs/remotes/origin/pr/${PR_NUMBER}"
               echo "PR refs fetched successfully"
 
         - name: Setup Node.js
@@ -296,7 +306,6 @@ runs:
                       review = JSON.parse(jsonContent);
                     } catch (e) {
                       console.log(`Failed to parse JSON output: ${e.message}`);
-                      console.log(`Content starts with: ${rawContent.slice(0, 100).replace(/\n/g, '\\n')}`);
                       console.log(`Content length: ${rawContent.length}`);
                       reviewBody = rawContent;
                       review = null;
