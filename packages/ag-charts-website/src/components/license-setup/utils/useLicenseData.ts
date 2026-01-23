@@ -137,6 +137,7 @@ const useLicenseState = ({
             };
         });
     }, [
+        library,
         userLicense,
         licensedProducts,
         isIntegratedCharts,
@@ -265,7 +266,7 @@ export const useLicenseData = ({ library }: { library: Library }) => {
         });
 
         updateIsIntegratedChartsWithUrlUpdate(isIntegrated);
-    }, [library, licenseDetails, chartsLicenseDetails]);
+    }, [library, userLicense, updateIsIntegratedChartsWithUrlUpdate, licenseDetails, chartsLicenseDetails]);
 
     const licenseInvalidErrors = useMemo(() => {
         return Object.keys(licenseState)
