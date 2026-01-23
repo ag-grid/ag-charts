@@ -117,6 +117,7 @@ interface TickLayoutCache<D, TickLayoutMeta> {
     gridLength: number;
     visibleRange: [number, number];
     initialPrimaryTickCount: AxisPrimaryTickCount | undefined;
+    scrollbarKey: string;
     tickLayout: TickLayout<D, TickLayoutMeta>;
 }
 
@@ -132,6 +133,7 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
         a.gridLength === b.gridLength &&
         a.visibleRange[0] === b.visibleRange[0] &&
         a.visibleRange[1] === b.visibleRange[1] &&
+        a.scrollbarKey === b.scrollbarKey &&
         a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
         a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
     );
@@ -582,9 +584,8 @@ export abstract class Axis<
     }
 
     protected chartLayout?: ChartLayout;
-
     private unzoomedTickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
-    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount) {
+    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount, scrollbarKey: string = 'none') {
         const {
             dataDomain: { domain },
             range,
@@ -609,6 +610,7 @@ export abstract class Axis<
                 gridLength,
                 visibleRange,
                 initialPrimaryTickCount,
+                scrollbarKey,
             })
         ) {
             const scaleRange = scale.range;
@@ -626,6 +628,7 @@ export abstract class Axis<
                 gridLength,
                 visibleRange,
                 initialPrimaryTickCount,
+                scrollbarKey,
                 tickLayout: unzoomedTickLayout,
             };
         } else {
@@ -649,10 +652,11 @@ export abstract class Axis<
         bbox?: BBox;
     } {
         this.chartLayout = chartLayout;
+        const scrollbarKey = this.getScrollbarLayoutCacheKey(chartLayout);
 
         const { visibleRange } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
-        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount);
+        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount, scrollbarKey);
 
         const nice = this.getDomainExtentsNice();
 
@@ -673,6 +677,7 @@ export abstract class Axis<
                     gridLength,
                     visibleRange,
                     initialPrimaryTickCount,
+                    scrollbarKey,
                 })
             ) {
                 tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
@@ -684,6 +689,7 @@ export abstract class Axis<
                     gridLength,
                     visibleRange,
                     initialPrimaryTickCount,
+                    scrollbarKey,
                     tickLayout,
                 };
             } else {
@@ -715,6 +721,12 @@ export abstract class Axis<
         this.unzoomedTickLayoutCache = undefined;
         this.tickLayoutCache = undefined;
         this.tickLayout = undefined;
+    }
+
+    private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
+        const scrollbar = chartLayout?.scrollbars?.[this.id];
+        if (!scrollbar?.enabled) return 'none';
+        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
     }
 
     abstract layoutCrossLines(): void;

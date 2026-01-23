@@ -187,7 +187,10 @@ const scrollbarTrackOptionsDef = {
 const scrollbarThumbOptionsDef = {
     ...scrollbarTrackOptionsDef,
     minSize: positiveNumber,
-    accentColor: undocumented(color),
+    hoverStyle: {
+        fill: fillOptionsDef.fill,
+        stroke: strokeOptionsDef.stroke,
+    },
 };
 
 const scrollbarBaseOptionsDef: OptionsDefs<AgScrollbarBaseOptions> = {

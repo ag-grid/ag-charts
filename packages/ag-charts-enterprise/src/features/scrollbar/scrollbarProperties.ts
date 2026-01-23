@@ -39,14 +39,23 @@ export class ScrollbarTrack extends ChangeDetectableProperties {
     opacity: number = 1;
 }
 
+export class ScrollbarThumbHoverStyle extends ChangeDetectableProperties {
+    @Property
+    @SceneChangeDetection()
+    fill?: CssColor;
+
+    @Property
+    @SceneChangeDetection()
+    stroke?: string;
+}
+
 export class ScrollbarThumb extends ScrollbarTrack {
     @Property
     @SceneChangeDetection()
     minSize: number = 12;
 
     @Property
-    @SceneChangeDetection()
-    accentColor?: CssColor;
+    public hoverStyle: ScrollbarThumbHoverStyle = new ScrollbarThumbHoverStyle();
 }
 
 export class ScrollbarProperties extends ChangeDetectableProperties {

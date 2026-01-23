@@ -212,10 +212,10 @@ export class Scrollbar extends AbstractModuleInstance {
         thumb.cornerRadius = properties.thumb.cornerRadius ?? 0;
         thumb.opacity = properties.thumb.opacity ?? 1;
 
-        const accentColor = this.thumb.accentColor;
+        const hoverStyle = properties.thumb.hoverStyle;
 
-        thumb.fill = hovered ? accentColor : properties.thumb.fill;
-        thumb.stroke = hovered ? accentColor : properties.thumb.stroke;
+        thumb.fill = hovered ? hoverStyle?.fill ?? properties.thumb.fill : properties.thumb.fill;
+        thumb.stroke = hovered ? hoverStyle?.stroke ?? properties.thumb.stroke : properties.thumb.stroke;
     }
 
     private updateTrack(state: ScrollbarOrientationState, bounds: _ModuleSupport.BBox) {
@@ -238,14 +238,14 @@ export class Scrollbar extends AbstractModuleInstance {
 
         const minSize = state.properties.thumb.minSize ?? 0;
         if (state.orientation === 'horizontal') {
-            const thumbWidth = Math.max(minSize, track.width * span);
+            const thumbWidth = Math.min(Math.max(minSize, track.width * span), track.width);
             const start = clamp(track.x, track.x + track.width * min, track.x + track.width - thumbWidth);
             state.thumb.x = start;
             state.thumb.y = track.y;
             state.thumb.width = thumbWidth;
             state.thumb.height = track.height;
         } else {
-            const thumbHeight = Math.max(minSize, track.height * span);
+            const thumbHeight = Math.min(Math.max(minSize, track.height * span), track.height);
             const start = clamp(track.y, track.y + track.height * min, track.y + track.height - thumbHeight);
             state.thumb.x = track.x;
             state.thumb.y = start;
