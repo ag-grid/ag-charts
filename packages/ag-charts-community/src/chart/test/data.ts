@@ -895,3 +895,73 @@ export const DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED = DATA_TOTAL_G
         totalWinnings: 677324,
     },
 ]);
+
+// Null category key test data (for category axis tests)
+export const DATA_NULL_CATEGORY_KEY = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: 'B', y: 15 },
+];
+
+// Null numeric key test data (for number axis tests)
+export const DATA_NULL_NUMERIC_KEY = [
+    { x: 0, y: 10 },
+    { x: null, y: 20 },
+    { x: 2, y: 15 },
+];
+
+// Multiple null keys test data (edge case)
+export const DATA_MULTIPLE_NULL_KEYS = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: null, y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Null vs "null" string test data (collision test)
+export const DATA_NULL_VS_STRING_NULL = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: 'null', y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Grouped category null test data - null at first level (outermost grouping)
+export const DATA_GROUPED_NULL_FIRST_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', 'UK', 'Manchester'], value: 12 },
+    { grouping: [null, 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category null test data - null at middle level
+export const DATA_GROUPED_NULL_MIDDLE_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', null, 'Manchester'], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category null test data - null at last level (innermost grouping)
+export const DATA_GROUPED_NULL_LAST_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', 'UK', null], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category null test data - multiple nulls in same grouping
+export const DATA_GROUPED_MULTIPLE_NULLS = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: [null, null, 'Manchester'], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category null test data - null vs "null" string distinction
+export const DATA_GROUPED_NULL_VS_STRING_NULL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', null, 'Paris'], value: 12 },
+    { grouping: ['Europe', 'null', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];

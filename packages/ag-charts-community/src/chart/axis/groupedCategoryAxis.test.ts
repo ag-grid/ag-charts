@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, test } from '@jest/globals';
 
 import { mapValues } from 'ag-charts-core';
 import type {
@@ -10,6 +10,13 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import {
+    DATA_GROUPED_MULTIPLE_NULLS,
+    DATA_GROUPED_NULL_FIRST_LEVEL,
+    DATA_GROUPED_NULL_LAST_LEVEL,
+    DATA_GROUPED_NULL_MIDDLE_LEVEL,
+    DATA_GROUPED_NULL_VS_STRING_NULL,
+} from '../test/data';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import type { ChartOrProxy } from '../test/utils';
@@ -398,5 +405,72 @@ describe('Grouped Category Axis Examples', () => {
         });
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-16613 null values in grouped categories', () => {
+        test('handles null at first level of grouped category', async () => {
+            const options = prepareTestOptions({
+                data: DATA_GROUPED_NULL_FIRST_LEVEL,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('handles null at middle level of grouped category', async () => {
+            const options = prepareTestOptions({
+                data: DATA_GROUPED_NULL_MIDDLE_LEVEL,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('handles null at last level of grouped category', async () => {
+            const options = prepareTestOptions({
+                data: DATA_GROUPED_NULL_LAST_LEVEL,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('handles multiple nulls in same grouping', async () => {
+            const options = prepareTestOptions({
+                data: DATA_GROUPED_MULTIPLE_NULLS,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('distinguishes null from "null" string in grouped categories', async () => {
+            const options = prepareTestOptions({
+                data: DATA_GROUPED_NULL_VS_STRING_NULL,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 });

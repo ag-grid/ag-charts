@@ -48,7 +48,11 @@ function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
 
-function getValidationFn(scaleType?: ScaleType) {
+function basicDiscreteCheckDatumValidationAllowNull(value: any) {
+    return value !== undefined;
+}
+
+function getValidationFn(scaleType?: ScaleType, allowNullKey?: boolean) {
     switch (scaleType) {
         case 'number':
         case 'log':
@@ -58,7 +62,7 @@ function getValidationFn(scaleType?: ScaleType) {
         case 'color':
             return basicContinuousCheckDatumValidation;
         default:
-            return basicDiscreteCheckDatumValidation;
+            return allowNullKey ? basicDiscreteCheckDatumValidationAllowNull : basicDiscreteCheckDatumValidation;
     }
 }
 
@@ -74,22 +78,24 @@ function getValueType(scaleType?: ScaleType) {
     }
 }
 export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
         valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
+        validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
     return result;
 }
 
 export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'value',
         valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
+        validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
     return result;
@@ -691,14 +697,25 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | undefined;
+type KeyType = string | number | boolean | null | undefined;
+
+// Sentinel value for null keys to avoid collision with string "null"
+const NULL_CATEGORY_STRING = '\0__AG_NULL__\0';
+
 // FIXME: ReturnType should be `string | number | boolean`
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
+        // Handle null explicitly to avoid collision with string "null"
+        if (key === null) return NULL_CATEGORY_STRING;
         const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
         // Avoid toString if not necessary
         if (isPrimitive) return key;
     }
-    return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+    return keys
+        .map((key) => {
+            const transformed = transformIntegratedCategoryValue(key);
+            return transformed === null ? NULL_CATEGORY_STRING : transformed;
+        })
+        .join('___');
 }

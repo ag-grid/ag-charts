@@ -7,12 +7,21 @@ import { isObject } from 'ag-charts-core';
 import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
 
+// Sentinel value for null keys to avoid collision with string "null"
+const NULL_KEY_STRING = '\0__AG_NULL__\0';
+
 /**
  * Converts an array of keys to a string representation.
  * Objects are JSON-stringified, other values are joined with '-'.
+ * Null values use a sentinel string to avoid collision with the string "null".
  */
 export function toKeyString(keys: any[]): string {
-    return keys.map((key) => (isObject(key) ? JSON.stringify(key) : key)).join('-');
+    return keys
+        .map((key) => {
+            if (key === null) return NULL_KEY_STRING;
+            return isObject(key) ? JSON.stringify(key) : key;
+        })
+        .join('-');
 }
 
 /**
@@ -67,14 +76,20 @@ export function uniqueChangeDescriptions(
 
 /**
  * Extracts keys from arrays at a specific datum index.
- * Returns undefined if any key is null or undefined.
+ * Returns undefined if any key is null or undefined (unless allowNull is true).
+ * When allowNull is true, only returns undefined for undefined keys.
  */
-export function datumKeys(keys: Array<unknown[] | undefined>, datumIndex: number): any[] | undefined {
+export function datumKeys(
+    keys: Array<unknown[] | undefined>,
+    datumIndex: number,
+    allowNull: boolean = false
+): any[] | undefined {
     const out: any = [];
 
     for (const k of keys) {
         const key = k?.[datumIndex];
-        if (key == null) return;
+        if (key === undefined) return; // Undefined = missing datum
+        if (key === null && !allowNull) return; // Null = invalid unless allowed
         out.push(key);
     }
 

@@ -47,12 +47,6 @@ interface ComputedGroupAxisLayout {
     spacing: number;
 }
 
-interface TickInfo {
-    tickLabel: string[];
-    depth: number;
-    position: number;
-}
-
 class DepthLabelProperties extends BaseProperties {
     @Property
     enabled = true;
@@ -119,23 +113,23 @@ class DepthProperties extends BaseProperties {
     tick = new DepthTickProperties();
 }
 
-export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<string[]>> {
+export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<(string | null)[]>> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new GroupedCategoryScale<string[]>();
+    readonly tickScale = new GroupedCategoryScale<(string | null)[]>();
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
-    private tickNodes?: Map<string[], TreeNode> = undefined;
+    private tickNodes?: Map<(string | null)[], TreeNode> = undefined;
 
     @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new GroupedCategoryScale<string[]>());
+        super(moduleCtx, new GroupedCategoryScale<(string | null)[]>());
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -481,21 +475,27 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             maxTickCount: Infinity,
         };
 
-        const { ticks: allTicks } = tickScale.ticks(tickParams, undefined, visibleRange);
-        const { tickInfos: allTickInfos, minSpacingByDepth } = buildTickInfos(
-            allTicks,
-            this.tickNodes,
-            tickScale,
-            maxDepth
-        );
-        const minDepthToShow = getMinDepthToShow(minSpacingByDepth);
-        const visibleTickInfos = selectVisibleTickInfos(allTickInfos, minDepthToShow, maxDepth, minSpacingByDepth);
+        let { ticks: rawTicks } = tickScale.ticks(tickParams, undefined, visibleRange);
 
-        const gridLineData = visibleTickInfos.map(
-            ({ tickLabel, position: tickPosition }, index): GridLineStyleTickDatum => ({
-                index: tickScale.findIndex(tickLabel)!,
-                tickId: createDatumId(index, ...tickLabel),
-                translation: Math.round(tickPosition),
+        const depthsMap = new Map(
+            rawTicks.map((tickLabel) => {
+                const node = this.tickNodes?.get(tickLabel);
+                const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
+                return [tickLabel, depth];
+            })
+        );
+        const tickDepth = (tickLabel: (string | null)[]) => depthsMap.get(tickLabel) ?? maxDepth - 1;
+
+        // If there is not enough space to show all ticks, filter out the leafs.
+        if (tickScale.step < MIN_CATEGORY_SPACING) {
+            rawTicks = rawTicks.filter(tickDepth);
+        }
+
+        const gridLineData = rawTicks.map(
+            (t, index): GridLineStyleTickDatum => ({
+                index: tickScale.findIndex(t)!,
+                tickId: createDatumId(index, ...t),
+                translation: Math.round(tickScale.convert(t)),
             })
         );
 
@@ -507,8 +507,9 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         );
         this.tickLineGroupSelection.update(
             tick.enabled
-                ? visibleTickInfos.map(({ depth }, index) => {
+                ? rawTicks.map((tickLabel, index) => {
                       const { tickId, translation: offset } = gridLineData[index];
+                      const depth = tickDepth(tickLabel);
 
                       const tickOptions = this.depthOptions[depth]?.tick;
                       let tickSize = depthLabelMaxSize[0];
@@ -576,13 +577,13 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             this.dataDomain.domain.reverse();
         }
 
-        const domain: string[][] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
+        const domain: (string | null)[][] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
 
-        const orderedDomain: string[][] = [];
+        const orderedDomain: (string | null)[][] = [];
         for (const node of this.tickTreeLayout.nodes) {
             if (node.leafCount || node.refId == null) continue;
             orderedDomain.push(this.dataDomain.domain[node.refId]);
@@ -596,7 +597,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         this.tickScale.domain = tickScaleDomain;
     }
 
-    filterDuplicateArrays(array: string[][]): string[][] {
+    filterDuplicateArrays(array: (string | null)[][]): (string | null)[][] {
         const seen = new Set<string>();
         return array.filter((item) => {
             const key = isArray(item) ? JSON.stringify(item) : item;
@@ -617,89 +618,7 @@ function separatorDepth2(node: TreeNode) {
     return depth;
 }
 
-function buildTickInfos(
-    ticks: string[][],
-    tickNodes: Map<string[], TreeNode> | undefined,
-    tickScale: GroupedCategoryScale<string[]>,
-    maxDepth: number
-): { tickInfos: TickInfo[]; minSpacingByDepth: number[] } {
-    const tickInfos = new Array<TickInfo>(ticks.length);
-    const minSpacingByDepth = new Array<number>(maxDepth).fill(Infinity);
-    const lastPositionByDepth = new Array<number>(maxDepth).fill(Number.NaN);
-
-    for (let i = 0; i < ticks.length; i++) {
-        const tickLabel = ticks[i];
-        const node = tickNodes?.get(tickLabel);
-        const depth = node == null ? maxDepth - 1 : Math.min(separatorDepth2(node), maxDepth - 1);
-        const position = tickScale.convert(tickLabel);
-        tickInfos[i] = { tickLabel, depth, position };
-
-        if (!Number.isFinite(position)) continue;
-        for (let d = 0; d <= depth; d++) {
-            const lastPosition = lastPositionByDepth[d];
-            if (Number.isFinite(lastPosition)) {
-                minSpacingByDepth[d] = Math.min(minSpacingByDepth[d], Math.abs(position - lastPosition));
-            }
-            lastPositionByDepth[d] = position;
-        }
-    }
-
-    return { tickInfos, minSpacingByDepth };
-}
-
-function getMinDepthToShow(minSpacingByDepth: number[]) {
-    for (let depth = 0; depth < minSpacingByDepth.length; depth++) {
-        const minSpacing = minSpacingByDepth[depth];
-        if (!Number.isFinite(minSpacing) || minSpacing >= MIN_CATEGORY_SPACING) {
-            return depth;
-        }
-    }
-    return minSpacingByDepth.length;
-}
-
-function getTickStepForSpacing(minSpacing: number) {
-    if (!Number.isFinite(minSpacing) || minSpacing <= 0) {
-        return 1;
-    }
-    return Math.max(1, Math.ceil(MIN_CATEGORY_SPACING / minSpacing));
-}
-
-function selectVisibleTickInfos(
-    allTickInfos: TickInfo[],
-    minDepthToShow: number,
-    maxDepth: number,
-    minSpacingByDepth: number[]
-) {
-    if (minDepthToShow <= 0) {
-        return allTickInfos;
-    }
-
-    const removedDepth = Math.min(minDepthToShow - 1, maxDepth - 1);
-    if (removedDepth < 0) {
-        return allTickInfos;
-    }
-
-    const tickStep = getTickStepForSpacing(minSpacingByDepth[removedDepth]);
-    const visibleTickInfos: TickInfo[] = [];
-    let removedIndex = 0;
-
-    for (const info of allTickInfos) {
-        if (info.depth >= minDepthToShow) {
-            visibleTickInfos.push(info);
-            continue;
-        }
-
-        if (info.depth !== removedDepth) continue;
-        if (removedIndex % tickStep === 0) {
-            visibleTickInfos.push(info);
-        }
-        removedIndex++;
-    }
-
-    return visibleTickInfos;
-}
-
-function convertIntegratedCategoryValue(datum: unknown): string[] {
+function convertIntegratedCategoryValue(datum: unknown): (string | null)[] {
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
 }
