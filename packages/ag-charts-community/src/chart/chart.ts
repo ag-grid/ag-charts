@@ -785,7 +785,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // fallthrough
 
             case ChartUpdateType.PROCESS_RANGE:
-                if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DOMAIN)) break;
+                if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_RANGE)) break;
 
                 this.processRanges();
                 this.updateSplits('📐');
@@ -800,7 +800,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // fallthrough
 
             case ChartUpdateType.PRE_SERIES_UPDATE:
-                if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
+                if (this.checkUpdateShortcut(ChartUpdateType.PRE_SERIES_UPDATE)) break;
 
                 this.preSeriesUpdate();
                 this.updateSplits('❓');
