@@ -62,8 +62,11 @@ export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
 export type AgActiveChangeEventSource = 'state-change' | 'user-interaction';
 
 export interface AgActiveChangeEvent<TContext> extends AgActiveState {
+    /** Event type. */
     type: 'activeChange';
+    /** An indication of what triggered this event. */
     source: AgActiveChangeEventSource;
+    /** Callback context for this event. */
     context?: TContext;
 }
 
