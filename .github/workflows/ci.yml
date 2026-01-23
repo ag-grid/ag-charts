@@ -37,15 +37,79 @@ env:
 
 permissions:
     contents: read
+    pull-requests: read
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' && github.ref != 'refs/heads/next' }}
 
 jobs:
+    detect-changes:
+        runs-on: ubuntu-24.04
+        name: Detect Changes
+        outputs:
+            run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Detect file changes (PR only)
+              id: filter
+              if: github.event_name == 'pull_request'
+              uses: dorny/paths-filter@v3
+              with:
+                  filters: |
+                      code:
+                        - 'packages/**'
+                        - 'libraries/**'
+                        - 'plugins/**'
+                        - 'tests/**'
+                        - 'tools/**'
+                        - 'external/ag-website-shared/**'
+                        - 'external/ag-shared/scripts/**'
+                        - 'external/ag-shared/github/**'
+                        - 'external/ag-shared/src/**'
+                        - 'external/ag-shared/tools/**'
+                        - 'external/ag-shared/*.json'
+                        - '*.json'
+                        - '*.ts'
+                        - '*.js'
+                        - '*.cjs'
+                        - '*.mjs'
+                        - 'yarn.lock'
+                        - 'nx.json'
+                        - 'tsconfig.*.json'
+                        - 'jest.preset.js'
+                      ci:
+                        - '.github/**'
+
+            - name: Decide what to run
+              id: decide
+              run: |
+                  # Always run full CI for push events and manual triggers
+                  if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+                    echo "run_full_ci=true" >> $GITHUB_OUTPUT
+                    echo "Non-PR event (${{ github.event_name }}), running full CI"
+                    exit 0
+                  fi
+
+                  # For PRs, check if code or CI files changed
+                  if [[ "${{ steps.filter.outputs.code }}" == "true" ]] || \
+                     [[ "${{ steps.filter.outputs.ci }}" == "true" ]]; then
+                    echo "run_full_ci=true" >> $GITHUB_OUTPUT
+                    echo "Code or CI changes detected (code=${{ steps.filter.outputs.code }}, ci=${{ steps.filter.outputs.ci }}), running full CI"
+                  else
+                    echo "run_full_ci=false" >> $GITHUB_OUTPUT
+                    echo "Only non-code changes detected, running lint only"
+                  fi
+
     init:
         runs-on: ubuntu-24.04
         name: Initialise Workflow
+        needs: detect-changes
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
             contents: write
         env:
@@ -151,7 +215,7 @@ jobs:
     lint:
         runs-on: ubuntu-24.04
         name: Lint & Format Check
-        needs: init
+        needs: detect-changes
         outputs:
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
@@ -192,7 +256,8 @@ jobs:
     generate:
         runs-on: ubuntu-24.04
         name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
-        needs: init
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         strategy:
             fail-fast: false
             matrix:
@@ -230,7 +295,8 @@ jobs:
     build:
         runs-on: ubuntu-24.04
         name: Build
-        needs: init
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
         steps:
@@ -261,7 +327,8 @@ jobs:
     validate:
         runs-on: ubuntu-24.04
         name: Validate Examples
-        needs: init
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             validate: ${{ steps.validate.outcome || '' }}
         steps:
@@ -291,7 +358,8 @@ jobs:
     website_build:
         runs-on: ubuntu-24.04
         name: Website Build
-        needs: init
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
         steps:
@@ -324,8 +392,8 @@ jobs:
         name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
-        needs: init
-        if: needs.init.outputs.test_count > 0
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.test_count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_matrix )}}
@@ -394,8 +462,8 @@ jobs:
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
-        needs: init
-        if: needs.init.outputs.e2e_count > 0
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
@@ -450,11 +518,11 @@ jobs:
         name: Framework Package Tests (${{ matrix.framework }})
         permissions:
             contents: write
-        needs: init
+        needs: [detect-changes, init]
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
-        if: (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
@@ -498,7 +566,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        needs: [init, lint, generate, build, validate, website_build, test, e2e, sonarqube, fw_pkg_test]
+        needs: [detect-changes, init, lint, generate, build, validate, website_build, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -594,7 +662,7 @@ jobs:
 
             - name: Commit History
               id: commits
-              if: always() && job.status != 'cancelled' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
@@ -602,7 +670,7 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
 
             - name: Tag Latest Successful Commit
-              if: success() && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@latest
               with:
                   ref: ${{ github.ref_name }}-success
@@ -610,7 +678,7 @@ jobs:
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
