@@ -926,38 +926,42 @@ export const DATA_NULL_VS_STRING_NULL = [
     { x: 'B', y: 15 },
 ];
 
-// Grouped category null test data
+// Grouped category null test data - null at first level (outermost grouping)
 export const DATA_GROUPED_NULL_FIRST_LEVEL = [
-    { grouping: [null, 'Inner1'], value: 100 },
-    { grouping: ['A', 'Inner1'], value: 200 },
-    { grouping: ['A', 'Inner2'], value: 150 },
-    { grouping: ['B', 'Inner1'], value: 180 },
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', 'UK', 'Manchester'], value: 12 },
+    { grouping: [null, 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];
 
+// Grouped category null test data - null at middle level
 export const DATA_GROUPED_NULL_MIDDLE_LEVEL = [
-    { grouping: ['A', null, 'Leaf1'], value: 100 },
-    { grouping: ['A', 'Mid1', 'Leaf1'], value: 200 },
-    { grouping: ['A', 'Mid1', 'Leaf2'], value: 150 },
-    { grouping: ['B', 'Mid1', 'Leaf1'], value: 180 },
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', null, 'Manchester'], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];
 
+// Grouped category null test data - null at last level (innermost grouping)
 export const DATA_GROUPED_NULL_LAST_LEVEL = [
-    { grouping: ['A', 'Inner1', null], value: 100 },
-    { grouping: ['A', 'Inner1', 'Leaf1'], value: 200 },
-    { grouping: ['A', 'Inner2', 'Leaf1'], value: 150 },
-    { grouping: ['B', 'Inner1', 'Leaf1'], value: 180 },
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', 'UK', null], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];
 
+// Grouped category null test data - multiple nulls in same grouping
 export const DATA_GROUPED_MULTIPLE_NULLS = [
-    { grouping: [null, null], value: 100 },
-    { grouping: [null, 'Inner1'], value: 150 },
-    { grouping: ['A', null], value: 200 },
-    { grouping: ['A', 'Inner1'], value: 250 },
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: [null, null, 'Manchester'], value: 12 },
+    { grouping: ['Europe', 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];
 
+// Grouped category null test data - null vs "null" string distinction
 export const DATA_GROUPED_NULL_VS_STRING_NULL = [
-    { grouping: ['A', null], value: 100 },
-    { grouping: ['A', 'null'], value: 150 },
-    { grouping: ['B', null], value: 200 },
-    { grouping: ['B', 'null'], value: 250 },
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', null, 'Paris'], value: 12 },
+    { grouping: ['Europe', 'null', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];

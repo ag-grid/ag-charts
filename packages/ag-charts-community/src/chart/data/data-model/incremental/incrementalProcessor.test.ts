@@ -8,6 +8,7 @@ import { accumulateGroup as actualAccumulateGroup } from '../../processors';
 import {
     basicDataSet,
     categoryKey,
+    categoryKeyAllowNull,
     rangeKey,
     scopedValue,
     sum,
@@ -1723,6 +1724,183 @@ describe('DataModel', () => {
 
                 // Should not support reprocessing due to existing invalid keys
                 expect(dataModel.isReprocessingSupported(processedData!)).toBe(false);
+            });
+        });
+
+        describe('allowNullKey support', () => {
+            it('should include null in category domain when allowNullKey is true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: 'B', y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // All 3 items should be valid (no warnings)
+                expect(processedData!.input.count).toBe(3);
+                // Domain should include null alongside string keys
+                expect(processedData!.domain.keys).toEqual([['A', null, 'B']]);
+                // No invalid keys should be tracked
+                expect(processedData!.invalidKeyCount?.get('test') ?? 0).toBe(0);
+            });
+
+            it('should distinguish null from string "null" in category keys', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: 'null', y: 30 }, // string "null" is different from actual null
+                    { x: 'B', y: 40 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // All 4 items should be valid
+                expect(processedData!.input.count).toBe(4);
+                // Domain should include both null and string "null" as distinct values
+                expect(processedData!.domain.keys).toEqual([['A', null, 'null', 'B']]);
+            });
+
+            it('should support reprocessing with allowNullKey when null keys exist', () => {
+                const dataModel = new DataModel<any, any, true>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                    groupByKeys: true,
+                });
+
+                // Initial data with null key
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Should support reprocessing when allowNullKey is true
+                expect(dataModel.isReprocessingSupported(processedData!)).toBe(true);
+
+                // Add another null key datum
+                dataSet.addTransaction({
+                    append: [
+                        { x: 'B', y: 30 },
+                        { x: null as any, y: 40 },
+                    ],
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData!);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // Domain should include A, null, B (category domains deduplicate values)
+                expect(reprocessed.domain.keys).toEqual([['A', null, 'B']]);
+            });
+
+            it('should NOT emit warnings when null keys are processed with allowNullKey: true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: 'B', y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                // Process data with null key - should NOT emit warnings
+                dataModel.processData(sources);
+
+                // Explicitly verify NO warnings were emitted
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('should NOT emit warnings when appending null keys with allowNullKey: true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [{ x: 'A', y: 10 }];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Append data with null key
+                dataSet.addTransaction({
+                    append: [{ x: null as any, y: 20 }],
+                });
+
+                // Reprocess - should NOT emit warnings
+                dataModel.reprocessData(processedData!);
+
+                // Explicitly verify NO warnings were emitted
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('should handle multiple null keys in data with allowNullKey: true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: null as any, y: 25 }, // Multiple nulls
+                    { x: 'B', y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // All 4 items should be valid
+                expect(processedData!.input.count).toBe(4);
+                // Domain should include null (deduplicated) alongside string keys
+                expect(processedData!.domain.keys).toEqual([['A', null, 'B']]);
+                // No invalid keys should be tracked
+                expect(processedData!.invalidKeyCount?.get('test') ?? 0).toBe(0);
+
+                // Explicitly verify NO warnings were emitted
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('should correctly store null key values in keys array', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: 'B', y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // Verify the keys array contains the actual null value (not a string)
+                const keysArray = processedData!.keys[0].get('test');
+                expect(keysArray).toEqual(['A', null, 'B']);
+                expect(keysArray![1]).toBeNull();
+                expect(typeof keysArray![0]).toBe('string');
+                expect(typeof keysArray![2]).toBe('string');
+
+                // Explicitly verify NO warnings
+                expectWarningsCalls().toEqual([]);
             });
         });
 

@@ -42,14 +42,14 @@ class TreeNode {
     screen: number = 0;
 
     constructor(
-        public label: string = '',
+        public label: string | null = '',
         public parent?: TreeNode,
         public refId?: number
     ) {
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    insertTick(tick: string[], index: number) {
+    insertTick(tick: (string | null)[], index: number) {
         let current: TreeNode = this;
         let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
@@ -100,10 +100,10 @@ class TreeNode {
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-function ticksToTree(ticks: string[][]): { root: TreeNode; tickNodes: Map<string[], TreeNode> } {
+function ticksToTree(ticks: (string | null)[][]): { root: TreeNode; tickNodes: Map<(string | null)[], TreeNode> } {
     const maxDepth = ticks.reduce((depth, tick) => Math.max(depth, tick.length), 0);
     const root = new TreeNode();
-    const tickNodes = new Map<string[], TreeNode>();
+    const tickNodes = new Map<(string | null)[], TreeNode>();
     for (let i = 0; i < ticks.length; i++) {
         const tick = ticks[i];
         while (tick.length < maxDepth) {
@@ -250,7 +250,10 @@ function thirdWalk(v: TreeNode) {
     }
 }
 
-export function treeLayout(ticks: string[][]): { layout: TreeLayout; tickNodes: Map<string[], TreeNode> } {
+export function treeLayout(ticks: (string | null)[][]): {
+    layout: TreeLayout;
+    tickNodes: Map<(string | null)[], TreeNode>;
+} {
     const layout = new TreeLayout();
 
     const { root, tickNodes } = ticksToTree(ticks);

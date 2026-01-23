@@ -1000,7 +1000,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     ): void {
         // Populate scratch from context arrays
         scratch.xDatum = ctx.xValues[datumIndex];
-        if (scratch.xDatum == null) return;
+        if (scratch.xDatum === undefined) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
@@ -1465,7 +1465,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);

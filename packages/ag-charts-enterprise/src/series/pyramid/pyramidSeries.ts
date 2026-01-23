@@ -676,7 +676,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        if (xValue === undefined) return;
 
         const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
             xValue,

@@ -894,7 +894,9 @@ export abstract class Axis<
         label?: AxisFormattableLabel<any>,
         params?: any
     ): TextOrSegments {
-        if (input == null) return '';
+        if (input === undefined) return '';
+        // Handle null values with empty string (configurable in future via label.nullText)
+        if (input === null) return '';
 
         const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;

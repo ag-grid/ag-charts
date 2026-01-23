@@ -328,7 +328,8 @@ export abstract class BaseFunnelSeries<
             const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
-            if (xDatum == null) continue;
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xDatum === undefined) continue; // eslint-disable-line sonarjs/different-types-comparison
 
             const x = Math.round(xScale.convert(xDatum)) + groupOffset + barOffset;
 
@@ -562,7 +563,8 @@ export abstract class BaseFunnelSeries<
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         return this.formatTooltipWithContext(
             tooltip,

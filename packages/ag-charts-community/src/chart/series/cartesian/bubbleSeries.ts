@@ -688,7 +688,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const yDatum = ctx.yDataValues[datumIndex];
 
         // Skip invalid data points
-        if (xDatum == null || yDatum == null) return undefined;
+        if (xDatum === undefined || yDatum === undefined) return undefined;
 
         const sizeValue = ctx.sizeDataValues?.[datumIndex];
         const x = ctx.xScale.convert(xDatum) + ctx.xOffset;
@@ -1172,7 +1172,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        if (xValue === undefined) return;
 
         const data: TooltipContentDataRow[] = [];
 

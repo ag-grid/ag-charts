@@ -302,7 +302,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = ctx.xValues[datumIndex];
-            if (xDatum == null) continue;
+            if (xDatum === undefined) continue;
 
             const rawValue = ctx.yRawValues[datumIndex];
             const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
@@ -930,7 +930,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             processedData
         );
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const datumType = totalTypeValues[datumIndex];
         const isPositive = (yValue ?? 0) >= 0;

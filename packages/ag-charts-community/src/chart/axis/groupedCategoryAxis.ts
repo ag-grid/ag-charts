@@ -48,7 +48,7 @@ interface ComputedGroupAxisLayout {
 }
 
 interface TickInfo {
-    tickLabel: string[];
+    tickLabel: (string | null)[];
     depth: number;
     position: number;
 }
@@ -119,23 +119,23 @@ class DepthProperties extends BaseProperties {
     tick = new DepthTickProperties();
 }
 
-export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<string[]>> {
+export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<(string | null)[]>> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new GroupedCategoryScale<string[]>();
+    readonly tickScale = new GroupedCategoryScale<(string | null)[]>();
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
-    private tickNodes?: Map<string[], TreeNode> = undefined;
+    private tickNodes?: Map<(string | null)[], TreeNode> = undefined;
 
     @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new GroupedCategoryScale<string[]>());
+        super(moduleCtx, new GroupedCategoryScale<(string | null)[]>());
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -576,13 +576,13 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
             this.dataDomain.domain.reverse();
         }
 
-        const domain: string[][] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
+        const domain: (string | null)[][] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
 
-        const orderedDomain: string[][] = [];
+        const orderedDomain: (string | null)[][] = [];
         for (const node of this.tickTreeLayout.nodes) {
             if (node.leafCount || node.refId == null) continue;
             orderedDomain.push(this.dataDomain.domain[node.refId]);
@@ -596,7 +596,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<strin
         this.tickScale.domain = tickScaleDomain;
     }
 
-    filterDuplicateArrays(array: string[][]): string[][] {
+    filterDuplicateArrays(array: (string | null)[][]): (string | null)[][] {
         const seen = new Set<string>();
         return array.filter((item) => {
             const key = isArray(item) ? JSON.stringify(item) : item;
@@ -618,9 +618,9 @@ function separatorDepth2(node: TreeNode) {
 }
 
 function buildTickInfos(
-    ticks: string[][],
-    tickNodes: Map<string[], TreeNode> | undefined,
-    tickScale: GroupedCategoryScale<string[]>,
+    ticks: (string | null)[][],
+    tickNodes: Map<(string | null)[], TreeNode> | undefined,
+    tickScale: GroupedCategoryScale<(string | null)[]>,
     maxDepth: number
 ): { tickInfos: TickInfo[]; minSpacingByDepth: number[] } {
     const tickInfos = new Array<TickInfo>(ticks.length);
@@ -699,7 +699,7 @@ function selectVisibleTickInfos(
     return visibleTickInfos;
 }
 
-function convertIntegratedCategoryValue(datum: unknown): string[] {
+function convertIntegratedCategoryValue(datum: unknown): (string | null)[]
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
 }
