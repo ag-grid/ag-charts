@@ -24,6 +24,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'USACoal',
             yName: 'Coal - USA',
@@ -33,6 +34,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'USAGas',
             yName: 'Natural Gas - USA',
@@ -42,6 +44,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'USARenewables',
             yName: 'Renewables - USA',
@@ -51,6 +54,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'USANuclear',
             yName: 'Nuclear - USA',
@@ -60,6 +64,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'GermanyCoal',
             yName: 'Coal - Germany',
@@ -70,6 +75,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'GermanyGas',
             yName: 'Natural Gas - Germany',
@@ -80,6 +86,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'GermanyRenewables',
             yName: 'Renewables - Germany',
@@ -90,6 +97,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'GermanyNuclear',
             yName: 'Nuclear - Germany',
@@ -100,6 +108,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'ChinaCoal',
             yName: 'Coal - China',
@@ -110,6 +119,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'ChinaGas',
             yName: 'Natural Gas - China',
@@ -120,6 +130,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'ChinaRenewables',
             yName: 'Renewables - China',
@@ -130,6 +141,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'bar',
+            direction: 'horizontal',
             xKey: 'year',
             yKey: 'ChinaNuclear',
             yName: 'Nuclear - China',
