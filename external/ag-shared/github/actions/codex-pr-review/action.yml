@@ -113,7 +113,7 @@ runs:
           if: steps.check-auth.outputs.skipped != 'true'
           uses: actions/setup-node@v4
           with:
-              node-version: '22'
+              node-version-file: package.json
 
         - name: Install Codex CLI
           if: steps.check-auth.outputs.skipped != 'true'
