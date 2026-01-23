@@ -151,13 +151,13 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
                     await pickDatum(page, { country: 'Spain', year: '2010' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-Spain-2010.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -193,13 +193,13 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'Spain', year: '2010' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-Spain-2010.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -235,10 +235,10 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -266,7 +266,7 @@ test.describe('state', () => {
             test.describe('hover events clear unfrozen setState', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await hoverInCenter(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
@@ -338,7 +338,7 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await setStateInactive(version, page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
@@ -368,7 +368,7 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
@@ -402,7 +402,7 @@ test.describe('state', () => {
             test.describe('series-area focus events clear unfrozen setState', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await repeat(3, async () => await page.keyboard.press('Tab'));
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
@@ -511,23 +511,23 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await hoverInCenter(page);
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await clickInCenter(page);
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await clickOnUKLegend(page);
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
                     await hoverInCenter(page);
                     await hoverInTopLeft(page); // test 'mouseleave'
-                    await expect(page).toHaveScreenshot('line-example-page-active-France-2014.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
                 });
 
                 test('states', async ({ page }) => {
