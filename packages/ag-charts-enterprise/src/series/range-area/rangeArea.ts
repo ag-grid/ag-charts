@@ -240,9 +240,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             extraProps.push(animationValidation());
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue` }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue` }),
                 ...extraProps,
@@ -396,7 +397,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
@@ -416,7 +417,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         yLowValueOverride?: number
     ): void {
         scratch.xValue = ctx.xValues[datumIndex];
-        if (scratch.xValue == null) return;
+        if (scratch.xValue === undefined) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yHighValue = yHighValueOverride ?? ctx.yHighValues[datumIndex];
@@ -1187,7 +1188,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(itemType);

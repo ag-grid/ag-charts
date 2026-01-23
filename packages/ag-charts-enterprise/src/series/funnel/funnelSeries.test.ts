@@ -13,6 +13,7 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -514,5 +515,61 @@ describe('FunnelSeries', () => {
         });
         chart = deproxy(AgCharts.create(options));
         await compare();
+    });
+
+    describe('null category key', () => {
+        const FUNNEL_NULL_CATEGORY_KEY_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: null, value: 8170 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: FUNNEL_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [FunnelSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
     });
 });

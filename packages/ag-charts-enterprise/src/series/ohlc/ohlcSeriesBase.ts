@@ -266,9 +266,10 @@ export abstract class OhlcSeriesBase<
             );
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(closeKey, yScaleType, { id: `closeValue` }),
                 valueProperty(highKey, yScaleType, { id: `highValue` }),
                 valueProperty(lowKey, yScaleType, { id: `lowValue` }),
@@ -346,7 +347,7 @@ export abstract class OhlcSeriesBase<
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
     }
 
@@ -463,7 +464,7 @@ export abstract class OhlcSeriesBase<
         datumIndex: number
     ): PreparedOhlcNodeDatumState | undefined {
         const xValue = ctx.xValues[datumIndex];
-        if (xValue == null) {
+        if (xValue === undefined) {
             return undefined;
         }
 
@@ -903,7 +904,8 @@ export abstract class OhlcSeriesBase<
         const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData)[datumIndex];
         const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const itemType = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemType];

@@ -150,9 +150,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             extraProps.push(animationValidation());
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(minKey, yScaleType, { id: `minValue` }),
                 valueProperty(q1Key, yScaleType, { id: `q1Value` }),
                 valueProperty(medianKey, yScaleType, { id: `medianValue` }),
@@ -186,7 +187,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange);
     }
 
@@ -400,7 +401,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         for (let datumIndex = 0; datumIndex < ctx.rawData.length; datumIndex++) {
             const datum = ctx.rawData[datumIndex];
             const xValue = ctx.xValues[datumIndex];
-            if (xValue == null) continue;
+            if (xValue === undefined) continue;
 
             const minValue = ctx.minValues[datumIndex];
             const q1Value = ctx.q1Values[datumIndex];
@@ -539,7 +540,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData)[datumIndex];
         const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false);
 

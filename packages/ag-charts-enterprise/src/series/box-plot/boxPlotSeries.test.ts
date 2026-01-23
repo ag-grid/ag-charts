@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     newFreezableMock,
@@ -861,6 +862,70 @@ describe('BoxPlotSeries', () => {
             };
             prepareEnterpriseTestOptions(options as any);
             await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
+
+    describe('null category key', () => {
+        const BOX_PLOT_NULL_CATEGORY_KEY_DATA = [
+            { year: '2020', min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
+            { year: null, min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
+            { year: '2022', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
+        ];
+
+        const BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: BOX_PLOT_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'box-plot',
+                    xKey: 'year',
+                    minKey: 'min',
+                    q1Key: 'q1',
+                    medianKey: 'median',
+                    q3Key: 'q3',
+                    maxKey: 'max',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [BoxPlotSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compareSnapshot(chart);
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compareSnapshot(chart);
         });
     });
 });
