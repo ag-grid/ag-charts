@@ -272,10 +272,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
         const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: `xValue` }),
-                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
                 ...(xFilterKey == null ? [] : [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })]),
                 ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })]),
                 ...(sizeFilterKey == null
@@ -343,7 +344,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return { domain: fixNumericExtent(extent(ext)) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
     }
 
@@ -688,7 +689,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const yDatum = ctx.yDataValues[datumIndex];
 
         // Skip invalid data points
-        if (xDatum == null || yDatum == null) return undefined;
+        if (xDatum === undefined || yDatum === undefined) return undefined;
 
         const sizeValue = ctx.sizeDataValues?.[datumIndex];
         const x = ctx.xScale.convert(xDatum) + ctx.xOffset;
@@ -1172,7 +1173,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        if (xValue === undefined) return;
 
         const data: TooltipContentDataRow[] = [];
 

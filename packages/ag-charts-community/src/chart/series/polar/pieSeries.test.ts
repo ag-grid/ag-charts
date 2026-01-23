@@ -109,6 +109,31 @@ describe('PieSeries', () => {
 ]
 `);
         });
+
+        test('null callout label key warning', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'A', value: 10 },
+                    { label: null, value: 20 },
+                    { label: 'B', value: 15 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+            });
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
     });
 
     describe('pattern fill', () => {

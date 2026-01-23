@@ -297,6 +297,15 @@ const EXAMPLES: Record<
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
+    AREA_NULL_CATEGORY_KEY: {
+        options: examples.AREA_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
+    },
+    AREA_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {

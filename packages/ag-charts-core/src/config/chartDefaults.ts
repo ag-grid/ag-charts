@@ -545,6 +545,9 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
 };
 
+// @ts-expect-error undocumented option
+commonSeriesThemeableOptionsDefs.allowNullKeys = undocumented(boolean);
+
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     ...commonSeriesThemeableOptionsDefs,
     id: string,

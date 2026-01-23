@@ -170,17 +170,18 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         };
 
         const props: DataModelOptions<any, false, false>['props'] = [];
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         // If two or more datum share an x-value, i.e. lined up vertically, they will have the same datum id.
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
         if (!isContinuousX || stacked) {
-            props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
+            props.push(keyProperty(xKey, xScaleType, { id: 'xKey', allowNullKey }));
         }
 
         props.push(
-            valueProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, {
                 id: `yValueRaw`,
                 ...common,
@@ -284,7 +285,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
         return this.domainForVisibleRange(
             ChartAxisDirection.Y,
             [this.yCumulativeKey(this.processedData!)],
@@ -860,7 +861,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        if (xValue === undefined) return;
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
