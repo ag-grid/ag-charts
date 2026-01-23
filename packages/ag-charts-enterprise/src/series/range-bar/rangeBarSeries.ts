@@ -256,9 +256,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: null, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),

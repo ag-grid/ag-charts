@@ -266,9 +266,10 @@ export abstract class OhlcSeriesBase<
             );
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(closeKey, yScaleType, { id: `closeValue` }),
                 valueProperty(highKey, yScaleType, { id: `highValue` }),
                 valueProperty(lowKey, yScaleType, { id: `lowValue` }),

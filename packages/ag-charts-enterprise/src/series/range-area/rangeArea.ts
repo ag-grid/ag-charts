@@ -240,9 +240,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             extraProps.push(animationValidation());
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue` }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue` }),
                 ...extraProps,

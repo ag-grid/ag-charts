@@ -217,9 +217,10 @@ export abstract class BaseFunnelSeries<
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(stageKey, xScaleType, { id: 'xValue' }),
+                keyProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps, validation, invalidValue: 0 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,

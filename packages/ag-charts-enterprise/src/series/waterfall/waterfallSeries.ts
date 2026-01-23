@@ -200,12 +200,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = this.getValueAxis()?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(
             dataController,
             DataSet.wrap(dataWithTotals),
             {
                 props: [
-                    keyProperty(xKey, xScaleType, { id: `xValue` }),
+                    keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                     accumulativeValueProperty(yKey, yScaleType, {
                         ...propertyDefinition,
                         id: `yCurrent`,

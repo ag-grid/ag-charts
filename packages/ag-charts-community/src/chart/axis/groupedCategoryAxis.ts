@@ -699,7 +699,7 @@ function selectVisibleTickInfos(
     return visibleTickInfos;
 }
 
-function convertIntegratedCategoryValue(datum: unknown): (string | null)[]
+function convertIntegratedCategoryValue(datum: unknown): (string | null)[] {
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
 }

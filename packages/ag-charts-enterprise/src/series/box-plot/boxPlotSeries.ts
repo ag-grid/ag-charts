@@ -150,9 +150,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             extraProps.push(animationValidation());
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(minKey, yScaleType, { id: `minValue` }),
                 valueProperty(q1Key, yScaleType, { id: `q1Value` }),
                 valueProperty(medianKey, yScaleType, { id: `medianValue` }),
