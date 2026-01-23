@@ -1,4 +1,4 @@
-import { validate } from 'ag-charts-core';
+import { objectsEqual, validate } from 'ag-charts-core';
 import type { MementoOriginator } from 'ag-charts-core';
 import type { AgActiveChangeEvent, AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
@@ -31,10 +31,17 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
     private performUpdate(source: AgActiveChangeEventSource, newItemState: ActiveItem): void {
         if (!this.updateable) return;
+        const oldItemState = this.currentItem;
+
+        // Internal dispatch:
         this.currentItem = newItemState;
         this.eventsHub.emit('active:update', newItemState);
-        const { frozen, activeItem } = this.createMemento();
-        this.fireEvent({ type: 'activeChange', source, frozen, activeItem });
+
+        // External (API) dispatch:
+        if (!objectsEqual(oldItemState, newItemState)) {
+            const { frozen, activeItem } = this.createMemento();
+            this.fireEvent({ type: 'activeChange', source, frozen, activeItem });
+        }
     }
 
     public createMemento(): AgActiveState {
