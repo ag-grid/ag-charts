@@ -4,6 +4,9 @@ inputs:
     branch:
         description: 'Snapshot branch name to use.'
         required: true
+    run_started_at:
+        description: 'ISO timestamp when the workflow run started (github.run_started_at). Used to detect stale snapshot branches from previous attempts.'
+        required: true
     github_token:
         description: 'GitHub token to use for PR creation.'
         required: true
@@ -26,9 +29,23 @@ runs:
               set -eux
 
               branch=${{ inputs.branch }}
+              run_started_at="${{ inputs.run_started_at }}"
 
               if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
-                  echo "updated=true" >> $GITHUB_OUTPUT
+                  # Get the timestamp of the latest commit on the snapshot branch
+                  git fetch origin ${branch} --depth=1
+                  snapshot_commit_time=$(git log -1 --format=%cI FETCH_HEAD)
+
+                  # Compare timestamps - if snapshot was created before this run, it's stale
+                  # This handles the case where GitHub Actions reuses successful jobs on retry,
+                  # so the init job (which cleans up snapshot branches) doesn't re-run.
+                  if [[ "${snapshot_commit_time}" < "${run_started_at}" ]] ; then
+                      echo "Snapshot branch exists but is stale (commit: ${snapshot_commit_time}, run started: ${run_started_at})"
+                      echo "updated=false" >> $GITHUB_OUTPUT
+                  else
+                      echo "Snapshot branch has new updates (commit: ${snapshot_commit_time}, run started: ${run_started_at})"
+                      echo "updated=true" >> $GITHUB_OUTPUT
+                  fi
               else
                   echo "updated=false" >> $GITHUB_OUTPUT
               fi
