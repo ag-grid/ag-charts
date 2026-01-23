@@ -18,6 +18,7 @@ import type {
     CartesianAxisDirection,
     DeepReadonly,
     DefinedZoomState,
+    MementoOriginator,
     OptionsDefs,
     RequireOptional,
     Scale,
@@ -139,7 +140,7 @@ export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager {
+export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMemento> {
     public mementoOriginatorKey = 'zoom' as const;
 
     private state: CoreZoomStateSafeRetrieval = {};
@@ -148,6 +149,7 @@ export class ZoomManager extends BaseManager {
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
+    private lastRestoredRequiredWidth?: number;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -170,12 +172,17 @@ export class ZoomManager extends BaseManager {
         super();
 
         this.cleanup.register(
-            eventsHub.on('layout:complete', () => {
+            eventsHub.on('zoom:change-request', (event) => {
+                this.constrainZoomToRequiredWidth(event);
+            }),
+            updateService.addListener('pre-series-update', ({ requiredWidthRatio }) => {
                 this.didLayoutAxes = true;
 
                 const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
+                } else {
+                    this.restoreRequiredWidth(requiredWidthRatio);
                 }
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
@@ -381,6 +388,7 @@ export class ZoomManager extends BaseManager {
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
+        const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         for (const id of changedAxes) {
             const axis = newState[id];
@@ -391,7 +399,7 @@ export class ZoomManager extends BaseManager {
         }
         this.state = newState;
 
-        return this.dispatch(source, sourceDetail, changedAxes, isReset);
+        return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState);
     }
 
     public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
@@ -591,11 +599,56 @@ export class ZoomManager extends BaseManager {
         return memento;
     }
 
+    private restoreRequiredWidth(requiredWidthRatio: number) {
+        if (this.lastRestoredRequiredWidth === requiredWidthRatio || requiredWidthRatio === 0) return;
+
+        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        if (!crossAxisId) return;
+
+        const crossAxisZoom = this.getAxisZoom(crossAxisId);
+        const requiredZoom = Math.min(1, 1 / requiredWidthRatio);
+
+        const min = Math.max(0, Math.min(1 - requiredZoom, crossAxisZoom.min));
+        const max = min + requiredZoom;
+
+        this.lastRestoredRequiredWidth = requiredWidthRatio;
+
+        const zoom = { x: { min, max } };
+        const changes = this.toCoreZoomState(zoom);
+        this.lastRestoredState = deepFreeze(deepClone(changes));
+        this.updateChanges({
+            source: 'state-change',
+            sourceDetail: 'internal-requiredWidth',
+            changes,
+            isReset: false,
+        });
+    }
+
+    private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
+        if (this.lastRestoredRequiredWidth == null) return;
+
+        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        if (!crossAxisId) return;
+
+        const zoom = event.stateAsDefinedZoom();
+        const oldState = event.oldState[crossAxisId]!;
+
+        const delta = zoom.x.max - zoom.x.min;
+        const minDelta = 1 / this.lastRestoredRequiredWidth;
+        if (delta <= minDelta) return;
+
+        event.constrainZoom({
+            x: { min: oldState.min, max: oldState.min + minDelta },
+            y: zoom.y,
+        });
+    }
+
     private dispatch(
         source: AgZoomEventSource,
         sourceDetail: ZoomEventSourceDetail,
         changedAxes: readonly AxisID[],
-        isReset: boolean
+        isReset: boolean,
+        oldState: CoreZoomStateSafeRetrieval
     ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
@@ -608,6 +661,7 @@ export class ZoomManager extends BaseManager {
             isReset,
             changedAxes,
             state,
+            oldState,
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
@@ -632,12 +686,10 @@ export class ZoomManager extends BaseManager {
 
         this.eventsHub.emit('zoom:change-request', event);
 
-        let wasChangeConstrained: boolean;
+        let wasChangeConstrained = false;
         if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
             wasChangeConstrained = true;
             this.state = constrainedState;
-        } else {
-            wasChangeConstrained = false;
         }
 
         const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;

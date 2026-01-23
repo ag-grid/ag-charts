@@ -210,6 +210,7 @@ export type ZoomEventSourceDetail =
     | `internal-panToBBox`
     | `internal-prepareResizedChart`
     | `internal-restoreMemento`
+    | `internal-requiredWidth`
     | `internal-setAxes`
     | `internal-updateSyncZoom`
     | `keyboard(${-1 | 0 | 1})`
@@ -241,6 +242,7 @@ export interface ZoomChangeRequestEvent {
     readonly isReset: boolean;
     readonly changedAxes: readonly AxisID[];
     readonly state: ZoomChangeState;
+    readonly oldState: ZoomChangeState;
     readonly x?: Readonly<ZoomMinMax>;
     readonly y?: Readonly<ZoomMinMax>;
     stateAsDefinedZoom(): DefinedZoomState; // do not use (legacy zoom-state)

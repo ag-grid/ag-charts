@@ -101,10 +101,8 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
             return super.update();
         }
 
-        const r0 = this.range[0];
-        const r1 = this.range[1];
+        const [r0, r1] = this.range;
         let { paddingInner } = this;
-        const { paddingOuter } = this;
         const bandCount = this.getBandCountForUpdate();
         if (bandCount === 0) return;
 
@@ -136,15 +134,17 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
         const targetRangeDistance = r1 - r0;
         const paddingInnerWidth = (targetRangeDistance / bandCount) * paddingInner;
 
-        const actualRangeDistance = totalBandRange + paddingOuter * 2 + paddingInnerWidth * (bandCount - 1);
+        const actualRangeDistance = totalBandRange + paddingInnerWidth * (bandCount - 1);
         const rangeDiff = targetRangeDistance - actualRangeDistance;
 
         let inset = r0;
-        const rawBandwidth =
-            bandCountWithUnfixedWidths > 0 ? rangeDiff / bandCountWithUnfixedWidths : (r1 - r0) / bandCount;
+        let rawBandwidth =
+            bandCountWithUnfixedWidths > 0 && rangeDiff >= 0
+                ? rangeDiff / bandCountWithUnfixedWidths
+                : targetRangeDistance / bandCount;
         let bandwidth = rawBandwidth;
 
-        if (bandCountWithOnlyFixedWidths === bandCount) {
+        if (bandCountWithOnlyFixedWidths === bandCount && rangeDiff > 0) {
             inset += rangeDiff / 2;
         }
 
@@ -155,7 +155,8 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
         }
 
         if (rangeDiff < 0) {
-            this.range = [inset, inset + actualRangeDistance + paddingInner * 2];
+            rawBandwidth = 0;
+            bandwidth = 0;
         }
 
         this._inset = inset;

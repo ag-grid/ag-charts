@@ -343,7 +343,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return { domain: fixNumericExtent(extent(ext)) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
     }
 

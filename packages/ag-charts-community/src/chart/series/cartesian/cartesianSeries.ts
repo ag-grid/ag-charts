@@ -1066,7 +1066,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         crossAxisKey: string,
         visibleRange: [any, any],
         indices?: number[]
-    ) {
+    ): [number, number] {
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;

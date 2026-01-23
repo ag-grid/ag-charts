@@ -4,6 +4,8 @@ import type { Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import { CategoryAxis } from '../../axis/categoryAxis';
+import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
@@ -98,6 +100,44 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
+    }
+
+    override getMinimumRangeSeries(ranges: number[]) {
+        const { width } = this.properties;
+        if (width == null) return;
+
+        const axis = this.getCategoryAxis();
+        if (!axis) return;
+
+        // Find the max width for each stack that shares the same index.
+        const { index } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+        ranges[index] = Math.max(ranges[index] ?? 0, width);
+    }
+
+    override getMinimumRangeChart(ranges: number[]) {
+        if (ranges.length === 0) return 0;
+
+        const axis = this.getCategoryAxis();
+        if (!(axis instanceof GroupedCategoryAxis || axis instanceof CategoryAxis)) return 0;
+
+        const dataSize = this.data?.netSize() ?? 0;
+        if (dataSize === 0) return 0;
+
+        // TODO: this should come from the theme
+        const defaultPadding = this.getBandScalePadding();
+        const { paddingInner = defaultPadding.inner, paddingOuter = defaultPadding.outer, groupPaddingInner } = axis;
+
+        // The width of each band is the sum of the max of each stack.
+        const width = ranges.reduce((sum, range) => sum + range, 0);
+        const averageWidth = width / ranges.length;
+
+        const { visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
+        // The inverse calculations of the band scale to determine the expected the chart width.
+        const bandWidth = width + groupPaddingInner * averageWidth * (visibleGroupCount - 1);
+        const paddingFactor = (dataSize - paddingInner + paddingOuter * 2) / (1 - paddingInner);
+
+        return bandWidth * paddingFactor;
     }
 
     /**

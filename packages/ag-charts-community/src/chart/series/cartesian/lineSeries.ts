@@ -284,7 +284,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
         return this.domainForVisibleRange(
             ChartAxisDirection.Y,
             [this.yCumulativeKey(this.processedData!)],

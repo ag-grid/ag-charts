@@ -619,8 +619,16 @@ export abstract class Series<
         return { domain: seriesDomain.domain.concat(moduleDomains) };
     }
 
-    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [] {
         return this.getSeriesRange(direction, visibleRange);
+    }
+
+    getMinimumRangeSeries(_range: number[]) {
+        // Not implemented here.
+    }
+
+    getMinimumRangeChart(_ranges: number[]): number {
+        return 0;
     }
 
     getZoomRangeFittingItems(
@@ -646,7 +654,7 @@ export abstract class Series<
     abstract getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
 
     // Needed for auto-scaling zoom
-    abstract getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
+    abstract getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;
