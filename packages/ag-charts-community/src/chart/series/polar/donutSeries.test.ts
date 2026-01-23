@@ -165,6 +165,33 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('#validation', () => {
+        test('null callout label key warning', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'A', value: 10 },
+                    { label: null, value: 20 },
+                    { label: 'B', value: 15 },
+                ],
+                series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label', innerRadiusRatio: 0.5 }],
+            });
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
+    });
+
     describe('pattern fill', () => {
         it('should render donut series with pattern fills', async () => {
             chart = await createChart({

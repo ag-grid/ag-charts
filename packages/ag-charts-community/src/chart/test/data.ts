@@ -895,3 +895,69 @@ export const DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED = DATA_TOTAL_G
         totalWinnings: 677324,
     },
 ]);
+
+// Null category key test data (for category axis tests)
+export const DATA_NULL_CATEGORY_KEY = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: 'B', y: 15 },
+];
+
+// Null numeric key test data (for number axis tests)
+export const DATA_NULL_NUMERIC_KEY = [
+    { x: 0, y: 10 },
+    { x: null, y: 20 },
+    { x: 2, y: 15 },
+];
+
+// Multiple null keys test data (edge case)
+export const DATA_MULTIPLE_NULL_KEYS = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: null, y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Null vs "null" string test data (collision test)
+export const DATA_NULL_VS_STRING_NULL = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: 'null', y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Grouped category null test data
+export const DATA_GROUPED_NULL_FIRST_LEVEL = [
+    { grouping: [null, 'Inner1'], value: 100 },
+    { grouping: ['A', 'Inner1'], value: 200 },
+    { grouping: ['A', 'Inner2'], value: 150 },
+    { grouping: ['B', 'Inner1'], value: 180 },
+];
+
+export const DATA_GROUPED_NULL_MIDDLE_LEVEL = [
+    { grouping: ['A', null, 'Leaf1'], value: 100 },
+    { grouping: ['A', 'Mid1', 'Leaf1'], value: 200 },
+    { grouping: ['A', 'Mid1', 'Leaf2'], value: 150 },
+    { grouping: ['B', 'Mid1', 'Leaf1'], value: 180 },
+];
+
+export const DATA_GROUPED_NULL_LAST_LEVEL = [
+    { grouping: ['A', 'Inner1', null], value: 100 },
+    { grouping: ['A', 'Inner1', 'Leaf1'], value: 200 },
+    { grouping: ['A', 'Inner2', 'Leaf1'], value: 150 },
+    { grouping: ['B', 'Inner1', 'Leaf1'], value: 180 },
+];
+
+export const DATA_GROUPED_MULTIPLE_NULLS = [
+    { grouping: [null, null], value: 100 },
+    { grouping: [null, 'Inner1'], value: 150 },
+    { grouping: ['A', null], value: 200 },
+    { grouping: ['A', 'Inner1'], value: 250 },
+];
+
+export const DATA_GROUPED_NULL_VS_STRING_NULL = [
+    { grouping: ['A', null], value: 100 },
+    { grouping: ['A', 'null'], value: 150 },
+    { grouping: ['B', null], value: 200 },
+    { grouping: ['B', 'null'], value: 250 },
+];

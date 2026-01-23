@@ -305,6 +305,11 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
     }),
+    BAR_NULL_CATEGORY_KEY: {
+        options: examples.BAR_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:', '[null]']],
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {

@@ -15,6 +15,9 @@ import {
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     DATA_MEAN_SEA_LEVEL,
     DATA_MISSING_X,
+    DATA_MULTIPLE_NULL_KEYS,
+    DATA_NULL_CATEGORY_KEY,
+    DATA_NULL_VS_STRING_NULL,
     DATA_REVENUE,
     DATA_SINGLE_DATUM_TIME_SENSOR,
     DATA_TIME_MISSING_X,
@@ -4158,6 +4161,89 @@ export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
             y: { type: 'log', position: 'left' },
         },
     };
+};
+
+// NULL CATEGORY KEY TEST EXAMPLES ================================================================
+
+export const BAR_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const LINE_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+export const AREA_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+};
+
+export const BUBBLE_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y' }],
+};
+
+export const SCATTER_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+};
+
+export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: null, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: null, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const BAR_MULTIPLE_NULL_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_MULTIPLE_NULL_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const BAR_NULL_VS_STRING_NULL_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_VS_STRING_NULL,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
 };
 
 // START ADVANCED EXAMPLES =========================================================================

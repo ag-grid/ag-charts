@@ -174,6 +174,14 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             }),
         },
     }),
+    LINE_NULL_CATEGORY_KEY: {
+        options: examples.LINE_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xKey] ignored:', '[null]'],
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]'],
+        ],
+    },
 };
 
 describe('LineSeries', () => {
