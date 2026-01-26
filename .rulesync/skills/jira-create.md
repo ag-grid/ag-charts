@@ -1,1 +1,1 @@
-../../external/ag-shared/tools/prompts/skills/jira-create/SKILL.md
+../../external/ag-shared/prompts/skills/jira-create/SKILL.md
