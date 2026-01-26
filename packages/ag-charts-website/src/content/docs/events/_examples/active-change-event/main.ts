@@ -153,7 +153,7 @@ const options: AgChartOptions = {
         },
     ],
     listeners: {
-        activeChange: (ev: AgActiveChangeEvent) => {
+        activeChange: (ev: AgActiveChangeEvent<unknown>) => {
             if (ev.activeItem === undefined) {
                 console.log(`[inactive], event:`, ev);
             } else {
