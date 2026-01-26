@@ -14,6 +14,7 @@ import {
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
+    ratio,
     required,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -57,6 +58,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...lineDashOptionsDef,
     segmentation: shapeSegmentation,
     width: number,
+    widthRatio: ratio,
 };
 
 // @ts-expect-error undocumented option

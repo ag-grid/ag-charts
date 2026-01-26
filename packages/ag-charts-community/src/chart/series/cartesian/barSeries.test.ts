@@ -2181,6 +2181,40 @@ describe('BarSeries', () => {
                 ],
                 {},
             ],
+            [
+                'ungrouped series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'ungrouped series width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'ungrouped series width and width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40, widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'mixed grouped and ungrouped series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.75, grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
         ];
 
         it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {

@@ -161,7 +161,7 @@ export class SeriesStateManager {
         const scale = this.getGroupScale(series);
         if (!scale) return 0;
 
-        const stackCount = seriesGrouping?.stackCount ?? 0;
+        const stackCount = seriesGrouping.stackCount ?? 0;
         if (stackCount < 1) return 0;
 
         let maxStackWidth = 0;
