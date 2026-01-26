@@ -25,11 +25,15 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         private readonly fireEvent: (event: ActiveChangeEvent) => void
     ) {}
 
-    public update(newItemState: ActiveItem): void {
-        this.performUpdate('user-interaction', newItemState);
+    private isFrozen(): boolean {
+        return this.interactionManager.isState(InteractionState.Frozen);
     }
 
-    private performUpdate(source: AgActiveChangeEventSource, newItemState: ActiveItem): void {
+    public update(newItemState: ActiveItem): void {
+        this.performUpdate('user-interaction', newItemState, false);
+    }
+
+    private performUpdate(source: AgActiveChangeEventSource, newItemState: ActiveItem, frozenChanged: boolean): void {
         if (!this.updateable) return;
         const oldItemState = this.currentItem;
 
@@ -38,14 +42,14 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         this.eventsHub.emit('active:update', newItemState);
 
         // External (API) dispatch:
-        if (!objectsEqual(oldItemState, newItemState)) {
+        if (frozenChanged || !objectsEqual(oldItemState, newItemState)) {
             const { frozen, activeItem } = this.createMemento();
             this.fireEvent({ type: 'activeChange', source, frozen, activeItem });
         }
     }
 
     public createMemento(): AgActiveState {
-        const frozen = this.interactionManager.isState(InteractionState.Frozen);
+        const frozen = this.isFrozen();
         switch (this.currentItem?.type) {
             case 'series-area':
             case 'legend': {
@@ -71,12 +75,20 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const activeItem: ActiveItem = this.performRestoration(memento?.activeItem);
         this.updateable = true;
 
-        if (memento?.frozen) {
+        const oldFrozen = this.isFrozen();
+        const newFrozen = memento?.frozen;
+        const frozenChanged: boolean =
+            newFrozen === undefined ? false : (oldFrozen satisfies boolean) === (newFrozen satisfies boolean);
+
+        if (newFrozen === true) {
             this.interactionManager.pushState(InteractionState.Frozen);
-        } else {
+        } else if (newFrozen === false) {
             this.interactionManager.popState(InteractionState.Frozen);
+        } else {
+            newFrozen satisfies undefined;
         }
-        this.performUpdate('state-change', activeItem);
+
+        this.performUpdate('state-change', activeItem, frozenChanged);
     }
 
     private performRestoration(activeItem: ActiveItem): ActiveItem {
