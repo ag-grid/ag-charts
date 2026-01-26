@@ -58,7 +58,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         lineDashOffset: 0,
         opacity: 1,
         cornerRadius: 6,
-        minSize: 10,
+        minSize: 20,
         hoverStyle: {
             fill: { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, 0.075] },
             stroke: { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, 0.075] },
