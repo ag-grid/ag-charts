@@ -86,7 +86,11 @@ export interface ChartAxis {
         seriesId: string,
         legendItemName: string | undefined,
         datum: any,
-        key: string
+        key: string,
+        domain?: undefined,
+        label?: undefined,
+        params?: undefined,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -98,7 +102,8 @@ export interface ChartAxis {
         key: undefined,
         domain: undefined,
         label: AxisFormattableLabel<Params>,
-        params: Params
+        params: Params,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -110,7 +115,8 @@ export interface ChartAxis {
         key: string,
         domain: any[],
         label: AxisFormattableLabel<Params>,
-        params: Params
+        params: Params,
+        allowNull?: boolean
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;

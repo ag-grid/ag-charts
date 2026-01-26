@@ -416,6 +416,72 @@ describe('Tooltip', () => {
         });
     });
 
+    describe('AG-16613 allowNullKeys', () => {
+        it('should show xValue row for null category key when allowNullKeys is true', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        xName: 'Category',
+                        yKey: 'y',
+                        yName: 'Value',
+                        sizeKey: 'y',
+                        sizeName: 'Size',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+            // Hover over the middle bubble (null category key)
+            await hoverAction(400, 200)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should show Category row even though value is null
+            expect(content).toContain('Category');
+            expect(content).toContain('Value');
+        });
+
+        it('should call axis formatter with actual null value (not "null" string) when allowNullKeys is true', async () => {
+            const formatterMock = jest.fn((params: { value: unknown }) =>
+                params.value === null ? 'NULL' : String(params.value)
+            );
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { formatter: formatterMock },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            });
+            await waitForChartStability(chart);
+
+            // Verify formatter was called with actual null value (not string "null")
+            expect(formatterMock).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
+            // Verify formatter was NOT called with string "null"
+            const calls = formatterMock.mock.calls.map((c: [{ value: unknown }]) => c[0].value);
+            expect(calls).not.toContain('null');
+        });
+    });
+
     describe('AG-16272 Missing Values', () => {
         it('should not show rows for series with missing data in shared tooltips', async () => {
             chart = await createChart({

@@ -1194,18 +1194,19 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
         }
 
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
         data.push(
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                missing: isTooltipValueMissing(xValue),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                missing: isTooltipValueMissing(yValue),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
         );
 

@@ -831,9 +831,13 @@ export abstract class Axis<
         const currentLabel = primaryLabel ?? label;
         const specifier = primary ? label.format : undefined;
 
+        // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
+        const allowNull = domain.some((v) => v == null);
+
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
             truncateDate,
+            allowNull,
         };
 
         return (value: any, index: number): TextOrSegments => {
@@ -892,11 +896,12 @@ export abstract class Axis<
         key?: string,
         domain?: any[],
         label?: AxisFormattableLabel<any>,
-        params?: any
+        params?: any,
+        allowNull?: boolean
     ): TextOrSegments {
         if (input === undefined) return '';
-        // Handle null values with empty string (configurable in future via label.nullText)
-        if (input === null) return '';
+        // Handle null values with empty string unless allowNull is true (for formatter access)
+        if (input === null && !allowNull) return '';
 
         const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;
@@ -941,7 +946,7 @@ export abstract class Axis<
         const f = this.createCallWithContext(contextProvider);
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
-            formatManager.format(f, formatParams) ??
+            formatManager.format(f, formatParams, { allowNull }) ??
             this.label.formatValue(f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
