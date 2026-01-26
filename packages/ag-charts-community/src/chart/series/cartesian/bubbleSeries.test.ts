@@ -145,6 +145,48 @@ describe('BubbleSeries', () => {
         });
     });
 
+    describe('undefined category key', () => {
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = examples.BUBBLE_UNDEFINED_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [BubbleSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BUBBLE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BUBBLE_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
     describe('pattern fill', () => {
         it.each([
             'vertical-lines',

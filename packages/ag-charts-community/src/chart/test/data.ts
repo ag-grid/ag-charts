@@ -965,3 +965,64 @@ export const DATA_GROUPED_NULL_VS_STRING_NULL = [
     { grouping: ['Europe', 'null', 'Berlin'], value: 17 },
     { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
 ];
+
+// Undefined category key test data (for category axis tests)
+export const DATA_UNDEFINED_CATEGORY_KEY = [
+    { x: 'A', y: 10 },
+    { x: undefined, y: 20 },
+    { x: 'B', y: 15 },
+];
+
+// Multiple undefined keys test data (aggregation test)
+export const DATA_MULTIPLE_UNDEFINED_KEYS = [
+    { x: 'A', y: 10 },
+    { x: undefined, y: 20 },
+    { x: undefined, y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Undefined vs "undefined" string test data (collision test)
+export const DATA_UNDEFINED_VS_STRING_UNDEFINED = [
+    { x: 'A', y: 10 },
+    { x: undefined, y: 20 },
+    { x: 'undefined', y: 25 },
+    { x: 'B', y: 15 },
+];
+
+// Mixed null and undefined test data (should aggregate to SAME category)
+export const DATA_NULL_AND_UNDEFINED_KEYS = [
+    { x: 'A', y: 10 },
+    { x: null, y: 20 },
+    { x: undefined, y: 30 },
+    { x: 'B', y: 15 },
+];
+
+// Grouped category undefined test data - undefined at first level
+export const DATA_GROUPED_UNDEFINED_FIRST_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: [undefined, 'Germany', 'Berlin'], value: 17 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category undefined test data - undefined at middle level
+export const DATA_GROUPED_UNDEFINED_MIDDLE_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', undefined, 'Paris'], value: 12 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// Grouped category undefined test data - undefined at last level
+export const DATA_GROUPED_UNDEFINED_LAST_LEVEL = [
+    { grouping: ['Europe', 'UK', 'London'], value: 27 },
+    { grouping: ['Europe', 'UK', undefined], value: 12 },
+    { grouping: ['Asia', 'China', 'Beijing'], value: 38 },
+];
+
+// String "null"/"undefined" vs actual null/undefined test data
+export const DATA_NULL_UNDEFINED_AND_STRINGS = [
+    { x: null, y: 10 },
+    { x: undefined, y: 20 },
+    { x: 'null', y: 30 },
+    { x: 'undefined', y: 40 },
+    { x: 'A', y: 50 },
+];

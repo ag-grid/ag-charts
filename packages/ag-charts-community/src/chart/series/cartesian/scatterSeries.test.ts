@@ -118,6 +118,82 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('undefined category key', () => {
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: undefined, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [ScatterSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: undefined, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: undefined, y: 30 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render scatter series with a vertical linear gradient fill', async () => {
             const options: AgChartOptions = {

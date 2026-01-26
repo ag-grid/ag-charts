@@ -314,6 +314,21 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         options: examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
     },
+    BAR_UNDEFINED_CATEGORY_KEY: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [BarSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    BAR_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    BAR_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {

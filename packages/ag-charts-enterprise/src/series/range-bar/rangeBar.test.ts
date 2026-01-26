@@ -1536,4 +1536,107 @@ describe('RangeBarSeries', () => {
             await compare();
         });
     });
+
+    describe('undefined category key', () => {
+        const RANGE_BAR_UNDEFINED_CATEGORY_KEY_DATA = [
+            { month: 'Jan', high: 9.2, low: -4.5 },
+            { month: undefined, high: 11.6, low: -3.7 },
+            { month: 'Mar', high: 14.8, low: 0.5 },
+        ];
+
+        const RANGE_BAR_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { month: 'Jan', high: 9.2, low: -4.5 },
+            { month: null, high: 10.4, low: -3.1 },
+            { month: undefined, high: 11.6, low: -3.7 },
+            { month: 'Apr', high: 14.8, low: 0.5 },
+        ];
+
+        const RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RANGE_BAR_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        const RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RANGE_BAR_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RangeBarSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
 });

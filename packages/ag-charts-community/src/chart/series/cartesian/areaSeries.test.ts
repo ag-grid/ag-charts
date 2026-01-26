@@ -306,6 +306,21 @@ const EXAMPLES: Record<
         options: examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
     },
+    AREA_UNDEFINED_CATEGORY_KEY: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [AreaSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    AREA_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    AREA_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {

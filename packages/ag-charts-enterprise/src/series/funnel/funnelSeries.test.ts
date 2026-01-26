@@ -572,4 +572,97 @@ describe('FunnelSeries', () => {
             await compare();
         });
     });
+
+    describe('undefined category key', () => {
+        const FUNNEL_UNDEFINED_CATEGORY_KEY_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: undefined, value: 8170 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: null, value: 7500 },
+            { group: undefined, value: 670 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: FUNNEL_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        const FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: FUNNEL_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [FunnelSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
 });

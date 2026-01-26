@@ -13,12 +13,12 @@ export const NULL_KEY_STRING = '\0__AG_NULL__\0';
 /**
  * Converts an array of keys to a string representation.
  * Objects are JSON-stringified, other values are joined with '-'.
- * Null values use a sentinel string to avoid collision with the string "null".
+ * Null and undefined values use a sentinel string to avoid collision with the strings "null" and "undefined".
  */
 export function toKeyString(keys: any[]): string {
     return keys
         .map((key) => {
-            if (key === null) return NULL_KEY_STRING;
+            if (key == null) return NULL_KEY_STRING; // Covers both null and undefined
             return isObject(key) ? JSON.stringify(key) : key;
         })
         .join('-');
@@ -77,7 +77,7 @@ export function uniqueChangeDescriptions(
 /**
  * Extracts keys from arrays at a specific datum index.
  * Returns undefined if any key is null or undefined (unless allowNull is true).
- * When allowNull is true, only returns undefined for undefined keys.
+ * When allowNull is true, both null and undefined are allowed as valid keys.
  */
 export function datumKeys(
     keys: Array<unknown[] | undefined>,
@@ -88,7 +88,7 @@ export function datumKeys(
 
     for (const k of keys) {
         const key = k?.[datumIndex];
-        if (key === undefined) return; // Undefined = missing datum
+        if (key === undefined && !allowNull) return; // Undefined = missing datum unless allowed
         if (key === null && !allowNull) return; // Null = invalid unless allowed
         out.push(key);
     }

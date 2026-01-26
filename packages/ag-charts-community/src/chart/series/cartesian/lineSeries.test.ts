@@ -186,6 +186,22 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         options: examples.LINE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
     },
+    LINE_UNDEFINED_CATEGORY_KEY: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xKey] ignored:', '[undefined]'],
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    LINE_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    LINE_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.LINE_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
 };
 
 describe('LineSeries', () => {

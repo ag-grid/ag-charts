@@ -208,10 +208,10 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                 } catch {
                     // Swallow errors
                 }
-                const valueInDatum = value != null || (allowNullKey && value === null);
+                const valueInDatum = value != null || (allowNullKey && value == null);
 
                 // Keys cannot be null/undefined unless allowNullKey is set
-                const nullInvalid = !allowNullKey && value === null;
+                const nullInvalid = !allowNullKey && value == null;
                 if (!valueInDatum || nullInvalid || validation(value, datum, idx) === false) {
                     reusableResult.missing = !valueInDatum;
 
@@ -241,7 +241,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             const value = valueInDatum ? (datum as any)[property] : missingValue;
 
             // Keys cannot be null/undefined unless allowNullKey is set
-            const nullInvalid = !allowNullKey && value === null;
+            const nullInvalid = !allowNullKey && value == null;
             if (!valueInDatum || nullInvalid || validation(value, datum as any, idx) === false) {
                 reusableResult.missing = !valueInDatum;
 

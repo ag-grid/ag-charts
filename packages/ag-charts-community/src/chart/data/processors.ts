@@ -49,8 +49,8 @@ function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
 
-function basicDiscreteCheckDatumValidationAllowNull(value: any) {
-    return value !== undefined;
+function basicDiscreteCheckDatumValidationAllowNull(_value: any) {
+    return true; // Allow both null and undefined when allowNullKey is set
 }
 
 function getValidationFn(scaleType?: ScaleType, allowNullKey?: boolean) {
@@ -707,8 +707,8 @@ type KeyType = string | number | boolean | null | undefined;
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
-        // Handle null explicitly to avoid collision with string "null"
-        if (key === null) return NULL_KEY_STRING;
+        // Handle null and undefined explicitly to avoid collision with strings "null" and "undefined"
+        if (key == null) return NULL_KEY_STRING;
         const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
         // Avoid toString if not necessary
         if (isPrimitive) return key;
@@ -716,7 +716,7 @@ export function createDatumId(...keys: KeyType[]): any {
     return keys
         .map((key) => {
             const transformed = transformIntegratedCategoryValue(key);
-            return transformed === null ? NULL_KEY_STRING : transformed;
+            return transformed ?? NULL_KEY_STRING;
         })
         .join('___');
 }

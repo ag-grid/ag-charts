@@ -16,6 +16,7 @@ import {
     DATA_MEAN_SEA_LEVEL,
     DATA_MISSING_X,
     DATA_MULTIPLE_NULL_KEYS,
+    DATA_NULL_AND_UNDEFINED_KEYS,
     DATA_NULL_CATEGORY_KEY,
     DATA_NULL_VS_STRING_NULL,
     DATA_REVENUE,
@@ -23,6 +24,7 @@ import {
     DATA_TIME_MISSING_X,
     DATA_TIME_SENSOR,
     DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
+    DATA_UNDEFINED_CATEGORY_KEY,
     DATA_VISITORS,
 } from './data';
 import { loadExampleOptions } from './load-example';
@@ -4291,6 +4293,121 @@ export const BAR_NULL_VS_STRING_NULL_EXAMPLE: AgCartesianChartOptions = {
         y: { type: 'number', position: 'left' },
     },
     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+// UNDEFINED CATEGORY KEY TEST EXAMPLES ===========================================================
+
+export const BAR_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// MIXED NULL AND UNDEFINED KEY TEST EXAMPLES (should aggregate to same category) ================
+
+export const BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// LINE UNDEFINED EXAMPLES
+export const LINE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+export const LINE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const LINE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// AREA UNDEFINED EXAMPLES
+export const AREA_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+};
+
+export const AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// BUBBLE UNDEFINED EXAMPLES
+export const BUBBLE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y' }],
+};
+
+export const BUBBLE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
+};
+
+export const BUBBLE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
 };
 
 // START ADVANCED EXAMPLES =========================================================================
