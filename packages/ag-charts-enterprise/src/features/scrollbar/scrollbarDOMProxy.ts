@@ -187,8 +187,8 @@ export class ScrollbarDOMProxy {
         this.slider.addListener('drag-start', (ev) => this.onDragStart(ev));
         this.slider.addListener('drag-move', (ev) => this.onDragMove(ev));
         this.slider.addListener('drag-end', (ev) => this.onDragEnd(ev));
-        this.slider.addListener('mouseenter', () => this.handleHoverEvent(true));
-        this.slider.addListener('mousemove', () => this.handleHoverEvent(true));
+        this.slider.addListener('mouseenter', (event) => this.handleHoverEvent(event));
+        this.slider.addListener('mousemove', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mouseleave', () => this.onMouseLeave());
     }
 
@@ -319,7 +319,7 @@ export class ScrollbarDOMProxy {
     }
 
     private onMouseLeave() {
-        this.handleHoverEvent(false);
+        this.onHoverChange(false);
     }
 
     private getClickInfo(
@@ -335,13 +335,13 @@ export class ScrollbarDOMProxy {
     }
 
     private getPointerRatio(
-        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
+        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mouseenter' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
     ): number | undefined {
         return this.getPointerInfo(event)?.ratio;
     }
 
     private getPointerInfo(
-        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
+        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mouseenter' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
     ): { ratio: number; inCrossBounds: boolean } | undefined {
         if (event.device === 'keyboard') return;
         const { isHorizontal, size, start, crossStart, crossSize } = this.getInteractionBounds();
@@ -400,8 +400,16 @@ export class ScrollbarDOMProxy {
         return this.state.isWithinThumb(ratio);
     }
 
-    private handleHoverEvent(hovered: boolean) {
+    private handleHoverEvent(event: _ModuleSupport.MouseWidgetEvent<'mouseenter' | 'mousemove'>) {
         if (this.interactionMode === 'drag') return;
+
+        const pointer = this.getPointerInfo(event);
+        if (!pointer) {
+            this.onHoverChange(false);
+            return;
+        }
+
+        const hovered = this.isWithinThumb(pointer.ratio);
         this.onHoverChange(hovered);
     }
 }
