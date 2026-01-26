@@ -128,7 +128,9 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        if (typeof value === 'number') value = new Date(value);
+        if (typeof value === 'number') {
+            value = new Date(value);
+        }
 
         if (timeInterval == null) {
             const { minimumTimeGranularity } = this;
