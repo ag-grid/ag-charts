@@ -8143,63 +8143,29 @@ adjust-sourcemap-loader@^4.0.0:
     loader-utils "^2.0.0"
     regex-parser "^2.2.11"
 
-ag-charts-community@12.3.1:
-  version "12.3.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-community/-/ag-charts-community-12.3.1.tgz#11d249e0f52323976879805fa9fd63d15f6cd53e"
-  integrity sha512-uRaUFmCl8e0Y3KxjaHUYlkCPS5OtwtfTChkdpoZuBKDXqerCPTjPu+uvlun3rYUSYxScwVf2LZCI0Hfw4Vc+WQ==
+ag-grid-community@35.0.1, ag-grid-community@~35.0.1:
+  version "35.0.1"
+  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-35.0.1.tgz#041a4a836b77e884fe45dea8ec94c1f741a191ed"
+  integrity sha512-fYYZdymWKsN9/tZv+R6uZRnuiWYEQr+GHl85ZrB0ixbFcE8opYK4NJI29NnMc9ShYiCBnAO9hj54IFa+FI4aDA==
   dependencies:
-    ag-charts-core "12.3.1"
-    ag-charts-locale "12.3.1"
-    ag-charts-types "12.3.1"
+    ag-charts-types "13.0.1"
 
-ag-charts-core@12.3.1:
-  version "12.3.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-core/-/ag-charts-core-12.3.1.tgz#7e0b8b9b5fd8b9e54f9d10be3cc096b6e545f20e"
-  integrity sha512-711UJ0fXengb8+4PEW4nlzWDowmbYymPcjW2eJWHRzzvttUf14hnh+wP/l/s3EGVgYkEHe9vkXFwmeOJUlkC0Q==
+ag-grid-enterprise@~35.0.1:
+  version "35.0.1"
+  resolved "https://registry.yarnpkg.com/ag-grid-enterprise/-/ag-grid-enterprise-35.0.1.tgz#bef7796d33285720282b327eacd7a4d3355c522a"
+  integrity sha512-9mLwf9Bq7+H3EdB6CDO7WqJMQ/YbtpbF+jfX+G8kr9o/m6vgL46E8h7DIEg7gE6QS+IlfY9byLtgoNU8P1PeyQ==
   dependencies:
-    ag-charts-types "12.3.1"
-
-ag-charts-enterprise@12.3.1:
-  version "12.3.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-enterprise/-/ag-charts-enterprise-12.3.1.tgz#b2d516a3f9a656ff3f29e87fa798ea5522d7e0a4"
-  integrity sha512-2sQIwLfksRTcI4JVRjgQkyGq6z68UVTO/I91HKmtpukrQLsW/o0TzzHmgTtVJOXd9yO9gx2KWa2DMg0+FKdXEQ==
-  dependencies:
-    ag-charts-community "12.3.1"
-    ag-charts-core "12.3.1"
-
-ag-charts-locale@12.3.1:
-  version "12.3.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-locale/-/ag-charts-locale-12.3.1.tgz#bdeddf25ed0f961793345fa53ad81b752b887cf2"
-  integrity sha512-dCn7oHh3xLI576FT514aBedNQgtb5zwh/Gcj7jHvjOWYRnfH8kaekZzLzntITA6dF6E78okJfoI7CUCbYduQ4Q==
-
-ag-charts-types@12.3.1:
-  version "12.3.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-types/-/ag-charts-types-12.3.1.tgz#237d69cfaf27605c9bb49a1028a87632a91e653a"
-  integrity sha512-5216xYoawnvMXDFI6kTpPku+mH0Csiwu/FE7lsAm8Z22HEN6ciSG/V7g+IrpLWncELqksgENebCTP75PZ3CsHA==
-
-ag-grid-community@34.3.1, ag-grid-community@~34.3.1:
-  version "34.3.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-34.3.1.tgz#29c7a914812224e8c03f5177e9888dbf789af2cf"
-  integrity sha512-PwlrPudsFOzGumphi2y9ihWeaUlIwKhOra/MXu2LjeV2U8DgLLcYS8CartE5Hszhn1poJHawwI9HWrxlKliwdw==
-  dependencies:
-    ag-charts-types "12.3.1"
-
-ag-grid-enterprise@~34.3.1:
-  version "34.3.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-enterprise/-/ag-grid-enterprise-34.3.1.tgz#018db2b70850ce212747a3bf131b49295d63e064"
-  integrity sha512-pee4Zh0gLeQED+RM+ofxNun9JSrYrE0ZVw90BibuBkhBCLXrtXtjGPiwM+Ylntl+GwJUuCXrTcVLXRHpdXVYbQ==
-  dependencies:
-    ag-grid-community "34.3.1"
+    ag-grid-community "35.0.1"
   optionalDependencies:
-    ag-charts-community "12.3.1"
-    ag-charts-enterprise "12.3.1"
+    ag-charts-community "13.0.1"
+    ag-charts-enterprise "13.0.1"
 
-ag-grid-react@~34.3.1:
-  version "34.3.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-react/-/ag-grid-react-34.3.1.tgz#305edd43fcafe3e1fb04315d09aa92282cdbf525"
-  integrity sha512-1UTlBT+xJkjNZAuf7RxK61mgxKGTPB+6XR99oIHq7cYC89kJmLbWqhHt/1XqRWF5cAgSKk8u+HtOQaN8tAZStw==
+ag-grid-react@~35.0.1:
+  version "35.0.1"
+  resolved "https://registry.yarnpkg.com/ag-grid-react/-/ag-grid-react-35.0.1.tgz#1dba3ae36d6573b1d54317c2410934e3b089658d"
+  integrity sha512-NvrrgWUm+DsnsZVFho16srlyBNKSl9nqeSadk63HpHYerq4S4vN/2JCxdNtfqns7SpbYx7GbasbMFCXKYj7Qaw==
   dependencies:
-    ag-grid-community "34.3.1"
+    ag-grid-community "35.0.1"
     prop-types "^15.8.1"
 
 agent-base@6:
