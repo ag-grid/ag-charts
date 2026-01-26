@@ -42,11 +42,11 @@ jobs:
             contents: read
             pull-requests: write
             issues: write
-        # Only run if permissions check passed (success) or was skipped (for non-issue_comment events)
+        # Only run if permissions check passed and PR is not a draft
         # For issue_comment, also verify it's on a PR (not a regular issue)
         if: |
             needs.check-permissions.result == 'success' && (
-                github.event_name == 'pull_request' ||
+                (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
                 github.event_name == 'workflow_dispatch' ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true' && github.event.issue.pull_request)
             )
