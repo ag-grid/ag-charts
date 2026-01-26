@@ -76,7 +76,7 @@ This event is fired when the [active](./active/) state (highlight) is changed.
     listeners: {
         activeChange: (ev) => {
             if (ev.activeItem === undefined) {
-                console.log(`[invalid], event:`, ev);
+                console.log(`[inactive], event:`, ev);
             } else {
                 const { type: t, seriesId: s, itemId: i } = ev.activeItem;
                 console.log(`[${t}], seriesId: ${s}, itemId: ${i}, event:`, ev);
