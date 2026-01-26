@@ -90,6 +90,10 @@ jobs:
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
                     # For scheduled runs, get the most recent release branch matching exact 'bX.Y.Z' format
                     release=$(git ls-remote --heads origin | grep -E 'refs/heads/b[0-9]+\.[0-9]+\.[0-9]+$' | sort -t '/' -k 3 -V | tail -n 1 | sed 's/.*refs\/heads\///')
+                    # Special case: b13.0.x series uses b13.0.0 as base due to circular dependency issues in b13.0.1+
+                    if [[ "$release" =~ ^b13\.0\.[1-9] ]] ; then
+                      release="b13.0.0"
+                    fi
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=$release" >> $GITHUB_OUTPUT
                   else
