@@ -8,7 +8,7 @@ import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
 
 // Sentinel value for null keys to avoid collision with string "null"
-const NULL_KEY_STRING = '\0__AG_NULL__\0';
+export const NULL_KEY_STRING = '\0__AG_NULL__\0';
 
 /**
  * Converts an array of keys to a string representation.

@@ -14,6 +14,7 @@ import {
     type DatumPropertyDefinition,
     type GroupValueProcessorDefinition,
     KEY_SORT_ORDERS,
+    NULL_KEY_STRING,
     type ProcessedData,
     type ProcessedOutputDiff,
     type ProcessorFn,
@@ -641,13 +642,16 @@ export function diff(
 
             const length = Math.max(previousData.input.count, processedData.input.count);
 
+            // Check if any key definition allows null values
+            const allowNull = processedData.defs.keys.some((def) => def.allowNullKey === true);
+
             for (let i = 0; i < length; i++) {
                 const hasPreviousDatum = i < previousData.input.count;
                 const hasDatum = i < processedData.input.count;
 
-                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
+                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i, allowNull) : undefined;
                 const prevId = prevKeys == null ? '' : createDatumId(...prevKeys);
-                const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
+                const dKeys = hasDatum ? datumKeys(keys, i, allowNull) : undefined;
                 const datumId = dKeys == null ? '' : createDatumId(...dKeys);
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
@@ -699,15 +703,12 @@ export function diff(
 
 type KeyType = string | number | boolean | null | undefined;
 
-// Sentinel value for null keys to avoid collision with string "null"
-const NULL_CATEGORY_STRING = '\0__AG_NULL__\0';
-
 // FIXME: ReturnType should be `string | number | boolean`
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
         // Handle null explicitly to avoid collision with string "null"
-        if (key === null) return NULL_CATEGORY_STRING;
+        if (key === null) return NULL_KEY_STRING;
         const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
         // Avoid toString if not necessary
         if (isPrimitive) return key;
@@ -715,7 +716,7 @@ export function createDatumId(...keys: KeyType[]): any {
     return keys
         .map((key) => {
             const transformed = transformIntegratedCategoryValue(key);
-            return transformed === null ? NULL_CATEGORY_STRING : transformed;
+            return transformed === null ? NULL_KEY_STRING : transformed;
         })
         .join('___');
 }
