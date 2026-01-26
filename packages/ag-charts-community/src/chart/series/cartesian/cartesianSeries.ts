@@ -358,7 +358,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this._contextNodeData = undefined;
     }
 
-    public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+    public override isSeriesHighlighted(
+        highlightedDatum: HighlightNodeDatum | undefined
+    ): highlightedDatum is DatumOf<TTypes> {
         if (!this.properties.highlight.enabled) {
             return false;
         }
@@ -782,7 +784,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
-        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as DatumOf<TTypes>) : undefined;
+        const item = seriesHighlighted && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         if (item == null) return false;
 

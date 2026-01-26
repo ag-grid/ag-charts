@@ -1193,7 +1193,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
-        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as BarNodeDatum) : undefined;
+        const item = seriesHighlighted && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         this.phantomHighlightSelection = this.updateDatumSelection({
             nodeData: item ? this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? [] : [],

@@ -997,9 +997,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     private updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum
-                ? (highlightedDatum as BubbleScatterNodeDatum)
-                : undefined;
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         const highlightLabelData =
             highlightItem == null
