@@ -14,7 +14,9 @@ import type { SeriesProperties } from './seriesProperties';
 import type { DatumIndexType, ItemId, SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
+    itemId?: never;
+}
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
