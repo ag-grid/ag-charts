@@ -136,7 +136,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         const { visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
-        // The inverse calculations of the band scale to determine the expected the chart width.
+        // The inverse calculations of the band scale to determine the expected chart width.
         const bandWidth = width + groupPaddingInner * averageWidth * (visibleGroupCount - 1);
         const paddingFactor = (dataSize - paddingInner + paddingOuter * 2) / (1 - paddingInner);
 

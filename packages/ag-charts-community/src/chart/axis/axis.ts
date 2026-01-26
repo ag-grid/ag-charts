@@ -239,7 +239,7 @@ export abstract class Axis<
 
     layoutConstraints: ChartAxis['layoutConstraints'] = {
         stacked: true,
-        align: 'start',
+        align: 'justify',
         width: 100,
         unit: 'percent',
     };

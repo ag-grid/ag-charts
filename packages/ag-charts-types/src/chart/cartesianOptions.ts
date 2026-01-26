@@ -212,6 +212,8 @@ export interface AgAxisDiscreteTimeIntervalOptions
     placement?: AgAxisIntervalPlacement;
 }
 
+export type AgBandAlignmentOptions = 'justify' | 'start' | 'center' | 'end';
+
 export interface AgCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisOptions<
         AgBaseCartesianAxisLabelOptions<TContext>,
@@ -229,6 +231,8 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /** The alignment of bands when used with bar-like series with fixed widths. */
+    bandAlignment?: AgBandAlignmentOptions;
 }
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;

@@ -1,5 +1,5 @@
 import type { DomainWithMetadata } from 'ag-charts-core';
-import { Property, isFiniteNumber } from 'ag-charts-core';
+import { Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -21,6 +21,18 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
+    @Property
+    groupPaddingInner: number = 0.1;
+
+    @Property
+    paddingInner?: number;
+
+    @Property
+    paddingOuter?: number;
+
+    @ProxyPropertyOnWrite('layoutConstraints', 'align')
+    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
+
     constructor(
         moduleCtx: ModuleContext,
         scale = new CategoryScale<string | object>() as S,
@@ -36,15 +48,6 @@ export class CategoryAxis<
     override isCategoryLike(): boolean {
         return true;
     }
-
-    @Property
-    groupPaddingInner: number = 0.1;
-
-    @Property
-    paddingInner?: number;
-
-    @Property
-    paddingOuter?: number;
 
     override hasDefinedDomain(): boolean {
         return false;
