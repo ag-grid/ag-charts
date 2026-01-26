@@ -28,6 +28,9 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 
     @Property
     width?: number = undefined;
+
+    @Property
+    widthRatio?: number = undefined;
 }
 
 export interface AbstractBarSeriesNodeDataContext<
@@ -192,27 +195,39 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return { groupOffset, barOffset, barWidth };
     }
 
-    protected getGroupOffset() {
+    private getGroupOffset() {
         return this.ctx.seriesStateManager.getGroupOffset(this);
     }
 
-    protected getBarOffset(barWidth: number) {
+    private getBarOffset(barWidth: number) {
+        const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const xAxis = this.getCategoryAxis()!;
-        const barOffset = ContinuousScale.is(xAxis.scale) ? -barWidth / 2 : 0;
+
+        let barOffset = 0;
+        if (ContinuousScale.is(xAxis.scale)) {
+            barOffset = -barWidth / 2;
+        } else if (this.seriesGrouping == null && groupScale) {
+            barOffset = (groupScale.bandwidth - barWidth) / 2;
+        }
+
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
 
         return barOffset + stackOffset;
     }
 
-    protected getBarWidth() {
-        const { width } = this.properties;
+    private getBarWidth() {
+        const { width, widthRatio } = this.properties;
+
+        const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
+        const bandwidth = groupScale?.bandwidth ?? 0;
+
+        if (widthRatio != null) {
+            return (width ?? bandwidth) * widthRatio;
+        }
 
         if (width != null) {
             return width;
         }
-
-        const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
-        const bandwidth = groupScale?.bandwidth ?? 0;
 
         // Handle high-volume bar charts gracefully.
         if (bandwidth < 1 && groupScale) {
