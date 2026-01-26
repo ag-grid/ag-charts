@@ -121,34 +121,106 @@ Launch analysis agents based on mode.
 └─────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+## Discovered Work Protocol
+
+Sub-agents executing review tasks may discover work outside their immediate scope.
+This protocol ensures discovered work is captured without derailing focused review.
+
+### When to Create a Task
+
+Create a task using `TaskCreate` when you discover something:
+
+-   **Significant**: Could affect implementation success or requires dedicated investigation
+-   **Out of scope**: Not part of your current review focus area
+-   **Actionable**: Clear enough that another agent could pick it up
+
+Do NOT create tasks for:
+
+-   Minor observations (include in your findings instead)
+-   Things you can quickly address within your scope
+-   Vague concerns without actionable next steps
+
+### How to Create a Task
+
+Use `TaskCreate` with:
+
+| Field         | Content                                                                           |
+| ------------- | --------------------------------------------------------------------------------- |
+| `subject`     | `[Category] Brief description` (e.g., "[Gap] Missing error handling for timeout") |
+| `description` | What you discovered, why it matters, suggested approach                           |
+| `activeForm`  | Present tense action (e.g., "Investigating timeout handling")                     |
+
+### After Creating a Task
+
+1. Note in your findings that you created a follow-up task
+2. Continue with your focused review - don't investigate further
+3. The orchestrating agent will triage discovered tasks
+
+### Example
+
+**Scenario**: You're the Progress Auditor, tracking completion status.
+You notice a quality concern with test coverage.
+
+**Action**:
+
+```javascript
+TaskCreate({
+    subject: '[Quality] Insufficient test coverage for edge cases',
+    description:
+        'While auditing progress, I noticed Step 3 is marked complete but the tests only cover happy path scenarios. The Quality Validator should check if edge cases are adequately tested.',
+    activeForm: 'Investigating test coverage gaps',
+});
+```
+
+**Then**: Continue your Progress Audit without investigating the quality issue.
+
+---
+
 **Agent Launch Pattern:**
 
 ```javascript
 // Launch agents in parallel using Task tool
 Task({
-    subagent_type: "general-purpose",
-    description: "Progress audit",
-    prompt: `Audit the implementation progress against this plan...
+    subagent_type: 'general-purpose',
+    description: 'Progress audit',
+    prompt: `Audit the implementation progress against this plan.
 
-    Original Plan:
+    ## Your Focus
+    Track completion status and map code changes to plan steps.
+
+    ## Discovered Work Protocol
+    If you discover significant issues OUTSIDE your focus area:
+    - Use TaskCreate to propose a follow-up task
+    - Include category, description, and suggested approach
+    - Continue with your focused review - don't investigate further
+    - Only create tasks for significant discoveries, not minor observations
+
+    ## Original Plan:
     ${planContent}
 
-    Git Changes Since Plan:
+    ## Git Changes Since Plan:
     ${gitChanges}
 
-    Modified Files:
+    ## Modified Files:
     ${modifiedFiles}
 
-    For each plan step, determine:
+    ## For each plan step, determine:
     1. Status: Done / Partial / Pending / Not Started
     2. Evidence: Commits, file changes, or tests that demonstrate completion
     3. Notes: Any observations about the implementation
 
-    Return:
+    ## Return:
     - Completion percentage per section
     - List of completed steps with evidence
-    - List of pending steps with blockers (if any)`
-})
+    - List of pending steps with blockers (if any)
+
+    **Discovered Work:**
+    If you found significant issues outside your focus area, note that you
+    created a follow-up task rather than investigating.`,
+});
+```
 ```
 
 ### Phase 2: Cross-Reference Analysis
@@ -195,24 +267,38 @@ Correlate plan steps with implementation evidence.
 Generate comprehensive progress report.
 
 1. **Calculate completion metrics:**
-   - Overall completion percentage
-   - Per-section completion
-   - Per-step status
+
+    - Overall completion percentage
+    - Per-section completion
+    - Per-step status
 
 2. **Identify remaining work:**
-   - Pending steps with priority
-   - Blockers if any
-   - Estimated remaining effort
+
+    - Pending steps with priority
+    - Blockers if any
+    - Estimated remaining effort
 
 3. **Document deviations:**
-   - What was planned vs what was done
-   - Unexpected changes
-   - Scope changes
+
+    - What was planned vs what was done
+    - Unexpected changes
+    - Scope changes
 
 4. **Provide actionable next steps:**
-   - Prioritised list of remaining work
-   - Recommended order of completion
-   - Dependencies to unblock
+
+    - Prioritised list of remaining work
+    - Recommended order of completion
+    - Dependencies to unblock
+
+5. **Aggregate discovered tasks:**
+
+    - Call `TaskList` to retrieve tasks created by sub-agents
+    - For each task:
+        - Check if it duplicates a finding (consolidate if so)
+        - Assess priority based on implementation impact
+        - Determine if it blocks completion
+        - Decide: address now, defer, or dismiss
+    - Include task summary in the output report
 
 ---
 
@@ -398,15 +484,38 @@ ghi9012 - Fix edge case in Z (4 hours ago)
 
 ## Session Notes
 
-- **Review Date:** [timestamp]
-- **Branch:** [current branch]
-- **Reviewer:** AI Assistant
+-   **Review Date:** [timestamp]
+-   **Branch:** [current branch]
+-   **Reviewer:** AI Assistant
 
 ### Observations
 
-- [Any notable observations about the implementation]
-- [Quality notes]
-- [Suggestions for improvement]
+-   [Any notable observations about the implementation]
+-   [Quality notes]
+-   [Suggestions for improvement]
+
+---
+
+## Discovered Tasks
+
+Tasks proposed by sub-agents for out-of-scope work:
+
+| ID  | Category | Subject   | Priority | Disposition   |
+| --- | -------- | --------- | -------- | ------------- |
+| 1   | [Cat]    | [Subject] | High     | Address now   |
+| 2   | [Cat]    | [Subject] | Medium   | Defer         |
+| 3   | [Cat]    | [Subject] | Low      | Dismissed     |
+
+### Task Details
+
+#### Task 1: [Subject]
+
+-   **Discovered by:** [Agent name]
+-   **Context:** [What was being reviewed when discovered]
+-   **Issue:** [What was found]
+-   **Recommendation:** [Suggested action]
+-   **Priority rationale:** [Why this priority]
+-   **Disposition:** [Address now/Defer/Dismiss with reason]
 ```
 
 ---
@@ -434,11 +543,18 @@ For each step in the plan, determine:
 3. Completion %: For partial steps, estimate percentage
 
 **Return:**
-- Overall completion percentage
-- Per-section completion breakdown
-- List of completed steps with evidence
-- List of pending steps
-- Any blockers identified
+
+-   Overall completion percentage
+-   Per-section completion breakdown
+-   List of completed steps with evidence
+-   List of pending steps
+-   Any blockers identified
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Gap Detector Prompt
@@ -460,9 +576,16 @@ Find:
 4. Implicit requirements that weren't addressed
 
 **Return:**
-- List of gaps with severity (Critical/Important/Minor)
-- For each gap: what's missing and why it matters
-- Suggested priority for addressing gaps
+
+-   List of gaps with severity (Critical/Important/Minor)
+-   For each gap: what's missing and why it matters
+-   Suggested priority for addressing gaps
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Intent & Quality Validator Prompt
@@ -497,13 +620,20 @@ Check:
    - Are there signs of sub-agents completing tasks without understanding context?
 
 **Return:**
-- **Intent alignment:** High/Medium/Low with explanation
-- Alignment assessment: High/Medium/Low
-- List of deviations:
-  - Intent-serving deviations (good): [list]
-  - Intent-drifting deviations (concerning): [list]
-- Quality concerns if any
-- Recommendations for improvements
+
+-   **Intent alignment:** High/Medium/Low with explanation
+-   Alignment assessment: High/Medium/Low
+-   List of deviations:
+    -   Intent-serving deviations (good): [list]
+    -   Intent-drifting deviations (concerning): [list]
+-   Quality concerns if any
+-   Recommendations for improvements
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Test Coverage Reviewer Prompt
@@ -528,10 +658,17 @@ Check:
 4. What verification is still pending?
 
 **Return:**
-- Verification completion status per step
-- Test coverage assessment
-- Pass/fail status for completed tests
-- List of pending verification with priority
+
+-   Verification completion status per step
+-   Test coverage assessment
+-   Pass/fail status for completed tests
+-   List of pending verification with priority
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ---
