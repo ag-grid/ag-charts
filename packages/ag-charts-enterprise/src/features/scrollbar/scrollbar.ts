@@ -237,6 +237,7 @@ export class Scrollbar extends AbstractModuleInstance {
         }
 
         const minSize = state.properties.thumb.minSize ?? 0;
+        let thumbSpan: number;
         if (state.orientation === 'horizontal') {
             const thumbWidth = Math.min(Math.max(minSize, track.width * span), track.width);
             const start = clamp(track.x, track.x + track.width * min, track.x + track.width - thumbWidth);
@@ -244,6 +245,7 @@ export class Scrollbar extends AbstractModuleInstance {
             state.thumb.y = track.y;
             state.thumb.width = thumbWidth;
             state.thumb.height = track.height;
+            thumbSpan = clamp(0, thumbWidth / track.width, 1);
         } else {
             const thumbHeight = Math.min(Math.max(minSize, track.height * span), track.height);
             const start = clamp(track.y, track.y + track.height * min, track.y + track.height - thumbHeight);
@@ -251,9 +253,10 @@ export class Scrollbar extends AbstractModuleInstance {
             state.thumb.y = start;
             state.thumb.width = track.width;
             state.thumb.height = thumbHeight;
+            thumbSpan = clamp(0, thumbHeight / track.height, 1);
         }
 
-        state.dom.updateMinMax(min, max);
+        state.dom.updateMinMax(min, max, thumbSpan);
     }
 
     private updateThumbs() {
