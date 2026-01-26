@@ -1,0 +1,1 @@
+../../../external/prompts/skills/spruce-docs/SKILL.md

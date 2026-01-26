@@ -359,6 +359,117 @@ apply_create_missing_symlinks() {
     return 0
 }
 
+# Check for missing skill directories in .rulesync/skills/
+# Rulesync requires real directories (not symlinks) containing SKILL.md files
+check_missing_rulesync_skill_dirs() {
+    local skills_dir="$REPO_ROOT/.rulesync/skills"
+    local missing_count=0
+    local missing_dirs=()
+
+    if [[ ! -d "$skills_dir" ]]; then
+        mkdir -p "$skills_dir"
+    fi
+
+    # Check external/ag-shared/prompts/skills/ (required)
+    local shared_skills="$REPO_ROOT/external/ag-shared/prompts/skills"
+    if [[ -d "$shared_skills" ]]; then
+        while IFS= read -r -d '' source_dir; do
+            local dir_name=$(basename "$source_dir")
+            local skill_dir="$skills_dir/$dir_name"
+            local skill_file="$skill_dir/SKILL.md"
+            local expected_target="../../../external/ag-shared/prompts/skills/$dir_name/SKILL.md"
+
+            if [[ ! -d "$skill_dir" ]] || [[ ! -e "$skill_file" ]]; then
+                ((missing_count++)) || true
+                missing_dirs+=("$dir_name (from external/ag-shared/prompts/skills/)")
+            fi
+        done < <(find "$shared_skills" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+    fi
+
+    # Check external/prompts/skills/ (optional - only if it exists)
+    local private_skills="$REPO_ROOT/external/prompts/skills"
+    if [[ -d "$private_skills" ]] && [[ -e "$private_skills" ]]; then
+        while IFS= read -r -d '' source_dir; do
+            local dir_name=$(basename "$source_dir")
+            local skill_dir="$skills_dir/$dir_name"
+            local skill_file="$skill_dir/SKILL.md"
+
+            if [[ ! -d "$skill_dir" ]] || [[ ! -e "$skill_file" ]]; then
+                ((missing_count++)) || true
+                missing_dirs+=("$dir_name (from external/prompts/skills/)")
+            fi
+        done < <(find "$private_skills" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+    fi
+
+    if [[ $missing_count -gt 0 ]]; then
+        log_warn "Found $missing_count missing skill directory(ies) in .rulesync/skills/"
+        for dir in "${missing_dirs[@]}"; do
+            log_info "  $dir"
+        done
+        MISSING_SKILL_DIRS=("${missing_dirs[@]}")
+        return 1
+    fi
+
+    log_success "No missing skill directories in .rulesync/skills/"
+    return 0
+}
+
+# Create missing skill directories in .rulesync/skills/
+# Creates real directories with symlinked SKILL.md files (rulesync doesn't follow directory symlinks)
+apply_create_missing_skill_dirs() {
+    local skills_dir="$REPO_ROOT/.rulesync/skills"
+
+    if [[ ! -d "$skills_dir" ]]; then
+        mkdir -p "$skills_dir"
+    fi
+
+    local created=0
+
+    # Check external/ag-shared/prompts/skills/ (required)
+    local shared_skills="$REPO_ROOT/external/ag-shared/prompts/skills"
+    if [[ -d "$shared_skills" ]]; then
+        while IFS= read -r -d '' source_dir; do
+            local dir_name=$(basename "$source_dir")
+            local skill_dir="$skills_dir/$dir_name"
+            local skill_file="$skill_dir/SKILL.md"
+            local expected_target="../../../external/ag-shared/prompts/skills/$dir_name/SKILL.md"
+
+            if [[ ! -d "$skill_dir" ]]; then
+                mkdir -p "$skill_dir"
+            fi
+
+            if [[ ! -e "$skill_file" ]]; then
+                ln -sf "$expected_target" "$skill_file"
+                log_fixed "Created skill: .rulesync/skills/$dir_name/SKILL.md"
+                ((created++)) || true
+            fi
+        done < <(find "$shared_skills" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+    fi
+
+    # Check external/prompts/skills/ (optional)
+    local private_skills="$REPO_ROOT/external/prompts/skills"
+    if [[ -d "$private_skills" ]] && [[ -e "$private_skills" ]]; then
+        while IFS= read -r -d '' source_dir; do
+            local dir_name=$(basename "$source_dir")
+            local skill_dir="$skills_dir/$dir_name"
+            local skill_file="$skill_dir/SKILL.md"
+            local expected_target="../../../external/prompts/skills/$dir_name/SKILL.md"
+
+            if [[ ! -d "$skill_dir" ]]; then
+                mkdir -p "$skill_dir"
+            fi
+
+            if [[ ! -e "$skill_file" ]]; then
+                ln -sf "$expected_target" "$skill_file"
+                log_fixed "Created skill: .rulesync/skills/$dir_name/SKILL.md"
+                ((created++)) || true
+            fi
+        done < <(find "$private_skills" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+    fi
+
+    return 0
+}
+
 # Regenerate AGENTS.md using rulesync
 regenerate_agents_md() {
     log_info "Regenerating AGENTS.md..."
@@ -449,6 +560,8 @@ show_help() {
     echo "  - .rulesync/ has no stale symlinks to external/ag-shared/ or external/prompts/"
     echo "  - .rulesync/commands/ has all expected symlinks from external/ag-shared/prompts/commands/"
     echo "    and external/prompts/commands/ (if present)"
+    echo "  - .rulesync/skills/ has directories with SKILL.md symlinks from external/ag-shared/prompts/skills/"
+    echo "    and external/prompts/skills/ (if present)"
     echo "  - AGENTS.md is regenerated (--apply only)"
     echo ""
     echo "Shared patch location: $SHARED_PATCHES_REL/$PATCH_FILE"
@@ -497,6 +610,7 @@ main() {
             check_postinstall || true
             check_stale_rulesync_symlinks || true
             check_missing_rulesync_symlinks || true
+            check_missing_rulesync_skill_dirs || true
             ;;
         apply)
             # Check and fix patches directory
@@ -517,9 +631,14 @@ main() {
                 apply_remove_stale_symlinks
             fi
 
-            # Check and create missing symlinks
+            # Check and create missing command symlinks
             if ! check_missing_rulesync_symlinks; then
                 apply_create_missing_symlinks
+            fi
+
+            # Check and create missing skill directories
+            if ! check_missing_rulesync_skill_dirs; then
+                apply_create_missing_skill_dirs
             fi
 
             # Regenerate AGENTS.md to ensure it's up to date
