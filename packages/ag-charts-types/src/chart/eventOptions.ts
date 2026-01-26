@@ -1,4 +1,4 @@
-import type { AgActiveState } from '../api/initialStateOptions';
+import type { AgActiveState } from '../api/activeState';
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
