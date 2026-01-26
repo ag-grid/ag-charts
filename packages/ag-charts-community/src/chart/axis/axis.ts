@@ -244,6 +244,8 @@ export abstract class Axis<
         unit: 'percent',
     };
 
+    requiredWidth?: number;
+
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 

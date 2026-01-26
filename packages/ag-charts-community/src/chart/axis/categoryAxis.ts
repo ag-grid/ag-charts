@@ -1,5 +1,5 @@
 import type { DomainWithMetadata } from 'ag-charts-core';
-import { Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import { ActionOnSet, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -32,6 +32,19 @@ export class CategoryAxis<
 
     @ProxyPropertyOnWrite('layoutConstraints', 'align')
     bandAlignment?: 'justify' | 'start' | 'center' | 'end';
+
+    @ActionOnSet<CategoryAxis>({
+        newValue(value?: number) {
+            if (value == null || value <= 0) {
+                this.layoutConstraints.width = 100;
+                this.layoutConstraints.unit = 'percent';
+            } else {
+                this.layoutConstraints.width = value;
+                this.layoutConstraints.unit = 'px';
+            }
+        },
+    })
+    override requiredWidth?: number;
 
     constructor(
         moduleCtx: ModuleContext,

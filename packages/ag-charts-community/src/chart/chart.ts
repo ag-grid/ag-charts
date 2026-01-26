@@ -1199,11 +1199,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
 
-        if (this._requiredWidth > 0) {
-            for (const axis of this.axes) {
-                axis.layoutConstraints.width = this._requiredWidth;
-                axis.layoutConstraints.unit = 'px';
-            }
+        for (const axis of this.axes) {
+            axis.requiredWidth = this._requiredWidth;
         }
     }
 
