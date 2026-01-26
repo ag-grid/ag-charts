@@ -5,298 +5,256 @@ description: 'Split a branch into a logical sequence of stacked PRs for easier r
 
 # PR Split Instructions
 
-You are an expert at managing Git branches and pull requests. Your goal is to split a large branch into a logical sequence of smaller, stacked PRs that can be reviewed step-by-step.
+## Intent
+
+Transform a large branch into a sequence of small, high-quality PRs that:
+
+- Each do ONE thing well
+- Are easy to review (500-1000 lines ideal)
+- Tell a coherent story in sequence
+- Pass all quality checks
+- Have clear, descriptive commit messages that explain WHY
+
+The goal is **reviewer experience**, not mechanical splitting. Each PR should be something you'd be proud to send for review.
 
 ## Help
 
 If the user provides a command option of `help`:
 
--   Explain how to use this prompt.
--   Explain if they are missing any prerequisites or tooling requirements.
--   DO NOT proceed, exit the prompt immediately after these steps.
+- Explain how to use this prompt.
+- Explain if they are missing any prerequisites or tooling requirements.
+- DO NOT proceed, exit the prompt immediately after these steps.
 
 ## Phase 0: Prerequisites
 
 ### Tooling Requirements
 
--   Git CLI must be available
--   GitHub CLI (`gh`) must be available and authenticated
--   Working tree must be clean (no uncommitted changes)
--   Must be on a feature branch, not the main branch
+- Git CLI must be available
+- GitHub CLI (`gh`) must be available and authenticated
+- Working tree must be clean (no uncommitted changes)
+- Must be on a feature branch, not the main branch
 
 ### Verification
 
-```bash
-# Verify clean working tree
-if [ -n "$(git status --porcelain)" ]; then
-    echo "ERROR: Working tree is dirty. Please commit or stash changes first."
-    exit 1
-fi
-
-# Verify not on main branch
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [ "$current_branch" = "latest" ] || [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
-    echo "ERROR: Cannot split on main branch. Switch to a feature branch first."
-    exit 1
-fi
-
-# Verify gh CLI is available and authenticated
-gh auth status
-```
+Verify the working tree is clean, not on main branch, and gh CLI is authenticated before proceeding.
 
 ### Extract JIRA Ticket or Branch Prefix
 
 Determine the commit message prefix from the branch name:
 
-1. If branch matches `ag-NNNNN/description` pattern (JIRA branch): extract JIRA ticket (e.g., `AG-12345`)
+1. If branch matches `ag-NNNNN/description` pattern: extract JIRA ticket (e.g., `AG-12345`)
 2. Otherwise: derive prefix from branch name (e.g., `feature/null-keys` becomes `null-keys`)
 
 Store this prefix for use in commit messages and PR titles.
 
-## Phase 1: Analyse Branch Changes and Choose Split Strategy
+## Phase 1: Understand the Changes
 
-### 1.1 Analyse the Changes
+Use a sub-agent (type: `Explore`) to deeply analyse the changes:
 
-Use a sub-agent (type: `Explore`) to analyse the changes:
+### 1.1 Gather Information
 
-1. **Get the diff against base branch:**
+- Get the full diff against base branch (`latest`)
+- Review all commit messages and their content
+- Understand the scope: files changed, lines added/removed, packages touched
 
-```bash
-git diff latest...HEAD --stat
-git diff latest...HEAD
-git log --oneline latest..HEAD
-```
+### 1.2 Analyse for Logical Units
 
-2. **Identify groupings by:**
+Focus on **content and purpose**, not commit boundaries. Identify:
 
-    - Package (core vs community vs enterprise vs website)
-    - Content type (code vs tests vs docs vs examples)
-    - Logical dependencies (what needs to be merged first)
-    - Existing commit boundaries
+- **Distinct features or concerns**: What separate things does this branch accomplish?
+- **Logical dependencies**: What must be merged first for later changes to make sense?
+- **Natural boundaries**: Package boundaries, code vs tests vs docs, refactoring vs features
+- **Reviewer cognitive load**: What groupings would be easiest to understand in isolation?
 
-3. **Calculate statistics:**
+Key questions to answer:
+- Could a reviewer understand each proposed PR without seeing the others?
+- Does each PR have a single, clear purpose?
+- Are dependencies between PRs clear and minimal?
 
-    - Total lines changed
-    - Number of files changed
-    - Number of commits
-    - Changes per package/area
+## Phase 2: Design the Split
 
-### 1.2 Present Split Options to User
+### 2.1 Present Split Options
 
-After analysis, use `AskUserQuestion` to present split strategy options. Generate 2-3 concrete split proposals based on the analysis, plus an option for custom specification.
+After analysis, use `AskUserQuestion` to present 2-3 concrete split proposals based on content analysis:
 
-**Example question format:**
+**Option types to consider:**
 
-```
-Question: "How would you like to split this branch into PRs?"
-Header: "Split strategy"
-Options:
-1. "By package" - "Split into N PRs: core changes, then community, then enterprise, then tests"
-2. "By commit" - "Preserve existing commit structure as N separate PRs"
-3. "By feature area" - "Split into N PRs based on logical feature boundaries: [list areas]"
-4. (Always include) "Custom" - "I'll specify exactly how to split the changes"
-```
+1. **By logical unit** (recommended default) - Group changes by feature or concern
+2. **By package/module** - Split across codebase boundaries (core, then community, then enterprise)
+3. **Custom** - User specifies split points
 
-**Guidelines for generating options:**
+**Guidelines:**
 
-- Each option should include the number of PRs it would create
-- Each option should briefly list what goes in each PR
-- Options should be based on actual analysis of the changes, not generic templates
-- If the branch has clean commit boundaries, offer "By commit" as an option
-- If changes span multiple packages, offer "By package" as an option
-- Always identify the most logical split based on code dependencies
+- Each option should include the number of PRs and what goes in each
+- Options must be based on actual content analysis, not commit preservation
+- Prioritize options that create coherent, reviewable units
+- Target 500-1000 lines per PR for optimal reviewability
 
-### 1.3 Handle User Choice
+**Do NOT offer "By commit" splitting.** If commits are already well-structured, the user can trivially do this themselves. The value of this command is reorganising changes into logical, reviewable units.
 
-**If user selects a pre-defined option:**
+### 2.2 Handle User Choice
 
-- Proceed with that split strategy
-- Generate the detailed plan based on the chosen approach
+**If user selects a pre-defined option:** Proceed with that strategy.
 
-**If user selects "Custom" or provides their own specification:**
+**If user selects "Custom":** Ask for details on how many PRs and what goes in each.
 
-- Use `AskUserQuestion` again to gather details:
-  - "How many PRs should this be split into?"
-  - "Describe what should go in each PR (you can list files, patterns, or descriptions)"
-- Parse the user's specification and create the plan accordingly
+### 2.3 Confirm the Split Plan
 
-### 1.4 Confirm the Split Plan
-
-After determining the strategy, present the detailed plan to the user for confirmation:
+Present the detailed plan for confirmation:
 
 ```markdown
 ## Proposed Split Plan
 
 ### PR 1: [Title]
-- Files: [list]
+- Purpose: [what this PR accomplishes]
+- Files: [list or patterns]
 - Lines: ~XXX
-- Description: [what this PR does]
 
 ### PR 2: [Title]
-- Files: [list]
+- Purpose: [what this PR accomplishes]
+- Files: [list or patterns]
 - Lines: ~XXX
-- Description: [what this PR does]
 - Depends on: PR 1
 
 [etc.]
 ```
 
-Use `AskUserQuestion` to confirm:
+Use `AskUserQuestion` to confirm before proceeding.
 
+### 2.4 Validate the Plan
+
+Run the `/plan-review` skill to check for completeness and correctness.
+
+## Phase 3: Execute the Split
+
+### 3.1 Prepare a Clean Starting Point
+
+Create a temporary branch that holds all changes as staged files:
+
+1. Record the current branch name
+2. Create a temporary branch from the current HEAD
+3. Soft reset to the merge base with `latest` (converts all commits to staged changes)
+
+### 3.2 Create PR Branches
+
+For each PR in the plan:
+
+**First PR:**
+- Branch from `latest`
+- Bring in the relevant files from the temporary branch
+- Use `git checkout <temp-branch> -- <files>` for clean file extraction
+- Use `git add -p` for partial file staging when needed
+
+**Subsequent PRs:**
+- Branch from the previous PR's branch
+- Bring in the next set of files
+- Maintain the dependency chain
+
+### 3.3 Commit Message Quality
+
+Each commit message must:
+
+- Start with the JIRA ticket or branch prefix
+- Use imperative mood ("Add", "Fix", "Refactor")
+- Explain WHAT changed and WHY (not just what files)
+- Be concise but complete
+- No LLM attribution or emoji
+
+**Good example:**
 ```
-Question: "Does this split plan look correct?"
-Header: "Confirm plan"
-Options:
-1. "Yes, proceed" - "Create the PR branches as described"
-2. "Modify" - "I want to adjust the plan"
-3. "Start over" - "Let me specify a different split strategy"
+AG-12345 Add null category handling for bar series
+
+Previously, null categories caused bars to render at position 0.
+Now they are filtered out during data processing, matching the
+behaviour of line and area series.
 ```
 
-**If user wants to modify:**
+**Bad example:**
+```
+AG-12345 Update files
+```
 
-- Ask what they want to change
-- Update the plan accordingly
-- Re-confirm
+### 3.4 Cleanup
 
-### 1.5 Finalise the Plan
+After creating all PR branches:
+- Delete the temporary branch
+- Verify no uncommitted changes remain
 
-Once confirmed, write the split plan to a plan file including:
+## Phase 4: Quality Iteration (CRITICAL)
 
-- Number of PRs to create
-- Files in each PR
-- Brief description of each PR's purpose
-- Dependencies between PRs
+This phase is essential. Each PR must be polished until reviewer-ready, not just "builds".
 
-Validate the plan using the `/plan-review` skill to check for completeness and correctness.
+### 4.1 For Each PR Branch (in order)
 
-## Phase 2: Prepare Temporary Branch
+1. **Rebase onto base**
+   - First PR: rebase onto `latest`
+   - Subsequent PRs: rebase onto previous PR branch
 
-Create a clean starting point for the split:
+2. **Run `/pr-review`** (via sub-agent)
+   - Identify code quality issues
+   - Check for logical coherence
+   - Assess scope appropriateness
 
+3. **Assess Logical Coherence**
+   - Does this PR do ONE thing well?
+   - Would a reviewer understand this in isolation?
+   - Is the scope appropriate (500-1000 lines)?
+   - Is anything missing that should be included?
+   - Is anything included that belongs in a different PR?
+
+4. **Assess Presentation Quality**
+   - Is the commit message clear and descriptive?
+   - Does it explain WHY, not just WHAT?
+   - Would the PR title make sense in a changelog?
+
+5. **Run Build Validation**
+   - Type checking: `yarn nx build:types <affected-package>`
+   - Linting: `yarn nx lint <affected-package>`
+   - Tests: `yarn nx test <affected-package>`
+
+6. **Fix Issues**
+   - Code quality issues: fix and amend or add fixup commits
+   - Commit message issues: `git commit --amend` to improve
+   - Scope issues: consider re-splitting if the scope is wrong
+   - Use code-fixup skill for complex fixes
+
+7. **Iterate Until High Quality**
+   - Repeat steps 2-6 until the PR is reviewer-ready
+   - "Reviewer-ready" means: builds, tests pass, logical scope, clear purpose, good commit message
+   - Ask yourself: "Would I be proud to send this for review?"
+
+### 4.2 Quality Checklist
+
+Before proceeding to create PRs, verify each branch meets these criteria:
+
+- [ ] Single, clear purpose
+- [ ] Appropriate scope (ideally 500-1000 lines)
+- [ ] Commit message explains the change and its motivation
+- [ ] All builds and tests pass
+- [ ] A reviewer could understand this PR in isolation
+- [ ] No obvious issues flagged by `/pr-review`
+
+## Phase 5: Create PRs and Push
+
+### 5.1 Push Branches
+
+Push each branch with upstream tracking:
 ```bash
-# Record the current branch for reference
-original_branch=$(git rev-parse --abbrev-ref HEAD)
-
-# Create a temporary branch to hold the reset state
-timestamp=$(date +%s)
-git checkout -b "split-start-${timestamp}"
-
-# Find the merge base with latest
-merge_base=$(git merge-base latest HEAD)
-
-# Soft reset to convert all commits to staged changes
-git reset --soft "$merge_base"
-
-# Verify all changes are now staged
-git status
+git push -u origin "${branch_name}"
 ```
 
-## Phase 3: Create PR Branches
+### 5.2 Create Draft PRs
 
-For each logical grouping identified in Phase 1, create a branch:
+For each branch, create a draft PR using `gh pr create`:
 
-### First PR Branch
+- First PR targets `latest`
+- Subsequent PRs target the previous PR's branch
 
-```bash
-# Start from latest for the first PR
-git checkout latest
-git checkout -b "${original_branch}-part-1"
-
-# Cherry-pick or stage the relevant files from the temporary branch
-# Use git checkout to bring specific files
-git checkout "split-start-${timestamp}" -- path/to/file1 path/to/file2
-
-# Or use git add -p for partial file staging
-git add -p
-
-# Commit with the appropriate prefix
-git commit -m "${PREFIX} - Description of first part"
-```
-
-### Subsequent PR Branches
-
-```bash
-# Each subsequent PR targets the previous PR's branch
-git checkout -b "${original_branch}-part-N"
-
-# Bring in the next set of files
-git checkout "split-start-${timestamp}" -- path/to/fileN
-
-# Commit
-git commit -m "${PREFIX} - Description of part N"
-```
-
-### Commit Message Format
-
--   Prefix with JIRA ticket or branch-derived slug
--   Examples:
-    -   `AG-12345 - Add null category handling for bar series`
-    -   `null-keys - Add null category handling for bar series`
--   Concise, imperative mood
--   No LLM attribution or emoji
-
-## Phase 4: Delete Temporary Branch
-
-```bash
-# Return to latest first
-git checkout latest
-
-# Delete the temporary branch
-git branch -D "split-start-${timestamp}"
-
-# Verify no uncommitted changes remain
-git status
-```
-
-## Phase 5: Refine & Push PR Branches
-
-For each PR branch created, in order:
-
-### 5.1 Checkout and Rebase
-
-```bash
-git checkout "${original_branch}-part-N"
-
-# Rebase onto previous PR branch (or latest if first)
-git rebase "${original_branch}-part-$((N-1))"  # or 'latest' for part-1
-```
-
-### 5.2 Validate the Branch
-
-Use sub-agents to validate each branch:
-
-1. **Run `/pr-review`** (via general-purpose sub-agent) to identify issues
-2. **Run build/lint/test** relevant to the changed files:
-
-```bash
-yarn nx build:types <affected-package>
-yarn nx lint <affected-package>
-yarn nx test <affected-package>
-```
-
-3. **Fix any issues** (via code-fixup sub-agent if needed)
-4. **Commit fixes** to the branch
-
-Repeat until the branch is clean.
-
-### 5.3 Push and Create PR
-
-```bash
-# Push with upstream tracking
-git push -u origin "${original_branch}-part-N"
-
-# Create draft PR
-# First PR targets latest, subsequent PRs target previous part
-if [ N -eq 1 ]; then
-    base_branch="latest"
-else
-    base_branch="${original_branch}-part-$((N-1))"
-fi
-
-gh pr create --draft --base "$base_branch" --title "${PREFIX} - Part N: Description" --body "$(cat <<'EOF'
+**PR Description Template:**
+```markdown
 ## Summary
 
-Brief description of what this PR does.
+[Brief description of what this PR accomplishes and why]
 
 ## Position in Stack
 
@@ -314,8 +272,6 @@ Jira: [AG-12345](https://ag-grid.atlassian.net/browse/AG-12345)
 - [ ] Unit tests pass
 - [ ] Build succeeds
 - [ ] Lint passes
-EOF
-)"
 ```
 
 ## Phase 6: Report Results
@@ -358,49 +314,32 @@ latest
 
 ### Dirty Working Tree
 
-If the working tree is dirty at the start:
-
--   Inform the user they need to commit or stash changes
--   Provide the command: `git stash` or `git commit -am "WIP"`
--   Exit without making changes
+- Inform the user they need to commit or stash changes
+- Provide the command: `git stash` or `git commit -am "WIP"`
+- Exit without making changes
 
 ### Merge Conflicts During Rebase
 
-If conflicts occur during rebase in Phase 5:
-
--   Pause and show the conflicts to the user
--   Ask if they want to resolve manually or abort
--   Do not attempt automatic conflict resolution
+- Pause and show the conflicts to the user
+- Ask if they want to resolve manually or abort
+- Do not attempt automatic conflict resolution
 
 ### Build/Lint/Test Failures
 
-If `/pr-review` or build commands find issues:
-
--   Attempt to fix using code-fixup sub-agent
--   If fixes fail after 2 attempts, ask the user for guidance
--   Do not push branches with known failures
+- Attempt to fix using code-fixup skill
+- If fixes fail after 2 attempts, ask the user for guidance
+- Do not push branches with known failures
 
 ### GitHub CLI Failures
 
-If `gh pr create` fails:
-
--   Provide manual instructions for creating the PR via GitHub web UI
--   Include the branch name, base branch, and suggested title/body
+- Provide manual instructions for creating the PR via GitHub web UI
+- Include the branch name, base branch, and suggested title/body
 
 ## Sub-Agent Usage Summary
 
 | Phase | Sub-Agent Type | Purpose |
 |-------|---------------|---------|
 | 1 | Explore | Analyse code changes and identify logical groupings |
-| 1 | Plan | Design the split strategy |
-| 1 | plan-review (skill) | Validate the split plan |
-| 5 | general-purpose | Run `/pr-review` for each branch |
-| 5 | code-fixup (skill) | Fix build/lint/test issues |
-
-## Best Practices
-
--   **Keep PRs focused**: Each PR should have a single purpose
--   **Preserve logical units**: Don't split a feature from its tests
--   **Order matters**: Put foundational changes in earlier PRs
--   **Documentation last**: Docs PRs can be at the end of the chain
--   **Review-friendly sizes**: 500-1000 lines is ideal for review
+| 2 | plan-review (skill) | Validate the split plan |
+| 4 | general-purpose | Run `/pr-review` for each branch |
+| 4 | code-fixup (skill) | Fix build/lint/test issues |

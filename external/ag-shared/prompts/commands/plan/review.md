@@ -11,14 +11,14 @@ You are a plan reviewer for AG Charts. Review implementation plans for completen
 
 User provides one of:
 
-- Explicit plan file path: `/plan-review path/to/plan.md`
-- Auto-detect from context: `/plan-review` (looks for recent plans)
+-   Explicit plan file path: `/plan-review path/to/plan.md`
+-   Auto-detect from context: `/plan-review` (looks for recent plans)
 
 Optional flags:
 
-- `--quick` - Fast review with fewer agents (2-3 vs 5-6)
-- `--thorough` - Comprehensive review (default)
-- `--external` - Include external tools (Codex/Gemini) if available
+-   `--quick` - Fast review with fewer agents (2-3 vs 5-6)
+-   `--thorough` - Comprehensive review (default)
+-   `--external` - Include external tools (Codex/Gemini) if available
 
 ## Execution Phases
 
@@ -39,14 +39,15 @@ Optional flags:
 
 2. **Determine review mode:**
 
-    | Flag | Mode | Agents | Use Case |
-    |------|------|--------|----------|
-    | `--quick` | Quick | 2-3 | Fast feedback, simple plans |
-    | `--thorough` (default) | Thorough | 5-6 | Comprehensive review, complex plans |
+    | Flag                   | Mode     | Agents | Use Case                            |
+    | ---------------------- | -------- | ------ | ----------------------------------- |
+    | `--quick`              | Quick    | 2-3    | Fast feedback, simple plans         |
+    | `--thorough` (default) | Thorough | 5-6    | Comprehensive review, complex plans |
 
 3. **Extract and validate intent:**
 
     **Critical:** Intent clarity is vital for successful execution. Extract:
+
     - **Core intent**: The fundamental "why" behind this plan (1-2 sentences)
     - **Success definition**: What does "done well" look like?
     - **Non-goals**: What this plan explicitly does NOT aim to achieve
@@ -57,16 +58,18 @@ Optional flags:
 4. **Parse plan structure:**
 
     Extract from the plan file:
+
     - **Goals/objectives**: What the plan aims to achieve
-    - **Steps/tasks**: Individual implementation steps
+    - **Tasks/tasks**: Individual implementation tasks
     - **Files to modify**: Target files for changes
     - **Verification criteria**: How success is measured
-    - **Dependencies**: Relationships between steps
+    - **Dependencies**: Relationships between tasks
 
-5. **Build dependency graph:**
+5. **Build task dependency graph:**
 
-    Analyse step dependencies:
-    - Explicit dependencies (step X requires step Y)
+    Analyse task dependencies:
+
+    - Explicit dependencies (task X requires task Y)
     - Implicit dependencies (file modifications, data flow)
     - Identify parallelisation opportunities
 
@@ -87,7 +90,7 @@ Launch specialised review agents based on mode.
 │    - Edge cases: What could go wrong?                       │
 ├─────────────────────────────────────────────────────────────┤
 │ 2. Verification Reviewer                                     │
-│    - Testability: Can each step be verified?                │
+│    - Testability: Can each task be verified?                │
 │    - Success criteria: Are they measurable?                 │
 │    - Evidence: How will completion be demonstrated?         │
 ├─────────────────────────────────────────────────────────────┤
@@ -107,7 +110,7 @@ Launch specialised review agents based on mode.
 ├─────────────────────────────────────────────────────────────┤
 │ 1. Intent Reviewer (CRITICAL - runs first)                   │
 │    - Is core intent clearly stated?                         │
-│    - Does each step serve the intent?                       │
+│    - Does each task serve the intent?                       │
 │    - Are sub-agent prompts conveying intent?                │
 │    - Would a sub-agent understand WHY, not just WHAT?       │
 ├─────────────────────────────────────────────────────────────┤
@@ -122,7 +125,7 @@ Launch specialised review agents based on mode.
 │    - Architecture alignment                                 │
 ├─────────────────────────────────────────────────────────────┤
 │ 4. Verification Reviewer                                     │
-│    - Testability of each step                               │
+│    - Testability of each task                               │
 │    - Success criteria clarity                               │
 │    - Evidence requirements                                  │
 ├─────────────────────────────────────────────────────────────┤
@@ -143,29 +146,100 @@ Launch specialised review agents based on mode.
 └─────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+## Discovered Work Protocol
+
+Sub-agents executing review tasks may discover work outside their immediate scope.
+This protocol ensures discovered work is captured without derailing focused review.
+
+### When to Create a Task
+
+Create a task using `TaskCreate` when you discover something:
+
+-   **Significant**: Could affect plan success or requires dedicated investigation
+-   **Out of scope**: Not part of your current review focus area
+-   **Actionable**: Clear enough that another agent could pick it up
+
+Do NOT create tasks for:
+
+-   Minor observations (include in your findings instead)
+-   Things you can quickly address within your scope
+-   Vague concerns without actionable next steps
+
+### How to Create a Task
+
+Use `TaskCreate` with:
+
+| Field         | Content                                                                        |
+| ------------- | ------------------------------------------------------------------------------ |
+| `subject`     | `[Category] Brief description` (e.g., "[Edge Case] Handle null input in parser") |
+| `description` | What you discovered, why it matters, suggested approach                        |
+| `activeForm`  | Present tense action (e.g., "Investigating null handling")                     |
+
+### After Creating a Task
+
+1. Note in your findings that you created a follow-up task
+2. Continue with your focused review - don't investigate further
+3. The orchestrating agent will triage discovered tasks
+
+### Example
+
+**Scenario**: You're the Technical Reviewer, focused on API correctness.
+You notice a missing edge case (a Completeness concern).
+
+**Action**:
+
+```javascript
+TaskCreate({
+    subject: '[Completeness] Missing validation for empty array input',
+    description:
+        'While reviewing the parser API, I noticed there is no validation for empty array inputs. This could cause undefined behavior in the aggregation step. The Completeness review should verify this edge case is covered.',
+    activeForm: 'Investigating empty array validation',
+});
+```
+
+**Then**: Continue your Technical Review without investigating the completeness issue.
+
+---
+
 **Agent Launch Pattern:**
 
 ```javascript
 // Launch agents in parallel using Task tool
 Task({
-    subagent_type: "general-purpose",
-    description: "Completeness review",
-    prompt: `Review this plan for completeness...
+    subagent_type: 'general-purpose',
+    description: 'Completeness review',
+    prompt: `Review this plan for completeness.
 
-    Plan content:
+    ## Your Focus
+    Check for missing requirements, edge cases, and gaps in coverage.
+
+    ## Discovered Work Protocol
+    If you discover significant issues OUTSIDE your focus area:
+    - Use TaskCreate to propose a follow-up task
+    - Include category, description, and suggested approach
+    - Continue with your focused review - don't investigate further
+    - Only create tasks for significant discoveries, not minor observations
+
+    ## Plan Content
     ${planContent}
 
-    Check for:
-    1. Are all stated requirements addressed by plan steps?
-    2. Are there missing steps that would be needed?
+    ## Check for:
+    1. Are all stated requirements addressed by plan tasks?
+    2. Are there missing tasks that would be needed?
     3. Are edge cases considered?
     4. Are error handling scenarios covered?
 
-    Return findings as:
+    ## Return findings as:
     - CRITICAL: [missing essential elements]
     - IMPORTANT: [significant gaps]
-    - MINOR: [nice-to-have additions]`
-})
+    - MINOR: [nice-to-have additions]
+
+    **Discovered Work:**
+    If you found significant issues outside your focus area, note that you
+    created a follow-up task rather than investigating.`,
+});
 ```
 
 ### Phase 2: Agentic Execution Analysis
@@ -174,49 +248,51 @@ After gathering review findings, analyse the plan for optimal agentic execution.
 
 #### Agentic Patterns to Assess
 
-| Pattern | Description | When to Recommend |
-|---------|-------------|-------------------|
-| **Simple Execution** | Main agent executes directly | Simple, low-risk steps |
-| **Sub-agent Delegation** | Launch dedicated sub-agent | Complex steps requiring focus |
-| **Sub-agent + Verify** | Implementation + verification agent | Steps with testable outcomes |
-| **Iterate-until-verified** | Loop: implement → verify → fix | Steps with clear success criteria |
-| **Parallel Fan-out** | Launch N agents for independent work | Steps with no dependencies |
-| **Orchestrated Pipeline** | Chained agents with handoffs | Sequential dependent steps |
-| **Tree Execution** | Parent spawns children, aggregates | Divide-and-conquer tasks |
+| Pattern                    | Description                          | When to Recommend                 |
+| -------------------------- | ------------------------------------ | --------------------------------- |
+| **Simple Execution**       | Main agent executes directly         | Simple, low-risk tasks            |
+| **Sub-agent Delegation**   | Launch dedicated sub-agent           | Complex tasks requiring focus     |
+| **Sub-agent + Verify**     | Implementation + verification agent  | Tasks with testable outcomes      |
+| **Iterate-until-verified** | Loop: implement → verify → fix       | Tasks with clear success criteria |
+| **Parallel Fan-out**       | Launch N agents for independent work | Tasks with no dependencies        |
+| **Orchestrated Pipeline**  | Chained agents with handoffs         | Sequential dependent tasks        |
+| **Tree Execution**         | Parent spawns children, aggregates   | Divide-and-conquer tasks          |
 
 #### Dependency Detection
 
 Analyse for:
 
 1. **File-level dependencies:**
-   - Does step B modify files created by step A?
-   - Are there shared files that require sequential access?
+
+    - Does task B modify files created by task A?
+    - Are there shared files that require sequential access?
 
 2. **Data-flow dependencies:**
-   - Does step B need outputs from step A?
-   - Are there intermediate results to pass between steps?
+
+    - Does task B need outputs from task A?
+    - Are there intermediate results to pass between tasks?
 
 3. **Implicit ordering:**
-   - Build before test
-   - Create before modify
-   - Format before commit
+    - Build before test
+    - Create before modify
+    - Format before commit
 
 #### Execution Graph Generation
 
 ```
 Example output:
 
-Step Dependencies:
-  Step 1: None (can start immediately)
-  Step 2: None (can start immediately)
-  Step 3: Depends on Step 1, 2
-  Step 4: Depends on Step 3
-  Step 5: None (independent)
+Task Dependencies:
+  Task 1: None (can start immediately)
+  Task 2: None (can start immediately)
+  Task 3: Depends on Task 1, 2
+  Task 4: Depends on Task 3
+  Task 5: None (independent)
 
 Parallel Groups:
-  Group 1 (parallel): Steps 1, 2, 5
-  Group 2 (sequential after Group 1): Step 3
-  Group 3 (sequential after Group 2): Step 4
+  Group 1 (parallel): Tasks 1, 2, 5
+  Group 2 (sequential after Group 1): Task 3
+  Group 3 (sequential after Group 2): Task 4
 
 Recommended Topology: Hybrid (parallel + sequential)
 ```
@@ -226,18 +302,31 @@ Recommended Topology: Hybrid (parallel + sequential)
 Aggregate findings from all review agents.
 
 1. **Categorise by severity:**
-   - **Critical**: Blocks implementation, must fix before proceeding
-   - **Important**: Significant issues that should be addressed
-   - **Minor**: Nice-to-have improvements
+
+    - **Critical**: Blocks implementation, must fix before proceeding
+    - **Important**: Significant issues that should be addressed
+    - **Minor**: Nice-to-have improvements
 
 2. **Consolidate duplicates:**
-   - Merge similar findings from different reviewers
-   - Note when multiple reviewers flagged the same issue
+
+    - Merge similar findings from different reviewers
+    - Note when multiple reviewers flagged the same issue
 
 3. **Generate actionable recommendations:**
-   - Specific changes to make
-   - Priority order for addressing issues
-   - Suggested plan revisions
+
+    - Specific changes to make
+    - Priority order for addressing issues
+    - Suggested plan revisions
+
+4. **Aggregate discovered tasks:**
+
+    - Call `TaskList` to retrieve tasks created by sub-agents
+    - For each task:
+        - Check if it duplicates a finding (consolidate if so)
+        - Assess priority based on plan impact
+        - Determine if it blocks implementation
+        - Decide: include in plan, defer, or dismiss
+    - Include task summary in the output report
 
 ### Phase 4: Interactive Resolution (Optional)
 
@@ -256,44 +345,46 @@ If issues found, present to user for iterative refinement:
 
 ## Summary
 
-- **Plan File:** [path/to/plan.md]
-- **Review Mode:** [Quick/Thorough]
-- **Overall Assessment:** [Ready/Needs Work/Major Gaps]
-- **Intent Clarity:** [Clear/Partial/Missing] ← CRITICAL for execution quality
-- **Agentic Readiness:** [High/Medium/Low]
-- **Parallelisation Potential:** XX%
+-   **Plan File:** [path/to/plan.md]
+-   **Review Mode:** [Quick/Thorough]
+-   **Overall Assessment:** [Ready/Needs Work/Major Gaps]
+-   **Intent Clarity:** [Clear/Partial/Missing] ← CRITICAL for execution quality
+-   **Agentic Readiness:** [High/Medium/Low]
+-   **Parallelisation Potential:** XX%
 
 ### Issue Counts
 
-| Severity | Count |
-|----------|-------|
-| Critical | X |
-| Important | Y |
-| Minor | Z |
+| Severity  | Count |
+| --------- | ----- |
+| Critical  | X     |
+| Important | Y     |
+| Minor     | Z     |
 
 ---
 
 ## Intent Assessment
 
 ### Core Intent
+
 > [Extracted or inferred core intent - the "why" of this plan]
 
 ### Intent Propagation Status
 
-| Component | Intent Clarity | Issue |
-|-----------|---------------|-------|
-| Plan overview | [Clear/Partial/Missing] | [Any issues] |
-| Step 1 | [Clear/Partial/Missing] | [Any issues] |
-| Step 2 sub-agent prompt | [Clear/Partial/Missing] | [Missing WHY context] |
-| ... | ... | ... |
+| Component               | Intent Clarity          | Issue                 |
+| ----------------------- | ----------------------- | --------------------- |
+| Plan overview           | [Clear/Partial/Missing] | [Any issues]          |
+| Task 1                  | [Clear/Partial/Missing] | [Any issues]          |
+| Task 2 sub-agent prompt | [Clear/Partial/Missing] | [Missing WHY context] |
+| ...                     | ...                     | ...                   |
 
 ### Recommendations for Intent Clarity
 
 1. **[If issues found]** Add explicit intent statement at plan start:
-   > "This plan exists to [WHY]. Success means [DEFINITION]. We are NOT trying to [NON-GOALS]."
+
+    > "This plan exists to [WHY]. Success means [DEFINITION]. We are NOT trying to [NON-GOALS]."
 
 2. **[For sub-agent prompts]** Include context prefix:
-   > "Context: We are [INTENT]. Your task contributes by [HOW THIS STEP SERVES INTENT]."
+    > "Context: We are [INTENT]. Your task contributes by [HOW THIS TASK SERVES INTENT]."
 
 ---
 
@@ -301,42 +392,43 @@ If issues found, present to user for iterative refinement:
 
 ### Parallelisability Assessment
 
-| Step Group | Steps | Dependencies | Parallel Potential |
-|------------|-------|--------------|-------------------|
-| Group 1 | 1, 2, 3 | None | Can run in parallel |
-| Group 2 | 4, 5 | Depends on Group 1 | Sequential after Group 1 |
-| Group 3 | 6 | Depends on Group 2 | Sequential |
+| Task Group | Tasks   | Dependencies       | Parallel Potential       |
+| ---------- | ------- | ------------------ | ------------------------ |
+| Group 1    | 1, 2, 3 | None               | Can run in parallel      |
+| Group 2    | 4, 5    | Depends on Group 1 | Sequential after Group 1 |
+| Group 3    | 6       | Depends on Group 2 | Sequential               |
 
 ### Recommended Execution Topology
-
 ```
+
 Topology: [Sequential | Parallel | Tree | Hybrid]
 
 Execution Graph:
 ┌─────────────────────────────────────────┐
-│ Start                                    │
+│ Start │
 ├─────────────────────────────────────────┤
-│ Parallel: Steps 1, 2, 3                 │
-│   └─> Each spawns verification agent    │
+│ Parallel: Tasks 1, 2, 3 │
+│ └─> Each spawns verification agent │
 ├─────────────────────────────────────────┤
 │ Wait: All Group 1 verification complete │
 ├─────────────────────────────────────────┤
-│ Sequential: Steps 4, 5                  │
-│   └─> With iterate-until-verified       │
+│ Sequential: Tasks 4, 5 │
+│ └─> With iterate-until-verified │
 ├─────────────────────────────────────────┤
-│ Final: Step 6 (consolidation)           │
+│ Final: Task 6 (consolidation) │
 └─────────────────────────────────────────┘
+
 ```
 
 ### Agentic Pattern Recommendations
 
-| Step | Recommended Pattern | Rationale |
+| Task | Recommended Pattern | Rationale |
 |------|-------------------|-----------|
-| Step 1 | Sub-agent + Verify | Complex, benefits from dedicated verification |
-| Step 2 | Simple execution | Straightforward, no sub-agent needed |
-| Step 3 | Iterate-until-verified | Has testable success criteria, should loop |
-| Step 4 | Parallel Fan-out | Multiple independent sub-tasks |
-| Step 5 | Orchestrated Pipeline | Sequential dependent operations |
+| Task 1 | Sub-agent + Verify | Complex, benefits from dedicated verification |
+| Task 2 | Simple execution | Straightforward, no sub-agent needed |
+| Task 3 | Iterate-until-verified | Has testable success criteria, should loop |
+| Task 4 | Parallel Fan-out | Multiple independent sub-tasks |
+| Task 5 | Orchestrated Pipeline | Sequential dependent operations |
 
 ---
 
@@ -393,7 +485,30 @@ Execution Graph:
 
 ---
 
-## Next Steps
+## Discovered Tasks
+
+Tasks proposed by sub-agents for out-of-scope work:
+
+| ID  | Category | Subject   | Priority | Disposition     |
+| --- | -------- | --------- | -------- | --------------- |
+| 1   | [Cat]    | [Subject] | High     | Include in plan |
+| 2   | [Cat]    | [Subject] | Medium   | Defer to later  |
+| 3   | [Cat]    | [Subject] | Low      | Dismissed       |
+
+### Task Details
+
+#### Task 1: [Subject]
+
+-   **Discovered by:** [Agent name]
+-   **Context:** [What was being reviewed when discovered]
+-   **Issue:** [What was found]
+-   **Recommendation:** [Suggested action]
+-   **Priority rationale:** [Why this priority]
+-   **Disposition:** [Include/Defer/Dismiss with reason]
+
+---
+
+## Next Tasks
 
 1. [ ] Address critical issues
 2. [ ] Review important issues
@@ -417,7 +532,7 @@ ${PLAN_CONTENT}
 
 Focus on:
 1. Technical feasibility
-2. Missing steps
+2. Missing tasks
 3. Potential risks
 4. Verification gaps"
 fi
@@ -454,24 +569,33 @@ Review this plan for intent clarity and propagation. Your goal is to ensure the 
 ${PLAN_CONTENT}
 
 **Check for:**
+
 1. **Intent Statement:** Is there a clear, concise statement of WHY this plan exists? (Not just what it does, but why it matters)
-2. **Intent in Steps:** Does each step connect back to the core intent? Can an implementer understand why each step is necessary?
+2. **Intent in Tasks:** Does each task connect back to the core intent? Can an implementer understand why each task is necessary?
 3. **Sub-agent Prompts:** If the plan includes agentic patterns or sub-agent delegation:
-   - Do sub-agent prompts include the core intent?
-   - Would a sub-agent understand the broader context?
-   - Is there enough "why" for the sub-agent to make good judgement calls?
+    - Do sub-agent prompts include the core intent?
+    - Would a sub-agent understand the broader context?
+    - Is there enough "why" for the sub-agent to make good judgement calls?
 4. **Success Definition:** Is "done well" defined in terms of intent, not just task completion?
 5. **Non-goals:** Are boundaries clear so agents don't over-solve or drift from intent?
 
 **Return findings as:**
-- CRITICAL: [intent missing or would cause sub-agents to misunderstand the goal]
-- IMPORTANT: [intent unclear or inconsistently applied]
-- MINOR: [intent improvements for clarity]
+
+-   CRITICAL: [intent missing or would cause sub-agents to misunderstand the goal]
+-   IMPORTANT: [intent unclear or inconsistently applied]
+-   MINOR: [intent improvements for clarity]
 
 For each finding, provide:
-- What is missing or unclear
-- Example of how this could cause execution to drift
-- Suggested improvement with specific wording
+
+-   What is missing or unclear
+-   Example of how this could cause execution to drift
+-   Suggested improvement with specific wording
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Completeness Reviewer Prompt
@@ -483,21 +607,30 @@ Review this plan for completeness. Your goal is to identify missing elements.
 ${PLAN_CONTENT}
 
 **Check for:**
-1. Are all stated requirements addressed by specific plan steps?
-2. Are there intermediate steps that would be needed but aren't listed?
+
+1. Are all stated requirements addressed by specific plan tasks?
+2. Are there intermediate tasks that would be needed but aren't listed?
 3. Are edge cases and error scenarios considered?
 4. Are there implicit assumptions that should be made explicit?
 5. Does the plan cover cleanup/rollback if something fails?
 
 **Return findings as:**
-- CRITICAL: [missing essential elements that would cause failure]
-- IMPORTANT: [significant gaps that should be addressed]
-- MINOR: [nice-to-have additions]
+
+-   CRITICAL: [missing essential elements that would cause failure]
+-   IMPORTANT: [significant gaps that should be addressed]
+-   MINOR: [nice-to-have additions]
 
 For each finding, provide:
-- What is missing
-- Why it matters
-- Suggested addition
+
+-   What is missing
+-   Why it matters
+-   Suggested addition
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Technical Reviewer Prompt
@@ -509,6 +642,7 @@ Review this plan for technical correctness. Your goal is to validate the approac
 ${PLAN_CONTENT}
 
 **Check for:**
+
 1. Is the technical approach sound for this codebase?
 2. Are the APIs/patterns referenced correct?
 3. Does this align with existing architecture?
@@ -516,30 +650,45 @@ ${PLAN_CONTENT}
 5. Are there technical risks or constraints not addressed?
 
 **Return findings as:**
-- CRITICAL: [fundamental technical errors]
-- IMPORTANT: [significant technical concerns]
-- MINOR: [alternative approaches worth considering]
+
+-   CRITICAL: [fundamental technical errors]
+-   IMPORTANT: [significant technical concerns]
+-   MINOR: [alternative approaches worth considering]
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Verification Reviewer Prompt
 
 ```markdown
-Review this plan for verifiability. Your goal is to ensure each step can be validated.
+Review this plan for verifiability. Your goal is to ensure each task can be validated.
 
 **Plan:**
 ${PLAN_CONTENT}
 
 **Check for:**
-1. Does each step have clear success criteria?
-2. Can each step be independently verified?
+
+1. Does each task have clear success criteria?
+2. Can each task be independently verified?
 3. Are there automated tests that will validate the changes?
 4. How will we know when the plan is complete?
-5. Are there observable outcomes for each step?
+5. Are there observable outcomes for each task?
 
 **Return findings as:**
-- CRITICAL: [steps that cannot be verified]
-- IMPORTANT: [weak or unclear verification]
-- MINOR: [verification improvements]
+
+-   CRITICAL: [tasks that cannot be verified]
+-   IMPORTANT: [weak or unclear verification]
+-   MINOR: [verification improvements]
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Risk Reviewer Prompt
@@ -551,16 +700,24 @@ Review this plan for risks and failure modes. Your goal is to identify what coul
 ${PLAN_CONTENT}
 
 **Check for:**
+
 1. What are the potential failure modes?
-2. What happens if a step fails partway through?
+2. What happens if a task fails partway through?
 3. Are there rollback strategies?
 4. What are the dependencies that could break?
 5. Are there timing or ordering risks?
 
 **Return findings as:**
-- CRITICAL: [high-impact risks with no mitigation]
-- IMPORTANT: [significant risks that need addressing]
-- MINOR: [low-impact risks to be aware of]
+
+-   CRITICAL: [high-impact risks with no mitigation]
+-   IMPORTANT: [significant risks that need addressing]
+-   MINOR: [low-impact risks to be aware of]
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ### Parallelisability Analyser Prompt
@@ -572,30 +729,39 @@ Analyse this plan for agentic execution optimisation. Your goal is to identify t
 ${PLAN_CONTENT}
 
 **Analyse:**
-1. **Dependencies:** Which steps depend on other steps?
-2. **Parallelisation:** Which steps can run concurrently?
-3. **Agent patterns:** What execution pattern suits each step?
-   - Simple execution (main agent)
-   - Sub-agent delegation
-   - Sub-agent + verification
-   - Iterate-until-verified
-   - Parallel fan-out
-   - Orchestrated pipeline
+
+1. **Dependencies:** Which tasks depend on other tasks?
+2. **Parallelisation:** Which tasks can run concurrently?
+3. **Agent patterns:** What execution pattern suits each task?
+
+    - Simple execution (main agent)
+    - Sub-agent delegation
+    - Sub-agent + verification
+    - Iterate-until-verified
+    - Parallel fan-out
+    - Orchestrated pipeline
 
 4. **Intent Propagation (CRITICAL):**
-   For each step that involves sub-agent delegation:
-   - Does the proposed sub-agent prompt include the core intent?
-   - Would the sub-agent understand WHY this step matters?
-   - Is there enough context for the sub-agent to make good decisions?
-   - Flag any prompts that only describe WHAT without WHY
+   For each task that involves sub-agent delegation:
+    - Does the proposed sub-agent prompt include the core intent?
+    - Would the sub-agent understand WHY this task matters?
+    - Is there enough context for the sub-agent to make good decisions?
+    - Flag any prompts that only describe WHAT without WHY
 
 **Return:**
-1. Dependency graph (which steps must complete before others)
-2. Parallel groups (steps that can run concurrently)
-3. Recommended pattern for each step with rationale
+
+1. Dependency graph (which tasks must complete before others)
+2. Parallel groups (tasks that can run concurrently)
+3. Recommended pattern for each task with rationale
 4. Overall topology recommendation (Sequential/Parallel/Tree/Hybrid)
 5. Estimated parallelisation potential (percentage)
-6. **Intent propagation assessment:** For each sub-agent step, rate intent clarity (Clear/Partial/Missing) and suggest improvements
+6. **Intent propagation assessment:** For each sub-agent task, rate intent clarity (Clear/Partial/Missing) and suggest improvements
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
 ```
 
 ---
@@ -626,9 +792,9 @@ ${PLAN_CONTENT}
 
 ## Integration with Other Commands
 
-- **Before implementation:** Run `/plan-review` to validate the plan
-- **During implementation:** Run `/plan-implementation-review` to track progress
-- **After implementation:** Run tests and verification steps from the plan
+-   **Before implementation:** Run `/plan-review` to validate the plan
+-   **During implementation:** Run `/plan-implementation-review` to track progress
+-   **After implementation:** Run tests and verification tasks from the plan
 
 ---
 
