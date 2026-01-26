@@ -379,7 +379,7 @@ export class MapShapeSeries
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { idKey, label, legendItemName, colorKey } = properties;
+        const { label, legendItemName, colorKey } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -439,7 +439,6 @@ export class MapShapeSeries
 
             nodeData.push({
                 series: this,
-                itemId: idKey,
                 datum,
                 datumIndex,
                 ...dataValues,

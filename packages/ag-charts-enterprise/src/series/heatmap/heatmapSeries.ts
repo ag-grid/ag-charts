@@ -45,7 +45,6 @@ const {
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
-    readonly itemId: string;
     midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
@@ -406,7 +405,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         return {
             series: this,
-            itemId: yKey,
             datumIndex,
             yKey,
             xKey,
@@ -444,7 +442,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         // Update properties
         mutableNode.datumIndex = datumIndex;
         mutableNode.datum = datum;
-        mutableNode.itemId = yKey;
         mutableNode.yKey = yKey;
         mutableNode.xKey = xKey;
         mutableNode.xValue = xDatum;

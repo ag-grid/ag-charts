@@ -53,7 +53,6 @@ export type FunnelNodeLabelDatum = Readonly<Point> & {
 
 export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly itemId: string;
     readonly width: number;
     readonly height: number;
     readonly label: FunnelNodeLabelDatum | undefined;
@@ -364,7 +363,6 @@ export abstract class BaseFunnelSeries<
             const nodeDatum: FunnelNodeDatum = {
                 index: datumIndex,
                 series: this,
-                itemId,
                 datum,
                 datumIndex,
                 xValue: xDatum,

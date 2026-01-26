@@ -25,7 +25,6 @@ export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
-    readonly itemId: string | undefined;
     readonly idValue: string | undefined;
     readonly lonValue: number | undefined;
     readonly latValue: number | undefined;

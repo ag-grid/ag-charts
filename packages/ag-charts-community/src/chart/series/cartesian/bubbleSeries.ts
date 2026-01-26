@@ -112,7 +112,6 @@ class BubbleScatterSeriesNodeEvent<
 }
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly itemId: string;
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -800,7 +799,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     ): BubbleScatterNodeDatum {
         return {
             series: this,
-            itemId: ctx.yKey,
             yKey: ctx.yKey,
             xKey: ctx.xKey,
             datum: undefined,

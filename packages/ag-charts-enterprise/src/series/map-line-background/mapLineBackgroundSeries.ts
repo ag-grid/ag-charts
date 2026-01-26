@@ -141,7 +141,6 @@ export class MapLineBackgroundSeries
 
             nodeData.push({
                 series: this,
-                itemId: index,
                 datum: feature,
                 datumIndex: 0,
                 index,

@@ -45,7 +45,6 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 };
 
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
-    readonly itemId: string;
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;
@@ -395,7 +394,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             nodeData.push({
                 series: this,
-                itemId: valueKey,
                 datum,
                 datumIndex,
                 index: datumIndex,
