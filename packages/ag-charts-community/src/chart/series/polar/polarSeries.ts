@@ -311,9 +311,9 @@ export abstract class PolarSeries<
             return false;
         }
 
-        const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
+        const { series, legendItemName: activeLegendItemName, datumIndex } = highlightedDatum ?? {};
 
-        const legendItemName = typeof itemId === 'number' ? legendItemValues?.[itemId] : undefined;
+        const legendItemName = typeof datumIndex === 'number' ? legendItemValues?.[datumIndex] : undefined;
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }

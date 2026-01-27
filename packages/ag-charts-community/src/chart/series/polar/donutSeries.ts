@@ -1091,12 +1091,12 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
 
-            node.visible = datum.itemId === highlightedDatum?.itemId;
+            node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
         this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
 
-            node.visible = datum.itemId === highlightedDatum?.itemId;
+            node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
 
         this.updateCalloutLineNodes();
