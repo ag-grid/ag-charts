@@ -8,7 +8,7 @@ import type {
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -80,6 +80,10 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     grouped?: boolean;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
+    /** Fixed width of each bar in the series. */
+    width?: PixelSize;
+    /** Ratio of the bandwidth (or specified width) to use for the width for each bar in the series. */
+    widthRatio?: Ratio;
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {
