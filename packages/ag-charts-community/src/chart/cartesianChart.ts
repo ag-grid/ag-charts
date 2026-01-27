@@ -547,8 +547,15 @@ export class CartesianChart extends Chart {
             end = (end * axisWidth) / 100;
         }
 
+        const size = end - start;
         if (align === 'end') {
-            start = maxEnd - (end - start);
+            start = maxEnd - size;
+            end = maxEnd;
+        } else if (align === 'center') {
+            const center = start + (maxEnd - start) / 2;
+            start = center - size / 2;
+            end = center + size / 2;
+        } else if (align === 'justify') {
             end = maxEnd;
         }
 

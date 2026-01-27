@@ -1198,6 +1198,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } else {
             this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
+
+        for (const axis of this.axes) {
+            axis.requiredWidth = this._requiredWidth;
+        }
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {

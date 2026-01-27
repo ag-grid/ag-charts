@@ -239,10 +239,12 @@ export abstract class Axis<
 
     layoutConstraints: ChartAxis['layoutConstraints'] = {
         stacked: true,
-        align: 'start',
+        align: 'justify',
         width: 100,
         unit: 'percent',
     };
+
+    requiredWidth?: number;
 
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;

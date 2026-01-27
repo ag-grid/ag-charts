@@ -2215,6 +2215,40 @@ describe('BarSeries', () => {
                 ],
                 {},
             ],
+            [
+                'axis align start',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'start' },
+            ],
+            [
+                'axis align center',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'center' },
+            ],
+            [
+                'axis align end',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                {
+                    bandAlignment: 'end',
+                },
+            ],
+            [
+                'axis align justify',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'justify' },
+            ],
         ];
 
         it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {

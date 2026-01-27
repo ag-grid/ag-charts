@@ -357,6 +357,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(),
+    bandAlignment: union('justify', 'start', 'center', 'end'),
     bandHighlight: cartesianAxisBandHighlightOptions,
     interval: {
         ...commonAxisIntervalOptionsDefs,

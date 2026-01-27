@@ -45,7 +45,7 @@ interface AxisInterval {
 
 interface AxisLayoutConstraints {
     stacked: boolean;
-    align: 'start' | 'end';
+    align: 'justify' | 'start' | 'center' | 'end';
     width: number;
     unit: 'percent' | 'px';
 }
@@ -139,16 +139,17 @@ export interface ChartAxis {
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
+    requiredWidth?: number;
     reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
     thickness?: number;
     maxThicknessRatio?: number;
+    minimumTimeGranularity?: AgTimeIntervalUnit;
     tick: AxisTick;
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
-    minimumTimeGranularity?: AgTimeIntervalUnit;
 }
 
 export interface ChartAxisLabel extends TextOptions {
