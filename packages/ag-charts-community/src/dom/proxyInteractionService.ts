@@ -21,6 +21,7 @@ type ParentProperties<T = NativeWidget<HTMLDivElement>> =
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly cursor?: BaseStyleTypeMap['cursor'];
+    readonly classList?: string[];
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
@@ -65,7 +66,7 @@ type ProxyMeta = {
         result: SwitchWidget;
     };
     region: {
-        params: ParentProperties & ElemParams<'region'>;
+        params: ParentProperties<GroupWidget> & ElemParams<'region'> & { readonly role?: string };
         result: NativeWidget<HTMLDivElement>;
     };
 
@@ -211,7 +212,7 @@ export class ProxyInteractionService {
             const { params, result } = meta;
             const region = result.getElement();
             this.initInteract(params, result);
-            region.role = 'region';
+            region.role = params.role ?? 'region';
             this.setParent(meta.params, meta.result);
         }
 
@@ -222,6 +223,9 @@ export class ProxyInteractionService {
         const element = widget.getElement();
         setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
+        if (params.classList?.length) {
+            element.classList.add(...params.classList);
+        }
         return element;
     }
 

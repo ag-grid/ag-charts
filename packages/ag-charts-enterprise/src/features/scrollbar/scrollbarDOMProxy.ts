@@ -146,6 +146,7 @@ class ScrollbarState {
 export class ScrollbarDOMProxy {
     private readonly container: _ModuleSupport.GroupWidget;
     private readonly slider: _ModuleSupport.SliderWidget;
+    private readonly thumbFocus: _ModuleSupport.NativeWidget<HTMLDivElement>;
 
     private dragStartRatio = 0;
     private interactionMode: InteractionMode = 'none';
@@ -173,6 +174,7 @@ export class ScrollbarDOMProxy {
             ariaLabel: { id: 'ariaLabelNavigatorRange' },
             role: 'slider',
             parent: this.container,
+            classList: ['ag-charts-proxy-scrollbar-slider'],
         });
         const element = this.slider.getElement();
         element.ariaValueMin = '0';
@@ -190,6 +192,15 @@ export class ScrollbarDOMProxy {
         this.slider.addListener('mouseenter', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mousemove', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mouseleave', () => this.onMouseLeave());
+
+        this.thumbFocus = ctx.proxyInteractionService.createProxyElement({
+            type: 'region',
+            parent: this.container,
+            classList: ['ag-charts-proxy-scrollbar-thumb-focus'],
+            role: 'presentation',
+        });
+        this.thumbFocus.setAriaHidden(true);
+        this.thumbFocus.setPointerEvents('none');
     }
 
     destroy() {
@@ -224,6 +235,17 @@ export class ScrollbarDOMProxy {
         if (shouldUpdateSlider) {
             this.slider.setValueRatio(min, { ariaValueText: aria });
         }
+    }
+
+    updateThumbBounds(thumb: BoxBounds, track: BoxBounds, cornerRadius?: number) {
+        const radius = Math.max(0, cornerRadius ?? 0);
+        this.thumbFocus.getElement().style.borderRadius = `${radius}px`;
+        this.thumbFocus.setBounds({
+            x: thumb.x - track.x,
+            y: thumb.y - track.y,
+            width: thumb.width,
+            height: thumb.height,
+        });
     }
 
     private update(min: number, max: number, options?: { skipSliderUpdate?: boolean }) {
