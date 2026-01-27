@@ -14,6 +14,7 @@ import {
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
     required,
     seriesLabelOptionsDefs,
@@ -57,7 +58,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     segmentation: shapeSegmentation,
-    width: number,
+    width: positiveNumberNonZero,
     widthRatio: ratio,
 };
 
