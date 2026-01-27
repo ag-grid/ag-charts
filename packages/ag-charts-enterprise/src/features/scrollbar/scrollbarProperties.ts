@@ -52,7 +52,7 @@ export class ScrollbarThumbHoverStyle extends ChangeDetectableProperties {
 export class ScrollbarThumb extends ScrollbarTrack {
     @Property
     @SceneChangeDetection()
-    minSize: number = 12;
+    minSize: number = 20;
 
     @Property
     public hoverStyle: ScrollbarThumbHoverStyle = new ScrollbarThumbHoverStyle();
