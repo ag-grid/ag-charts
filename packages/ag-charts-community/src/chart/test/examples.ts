@@ -4277,6 +4277,38 @@ export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
     series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
 };
 
+export const PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
 export const BAR_MULTIPLE_NULL_KEYS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MULTIPLE_NULL_KEYS,
     axes: {

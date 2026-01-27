@@ -8,6 +8,7 @@ import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import * as examples from '../../test/examples';
 import { type MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -133,6 +134,39 @@ describe('PieSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_ANGLE_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 
