@@ -1,3 +1,5 @@
+import { objectsEqual } from 'ag-charts-core';
+
 import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
@@ -126,8 +128,14 @@ export class HighlightManager {
 
     private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {
         return (
-            a === b ||
-            (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)
+            a === b || (a != null && b != null && a.series === b.series && this.idsMatch(a, b) && a.datum === b.datum)
+        );
+    }
+
+    private idsMatch(a: HighlightNodeDatum, b: HighlightNodeDatum): boolean {
+        return (
+            (a.itemId != null && b.itemId != null && a.itemId === b.itemId) ||
+            (a.datumIndex != null && b.datumIndex != null && objectsEqual(a.datumIndex, b.datumIndex))
         );
     }
 }
