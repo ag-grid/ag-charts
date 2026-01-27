@@ -207,7 +207,9 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         if (ContinuousScale.is(xAxis.scale)) {
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
-            barOffset = (groupScale.bandwidth - barWidth) / 2;
+            let relativeWidth = groupScale.range[1] - groupScale.range[0];
+            if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
+            barOffset = (relativeWidth - barWidth) / 2;
         }
 
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
@@ -222,7 +224,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const bandwidth = groupScale?.bandwidth ?? 0;
 
         if (widthRatio != null) {
-            return (width ?? bandwidth) * widthRatio;
+            let relativeWidth = width;
+            if (relativeWidth == null && groupScale) {
+                relativeWidth = groupScale.range[1] - groupScale.range[0];
+                if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
+            }
+            return (relativeWidth ?? bandwidth) * widthRatio;
         }
 
         if (width != null) {
