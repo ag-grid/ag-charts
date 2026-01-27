@@ -41,7 +41,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
-    readonly itemId: string;
+    readonly itemId?: never;
     readonly labelText: TextOrSegments;
 }
 

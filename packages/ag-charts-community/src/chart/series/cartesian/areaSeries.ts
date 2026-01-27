@@ -1075,7 +1075,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             ctx.labelData.push({
                 series: this,
-                itemId: ctx.yKey,
                 datum: scratch.datum,
                 datumIndex,
                 x: scratch.x,
