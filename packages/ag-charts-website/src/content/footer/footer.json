@@ -71,6 +71,10 @@
                 "url": "/cookies"
             },
             {
+                "name": "Modern Slavery",
+                "url": "https://www.ag-grid.com/modern-slavery"
+            },
+            {
                 "name": "Sitemap",
                 "url": "/sitemap"
             }
