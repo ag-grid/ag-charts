@@ -16,6 +16,7 @@ import {
     findMinMax,
     findRangeExtent,
     isArray,
+    isNullOrUndefined,
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
@@ -578,7 +579,7 @@ export abstract class Axis<
         }
 
         this.dataDomain = this.normaliseDataDomain(normalizedDomain);
-        this.allowNull = this.dataDomain.domain.includes(null as D);
+        this.allowNull = this.dataDomain.domain.some(isNullOrUndefined);
 
         if (this.reverse) {
             this.dataDomain.domain.reverse();
@@ -903,9 +904,8 @@ export abstract class Axis<
         params?: any,
         allowNull?: boolean
     ): TextOrSegments {
-        if (input === undefined) return '';
-        // Handle null values with empty string unless allowNull is true (for formatter access)
-        if (input === null && !allowNull) return '';
+        // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
+        if (input == null && !allowNull) return '';
 
         const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;

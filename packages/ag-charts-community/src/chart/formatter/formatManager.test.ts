@@ -425,13 +425,7 @@ describe('Format Manager', () => {
             const element = getDocument('body').getElementsByClassName('ag-charts-tooltip')[0];
             // If formatter was called for null, tooltip heading should be 'No Product'
             // If formatter was NOT called for null, tooltip heading will be empty or default
-            if (xFormatter.mock.calls.some((c: [{ value: unknown }]) => c[0].value === null)) {
-                expect(element?.textContent).toContain('No Product');
-            } else {
-                // This is the bug - formatter not called for null, so tooltip won't have 'No Product'
-                // Just verify the tooltip appeared
-                expect(element).toBeDefined();
-            }
+            expect(element?.textContent).toContain('No Product');
         });
 
         it('should include null in domain when allowNullKeys is true', async () => {
@@ -534,10 +528,12 @@ describe('Format Manager', () => {
             chart = AgCharts.create(prepareTestOptions(options));
             await waitForChartStability(chart);
 
-            // Check if formatter was called for the bar with null category
-            // Note: Bar label formatter receives yValue (the bar value), not xValue
-            // So this test verifies that series with null xKeys can still format labels correctly
-            expect(labelFormatter).toHaveBeenCalled();
+            // Bar label formatter receives yValue, but verify it was called for data with null xKey
+            // by checking that the formatter was called for both data points (including the null-keyed one)
+            expect(labelFormatter).toHaveBeenCalledTimes(2);
+            const formatterDatums = labelFormatter.mock.calls.map((c: any[]) => c[0].datum?.product);
+            expect(formatterDatums).toContain(null);
+            expect(formatterDatums).toContain('Mac');
         });
     });
 });

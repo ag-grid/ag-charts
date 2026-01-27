@@ -168,6 +168,59 @@ describe('PieSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
+
+        it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
+            const calloutLabelFormatter = jest.fn((params: any) =>
+                params.value === null ? 'Unknown' : String(params.value)
+            );
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: { formatter: calloutLabelFormatter },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expect(calloutLabelFormatter).toHaveBeenCalled();
+            const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+            expect(callWithNull).toBeDefined();
+        });
+
+        it('should render formatted callout label for null category when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: {
+                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                        },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            await compare();
+        });
     });
 
     describe('pattern fill', () => {
