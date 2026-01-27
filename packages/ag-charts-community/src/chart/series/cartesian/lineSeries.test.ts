@@ -774,6 +774,47 @@ describe('LineSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('AG-16613 should not error on hover with null category keys', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 20 },
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        allowNullKeys: true,
+                        marker: {
+                            size: 20,
+                            itemStyler: (params: AgLineSeriesMarkerItemStylerParams<unknown, unknown>) => {
+                                if (params.first) return { fill: 'red' };
+                                if (params.last) return { fill: 'blue' };
+                            },
+                        },
+                    } as any,
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hover over the null category data point
+            await hoverAction(100, 300)(chart);
+            await waitForChartStability(chart);
+
+            // Hover over a non-null category data point
+            await hoverAction(400, 300)(chart);
+            await compare();
+        });
     });
 
     test('AG-8290 label boxing', async () => {

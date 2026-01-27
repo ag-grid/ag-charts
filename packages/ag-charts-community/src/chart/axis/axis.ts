@@ -872,7 +872,9 @@ export abstract class Axis<
         datum: undefined,
         key: undefined,
         domain: undefined,
-        label?: AxisFormattableLabel<Params, FormatterParams<any>>
+        label?: AxisFormattableLabel<Params, FormatterParams<any>>,
+        params?: undefined,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -1054,8 +1056,9 @@ export abstract class Axis<
             seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
-            formatScaleValue: (value, source, label) =>
-                this.formatDatum(
+            formatScaleValue: (value, source, label) => {
+                const allowNull = this.dataDomain.domain.some((v) => v == null);
+                return this.formatDatum(
                     undefined,
                     value,
                     source,
@@ -1064,8 +1067,11 @@ export abstract class Axis<
                     undefined,
                     undefined,
                     undefined,
-                    label
-                ),
+                    label,
+                    undefined,
+                    allowNull
+                );
+            },
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
