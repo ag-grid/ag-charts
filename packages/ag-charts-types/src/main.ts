@@ -1,4 +1,5 @@
 export * from './api/initialStateOptions';
+export * from './api/activeState';
 export * from './api/stateTypes';
 export * from './api/agCharts';
 export * from './chart/animationOptions';

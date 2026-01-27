@@ -1,3 +1,4 @@
+import type { AgActiveState } from '../api/activeState';
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
@@ -58,6 +59,17 @@ export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
     visible: boolean;
 }
 
+export type AgActiveChangeEventSource = 'state-change' | 'user-interaction';
+
+export interface AgActiveChangeEvent<TContext> extends AgActiveState {
+    /** Event type. */
+    type: 'activeChange';
+    /** An indication of what triggered this event. */
+    source: AgActiveChangeEventSource;
+    /** Callback context for this event. */
+    context?: TContext;
+}
+
 export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
@@ -110,6 +122,8 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
     /** The listener to call when a series visibility is changed. */
     seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
+    /** The listener to call when the active state (highlight/tooltip) is changed. */
+    activeChange?: Listener<AgActiveChangeEvent<TContext>>;
     /** The listener to call when the chart is clicked. */
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
