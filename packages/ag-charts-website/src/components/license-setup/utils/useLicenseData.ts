@@ -2,7 +2,7 @@ import type { ImportType, Library } from '@ag-grid-types';
 import { LicenseManager } from 'ag-grid-enterprise';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, BoxPlotSeriesModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import type { LicenseDetails, LicensedProducts } from '../types';
 import { hasValue } from './hasValue';
@@ -25,6 +25,9 @@ interface DataState {
     userLicenseTrialIsExpired: boolean;
     importType: ImportType;
 }
+
+// Load an enterprise module, any one is fine
+ModuleRegistry.registerModules([BoxPlotSeriesModule]);
 
 const licenseDataState = {
     validGridLicense: {
@@ -137,6 +140,7 @@ const useLicenseState = ({
             };
         });
     }, [
+        library,
         userLicense,
         licensedProducts,
         isIntegratedCharts,
@@ -265,7 +269,7 @@ export const useLicenseData = ({ library }: { library: Library }) => {
         });
 
         updateIsIntegratedChartsWithUrlUpdate(isIntegrated);
-    }, [library, licenseDetails, chartsLicenseDetails]);
+    }, [library, userLicense, updateIsIntegratedChartsWithUrlUpdate, licenseDetails, chartsLicenseDetails]);
 
     const licenseInvalidErrors = useMemo(() => {
         return Object.keys(licenseState)
