@@ -1,3 +1,6 @@
+/** A key in a grouped category axis — an array of nullable labels representing the path through the hierarchy. */
+export type GroupedCategoryKey = (string | null)[];
+
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
@@ -49,7 +52,7 @@ class TreeNode {
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    insertTick(tick: (string | null)[], index: number) {
+    insertTick(tick: GroupedCategoryKey, index: number) {
         let current: TreeNode = this;
         let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
@@ -100,10 +103,10 @@ class TreeNode {
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-function ticksToTree(ticks: (string | null)[][]): { root: TreeNode; tickNodes: Map<(string | null)[], TreeNode> } {
+function ticksToTree(ticks: GroupedCategoryKey[]): { root: TreeNode; tickNodes: Map<GroupedCategoryKey, TreeNode> } {
     const maxDepth = ticks.reduce((depth, tick) => Math.max(depth, tick.length), 0);
     const root = new TreeNode();
-    const tickNodes = new Map<(string | null)[], TreeNode>();
+    const tickNodes = new Map<GroupedCategoryKey, TreeNode>();
     for (let i = 0; i < ticks.length; i++) {
         const tick = ticks[i];
         while (tick.length < maxDepth) {
@@ -250,9 +253,9 @@ function thirdWalk(v: TreeNode) {
     }
 }
 
-export function treeLayout(ticks: (string | null)[][]): {
+export function treeLayout(ticks: GroupedCategoryKey[]): {
     layout: TreeLayout;
-    tickNodes: Map<(string | null)[], TreeNode>;
+    tickNodes: Map<GroupedCategoryKey, TreeNode>;
 } {
     const layout = new TreeLayout();
 

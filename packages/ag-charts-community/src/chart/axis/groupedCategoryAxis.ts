@@ -35,7 +35,7 @@ import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
-import { type TreeLayout, treeLayout } from './tree';
+import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
 
@@ -48,7 +48,7 @@ interface ComputedGroupAxisLayout {
 }
 
 interface TickInfo {
-    tickLabel: (string | null)[];
+    tickLabel: GroupedCategoryKey;
     depth: number;
     position: number;
 }
@@ -119,23 +119,23 @@ class DepthProperties extends BaseProperties {
     tick = new DepthTickProperties();
 }
 
-export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<(string | null)[]>> {
+export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<GroupedCategoryKey>> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new GroupedCategoryScale<(string | null)[]>();
+    readonly tickScale = new GroupedCategoryScale<GroupedCategoryKey>();
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
-    private tickNodes?: Map<(string | null)[], TreeNode> = undefined;
+    private tickNodes?: Map<GroupedCategoryKey, TreeNode> = undefined;
 
     @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new GroupedCategoryScale<(string | null)[]>());
+        super(moduleCtx, new GroupedCategoryScale<GroupedCategoryKey>());
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -576,13 +576,13 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<(stri
             this.dataDomain.domain.reverse();
         }
 
-        const domain: (string | null)[][] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
+        const domain: GroupedCategoryKey[] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
 
-        const orderedDomain: (string | null)[][] = [];
+        const orderedDomain: GroupedCategoryKey[] = [];
         for (const node of this.tickTreeLayout.nodes) {
             if (node.leafCount || node.refId == null) continue;
             orderedDomain.push(this.dataDomain.domain[node.refId]);
@@ -596,7 +596,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<(stri
         this.tickScale.domain = tickScaleDomain;
     }
 
-    filterDuplicateArrays(array: (string | null)[][]): (string | null)[][] {
+    filterDuplicateArrays(array: GroupedCategoryKey[]): GroupedCategoryKey[] {
         const seen = new Set<string>();
         return array.filter((item) => {
             const key = isArray(item) ? JSON.stringify(item) : item;
@@ -618,9 +618,9 @@ function separatorDepth2(node: TreeNode) {
 }
 
 function buildTickInfos(
-    ticks: (string | null)[][],
-    tickNodes: Map<(string | null)[], TreeNode> | undefined,
-    tickScale: GroupedCategoryScale<(string | null)[]>,
+    ticks: GroupedCategoryKey[],
+    tickNodes: Map<GroupedCategoryKey, TreeNode> | undefined,
+    tickScale: GroupedCategoryScale<GroupedCategoryKey>,
     maxDepth: number
 ): { tickInfos: TickInfo[]; minSpacingByDepth: number[] } {
     const tickInfos = new Array<TickInfo>(ticks.length);
@@ -699,7 +699,7 @@ function selectVisibleTickInfos(
     return visibleTickInfos;
 }
 
-function convertIntegratedCategoryValue(datum: unknown): (string | null)[] {
+function convertIntegratedCategoryValue(datum: unknown): GroupedCategoryKey {
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
 }

@@ -172,7 +172,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 return formatValue(params.value, params.fractionDigits);
 
             case 'category':
-                if (Array.isArray(params.value)) {
+                if (params.value == null) {
+                    return '';
+                } else if (Array.isArray(params.value)) {
                     return params.value.join(' - ');
                 } else if (typeof params.value === 'string') {
                     return params.value;

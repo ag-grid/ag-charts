@@ -133,7 +133,3 @@ export function safeCall<T = unknown>(callback: Function, args: any[], errorPath
         warnOnce(`Uncaught exception in user callback${postfix}`, error);
     }
 }
-
-export function isNullOrUndefined(value: unknown): boolean {
-    return value === null || value === undefined;
-}

@@ -88,8 +88,7 @@ export function datumKeys(
 
     for (const k of keys) {
         const key = k?.[datumIndex];
-        if (key === undefined && !allowNull) return; // Undefined = missing datum unless allowed
-        if (key === null && !allowNull) return; // Null = invalid unless allowed
+        if (key == null && !allowNull) return;
         out.push(key);
     }
 

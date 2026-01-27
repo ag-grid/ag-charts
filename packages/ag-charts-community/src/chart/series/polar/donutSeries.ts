@@ -610,7 +610,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         }
 
         if (legendItemKey != null && (legendItemValue != null || allowNullKeys)) {
-            const legendItemDisplay = legendItemValue ?? String(legendItemValue);
+            const legendItemDisplay = legendItemValue ?? '';
             result.legendItem =
                 formatManager.format(this.callWithContext.bind(this), {
                     type: 'category',

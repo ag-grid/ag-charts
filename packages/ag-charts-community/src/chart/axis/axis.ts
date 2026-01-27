@@ -16,7 +16,6 @@ import {
     findMinMax,
     findRangeExtent,
     isArray,
-    isNullOrUndefined,
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
@@ -579,7 +578,9 @@ export abstract class Axis<
         }
 
         this.dataDomain = this.normaliseDataDomain(normalizedDomain);
-        this.allowNull = this.dataDomain.domain.some(isNullOrUndefined);
+        this.allowNull = this.dataDomain.domain.some(function (v) {
+            return v == null;
+        });
 
         if (this.reverse) {
             this.dataDomain.domain.reverse();
