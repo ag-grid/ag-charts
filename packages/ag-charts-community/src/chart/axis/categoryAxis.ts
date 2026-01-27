@@ -41,6 +41,7 @@ export class CategoryAxis<
             } else {
                 this.layoutConstraints.width = value;
                 this.layoutConstraints.unit = 'px';
+                this.animationManager.skipCurrentBatch();
             }
         },
     })
