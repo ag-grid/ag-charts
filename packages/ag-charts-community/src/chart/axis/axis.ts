@@ -211,6 +211,7 @@ export abstract class Axis<
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
+    private allowNull = false;
 
     @Property
     readonly title = new AxisTitle();
@@ -577,6 +578,7 @@ export abstract class Axis<
         }
 
         this.dataDomain = this.normaliseDataDomain(normalizedDomain);
+        this.allowNull = this.dataDomain.domain.includes(null as D);
 
         if (this.reverse) {
             this.dataDomain.domain.reverse();
@@ -832,7 +834,7 @@ export abstract class Axis<
         const specifier = primary ? label.format : undefined;
 
         // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
-        const allowNull = domain.some((v) => v == null);
+        const { allowNull } = this;
 
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
@@ -1057,7 +1059,7 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) => {
-                const allowNull = this.dataDomain.domain.some((v) => v == null);
+                const { allowNull } = this;
                 return this.formatDatum(
                     undefined,
                     value,
