@@ -27,6 +27,7 @@ import {
     type MockChartClickListener,
     type MockChartDblClickListener,
     type MockChartLabelFormatter,
+    type MockChartLabelItemStyler,
     type MockChartSeriesVisibilityChangeListener,
     type MockContextMenuAction,
     type MockGetDataCallback,
@@ -539,6 +540,366 @@ describe('AG-13024 API context gauges', () => {
             options.context = rootContext;
             chart = await createChart(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
+        });
+    });
+});
+
+describe('AG-15850 labels', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    type D = unknown;
+    type C = unknown;
+    type Formatter = MockChartLabelFormatter<D, C>;
+    type ItemStyler = MockChartLabelItemStyler<D, C>;
+    let chart: AgChartInstance;
+    let mockFormatter: ReturnType<typeof newFreezableMock<D, C, Formatter>>;
+    let mockItemStyler: ReturnType<typeof newFreezableMock<D, C, ItemStyler>>;
+
+    beforeEach(() => {
+        mockFormatter = newFreezableMock<D, C, Formatter>();
+        mockItemStyler = newFreezableMock<D, C, ItemStyler>();
+    });
+
+    async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
+        prepareEnterpriseTestOptions(opts);
+        chart = AgCharts.create(opts);
+        await waitForChartStability(chart);
+    }
+
+    describe('sankey', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('chord', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('pyramid', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('funnel', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('map-shape', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('map-marker', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('marker-line', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('sunburst', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('treemap', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('line', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('area', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('bar', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('range-area', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('range-bar', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('bubble', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('donut', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-bar', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-column', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radars', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-gauge', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('linear-gauge', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('waterfall', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('histogram', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('box-plot', () => {
+        beforeEach(() => {
+            throw new Error('Not Yet Implemented');
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
         });
     });
 });
