@@ -147,6 +147,16 @@ describe('BarSeries', () => {
                     ],
                     zeroPadding,
                 ],
+                [
+                    'horizontal',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100, direction: 'horizontal' },
+                    ],
+                    {},
+                ],
             ];
 
             it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {

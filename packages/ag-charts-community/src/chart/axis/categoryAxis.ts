@@ -45,7 +45,7 @@ export class CategoryAxis<
             }
         },
     })
-    override requiredWidth?: number;
+    override requiredRange?: number;
 
     constructor(
         moduleCtx: ModuleContext,

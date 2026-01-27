@@ -206,7 +206,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private _firstAutoSize = true;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
-    private _requiredWidth = 0;
+    private _requiredRange = 0;
+    private _requiredRangeDirection = ChartAxisDirection.X;
 
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
@@ -1177,11 +1178,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const chartRanges: Record<string, number> = {};
         const seriesTypes = new Map();
 
+        this._requiredRangeDirection = ChartAxisDirection.X;
+
         // First apply the minimum range from each series by type.
         for (const series of this.series) {
             if (!series.visible) continue;
             seriesRanges[series.type] ??= [];
             series.getMinimumRangeSeries(seriesRanges[series.type]);
+            if (series.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y) {
+                this._requiredRangeDirection = ChartAxisDirection.Y;
+            }
             if (!seriesTypes.has(series.type)) {
                 seriesTypes.set(series.type, series);
             }
@@ -1194,13 +1200,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (Object.keys(chartRanges).length === 0) {
-            this._requiredWidth = 0;
+            this._requiredRange = 0;
         } else {
-            this._requiredWidth = Math.ceil(Math.max(...Object.values(chartRanges)));
+            this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
 
         for (const axis of this.axes) {
-            axis.requiredWidth = this._requiredWidth;
+            axis.requiredRange = this._requiredRange;
         }
     }
 
@@ -1309,13 +1315,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected preSeriesUpdate() {
-        const { _requiredWidth } = this;
-        if (this.seriesRect == null) return;
+        const { _requiredRange, seriesRect } = this;
+        if (seriesRect == null) return;
 
-        const requiredWidthRatio = _requiredWidth / this.seriesRect.width;
+        const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
+        const requiredRangeRatio = _requiredRange / dimension;
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
-        this.ctx.updateService.dispatchPreSeriesUpdate(requiredWidthRatio);
+        this.ctx.updateService.dispatchPreSeriesUpdate(requiredRangeRatio, this._requiredRangeDirection);
     }
 
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
