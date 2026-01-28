@@ -3,6 +3,7 @@ import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from
 import type { Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { IrregularBandScale } from '../../../scale/irregularBandScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
@@ -207,7 +208,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         if (ContinuousScale.is(xAxis.scale)) {
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
-            barOffset = (groupScale.bandwidth - barWidth) / 2;
+            const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
+            barOffset = (rangeWidth - barWidth) / 2;
         }
 
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
@@ -222,7 +224,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const bandwidth = groupScale?.bandwidth ?? 0;
 
         if (widthRatio != null) {
-            return (width ?? bandwidth) * widthRatio;
+            let relativeWidth = width;
+            if (relativeWidth == null && groupScale) {
+                relativeWidth = this.getGroupScaleRangeWidth(groupScale);
+            }
+            return (relativeWidth ?? bandwidth) * widthRatio;
         }
 
         if (width != null) {
@@ -236,6 +242,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         // Pixel-rounded value for low-volume bar charts.
         return bandwidth;
+    }
+
+    private getGroupScaleRangeWidth(groupScale: IrregularBandScale) {
+        let rangeWidth = groupScale.range[1] - groupScale.range[0];
+        if (groupScale.round && rangeWidth > 0) rangeWidth = Math.floor(rangeWidth);
+        return rangeWidth;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {
