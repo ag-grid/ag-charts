@@ -3,6 +3,7 @@ import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from
 import type { Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { IrregularBandScale } from '../../../scale/irregularBandScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
@@ -207,8 +208,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         if (ContinuousScale.is(xAxis.scale)) {
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
-            let relativeWidth = groupScale.range[1] - groupScale.range[0];
-            if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
+            const relativeWidth = this.getGroupScaleRelativeWidth(groupScale);
             barOffset = (relativeWidth - barWidth) / 2;
         }
 
@@ -225,9 +225,9 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         if (widthRatio != null) {
             let relativeWidth = width;
-            if (relativeWidth == null && groupScale) {
-                relativeWidth = groupScale.range[1] - groupScale.range[0];
-                if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
+            // Only get the group scale relative width if multiple domains to avoid pixel rounding errors.
+            if (relativeWidth == null && groupScale && groupScale.domain.length > 1) {
+                relativeWidth = this.getGroupScaleRelativeWidth(groupScale);
             }
             return (relativeWidth ?? bandwidth) * widthRatio;
         }
@@ -243,6 +243,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         // Pixel-rounded value for low-volume bar charts.
         return bandwidth;
+    }
+
+    private getGroupScaleRelativeWidth(groupScale: IrregularBandScale) {
+        let relativeWidth = groupScale.range[1] - groupScale.range[0];
+        if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
+        return relativeWidth;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {
