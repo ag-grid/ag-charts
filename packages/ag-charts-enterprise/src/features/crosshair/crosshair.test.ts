@@ -435,7 +435,7 @@ describe('Crosshair', () => {
         await compare();
         expect(visibleLabels('x').length).toBeGreaterThan(0);
         expect(visibleLabels('y').length).toBeGreaterThan(0);
-        expect(labelTexts('x')).toEqual(expect.arrayContaining([expect.stringContaining('null')]));
+        expect(labelTexts('x')).toEqual(expect.arrayContaining(['']));
 
         // Hover over a non-null category (second data point)
         await hoverAction(600, 200)(chart);

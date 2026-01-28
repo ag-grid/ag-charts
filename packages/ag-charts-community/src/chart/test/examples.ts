@@ -4309,6 +4309,94 @@ export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
     ],
 };
 
+// PIE/DONUT UNDEFINED CATEGORY KEY EXAMPLES ======================================================
+
+export const PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: undefined, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: undefined, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: undefined, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: undefined, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+// PIE/DONUT MIXED NULL AND UNDEFINED KEY EXAMPLES ================================================
+
+export const PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: undefined, amount: 30000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: undefined, amount: 30000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
 export const BAR_MULTIPLE_NULL_KEYS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MULTIPLE_NULL_KEYS,
     axes: {
@@ -4356,6 +4444,24 @@ export const BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
         y: { type: 'number', position: 'left' },
     },
     series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// STACKED BAR NULL CATEGORY KEY ALLOWED EXAMPLE ==================================================
+
+export const STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: [
+        { x: 'A', y1: 10, y2: 5 },
+        { x: null, y1: 20, y2: 10 },
+        { x: 'B', y1: 15, y2: 8 },
+    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [
+        { type: 'bar', xKey: 'x', yKey: 'y1', stacked: true, allowNullKeys: true } as any,
+        { type: 'bar', xKey: 'x', yKey: 'y2', stacked: true, allowNullKeys: true } as any,
+    ],
 };
 
 // LINE UNDEFINED EXAMPLES

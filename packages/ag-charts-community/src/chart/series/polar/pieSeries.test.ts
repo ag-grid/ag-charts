@@ -169,6 +169,53 @@ describe('PieSeries', () => {
             await compare();
         });
 
+        it('should reject undefined category key with warning', async () => {
+            const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item '' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
+            await compare();
+        });
+
         it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
             const calloutLabelFormatter = jest.fn((params: any) =>
                 params.value === null ? 'Unknown' : String(params.value)

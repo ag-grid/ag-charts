@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -320,6 +321,71 @@ describe('HeatmapSeries', () => {
             });
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should render with null category key value', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                    { year: '2021', person: null, spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [HeatmapSeries-1 / yValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should filter undefined category key value', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: undefined, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [HeatmapSeries-1 / yValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
             await compare();
         });
     });

@@ -2369,6 +2369,17 @@ describe('BarSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
+
+        it('should accept null category key in stacked bar when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
     });
 
     describe('nodeClick with null category', () => {
