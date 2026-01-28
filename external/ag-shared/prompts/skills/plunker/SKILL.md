@@ -316,6 +316,41 @@ const options = {
 AgCharts.create(options);
 ```
 
+### Axes Configuration (v13+)
+
+**IMPORTANT**: Use the object-based axes syntax, NOT the legacy array syntax:
+
+```javascript
+// ✅ CORRECT - New object syntax (v13+)
+axes: {
+    x: { type: 'time' },
+    y: { type: 'number' },
+}
+
+// ❌ WRONG - Legacy array syntax (pre-v13, deprecated)
+axes: [
+    { type: 'time', position: 'bottom' },
+    { type: 'number', position: 'left' },
+]
+```
+
+Only options that differ from defaults need to be specified:
+
+```javascript
+// Minimal - just specify what you need
+axes: {
+    x: { type: 'time' },
+}
+
+// With additional options
+axes: {
+    x: { type: 'time' },
+    y: { type: 'number', title: { text: 'Price' } },
+}
+```
+
+See [Upgrade to AG Charts 13](https://www.ag-grid.com/charts/javascript/upgrade-to-ag-charts-13/) for migration details.
+
 ### ag-example-styles.css
 
 The CSS file must include **TWO parts**:

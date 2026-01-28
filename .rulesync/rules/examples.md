@@ -200,6 +200,47 @@ const chart = AgCharts.createFinancialChart(options);
 -   ✅ Only import and register modules actually used by the example
 -   ✅ List modules alphabetically in both import and registration for consistency
 
+## Axes Configuration (v13+)
+
+**IMPORTANT**: Use the object-based axes syntax, NOT the legacy array syntax:
+
+```typescript
+// ✅ CORRECT - New object syntax (v13+)
+const options: AgCartesianChartOptions = {
+    // ...
+    axes: {
+        x: { type: 'time' },
+        y: { type: 'number' },
+    },
+};
+
+// ❌ WRONG - Legacy array syntax (pre-v13, deprecated)
+const options: AgCartesianChartOptions = {
+    // ...
+    axes: [
+        { type: 'time', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+```
+
+Only options that differ from defaults need to be specified:
+
+```typescript
+// Minimal - just specify what you need
+axes: {
+    x: { type: 'time' },
+}
+
+// With additional options
+axes: {
+    x: { type: 'time' },
+    y: { type: 'number', title: { text: 'Price' } },
+}
+```
+
+See [Upgrade to AG Charts 13](../docs/upgrade-to-ag-charts-13/) for migration details.
+
 ### Why This Matters
 
 -   Enables proper tree-shaking in production builds

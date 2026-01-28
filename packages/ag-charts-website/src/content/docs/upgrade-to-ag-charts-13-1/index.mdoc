@@ -1,27 +1,12 @@
 ---
-# Replace these:
-# * `!x.x!` - the major/minor version of the migration eg, 33.2
-# * `!x.x.x!` - the version of the migration eg, 33.2.1
-# * `!PREV_x.x!` - a previous version before migration version eg, 33.1
-# * `!BLOG_LINK!` - the link to the blog post for the release
-
-# Useful markdoc commands:
-# * `migrationVersion()` - returns the major/minor version eg, `33.2.1` returns `33.2`
-# * `migrationVersionPatch()` - returns the major/minor and highest patch version available eg, `33.2.0` returns `33.2.2` as it is the highest patch release for `33.2`
-# * `{% if isFramework("react") %}` - wrap around blocks specific to a framework
-# * `{% if not(isFramework("react")) %}` - wrap around blocks where it does *not* apply to a framework
-# * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
-
-title: 'Upgrade to AG Charts !x.x!'
-description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and deprecations. Read the release post for feature highlights."
-migrationVersion: '!x.x.x!'
+title: 'Upgrade to AG Charts 13.1'
+description: "See what's new in AG Charts v13.1. View a full list of breaking changes, behaviour changes and deprecations. Read the release post for feature highlights."
+migrationVersion: '13.1.0'
 ---
 
 ## What's New
 
-<!-- Description with !BLOG_LINK! -->
-
-See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-<!-- XXXX -->/) for feature highlights of what's new in this version.
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-13_1/) for feature highlights of what's new in this version.
 
 Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
 
@@ -36,9 +21,8 @@ DO NOT TOUCH.
 ## Breaking Changes
 
 <!-- If breaking changes do *not* exist, add the following: -->
-<!--
+
 There are no breaking changes in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise -->
 <!--
@@ -57,9 +41,8 @@ This release includes the following breaking changes:
 ## Behaviour Changes
 
 <!-- If behaviour changes do *not* exist, add the following: -->
-<!--
+
 There are no behaviour changes in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise -->
 <!--
@@ -79,9 +62,8 @@ This release includes the following behaviour changes:
 ## Removal of Deprecated APIs
 
 <!-- If there are *no* deprecated APIs, add the following: -->
-<!--
+
 There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise: -->
 <!--
@@ -99,9 +81,8 @@ The following APIs have been deprecated since version !PREV_x.x! and have now be
 ## Deprecations
 
 <!-- If there are *no* deprecations, add the following: -->
-<!--
+
 There are no deprecations in AG Charts version {% migrationVersion() %}.
--->
 
 <!-- Otherwise: -->
 <!--
