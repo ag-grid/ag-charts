@@ -21,6 +21,7 @@ import {
     type ProcessorOutputPropertyDefinition,
     type PropertyValueProcessorDefinition,
     type ReducerOutputPropertyDefinition,
+    UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
 
@@ -707,8 +708,10 @@ type KeyType = string | number | boolean | null | undefined;
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
-        // Handle null and undefined explicitly to avoid collision with strings "null" and "undefined"
-        if (key == null) return NULL_KEY_STRING;
+        // Handle null and undefined distinctly to avoid collision with strings "null" and "undefined"
+        // and to treat them as separate categories
+        if (key === null) return NULL_KEY_STRING;
+        if (key === undefined) return UNDEFINED_KEY_STRING;
         const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
         // Avoid toString if not necessary
         if (isPrimitive) return key;
@@ -716,7 +719,9 @@ export function createDatumId(...keys: KeyType[]): any {
     return keys
         .map((key) => {
             const transformed = transformIntegratedCategoryValue(key);
-            return transformed ?? NULL_KEY_STRING;
+            if (transformed === null) return NULL_KEY_STRING;
+            if (transformed === undefined) return UNDEFINED_KEY_STRING;
+            return transformed;
         })
         .join('___');
 }

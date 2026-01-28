@@ -49,6 +49,7 @@ export {
     datumKeys,
     getPathComponents,
     NULL_KEY_STRING,
+    UNDEFINED_KEY_STRING,
 } from './data-model/utils/helpers';
 
 /**

@@ -7,18 +7,21 @@ import { isObject } from 'ag-charts-core';
 import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
 
-// Sentinel value for null keys to avoid collision with string "null"
+// Sentinel values for null and undefined keys to avoid collision with strings "null" and "undefined"
 export const NULL_KEY_STRING = '\0__AG_NULL__\0';
+export const UNDEFINED_KEY_STRING = '\0__AG_UNDEFINED__\0';
 
 /**
  * Converts an array of keys to a string representation.
  * Objects are JSON-stringified, other values are joined with '-'.
- * Null and undefined values use a sentinel string to avoid collision with the strings "null" and "undefined".
+ * Null and undefined values use distinct sentinel strings to avoid collision with each other
+ * and with the literal strings "null" and "undefined".
  */
 export function toKeyString(keys: any[]): string {
     return keys
         .map((key) => {
-            if (key == null) return NULL_KEY_STRING; // Covers both null and undefined
+            if (key === null) return NULL_KEY_STRING;
+            if (key === undefined) return UNDEFINED_KEY_STRING;
             return isObject(key) ? JSON.stringify(key) : key;
         })
         .join('-');
