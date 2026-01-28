@@ -149,7 +149,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
-    private lastRestoredRequiredWidth?: number;
+    private lastRestoredRequiredRange?: number;
+    private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -175,14 +176,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             eventsHub.on('zoom:change-request', (event) => {
                 this.constrainZoomToRequiredWidth(event);
             }),
-            updateService.addListener('pre-series-update', ({ requiredWidthRatio }) => {
+            updateService.addListener('pre-series-update', ({ requiredRangeRatio, requiredRangeDirection }) => {
                 this.didLayoutAxes = true;
 
                 const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 } else {
-                    this.restoreRequiredWidth(requiredWidthRatio);
+                    this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection);
                 }
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
@@ -599,21 +600,29 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return memento;
     }
 
-    private restoreRequiredWidth(requiredWidthRatio: number) {
-        if (this.lastRestoredRequiredWidth === requiredWidthRatio || requiredWidthRatio === 0) return;
+    private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+        if (requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y) return;
+        if (
+            (this.lastRestoredRequiredRangeDirection === requiredRangeDirection &&
+                this.lastRestoredRequiredRange === requiredRangeRatio) ||
+            requiredRangeRatio === 0
+        ) {
+            return;
+        }
 
-        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
 
         const crossAxisZoom = this.getAxisZoom(crossAxisId);
-        const requiredZoom = Math.min(1, 1 / requiredWidthRatio);
+        const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
         const min = Math.max(0, Math.min(1 - requiredZoom, crossAxisZoom.min));
         const max = min + requiredZoom;
 
-        this.lastRestoredRequiredWidth = requiredWidthRatio;
+        this.lastRestoredRequiredRange = requiredRangeRatio;
+        this.lastRestoredRequiredRangeDirection = requiredRangeDirection;
 
-        const zoom = { x: { min, max } };
+        const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
         this.updateChanges({
@@ -625,21 +634,23 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
-        if (this.lastRestoredRequiredWidth == null) return;
+        if (this.lastRestoredRequiredRange == null || this.lastRestoredRequiredRangeDirection == null) return;
 
-        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        const axis = this.lastRestoredRequiredRangeDirection;
+
+        const crossAxisId = this.getPrimaryAxisId(this.lastRestoredRequiredRangeDirection);
         if (!crossAxisId) return;
 
         const zoom = event.stateAsDefinedZoom();
         const oldState = event.oldState[crossAxisId]!;
 
-        const delta = zoom.x.max - zoom.x.min;
-        const minDelta = 1 / this.lastRestoredRequiredWidth;
+        const delta = zoom[axis].max - zoom[axis].min;
+        const minDelta = 1 / this.lastRestoredRequiredRange;
         if (delta <= minDelta) return;
 
         event.constrainZoom({
-            x: { min: oldState.min, max: oldState.min + minDelta },
-            y: zoom.y,
+            ...zoom,
+            [axis]: { min: oldState.min, max: oldState.min + minDelta },
         });
     }
 

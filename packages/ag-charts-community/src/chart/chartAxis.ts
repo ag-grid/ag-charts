@@ -139,7 +139,7 @@ export interface ChartAxis {
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
-    requiredWidth?: number;
+    requiredRange?: number;
     reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
