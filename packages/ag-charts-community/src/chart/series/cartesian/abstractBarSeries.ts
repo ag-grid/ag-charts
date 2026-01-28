@@ -208,8 +208,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         if (ContinuousScale.is(xAxis.scale)) {
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
-            const relativeWidth = this.getGroupScaleRelativeWidth(groupScale);
-            barOffset = (relativeWidth - barWidth) / 2;
+            const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
+            barOffset = (rangeWidth - barWidth) / 2;
         }
 
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
@@ -225,9 +225,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         if (widthRatio != null) {
             let relativeWidth = width;
-            // Only get the group scale relative width if multiple domains to avoid pixel rounding errors.
-            if (relativeWidth == null && groupScale && groupScale.domain.length > 1) {
-                relativeWidth = this.getGroupScaleRelativeWidth(groupScale);
+            if (relativeWidth == null && groupScale) {
+                relativeWidth = this.getGroupScaleRangeWidth(groupScale);
             }
             return (relativeWidth ?? bandwidth) * widthRatio;
         }
@@ -245,10 +244,10 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return bandwidth;
     }
 
-    private getGroupScaleRelativeWidth(groupScale: IrregularBandScale) {
-        let relativeWidth = groupScale.range[1] - groupScale.range[0];
-        if (groupScale.round && relativeWidth > 0) relativeWidth = Math.round(relativeWidth);
-        return relativeWidth;
+    private getGroupScaleRangeWidth(groupScale: IrregularBandScale) {
+        let rangeWidth = groupScale.range[1] - groupScale.range[0];
+        if (groupScale.round && rangeWidth > 0) rangeWidth = Math.floor(rangeWidth);
+        return rangeWidth;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {
