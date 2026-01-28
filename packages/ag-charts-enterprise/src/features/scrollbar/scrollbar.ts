@@ -256,6 +256,7 @@ export class Scrollbar extends AbstractModuleInstance {
             thumbSpan = clamp(0, thumbHeight / track.height, 1);
         }
 
+        state.dom.updateThumbBounds(state.thumb, track, state.properties.thumb.cornerRadius);
         state.dom.updateMinMax(min, max, thumbSpan);
     }
 
