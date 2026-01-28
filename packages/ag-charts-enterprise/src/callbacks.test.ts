@@ -652,8 +652,7 @@ describe('AG-15850 labels', () => {
             expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
         });
 
-        // Ignore the test for now; circular itemStyler param object (`nodeDatum`)
-        xtest('itemStyler', () => {
+        test('itemStyler', () => {
             expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
         });
     });
