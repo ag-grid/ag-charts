@@ -144,6 +144,10 @@ ln -s ../../external/prompts/agents/visual-qa.md visual-qa.md
 
 # From .rulesync/rules/
 ln -s ../../external/ag-shared/prompts/guides/code-quality.md code-quality.md
+
+# From .rulesync/skills/ (NOTE: skills use directory symlinks, not file symlinks)
+ln -s ../../external/ag-shared/prompts/skills/estimate-jira/ estimate-jira
+ln -s ../../external/prompts/skills/spruce-example/ spruce-example
 ```
 
 ## Verification

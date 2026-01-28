@@ -422,7 +422,7 @@ generate_config() {
     local exit_code=0
     output=$($rulesync_cmd generate \
         --targets="$targets" \
-        --features="rules,ignore,mcp,commands,subagents" \
+        --features="rules,ignore,mcp,commands,subagents,skills" \
         --delete 2>&1) || exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
