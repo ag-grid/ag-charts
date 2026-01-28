@@ -719,7 +719,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
                 : undefined;
 
-        if (xValue === undefined) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

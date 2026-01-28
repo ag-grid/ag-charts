@@ -434,7 +434,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     ): PreparedRangeBarNodeDatumState | undefined {
         const datum = ctx.rawData[datumIndex];
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined) return undefined;
+        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
 
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
@@ -607,7 +607,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             if (midDatumIndex === -1) continue;
 
             const xValue = ctx.xValues[midDatumIndex];
-            if (xValue === undefined) continue;
+            if (xValue === undefined && !this.properties.allowNullKeys) continue;
 
             // Populate scratch object with aggregated values
             nodeDatumParamsScratch.datumIndex = midDatumIndex;
@@ -1194,7 +1194,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;

@@ -1173,7 +1173,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue === undefined) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: TooltipContentDataRow[] = [];
 
@@ -1194,7 +1195,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
         }
 
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
         data.push(
             {
                 label: xName,

@@ -1468,7 +1468,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);

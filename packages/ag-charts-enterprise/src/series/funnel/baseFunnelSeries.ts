@@ -565,7 +565,8 @@ export abstract class BaseFunnelSeries<
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         return this.formatTooltipWithContext(
             tooltip,

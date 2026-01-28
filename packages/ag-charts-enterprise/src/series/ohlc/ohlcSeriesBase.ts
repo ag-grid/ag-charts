@@ -464,7 +464,7 @@ export abstract class OhlcSeriesBase<
         datumIndex: number
     ): PreparedOhlcNodeDatumState | undefined {
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined) {
+        if (xValue === undefined && !this.properties.allowNullKeys) {
             return undefined;
         }
 
@@ -905,7 +905,8 @@ export abstract class OhlcSeriesBase<
         const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined) return; // eslint-disable-line sonarjs/different-types-comparison
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const itemType = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemType];
