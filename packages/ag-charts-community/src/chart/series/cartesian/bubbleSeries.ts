@@ -688,8 +688,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xDatum = ctx.xDataValues[datumIndex];
         const yDatum = ctx.yDataValues[datumIndex];
 
-        // Skip invalid data points
-        if (xDatum === undefined || yDatum === undefined) return undefined;
+        // Skip invalid data points (unless allowNullKeys is enabled)
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if ((xDatum === undefined || yDatum === undefined) && !allowNullKeys) return undefined;
 
         const sizeValue = ctx.sizeDataValues?.[datumIndex];
         const x = ctx.xScale.convert(xDatum) + ctx.xOffset;

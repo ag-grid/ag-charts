@@ -1001,7 +1001,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     ): void {
         // Populate scratch from context arrays
         scratch.xDatum = ctx.xValues[datumIndex];
-        if (scratch.xDatum === undefined) return;
+        if (scratch.xDatum === undefined && !this.properties.allowNullKeys) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];

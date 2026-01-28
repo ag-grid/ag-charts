@@ -330,7 +330,7 @@ export abstract class BaseFunnelSeries<
 
             const xDatum = xValues[datumIndex];
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-            if (xDatum === undefined) continue; // eslint-disable-line sonarjs/different-types-comparison
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
 
             const x = Math.round(xScale.convert(xDatum)) + groupOffset + barOffset;
 

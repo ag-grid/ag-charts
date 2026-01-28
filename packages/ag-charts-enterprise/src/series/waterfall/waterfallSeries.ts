@@ -303,7 +303,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = ctx.xValues[datumIndex];
-            if (xDatum === undefined) continue;
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue;
 
             const rawValue = ctx.yRawValues[datumIndex];
             const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
