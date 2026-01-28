@@ -617,6 +617,11 @@ describe('AG-15850 labels', () => {
         mockItemStyler = newFreezableMock<D, C, ItemStyler>();
     });
 
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
     async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
         prepareEnterpriseTestOptions(opts);
         chart = AgCharts.create(opts);
