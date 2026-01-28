@@ -1,0 +1,2656 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AG-15850 labels area formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "seriesId": "AreaSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "seriesId": "AreaSeries-1",
+      "value": 20,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels area itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myValue",
+      "itemType": undefined,
+      "legendItemName": undefined,
+      "padding": 8,
+      "seriesId": "AreaSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myValue",
+      "itemType": undefined,
+      "legendItemName": undefined,
+      "padding": 8,
+      "seriesId": "AreaSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels bar formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "seriesId": "BarSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "seriesId": "BarSeries-1",
+      "value": 20,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels bar itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myValue",
+      "itemType": undefined,
+      "legendItemName": "myCategory",
+      "padding": 8,
+      "seriesId": "BarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yKey": "myValue",
+      "yName": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myValue",
+      "itemType": undefined,
+      "legendItemName": "myCategory",
+      "padding": 8,
+      "seriesId": "BarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yKey": "myValue",
+      "yName": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels bubble formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "labelKey": undefined,
+      "labelName": undefined,
+      "legendItemName": undefined,
+      "seriesId": "BubbleSeries-1",
+      "sizeKey": "mySize",
+      "sizeName": undefined,
+      "value": 5,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "labelKey": undefined,
+      "labelName": undefined,
+      "legendItemName": undefined,
+      "seriesId": "BubbleSeries-1",
+      "sizeKey": "mySize",
+      "sizeName": undefined,
+      "value": 10,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": "myValue2",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels bubble itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myValue2",
+      "itemType": undefined,
+      "labelKey": undefined,
+      "labelName": undefined,
+      "legendItemName": undefined,
+      "padding": 8,
+      "seriesId": "BubbleSeries-1",
+      "sizeKey": "mySize",
+      "sizeName": undefined,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": "myValue2",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels chord formatter 1`] = `
+[
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "ChordSeries-1",
+      "size": 5,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode1",
+    },
+  ],
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "ChordSeries-1",
+      "size": 8,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode2",
+    },
+  ],
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "ChordSeries-1",
+      "size": 3,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode3",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels chord itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "fromKey": "myFrom",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "ChordSeries-1",
+      "size": 5,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "fromKey": "myFrom",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "ChordSeries-1",
+      "size": 8,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "fromKey": "myFrom",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "ChordSeries-1",
+      "size": 3,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels donut formatter 1`] = `
+[
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemKey": undefined,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
+      "seriesId": "DonutSeries-1",
+      "value": "CatA",
+    },
+  ],
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemKey": undefined,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
+      "seriesId": "DonutSeries-1",
+      "value": "CatB",
+    },
+  ],
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemKey": undefined,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
+      "seriesId": "DonutSeries-1",
+      "value": "CatA",
+    },
+  ],
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemKey": undefined,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
+      "seriesId": "DonutSeries-1",
+      "value": "CatB",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels donut itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": 0,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "DonutSeries-1",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": 1,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "DonutSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels funnel formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemId": "myValue",
+      "seriesId": "FunnelSeries-1",
+      "stageKey": "myCategory",
+      "value": 10,
+      "valueKey": "myValue",
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemId": "myValue",
+      "seriesId": "FunnelSeries-1",
+      "stageKey": "myCategory",
+      "value": 20,
+      "valueKey": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels funnel itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myCategory",
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "FunnelSeries-1",
+      "stageKey": "myCategory",
+      "valueKey": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "myCategory",
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "FunnelSeries-1",
+      "stageKey": "myCategory",
+      "valueKey": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels histogram formatter 1`] = `
+[
+  [
+    {
+      "datum": [
+        1,
+      ],
+      "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": [
+        1,
+      ],
+      "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": [
+        1,
+      ],
+      "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": [
+        1,
+      ],
+      "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels histogram itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": [],
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "HistogramSeries-1",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": [
+        1,
+      ],
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "HistogramSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels line formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "seriesId": "LineSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "seriesId": "LineSeries-1",
+      "value": 20,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels line itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "legendItemName": undefined,
+      "padding": 8,
+      "seriesId": "LineSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "legendItemName": undefined,
+      "padding": 8,
+      "seriesId": "LineSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels linear-gauge formatter 1`] = `
+[
+  [
+    {
+      "datum": undefined,
+      "seriesId": "LinearGaugeSeries-1",
+      "value": 40,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "LinearGaugeSeries-1",
+      "value": 40,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "LinearGaugeSeries-1",
+      "value": 40,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels linear-gauge itemStyler 1`] = `[]`;
+
+exports[`AG-15850 labels map-line formatter 1`] = `
+[
+  [
+    {
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myId": "myLine",
+        "myValue": 10,
+      },
+      "idKey": "myId",
+      "idName": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
+      "seriesId": "MapLineSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "myLine",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels map-line itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "MapLineSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels map-marker formatter 1`] = `
+[
+  [
+    {
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myId": "myPoly",
+        "myLat": 0.5,
+        "myLon": 0.5,
+      },
+      "idKey": undefined,
+      "idName": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
+      "latitudeKey": "myLat",
+      "latitudeName": undefined,
+      "longitudeKey": "myLon",
+      "longitudeName": undefined,
+      "seriesId": "MapMarkerSeries-1",
+      "sizeKey": undefined,
+      "sizeName": undefined,
+      "value": "myPoly",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels map-marker itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "MapMarkerSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels map-shape formatter 1`] = `
+[
+  [
+    {
+      "colorKey": "myValue",
+      "colorName": undefined,
+      "datum": {
+        "myId": "myPoly",
+        "myValue": 10,
+      },
+      "idKey": "myId",
+      "idName": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
+      "seriesId": "MapShapeSeries-1",
+      "value": "myPoly",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels map-shape itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": "bold",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "MapShapeSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels pyramid formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "seriesId": "PyramidSeries-1",
+      "stageKey": "myCategory",
+      "value": 10,
+      "valueKey": "myValue",
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "seriesId": "PyramidSeries-1",
+      "stageKey": "myCategory",
+      "value": 20,
+      "valueKey": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels pyramid itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "PyramidSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radars formatter 1`] = `
+[
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 10,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 20,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 10,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 20,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 10,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "value": 20,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radars itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadarLineSeries-1",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadarLineSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-bar formatter 1`] = `
+[
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
+      "seriesId": "RadialBarSeries-1",
+      "value": 10,
+    },
+  ],
+  [
+    {
+      "angleKey": "myValue",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
+      "seriesId": "RadialBarSeries-1",
+      "value": 20,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-bar itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadialBarSeries-1",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadialBarSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-column formatter 1`] = `
+[
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadialColumnSeries-1",
+      "value": 10,
+    },
+  ],
+  [
+    {
+      "angleKey": "myCategory",
+      "angleName": undefined,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "legendItemName": undefined,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
+      "seriesId": "RadialColumnSeries-1",
+      "value": 20,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-column itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadialColumnSeries-1",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "RadialColumnSeries-1",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-gauge formatter 1`] = `
+[
+  [
+    {
+      "datum": undefined,
+      "seriesId": "RadialGaugeSeries-1",
+      "value": 70,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "RadialGaugeSeries-1",
+      "value": 70,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "RadialGaugeSeries-1",
+      "value": 70,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "RadialGaugeSeries-1",
+      "value": 70,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels radial-gauge itemStyler 1`] = `[]`;
+
+exports[`AG-15850 labels range-area formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemType": "high",
+      "legendItemName": undefined,
+      "seriesId": "RangeAreaSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemType": "low",
+      "legendItemName": undefined,
+      "seriesId": "RangeAreaSeries-1",
+      "value": 7,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemType": "high",
+      "legendItemName": undefined,
+      "seriesId": "RangeAreaSeries-1",
+      "value": 20,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemType": "low",
+      "legendItemName": undefined,
+      "seriesId": "RangeAreaSeries-1",
+      "value": 14,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels range-area itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "high",
+      "legendItemName": undefined,
+      "padding": 10,
+      "seriesId": "RangeAreaSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "low",
+      "legendItemName": undefined,
+      "padding": 10,
+      "seriesId": "RangeAreaSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "high",
+      "legendItemName": undefined,
+      "padding": 10,
+      "seriesId": "RangeAreaSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "low",
+      "legendItemName": undefined,
+      "padding": 10,
+      "seriesId": "RangeAreaSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels range-bar formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemType": "low",
+      "legendItemName": undefined,
+      "seriesId": "RangeBarSeries-1",
+      "value": 7,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemType": "high",
+      "legendItemName": undefined,
+      "seriesId": "RangeBarSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemType": "low",
+      "legendItemName": undefined,
+      "seriesId": "RangeBarSeries-1",
+      "value": 14,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemType": "high",
+      "legendItemName": undefined,
+      "seriesId": "RangeBarSeries-1",
+      "value": 20,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yHighKey": "myValue",
+      "yHighName": undefined,
+      "yLowKey": "myValue2",
+      "yLowName": undefined,
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels range-bar itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "low",
+      "legendItemName": undefined,
+      "padding": 6,
+      "seriesId": "RangeBarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "high",
+      "legendItemName": undefined,
+      "padding": 6,
+      "seriesId": "RangeBarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "low",
+      "legendItemName": undefined,
+      "padding": 6,
+      "seriesId": "RangeBarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "high",
+      "legendItemName": undefined,
+      "padding": 6,
+      "seriesId": "RangeBarSeries-1",
+      "xKey": "myCategory",
+      "xName": "myCategory",
+      "yHighKey": "myValue",
+      "yHighName": "myValue",
+      "yLowKey": "myValue2",
+      "yLowName": "myValue2",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels sankey formatter 1`] = `
+[
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "SankeySeries-1",
+      "size": 5,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode1",
+    },
+  ],
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "SankeySeries-1",
+      "size": 5,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode2",
+    },
+  ],
+  [
+    {
+      "datum": {},
+      "fromKey": "myFrom",
+      "seriesId": "SankeySeries-1",
+      "size": 3,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+      "value": "myNode3",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels sankey itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "fromKey": "myFrom",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "SankeySeries-1",
+      "size": 5,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": undefined,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "fromKey": "myFrom",
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "SankeySeries-1",
+      "size": 3,
+      "sizeKey": "mySize",
+      "toKey": "myTo",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels sunburst formatter 1`] = `
+[
+  [
+    {
+      "childrenKey": "children",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "children": [
+          {
+            "myLabel": "LabA",
+            "myValue": 10,
+          },
+          {
+            "myLabel": "LabB",
+            "myValue": 20,
+          },
+        ],
+        "myLabel": "root",
+      },
+      "depth": 0,
+      "labelKey": "myLabel",
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "root",
+    },
+  ],
+  [
+    {
+      "childrenKey": "children",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myLabel": "LabA",
+        "myValue": 10,
+      },
+      "depth": 1,
+      "labelKey": "myLabel",
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "LabA",
+    },
+  ],
+  [
+    {
+      "childrenKey": "children",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myLabel": "LabB",
+        "myValue": 20,
+      },
+      "depth": 1,
+      "labelKey": "myLabel",
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "LabB",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels sunburst itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "childrenKey": "children",
+      "color": "white",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "cornerRadius": 4,
+      "datum": {
+        "children": [
+          {
+            "myLabel": "LabA",
+            "myValue": 10,
+          },
+          {
+            "myLabel": "LabB",
+            "myValue": 20,
+          },
+        ],
+        "myLabel": "root",
+      },
+      "depth": 0,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "0",
+      "itemType": undefined,
+      "labelKey": "myLabel",
+      "padding": 8,
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "childrenKey": "children",
+      "color": "white",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "cornerRadius": 4,
+      "datum": {
+        "myLabel": "LabA",
+        "myValue": 10,
+      },
+      "depth": 1,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "0;0",
+      "itemType": undefined,
+      "labelKey": "myLabel",
+      "padding": 8,
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "childrenKey": "children",
+      "color": "white",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "cornerRadius": 4,
+      "datum": {
+        "myLabel": "LabB",
+        "myValue": 20,
+      },
+      "depth": 1,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "0;1",
+      "itemType": undefined,
+      "labelKey": "myLabel",
+      "padding": 8,
+      "secondaryLabelKey": undefined,
+      "seriesId": "SunburstSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels treemap formatter 1`] = `
+[
+  [
+    {
+      "childrenKey": "children",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myLabel": "LabA",
+        "myValue": 10,
+      },
+      "depth": 1,
+      "labelKey": "myLabel",
+      "secondaryLabelKey": undefined,
+      "seriesId": "TreemapSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "LabA",
+    },
+  ],
+  [
+    {
+      "childrenKey": "children",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "datum": {
+        "myLabel": "LabB",
+        "myValue": 20,
+      },
+      "depth": 1,
+      "labelKey": "myLabel",
+      "secondaryLabelKey": undefined,
+      "seriesId": "TreemapSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
+      "value": "LabB",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels treemap itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "childrenKey": "children",
+      "color": "white",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "cornerRadius": 4,
+      "datum": {
+        "myLabel": "LabA",
+        "myValue": 10,
+      },
+      "depth": 1,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 18,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "0;0",
+      "itemType": undefined,
+      "labelKey": "myLabel",
+      "padding": 8,
+      "secondaryLabelKey": undefined,
+      "seriesId": "TreemapSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "childrenKey": "children",
+      "color": "white",
+      "colorKey": undefined,
+      "colorName": undefined,
+      "cornerRadius": 4,
+      "datum": {
+        "myLabel": "LabB",
+        "myValue": 20,
+      },
+      "depth": 1,
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 18,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": "0;1",
+      "itemType": undefined,
+      "labelKey": "myLabel",
+      "padding": 8,
+      "secondaryLabelKey": undefined,
+      "seriesId": "TreemapSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels waterfall formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+      },
+      "itemType": "positive",
+      "seriesId": "WaterfallSeries-1",
+      "value": 10,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "myValue": -5,
+      },
+      "itemType": "negative",
+      "seriesId": "WaterfallSeries-1",
+      "value": -5,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatC",
+        "myValue": 15,
+      },
+      "itemType": "positive",
+      "seriesId": "WaterfallSeries-1",
+      "value": 15,
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels waterfall itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "positive",
+      "padding": 6,
+      "seriesId": "WaterfallSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "myValue": -5,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "negative",
+      "padding": 6,
+      "seriesId": "WaterfallSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatC",
+        "myValue": 15,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": undefined,
+      "itemType": "positive",
+      "padding": 6,
+      "seriesId": "WaterfallSeries-1",
+      "xKey": "myCategory",
+      "xName": undefined,
+      "yKey": "myValue",
+      "yName": undefined,
+    },
+  ],
+]
+`;
