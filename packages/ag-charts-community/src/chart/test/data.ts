@@ -989,7 +989,7 @@ export const DATA_UNDEFINED_VS_STRING_UNDEFINED = [
     { x: 'B', y: 15 },
 ];
 
-// Mixed null and undefined test data (should aggregate to SAME category)
+// Mixed null and undefined test data (should be DISTINCT categories)
 export const DATA_NULL_AND_UNDEFINED_KEYS = [
     { x: 'A', y: 10 },
     { x: null, y: 20 },

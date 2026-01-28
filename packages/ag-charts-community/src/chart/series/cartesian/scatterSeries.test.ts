@@ -170,7 +170,7 @@ describe('ScatterSeries', () => {
             await compare();
         });
 
-        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'A', y: 10 },

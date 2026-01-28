@@ -2228,7 +2228,7 @@ describe('AreaSeries', () => {
             await compare();
         });
 
-        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
             prepareTestOptions(options);
 

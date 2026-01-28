@@ -4435,7 +4435,7 @@ export const BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions
     series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
 };
 
-// MIXED NULL AND UNDEFINED KEY TEST EXAMPLES (should aggregate to same category) ================
+// MIXED NULL AND UNDEFINED KEY TEST EXAMPLES (should be DISTINCT categories) ====================
 
 export const BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_NULL_AND_UNDEFINED_KEYS,

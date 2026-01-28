@@ -1018,7 +1018,7 @@ describe('BoxPlotSeries', () => {
             await compareSnapshot(chart);
         });
 
-        it('should aggregate null and undefined to the same category when allowNullKeys is true', async () => {
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS,
                 series: [
