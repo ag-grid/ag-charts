@@ -170,7 +170,7 @@ export function hasDimmedOpacity(style?: { opacity?: number; fillOpacity?: numbe
     return (style?.opacity ?? 1) < 1 || (style?.fillOpacity ?? 1) < 1 || (style?.strokeOpacity ?? 1) < 1;
 }
 
-export function findNodeDatumInArray<I extends DatumIndexType, D extends SeriesNodeDatum<I>>(
+export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
     itemIdOrIndex: AgActiveItemState['itemId'],
     nodeData: D[] | undefined
 ): D | undefined {
