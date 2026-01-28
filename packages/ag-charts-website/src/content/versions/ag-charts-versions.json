@@ -13,7 +13,7 @@
             },
             {
                 "text": "Scrollbars",
-                "path": "./scrollbars"
+                "path": "./scrollbar"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-13-1"
