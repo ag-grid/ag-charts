@@ -172,9 +172,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const validation = (_value: unknown, _datum: unknown, index: number) =>
             visible && legendManager.getItemEnabled({ seriesId, itemId: index });
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(stageKey, xScaleType, { id: 'xValue' }),
+                valueProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps, validation, invalidValue: 0 }),
             ],
         });
@@ -230,6 +231,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
@@ -321,8 +324,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
+        let stageLabelIndex = 0;
         for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
 
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
@@ -339,7 +345,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const y = bounds.y + yOffset;
 
             if (stageLabelData != null) {
-                const stageLabelDatum = stageLabelData[datumIndex] as Writeable<PyramidNodeLabelDatum>;
+                const stageLabelDatum = stageLabelData[stageLabelIndex++] as Writeable<PyramidNodeLabelDatum>;
                 stageLabelDatum.x = labelX ?? x;
                 stageLabelDatum.y = labelY ?? y;
             }
@@ -761,27 +767,26 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         const { showInLegend } = this.properties;
-
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
-        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        for (const [datumIndex] of rawData.entries()) {
-            const stageValue = stageValues[datumIndex];
+        return (processedData.dataSources.get(this.id)?.data ?? [])
+            .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
+                const stageValue = stageValues[datumIndex];
+                if (stageValue == null) return;
 
-            legendData.push({
-                legendType: 'category',
-                id: seriesId,
-                itemId: datumIndex,
-                seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
-                label: { text: stageValue },
-                symbol: this.legendItemSymbol(datumIndex),
-                hideInLegend: !showInLegend,
-            });
-        }
-
-        return legendData;
+                return {
+                    legendType: 'category',
+                    id: seriesId,
+                    datum,
+                    itemId: datumIndex,
+                    seriesId,
+                    enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                    label: { text: String(stageValue) },
+                    symbol: this.legendItemSymbol(datumIndex),
+                    hideInLegend: !showInLegend,
+                };
+            })
+            .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
     }
 
     protected animateReset() {

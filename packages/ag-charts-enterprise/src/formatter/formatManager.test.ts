@@ -401,5 +401,73 @@ describe('Format Manager (Enterprise)', () => {
                 }
             });
         });
+
+        describe('heatmap series', () => {
+            const seriesIdPrefix = 'HeatmapSeries';
+
+            it.each(NULL_KEY_CASES)('$name', async ({ nullValue, allowNullKeys, expectWarning }) => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { x: nullValue, y: 'A', color: 10 },
+                        { x: 'Mac', y: 'B', color: 20 },
+                    ],
+                    series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'color', allowNullKeys } as any],
+                };
+
+                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+                await waitForChartStability(chart);
+
+                if (expectWarning) {
+                    const valueType = nullValue === null ? 'object' : 'undefined';
+                    expectWarningsCalls().toEqual(
+                        expect.arrayContaining([
+                            expect.arrayContaining([
+                                expect.stringMatching(
+                                    new RegExp(
+                                        `invalid value of type \\[${valueType}\\] for \\[${seriesIdPrefix}-1 / xValue\\] ignored:`
+                                    )
+                                ),
+                            ]),
+                        ])
+                    );
+                } else {
+                    expectWarningsCalls().toEqual([]);
+                }
+            });
+        });
+
+        describe('pyramid series', () => {
+            const seriesIdPrefix = 'PyramidSeries';
+
+            it.each(NULL_KEY_CASES)('$name', async ({ nullValue, allowNullKeys, expectWarning }) => {
+                const options: AgChartOptions = {
+                    data: [
+                        { group: nullValue, value: 100 },
+                        { group: 'Mac', value: 50 },
+                    ],
+                    series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value', allowNullKeys } as any],
+                };
+
+                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+                await waitForChartStability(chart);
+
+                if (expectWarning) {
+                    const valueType = nullValue === null ? 'object' : 'undefined';
+                    expectWarningsCalls().toEqual(
+                        expect.arrayContaining([
+                            expect.arrayContaining([
+                                expect.stringMatching(
+                                    new RegExp(
+                                        `invalid value of type \\[${valueType}\\] for \\[${seriesIdPrefix}-1 / xValue\\] ignored:`
+                                    )
+                                ),
+                            ]),
+                        ])
+                    );
+                } else {
+                    expectWarningsCalls().toEqual([]);
+                }
+            });
+        });
     });
 });

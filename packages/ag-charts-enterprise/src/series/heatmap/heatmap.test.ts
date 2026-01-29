@@ -388,5 +388,84 @@ describe('HeatmapSeries', () => {
 `);
             await compare();
         });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                    { year: '2021', person: null, spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: undefined, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2020', person: undefined, spending: 30 },
+                    { year: '2021', person: 'Florian', spending: 40 },
+                    { year: '2021', person: null, spending: 50 },
+                    { year: '2021', person: undefined, spending: 60 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
     });
 });

@@ -179,10 +179,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: 'yValue' }),
+                valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: 'yValue', allowNullKey }),
                 ...(colorKey
                     ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
                     : []),
