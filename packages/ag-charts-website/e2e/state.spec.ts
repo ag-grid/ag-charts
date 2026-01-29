@@ -136,7 +136,7 @@ test.describe('state', () => {
                     },
                 });
                 expect(consoleLogs.getLogs()).toEqual([
-                    "AG Charts - Cannot find datum: { seriesId: 'LineSeries-1', itemId: 10000 }",
+                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: 10000 }',
                 ]);
                 consoleLogs.clear();
             }
@@ -150,7 +150,7 @@ test.describe('state', () => {
                     },
                 });
                 expect(consoleLogs.getLogs()).toEqual([
-                    "AG Charts - Cannot find datum: { seriesId: 'LineSeries-1', itemId: '0' }",
+                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: "0" }',
                 ]);
                 consoleLogs.clear();
             }
