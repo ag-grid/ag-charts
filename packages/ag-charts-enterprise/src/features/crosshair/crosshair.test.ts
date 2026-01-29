@@ -381,4 +381,67 @@ describe('Crosshair', () => {
         await hoverAction(260, 140)(chart);
         await compare();
     });
+
+    it('AG-16613 should handle null category values with crosshair', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { year: null, population: 5315511894 },
+                { year: '2000', population: 6132455985 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    yKey: 'population',
+                    xKey: 'year',
+                    allowNullKeys: true,
+                } as any,
+            ],
+            axes: {
+                y: {
+                    type: 'number',
+                    crosshair: { enabled: true, snap: true },
+                },
+                x: {
+                    type: 'category',
+                    crosshair: { enabled: true, snap: true },
+                },
+            },
+            formatter: {
+                y: ({ value }: any) => {
+                    return Number(value).toLocaleString('en-GB', {
+                        notation: 'compact',
+                        maximumFractionDigits: 1,
+                    });
+                },
+            },
+        };
+
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const visibleLabels = (axisId: string) =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            );
+
+        const labelTexts = (axisId: string) => visibleLabels(axisId).map((el) => el.textContent?.trim());
+
+        // Hover over the null category (first data point)
+        await hoverAction(100, 200)(chart);
+        await compare();
+        expect(visibleLabels('x').length).toBeGreaterThan(0);
+        expect(visibleLabels('y').length).toBeGreaterThan(0);
+        expect(labelTexts('x')).toEqual(expect.arrayContaining(['']));
+
+        // Hover over a non-null category (second data point)
+        await hoverAction(600, 200)(chart);
+        await compare();
+        expect(visibleLabels('x').length).toBeGreaterThan(0);
+        expect(visibleLabels('y').length).toBeGreaterThan(0);
+        expect(labelTexts('x')).toEqual(expect.arrayContaining([expect.stringContaining('2000')]));
+    });
 });
