@@ -309,6 +309,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
+            // eslint-disable-next-line sonarjs/different-types-comparison
             if (radiusDatum === undefined && !this.properties.allowNullKeys) return;
 
             const angleDatum = angleRawValues[datumIndex];
@@ -534,6 +535,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
 
+        // eslint-disable-next-line sonarjs/different-types-comparison
         if (radiusValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false);

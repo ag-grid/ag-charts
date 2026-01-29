@@ -323,6 +323,7 @@ export abstract class RadialColumnSeriesBase<
         for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
+            // eslint-disable-next-line sonarjs/different-types-comparison
             if (angleDatum === undefined && !this.properties.allowNullKeys) return;
 
             const radiusDatum = radiusRawValues[datumIndex];
@@ -545,6 +546,7 @@ export abstract class RadialColumnSeriesBase<
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 
+        // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false);
