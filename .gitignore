@@ -63,6 +63,7 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
 # Ignore local AI.
+/.context/
 /.claude/
 /.gemini/
 /.github/prompts/
