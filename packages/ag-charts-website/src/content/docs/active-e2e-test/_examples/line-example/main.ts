@@ -106,7 +106,7 @@ function onFreezeChange(checked: boolean): void {
 
 function onSetState(): void {
     const seriesId: string = SERIES_ID_MAP[country];
-    const itemId: string | undefined = ITEM_ID_MAP[year];
+    const itemId: number | undefined = ITEM_ID_MAP[year];
 
     if (itemId === undefined) {
         chart.setState({
