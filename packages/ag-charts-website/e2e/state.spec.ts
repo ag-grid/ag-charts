@@ -141,6 +141,20 @@ test.describe('state', () => {
                 consoleLogs.clear();
             }
 
+            async function setStateStringNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
+                    },
+                });
+                expect(consoleLogs.getLogs()).toEqual([
+                    "AG Charts - Cannot find datum: { seriesId: 'LineSeries-1', itemId: '0' }",
+                ]);
+                consoleLogs.clear();
+            }
+
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'line-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -392,6 +406,44 @@ test.describe('state', () => {
                     });
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await consoleLogs.expectLogs([]);
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] setState with incorrect string-type id should deactivate', () => {
+                const consoleLogs = createConsoleLogs();
+
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await setStateStringNodeId(consoleLogs, page, version);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                    await consoleLogs.expectLogs([]);
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: 13, seriesId: 'LineSeries-2' },
+                    });
+
+                    await setStateStringNodeId(consoleLogs, page, version);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
 
