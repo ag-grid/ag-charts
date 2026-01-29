@@ -27,6 +27,7 @@ import {
     type MockChartClickListener,
     type MockChartDblClickListener,
     type MockChartLabelFormatter,
+    type MockChartLabelItemStyler,
     type MockChartSeriesVisibilityChangeListener,
     type MockContextMenuAction,
     type MockGetDataCallback,
@@ -44,7 +45,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgDataSourceCallbackParams } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 
@@ -539,6 +540,744 @@ describe('AG-13024 API context gauges', () => {
             options.context = rootContext;
             chart = await createChart(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
+        });
+    });
+});
+
+describe('AG-15850 labels', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    type D = unknown;
+    type C = unknown;
+    type Formatter = MockChartLabelFormatter<D, C>;
+    type ItemStyler = MockChartLabelItemStyler<D, C>;
+
+    let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
+    let mockFormatter: ReturnType<typeof newFreezableMock<D, C, Formatter>>;
+    let mockItemStyler: ReturnType<typeof newFreezableMock<D, C, ItemStyler>>;
+
+    const basicData = [
+        { myCategory: 'CatA', myValue: 10, myValue2: 7, mySize: 5 },
+        { myCategory: 'CatB', myValue: 20, myValue2: 14, mySize: 10 },
+    ];
+
+    const hierarchyData = [
+        {
+            myLabel: 'root',
+            children: [
+                { myLabel: 'LabA', myValue: 10 },
+                { myLabel: 'LabB', myValue: 20 },
+            ],
+        },
+    ];
+
+    const flowData = [
+        { myFrom: 'myNode1', myTo: 'myNode2', mySize: 5 },
+        { myFrom: 'myNode2', myTo: 'myNode3', mySize: 3 },
+    ];
+
+    const geoJson = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                properties: { name: 'myPoly' },
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [
+                        [
+                            [0, 0],
+                            [1, 0],
+                            [1, 1],
+                            [0, 1],
+                            [0, 0],
+                        ],
+                    ],
+                },
+            },
+            {
+                type: 'Feature',
+                properties: { name: 'myLine' },
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                        [0, 0],
+                        [1, 0],
+                        [1, 1],
+                        [0, 1],
+                    ],
+                },
+            },
+        ],
+    };
+
+    beforeEach(() => {
+        mockFormatter = newFreezableMock<D, C, Formatter>((p) => `${p.value}`);
+        mockItemStyler = newFreezableMock<D, C, ItemStyler>();
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
+        prepareEnterpriseTestOptions(opts);
+        chart = AgCharts.create(opts);
+        await waitForChartStability(chart);
+    }
+
+    async function createGauge<O extends AgGaugeOptions>(opts: O): Promise<void> {
+        prepareEnterpriseTestOptions(opts);
+        chart = AgCharts.createGauge(opts);
+        await waitForChartStability(chart);
+    }
+
+    describe('sankey', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: flowData,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'myFrom',
+                        toKey: 'myTo',
+                        sizeKey: 'mySize',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('chord', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: flowData,
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'myFrom',
+                        toKey: 'myTo',
+                        sizeKey: 'mySize',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('pyramid', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'pyramid',
+                        valueKey: 'myValue',
+                        stageKey: 'myCategory',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('funnel', () => {
+        beforeEach(async () => {
+            await createChart<AgCartesianChartOptions<D, C>>({
+                data: basicData,
+                series: [
+                    {
+                        type: 'funnel',
+                        valueKey: 'myValue',
+                        stageKey: 'myCategory',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('map-shape', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [{ myId: 'myPoly', myValue: 10 }],
+                topology: geoJson,
+                series: [
+                    {
+                        type: 'map-shape',
+                        colorKey: 'myValue',
+                        labelKey: 'myId',
+                        idKey: 'myId',
+                        label: {
+                            enabled: true,
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('map-marker', () => {
+        beforeEach(async () => {
+            await createChart({
+                topology: geoJson,
+                data: [{ myId: 'myPoly', myLat: 0.5, myLon: 0.5 }],
+                series: [
+                    {
+                        type: 'map-shape-background',
+                    },
+                    {
+                        type: 'map-marker',
+                        latitudeKey: 'myLat',
+                        longitudeKey: 'myLon',
+                        labelKey: 'myId',
+                        size: 50,
+                        label: {
+                            enabled: true,
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('map-line', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [{ myId: 'myLine', myValue: 10 }],
+                topology: geoJson,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'myId',
+                        labelKey: 'myId',
+                        sizeKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('sunburst', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: hierarchyData,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'myLabel',
+                        sizeKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('treemap', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: hierarchyData,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'myLabel',
+                        sizeKey: 'myValue',
+                        tile: {
+                            label: {
+                                formatter: mockFormatter.frozen,
+                                itemStyler: mockItemStyler.frozen,
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('line', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('area', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('bar', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('range-area', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'myCategory',
+                        yLowKey: 'myValue2',
+                        yHighKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('range-bar', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'myCategory',
+                        yLowKey: 'myValue2',
+                        yHighKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('bubble', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'myValue',
+                        yKey: 'myValue2',
+                        sizeKey: 'mySize',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('donut', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'myValue',
+                        calloutLabelKey: 'myCategory',
+                        calloutLabel: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-bar', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'radial-bar',
+                        angleKey: 'myValue',
+                        radiusKey: 'myValue2',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-column', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'radial-column',
+                        angleKey: 'myCategory',
+                        radiusKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radars', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: basicData,
+                series: [
+                    {
+                        type: 'radar-line',
+                        angleKey: 'myCategory',
+                        radiusKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('radial-gauge', () => {
+        beforeEach(async () => {
+            await createGauge({
+                type: 'radial-gauge',
+                value: 70,
+                label: {
+                    formatter: mockFormatter.frozen,
+                    itemStyler: mockItemStyler.frozen,
+                },
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('linear-gauge', () => {
+        beforeEach(async () => {
+            await createGauge({
+                type: 'linear-gauge',
+                value: 40,
+                label: {
+                    formatter: mockFormatter.frozen,
+                    itemStyler: mockItemStyler.frozen,
+                },
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('waterfall', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myCategory: 'CatA', myValue: 10 },
+                    { myCategory: 'CatB', myValue: -5 },
+                    { myCategory: 'CatC', myValue: 15 },
+                ],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                        item: {
+                            positive: {
+                                label: {
+                                    formatter: mockFormatter.frozen,
+                                    itemStyler: mockItemStyler.frozen,
+                                },
+                            },
+                            negative: {
+                                label: {
+                                    formatter: mockFormatter.frozen,
+                                    itemStyler: mockItemStyler.frozen,
+                                },
+                            },
+                            total: {
+                                label: {
+                                    formatter: mockFormatter.frozen,
+                                    itemStyler: mockItemStyler.frozen,
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
+    describe('histogram', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [{ myValue: 1 }, { myValue: 2 }, { myValue: 3 }, { myValue: 4 }],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'myValue',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
         });
     });
 });
