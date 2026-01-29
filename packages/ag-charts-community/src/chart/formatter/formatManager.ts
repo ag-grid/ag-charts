@@ -37,6 +37,7 @@ type Specifier = Record<AgTimeIntervalUnit, string> | string;
 interface FormatParams {
     specifier?: Record<string, string> | string;
     truncateDate?: 'year' | 'month' | 'day';
+    allowNull?: boolean;
 }
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
@@ -118,9 +119,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     format(
         formatInContext: GlobalContextFormatter,
         params: GlobalContextlessFormatterParams,
-        { specifier, truncateDate }: FormatParams = {}
+        { specifier, truncateDate, allowNull }: FormatParams = {}
     ): string | undefined {
-        if (params.value == null) return;
+        if (params.value == null && !allowNull) return;
 
         const { formatter } = this;
         if (formatter == null) return;
@@ -171,7 +172,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 return formatValue(params.value, params.fractionDigits);
 
             case 'category':
-                if (Array.isArray(params.value)) {
+                if (params.value == null) {
+                    return '';
+                } else if (Array.isArray(params.value)) {
                     return params.value.join(' - ');
                 } else if (typeof params.value === 'string') {
                     return params.value;

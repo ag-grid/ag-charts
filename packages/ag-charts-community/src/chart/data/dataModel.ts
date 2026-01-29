@@ -43,7 +43,14 @@ import { type SortOrder } from './sortOrder';
 
 export * from './dataModelTypes';
 
-export { fixNumericExtent, getMissCount, datumKeys, getPathComponents } from './data-model/utils/helpers';
+export {
+    fixNumericExtent,
+    getMissCount,
+    datumKeys,
+    getPathComponents,
+    NULL_KEY_STRING,
+    UNDEFINED_KEY_STRING,
+} from './data-model/utils/helpers';
 
 /**
  * Transforms raw chart data into a structured, renderable format for series visualization.
