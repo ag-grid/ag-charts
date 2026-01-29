@@ -27,6 +27,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
     deproxy,
     expectWarningsCalls,
     extractImageData,
@@ -305,6 +306,30 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
     }),
+    BAR_NULL_CATEGORY_KEY: {
+        options: examples.BAR_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:', '[null]']],
+    },
+    BAR_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    BAR_UNDEFINED_CATEGORY_KEY: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [BarSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    BAR_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    BAR_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
@@ -2290,6 +2315,120 @@ describe('BarSeries', () => {
             (options.series as any)[0].width = 40;
             await chart.update(options);
             await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Unknown option \`axes.x.paddingInner\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.paddingOuter\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.groupPaddingInner\`, ignoring.",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept null category key in stacked bar when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('nodeClick with null category', () => {
+        it('should fire seriesNodeClick with null xValue datum', async () => {
+            const clicks: Array<Record<string, unknown>> = [];
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 10 },
+                    { x: 'A', y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        allowNullKeys: true,
+                        listeners: {
+                            seriesNodeClick: (event: any) => {
+                                clicks.push(event.datum);
+                            },
+                        },
+                    } as any,
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Click on the first bar (null category) - approximate center
+            await clickAction(130, 300)(chart);
+            await waitForChartStability(chart);
+
+            expect(clicks.length).toBeGreaterThan(0);
+            expect(clicks[0].x).toBeNull();
         });
     });
 });
