@@ -389,46 +389,56 @@ copy_extra_configs() {
     fi
 }
 
-# Check if AGENTS.md had changes before rulesync ran
-# Call this BEFORE running rulesync to detect pre-existing user edits
-check_agents_md_before() {
-    AGENTS_MD_WAS_DIRTY="false"
+# Stash AGENTS.md changes before rulesync runs
+# This preserves user edits that would otherwise be overwritten
+stash_agents_md() {
+    AGENTS_MD_STASH_FILE=""
     local agents_file="$REPO_ROOT/AGENTS.md"
 
     if [[ -f "$agents_file" ]] && git -C "$REPO_ROOT" ls-files --error-unmatch "AGENTS.md" &>/dev/null 2>&1; then
         if ! git -C "$REPO_ROOT" diff --quiet "AGENTS.md" 2>/dev/null; then
-            AGENTS_MD_WAS_DIRTY="true"
+            # AGENTS.md has local changes - stash them
+            AGENTS_MD_STASH_FILE=$(mktemp)
+            git -C "$REPO_ROOT" diff "AGENTS.md" > "$AGENTS_MD_STASH_FILE"
         fi
     fi
 }
 
-# Reset AGENTS.md to remove rulesync noise, but only if it wasn't already dirty
-# This preserves intentional user edits while cleaning up rulesync-generated changes
-reset_agents_md() {
+# Reset AGENTS.md and restore any stashed user changes
+# This removes rulesync noise while preserving intentional user edits
+restore_agents_md() {
     local verbose="$1"
     local agents_file="$REPO_ROOT/AGENTS.md"
 
-    # If AGENTS.md was already dirty before rulesync, don't touch it
-    if [[ "$AGENTS_MD_WAS_DIRTY" == "true" ]]; then
-        if [[ "$verbose" == "true" ]]; then
-            echo -e "${YELLOW}!${NC} AGENTS.md had pre-existing changes, preserving them"
-        fi
-        return 0
-    fi
-
     if [[ -f "$agents_file" ]] && git -C "$REPO_ROOT" ls-files --error-unmatch "AGENTS.md" &>/dev/null 2>&1; then
-        # File is tracked by git - check if rulesync modified it
-        if git -C "$REPO_ROOT" diff --quiet "AGENTS.md" 2>/dev/null; then
-            # No changes - nothing to reset
-            return 0
+        # Reset to HEAD (removes all changes including rulesync noise)
+        if ! git -C "$REPO_ROOT" diff --quiet "AGENTS.md" 2>/dev/null; then
+            git -C "$REPO_ROOT" checkout -- "AGENTS.md" 2>/dev/null || true
         fi
 
-        # Changes are from rulesync only - safe to reset
-        git -C "$REPO_ROOT" checkout -- "AGENTS.md" 2>/dev/null || true
-        if [[ "$verbose" == "true" ]]; then
+        # Restore stashed user changes if any
+        if [[ -n "$AGENTS_MD_STASH_FILE" && -f "$AGENTS_MD_STASH_FILE" && -s "$AGENTS_MD_STASH_FILE" ]]; then
+            if git -C "$REPO_ROOT" apply --check "$AGENTS_MD_STASH_FILE" 2>/dev/null; then
+                git -C "$REPO_ROOT" apply "$AGENTS_MD_STASH_FILE" 2>/dev/null
+                if [[ "$verbose" == "true" ]]; then
+                    echo -e "${GREEN}✓${NC} Restored local AGENTS.md changes"
+                fi
+            else
+                # Patch doesn't apply cleanly - save for manual recovery
+                local backup_file="$REPO_ROOT/.agents-md-stash.patch"
+                cp "$AGENTS_MD_STASH_FILE" "$backup_file"
+                echo -e "${YELLOW}!${NC} Could not cleanly restore AGENTS.md changes"
+                echo -e "${YELLOW}!${NC} Your changes saved to: $backup_file"
+            fi
+            rm -f "$AGENTS_MD_STASH_FILE"
+            AGENTS_MD_STASH_FILE=""
+        elif [[ "$verbose" == "true" ]]; then
             echo -e "${GREEN}✓${NC} Reset AGENTS.md to clean state"
         fi
     fi
+
+    # Cleanup stash file if still exists
+    [[ -n "$AGENTS_MD_STASH_FILE" && -f "$AGENTS_MD_STASH_FILE" ]] && rm -f "$AGENTS_MD_STASH_FILE"
 }
 
 # Get rulesync command - prefer patched versions over npx (which downloads fresh unpatched)
@@ -565,9 +575,9 @@ main() {
     # Setup prompts repository (graceful - doesn't fail on errors)
     setup_prompts_repo || true
 
-    # Check AGENTS.md state before rulesync (to preserve pre-existing user edits)
+    # Stash AGENTS.md changes before rulesync (to preserve user edits)
     if [[ "$postinstall" == "true" ]]; then
-        check_agents_md_before
+        stash_agents_md
     fi
 
     case $mode in
@@ -581,14 +591,14 @@ main() {
             generate_config "*" "$verbose"
             # Reset AGENTS.md in postinstall mode to avoid noise (only if it wasn't already dirty)
             if [[ "$postinstall" == "true" ]]; then
-                reset_agents_md "$verbose"
+                restore_agents_md "$verbose"
             fi
             ;;
         custom)
             generate_config "$custom_targets" "$verbose"
             # Reset AGENTS.md in postinstall mode (only if it wasn't already dirty)
             if [[ "$postinstall" == "true" ]]; then
-                reset_agents_md "$verbose"
+                restore_agents_md "$verbose"
             fi
             ;;
         auto)
@@ -609,7 +619,7 @@ main() {
             generate_config "$detected" "$verbose"
             # Reset AGENTS.md in postinstall mode (only if it wasn't already dirty)
             if [[ "$postinstall" == "true" ]]; then
-                reset_agents_md "$verbose"
+                restore_agents_md "$verbose"
             fi
             ;;
     esac
