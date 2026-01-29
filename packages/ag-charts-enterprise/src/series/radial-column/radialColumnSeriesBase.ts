@@ -166,10 +166,11 @@ export abstract class RadialColumnSeriesBase<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                keyProperty(angleKey, angleScaleType, { id: 'angleValue', allowNullKey }),
                 valueProperty(radiusKey, radiusScaleType, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
@@ -322,7 +323,7 @@ export abstract class RadialColumnSeriesBase<
         for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
-            if (angleDatum == null) return;
+            if (angleDatum === undefined && !this.properties.allowNullKeys) return;
 
             const radiusDatum = radiusRawValues[datumIndex];
             const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
@@ -544,7 +545,7 @@ export abstract class RadialColumnSeriesBase<
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 
-        if (angleValue == null) return;
+        if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false);
         return this.formatTooltipWithContext(
