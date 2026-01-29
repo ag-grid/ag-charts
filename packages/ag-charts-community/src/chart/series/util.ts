@@ -181,7 +181,7 @@ export function findNodeDatumInArray<I extends DatumIndexType, D extends SeriesN
                 }
                 break;
             case 'number':
-                if (node.datumIndex === itemId) {
+                if (typeof node.datumIndex === 'number' && node.datumIndex === itemId) {
                     return node;
                 }
                 break;
