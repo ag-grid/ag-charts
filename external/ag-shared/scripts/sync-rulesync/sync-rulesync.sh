@@ -411,6 +411,12 @@ check_postinstall() {
         return 0
     fi
 
+    # Direct invocation: postinstall:patch contains apply-patches.sh
+    if [[ "$postinstall_script" == *"apply-patches.sh"* ]]; then
+        log_success "package.json postinstall uses apply-patches.sh"
+        return 0
+    fi
+
     # Indirect via npm-run-all: postinstall runs postinstall:* and postinstall:patch exists
     if [[ "$postinstall_script" == *"postinstall:*"* ]]; then
         # Check for direct patch-package in postinstall:patch
