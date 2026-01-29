@@ -922,21 +922,21 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-area', itemId: 1, seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-area', itemId: 4, seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-1' },
+                        activeItem: { type: 'series-area', itemId: 4, seriesId: 'BubbleSeries-1' },
                     });
 
                     await hoverInTopLeft(page);
