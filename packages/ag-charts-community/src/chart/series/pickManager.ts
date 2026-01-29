@@ -82,7 +82,7 @@ export class PickManager implements IPickManager {
     private updateActive(active: PickedNode | undefined): PickedNode | undefined {
         this.active = active;
         if (this.active === undefined) {
-            this.activeManager.update(undefined, undefined);
+            this.activeManager.clear();
         } else {
             const seriesId: string = this.active.series.id;
             const itemId: string | number = getItemId(this.active);
@@ -99,7 +99,7 @@ export class PickManager implements IPickManager {
 
     // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
     onClearUI(): void {
-        this.activeManager.update(undefined, undefined);
+        this.activeManager.clear();
         this.clear();
     }
 

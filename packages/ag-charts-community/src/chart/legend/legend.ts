@@ -1244,7 +1244,7 @@ export class Legend extends BaseProperties {
         const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
             this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
             if (opts === undefined) {
-                this.ctx.activeManager.update(undefined, undefined);
+                this.ctx.activeManager.clear();
             } else {
                 const seriesId = opts.nodeDatum.series.id;
                 const itemId = opts.itemId;

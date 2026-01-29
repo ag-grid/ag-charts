@@ -31,6 +31,10 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         return this.interactionManager.isState(InteractionState.Frozen);
     }
 
+    public clear(): void {
+        this.update(undefined, undefined);
+    }
+
     public update(newItemState: ActiveItem, nodeDatum: DatumArg): void {
         this.performUpdate('user-interaction', newItemState, nodeDatum, false);
     }
