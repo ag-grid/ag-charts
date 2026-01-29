@@ -14,12 +14,14 @@ import {
     type DatumPropertyDefinition,
     type GroupValueProcessorDefinition,
     KEY_SORT_ORDERS,
+    NULL_KEY_STRING,
     type ProcessedData,
     type ProcessedOutputDiff,
     type ProcessorFn,
     type ProcessorOutputPropertyDefinition,
     type PropertyValueProcessorDefinition,
     type ReducerOutputPropertyDefinition,
+    UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
 
@@ -48,7 +50,11 @@ function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
 
-function getValidationFn(scaleType?: ScaleType) {
+function basicDiscreteCheckDatumValidationAllowNull(_value: any) {
+    return true; // Allow both null and undefined when allowNullKey is set
+}
+
+function getValidationFn(scaleType?: ScaleType, allowNullKey?: boolean) {
     switch (scaleType) {
         case 'number':
         case 'log':
@@ -58,7 +64,7 @@ function getValidationFn(scaleType?: ScaleType) {
         case 'color':
             return basicContinuousCheckDatumValidation;
         default:
-            return basicDiscreteCheckDatumValidation;
+            return allowNullKey ? basicDiscreteCheckDatumValidationAllowNull : basicDiscreteCheckDatumValidation;
     }
 }
 
@@ -74,22 +80,24 @@ function getValueType(scaleType?: ScaleType) {
     }
 }
 export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
         valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
+        validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
     return result;
 }
 
 export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'value',
         valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
+        validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
     return result;
@@ -635,13 +643,16 @@ export function diff(
 
             const length = Math.max(previousData.input.count, processedData.input.count);
 
+            // Check if any key definition allows null values
+            const allowNull = processedData.defs.keys.some((def) => def.allowNullKey === true);
+
             for (let i = 0; i < length; i++) {
                 const hasPreviousDatum = i < previousData.input.count;
                 const hasDatum = i < processedData.input.count;
 
-                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
+                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i, allowNull) : undefined;
                 const prevId = prevKeys == null ? '' : createDatumId(...prevKeys);
-                const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
+                const dKeys = hasDatum ? datumKeys(keys, i, allowNull) : undefined;
                 const datumId = dKeys == null ? '' : createDatumId(...dKeys);
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
@@ -691,14 +702,26 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | undefined;
+type KeyType = string | number | boolean | null | undefined;
+
 // FIXME: ReturnType should be `string | number | boolean`
 export function createDatumId(...keys: KeyType[]): any {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
+        // Handle null and undefined distinctly to avoid collision with strings "null" and "undefined"
+        // and to treat them as separate categories
+        if (key === null) return NULL_KEY_STRING;
+        if (key === undefined) return UNDEFINED_KEY_STRING;
         const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
         // Avoid toString if not necessary
         if (isPrimitive) return key;
     }
-    return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+    return keys
+        .map((key) => {
+            const transformed = transformIntegratedCategoryValue(key);
+            if (transformed === null) return NULL_KEY_STRING;
+            if (transformed === undefined) return UNDEFINED_KEY_STRING;
+            return transformed;
+        })
+        .join('___');
 }

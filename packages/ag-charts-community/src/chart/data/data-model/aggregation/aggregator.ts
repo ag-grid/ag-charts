@@ -46,6 +46,8 @@ export class Aggregator<D extends object, K extends keyof D & string> {
         const onlyScope = first(dataSources.keys());
         const keys = processedData.keys.map((k) => k.get(onlyScope));
         const rawData = dataSources.get(onlyScope)?.data ?? [];
+        // Check if any key definition allows null values
+        const allowNull = this.ctx.keys.some((keyDef) => keyDef.allowNullKey === true);
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [number, number][] = [];
 
@@ -53,7 +55,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
                 const indices = this.valueGroupIdxLookup(def);
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
                 const valuesToAgg = indices.map((columnIndex) => columns[columnIndex][datumIndex] as D[K]);
-                const k = datumKeys(keys, datumIndex);
+                const k = datumKeys(keys, datumIndex, allowNull);
                 const valuesAgg = k == null ? undefined : def.aggregateFunction(valuesToAgg, k);
                 if (valuesAgg) {
                     groupAggValues =

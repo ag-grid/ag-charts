@@ -55,10 +55,9 @@ function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is Te
  * Only null, undefined, NaN, and Infinity are considered missing.
  * Strings, Dates, and other non-numeric values are valid for category/time axes.
  */
-export function isTooltipValueMissing(value: any): boolean {
-    if (value == null) return true;
-    if (typeof value === 'number' && !Number.isFinite(value)) return true;
-    return false;
+export function isTooltipValueMissing(value: any, allowNull: boolean = false): boolean {
+    if (value == null) return !allowNull;
+    return typeof value === 'number' && !Number.isFinite(value);
 }
 
 /**

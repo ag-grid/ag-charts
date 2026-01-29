@@ -189,7 +189,7 @@ export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianS
 }
 
 function predictGroupedCategoryAxisType(value: unknown) {
-    if (isArray(value) && value.every(isString)) {
+    if (isArray(value) && value.every((v) => isString(v) || v == null)) {
         return CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY;
     }
 }
