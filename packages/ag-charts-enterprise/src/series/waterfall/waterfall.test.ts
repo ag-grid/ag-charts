@@ -607,4 +607,165 @@ describe('WaterfallSeries', () => {
             await compare();
         });
     });
+
+    describe('null category key', () => {
+        const WATERFALL_NULL_CATEGORY_KEY_DATA = [
+            { year: '2020', spending: 10 },
+            { year: null, spending: 20 },
+            { year: '2022', spending: -15 },
+        ];
+
+        const WATERFALL_NULL_CATEGORY_KEY_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [WaterfallSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const WATERFALL_UNDEFINED_CATEGORY_KEY_DATA = [
+            { year: '2020', spending: 10 },
+            { year: undefined, spending: 20 },
+            { year: '2022', spending: -15 },
+        ];
+
+        const WATERFALL_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { year: '2020', spending: 10 },
+            { year: null, spending: 15 },
+            { year: undefined, spending: 5 },
+            { year: '2023', spending: -10 },
+        ];
+
+        const WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        const WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [WaterfallSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
 });

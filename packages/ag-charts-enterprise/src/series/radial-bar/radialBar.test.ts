@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     newFreezableMock,
@@ -714,6 +715,155 @@ describe('RadialBarSeries', () => {
                     { type: 'radial-bar', radiusKey: 'x', angleKey: 's3', angleName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('null category key', () => {
+        const RADIAL_BAR_NULL_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RadialBarSeries-1 / radiusValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const RADIAL_BAR_UNDEFINED_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: undefined, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: undefined, value: 25 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        const RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RadialBarSeries-1 / radiusValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });
