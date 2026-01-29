@@ -23,6 +23,7 @@ import {
 } from 'ag-charts-community';
 import {
     type MockAPICallback,
+    MockActiveChangeListener,
     type MockAnnotationsListener,
     type MockChartClickListener,
     type MockChartDblClickListener,
@@ -38,14 +39,16 @@ import {
     type MockZoomListener,
     clickAction,
     contextMenuAction,
+    deproxy,
     doubleClickAction,
+    hoverAction,
     newFreezableMock,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions, AgDataSourceCallbackParams } from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgCartesianChartOptions, AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 
@@ -1280,4 +1283,184 @@ describe('AG-15850 labels', () => {
             expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
         });
     });
+});
+
+describe('AG-15850 activeChange', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    type D = unknown;
+    type C = unknown;
+    type M = MockActiveChangeListener<D, C>;
+
+    let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
+    let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
+
+    beforeEach(() => {
+        mockActiveChange = newFreezableMock<D, C, M>();
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
+        prepareEnterpriseTestOptions(opts);
+        chart = AgCharts.create(opts);
+        await waitForChartStability(chart);
+    }
+
+    async function hover(x: number, y: number): Promise<void> {
+        await hoverAction(x, y)(deproxy(chart));
+    }
+
+    function popCalls(): AgActiveChangeEvent<D, C>[][] {
+        const calls = mockActiveChange.mock.mock.calls;
+        mockActiveChange.mock.mockClear();
+        return calls;
+    }
+
+    describe('line', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myCategory: 'CatA', myValue: 10, myValue2: 7 },
+                    { myCategory: 'CatB', myValue: 20, myValue2: 14 },
+                    { myCategory: 'CatC', myValue: 12, myValue2: 5 },
+                    { myCategory: 'CatD', myValue: 15, myValue2: 11 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'myCategory',
+                        yKey: 'myValue2',
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        afterEach;
+
+        test('mouse', async () => {
+            // hover on a datum in the series area
+            await hover(71, 197);
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        activeItem: {
+                            itemId: 0,
+                            seriesId: 'LineSeries-1',
+                            type: 'series-area',
+                        },
+                        datum: {
+                            myCategory: 'CatA',
+                            myValue: 10,
+                            myValue2: 7,
+                        },
+                        frozen: false,
+                        source: 'user-interaction',
+                        type: 'activeChange',
+                    },
+                ],
+            ]);
+
+            // hover on another datum in the series area
+            await hover(546, 436);
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        activeItem: {
+                            itemId: 2,
+                            seriesId: 'LineSeries-2',
+                            type: 'series-area',
+                        },
+                        datum: {
+                            myCategory: 'CatC',
+                            myValue: 12,
+                            myValue2: 5,
+                        },
+                        frozen: false,
+                        source: 'user-interaction',
+                        type: 'activeChange',
+                    },
+                ],
+            ]);
+
+            // hover on a legend item
+            await hover(472, 571);
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        activeItem: undefined,
+                        datum: undefined,
+                        frozen: false,
+                        source: 'user-interaction',
+                        type: 'activeChange',
+                    },
+                ],
+                [
+                    {
+                        activeItem: {
+                            itemId: 'myValue2',
+                            seriesId: 'LineSeries-2',
+                            type: 'legend',
+                        },
+                        datum: undefined,
+                        frozen: false,
+                        source: 'user-interaction',
+                        type: 'activeChange',
+                    },
+                ],
+            ]);
+
+            // hover nowhere (miss)
+            await hover(166, 560);
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        activeItem: undefined,
+                        datum: undefined,
+                        frozen: false,
+                        source: 'user-interaction',
+                        type: 'activeChange',
+                    },
+                ],
+            ]);
+        });
+    });
+
+    // TODO add tests for other series:
+    //   * sankey
+    //   * chord
+    //   * pyramid
+    //   * funnel
+    //   * map-shape
+    //   * map-marker
+    //   * map-line
+    //   * sunburst
+    //   * treemap
+    //   * line
+    //   * area
+    //   * bar
+    //   * range-area
+    //   * range-bar
+    //   * bubble
+    //   * donut
+    //   * radial-bar
+    //   * radial-column
+    //   * radars
+    //   * radial-gauge
+    //   * linear-gauge
+    //   * waterfall
+    //   * histogram
 });
