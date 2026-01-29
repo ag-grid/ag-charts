@@ -2,6 +2,7 @@ import type {
     AxisID,
     ChartAnimationPhase,
     ChartAxisDirection,
+    ChartUpdateType,
     DomainWithMetadata,
     Padding,
     Scale,
@@ -115,6 +116,7 @@ export interface ChartAxis {
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap;
+    getUpdateTypeOnResize(): ChartUpdateType;
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;

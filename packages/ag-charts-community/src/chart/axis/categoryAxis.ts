@@ -1,5 +1,5 @@
 import type { DomainWithMetadata } from 'ag-charts-core';
-import { ActionOnSet, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -69,6 +69,13 @@ export class CategoryAxis<
 
     override normaliseDataDomain(d: DomainWithMetadata<string | object>) {
         return { domain: d.domain, clipped: false };
+    }
+
+    override getUpdateTypeOnResize(): ChartUpdateType {
+        if (this.bandAlignment == null || this.bandAlignment === 'justify') {
+            return super.getUpdateTypeOnResize();
+        }
+        return ChartUpdateType.PROCESS_DOMAIN;
     }
 
     protected override updateScale() {

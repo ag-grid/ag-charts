@@ -1,13 +1,19 @@
-import type { AxisID, ChartAnimationPhase, DomainWithMetadata, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    Callback,
+    CallbackParam,
+    ChartAnimationPhase,
+    DomainWithMetadata,
+    Point,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import {
-    type Callback,
-    type CallbackParam,
     ChartAxisDirection,
+    ChartUpdateType,
     CleanupRegistry,
     ObserveChanges,
-    type Point,
     Property,
-    type RequireOptional,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -1019,6 +1025,10 @@ export abstract class Axis<
 
     getModuleMap() {
         return this.moduleMap;
+    }
+
+    getUpdateTypeOnResize() {
+        return ChartUpdateType.PERFORM_LAYOUT;
     }
 
     createModuleContext(): ModuleContextWithParent<AxisContext> {
