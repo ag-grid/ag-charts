@@ -8,7 +8,7 @@ import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
 type ActiveItem = AgActiveItemState | undefined;
-type ActiveChangeEvent = Omit<AgActiveChangeEvent<unknown>, 'context'>;
+type ActiveChangeEvent = Omit<AgActiveChangeEvent<unknown, unknown>, 'context'>;
 
 /**
  * This class implements the (de-)serialisation of `AgChartState['active']`.
