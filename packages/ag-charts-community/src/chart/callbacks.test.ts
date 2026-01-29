@@ -467,6 +467,105 @@ describe('AG-15283 context precedence', () => {
     });
 });
 
+describe('AG-16613 null category callbacks', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const nullCategoryData = [
+        { quarter: null, Toyota: 120000 },
+        { quarter: 'q2', Toyota: 150000 },
+        { quarter: 'q3', Toyota: 170000 },
+    ];
+
+    test('tooltipRenderer receives null xValue', async () => {
+        const tooltipRenderer = jest.fn(() => '');
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                    tooltip: { renderer: tooltipRenderer },
+                } as any,
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        // Hover over the first bar (null category)
+        await hoverAction(130, 300)(chart);
+        await waitForChartStability(chart);
+
+        expect(tooltipRenderer).toHaveBeenCalled();
+        const callWithNullDatum = tooltipRenderer.mock.calls.find((c: any[]) => c[0]?.datum?.quarter === null);
+        expect(callWithNullDatum).toBeDefined();
+    });
+
+    test('itemStyler receives null datum', async () => {
+        const itemStyler = jest.fn(() => undefined);
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                    itemStyler,
+                } as any,
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        expect(itemStyler).toHaveBeenCalled();
+        const callWithNullDatum = itemStyler.mock.calls.find((c: any[]) => c[0]?.datum?.quarter === null);
+        expect(callWithNullDatum).toBeDefined();
+    });
+
+    test('axisLabelFormatter called with value: null', async () => {
+        const axisLabelFormatter = jest.fn();
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                } as any,
+            ],
+            axes: {
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    label: { formatter: axisLabelFormatter },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        expect(axisLabelFormatter).toHaveBeenCalled();
+        const callWithNull = axisLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+        expect(callWithNull).toBeDefined();
+    });
+});
+
 describe('callback cache', () => {
     let chart: AgChartInstance;
     setupMockConsole();
