@@ -109,7 +109,7 @@ export interface EventsHubMap {
 export interface ActiveLoadMementoEvent {
     readonly activeItem: Readonly<AgActiveItemState> | undefined;
     reject(): void;
-    setDatum(nodeDatum: SeriesNodeDatum<DatumIndexType>): void;
+    setDatum(nodeDatum: SeriesNodeDatum<DatumIndexType> | undefined): void;
 }
 
 interface AnnotationsRestoreEvent {

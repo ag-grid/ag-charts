@@ -1121,7 +1121,8 @@ export class SeriesAreaManager extends BaseManager {
             event.reject();
             this.onActiveClear();
         } else {
-            this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+            const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+            event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
             this.hoverScheduler.schedule();
         }

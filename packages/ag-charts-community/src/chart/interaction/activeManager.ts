@@ -108,7 +108,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const reject = () => (rejection = true);
 
         let nodeDatum: DatumArg = undefined;
-        const setDatum = (seriesNodeDatum: SeriesNodeDatum<DatumIndexType>) => (nodeDatum = seriesNodeDatum);
+        const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
         this.eventsHub.emit('active:load-memento', { activeItem, reject, setDatum });
         return rejection ? [undefined, undefined] : [activeItem, nodeDatum];

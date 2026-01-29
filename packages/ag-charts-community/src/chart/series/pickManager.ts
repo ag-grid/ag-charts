@@ -52,7 +52,7 @@ export interface IPickManager {
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
     onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void;
-    onPickedNodesAPI(pickedNodes: PickedNodes): void;
+    onPickedNodesAPI(pickedNodes: PickedNodes): PickedNode | undefined;
     onPickedNodesAPIDebounced(): TooltipCandidate;
 
     onClearUI(): void;
@@ -149,8 +149,9 @@ export class PickManager implements IPickManager {
         }
     }
 
-    onPickedNodesAPI(debouncedPickedNodes: PickedNodes): void {
+    onPickedNodesAPI(debouncedPickedNodes: PickedNodes): PickedNode | undefined {
         this.pendingPickedNodes = debouncedPickedNodes;
+        return debouncedPickedNodes.matches[0];
     }
 
     onPickedNodesAPIDebounced(): TooltipCandidate {
