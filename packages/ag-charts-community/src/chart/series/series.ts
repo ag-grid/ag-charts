@@ -26,6 +26,7 @@ import {
     without,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLabelFormatterParams,
     AgColorType,
     AgDrawingMode,
@@ -72,7 +73,6 @@ import type {
     DatumIndexType,
     INodeEvent,
     ISeries,
-    ItemId,
     NodeDataDependencies,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
@@ -662,7 +662,7 @@ export abstract class Series<
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
 
-    abstract findNodeDatum(itemId: ItemId): TDatum | undefined;
+    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): TDatum | undefined;
 
     toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
         const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};

@@ -1,6 +1,6 @@
 import type { ChartAnimationPhase } from 'ag-charts-core';
 import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
-import type { FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -308,7 +308,7 @@ export abstract class HierarchySeries<
         }
     }
 
-    override findNodeDatum(itemId: ItemId): TNodeClass | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TNodeClass | undefined {
         return this.rootNode?.find((n) => n.itemId === itemId);
     }
 
