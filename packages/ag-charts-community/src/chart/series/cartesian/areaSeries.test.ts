@@ -39,6 +39,7 @@ import {
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
@@ -296,6 +297,30 @@ const EXAMPLES: Record<
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
+    },
+    AREA_NULL_CATEGORY_KEY: {
+        options: examples.AREA_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
+    },
+    AREA_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    AREA_UNDEFINED_CATEGORY_KEY: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [AreaSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    AREA_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    AREA_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
     },
 };
 
@@ -2159,6 +2184,59 @@ describe('AreaSeries', () => {
                     { type: 'area', xKey: 'x', yKey: 's3', yName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });

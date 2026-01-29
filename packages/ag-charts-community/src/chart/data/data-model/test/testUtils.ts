@@ -32,6 +32,15 @@ export const categoryKey = (property: string, scopes = ['test']) => ({
     valueType: 'category' as const,
 });
 
+export const categoryKeyAllowNull = (property: string, scopes = ['test']) => ({
+    scopes,
+    property,
+    type: 'key' as const,
+    valueType: 'category' as const,
+    allowNullKey: true,
+    validation: (v: any) => v !== undefined,
+});
+
 export const scopedValue = (scope: string[] | string, property: string, groupId?: string, id?: string) => {
     let scopes: string[];
     if (Array.isArray(scope)) {
