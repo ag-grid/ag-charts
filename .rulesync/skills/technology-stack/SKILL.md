@@ -1,8 +1,7 @@
 ---
-root: false
 targets: ['*']
-description: 'Technology stack and architectural constraints for AG Charts'
-globs: ['**/*']
+name: technology-stack
+description: 'Technology stack and architectural constraints. Use when choosing technologies, adding dependencies, or understanding zero-dependency requirements.'
 ---
 
 # AG Charts Technology Stack

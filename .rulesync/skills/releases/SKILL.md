@@ -1,8 +1,7 @@
 ---
-root: false
 targets: ['*']
-description: 'Release conventions and guidelines for AG Charts'
-globs: ['**/*']
+name: releases
+description: 'Release conventions and guidelines. Use when preparing releases, naming branches, or understanding release constraints.'
 ---
 
 # Releases Guide

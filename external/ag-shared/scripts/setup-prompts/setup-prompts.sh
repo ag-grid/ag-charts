@@ -389,6 +389,26 @@ copy_extra_configs() {
     fi
 }
 
+# Reset AGENTS.md to remove any noise from rulesync
+# Most users don't need to see rulesync changes to AGENTS.md
+reset_agents_md() {
+    local verbose="$1"
+    local agents_file="$REPO_ROOT/AGENTS.md"
+
+    if [[ -f "$agents_file" ]] && git -C "$REPO_ROOT" ls-files --error-unmatch "AGENTS.md" &>/dev/null; then
+        # File is tracked by git - reset it
+        if git -C "$REPO_ROOT" diff --quiet "AGENTS.md" 2>/dev/null; then
+            # No changes - nothing to reset
+            return 0
+        fi
+
+        git -C "$REPO_ROOT" checkout -- "AGENTS.md" 2>/dev/null || true
+        if [[ "$verbose" == "true" ]]; then
+            echo -e "${GREEN}✓${NC} Reset AGENTS.md to clean state"
+        fi
+    fi
+}
+
 # Get rulesync command - prefer patched versions over npx (which downloads fresh unpatched)
 # Priority: RULESYNC_BIN env var > local node_modules > npx fallback
 get_rulesync_cmd() {
@@ -480,6 +500,7 @@ main() {
     local mode="auto"
     local custom_targets=""
     local verbose="false"
+    local postinstall="false"
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -499,6 +520,12 @@ main() {
                 ;;
             --verbose|-v)
                 verbose="true"
+                shift
+                ;;
+            --postinstall)
+                # When run via postinstall, reset AGENTS.md after rulesync
+                # to avoid confusing noise for most users
+                postinstall="true"
                 shift
                 ;;
             --help|-h)
@@ -525,9 +552,17 @@ main() {
                 echo -e "${BLUE}Generating for all supported tools...${NC}"
             fi
             generate_config "*" "$verbose"
+            # Reset AGENTS.md in postinstall mode to avoid noise
+            if [[ "$postinstall" == "true" ]]; then
+                reset_agents_md "$verbose"
+            fi
             ;;
         custom)
             generate_config "$custom_targets" "$verbose"
+            # Reset AGENTS.md in postinstall mode to avoid noise
+            if [[ "$postinstall" == "true" ]]; then
+                reset_agents_md "$verbose"
+            fi
             ;;
         auto)
             local detected
@@ -545,6 +580,10 @@ main() {
             fi
 
             generate_config "$detected" "$verbose"
+            # Reset AGENTS.md in postinstall mode to avoid noise
+            if [[ "$postinstall" == "true" ]]; then
+                reset_agents_md "$verbose"
+            fi
             ;;
     esac
 }

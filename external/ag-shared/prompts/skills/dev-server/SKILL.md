@@ -1,8 +1,7 @@
 ---
-root: false
 targets: ['*']
-description: 'Development server setup and build watch monitoring'
-globs: ['**/*']
+name: dev-server
+description: 'Development server setup and build watch monitoring. Use when starting dev work, checking build status, or troubleshooting the dev server.'
 ---
 
 # Development Server Guide
