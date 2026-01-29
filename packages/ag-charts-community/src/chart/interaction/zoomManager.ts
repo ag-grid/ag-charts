@@ -3,6 +3,7 @@ import {
     Logger,
     ScaleAlignment,
     attachDescription,
+    clamp,
     deepClone,
     deepFreeze,
     defined,
@@ -616,8 +617,24 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const crossAxisZoom = this.getAxisZoom(crossAxisId);
         const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
-        const min = Math.max(0, Math.min(1 - requiredZoom, crossAxisZoom.min));
-        const max = min + requiredZoom;
+        let min = 0;
+        let max = 1;
+
+        // For vertical bars, pin to the left and extend right until the right reaches max, then extend left.
+        // For horizontal bars, pin to the top and extend down until the bottom reaches max, then extend up.
+        if (requiredRangeDirection === ChartAxisDirection.X) {
+            min = clamp(0, 1 - requiredZoom, crossAxisZoom.min);
+            max = clamp(0, min + requiredZoom, 1);
+        } else {
+            max = Math.min(1, crossAxisZoom.max);
+            min = max - requiredZoom;
+            if (min < 0) {
+                max -= min;
+                min = 0;
+            }
+            min = clamp(0, min, 1);
+            max = clamp(0, max, 1);
+        }
 
         this.lastRestoredRequiredRange = requiredRangeRatio;
         this.lastRestoredRequiredRangeDirection = requiredRangeDirection;
