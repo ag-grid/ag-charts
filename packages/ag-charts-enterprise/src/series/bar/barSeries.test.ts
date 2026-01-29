@@ -78,6 +78,12 @@ describe('BarSeries', () => {
             { quarter: "Q3'18", iphone: 12, mac: 20, ipad: 18, wearables: 14 },
             { quarter: "Q4'18", iphone: 18, mac: 24, ipad: 14, wearables: 14 },
         ];
+        const timeData = [
+            { quarter: new Date(2018, 0), iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: new Date(2018, 3), iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: new Date(2018, 6), iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: new Date(2018, 9), iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
 
         const zeroPadding = {
             paddingInner: 0,
@@ -161,7 +167,46 @@ describe('BarSeries', () => {
 
             it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
                 const options: AgCartesianChartOptions = {
-                    data: data,
+                    data,
+                    series: seriesOptions,
+                    axes: {
+                        x: axisOptions,
+                    },
+                    scrollbar: { enabled: true },
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+
+        describe('time axes', () => {
+            const cases: [string, any, any][] = [
+                [
+                    'unit-time',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                    ],
+                    { type: 'unit-time', bandAlignment: 'start' },
+                ],
+                [
+                    'ordinal-time',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                    ],
+                    { type: 'ordinal-time', bandAlignment: 'start' },
+                ],
+            ];
+
+            it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+                const options: AgCartesianChartOptions = {
+                    data: timeData,
                     series: seriesOptions,
                     axes: {
                         x: axisOptions,
