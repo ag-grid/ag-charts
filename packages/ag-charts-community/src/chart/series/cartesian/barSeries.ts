@@ -307,8 +307,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any>[] = [
-            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
         ];
 
@@ -587,7 +588,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         const xValue = ctx.xValues[datumIndex];
-        if (xValue == null) {
+        if (xValue === undefined && !this.properties.allowNullKeys) {
             return undefined;
         }
 
@@ -1490,6 +1491,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
+        const allowNullKeys = properties.allowNullKeys ?? false;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1499,13 +1501,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
         const format = this.getItemStyle(datumIndex, false);
 
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
