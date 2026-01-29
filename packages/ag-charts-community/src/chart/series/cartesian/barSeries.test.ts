@@ -2329,6 +2329,15 @@ describe('BarSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - Unknown option \`axes.x.paddingInner\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.paddingOuter\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.groupPaddingInner\`, ignoring.",
+  ],
+  [
     "AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:",
     "[null]",
   ],
