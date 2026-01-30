@@ -1414,7 +1414,9 @@ describe('AG-15850 activeChange', () => {
 
         test('setState legend itemId not found', async () => {
             await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'LineSeries-2' });
-            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "myValue22"']]);
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"LineSeries-2","itemId":"myValue22"}'],
+            ]);
             expect(popCalls()).toEqual([]);
         });
 
