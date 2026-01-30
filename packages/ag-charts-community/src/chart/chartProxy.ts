@@ -7,7 +7,6 @@ import {
     type LicenseManager,
     ModuleRegistry,
     deepClone,
-    getDocument,
 } from 'ag-charts-core';
 import type {
     AgChartInstance,
@@ -254,9 +253,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
 
+        const agDocument = chart.ctx.domManager.getDocument();
+        if (!agDocument) {
+            throw new Error('AG Charts - unable to resolve document');
+        }
+
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
-            container: getDocument().createElement('div'),
+            container: agDocument.createElement('div'),
             width,
             height,
         };
