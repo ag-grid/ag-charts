@@ -41,6 +41,7 @@ import {
     contextMenuAction,
     deproxy,
     doubleClickAction,
+    expectWarningsCalls,
     hoverAction,
     newFreezableMock,
     scrollAction,
@@ -1391,6 +1392,41 @@ describe('AG-15850 activeChange', () => {
 
             await setActiveItem(undefined);
             expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'LineSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'LineSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 'myValue', seriesId: 'LineSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 'myValue22', seriesId: 'LineSeries-2' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "myValue22"']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState validation failure', async () => {
+            await setActiveItem('invalid AgActiveItemState test' as unknown as AgActiveItemState);
+            expectWarningsCalls().toEqual([
+                [
+                    'AG Charts - Could not restore [active] data, value was invalid, ignoring.\n\nOption `activeItem` cannot be set to `"invalid AgActiveItemState test"`; expecting an object, ignoring.\n\n',
+                    { activeItem: 'invalid AgActiveItemState test', frozen: false },
+                ],
+            ]);
+            expect(popCalls()).toEqual([]);
         });
     });
 
