@@ -259,7 +259,7 @@ export class DOMManager extends BaseManager {
 
     private updateStylesLocation() {
         // Check if we transitioned from disconnected to connected
-        if (this.initiallyConnected === true || this.container?.isConnected === false) return;
+        if (this.initiallyConnected || this.container?.isConnected === false) return;
 
         this.documentRoot = this.getShadowDocumentRoot(this.container);
         this.initiallyConnected = true;
@@ -576,14 +576,14 @@ export class DOMManager extends BaseManager {
             const headElement = this.document.head ?? this.document.ownerDocument.head;
             if (headElement == null) return;
             const headSelector = `style[data-ag-charts="${id}"]`;
-            const existingStyle = headElement.querySelector(headSelector) as HTMLElement | null;
+            const existingStyle = headElement.querySelector(headSelector);
             if (existingStyle) {
-                styleElement = existingStyle;
+                styleElement = existingStyle as HTMLElement | undefined;
             } else {
                 styleElement = addStyleElement(headElement);
             }
             headStyles.add(id);
-        } else if (this.documentRoot != null) {
+        } else if (this.documentRoot) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
         }

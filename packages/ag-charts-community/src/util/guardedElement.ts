@@ -68,7 +68,7 @@ export class GuardedElement {
     }
 
     private static resolveWindow(element: Document | Element): Window | undefined {
-        const document = 'defaultView' in element ? (element as Document) : element.ownerDocument;
+        const document = 'defaultView' in element ? element : element.ownerDocument;
         return document?.defaultView ?? undefined;
     }
 

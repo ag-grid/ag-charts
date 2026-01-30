@@ -17,7 +17,7 @@ export class MouseDragger {
         downEvent: MouseEvent
     ) {
         const resolvedWindow =
-            (downEvent.view as Window | null) ??
+            downEvent.view ??
             (isHTMLElement(downEvent.target) ? downEvent.target.ownerDocument.defaultView : undefined);
         if (!resolvedWindow) {
             throw new Error('AG Charts - unable to resolve window');

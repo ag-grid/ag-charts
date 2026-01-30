@@ -132,11 +132,11 @@ test.describe('document switching', () => {
         });
 
         await page.evaluate(async () => {
-            const popup = (window as any).agE2EPopup as Window | null;
-            if (!popup) {
+            const pagePopup = (window as any).agE2EPopup as Window | null;
+            if (!pagePopup) {
                 throw new Error('Popup window not available.');
             }
-            const container = popup.document.getElementById('ag-e2e-popup-container-3');
+            const container = pagePopup.document.getElementById('ag-e2e-popup-container-3');
             if (!container) {
                 throw new Error('Popup container not found.');
             }
