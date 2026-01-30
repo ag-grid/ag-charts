@@ -1,4 +1,10 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgActiveItemState,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type {
     ChartAnimationPhase,
     ChartAxisDirection,
@@ -349,7 +355,7 @@ export abstract class FlowProportionSeries<
         this.processedNodes = processedNodes;
     }
 
-    override findNodeDatum(itemId: _ModuleSupport.ItemId): TDatum<TNodeDatum, TLinkDatum> | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {
         return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 

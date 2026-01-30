@@ -1,4 +1,5 @@
 import {
+    type AgActiveItemState,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
@@ -775,7 +776,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    override findNodeDatum(itemId: _ModuleSupport.ItemId): LinearGaugeNodeDatum | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): LinearGaugeNodeDatum | undefined {
         return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 

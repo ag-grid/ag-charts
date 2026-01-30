@@ -325,7 +325,7 @@ export class MapLineSeries
 
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
-        const { idKey, label, legendItemName, colorKey } = properties;
+        const { label, legendItemName, colorKey } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -381,7 +381,6 @@ export class MapLineSeries
 
             nodeData.push({
                 series: this,
-                itemId: idKey,
                 datum,
                 datumIndex,
                 ...dataValues,

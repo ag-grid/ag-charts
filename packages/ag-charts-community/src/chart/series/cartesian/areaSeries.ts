@@ -1035,7 +1035,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             } else {
                 ctx.nodes.push({
                     series: this,
-                    itemId: ctx.yKey,
                     datum: scratch.datum,
                     datumIndex,
                     midPoint: { x: scratch.x, y: scratch.y },
@@ -1076,7 +1075,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             ctx.labelData.push({
                 series: this,
-                itemId: ctx.yKey,
                 datum: scratch.datum,
                 datumIndex,
                 x: scratch.x,

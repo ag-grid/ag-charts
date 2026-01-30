@@ -1,4 +1,5 @@
 import {
+    type AgActiveItemState,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeOptions,
     type AgRadialGaugeTargetPlacement,
@@ -773,7 +774,7 @@ export class RadialGaugeSeries
         };
     }
 
-    override findNodeDatum(itemId: _ModuleSupport.ItemId): RadialGaugeNodeDatum | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): RadialGaugeNodeDatum | undefined {
         return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 

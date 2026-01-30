@@ -28,7 +28,6 @@ export type AreaStrokePathDatum = {
 };
 
 export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
-    readonly itemId: string;
     readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: Readonly<SizedPoint>;
@@ -42,7 +41,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
-    readonly itemId: string;
+    readonly itemId?: never;
     readonly labelText: TextOrSegments;
 }
 

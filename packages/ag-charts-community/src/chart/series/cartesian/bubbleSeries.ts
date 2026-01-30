@@ -112,7 +112,6 @@ class BubbleScatterSeriesNodeEvent<
 }
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly itemId: string;
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -800,7 +799,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     ): BubbleScatterNodeDatum {
         return {
             series: this,
-            itemId: ctx.yKey,
             yKey: ctx.yKey,
             xKey: ctx.xKey,
             datum: undefined,
@@ -999,9 +997,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     private updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum
-                ? (highlightedDatum as BubbleScatterNodeDatum)
-                : undefined;
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         const highlightLabelData =
             highlightItem == null

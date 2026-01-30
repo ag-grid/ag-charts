@@ -155,7 +155,6 @@ interface LabelUpdateParams {
 
 interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>, Readonly<Point> {
     readonly index: number;
-    readonly itemId: RangeBarItemId;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly yLowValue: number;
@@ -457,16 +456,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     /**
      * Creates a minimal skeleton node - actual values set by updateNodeDatum.
      */
-    private createSkeletonNodeDatum(
-        ctx: RangeBarSeriesNodeDatumContext,
-        params: NodeDatumParams,
-        itemId: RangeBarItemId
-    ): RangeBarNodeDatum {
+    private createSkeletonNodeDatum(ctx: RangeBarSeriesNodeDatumContext, params: NodeDatumParams): RangeBarNodeDatum {
         const scratch = params.nodeDatumScratch;
         return {
             index: params.groupedDataIndex,
             series: this,
-            itemId,
             datum: scratch.datum,
             datumIndex: params.datumIndex,
             xValue: scratch.xValue,
@@ -491,13 +485,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     private createNodeDatum(
         ctx: RangeBarSeriesNodeDatumContext,
         params: NodeDatumParams,
-        itemId: RangeBarItemId,
+        _itemId: RangeBarItemId,
         strokeWidth: number
     ): RangeBarNodeDatum | undefined {
         const prepared = this.prepareNodeDatumState(ctx, params.nodeDatumScratch, params.datumIndex);
         if (!prepared) return undefined;
 
-        const nodeData = this.createSkeletonNodeDatum(ctx, params, itemId);
+        const nodeData = this.createSkeletonNodeDatum(ctx, params);
         this.updateNodeDatum(ctx, nodeData, params, strokeWidth, prepared);
 
         return nodeData;

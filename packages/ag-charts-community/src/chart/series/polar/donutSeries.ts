@@ -108,7 +108,6 @@ interface PieDonutLabelDatum {
 }
 
 interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
-    readonly itemId: number;
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
     readonly outerRadius: number;
@@ -500,7 +499,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
 
             const node = {
-                itemId: datumIndex,
                 series: this,
                 datum,
                 datumIndex,
@@ -1093,12 +1091,12 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
 
-            node.visible = datum.itemId === highlightedDatum?.itemId;
+            node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
         this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
 
-            node.visible = datum.itemId === highlightedDatum?.itemId;
+            node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
 
         this.updateCalloutLineNodes();

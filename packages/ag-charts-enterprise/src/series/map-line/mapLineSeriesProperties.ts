@@ -18,7 +18,6 @@ export interface MapLineNodeLabelDatum extends PointLabelDatum {
 }
 
 export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
-    readonly itemId: string;
     readonly idValue: string;
     readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
