@@ -1253,7 +1253,7 @@ export class Legend extends BaseProperties {
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
-            if (this.ctx.interactionManager.isState(InteractionState.Default)) {
+            if (this.ctx.interactionManager.isState(InteractionState.Default) || opts === undefined) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
                 // Updating the highlight can interrupt animations, so only clear the highlight if the chart
