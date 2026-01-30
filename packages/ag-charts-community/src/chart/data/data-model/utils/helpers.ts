@@ -12,19 +12,27 @@ export const NULL_KEY_STRING = '\0__AG_NULL__\0';
 export const UNDEFINED_KEY_STRING = '\0__AG_UNDEFINED__\0';
 
 /**
+ * Converts a single key to its string representation.
+ * Arrays are recursively processed to preserve null/undefined distinction within elements.
+ */
+function keyToString(key: unknown): string {
+    if (key === null) return NULL_KEY_STRING;
+    if (key === undefined) return UNDEFINED_KEY_STRING;
+    if (Array.isArray(key)) {
+        return '[' + key.map(keyToString).join(',') + ']';
+    }
+    return isObject(key) ? JSON.stringify(key) : String(key);
+}
+
+/**
  * Converts an array of keys to a string representation.
  * Objects are JSON-stringified, other values are joined with '-'.
  * Null and undefined values use distinct sentinel strings to avoid collision with each other
  * and with the literal strings "null" and "undefined".
+ * Arrays are recursively processed to preserve null/undefined distinction within elements.
  */
 export function toKeyString(keys: any[]): string {
-    return keys
-        .map((key) => {
-            if (key === null) return NULL_KEY_STRING;
-            if (key === undefined) return UNDEFINED_KEY_STRING;
-            return isObject(key) ? JSON.stringify(key) : key;
-        })
-        .join('-');
+    return keys.map(keyToString).join('-');
 }
 
 /**
