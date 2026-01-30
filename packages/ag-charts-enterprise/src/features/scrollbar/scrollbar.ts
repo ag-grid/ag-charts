@@ -28,7 +28,8 @@ interface ScrollbarOrientationState {
     dom: ScrollbarDOMProxy;
     properties: HorizontalScrollbarProperties | VerticalScrollbarProperties;
     layoutRect?: _ModuleSupport.BBox;
-    position?: AgCartesianAxisPosition;
+    position: AgCartesianAxisPosition;
+    positionHasAxis: boolean;
     axisId?: string;
     hovered: boolean;
 }
@@ -107,6 +108,8 @@ export class Scrollbar extends AbstractModuleInstance {
             thumb,
             dom,
             properties,
+            position: this.getDefaultPosition(orientation),
+            positionHasAxis: false,
             hovered: false,
         };
     }
@@ -116,17 +119,39 @@ export class Scrollbar extends AbstractModuleInstance {
         return orientation === 'horizontal' ? this.horizontal : this.vertical;
     }
 
-    private findAxis(
-        orientation: ScrollbarOrientation,
-        position?: AgCartesianAxisPosition
-    ): _ModuleSupport.AxisContext | undefined {
-        const direction = orientation === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
-        const contexts = this.ctx.axisManager.getAxisContext(direction);
-        if (position == null) return contexts[0];
-        return contexts.find((ctx) => ctx.position === position);
+    private getDefaultPosition(orientation: ScrollbarOrientation): AgCartesianAxisPosition {
+        return orientation === 'horizontal' ? 'bottom' : 'left';
     }
 
-    private onLayoutStart({ scrollbars }: _ModuleSupport.LayoutContext) {
+    private resolveAxis(
+        orientation: ScrollbarOrientation,
+        configuredPosition?: AgCartesianAxisPosition
+    ): {
+        axis?: _ModuleSupport.AxisContext;
+        position: AgCartesianAxisPosition;
+        positionHasAxis: boolean;
+    } {
+        const direction = orientation === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        const contexts = this.ctx.axisManager.getAxisContext(direction);
+
+        if (contexts.length === 0) {
+            return { position: this.getDefaultPosition(orientation), positionHasAxis: false };
+        }
+
+        if (configuredPosition == null) {
+            const axis = contexts[0];
+            return { axis, position: axis.position ?? this.getDefaultPosition(orientation), positionHasAxis: true };
+        }
+
+        const axis = contexts.find((ctx) => ctx.position === configuredPosition);
+        if (axis) {
+            return { axis, position: configuredPosition, positionHasAxis: true };
+        }
+
+        return { axis: contexts[0], position: configuredPosition, positionHasAxis: false };
+    }
+
+    private onLayoutStart({ scrollbars, layoutBox }: _ModuleSupport.LayoutContext) {
         for (const orientation of ['horizontal', 'vertical'] as const) {
             const state = this.state[orientation];
             const properties = this.resolveProperties(orientation);
@@ -134,24 +159,33 @@ export class Scrollbar extends AbstractModuleInstance {
             const { min, max } = this.getZoomRange(state.orientation);
             const span = clamp(0, max - min, 1);
 
-            const { axisId, position } = this.findAxis(orientation, properties.position) ?? {};
+            const {
+                axis: { axisId } = {},
+                position,
+                positionHasAxis,
+            } = this.resolveAxis(orientation, properties.position);
 
             state.properties = properties;
-            state.position = position;
             state.axisId = axisId;
+            state.position = position;
+            state.positionHasAxis = positionHasAxis;
 
             const show = this.updateVisibility(state, span);
 
             if (!show || axisId == null) continue;
 
             const { thickness, spacing, placement, tickSpacing } = properties;
-            scrollbars[axisId] = {
-                enabled: show,
-                thickness,
-                spacing,
-                tickSpacing,
-                placement,
-            };
+            if (positionHasAxis) {
+                scrollbars[axisId] = {
+                    enabled: show,
+                    thickness,
+                    spacing,
+                    tickSpacing,
+                    placement,
+                };
+            } else {
+                layoutBox.shrink(spacing + thickness, position);
+            }
 
             this.updateStyles(state);
         }
@@ -185,22 +219,33 @@ export class Scrollbar extends AbstractModuleInstance {
         event: _ModuleSupport.LayoutCompleteEvent
     ): _ModuleSupport.BBox | undefined {
         const {
-            properties: { thickness },
+            properties: { thickness, spacing },
+            position,
+            positionHasAxis,
         } = state;
 
         const axisLayout = state.axisId ? event.axes[state.axisId] : undefined;
 
         if (!axisLayout) return;
 
+        const { x, y, width, height } = event.series.rect;
+        const isHorizontal = orientation === 'horizontal';
+        if (!positionHasAxis) {
+            if (isHorizontal) {
+                const coord = position === 'bottom' ? y + height + spacing : y - spacing - thickness;
+                return new BBox(x, coord, width, thickness);
+            } else {
+                const coord = position === 'right' ? x + width + spacing : x - spacing - thickness;
+                return new BBox(coord, y, thickness, height);
+            }
+        }
+
         const { scrollbar: scrollbarLayout, translation } = axisLayout;
         if (!scrollbarLayout?.enabled) return;
 
-        const isHorizontal = orientation === 'horizontal';
         const coord = isHorizontal ? translation.y + scrollbarLayout.offset : translation.x + scrollbarLayout.offset;
 
-        return isHorizontal
-            ? new BBox(event.series.rect.x, coord, event.series.rect.width, thickness)
-            : new BBox(coord, event.series.rect.y, thickness, event.series.rect.height);
+        return isHorizontal ? new BBox(x, coord, width, thickness) : new BBox(coord, y, thickness, height);
     }
 
     private updateStyles({ track, thumb, properties, hovered }: ScrollbarOrientationState) {
@@ -280,7 +325,7 @@ export class Scrollbar extends AbstractModuleInstance {
     private updateVisibility(state: ScrollbarOrientationState, span: number): boolean {
         const show =
             state.properties.enabled &&
-            state.position != null &&
+            state.axisId != null &&
             state.properties.visible !== 'never' &&
             (state.properties.visible === 'always' || span < 1);
 
