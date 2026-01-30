@@ -573,7 +573,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Computes the x position for a datum at the given index.
      */
     private computeXPosition(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
-        return ctx.xScale.convert(ctx.xValues[datumIndex]) + ctx.groupOffset + ctx.barOffset;
+        const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+        if (!Number.isFinite(x)) return Number.NaN;
+        return x + ctx.groupOffset + ctx.barOffset;
     }
 
     private prepareNodeDatumState(

@@ -988,6 +988,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
         scratch.y = ctx.yScale.convert(currY);
+
+        if (!Number.isFinite(scratch.x)) {
+            scratch.validPoint = false;
+        }
     }
 
     /**

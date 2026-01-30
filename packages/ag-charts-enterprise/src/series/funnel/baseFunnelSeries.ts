@@ -332,7 +332,9 @@ export abstract class BaseFunnelSeries<
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
             if (xDatum === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
 
-            const x = Math.round(xScale.convert(xDatum)) + groupOffset + barOffset;
+            const xConverted = xScale.convert(xDatum);
+            if (!Number.isFinite(xConverted)) continue;
+            const x = Math.round(xConverted) + groupOffset + barOffset;
 
             const yDatum = yValues[datumIndex];
             const yNegative = Math.round(yScale.convert(-yDatum));
@@ -664,7 +666,8 @@ export abstract class BaseFunnelSeries<
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
-                if (stageValue == null) return;
+                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                if (stageValue == null && !allowNullKeys) return;
 
                 return {
                     legendType: 'category',

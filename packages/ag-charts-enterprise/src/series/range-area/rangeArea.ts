@@ -428,6 +428,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         if (Number.isFinite(scratch.yHighValue) && Number.isFinite(scratch.yLowValue)) {
             scratch.inverted = scratch.yLowValue > scratch.yHighValue;
             scratch.x = ctx.xScale.convert(scratch.xValue) + ctx.xOffset;
+            if (!Number.isFinite(scratch.x)) return;
+
             scratch.yHighCoordinate = ctx.yScale.convert(scratch.yHighValue);
             scratch.yLowCoordinate = ctx.yScale.convert(scratch.yLowValue);
 

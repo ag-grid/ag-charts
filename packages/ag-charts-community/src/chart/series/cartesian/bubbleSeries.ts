@@ -696,6 +696,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const x = ctx.xScale.convert(xDatum) + ctx.xOffset;
         const y = ctx.yScale.convert(yDatum) + ctx.yOffset;
 
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined;
+
         // Compute selection state
         let selected: boolean | undefined;
         if (ctx.xFilterDataValues != null && ctx.yFilterDataValues != null) {

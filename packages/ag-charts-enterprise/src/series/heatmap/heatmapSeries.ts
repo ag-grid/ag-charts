@@ -440,6 +440,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const yDatum = ctx.yValues[datumIndex];
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
         const colorValue = colorValues?.[datumIndex];
 
         // Update properties

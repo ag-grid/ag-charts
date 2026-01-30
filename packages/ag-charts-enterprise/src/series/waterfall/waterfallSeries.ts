@@ -538,6 +538,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const mutableNode = node as Mutable<WaterfallNodeDatum>;
 
         const x = Math.round(xScale.convert(xDatum));
+        if (!Number.isFinite(x)) return;
+
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
         const { strokeWidth, label } = this.getItemConfig(seriesItemType);

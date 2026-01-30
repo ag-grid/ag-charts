@@ -663,7 +663,11 @@ export abstract class OhlcSeriesBase<
 
         if (!visible || !ctx) return resultContext;
 
-        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.groupOffset;
+        const xPosition = (index: number) => {
+            const x = ctx.xScale.convert(ctx.xValues[index]);
+            if (!Number.isFinite(x)) return Number.NaN;
+            return x + ctx.groupOffset;
+        };
 
         if (ctx.dataAggregationFilter == null) {
             const invalidData = this.processedData!.invalidData?.get(this.id);

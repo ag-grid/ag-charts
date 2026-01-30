@@ -253,14 +253,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         ctx: BoxPlotSeriesNodeDatumContext,
         scratch: ScaledBoxPlotValues,
         datumIndex: number
-    ): void {
-        scratch.xValue =
-            ctx.xScale.convert(ctx.xValues[datumIndex]) + ctx.groupOffset + ctx.barOffset + ctx.barWidth / 2;
+    ): boolean {
+        const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+        if (!Number.isFinite(x)) return false;
+
+        scratch.xValue = x + ctx.groupOffset + ctx.barOffset + ctx.barWidth / 2;
         scratch.minValue = ctx.yScale.convert(ctx.minValues[datumIndex]);
         scratch.q1Value = ctx.yScale.convert(ctx.q1Values[datumIndex]);
         scratch.medianValue = ctx.yScale.convert(ctx.medianValues[datumIndex]);
         scratch.q3Value = ctx.yScale.convert(ctx.q3Values[datumIndex]);
         scratch.maxValue = ctx.yScale.convert(ctx.maxValues[datumIndex]);
+        return true;
     }
 
     /**
@@ -413,7 +416,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 continue;
             }
 
-            this.computeScaledValues(ctx, scaledValuesScratch, datumIndex);
+            if (!this.computeScaledValues(ctx, scaledValuesScratch, datumIndex)) {
+                continue;
+            }
 
             // Update scratch params
             paramsScratch.datumIndex = datumIndex;

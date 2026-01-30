@@ -711,8 +711,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
         // Helper for x position calculation (uses context)
-        const xPosition = (datumIndex: number) =>
-            Math.round(ctx.xScale.convert(ctx.xValues[datumIndex])) + ctx.groupOffset + ctx.barOffset;
+        const xPosition = (datumIndex: number) => {
+            const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+            if (!Number.isFinite(x)) return Number.NaN;
+            return Math.round(x) + ctx.groupOffset + ctx.barOffset;
+        };
 
         // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
         const nodeDatumParamsScratch: NodeDatumParams = {

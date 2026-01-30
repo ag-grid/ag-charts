@@ -614,7 +614,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             result.legendItem =
                 formatManager.format(this.callWithContext.bind(this), {
                     type: 'category',
-                    value: legendItemDisplay,
+                    value: allowNullKeys ? (legendItemValue as string) : legendItemDisplay,
                     datum,
                     seriesId,
                     legendItemName: undefined,

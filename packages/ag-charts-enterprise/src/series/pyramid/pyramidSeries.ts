@@ -772,7 +772,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = stageValues[datumIndex];
-                if (stageValue == null) return;
+                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                if (stageValue == null && !allowNullKeys) return;
 
                 return {
                     legendType: 'category',
