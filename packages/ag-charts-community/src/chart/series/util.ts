@@ -174,12 +174,19 @@ export function findNodeDatumInArray<I extends DatumIndexType, D extends SeriesN
     nodeData: D[] | undefined
 ): D | undefined {
     for (const node of nodeData ?? []) {
-        if (node.itemId === itemId) {
-            return node;
-        }
-        // TODO: Temporarily compare `itemId` as a numerical index:
-        if (node.itemId === undefined && typeof node.datumIndex === 'number' && `${node.datumIndex}` === itemId) {
-            return node;
+        switch (typeof itemId) {
+            case 'string':
+                if (node.itemId === itemId) {
+                    return node;
+                }
+                break;
+            case 'number':
+                if (typeof node.datumIndex === 'number' && node.datumIndex === itemId) {
+                    return node;
+                }
+                break;
+            default:
+                return itemId satisfies never;
         }
     }
     return undefined;

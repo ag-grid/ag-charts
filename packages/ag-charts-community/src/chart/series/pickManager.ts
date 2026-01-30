@@ -17,9 +17,13 @@ export type PickedNodes = {
 };
 
 function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
-    // FIXME: How to serialise/deserialise datums is still TBD.
-    if (node.datum.itemId) return `${node.datum.itemId}`;
-    return JSON.stringify(node.datum.datumIndex);
+    if (node.datum.itemId !== undefined) {
+        return node.datum.itemId;
+    } else if (typeof node.datum.datumIndex === 'number') {
+        return node.datum.datumIndex;
+    } else {
+        return JSON.stringify(node.datum.datumIndex);
+    }
 }
 
 function pickedNodesEqual(a: PickedNode, b: PickedNode) {

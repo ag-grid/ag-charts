@@ -74,21 +74,21 @@ const SERIES_ID_MAP = {
     Germany: 'LineSeries-5',
 };
 const ITEM_ID_MAP = {
-    '2010': '0',
-    '2011': '1',
-    '2012': '2',
-    '2013': '3',
-    '2014': '4',
-    '2015': '5',
-    '2016': '6',
-    '2017': '7',
-    '2018': '8',
-    '2019': '9',
-    '2020': '10',
-    '2021': '11',
-    '2022': '12',
-    '2023': '13',
-    '2024': '14',
+    '2010': 0,
+    '2011': 1,
+    '2012': 2,
+    '2013': 3,
+    '2014': 4,
+    '2015': 5,
+    '2016': 6,
+    '2017': 7,
+    '2018': 8,
+    '2019': 9,
+    '2020': 10,
+    '2021': 11,
+    '2022': 12,
+    '2023': 13,
+    '2024': 14,
     Legend: undefined,
 };
 
@@ -106,7 +106,7 @@ function onFreezeChange(checked: boolean): void {
 
 function onSetState(): void {
     const seriesId: string = SERIES_ID_MAP[country];
-    const itemId: string | undefined = ITEM_ID_MAP[year];
+    const itemId: number | undefined = ITEM_ID_MAP[year];
 
     if (itemId === undefined) {
         chart.setState({
