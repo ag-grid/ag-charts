@@ -52,7 +52,7 @@ export interface IPickManager {
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
     onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void;
-    onPickedNodesAPI(pickedNodes: PickedNodes): void;
+    onPickedNodesAPI(pickedNodes: PickedNodes): PickedNode | undefined;
     onPickedNodesAPIDebounced(): TooltipCandidate;
 
     onClearUI(): void;
@@ -82,11 +82,11 @@ export class PickManager implements IPickManager {
     private updateActive(active: PickedNode | undefined): PickedNode | undefined {
         this.active = active;
         if (this.active === undefined) {
-            this.activeManager.update(undefined);
+            this.activeManager.clear();
         } else {
             const seriesId: string = this.active.series.id;
             const itemId: string | number = getItemId(this.active);
-            this.activeManager.update({ type: 'series-area', seriesId, itemId });
+            this.activeManager.update({ type: 'series-area', seriesId, itemId }, active?.datum);
         }
         return this.active;
     }
@@ -99,7 +99,7 @@ export class PickManager implements IPickManager {
 
     // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
     onClearUI(): void {
-        this.activeManager.update(undefined);
+        this.activeManager.clear();
         this.clear();
     }
 
@@ -149,8 +149,9 @@ export class PickManager implements IPickManager {
         }
     }
 
-    onPickedNodesAPI(debouncedPickedNodes: PickedNodes): void {
+    onPickedNodesAPI(debouncedPickedNodes: PickedNodes): PickedNode | undefined {
         this.pendingPickedNodes = debouncedPickedNodes;
+        return debouncedPickedNodes.matches[0];
     }
 
     onPickedNodesAPIDebounced(): TooltipCandidate {
