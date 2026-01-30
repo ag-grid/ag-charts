@@ -1,5 +1,166 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 2,
+        "seriesId": "DonutSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "innerSlices": 40000,
+        "name": "Slice2",
+        "outerSlices": 70000,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 3,
+        "seriesId": "DonutSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "innerSlices": 60000,
+        "name": "Slice3",
+        "outerSlices": 30000,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend mouse 3`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+  [
+    {
+      "activeItem": {
+        "itemId": 4,
+        "seriesId": "DonutSeries-1",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend mouse 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "DonutSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "innerSlices": 5000,
+        "name": "Slice0",
+        "outerSlices": 8000,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 3,
+        "seriesId": "DonutSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "innerSlices": 60000,
+        "name": "Slice3",
+        "outerSlices": 30000,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 2,
+        "seriesId": "DonutSeries-1",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange donut-shared-legend setState 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange line mouse 1`] = `
 [
   [

@@ -1432,6 +1432,109 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('donut-shared-legend', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { name: 'Slice0', outerSlices: 8000, innerSlices: 5000 },
+                    { name: 'Slice1', outerSlices: 4500, innerSlices: 3000 },
+                    { name: 'Slice2', outerSlices: 70000, innerSlices: 40000 },
+                    { name: 'Slice3', outerSlices: 30000, innerSlices: 60000 },
+                    { name: 'Slice4', outerSlices: 5000, innerSlices: 7000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        outerRadiusRatio: 1,
+                        innerRadiusRatio: 0.7,
+                        angleKey: 'outerSlices',
+                        calloutLabelKey: 'name',
+                        legendItemKey: 'name',
+                    },
+                    {
+                        type: 'donut',
+                        outerRadiusRatio: 0.4,
+                        innerRadiusRatio: 0.0,
+                        angleKey: 'innerSlices',
+                        calloutLabelKey: 'name',
+                        legendItemKey: 'name',
+                        showInLegend: false,
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            // hover on a datum in series[0] (outer slices).
+            await hover(410, 464);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on another datum in another series (inner slices).
+            await hover(364, 280);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on a legend item
+            await hover(545, 579);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover nowhere (miss)
+            await hover(141, 465);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 3, seriesId: 'DonutSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'legend', itemId: 2, seriesId: 'DonutSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'DonutSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'DonutSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'DonutSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState legend seriesId not shown', async () => {
+            await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'DonutSeries-2' });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-2","itemId":0}'],
+            ]);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 1000, seriesId: 'DonutSeries-1' });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-1","itemId":1000}'],
+            ]);
+            expect(popCalls()).toEqual([]);
+        });
+    });
+
     // TODO add tests for other series:
     //   * sankey
     //   * chord
@@ -1448,7 +1551,6 @@ describe('AG-15850 activeChange', () => {
     //   * range-area
     //   * range-bar
     //   * bubble
-    //   * donut
     //   * radial-bar
     //   * radial-column
     //   * radars
