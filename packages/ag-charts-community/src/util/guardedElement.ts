@@ -85,7 +85,7 @@ export class GuardedElement {
     }
 
     private findEnterTarget(reverse: boolean): HTMLElement | undefined {
-        const focusables = GuardedElement.queryFocusable(this.element, '[tabindex=\"0\"]');
+        const focusables = GuardedElement.queryFocusable(this.element, '[tabindex="0"]');
         const index = reverse ? focusables.length - 1 : 0;
         return focusables[index];
     }

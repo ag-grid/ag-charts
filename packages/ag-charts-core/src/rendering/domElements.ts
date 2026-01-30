@@ -1,8 +1,8 @@
 import type { AgIconName } from 'ag-charts-types';
 
-import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../utils/dom/attributeUtil';
 import type { AgDocumentLike } from '../utils/dom/agDocument';
 import { toAgDocument } from '../utils/dom/agDocument';
+import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../utils/dom/attributeUtil';
 import { createElement } from '../utils/dom/domElements';
 import { isButtonClickEvent } from '../utils/dom/keynavUtil';
 

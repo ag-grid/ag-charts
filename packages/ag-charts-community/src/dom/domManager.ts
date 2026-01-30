@@ -1,6 +1,5 @@
 import {
     AgDocument,
-    toAgDocument,
     type StrictHTMLElement,
     attachListener,
     createId,
@@ -10,6 +9,7 @@ import {
     kebabCase,
     setAttribute,
     stopPageScrolling,
+    toAgDocument,
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
@@ -200,8 +200,7 @@ export class DOMManager extends BaseManager {
                 el = element;
             } else {
                 el =
-                    (element.getElementsByClassName(className)[0] as HTMLElement) ??
-                    this.document.createElement('div');
+                    (element.getElementsByClassName(className)[0] as HTMLElement) ?? this.document.createElement('div');
             }
 
             if (el == null) {
@@ -625,7 +624,8 @@ export class DOMManager extends BaseManager {
         }
 
         // Only allow return values from createElementId() to be used for newChild.id
-        const newChild = (child ?? (this.document.createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
+        const newChild = (child ??
+            (this.document.createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
         for (const [type, fn, opts] of listeners) {
             newChild.addEventListener(type, fn as any, opts);
         }

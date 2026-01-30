@@ -1,4 +1,5 @@
 import {
+    type AgDocumentLike,
     CleanupRegistry,
     addEscapeEventListener,
     addMouseCloseListener,
@@ -8,7 +9,6 @@ import {
     getLastFocus,
     hasNoModifiers,
     setAttribute,
-    type AgDocumentLike,
 } from 'ag-charts-core';
 
 import { CollapseMode } from './collapseMode';

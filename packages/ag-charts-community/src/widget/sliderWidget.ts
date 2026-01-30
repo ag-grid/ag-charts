@@ -1,11 +1,4 @@
-import {
-    type AgDocumentLike,
-    clamp,
-    formatPercent,
-    getAttribute,
-    setAttribute,
-    toAgDocument,
-} from 'ag-charts-core';
+import { type AgDocumentLike, clamp, formatPercent, getAttribute, setAttribute, toAgDocument } from 'ag-charts-core';
 
 import type { RovingDirection } from './rovingDirection';
 import { Widget } from './widget';

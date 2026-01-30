@@ -1,4 +1,5 @@
 import type { AgDocumentLike } from 'ag-charts-core';
+
 import type { ButtonWidget } from './buttonWidget';
 import type { NativeWidget } from './nativeWidget';
 import type { RovingDirection } from './rovingDirection';

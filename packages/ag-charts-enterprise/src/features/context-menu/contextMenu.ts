@@ -14,8 +14,8 @@ import {
     clamp,
     getIconClassNames,
     isNode,
-    toPlainText,
     toAgDocument,
+    toPlainText,
 } from 'ag-charts-core';
 
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';

@@ -19,7 +19,8 @@ async function waitForAgCharts(page: Page) {
 async function getChartScriptUrl(page: Page) {
     const scriptUrl = await page.evaluate(() => {
         const scripts = Array.from(document.scripts);
-        const script = scripts.find((entry) => entry.src.includes('ag-charts-enterprise')) ??
+        const script =
+            scripts.find((entry) => entry.src.includes('ag-charts-enterprise')) ??
             scripts.find((entry) => entry.src.includes('ag-charts-community'));
         return script?.src ?? null;
     });

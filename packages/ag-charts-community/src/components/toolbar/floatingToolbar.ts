@@ -122,7 +122,10 @@ export abstract class FloatingToolbar<
     constructor(ctx: ModuleContext, ariaLabelId: string, id: string) {
         super(ctx, ariaLabelId, 'horizontal');
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
-        this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'), ctx.domManager.getDocument());
+        this.dragHandle = new DragHandleWidget(
+            ctx.localeManager.t('toolbarAnnotationsDragHandle'),
+            ctx.domManager.getDocument()
+        );
         this.popover.setDragHandle(this.dragHandle);
     }
 

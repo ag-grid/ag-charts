@@ -1,7 +1,4 @@
-import {
-    type AgDocumentLike,
-    toAgDocument,
-} from 'ag-charts-core';
+import { type AgDocumentLike, toAgDocument } from 'ag-charts-core';
 
 import { Widget } from './widget';
 

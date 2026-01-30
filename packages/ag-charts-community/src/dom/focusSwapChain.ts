@@ -1,12 +1,12 @@
 import {
     type AgDocument,
-    toAgDocument,
     type BaseAttributeTypeMap,
     type StrictHTMLElement,
     createElementId,
     setAttribute,
     setAttributes,
     setElementStyle,
+    toAgDocument,
 } from 'ag-charts-core';
 
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };

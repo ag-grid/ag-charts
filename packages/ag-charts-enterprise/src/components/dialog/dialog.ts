@@ -17,8 +17,8 @@ import {
     createTextArea,
     entries,
     getIconClassNames,
-    isElement,
     initRovingTabIndex,
+    isElement,
     mapValues,
     setAttribute,
     setAttributes,
@@ -88,7 +88,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return this.ctx.domManager.getDocument();
     }
 
-
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
@@ -152,10 +151,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         header.addListener('drag-start', (event) => {
             const { sourceEvent } = event;
             // Only start dragging when an empty part of the header is dragged
-            if (
-                isElement(sourceEvent.target) &&
-                sourceEvent.target.classList.contains('ag-charts-dialog__header')
-            ) {
+            if (isElement(sourceEvent.target) && sourceEvent.target.classList.contains('ag-charts-dialog__header')) {
                 this.onDragStart(event);
             }
         });
