@@ -48,7 +48,12 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgActiveChangeEvent, AgCartesianChartOptions, AgDataSourceCallbackParams } from 'ag-charts-types';
+import type {
+    AgActiveChangeEvent,
+    AgActiveItemState,
+    AgCartesianChartOptions,
+    AgDataSourceCallbackParams,
+} from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 
@@ -1295,6 +1300,7 @@ describe('AG-15850 activeChange', () => {
 
     let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
+    let version: string | undefined = undefined;
 
     beforeEach(() => {
         mockActiveChange = newFreezableMock<D, C, M>();
@@ -1314,6 +1320,11 @@ describe('AG-15850 activeChange', () => {
 
     async function hover(x: number, y: number): Promise<void> {
         await hoverAction(x, y)(deproxy(chart));
+    }
+
+    async function setActiveItem(activeItem: AgActiveItemState | undefined): Promise<void> {
+        version ??= chart.getState().version;
+        await chart.setState({ version, active: { activeItem, frozen: false } });
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
@@ -1365,6 +1376,20 @@ describe('AG-15850 activeChange', () => {
 
             // hover nowhere (miss)
             await hover(166, 560);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 3, seriesId: 'LineSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'legend', itemId: 'myValue2', seriesId: 'LineSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem(undefined);
             expect(popCalls()).toMatchSnapshot();
         });
     });

@@ -85,6 +85,82 @@ exports[`AG-15850 activeChange line mouse 4`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange line setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "LineSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 3,
+        "seriesId": "LineSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatD",
+        "myValue": 15,
+        "myValue2": 11,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "myValue2",
+        "seriesId": "LineSeries-2",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line setState 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 labels area formatter 1`] = `
 [
   [
