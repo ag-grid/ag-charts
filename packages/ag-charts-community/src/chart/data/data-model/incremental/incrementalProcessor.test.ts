@@ -1902,6 +1902,57 @@ describe('DataModel', () => {
                 // Explicitly verify NO warnings
                 expectWarningsCalls().toEqual([]);
             });
+
+            it('should include undefined in category domain when allowNullKey is true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: undefined as any, y: 20 },
+                    { x: 'B', y: 30 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // All 3 items should be valid (no warnings)
+                expect(processedData!.input.count).toBe(3);
+                // Domain should include undefined alongside string keys
+                expect(processedData!.domain.keys).toEqual([['A', undefined, 'B']]);
+                // No invalid keys should be tracked
+                expect(processedData!.invalidKeyCount?.get('test') ?? 0).toBe(0);
+                // Explicitly verify NO warnings
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('should treat null and undefined as distinct category keys when allowNullKey is true', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [categoryKeyAllowNull('x'), value('y')],
+                });
+
+                const initialData = [
+                    { x: 'A', y: 10 },
+                    { x: null as any, y: 20 },
+                    { x: undefined as any, y: 30 },
+                    { x: 'B', y: 40 },
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources);
+
+                // All 4 items should be valid
+                expect(processedData!.input.count).toBe(4);
+                // Domain should include both null and undefined as distinct values
+                expect(processedData!.domain.keys).toEqual([['A', null, undefined, 'B']]);
+                // No invalid keys should be tracked
+                expect(processedData!.invalidKeyCount?.get('test') ?? 0).toBe(0);
+                // Explicitly verify NO warnings
+                expectWarningsCalls().toEqual([]);
+            });
         });
 
         describe('banding with nulls', () => {
