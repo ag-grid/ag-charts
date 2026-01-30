@@ -1303,6 +1303,7 @@ describe('AG-15850 activeChange', () => {
     afterEach(() => {
         chart?.destroy();
         (chart as unknown) = undefined;
+        expect(popCalls()).toEqual([]);
     });
 
     async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
@@ -1348,8 +1349,6 @@ describe('AG-15850 activeChange', () => {
             });
             expect(popCalls()).toEqual([]);
         });
-
-        afterEach;
 
         test('mouse', async () => {
             // hover on a datum in the series area
