@@ -1,4 +1,7 @@
-import { createElement, createSvgElement } from 'ag-charts-core';
+import {
+    type AgDocumentLike,
+    toAgDocument,
+} from 'ag-charts-core';
 
 import { Widget } from './widget';
 
@@ -24,12 +27,17 @@ export class BoundedTextWidget extends Widget<HTMLDivElement> {
         return this.textElement.textContent;
     }
 
-    constructor() {
-        super(createElement('div'));
-        this.textElement = createSvgElement('text');
+    constructor(document?: AgDocumentLike) {
+        const resolvedDocument = toAgDocument(document);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve document');
+        }
+        const element = resolvedDocument.createElement('div');
+        super(element);
+        this.textElement = resolvedDocument.createSvgElement('text');
         this.textElement.role = 'presentation';
 
-        this.svgElement = createSvgElement('svg');
+        this.svgElement = resolvedDocument.createSvgElement('svg');
         this.svgElement.appendChild(this.textElement);
         this.svgElement.style.width = '100%';
         this.svgElement.style.opacity = '0';

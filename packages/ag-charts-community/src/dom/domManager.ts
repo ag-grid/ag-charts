@@ -1,11 +1,11 @@
 import {
+    AgDocument,
+    toAgDocument,
     type StrictHTMLElement,
     attachListener,
-    createElement,
     createId,
     entries,
     getDocument,
-    getWindow,
     isDocumentFragment,
     kebabCase,
     setAttribute,
@@ -90,9 +90,8 @@ const NULL_DOMRECT: DOMRect = {
     },
 };
 
-function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 'afterend') {
-    const div = createElement('div');
-    div.className = 'ag-charts-tab-guard';
+function createTabGuardElement(document: AgDocument, guardedElem: HTMLElement, where: 'beforebegin' | 'afterend') {
+    const div = document.createElement('div', 'ag-charts-tab-guard');
     guardedElem.insertAdjacentElement(where, div);
     return div;
 }
@@ -100,7 +99,7 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 export class DOMManager extends BaseManager {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
-    private static readonly headStyles = new Set<string>();
+    private static readonly headStyles = new WeakMap<Document, Set<string>>();
 
     readonly anchorName = `--${createId(this)}`;
 
@@ -113,9 +112,10 @@ export class DOMManager extends BaseManager {
     private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
+    private document: AgDocument;
 
     private readonly observer?: IntersectionObserver;
-    private readonly sizeMonitor = new SizeMonitor();
+    private sizeMonitor?: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
 
     private minWidth: number = 0;
@@ -130,6 +130,7 @@ export class DOMManager extends BaseManager {
         readonly mode: 'normal' | 'minimal' = 'normal'
     ) {
         super();
+        this.document = this.resolveDocument(initialContainer);
 
         this.element = this.initDOM();
         this.rootElements = this.initRootElements();
@@ -156,8 +157,8 @@ export class DOMManager extends BaseManager {
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
             if (guardedElement == null) throw new Error('Error initializing tab guards');
-            const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
-            const botGuard = createTabGuardElement(guardedElement, 'afterend');
+            const topGuard = createTabGuardElement(this.document, guardedElement, 'beforebegin');
+            const botGuard = createTabGuardElement(this.document, guardedElement, 'afterend');
             this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
         }
     }
@@ -165,18 +166,18 @@ export class DOMManager extends BaseManager {
     private initDOM(): HTMLElement {
         if (this.mode === 'normal') {
             // Normal mode with complex DOM, use the external template.
-            const templateEl = createElement('div');
+            const templateEl = this.document.createElement('div');
             templateEl.innerHTML = NORMAL_DOM;
             return templateEl.firstChild as HTMLElement;
         }
 
         // Minimal mode - avoid HTML parsing and use a single element. This essentially deactivates
         // many features that rely on the complex DOM (e.g. keyboard navigation, A11y).
-        const element = createElement('div');
+        const element = this.document.createElement('div');
         element.role = 'presentation';
         element.dataset.agCharts = '';
         element.classList.add('ag-charts-wrapper');
-        const seriesArea = createElement('div');
+        const seriesArea = this.document.createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
         seriesArea.classList.add('ag-charts-series-area');
@@ -198,7 +199,9 @@ export class DOMManager extends BaseManager {
             } else if (MINIMAL_DOM_ELEMENT_ROLES.has(domElement)) {
                 el = element;
             } else {
-                el = (element.getElementsByClassName(className)[0] as HTMLElement) ?? createElement('div');
+                el =
+                    (element.getElementsByClassName(className)[0] as HTMLElement) ??
+                    this.document.createElement('div');
             }
 
             if (el == null) {
@@ -220,7 +223,7 @@ export class DOMManager extends BaseManager {
 
         this.observer?.unobserve(this.element);
         if (this.container) {
-            this.sizeMonitor.unobserve(this.container);
+            this.sizeMonitor?.unobserve(this.container);
         }
         this.pendingContainer = undefined;
 
@@ -241,7 +244,7 @@ export class DOMManager extends BaseManager {
         if (this.pendingContainer == null || this.pendingContainer === this.container) return;
 
         if (DOMManager.batchedUpdateContainer.length === 0) {
-            getWindow().setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
+            this.window.setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
         }
         DOMManager.batchedUpdateContainer.push(this);
     }
@@ -322,8 +325,11 @@ export class DOMManager extends BaseManager {
 
         if (this.container) {
             this.element.remove();
-            this.sizeMonitor.unobserve(this.container);
+            this.sizeMonitor?.unobserve(this.container);
         }
+        this.updateDocumentContext(pendingContainer);
+        const sizeMonitor = new SizeMonitor(this.document.window);
+        this.sizeMonitor = sizeMonitor;
 
         // If the container was inside a shadow DOM, the styles are added to the container rather than the head
         //
@@ -354,7 +360,7 @@ export class DOMManager extends BaseManager {
         }
 
         pendingContainer.appendChild(this.element);
-        this.sizeMonitor.observe(pendingContainer, (size) => {
+        sizeMonitor.observe(pendingContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
             this.eventsHub.emit('dom:resize', null);
@@ -424,7 +430,7 @@ export class DOMManager extends BaseManager {
      * main chart area.
      */
     getOverlayClientRect() {
-        const window = getWindow();
+        const { window } = this;
         const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
         const containerBBox = this.getRawOverlayClientRect();
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
@@ -459,12 +465,12 @@ export class DOMManager extends BaseManager {
         // viewport.
         if (this.documentRoot != null) return BBox.fromObject(this.documentRoot.getBoundingClientRect());
 
-        const { innerWidth, innerHeight } = getWindow();
+        const { innerWidth, innerHeight } = this.window;
         return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     private getShadowDocumentRoot(current = this.container) {
-        const docRoot = current?.ownerDocument?.body ?? getDocument('body');
+        const docRoot = current?.ownerDocument?.body ?? this.document.body;
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
         // to attach listeners etc.. to that node, not the document body.
@@ -542,7 +548,7 @@ export class DOMManager extends BaseManager {
                 }
             }
 
-            const styleEl = createElement('style');
+            const styleEl = this.document.createElement('style');
             if (this.chart.styleNonce != null) {
                 styleEl.nonce = this.chart.styleNonce;
             }
@@ -562,10 +568,22 @@ export class DOMManager extends BaseManager {
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
             // which Document we might be attached to.
             styleElement = this.addChild('styles', id);
-        } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
-            // Add to document head as failsafe fallback.
-            styleElement = addStyleElement(getDocument('head'));
-            DOMManager.headStyles.add(id);
+        } else if (this.documentRoot == null) {
+            let headStyles = DOMManager.headStyles.get(this.document.ownerDocument);
+            if (headStyles == null) {
+                headStyles = new Set<string>();
+                DOMManager.headStyles.set(this.document.ownerDocument, headStyles);
+            }
+            const headElement = this.document.head ?? this.document.ownerDocument.head;
+            if (headElement == null) return;
+            const headSelector = `style[data-ag-charts="${id}"]`;
+            const existingStyle = headElement.querySelector(headSelector) as HTMLElement | null;
+            if (existingStyle) {
+                styleElement = existingStyle;
+            } else {
+                styleElement = addStyleElement(headElement);
+            }
+            headStyles.add(id);
         } else if (this.documentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
@@ -607,7 +625,7 @@ export class DOMManager extends BaseManager {
         }
 
         // Only allow return values from createElementId() to be used for newChild.id
-        const newChild = (child ?? (createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
+        const newChild = (child ?? (this.document.createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
         for (const [type, fn, opts] of listeners) {
             newChild.addEventListener(type, fn as any, opts);
         }
@@ -653,5 +671,30 @@ export class DOMManager extends BaseManager {
         const { element, containerSize, minWidth, minHeight } = this;
         element.classList.toggle(CONTAINER_MODIFIERS.safeHorizontal, minWidth >= (containerSize?.width ?? Infinity));
         element.classList.toggle(CONTAINER_MODIFIERS.safeVertical, minHeight >= (containerSize?.height ?? Infinity));
+    }
+
+    getDocument() {
+        return this.document;
+    }
+
+    private updateDocumentContext(container?: HTMLElement) {
+        this.document = this.resolveDocument(container);
+    }
+
+    private resolveDocument(container?: HTMLElement) {
+        const ownerDocument =
+            container?.ownerDocument ??
+            this.styleContainer?.ownerDocument ??
+            this.document?.ownerDocument ??
+            getDocument();
+        const resolvedDocument = toAgDocument(ownerDocument);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve document');
+        }
+        return resolvedDocument;
+    }
+
+    private get window() {
+        return this.document.window;
     }
 }

@@ -1,10 +1,10 @@
-import { setAttribute } from 'ag-charts-core';
+import { type AgDocumentLike, setAttribute } from 'ag-charts-core';
 
 import { ButtonWidget } from './buttonWidget';
 
 export class SwitchWidget extends ButtonWidget {
-    constructor() {
-        super();
+    constructor(document?: AgDocumentLike) {
+        super(document);
         setAttribute(this.elem, 'role', 'switch');
         this.setChecked(false);
     }

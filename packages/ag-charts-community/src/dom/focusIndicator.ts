@@ -1,4 +1,4 @@
-import { createElement, createSvgElement, getWindow, setElementBBox } from 'ag-charts-core';
+import { setElementBBox } from 'ag-charts-core';
 
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
@@ -14,16 +14,17 @@ export class FocusIndicator {
     private hasBeenActivated = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
-        this.div = createElement('div');
-        this.svg = createSvgElement('svg');
-        this.outerPath = createSvgElement('path');
-        this.innerPath = createSvgElement('path');
+        const { document } = swapChain;
+        this.div = document.createElement('div');
+        this.svg = document.createSvgElement('svg');
+        this.outerPath = document.createSvgElement('path');
+        this.innerPath = document.createSvgElement('path');
         this.svg.append(this.outerPath);
         this.svg.append(this.innerPath);
         this.outerPath.classList.add('ag-charts-focus-svg-outer-path');
         this.innerPath.classList.add('ag-charts-focus-svg-inner-path');
 
-        this.element = createElement('div', 'ag-charts-focus-indicator');
+        this.element = document.createElement('div', 'ag-charts-focus-indicator');
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
@@ -93,6 +94,7 @@ export class FocusIndicator {
         if (!force && !this.hasBeenActivated) return false;
 
         const parent = this.element.parentElement;
-        return parent != null && getWindow().getComputedStyle(parent).opacity === '1';
+        const window = parent?.ownerDocument.defaultView;
+        return parent != null && window?.getComputedStyle(parent).opacity === '1';
     }
 }

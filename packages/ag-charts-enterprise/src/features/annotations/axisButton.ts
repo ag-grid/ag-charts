@@ -54,7 +54,7 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private setup() {
-        const button = new _Widget.ButtonWidget();
+        const button = new _Widget.ButtonWidget(this.ctx.domManager.getDocument());
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));

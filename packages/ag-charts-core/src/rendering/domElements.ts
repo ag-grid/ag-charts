@@ -1,6 +1,8 @@
 import type { AgIconName } from 'ag-charts-types';
 
 import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../utils/dom/attributeUtil';
+import type { AgDocumentLike } from '../utils/dom/agDocument';
+import { toAgDocument } from '../utils/dom/agDocument';
 import { createElement } from '../utils/dom/domElements';
 import { isButtonClickEvent } from '../utils/dom/keynavUtil';
 
@@ -13,10 +15,13 @@ export type LabelIcon = LabelAndIcon | IconOnly;
 export type ButtonOptions = LabelIcon & {
     onPress: (event: MouseEvent) => void;
 };
-export function createButton(options: ButtonOptions, attrs?: AttributeSet) {
-    const button = createElement('button', getClassName('ag-charts-input ag-charts-button', attrs));
+export function createButton(options: ButtonOptions, attrs?: AttributeSet, document?: AgDocumentLike) {
+    const resolvedDocument = document ? toAgDocument(document) : undefined;
+    const button = resolvedDocument
+        ? resolvedDocument.createElement('button', getClassName('ag-charts-input ag-charts-button', attrs))
+        : createElement('button', getClassName('ag-charts-input ag-charts-button', attrs));
     if (options.label === undefined) {
-        button.append(createIcon(options.icon));
+        button.append(createIcon(options.icon, document));
         button.ariaLabel = options.altText;
     } else {
         button.append(options.label);
@@ -30,8 +35,11 @@ export interface CheckboxOptions {
     checked: boolean;
     onChange: (checked: boolean, event: Event) => void;
 }
-export function createCheckbox(options: CheckboxOptions, attrs?: AttributeSet) {
-    const checkbox = createElement('input', getClassName('ag-charts-input ag-charts-checkbox', attrs));
+export function createCheckbox(options: CheckboxOptions, attrs?: AttributeSet, document?: AgDocumentLike) {
+    const resolvedDocument = document ? toAgDocument(document) : undefined;
+    const checkbox = resolvedDocument
+        ? resolvedDocument.createElement('input', getClassName('ag-charts-input ag-charts-checkbox', attrs))
+        : createElement('input', getClassName('ag-charts-input ag-charts-checkbox', attrs));
     checkbox.type = 'checkbox';
     checkbox.checked = options.checked;
     checkbox.addEventListener('change', (event) => options.onChange(checkbox.checked, event));
@@ -50,11 +58,14 @@ export interface SelectOptions {
     value: string;
     onChange: (value: string, event: Event) => void;
 }
-export function createSelect(options: SelectOptions, attrs?: AttributeSet) {
-    const select = createElement('select', getClassName('ag-charts-input ag-charts-select', attrs));
+export function createSelect(options: SelectOptions, attrs?: AttributeSet, document?: AgDocumentLike) {
+    const resolvedDocument = document ? toAgDocument(document) : undefined;
+    const select = resolvedDocument
+        ? resolvedDocument.createElement('select', getClassName('ag-charts-input ag-charts-select', attrs))
+        : createElement('select', getClassName('ag-charts-input ag-charts-select', attrs));
     select.append(
         ...options.options.map((option) => {
-            const optionEl = createElement('option');
+            const optionEl = resolvedDocument ? resolvedDocument.createElement('option') : createElement('option');
             optionEl.value = option.value;
             optionEl.textContent = option.label;
             return optionEl;
@@ -71,8 +82,11 @@ export interface TextAreaOptions {
     value: string;
     onChange: (value: string, event: Event) => void;
 }
-export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeSet) {
-    const textArea = createElement('textarea', getClassName('ag-charts-input ag-charts-textarea', attrs));
+export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeSet, document?: AgDocumentLike) {
+    const resolvedDocument = document ? toAgDocument(document) : undefined;
+    const textArea = resolvedDocument
+        ? resolvedDocument.createElement('textarea', getClassName('ag-charts-input ag-charts-textarea', attrs))
+        : createElement('textarea', getClassName('ag-charts-input ag-charts-textarea', attrs));
     textArea.value = options.value;
     textArea.addEventListener('input', (event) => options.onChange(textArea.value, event));
     setAttributes(textArea, attrs);
@@ -80,8 +94,11 @@ export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeS
     return textArea;
 }
 
-export function createIcon(icon?: AgIconName) {
-    const el = createElement('span', `ag-charts-icon ag-charts-icon-${icon}`);
+export function createIcon(icon?: AgIconName, document?: AgDocumentLike) {
+    const resolvedDocument = document ? toAgDocument(document) : undefined;
+    const el = resolvedDocument
+        ? resolvedDocument.createElement('span', `ag-charts-icon ag-charts-icon-${icon}`)
+        : createElement('span', `ag-charts-icon ag-charts-icon-${icon}`);
     setAttribute(el, 'aria-hidden', true);
     return el;
 }

@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getDocument, getWindow, isHTMLElement, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, isHTMLElement, setAttribute } from 'ag-charts-core';
 
 export class GuardedElement {
     private readonly cleanup = new CleanupRegistry();
@@ -67,11 +67,17 @@ export class GuardedElement {
         }
     }
 
+    private static resolveWindow(element: Document | Element): Window | undefined {
+        const document = 'defaultView' in element ? (element as Document) : element.ownerDocument;
+        return document?.defaultView ?? undefined;
+    }
+
     private static queryFocusable(element: Document | Element, selectors: string) {
-        const myWindow = getWindow();
+        const window = GuardedElement.resolveWindow(element);
+        if (!window) return [];
         return Array.from(element.querySelectorAll(selectors)).filter((e): e is HTMLElement => {
             if (isHTMLElement(e)) {
-                const style = myWindow.getComputedStyle(e);
+                const style = window.getComputedStyle(e);
                 return style.display !== 'none' && style.visibility !== 'none';
             }
             return false;
@@ -79,13 +85,13 @@ export class GuardedElement {
     }
 
     private findEnterTarget(reverse: boolean): HTMLElement | undefined {
-        const focusables = GuardedElement.queryFocusable(this.element, '[tabindex="0"]');
+        const focusables = GuardedElement.queryFocusable(this.element, '[tabindex=\"0\"]');
         const index = reverse ? focusables.length - 1 : 0;
         return focusables[index];
     }
 
     private findExitTarget(reverse: boolean): HTMLElement | undefined {
-        const focusables = GuardedElement.queryFocusable(getDocument(), '[tabindex]')
+        const focusables = GuardedElement.queryFocusable(this.element.ownerDocument, '[tabindex]')
             .filter((e) => e.tabIndex > 0)
             .sort((a, b) => a.tabIndex - b.tabIndex);
         const { before, after } = GuardedElement.findBeforeAndAfter(focusables, this.guardTabIndex);

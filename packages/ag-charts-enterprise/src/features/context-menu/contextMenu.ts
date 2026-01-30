@@ -12,9 +12,10 @@ import {
     Property,
     callWithContext,
     clamp,
-    createElement,
     getIconClassNames,
+    isNode,
     toPlainText,
+    toAgDocument,
 } from 'ag-charts-core';
 
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
@@ -76,7 +77,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
     // HTML elements
     private readonly element: HTMLElement;
-    private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
+    private readonly menuWidget: _Widget.MenuWidget;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -86,6 +87,7 @@ export class ContextMenu extends AbstractModuleInstance {
         this.interactionManager = ctx.interactionManager;
 
         // State
+        this.menuWidget = new _Widget.MenuWidget('vertical', ctx.domManager.getDocument());
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.style.display = 'none';
@@ -93,7 +95,7 @@ export class ContextMenu extends AbstractModuleInstance {
         // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
         this.element.addEventListener('focusout', ({ relatedTarget }) => {
             if (this.collapsingSubMenus > 0) return;
-            if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
+            if (relatedTarget == null || (isNode(relatedTarget) && !this.element.contains(relatedTarget))) {
                 this.hide();
             }
         });
@@ -297,7 +299,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 case 'action': {
                     if (item.items.length === 0) {
-                        const btn = new _Widget.MenuItemWidget();
+                        const btn = new _Widget.MenuItemWidget(this.ctx.domManager.getDocument());
                         this.initButtonElement(btn, item);
                         menuWidget.addChild(btn);
                     } else {
@@ -377,9 +379,13 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private initTableCells(elem: Element) {
-        const cellIcon = createElement('div');
-        const cellLabel = createElement('div');
-        const cellArrow = createElement('div');
+        const document = toAgDocument(elem.ownerDocument ?? this.ctx.domManager.getDocument());
+        if (!document) {
+            throw new Error('AG Charts - unable to resolve global document');
+        }
+        const cellIcon = document.createElement('div');
+        const cellLabel = document.createElement('div');
+        const cellArrow = document.createElement('div');
         cellIcon.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__icon`, true);
         cellLabel.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
         cellArrow.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
@@ -400,13 +406,21 @@ export class ContextMenu extends AbstractModuleInstance {
         cellLabel.textContent = label;
         cellLabel.classList.add(cellPaddingClass);
         if (item.iconUrl != null) {
-            const img = createElement('img');
+            const document = toAgDocument(cellLabel.ownerDocument);
+            if (!document) {
+                throw new Error('AG Charts - unable to resolve global document');
+            }
+            const img = document.createElement('img');
             img.src = item.iconUrl;
             cellIcon.append(img);
             cellIcon.classList.add(cellPaddingClass);
         }
         if (item.items.length > 0) {
-            const span = createElement('span', getIconClassNames('chevron-right'));
+            const document = toAgDocument(cellLabel.ownerDocument);
+            if (!document) {
+                throw new Error('AG Charts - unable to resolve global document');
+            }
+            const span = document.createElement('span', getIconClassNames('chevron-right'));
             cellArrow.append(span);
             cellArrow.classList.add(cellPaddingClass);
         }

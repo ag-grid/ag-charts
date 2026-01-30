@@ -1,4 +1,11 @@
-import { clamp, createElement, formatPercent, getAttribute, setAttribute } from 'ag-charts-core';
+import {
+    type AgDocumentLike,
+    clamp,
+    formatPercent,
+    getAttribute,
+    setAttribute,
+    toAgDocument,
+} from 'ag-charts-core';
 
 import type { RovingDirection } from './rovingDirection';
 import { Widget } from './widget';
@@ -55,8 +62,13 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         SliderWidget.registerDefaultPreventers(this, orientation);
     }
 
-    constructor() {
-        super(createElement('input'));
+    constructor(document?: AgDocumentLike) {
+        const resolvedDocument = toAgDocument(document);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve document');
+        }
+        const element = resolvedDocument.createElement('input');
+        super(element);
         this.orientation = 'both';
     }
 

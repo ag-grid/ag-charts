@@ -1,4 +1,11 @@
-import { PREV_NEXT_KEYS, createElement, getAttribute, hasNoModifiers, setAttribute } from 'ag-charts-core';
+import {
+    type AgDocumentLike,
+    PREV_NEXT_KEYS,
+    getAttribute,
+    hasNoModifiers,
+    setAttribute,
+    toAgDocument,
+} from 'ag-charts-core';
 
 import type { ButtonWidget } from './buttonWidget';
 import type { MenuItemWidget } from './menuItemWidget';
@@ -24,8 +31,13 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         setAttribute(this.elem, 'aria-orientation', orientation === 'both' ? undefined : orientation);
     }
 
-    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu') {
-        super(createElement('div'));
+    constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu', document?: AgDocumentLike) {
+        const resolvedDocument = toAgDocument(document);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve document');
+        }
+        const element = resolvedDocument.createElement('div');
+        super(element);
         setAttribute(this.elem, 'role', role);
         this.orientation = initialOrientation;
     }

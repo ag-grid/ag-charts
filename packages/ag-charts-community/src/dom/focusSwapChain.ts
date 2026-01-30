@@ -1,7 +1,8 @@
 import {
+    type AgDocument,
+    toAgDocument,
     type BaseAttributeTypeMap,
     type StrictHTMLElement,
-    createElement,
     createElementId,
     setAttribute,
     setAttributes,
@@ -18,6 +19,7 @@ type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElemen
 export class FocusSwapChain {
     private inactiveAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
     private activeAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
+    readonly document: AgDocument;
 
     private focusOptions?: FocusOptions;
     private hasFocus = false;
@@ -38,7 +40,7 @@ export class FocusSwapChain {
     };
 
     private createAnnouncer(role: BaseAttributeTypeMap['role']) {
-        const announcer = createElement('div');
+        const announcer = this.document.createElement('div');
         announcer.role = role;
         announcer.className = 'ag-charts-swapchain';
         announcer.addEventListener('blur', this.onBlur);
@@ -52,6 +54,11 @@ export class FocusSwapChain {
         announcerRole: BaseAttributeTypeMap['role'],
         initialAltText: string
     ) {
+        const resolvedDocument = toAgDocument(label1.ownerDocument);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve global document');
+        }
+        this.document = resolvedDocument;
         setAttribute(this.label1, 'id', createElementId());
         setAttribute(this.label2, 'id', createElementId());
         setElementStyle(this.label1, 'display', 'none');

@@ -40,6 +40,7 @@ export * from './types/text';
 export * from './state/callbackCache';
 export * from './utils/types/decorator';
 export * from './utils/dom/domUtil';
+export * from './utils/dom/agDocument';
 export * from './utils/geometry/math';
 export * from './utils/data/arrays';
 export * from './utils/geometry/angle';

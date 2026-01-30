@@ -6,7 +6,6 @@ import {
     Property,
     calculatePlacement,
     clamp,
-    getWindow,
     isNode,
 } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
@@ -177,7 +176,7 @@ export class Tooltip extends BaseProperties {
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
     private element?: HTMLElement;
-    private readonly sizeMonitor = new SizeMonitor();
+    private sizeMonitor?: SizeMonitor;
 
     private interactiveLeave?: {
         callback: () => void;
@@ -210,14 +209,18 @@ export class Tooltip extends BaseProperties {
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
-        if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
+        const window = domManager.getDocument().window;
+        const HTMLElementCtor = (window as Window & { HTMLElement?: typeof HTMLElement }).HTMLElement;
+        if (HTMLElementCtor && 'togglePopover' in HTMLElementCtor.prototype) {
             this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
             this.element.className = DEFAULT_TOOLTIP_CLASS;
             // @ts-expect-error Typings need updating
             this.element.style.positionAnchor = domManager.anchorName;
 
-            this.sizeMonitor.observe(this.element, (size) => {
+            const sizeMonitor = new SizeMonitor(window);
+            this.sizeMonitor = sizeMonitor;
+            sizeMonitor.observe(this.element, (size) => {
                 this._elementSize = size;
                 this.updateTooltipPosition();
             });
@@ -228,9 +231,10 @@ export class Tooltip extends BaseProperties {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.cleanup.flush();
 
-            if (this.element) {
+            if (this.element && this.sizeMonitor) {
                 this.sizeMonitor.unobserve(this.element);
             }
+            this.sizeMonitor = undefined;
         };
     }
 

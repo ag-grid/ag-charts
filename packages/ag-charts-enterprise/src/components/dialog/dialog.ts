@@ -5,23 +5,24 @@ import type {
     TextAreaOptions as CoreTextAreaOptions,
 } from 'ag-charts-core';
 import {
+    type AgDocumentLike,
     Color,
     type ElementID,
     type Point,
     Vec2,
     createButton,
     createCheckbox,
-    createElement,
     createElementId,
     createSelect,
     createTextArea,
     entries,
     getIconClassNames,
-    getWindow,
+    isElement,
     initRovingTabIndex,
     mapValues,
     setAttribute,
     setAttributes,
+    toAgDocument,
 } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
@@ -83,6 +84,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.cleanup.register(ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)));
     }
 
+    private getDocument() {
+        return this.ctx.domManager.getDocument();
+    }
+
+
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
@@ -95,7 +101,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        getWindow().requestAnimationFrame(() => this.reposition());
+        this.getDocument().window.requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 
@@ -119,7 +125,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         initial: keyof T,
         tabs: T
     ) {
-        const element = createElement('div', 'ag-charts-dialog__tabs');
+        const document = this.getDocument();
+        const element = document.createElement('div', 'ag-charts-dialog__tabs');
 
         const tabButtonIds = mapValues(tabs, () => createElementId());
         const tabPanelIds = mapValues(tabs, () => createElementId());
@@ -141,12 +148,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         };
 
-        const header = new NativeWidget(createElement('div', 'ag-charts-dialog__header'));
+        const header = new NativeWidget(document.createElement('div', 'ag-charts-dialog__header'));
         header.addListener('drag-start', (event) => {
             const { sourceEvent } = event;
             // Only start dragging when an empty part of the header is dragged
             if (
-                sourceEvent.target instanceof Element &&
+                isElement(sourceEvent.target) &&
                 sourceEvent.target.classList.contains('ag-charts-dialog__header')
             ) {
                 this.onDragStart(event);
@@ -155,7 +162,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         header.addListener('drag-move', (event) => this.onDragMove(event));
         header.addListener('drag-end', () => this.onDragEnd());
 
-        const dragHandle = new DragHandleWidget();
+        const dragHandle = new DragHandleWidget(document);
         this.setDragHandle(dragHandle);
         const tabButtons = mapValues(tabs, (tab, key) =>
             createButton(
@@ -168,11 +175,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     class: 'ag-charts-dialog__tab-button',
                     role: 'tab',
                     'aria-controls': tabPanelIds[key],
-                }
+                },
+                document
             )
         );
 
-        const tabList = createElement('div', 'ag-charts-dialog__tab-list');
+        const tabList = document.createElement('div', 'ag-charts-dialog__tab-list');
         setAttributes(tabList, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
         tabList.append(...Object.values(tabButtons));
 
@@ -188,17 +196,18 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected createTabPanel() {
-        return createElement('div', 'ag-charts-dialog__tab-panel');
+        return this.getDocument().createElement('div', 'ag-charts-dialog__tab-panel');
     }
 
     /**********
      * Inputs *
      **********/
     protected createInputGroupLine() {
-        return createElement('div', 'ag-charts-dialog__input-group-line');
+        return this.getDocument().createElement('div', 'ag-charts-dialog__input-group-line');
     }
 
     protected createRadioGroup<T extends string>({ label, options, value, onChange }: RadioGroupOptions<T>) {
+        const document = this.getDocument();
         const group = this.createInputGroup(label);
         setAttributes(group, {
             role: 'radiogroup',
@@ -232,7 +241,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     class: 'ag-charts-dialog__button',
                     role: 'radio',
                     title: altText,
-                }
+                },
+                document
             );
 
             if (button.value === value) {
@@ -253,7 +263,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const altTextT = this.ctx.localeManager.t(altText);
         const select = createSelect(
             { value, options, onChange },
-            { class: 'ag-charts-dialog__select', 'aria-label': altTextT, title: altTextT }
+            { class: 'ag-charts-dialog__select', 'aria-label': altTextT, title: altTextT },
+            this.getDocument()
         );
         group.append(select);
 
@@ -262,7 +273,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
         const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
-        return createTextArea({ value, onChange }, { placeholder: placeholderT });
+        return createTextArea({ value, onChange }, { placeholder: placeholderT }, this.getDocument());
     }
 
     protected createCheckbox({ label, checked, onChange }: CheckboxOptions) {
@@ -271,7 +282,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         const checkbox = createCheckbox(
             { checked, onChange },
-            { class: 'ag-charts-dialog__checkbox', role: 'switch', id }
+            { class: 'ag-charts-dialog__checkbox', role: 'switch', id },
+            this.getDocument()
         );
 
         group.append(checkbox);
@@ -289,6 +301,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         isMultiColor,
         hasMultiColorOption,
     }: ColorPickerOptions) {
+        const document = this.getDocument();
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -329,7 +342,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 tabindex: 0,
                 class: 'ag-charts-dialog__color-picker-button',
                 title: altTextT,
-            }
+            },
+            document
         );
 
         if (isMultiColor) {
@@ -356,14 +370,16 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private createHeaderCloseButton() {
         return createButton(
             { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose'), onPress: () => this.hide() },
-            { class: 'ag-charts-dialog__close-button' }
+            { class: 'ag-charts-dialog__close-button' },
+            this.getDocument()
         );
     }
 
     private createInputGroup(label: string, options?: { for?: ElementID }) {
-        const group = createElement('div', 'ag-charts-dialog__input-group');
+        const document = this.getDocument();
+        const group = document.createElement('div', 'ag-charts-dialog__input-group');
 
-        const labelEl = createElement('label', 'ag-charts-dialog__input-group-label');
+        const labelEl = document.createElement('label', 'ag-charts-dialog__input-group-label');
         labelEl.innerText = this.ctx.localeManager.t(label);
         setAttribute(labelEl, 'for', options?.for);
 
@@ -429,9 +445,15 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 }
 
 class DragHandleWidget extends NativeWidget {
-    constructor() {
-        super(createElement('div', 'ag-charts-dialog__drag-handle'));
-        const icon = new NativeWidget<HTMLElement>(createElement('span', getIconClassNames('drag-handle')));
+    constructor(document: AgDocumentLike) {
+        const resolvedDocument = toAgDocument(document);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve global document');
+        }
+        super(resolvedDocument.createElement('div', 'ag-charts-dialog__drag-handle'));
+        const icon = new NativeWidget<HTMLElement>(
+            resolvedDocument.createElement('span', getIconClassNames('drag-handle'))
+        );
         icon.setAriaHidden(true);
         this.addChild(icon);
     }

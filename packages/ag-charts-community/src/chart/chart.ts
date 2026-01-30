@@ -408,7 +408,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             () => this.subtitle.destroy(),
             () => this.footnote.destroy(),
 
-            Widget.addWindowEvent('page-left', () => this.destroy()),
+            Widget.addWindowEvent('page-left', () => this.destroy(), ctx.domManager.getDocument().window),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);

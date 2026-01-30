@@ -11,19 +11,26 @@ export class PixelRatioObserver {
         return this.devicePixelRatio;
     }
 
-    private devicePixelRatio = getWindow('devicePixelRatio') ?? 1;
+    private devicePixelRatio = 1;
     private devicePixelRatioMediaQuery: MediaQueryList | undefined = undefined;
+    private readonly window: Window | undefined;
 
     private readonly devicePixelRatioListener = (e: MediaQueryListEvent) => {
         if (e.matches) return;
 
-        this.devicePixelRatio = getWindow('devicePixelRatio') ?? 1;
+        this.devicePixelRatio = this.window?.devicePixelRatio ?? 1;
         this.unregisterDevicePixelRatioListener();
         this.registerDevicePixelRatioListener();
         this.callback(this.pixelRatio);
     };
 
-    constructor(private readonly callback: (pixelRatio: number) => void) {}
+    constructor(
+        private readonly callback: (pixelRatio: number) => void,
+        window?: Window
+    ) {
+        this.window = window ?? getWindow();
+        this.devicePixelRatio = this.window?.devicePixelRatio ?? 1;
+    }
 
     observe() {
         this.registerDevicePixelRatioListener();
@@ -39,7 +46,7 @@ export class PixelRatioObserver {
     }
 
     private registerDevicePixelRatioListener() {
-        const devicePixelRatioMediaQuery = getWindow('matchMedia')?.(`(resolution: ${this.pixelRatio}dppx)`);
+        const devicePixelRatioMediaQuery = this.window?.matchMedia?.(`(resolution: ${this.pixelRatio}dppx)`);
         devicePixelRatioMediaQuery?.addEventListener('change', this.devicePixelRatioListener);
         this.devicePixelRatioMediaQuery = devicePixelRatioMediaQuery;
     }

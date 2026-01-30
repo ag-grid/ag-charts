@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, isHTMLElement } from 'ag-charts-core';
 
 export type MouseDragCallbacks = {
     mousedown: (event: MouseEvent) => void;
@@ -7,7 +7,7 @@ export type MouseDragCallbacks = {
 };
 
 export class MouseDragger {
-    private readonly window = getWindow();
+    private readonly targetWindow: Window;
     private readonly cleanup = new CleanupRegistry();
 
     constructor(
@@ -16,15 +16,22 @@ export class MouseDragger {
         myCallbacks: MouseDragCallbacks,
         downEvent: MouseEvent
     ) {
-        const { window, mousegeneral, mousemove, mouseup } = this;
+        const resolvedWindow =
+            (downEvent.view as Window | null) ??
+            (isHTMLElement(downEvent.target) ? downEvent.target.ownerDocument.defaultView : undefined);
+        if (!resolvedWindow) {
+            throw new Error('AG Charts - unable to resolve window');
+        }
+        this.targetWindow = resolvedWindow;
+        const { targetWindow, mousegeneral, mousemove, mouseup } = this;
         this.cleanup.register(
-            attachListener(window, 'mousedown', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseenter', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseleave', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseout', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseover', mousegeneral, { capture: true }),
-            attachListener(window, 'mousemove', mousemove, { capture: true }),
-            attachListener(window, 'mouseup', mouseup, { capture: true })
+            attachListener(targetWindow, 'mousedown', mousegeneral, { capture: true }),
+            attachListener(targetWindow, 'mouseenter', mousegeneral, { capture: true }),
+            attachListener(targetWindow, 'mouseleave', mousegeneral, { capture: true }),
+            attachListener(targetWindow, 'mouseout', mousegeneral, { capture: true }),
+            attachListener(targetWindow, 'mouseover', mousegeneral, { capture: true }),
+            attachListener(targetWindow, 'mousemove', mousemove, { capture: true }),
+            attachListener(targetWindow, 'mouseup', mouseup, { capture: true })
         );
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;

@@ -3,7 +3,6 @@ import {
     attachListener,
     getAttribute,
     getElementBBox,
-    getWindow,
     setAttribute,
     setElementBBox,
     setElementStyle,
@@ -118,7 +117,7 @@ export abstract class Widget<
     }
 
     isHidden(): boolean {
-        return getWindow()?.getComputedStyle?.(this.elem).display === 'none';
+        return this.elem.ownerDocument.defaultView?.getComputedStyle?.(this.elem).display === 'none';
     }
 
     setCursor(cursor: BaseStyleTypeMap['cursor'] | undefined) {
@@ -309,13 +308,13 @@ export abstract class Widget<
         }
     }
 
-    static addWindowEvent(_type: 'page-left', listener: () => unknown): () => void {
+    static addWindowEvent(_type: 'page-left', listener: () => unknown, windowOverride: Window): () => void {
         const pagehideHandler = (event: PageTransitionEvent) => {
             if (event.persisted) {
                 return; // Don't fire the page-left event since the page maybe revisited.
             }
             listener();
         };
-        return attachListener(getWindow(), 'pagehide', pagehideHandler);
+        return attachListener(windowOverride, 'pagehide', pagehideHandler);
     }
 }

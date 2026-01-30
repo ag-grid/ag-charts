@@ -5,10 +5,10 @@ import {
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
     createElementId,
-    getDocument,
     getLastFocus,
     hasNoModifiers,
     setAttribute,
+    type AgDocumentLike,
 } from 'ag-charts-core';
 
 import { CollapseMode } from './collapseMode';
@@ -31,8 +31,8 @@ const closeKeys = ['Escape', 'ArrowLeft'] as const;
 export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
     private expansionScope?: ExpansionScope;
 
-    constructor(orientation: RovingDirection = 'vertical') {
-        super(orientation, 'menu');
+    constructor(orientation: RovingDirection = 'vertical', document?: AgDocumentLike) {
+        super(orientation, 'menu', document);
     }
 
     protected override destructor() {
@@ -40,7 +40,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
     }
 
     public addSeparator(): Element {
-        const sep = getDocument().createElement('div');
+        const sep = this.elem.ownerDocument.createElement('div');
         setAttribute(sep, 'role', 'separator');
         this.elem.appendChild(sep);
         return sep;
@@ -69,8 +69,8 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
     };
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
-        const subMenuButton = new MenuItemWidget();
-        const subMenu = new MenuWidget(this.orientation);
+        const subMenuButton = new MenuItemWidget(this.elem.ownerDocument);
+        const subMenu = new MenuWidget(this.orientation, this.elem.ownerDocument);
         subMenu.id = createElementId();
 
         const expand = () => {

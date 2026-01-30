@@ -1,4 +1,4 @@
-import { type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
+import { type AgDocumentLike, type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -75,8 +75,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastInnerHTML?: string;
     private lastTooltip?: string;
 
-    constructor(private readonly localeManager: LocaleManager) {
-        super();
+    constructor(
+        private readonly localeManager: LocaleManager,
+        document?: AgDocumentLike
+    ) {
+        super(document);
     }
 
     public update(options: ToolbarButtonWidgetOptions) {

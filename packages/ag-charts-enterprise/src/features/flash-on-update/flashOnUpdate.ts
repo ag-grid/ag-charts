@@ -5,7 +5,6 @@ import {
     ChartAxisDirection,
     CleanupRegistry,
     Property,
-    createElement,
     setAttribute,
     setElementBBox,
     setElementStyle,
@@ -101,8 +100,9 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.clearFlash();
 
         const flashBounds: BoxBounds[] = this.computeCategoryFlashBounds(axisCtx, diff);
+        const document = this.ctx.domManager.getDocument();
         for (const bounds of flashBounds) {
-            const e = createElement('div');
+            const e = document.createElement('div');
             setAttribute(e, 'role', 'presentation');
             setElementStyle(e, 'position', 'absolute');
             setElementBBox(e, bounds);

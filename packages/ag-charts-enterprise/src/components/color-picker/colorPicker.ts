@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, attachListener, clamp, createElement, getWindow } from 'ag-charts-core';
+import { Color, attachListener, clamp } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -49,11 +49,13 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
     private createColorPicker(opts: ColorPickerOptions) {
         const { localeManager } = this.ctx;
+        const document = this.ctx.domManager.getDocument();
+        const window = document.window;
         let isMultiColor = opts.isMultiColor ?? false;
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPicker = createElement('div', 'ag-charts-color-picker__content');
+        const colorPicker = document.createElement('div', 'ag-charts-color-picker__content');
         colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
 
@@ -143,8 +145,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             };
             pointerMove(e);
 
-            const pointerUp = attachListener(getWindow(), 'pointermove', pointerMove);
-            getWindow().addEventListener('pointerup', pointerUp, { once: true });
+            const pointerUp = attachListener(window, 'pointermove', pointerMove);
+            window.addEventListener('pointerup', pointerUp, { once: true });
         };
 
         colorPicker.addEventListener('mousedown', stopPropagation);

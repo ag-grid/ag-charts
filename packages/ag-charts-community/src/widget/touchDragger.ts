@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener } from 'ag-charts-core';
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
@@ -20,6 +20,7 @@ export class TouchDragger {
     private readonly cleanup = new CleanupRegistry();
     private readonly longtapTimer: ReturnType<typeof setTimeout>;
     private longTapInterrupted = false;
+    private readonly window: Window;
 
     constructor(
         private readonly glob: { globalTouchDragCallbacks?: TouchDragCallbacks },
@@ -28,6 +29,11 @@ export class TouchDragger {
         private readonly initialTouch: Touch,
         private readonly target: HTMLElement
     ) {
+        const window = target.ownerDocument.defaultView;
+        if (!window) {
+            throw new Error('AG Charts - unable to resolve window');
+        }
+        this.window = window;
         this.longtapTimer = setTimeout(this.longtap, LONG_TAP_DURATION_MS);
 
         // "drag-move" happens when there is exactly 1 finger on the screen, so callback touchend whenever a finger is
@@ -88,7 +94,7 @@ export class TouchDragger {
             const contextMenuEvent = new PointerEvent('contextmenu', {
                 bubbles: true,
                 cancelable: true,
-                view: getWindow(),
+                view: this.window,
                 clientX,
                 clientY,
                 pointerType: 'touch',

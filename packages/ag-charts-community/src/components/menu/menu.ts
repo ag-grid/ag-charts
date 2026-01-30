@@ -1,5 +1,5 @@
 import type { LabelIcon } from 'ag-charts-core';
-import { createElement, getIconClassNames } from 'ag-charts-core';
+import { getIconClassNames } from 'ag-charts-core';
 
 import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
@@ -26,7 +26,7 @@ type MenuRow = MenuItemWidget | MenuItemRadioWidget;
  */
 export class Menu extends AnchoredPopover {
     public show<Value = any>(controller: ExpansionControllerWidget, options: MenuOptions<Value>): void {
-        const menu = new MenuWidget('vertical');
+        const menu = new MenuWidget('vertical', this.ctx.domManager.getDocument());
         for (const item of options.items) {
             menu.addChild(this.createRow(options, item, menu));
         }
@@ -36,10 +36,10 @@ export class Menu extends AnchoredPopover {
 
     private allocRow(options: MenuOptions, item: MenuItem): MenuRow {
         if (options.menuItemRole == null || options.menuItemRole === 'menuitem') {
-            return new MenuItemWidget();
+            return new MenuItemWidget(this.ctx.domManager.getDocument());
         } else {
             options.menuItemRole satisfies 'menuitemradio';
-            const result = new MenuItemRadioWidget();
+            const result = new MenuItemRadioWidget(this.ctx.domManager.getDocument());
             result.setChecked(options.value === item.value);
             return result;
         }
@@ -54,8 +54,9 @@ export class Menu extends AnchoredPopover {
             row.getElement().dataset.popoverId = item.value;
         }
 
+        const document = this.ctx.domManager.getDocument();
         if (item.icon != null) {
-            const icon = createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
+            const icon = document.createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
             row.getElement().appendChild(icon);
         }
 
@@ -66,7 +67,7 @@ export class Menu extends AnchoredPopover {
         }
 
         if (item.label != null) {
-            const label = createElement('span', 'ag-charts-menu__label');
+            const label = document.createElement('span', 'ag-charts-menu__label');
             label.textContent = this.ctx.localeManager.t(item.label);
             row.getElement().appendChild(label);
         }

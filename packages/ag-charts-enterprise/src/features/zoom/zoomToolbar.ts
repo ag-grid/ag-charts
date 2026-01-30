@@ -9,7 +9,6 @@ import {
     Property,
     UNIT_MAX,
     UNIT_MIN,
-    createElement,
     debounce,
     definedZoomState,
     entries,
@@ -102,7 +101,8 @@ export class ZoomToolbar extends BaseProperties {
     ) {
         super();
 
-        this.container = new NativeWidget(createElement('div'));
+        const document = ctx.domManager.getDocument();
+        this.container = new NativeWidget(document.createElement('div'));
         this.container.addClass('ag-charts-zoom-buttons');
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 

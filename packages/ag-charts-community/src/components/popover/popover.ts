@@ -1,4 +1,4 @@
-import { AbstractModuleInstance, type Point, createElement, getLastFocus } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, getLastFocus } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
@@ -40,7 +40,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         this.moduleId = `popover-${id}`;
 
         if (options?.detached) {
-            this.element = createElement('div');
+            this.element = ctx.domManager.getDocument().createElement('div');
         } else {
             this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
         }
@@ -84,7 +84,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         if (!this.element.parentElement) {
             throw new Error('Can not show popover that has not been attached to a parent.');
         }
-        popover ??= createElement('div', 'ag-charts-popover');
+        popover ??= this.ctx.domManager.getDocument().createElement('div', 'ag-charts-popover');
         popover.classList.toggle('ag-charts-popover', true);
 
         if (options.ariaLabel != null) {

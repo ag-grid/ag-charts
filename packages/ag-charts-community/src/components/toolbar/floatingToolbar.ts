@@ -1,4 +1,11 @@
-import { type BoxBounds, type Point, clamp, createElement, getIconClassNames } from 'ag-charts-core';
+import {
+    type AgDocumentLike,
+    type BoxBounds,
+    type Point,
+    clamp,
+    getIconClassNames,
+    toAgDocument,
+} from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -115,7 +122,7 @@ export abstract class FloatingToolbar<
     constructor(ctx: ModuleContext, ariaLabelId: string, id: string) {
         super(ctx, ariaLabelId, 'horizontal');
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
-        this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'));
+        this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'), ctx.domManager.getDocument());
         this.popover.setDragHandle(this.dragHandle);
     }
 
@@ -174,11 +181,15 @@ export abstract class FloatingToolbar<
 }
 
 class DragHandleWidget extends NativeWidget {
-    constructor(title: string) {
-        super(createElement('div', 'ag-charts-floating-toolbar__drag-handle'));
+    constructor(title: string, document: AgDocumentLike) {
+        const resolvedDocument = toAgDocument(document);
+        if (!resolvedDocument) {
+            throw new Error('AG Charts - unable to resolve global document');
+        }
+        super(resolvedDocument.createElement('div', 'ag-charts-floating-toolbar__drag-handle'));
 
         const icon = new NativeWidget<HTMLElement>(
-            createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)
+            resolvedDocument.createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)
         );
         icon.setAriaHidden(true);
         this.addChild(icon);

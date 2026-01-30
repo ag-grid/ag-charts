@@ -1,4 +1,10 @@
-import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
+import {
+    type AgDocument,
+    type BaseStyleTypeMap,
+    CleanupRegistry,
+    type ElementID,
+    setElementStyle,
+} from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
@@ -92,31 +98,31 @@ function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof Pro
     return meta.params?.type === type;
 }
 
-function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['result'] {
+function allocateResult<T extends keyof ProxyMeta>(type: T, document: AgDocument): ProxyMeta[T]['result'] {
     if ('button' === type) {
-        return new ButtonWidget();
+        return new ButtonWidget(document);
     } else if ('slider' === type) {
-        return new SliderWidget();
+        return new SliderWidget(document);
     } else if ('toolbar' === type) {
-        return new ToolbarWidget();
+        return new ToolbarWidget('horizontal', document);
     } else if ('group' === type) {
-        return new GroupWidget();
+        return new GroupWidget(document);
     } else if ('list' === type) {
-        return new ListWidget();
+        return new ListWidget(document);
     } else if ('region' === type) {
-        return new NativeWidget<HTMLDivElement>(createElement('div'));
+        return new NativeWidget<HTMLDivElement>(document.createElement('div'));
     } else if ('text' === type) {
-        return new BoundedTextWidget();
+        return new BoundedTextWidget(document);
     } else if ('listswitch' === type) {
-        return new SwitchWidget();
+        return new SwitchWidget(document);
     } else {
         throw new Error('AG Charts - error allocating meta');
     }
 }
 
-function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']): ProxyMeta[T] {
+function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'], document: AgDocument): ProxyMeta[T] {
     const meta = { params, result: undefined } as unknown as ProxyMeta[T];
-    meta.result = allocateResult(meta.params.type);
+    meta.result = allocateResult(meta.params.type, document);
     return meta;
 }
 
@@ -142,7 +148,7 @@ export class ProxyInteractionService {
     createProxyContainer<T extends ProxyContainerType>(
         args: { type: T } & ProxyMeta[T]['params']
     ): ProxyMeta[T]['result'] {
-        const meta: ProxyMeta[T] = allocateMeta(args);
+        const meta: ProxyMeta[T] = allocateMeta(args, this.domManager.getDocument());
         const { params, result } = meta;
         const div = result.getElement();
 
@@ -162,7 +168,7 @@ export class ProxyInteractionService {
     }
 
     createProxyElement<T extends ProxyElementType>(args: { type: T } & ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
-        const meta: ProxyMeta[T] = allocateMeta(args);
+        const meta: ProxyMeta[T] = allocateMeta(args, this.domManager.getDocument());
 
         if (checkType('button', meta)) {
             const { params, result } = meta;

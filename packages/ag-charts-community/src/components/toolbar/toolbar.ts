@@ -51,11 +51,11 @@ export abstract class BaseToolbar<
     private readonly updateAriaLabel = () => this.setAriaLabel(this.localeManager.t(this.ariaLabelId));
 
     constructor(
-        { eventsHub, localeManager }: ModuleContext,
+        { eventsHub, localeManager, domManager }: ModuleContext,
         private ariaLabelId: string,
         orientation: RovingDirection
     ) {
-        super(orientation);
+        super(orientation, domManager.getDocument());
         this.eventsHub = eventsHub;
         this.localeManager = localeManager;
         this.addClass('ag-charts-toolbar');
@@ -205,6 +205,6 @@ export abstract class BaseToolbar<
 
 export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToolbar<ButtonOptions> {
     protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.localeManager);
+        return new ToolbarButtonWidget(this.localeManager, this.getElement().ownerDocument);
     }
 }

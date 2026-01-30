@@ -19,11 +19,15 @@ export class SizeMonitor {
     private pixelRatioObserver: PixelRatioObserver | undefined;
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
+    private readonly window: Window | undefined;
+    private readonly document: Document | undefined;
 
-    constructor() {
+    constructor(window?: Window, document?: Document) {
+        this.window = window ?? getWindow();
+        this.document = document ?? this.window?.document ?? getDocument();
         const ResizeObserverCtor = getResizeObserver();
         if (ResizeObserverCtor !== undefined) {
-            this.resizeObserver = new ResizeObserverCtor((entries) => {
+            this.resizeObserver = new ResizeObserverCtor((entries: ResizeObserverEntry[]) => {
                 for (const {
                     target,
                     contentRect: { width, height },
@@ -42,9 +46,9 @@ export class SizeMonitor {
         this.pixelRatioObserver = new PixelRatioObserver(() => {
             clearTimeout(animationFrame);
             animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
-        });
+        }, this.window);
 
-        this.documentReady = getDocument('readyState') === 'complete';
+        this.documentReady = this.document?.readyState === 'complete';
         if (this.documentReady) {
             this.observeWindow();
         } else {
@@ -54,7 +58,7 @@ export class SizeMonitor {
             // If we attach before document.readyState === 'complete', then additional incorrect resize events
             // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
             // document to be loaded irons out this browser quirk.
-            getWindow()?.addEventListener('load', this.onLoad);
+            this.window?.addEventListener('load', this.onLoad);
         }
     }
 
@@ -68,7 +72,7 @@ export class SizeMonitor {
     };
 
     private destroy() {
-        getWindow()?.removeEventListener('load', this.onLoad);
+        this.window?.removeEventListener('load', this.onLoad);
         this.resizeObserver?.disconnect();
         this.resizeObserver = undefined;
         this.pixelRatioObserver?.disconnect();
