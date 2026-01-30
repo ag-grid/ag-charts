@@ -1407,13 +1407,13 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState legend seriesId not found', async () => {
-            await setActiveItem({ type: 'series-area', itemId: 'myValue', seriesId: 'LineSeries-1000' });
+            await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'LineSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
             expect(popCalls()).toEqual([]);
         });
 
         test('setState legend itemId not found', async () => {
-            await setActiveItem({ type: 'series-area', itemId: 'myValue22', seriesId: 'LineSeries-2' });
+            await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'LineSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "myValue22"']]);
             expect(popCalls()).toEqual([]);
         });
