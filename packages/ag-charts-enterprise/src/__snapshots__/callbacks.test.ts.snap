@@ -1,5 +1,90 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AG-15850 activeChange line mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "LineSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 2,
+        "seriesId": "LineSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatC",
+        "myValue": 12,
+        "myValue2": 5,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line mouse 3`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+  [
+    {
+      "activeItem": {
+        "itemId": "myValue2",
+        "seriesId": "LineSeries-2",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line mouse 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 labels area formatter 1`] = `
 [
   [

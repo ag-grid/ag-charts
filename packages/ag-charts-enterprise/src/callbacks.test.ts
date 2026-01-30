@@ -1354,88 +1354,19 @@ describe('AG-15850 activeChange', () => {
         test('mouse', async () => {
             // hover on a datum in the series area
             await hover(71, 197);
-            expect(popCalls()).toEqual([
-                [
-                    {
-                        activeItem: {
-                            itemId: 0,
-                            seriesId: 'LineSeries-1',
-                            type: 'series-area',
-                        },
-                        datum: {
-                            myCategory: 'CatA',
-                            myValue: 10,
-                            myValue2: 7,
-                        },
-                        frozen: false,
-                        source: 'user-interaction',
-                        type: 'activeChange',
-                    },
-                ],
-            ]);
+            expect(popCalls()).toMatchSnapshot();
 
             // hover on another datum in the series area
             await hover(546, 436);
-            expect(popCalls()).toEqual([
-                [
-                    {
-                        activeItem: {
-                            itemId: 2,
-                            seriesId: 'LineSeries-2',
-                            type: 'series-area',
-                        },
-                        datum: {
-                            myCategory: 'CatC',
-                            myValue: 12,
-                            myValue2: 5,
-                        },
-                        frozen: false,
-                        source: 'user-interaction',
-                        type: 'activeChange',
-                    },
-                ],
-            ]);
+            expect(popCalls()).toMatchSnapshot();
 
             // hover on a legend item
             await hover(472, 571);
-            expect(popCalls()).toEqual([
-                [
-                    {
-                        activeItem: undefined,
-                        datum: undefined,
-                        frozen: false,
-                        source: 'user-interaction',
-                        type: 'activeChange',
-                    },
-                ],
-                [
-                    {
-                        activeItem: {
-                            itemId: 'myValue2',
-                            seriesId: 'LineSeries-2',
-                            type: 'legend',
-                        },
-                        datum: undefined,
-                        frozen: false,
-                        source: 'user-interaction',
-                        type: 'activeChange',
-                    },
-                ],
-            ]);
+            expect(popCalls()).toMatchSnapshot();
 
             // hover nowhere (miss)
             await hover(166, 560);
-            expect(popCalls()).toEqual([
-                [
-                    {
-                        activeItem: undefined,
-                        datum: undefined,
-                        frozen: false,
-                        source: 'user-interaction',
-                        type: 'activeChange',
-                    },
-                ],
-            ]);
+            expect(popCalls()).toMatchSnapshot();
         });
     });
 
