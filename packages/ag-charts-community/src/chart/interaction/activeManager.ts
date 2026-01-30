@@ -84,8 +84,10 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
         this.updateable = false;
-        const [activeItem, nodeDatum]: [ActiveItem, DatumArg] = this.performRestoration(memento?.activeItem);
+        const restorationResult = this.performRestoration(memento?.activeItem);
         this.updateable = true;
+        if (restorationResult === undefined) return; // rejected
+        const [activeItem, nodeDatum]: [ActiveItem, DatumArg] = restorationResult;
 
         const oldFrozen = this.isFrozen();
         const newFrozen = memento?.frozen;
@@ -103,7 +105,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         this.performUpdate('state-change', activeItem, nodeDatum, frozenChanged);
     }
 
-    private performRestoration(activeItem: ActiveItem): [ActiveItem, DatumArg] {
+    private performRestoration(activeItem: ActiveItem): undefined | [ActiveItem, DatumArg] {
         let rejection = false;
         const reject = () => (rejection = true);
 
@@ -111,6 +113,6 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
         this.eventsHub.emit('active:load-memento', { activeItem, reject, setDatum });
-        return rejection ? [undefined, undefined] : [activeItem, nodeDatum];
+        return rejection ? undefined : [activeItem, nodeDatum];
     }
 }
