@@ -1,1 +1,1 @@
-../../external/ag-shared/prompts/templates/jira-bug-template.md
+../../external/prompts/templates/jira-bug-template.md

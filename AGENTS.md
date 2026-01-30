@@ -22,16 +22,17 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Must-Know Checklist
 
+-   **API verification:** For AG Charts code, verify every property against both `ag-charts-types` AND a working example before using it. Training data is unreliable. Ask the user if no working examples are found, don't guess.
 -   **Yarn and Nx based repo:** Use Yarn for package management and Nx for build and test orchestration.
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.
--   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`yarn nx dev`) and build health (see [Development Server Skill](.rulesync/skills/dev-server/SKILL.md)).
+-   **Build monitoring:** Check `node_modules/.cache/ag-watch-status.json` to monitor watch state (`yarn nx dev`) and build health (see [Development Server Guide](.rulesync/rules/dev-server.md)).
 -   **Formatting:** Run `yarn nx format` from the repo root before proposing commits.
 -   **Typechecking:** Run `yarn nx build:types <package>` from the repo root before proposing commits.
 -   **Linting:** Run `yarn nx lint <package>` from the repo root before proposing commits.
 -   **Baseline verification:** Expect to run `yarn nx test ag-charts-community`, `yarn nx test ag-charts-enterprise`, and `yarn nx e2e ag-charts-website` after meaningful chart changes.
 -   **Test verification patterns:** When writing or modifying tests, review similar tests to ensure consistent verification patterns (see [Testing Guide](.rulesync/rules/testing.md)).
--   **Technology stack:** Review the [technology stack skill](.rulesync/skills/technology-stack/SKILL.md) for architectural decisions before introducing new patterns.
+-   **Technology stack:** Review the [technology stack rules](.rulesync/rules/technology-stack.md) for architectural decisions before introducing new patterns.
 
 ## Specialized Guides
 
@@ -43,9 +44,9 @@ For detailed information on specific topics, consult these guides:
 -   **[JIRA Guide](.rulesync/rules/jira.md)** - JIRA ticket search and creation guidelines
 -   **[Code Quality Guide](.rulesync/rules/code-quality.md)** - Code bloat avoidance, comments, and review practices
 -   **[Default Values Guide](.rulesync/rules/defaults.md)** - Understanding the three-tier default system and theme configuration
--   **[Development Server Skill](.rulesync/skills/dev-server/SKILL.md)** - Dev server setup and build watch monitoring
+-   **[Development Server Guide](.rulesync/rules/dev-server.md)** - Dev server setup and build watch monitoring
 -   **[Benchmarks Guide](.rulesync/rules/benchmarks.md)** - Running and creating performance benchmarks
--   **[Releases Skill](.rulesync/skills/releases/SKILL.md)** - Release conventions and guidelines
+-   **[Releases Guide](.rulesync/rules/releases.md)** - Release conventions and guidelines
 -   **[Series Guide](.rulesync/rules/series.md)** - Series development architecture and patterns
 -   **[Data Model Guide](.rulesync/rules/data-model.md)** - Data processing principles
 
@@ -57,12 +58,12 @@ AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScri
 
 **Key Constraint:** The main AG Charts libraries must have ZERO third-party runtime dependencies.
 
-See the [Technology Stack Skill](.rulesync/skills/technology-stack/SKILL.md) for detailed information about preferred technologies and architectural constraints.
+See the [Technology Stack](.rulesync/rules/technology-stack.md) for detailed information about preferred technologies and architectural constraints.
 
 ## Repository Conventions
 
 -   The main branch of this repo is `latest`
--   Release branch names are of the form `b12.0.0` (see [Releases Skill](.rulesync/skills/releases/SKILL.md))
+-   Release branch names are of the form `b12.0.0` (see [Releases Guide](.rulesync/rules/releases.md))
 -   JIRA-related branch should be named of the form `ag-12345/${kebabCaseChangeSummary}`
 -   **Language conventions:** UK/British English for documentation text, comments, and JSDocs; US English for API option names (see [Documentation Pages Guide](.rulesync/rules/docs-pages.md#language-conventions))
 
@@ -101,7 +102,6 @@ NOTE: These are only intended for agentic tools that don't support custom slash 
 -   `/fixup` - execute `external/prompts/commands/fixup.md` for quick fixes to common issues.
 -   `/split` - execute `external/prompts/commands/split.md` to split large changes into smaller commits.
 -   `/previs` - execute `external/prompts/commands/previs.md` to run PREVis visual quality evaluation.
--   `/worktree-clean` - execute `external/ag-shared/prompts/commands/git/worktree-clean.md` to clean worktree branch by resetting to origin/latest.
 
 ## Architecture
 
