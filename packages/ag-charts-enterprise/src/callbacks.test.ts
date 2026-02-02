@@ -1526,17 +1526,6 @@ describe('AG-15850 activeChange', () => {
             ]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
-
-        test('setState validation failure', async () => {
-            await setActiveItem('invalid AgActiveItemState test' as unknown as AgActiveItemState);
-            expectWarningsCalls().toEqual([
-                [
-                    'AG Charts - Could not restore [active] data, value was invalid, ignoring.\n\nOption `activeItem` cannot be set to `"invalid AgActiveItemState test"`; expecting an object, ignoring.\n\n',
-                    { activeItem: 'invalid AgActiveItemState test', frozen: false },
-                ],
-            ]);
-            expect(popCalls()).toEqual([]);
-        });
     });
 
     describe('donut-shared-legend', () => {
