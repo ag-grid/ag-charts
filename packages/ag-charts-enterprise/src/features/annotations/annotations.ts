@@ -1,13 +1,33 @@
-import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection, ChartUpdateType, ObserveChanges, type Point, PropertiesArray, Property, Vec2, isValidDate } from 'ag-charts-core';
-
-
+import {
+    type AgAnnotation,
+    type AgAnnotationLineStyleType,
+    type Direction,
+    _ModuleSupport,
+    _Widget,
+} from 'ag-charts-community';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    ObserveChanges,
+    type Point,
+    PropertiesArray,
+    Property,
+    Vec2,
+    isValidDate,
+} from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
-import type { AnnotationContext, AnnotationOptionsColorPickerType, DataPoint, HasFontSizeAnnotationType, HasLineStyleAnnotationType } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationOptionsColorPickerType,
+    DataPoint,
+    HasFontSizeAnnotationType,
+    HasLineStyleAnnotationType,
+} from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
@@ -22,7 +42,6 @@ import { isChannelType, isEphemeralType, isLineType, isMeasurerType } from './ut
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
-
 
 const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _ModuleSupport;
 
@@ -499,10 +518,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
             optionsToolbar.events.on('pressed-lock', ({ locked }) => {
-                this.ctx.interactionManager.setUpdateNonBlockingState(
-                    InteractionState.AnnotationsSelected,
-                    locked
-                );
+                this.ctx.interactionManager.setUpdateNonBlockingState(InteractionState.AnnotationsSelected, locked);
                 this.ctx.interactionManager.setUpdateNonBlockingState(InteractionState.Annotations, locked);
                 this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');
                 this.update();

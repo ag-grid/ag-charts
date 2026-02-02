@@ -258,10 +258,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (legendChanged && zoomChanged) {
             // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
             // has updated the axis scale domains.
-            await this.restoreOriginators(state, nonActiveOriginators.filter((originator) => originator !== zoomManager), {
-                updateType: ChartUpdateType.PROCESS_DATA,
-                updateOpts: { forceNodeDataRefresh: true },
-            });
+            await this.restoreOriginators(
+                state,
+                nonActiveOriginators.filter((originator) => originator !== zoomManager),
+                {
+                    updateType: ChartUpdateType.PROCESS_DATA,
+                    updateOpts: { forceNodeDataRefresh: true },
+                }
+            );
             await this.restoreOriginators(state, [zoomManager]);
             await chart.waitForUpdate();
         } else if (legendChanged) {
@@ -308,7 +312,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     ): MementoOriginator[] {
         return originators.filter((originator) => {
             const key = originator.mementoOriginatorKey as keyof AgChartState;
-            if (!Object.prototype.hasOwnProperty.call(state, key)) return false;
+            if (!Object.hasOwn(state, key)) return false;
             if (baselineState && !objectsEqual((baselineState as any)[key], (currentState as any)[key])) {
                 return false;
             }
