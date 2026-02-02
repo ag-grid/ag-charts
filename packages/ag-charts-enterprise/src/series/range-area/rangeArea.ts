@@ -240,9 +240,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             extraProps.push(animationValidation());
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue` }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue` }),
                 ...extraProps,
@@ -416,7 +417,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         yLowValueOverride?: number
     ): void {
         scratch.xValue = ctx.xValues[datumIndex];
-        if (scratch.xValue == null) return;
+        if (scratch.xValue === undefined && !this.properties.allowNullKeys) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yHighValue = yHighValueOverride ?? ctx.yHighValues[datumIndex];
@@ -427,6 +428,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         if (Number.isFinite(scratch.yHighValue) && Number.isFinite(scratch.yLowValue)) {
             scratch.inverted = scratch.yLowValue > scratch.yHighValue;
             scratch.x = ctx.xScale.convert(scratch.xValue) + ctx.xOffset;
+            if (!Number.isFinite(scratch.x)) return;
+
             scratch.yHighCoordinate = ctx.yScale.convert(scratch.yHighValue);
             scratch.yLowCoordinate = ctx.yScale.convert(scratch.yLowValue);
 
@@ -1187,7 +1190,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(itemType);

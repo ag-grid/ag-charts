@@ -156,10 +156,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(radiusKey, radiusScaleType, { id: 'radiusValue' }),
+                keyProperty(radiusKey, radiusScaleType, { id: 'radiusValue', allowNullKey }),
                 valueProperty(angleKey, angleScaleType, {
                     id: 'angleValue-raw',
                     invalidValue: null,
@@ -308,7 +309,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         for (const { datumIndex, group } of dataModel.forEachGroupDatum(this, processedData)) {
             const datum = rawData[datumIndex];
             const radiusDatum = radiusValues[datumIndex];
-            if (radiusDatum == null) return;
+            // eslint-disable-next-line sonarjs/different-types-comparison
+            if (radiusDatum === undefined && !this.properties.allowNullKeys) return;
 
             const angleDatum = angleRawValues[datumIndex];
             const angleStartDatum = angleStartValues[datumIndex];
@@ -533,7 +535,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
         const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
 
-        if (radiusValue == null) return;
+        // eslint-disable-next-line sonarjs/different-types-comparison
+        if (radiusValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false);
 

@@ -216,9 +216,10 @@ export abstract class BaseFunnelSeries<
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(stageKey, xScaleType, { id: 'xValue' }),
+                keyProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps, validation, invalidValue: 0 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
@@ -327,9 +328,12 @@ export abstract class BaseFunnelSeries<
             const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
-            if (xDatum == null) continue;
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
 
-            const x = Math.round(xScale.convert(xDatum)) + groupOffset + barOffset;
+            const xConverted = xScale.convert(xDatum);
+            if (!Number.isFinite(xConverted)) continue;
+            const x = Math.round(xConverted) + groupOffset + barOffset;
 
             const yDatum = yValues[datumIndex];
             const yNegative = Math.round(yScale.convert(-yDatum));
@@ -560,7 +564,9 @@ export abstract class BaseFunnelSeries<
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -658,7 +664,8 @@ export abstract class BaseFunnelSeries<
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
-                if (stageValue == null) return;
+                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                if (stageValue == null && !allowNullKeys) return;
 
                 return {
                     legendType: 'category',

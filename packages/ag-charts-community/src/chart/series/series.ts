@@ -1041,11 +1041,24 @@ export abstract class Series<
         value: any,
         datum: any,
         key: string,
-        legendItemName: string | undefined
+        legendItemName: string | undefined,
+        allowNull?: boolean
     ) {
         const { id: seriesId, properties } = this;
 
-        return axis.formatDatum(properties, value, source, seriesId, legendItemName, datum, key);
+        return axis.formatDatum(
+            properties,
+            value,
+            source,
+            seriesId,
+            legendItemName,
+            datum,
+            key,
+            undefined,
+            undefined,
+            undefined,
+            allowNull
+        );
     }
 
     protected getLabelText<TParams extends object>(
@@ -1055,9 +1068,10 @@ export abstract class Series<
         property: FormatterPropertyType,
         domain: any[],
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
-        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
+        allowNullValue: boolean = false
     ): TextOrSegments {
-        if (value == null) return '';
+        if (value == null && !allowNullValue) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
         const source = 'series-label';
@@ -1080,7 +1094,8 @@ export abstract class Series<
                 key,
                 domain,
                 label,
-                params
+                params,
+                allowNullValue
             );
         }
 

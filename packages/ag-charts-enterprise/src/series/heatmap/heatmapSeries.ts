@@ -178,10 +178,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: 'yValue' }),
+                valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: 'yValue', allowNullKey }),
                 ...(colorKey
                     ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
                     : []),
@@ -437,6 +438,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const yDatum = ctx.yValues[datumIndex];
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
         const colorValue = colorValues?.[datumIndex];
 
         // Update properties
@@ -715,7 +719,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
                 : undefined;
 
-        if (xValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

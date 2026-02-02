@@ -67,7 +67,7 @@ function isIndexInAggregation(
     xValuesLength: number
 ): boolean {
     const xValue = xValues[datumIndex];
-    if (xValue == null) return false;
+    if (xValue === undefined) return false;
 
     const xRatio = Number.isFinite(d0)
         ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)

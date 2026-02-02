@@ -296,16 +296,17 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         };
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const extraKeyProps = [];
         const extraProps = [];
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(legendItemKey, 'category', { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, 'category', { id: `legendItemKey`, allowNullKey }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(calloutLabelKey, 'category', { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, 'category', { id: `calloutLabelKey`, allowNullKey }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(sectorLabelKey, 'category', { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, 'category', { id: `sectorLabelKey`, allowNullKey }));
         }
 
         const radiusScaleType = this.radiusScale.type;
@@ -325,13 +326,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(calloutLabelKey, 'category', { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, 'category', { id: `calloutLabelValue`, allowNullKey }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(sectorLabelKey, 'category', { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, 'category', { id: `sectorLabelValue`, allowNullKey }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(legendItemKey, 'category', { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, 'category', { id: `legendItemValue`, allowNullKey }));
         }
         if (angleFilterKey) {
             extraProps.push(
@@ -551,6 +552,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { id: seriesId, ctx, properties } = this;
         const { formatManager } = ctx;
         const { calloutLabel, sectorLabel, calloutLabelKey, sectorLabelKey, legendItemKey } = properties;
+        const allowNullKeys = properties.allowNullKeys ?? false;
 
         const calloutLabelValue = values.calloutLabelValues?.[datumIndex];
         const sectorLabelValue = values.sectorLabelValues?.[datumIndex];
@@ -587,7 +589,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 'calloutLabel',
                 [],
                 calloutLabel,
-                { ...labelFormatterParams, value: calloutLabelValue }
+                { ...labelFormatterParams, value: calloutLabelValue },
+                allowNullKeys
             );
         }
 
@@ -599,15 +602,17 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 'sectorLabel',
                 [],
                 sectorLabel,
-                { ...labelFormatterParams, value: sectorLabelValue }
+                { ...labelFormatterParams, value: sectorLabelValue },
+                allowNullKeys
             );
         }
 
-        if (legendItemKey != null && legendItemValue != null) {
+        if (legendItemKey != null && (legendItemValue != null || allowNullKeys)) {
+            const legendItemDisplay = legendItemValue ?? '';
             result.legendItem =
                 formatManager.format(this.callWithContext.bind(this), {
                     type: 'category',
-                    value: legendItemValue,
+                    value: allowNullKeys ? (legendItemValue as string) : legendItemDisplay,
                     datum,
                     seriesId,
                     legendItemName: undefined,
@@ -616,7 +621,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     property: 'legendItem',
                     domain: [],
                     boundSeries: this.getFormatterContext('legendItem'),
-                }) ?? legendItemValue;
+                }) ?? legendItemDisplay;
         }
 
         return result;

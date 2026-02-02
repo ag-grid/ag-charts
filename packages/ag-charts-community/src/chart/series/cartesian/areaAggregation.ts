@@ -66,7 +66,7 @@ function aggregationIndexType(
     xNeedsValueOf: boolean
 ): number {
     const xValue = xValues[datumIndex];
-    if (xValue == null) return -1;
+    if (xValue === undefined) return -1;
 
     const xRatio = Number.isFinite(d0)
         ? aggregationXRatioForXValue(xValue, d0, d1, xNeedsValueOf)

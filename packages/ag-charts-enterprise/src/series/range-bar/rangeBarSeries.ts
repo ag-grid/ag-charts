@@ -255,9 +255,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: null, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
@@ -432,7 +433,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     ): PreparedRangeBarNodeDatumState | undefined {
         const datum = ctx.rawData[datumIndex];
         const xValue = ctx.xValues[datumIndex];
-        if (xValue == null) return undefined;
+        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
 
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
@@ -600,7 +601,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             if (midDatumIndex === -1) continue;
 
             const xValue = ctx.xValues[midDatumIndex];
-            if (xValue == null) continue;
+            if (xValue === undefined && !this.properties.allowNullKeys) continue;
 
             // Populate scratch object with aggregated values
             nodeDatumParamsScratch.datumIndex = midDatumIndex;
@@ -704,8 +705,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
         // Helper for x position calculation (uses context)
-        const xPosition = (datumIndex: number) =>
-            Math.round(ctx.xScale.convert(ctx.xValues[datumIndex])) + ctx.groupOffset + ctx.barOffset;
+        const xPosition = (datumIndex: number) => {
+            const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+            if (!Number.isFinite(x)) return Number.NaN;
+            return Math.round(x) + ctx.groupOffset + ctx.barOffset;
+        };
 
         // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
         const nodeDatumParamsScratch: NodeDatumParams = {
@@ -1186,7 +1190,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
