@@ -273,6 +273,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     separateNegative?: boolean;
     validation?: (value: any, datum: any, index: number) => boolean;
     processor?: () => ProcessorFn;
+    allowNullKey?: boolean; // When true, null is valid for this key (internal use only)
 };
 
 export type InternalDefinition<IsScoped extends boolean> = {
