@@ -1,10 +1,4 @@
-import {
-    AgActiveChangeEvent,
-    AgChartOptions,
-    AgCharts,
-    AllEnterpriseModule,
-    ModuleRegistry,
-} from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -70,16 +64,9 @@ const options: AgChartOptions = {
             stackGroup: 'stack',
         },
     ],
-    listeners: {
-        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
-            if (ev.activeItem === undefined) {
-                console.log(`[inactive], event:`, ev);
-            } else {
-                const { type: t, seriesId: s, itemId: i } = ev.activeItem;
-                console.log(`[${t}], seriesId: ${s}, itemId: ${i}, event:`, ev);
-            }
-        },
-    },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+// For e2e testing:
+(window as any).agE2E = { chart };
