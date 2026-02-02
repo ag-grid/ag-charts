@@ -533,6 +533,8 @@ commonChartOptionsDefs.foreground = undocumented({
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.displayNullData = undocumented(boolean);
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
