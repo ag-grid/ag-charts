@@ -438,7 +438,7 @@ restore_agents_md() {
     fi
 
     # Cleanup stash file if still exists
-    [[ -n "$AGENTS_MD_STASH_FILE" && -f "$AGENTS_MD_STASH_FILE" ]] && rm -f "$AGENTS_MD_STASH_FILE"
+    [[ -n "$AGENTS_MD_STASH_FILE" && -f "$AGENTS_MD_STASH_FILE" ]] && rm -f "$AGENTS_MD_STASH_FILE" || true
 }
 
 # Get rulesync command - prefer patched versions over npx (which downloads fresh unpatched)
