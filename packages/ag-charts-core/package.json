@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-core",
-  "version": "13.0.0-beta.20260201",
+  "version": "13.0.0-beta.20260202",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "sideEffects": [
     "*.css",
@@ -53,7 +53,7 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-types": "13.0.0-beta.20260201"
+    "ag-charts-types": "13.0.0-beta.20260202"
   },
   "devDependencies": {
     "@jest/globals": "29.6.1"

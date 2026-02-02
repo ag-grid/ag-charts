@@ -1,8 +1,8 @@
 {
   "name": "ag-charts-test",
-  "version": "13.0.0-beta.20260201",
+  "version": "13.0.0-beta.20260202",
   "dependencies": {
-    "ag-charts-core": "13.0.0-beta.20260201",
+    "ag-charts-core": "13.0.0-beta.20260202",
     "skia-canvas": "^2.0.2",
     "pixelmatch": "^5.2.1",
     "pngjs": "3.4.0",
