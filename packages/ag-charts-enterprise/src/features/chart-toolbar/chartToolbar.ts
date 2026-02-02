@@ -34,6 +34,7 @@ export class ChartToolbar extends AbstractModuleInstance {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
+            ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
             () => this.toolbar.destroy()
         );
     }

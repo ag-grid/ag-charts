@@ -42,11 +42,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         if (memento) {
             for (const datum of memento) {
                 const { seriesId, data } = this.getRestoredData(datum) ?? {};
-
-                if (!seriesId || !data) {
-                    continue;
-                }
-
+                if (!seriesId || !data) continue;
                 this.updateData(seriesId, data);
             }
         }

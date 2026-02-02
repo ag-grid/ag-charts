@@ -114,6 +114,7 @@ export interface ActiveLoadMementoEvent {
 
 interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
+    preserveUi?: boolean;
 }
 
 export interface AxisHoverEvent {

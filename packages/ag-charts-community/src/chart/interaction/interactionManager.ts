@@ -13,6 +13,7 @@ export enum InteractionState {
     Animation = 4,
     AnnotationsSelected = 2,
     Frozen = 1,
+    NoInteraction = 0,
 
     Clickable = Default | Annotations | AnnotationsSelected,
     Focusable = Default | Animation,
@@ -29,6 +30,9 @@ export enum InteractionState {
 
 export class InteractionManager {
     private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
+    private static readonly interactionStateMask =
+        InteractionState.All & ~InteractionState.Default & ~InteractionState.Animation;
+    private updateNonBlockingStates = InteractionState.NoInteraction;
 
     public pushState(state: InteractionState) {
         this.stateQueue |= state;
@@ -41,5 +45,22 @@ export class InteractionManager {
     public isState(allowedStates: InteractionState): boolean {
         // Bitwise operation to get the least significant bit:
         return !!(this.stateQueue & -this.stateQueue & allowedStates);
+    }
+
+    public isInteracting(): boolean {
+        return (this.stateQueue & InteractionManager.interactionStateMask) !== 0;
+    }
+
+    public setUpdateNonBlockingState(state: InteractionState, enabled: boolean): void {
+        if (enabled) {
+            this.updateNonBlockingStates |= state;
+        } else {
+            this.updateNonBlockingStates &= ~state;
+        }
+    }
+
+    public isUpdateBlocked(): boolean {
+        const mask = InteractionManager.interactionStateMask & ~this.updateNonBlockingStates;
+        return (this.stateQueue & mask) !== 0;
     }
 }

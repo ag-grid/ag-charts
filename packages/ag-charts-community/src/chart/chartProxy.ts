@@ -8,6 +8,8 @@ import {
     ModuleRegistry,
     deepClone,
     getDocument,
+    objectsEqual,
+    pause,
 } from 'ag-charts-core';
 import type {
     AgChartInstance,
@@ -22,6 +24,7 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
+import type { UpdateOpts } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
@@ -211,19 +214,70 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!chart) return;
 
         const originators = this.getEnabledOriginators();
+        if (originators.length === 0) return;
 
-        if (!originators.includes(chart.ctx.legendManager)) {
-            await this.setStateOriginators(state, originators);
+        const initialChart = chart;
+        if (state == null || typeof state !== 'object' || typeof (state as AgChartState).version !== 'string') {
+            if (chart.ctx.interactionManager.isUpdateBlocked()) {
+                await this.waitForInteractionIdle();
+                if (this.chart !== initialChart) return;
+            }
+            this.factoryApi.caretaker.restore(state, ...originators);
             return;
         }
 
-        // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
-        // has updated the axis scale domains.
-        await this.setStateOriginators(
-            state,
-            originators.filter((originator) => originator !== chart.ctx.zoomManager)
-        );
-        await this.setStateOriginators(state, [chart.ctx.zoomManager]);
+        const currentState = this.factoryApi.caretaker.save(...originators);
+        const versionChanged = state.version !== currentState.version;
+        let originatorsToRestore = this.getOriginatorsToRestore(state, currentState, versionChanged, originators);
+
+        if (originatorsToRestore.length === 0) return;
+
+        if (chart.ctx.interactionManager.isUpdateBlocked()) {
+            const baselineState = currentState;
+            await this.waitForInteractionIdle();
+            if (this.chart !== initialChart) return;
+
+            const latestState = this.factoryApi.caretaker.save(...originators);
+            originatorsToRestore = this.getOriginatorsToRestore(
+                state,
+                latestState,
+                versionChanged,
+                originators,
+                baselineState
+            );
+
+            if (originatorsToRestore.length === 0) return;
+        }
+
+        const { activeManager, legendManager, zoomManager } = chart.ctx;
+        const needsActiveRestore = originatorsToRestore.includes(activeManager);
+        const nonActiveOriginators = originatorsToRestore.filter((originator) => originator !== activeManager);
+        const legendChanged = nonActiveOriginators.includes(legendManager);
+        const zoomChanged = nonActiveOriginators.includes(zoomManager);
+
+        if (legendChanged && zoomChanged) {
+            // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
+            // has updated the axis scale domains.
+            await this.restoreOriginators(state, nonActiveOriginators.filter((originator) => originator !== zoomManager), {
+                updateType: ChartUpdateType.PROCESS_DATA,
+                updateOpts: { forceNodeDataRefresh: true },
+            });
+            await this.restoreOriginators(state, [zoomManager]);
+            await chart.waitForUpdate();
+        } else if (legendChanged) {
+            await this.restoreOriginators(state, nonActiveOriginators, {
+                updateType: ChartUpdateType.PROCESS_DATA,
+                updateOpts: { forceNodeDataRefresh: true },
+            });
+        } else if (nonActiveOriginators.length > 0) {
+            await this.restoreOriginators(state, nonActiveOriginators);
+            await chart.waitForUpdate();
+        }
+
+        if (needsActiveRestore) {
+            await this.restoreOriginators(state, [activeManager]);
+            await chart.waitForUpdate();
+        }
     }
 
     resetAnimations(): void {
@@ -243,6 +297,37 @@ export class AgChartInstanceProxy implements AgChartProxy {
             this.chart.destroy();
         }
         this.chart = undefined;
+    }
+
+    private getOriginatorsToRestore(
+        state: AgChartState,
+        currentState: AgChartState,
+        versionChanged: boolean,
+        originators: MementoOriginator[],
+        baselineState?: AgChartState
+    ): MementoOriginator[] {
+        return originators.filter((originator) => {
+            const key = originator.mementoOriginatorKey as keyof AgChartState;
+            if (!Object.prototype.hasOwnProperty.call(state, key)) return false;
+            if (baselineState && !objectsEqual((baselineState as any)[key], (currentState as any)[key])) {
+                return false;
+            }
+            if (versionChanged) return true;
+            return !objectsEqual((state as any)[key], (currentState as any)[key]);
+        });
+    }
+
+    private async waitForInteractionIdle(): Promise<void> {
+        const { chart } = this;
+        if (!chart) return;
+
+        const { interactionManager } = chart.ctx;
+        while (!chart.destroyed && interactionManager.isUpdateBlocked()) {
+            await chart.waitForUpdate();
+            if (interactionManager.isUpdateBlocked()) {
+                await pause(16);
+            }
+        }
     }
 
     private async prepareResizedChart(
@@ -352,9 +437,24 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return originators;
     }
 
-    private async setStateOriginators(state: AgChartState, originators: MementoOriginator[]) {
-        this.factoryApi.caretaker.restore(state, ...originators);
-        this.chart?.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
-        await this.chart?.waitForUpdate();
+    private async restoreOriginators(
+        state: AgChartState,
+        originators: MementoOriginator[],
+        opts?: { updateType?: ChartUpdateType; updateOpts?: UpdateOpts }
+    ) {
+        if (originators.length === 0) return;
+        const annotationManager = this.chart?.ctx.annotationManager;
+        if (annotationManager && originators.includes(annotationManager)) {
+            annotationManager.withRestoreOptions({ preserveUi: true }, () => {
+                this.factoryApi.caretaker.restore(state, ...originators);
+            });
+        } else {
+            this.factoryApi.caretaker.restore(state, ...originators);
+        }
+
+        if (opts?.updateType != null) {
+            this.chart?.ctx.updateService.update(opts.updateType, opts.updateOpts);
+            await this.chart?.waitForUpdate();
+        }
     }
 }

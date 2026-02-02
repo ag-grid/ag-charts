@@ -447,7 +447,6 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     this.active = undefined;
 
                     ctx.select(this.active, this.active);
-
                     ctx.resetToIdle();
                 },
 

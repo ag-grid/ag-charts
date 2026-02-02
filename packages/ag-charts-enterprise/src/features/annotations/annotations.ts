@@ -1,33 +1,13 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationLineStyleType,
-    type Direction,
-    _ModuleSupport,
-    _Widget,
-} from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    ChartAxisDirection,
-    ChartUpdateType,
-    ObserveChanges,
-    type Point,
-    PropertiesArray,
-    Property,
-    Vec2,
-    isValidDate,
-} from 'ag-charts-core';
+import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { AbstractModuleInstance, ChartAxisDirection, ChartUpdateType, ObserveChanges, type Point, PropertiesArray, Property, Vec2, isValidDate } from 'ag-charts-core';
+
+
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
-import type {
-    AnnotationContext,
-    AnnotationOptionsColorPickerType,
-    DataPoint,
-    HasFontSizeAnnotationType,
-    HasLineStyleAnnotationType,
-} from './annotationTypes';
+import type { AnnotationContext, AnnotationOptionsColorPickerType, DataPoint, HasFontSizeAnnotationType, HasLineStyleAnnotationType } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
@@ -43,16 +23,15 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
+
 const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _ModuleSupport;
 
-type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
-
-type AnnotationAxis = {
+interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _ModuleSupport.BBox;
     button?: AxisButton;
-};
+}
 
 export class Annotations extends AbstractModuleInstance {
     @Property
@@ -87,9 +66,7 @@ export class Annotations extends AbstractModuleInstance {
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
-        Annotations.createAnnotationDatum
-    );
+    private readonly annotationData = new PropertiesArray<AnnotationProperties>(Annotations.createAnnotationDatum);
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -173,12 +150,7 @@ export class Annotations extends AbstractModuleInstance {
 
             getNodeAtCoords: (coords: Point, active: number) => {
                 const node = this.annotations.at(active);
-
-                if (!node) {
-                    return;
-                }
-
-                return node.getNodeAtCoords(coords.x, coords.y);
+                return node?.getNodeAtCoords(coords.x, coords.y);
             },
 
             translate: (index: number, translation: Point) => {
@@ -220,6 +192,15 @@ export class Annotations extends AbstractModuleInstance {
                 const selectedNode = index == null ? null : annotations.at(index);
                 const previousNode = previous == null ? null : annotations.at(previous);
                 const selectedDatum = index == null ? null : this.annotationData.at(index);
+                const allowUpdatesWhileSelected = !!selectedDatum?.locked && !selectedDatum?.readOnly;
+                this.ctx.interactionManager.setUpdateNonBlockingState(
+                    InteractionState.AnnotationsSelected,
+                    allowUpdatesWhileSelected
+                );
+                this.ctx.interactionManager.setUpdateNonBlockingState(
+                    InteractionState.Annotations,
+                    allowUpdatesWhileSelected
+                );
 
                 // Only change anything else if a different node has been selected or when deselecting
                 if (previousNode === selectedNode && selectedNode != null) {
@@ -278,13 +259,8 @@ export class Annotations extends AbstractModuleInstance {
 
             deleteAll: () => {
                 // Filter the readOnly data and recreate the array since this is not a standard array.
-                const readOnly = this.annotationData.filter((datum) => {
-                    if (datum.readOnly === true) return datum;
-                });
-                this.annotationData.splice(0, this.annotationData.length);
-                for (const datum of readOnly) {
-                    this.annotationData.push(datum);
-                }
+                const readOnly = this.annotationData.filter((datum) => (datum.readOnly ? datum : false));
+                this.annotationData.splice(0, this.annotationData.length, ...readOnly);
             },
 
             validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => {
@@ -523,6 +499,11 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
             optionsToolbar.events.on('pressed-lock', ({ locked }) => {
+                this.ctx.interactionManager.setUpdateNonBlockingState(
+                    InteractionState.AnnotationsSelected,
+                    locked
+                );
+                this.ctx.interactionManager.setUpdateNonBlockingState(InteractionState.Annotations, locked);
                 this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');
                 this.update();
             }),
@@ -708,16 +689,43 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
-    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
+    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; preserveUi?: boolean }) {
         if (!this.enabled) return;
 
-        this.clear();
-        this.annotationData.set(event.annotations);
+        if (!event.preserveUi) {
+            this.clear();
+        }
+        this.restoreAnnotationData(event.annotations, event.preserveUi);
 
         this.postUpdateFns.push(() => {
             this.ctx.annotationManager.fireChangedEvent();
         });
         this.update();
+    }
+
+    private restoreAnnotationData(annotations: Array<AgAnnotation>, preserveUi?: boolean) {
+        if (!preserveUi) {
+            this.annotationData.set(annotations);
+            return;
+        }
+
+        if (this.annotationData.length !== annotations.length) {
+            this.annotationData.set(annotations);
+            return;
+        }
+
+        for (let i = 0; i < annotations.length; i += 1) {
+            const datum = this.annotationData.at(i);
+            const incoming = annotations[i];
+            if (!datum || datum.type !== incoming?.type) {
+                this.annotationData.set(annotations);
+                return;
+            }
+        }
+
+        for (let i = 0; i < annotations.length; i += 1) {
+            this.annotationData[i]!.set(annotations[i] as any);
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

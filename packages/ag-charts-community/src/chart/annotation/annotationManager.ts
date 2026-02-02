@@ -14,6 +14,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
+    private restoreOptions?: { preserveUi?: boolean };
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -31,13 +32,25 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento | undefined) {
         // Migration from older versions can be implemented here.
+        const restoreOptions = this.restoreOptions;
+        this.restoreOptions = undefined;
 
         this.annotations = this.cleanData(memento ?? []).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });
 
-        this.eventsHub.emit('annotations:restore', { annotations: this.annotations });
+        this.eventsHub.emit('annotations:restore', { annotations: this.annotations, ...restoreOptions });
+    }
+
+    public withRestoreOptions<T>(options: { preserveUi?: boolean }, action: () => T): T {
+        const previous = this.restoreOptions;
+        this.restoreOptions = options;
+        try {
+            return action();
+        } finally {
+            this.restoreOptions = previous;
+        }
     }
 
     public updateData(annotations?: AnnotationsMemento) {
