@@ -96,6 +96,7 @@ export type UpdateZoomChanges = Record<AxisID, ZoomMinMax | undefined>;
 export type UpdateZoomParams = UpdateZoomSourcing & {
     isReset: boolean;
     changes: UpdateZoomChanges;
+    skipOnDataChange?: boolean;
 };
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -386,12 +387,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public updateChanges(params: UpdateZoomParams): boolean {
-        const { source, sourceDetail, isReset, changes } = params;
+        const { source, sourceDetail, isReset, changes, skipOnDataChange } = params;
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
         const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
+
         for (const id of changedAxes) {
             const axis = newState[id];
             if (axis != undefined) {
@@ -401,7 +403,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
         this.state = newState;
 
-        return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState);
+        return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState, skipOnDataChange);
     }
 
     public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
@@ -602,14 +604,17 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
-        if (requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y) return;
-        if (
-            (this.lastRestoredRequiredRangeDirection === requiredRangeDirection &&
-                this.lastRestoredRequiredRange === requiredRangeRatio) ||
-            requiredRangeRatio === 0
-        ) {
-            return;
-        }
+        const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
+
+        const directionInvalid =
+            requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y;
+        const requiredRangeUnchanged =
+            lastRestoredRequiredRangeDirection === requiredRangeDirection &&
+            lastRestoredRequiredRange === requiredRangeRatio;
+        const requiredRangeUnset =
+            requiredRangeRatio === 0 && (lastRestoredRequiredRange == null || lastRestoredRequiredRange === 0);
+
+        if (directionInvalid || requiredRangeUnchanged || requiredRangeUnset) return;
 
         const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
@@ -642,11 +647,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
+
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-requiredWidth',
             changes,
             isReset: false,
+            skipOnDataChange: true,
         });
     }
 
@@ -676,7 +683,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         sourceDetail: ZoomEventSourceDetail,
         changedAxes: readonly AxisID[],
         isReset: boolean,
-        oldState: CoreZoomStateSafeRetrieval
+        oldState: CoreZoomStateSafeRetrieval,
+        skipOnDataChange?: boolean
     ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
@@ -692,6 +700,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             oldState,
             x,
             y,
+            skipOnDataChange,
             stateAsDefinedZoom(): DefinedZoomState {
                 return definedZoomState(zoomManager.toZoomState(event.state));
             },
