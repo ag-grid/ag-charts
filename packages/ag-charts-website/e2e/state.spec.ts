@@ -945,5 +945,108 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('grouped-category-bars', () => {
+            let canvas: Locator;
+
+            async function hoverOnCoalLegendItem(page: Page): Promise<void> {
+                await page.mouse.move(50, 300);
+            }
+
+            async function hoverOnChinaRenewable2025(page: Page): Promise<void> {
+                await page.mouse.move(547, 247);
+            }
+
+            async function keynavToGermanyGas2024(page: Page): Promise<void> {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            }
+
+            async function keynavToNaturalGasLegendItem(page: Page): Promise<void> {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'grouped-category-bars', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('series-area hover updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnChinaRenewable2025(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-chinarenewable2025-hover.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnChinaRenewable2025(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                    });
+                });
+            });
+
+            test.describe('legend hover updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnCoalLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-coallegend-hover.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnCoalLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                    });
+                });
+            });
+
+            test.describe('series-area keynav updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await keynavToGermanyGas2024(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-germangas2024-focused.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await keynavToGermanyGas2024(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                    });
+                });
+            });
+
+            test.describe('legend keynav updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await keynavToNaturalGasLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-gaslegend-focused.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await keynavToNaturalGasLegendItem(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                    });
+                });
+            });
+        });
     });
 });
