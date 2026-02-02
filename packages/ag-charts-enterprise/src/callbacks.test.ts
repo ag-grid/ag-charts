@@ -1570,7 +1570,7 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toMatchSnapshot();
 
             // hover nowhere (miss)
-            await hover(15,15);
+            await hover(15, 15);
             expect(popCalls()).toMatchSnapshot();
         });
 
