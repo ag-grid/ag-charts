@@ -1528,6 +1528,93 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('area', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myCategory: 'CatA', myValue: 10, myValue2: 7 },
+                    { myCategory: 'CatB', myValue: 20, myValue2: 14 },
+                    { myCategory: 'CatC', myValue: 12, myValue2: 5 },
+                    { myCategory: 'CatD', myValue: 15, myValue2: 11 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                    },
+                    {
+                        type: 'area',
+                        xKey: 'myCategory',
+                        yKey: 'myValue2',
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            // hover on a marker (myValue2-CatB)
+            await hover(292, 184);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on another marker (myValue-CatD)
+            await hover(745, 137);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on a legend item (myValue)
+            await hover(360, 573);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover nowhere (miss)
+            await hover(15,15);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1, seriesId: 'AreaSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 3, seriesId: 'AreaSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'legend', itemId: 'myValue2', seriesId: 'AreaSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'AreaSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "AreaSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'AreaSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'AreaSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "AreaSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'AreaSeries-2' });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"AreaSeries-2","itemId":"myValue22"}'],
+            ]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
     describe('donut-shared-legend', () => {
         beforeEach(async () => {
             await createChart({
@@ -1641,8 +1728,6 @@ describe('AG-15850 activeChange', () => {
     //   * map-line
     //   * sunburst
     //   * treemap
-    //   * line
-    //   * area
     //   * range-area
     //   * range-bar
     //   * bubble

@@ -1,5 +1,152 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AG-15850 activeChange area mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "AreaSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatB",
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 3,
+        "seriesId": "AreaSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatD",
+        "myValue": 15,
+        "myValue2": 11,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area mouse 3`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+  [
+    {
+      "activeItem": {
+        "itemId": "myValue",
+        "seriesId": "AreaSeries-1",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area mouse 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "AreaSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatB",
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 3,
+        "seriesId": "AreaSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myCategory": "CatD",
+        "myValue": 15,
+        "myValue2": 11,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange area setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "myValue2",
+        "seriesId": "AreaSeries-2",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange bar mouse 1`] = `
 [
   [
