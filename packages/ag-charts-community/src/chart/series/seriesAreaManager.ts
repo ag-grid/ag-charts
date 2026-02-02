@@ -1003,13 +1003,20 @@ export class SeriesAreaManager extends BaseManager {
             }
         }
 
+        const hasSeriesContainingPoint = seriesContainingPoint.size > 0;
+
         let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.contentGroup.visible) continue;
             if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
 
             // If we found series with 'area' tooltip range containing the point, only pick from those series
-            if (series.properties.tooltip.range === 'area' && !seriesContainingPoint.has(series)) continue;
+            if (
+                hasSeriesContainingPoint &&
+                series.properties.tooltip.range === 'area' &&
+                !seriesContainingPoint.has(series)
+            )
+                continue;
 
             const pick = series.pickNodes(point, intent, exactMatchOnly);
             if (pick == null || pick.datums.length === 0) continue;
