@@ -135,7 +135,9 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: 10000, seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: 10000']);
+                expect(consoleLogs.getLogs()).toEqual([
+                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: 10000 }',
+                ]);
                 consoleLogs.clear();
             }
 
@@ -147,7 +149,9 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: "0"']);
+                expect(consoleLogs.getLogs()).toEqual([
+                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: "0" }',
+                ]);
                 consoleLogs.clear();
             }
 
@@ -371,7 +375,7 @@ test.describe('state', () => {
                 });
             });
 
-            test.describe('[ignoreConsoleWarnings] should ignore setState with invalid node id', () => {
+            test.describe('[ignoreConsoleWarnings] setState with invalid node id should deactivate', () => {
                 const consoleLogs = createConsoleLogs();
 
                 test('screenshots', async ({ page }) => {
@@ -381,7 +385,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
                     await consoleLogs.expectLogs([]);
                 });
@@ -403,16 +407,13 @@ test.describe('state', () => {
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
                     state = await getChartState(page);
-                    expect(state.active).toEqual({
-                        frozen: false,
-                        activeItem: { type: 'series-area', itemId: 13, seriesId: 'LineSeries-2' },
-                    });
+                    expect(state.active?.activeItem).toBeUndefined();
 
                     await consoleLogs.expectLogs([]);
                 });
             });
 
-            test.describe('[ignoreConsoleWarnings] should ignore setState with incorrect string-type id', () => {
+            test.describe('[ignoreConsoleWarnings] setState with incorrect string-type id should deactivate', () => {
                 const consoleLogs = createConsoleLogs();
 
                 test('screenshots', async ({ page }) => {
@@ -422,7 +423,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
                     await setStateStringNodeId(consoleLogs, page, version);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
 
                     await consoleLogs.expectLogs([]);
                 });
@@ -444,10 +445,7 @@ test.describe('state', () => {
 
                     await setStateStringNodeId(consoleLogs, page, version);
                     state = await getChartState(page);
-                    expect(state.active).toEqual({
-                        frozen: false,
-                        activeItem: { type: 'series-area', itemId: 13, seriesId: 'LineSeries-2' },
-                    });
+                    expect(state.active?.activeItem).toBeUndefined();
 
                     await consoleLogs.expectLogs([]);
                 });
