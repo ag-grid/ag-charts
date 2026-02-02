@@ -1718,6 +1718,108 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('waterfall', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myX: 'Positive 1', myY: 185 },
+                    { myX: 'Positive 2', myY: 145 },
+                    { myX: 'Positive 3', myY: 134 },
+                    { myX: 'Positive 4', myY: 55 },
+                    { myX: 'Positive 5', myY: 34 },
+                    { myX: 'Negative 1', myY: -155 },
+                    { myX: 'Negative 2', myY: -112 },
+                    { myX: 'Negative 3', myY: -165 },
+                    { myX: 'Negative 4', myY: -163 },
+                    { myX: 'Negative 5', myY: -91 },
+                ],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'myX',
+                        yKey: 'myY',
+                        totals: [
+                            { totalType: 'subtotal', index: 4, axisLabel: 'Subtotal 1' },
+                            { totalType: 'subtotal', index: 9, axisLabel: 'Subtotal 2' },
+                            { totalType: 'total', index: 9, axisLabel: 'Total' },
+                        ],
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            // hover on waterfall bar (Positive 2)
+            await hover(145, 218);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
+            expect(calls).toMatchSnapshot();
+
+            // hover on another waterfall bar (Subtotal 1)
+            await hover(365, 204);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls).toMatchSnapshot();
+
+            // hover on a legend item (Negative 3)
+            await hover(526, 249);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Negative 3');
+            expect(calls).toMatchSnapshot();
+
+            // hover on a legend item (Negative)
+            await hover(209, 572);
+            expect(popCalls()).toMatchSnapshot(); // non-interactive
+
+            // hover nowhere (miss)
+            await hover(55, 555);
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            // Positive 2
+            await setActiveItem({ type: 'series-area', itemId: 1, seriesId: 'WaterfallSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
+            expect(calls).toMatchSnapshot();
+
+            // Subtotal 1
+            await setActiveItem({ type: 'series-area', itemId: 5, seriesId: 'WaterfallSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls).toMatchSnapshot();
+
+            // Negative 3
+            await setActiveItem({ type: 'series-area', itemId: 8, seriesId: 'WaterfallSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Negative 3');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'WaterfallSeries-2' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "WaterfallSeries-2"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'WaterfallSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
     // TODO add tests for other series:
     //   * sankey
     //   * chord
@@ -1736,6 +1838,5 @@ describe('AG-15850 activeChange', () => {
     //   * radars
     //   * radial-gauge
     //   * linear-gauge
-    //   * waterfall
     //   * histogram
 });

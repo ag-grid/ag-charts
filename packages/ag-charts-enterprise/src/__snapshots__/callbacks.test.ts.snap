@@ -602,6 +602,150 @@ exports[`AG-15850 activeChange line setState 4`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange waterfall mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "Positive 2",
+        "myY": 145,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 5,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "axisLabel": "Subtotal 1",
+        "index": 4,
+        "myX": "Subtotal 1",
+        "totalType": "subtotal",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall mouse 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 8,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "Negative 3",
+        "myY": -165,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall mouse 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "Positive 2",
+        "myY": 145,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 5,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "axisLabel": "Subtotal 1",
+        "index": 4,
+        "myX": "Subtotal 1",
+        "totalType": "subtotal",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange waterfall setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 8,
+        "seriesId": "WaterfallSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "Negative 3",
+        "myY": -165,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 labels area formatter 1`] = `
 [
   [
