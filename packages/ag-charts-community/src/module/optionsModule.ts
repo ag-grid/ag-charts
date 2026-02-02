@@ -571,11 +571,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private processSeriesOptions(options: T) {
+        const displayNullData = (options as any).displayNullData;
+
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
             const visibleDefined = Boolean(seriesDef?.options?.visible);
 
-            return mergeDefaults(this.getSeriesGroupingOptions(series), series, visibleDefined && { visible: true });
+            const seriesDefaults: Record<string, unknown> = {};
+            if (visibleDefined) {
+                seriesDefaults.visible = true;
+            }
+            if (displayNullData !== undefined && (series as any).allowNullKeys === undefined) {
+                seriesDefaults.allowNullKeys = displayNullData;
+            }
+
+            return mergeDefaults(this.getSeriesGroupingOptions(series), series, seriesDefaults);
         });
 
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
