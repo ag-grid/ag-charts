@@ -989,7 +989,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                        activeItem: { type: 'series-area', itemId: 7, seriesId: 'BarSeries-3' },
                     });
                 });
             });
@@ -1007,7 +1007,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'legend', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                        activeItem: { type: 'legend', itemId: 'coal', seriesId: 'BarSeries-1' },
                     });
                 });
             });
@@ -1025,7 +1025,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                        activeItem: { type: 'series-area', itemId: 3, seriesId: 'BarSeries-2' },
                     });
                 });
             });
@@ -1043,7 +1043,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: NaN, seriesId: 'BarSeries-NaN' },
+                        activeItem: { type: 'legend', itemId: 'gas', seriesId: 'BarSeries-2' },
                     });
                 });
             });
