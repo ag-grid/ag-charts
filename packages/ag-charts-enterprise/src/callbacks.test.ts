@@ -1441,6 +1441,104 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('bar', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myCategory: 'CatA', myValue: 10, myValue2: 7 },
+                    { myCategory: 'CatB', myValue: 20, myValue2: 14 },
+                    { myCategory: 'CatC', myValue: 12, myValue2: 5 },
+                    { myCategory: 'CatD', myValue: 15, myValue2: 11 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'myCategory',
+                        yKey: 'myValue',
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'myCategory',
+                        yKey: 'myValue2',
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            // hover on a bar (myValue2-CatA)
+            await hover(168, 423);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on another bar (myValue-CatC)
+            await hover(475, 360);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on a legend item
+            await hover(357, 574);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover nowhere (miss)
+            await hover(166, 560);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'BarSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 3, seriesId: 'BarSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'legend', itemId: 'myValue2', seriesId: 'BarSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'BarSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BarSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'BarSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'BarSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BarSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'BarSeries-2' });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"BarSeries-2","itemId":"myValue22"}'],
+            ]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState validation failure', async () => {
+            await setActiveItem('invalid AgActiveItemState test' as unknown as AgActiveItemState);
+            expectWarningsCalls().toEqual([
+                [
+                    'AG Charts - Could not restore [active] data, value was invalid, ignoring.\n\nOption `activeItem` cannot be set to `"invalid AgActiveItemState test"`; expecting an object, ignoring.\n\n',
+                    { activeItem: 'invalid AgActiveItemState test', frozen: false },
+                ],
+            ]);
+            expect(popCalls()).toEqual([]);
+        });
+    });
+
     describe('donut-shared-legend', () => {
         beforeEach(async () => {
             await createChart({
@@ -1556,7 +1654,6 @@ describe('AG-15850 activeChange', () => {
     //   * treemap
     //   * line
     //   * area
-    //   * bar
     //   * range-area
     //   * range-bar
     //   * bubble
