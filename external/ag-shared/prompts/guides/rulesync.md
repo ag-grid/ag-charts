@@ -101,10 +101,24 @@ claudecode:
 
 ```yaml
 ---
-globs:
+globs: ['pattern1', 'pattern2']
 alwaysApply: true|false
 ---
 ```
+
+**Choosing globs**: Match file paths where the guidance applies:
+
+| Rule Type | Glob Pattern Example | When Loaded |
+|-----------|---------------------|-------------|
+| Domain-specific | `['**/series/**/*.ts']` | Working with series code |
+| Script/tool | `['**/setup-prompts/**/*', '**/patches/rulesync*']` | Working with setup scripts or patches |
+| Test guidance | `['**/*.test.ts', '**/*.spec.ts']` | Working with test files |
+| Always needed | `alwaysApply: true` | Every conversation |
+
+**Tips**:
+- Use specific patterns to avoid loading irrelevant context
+- Combine multiple patterns for related file types
+- Use `alwaysApply: true` sparingly (core project rules only)
 
 ### Skills
 
