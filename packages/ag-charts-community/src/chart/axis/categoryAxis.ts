@@ -278,14 +278,6 @@ export class CategoryAxis<
         const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
         if (Array.isArray(value) && value.some((v) => typeof v !== 'string')) {
             value = value.map(String);
-        } else if (
-            !Array.isArray(value) &&
-            typeof value !== 'string' &&
-            typeof value !== 'number' &&
-            !(value instanceof Date) &&
-            value != null
-        ) {
-            value = String(value);
         }
         return { type: 'category', value, datum, seriesId, legendItemName, key, source, property, domain, boundSeries };
     }

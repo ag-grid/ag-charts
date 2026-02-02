@@ -254,4 +254,40 @@ describe('Format Manager', () => {
         const element = getDocument('body').getElementsByClassName('ag-charts-tooltip')[0];
         expect(element.textContent).toMatchInlineSnapshot(`"product Apple iPhone iPhone 140.000 growth 5.000000"`);
     });
+
+    // AG-16604: Object values should be accessible in formatters (not converted to "[object Object]")
+    it('should pass object values to category axis formatter without stringifying', async () => {
+        const xFormatter = jest.fn();
+        const objectCategory = { id: 1, label: 'Group A' };
+        const options: AgCartesianChartOptions = {
+            data: [
+                { category: objectCategory, value: 100 },
+                { category: { id: 2, label: 'Group B' }, value: 200 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'category',
+                    yKey: 'value',
+                },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom', label: { formatter: xFormatter } },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+
+        chart = AgCharts.create(prepareTestOptions(options));
+        await waitForChartStability(chart);
+
+        // Verify the formatter receives the actual object, not "[object Object]"
+        const firstCall = xFormatter.mock.calls.at(0)?.at(0);
+        expect(firstCall?.value).toEqual(objectCategory);
+        expect(firstCall?.value).toHaveProperty('id', 1);
+        expect(firstCall?.value).toHaveProperty('label', 'Group A');
+    });
+
+    // AG-16613: Null/undefined values will be handled in follow-up PRs.
+    // This foundational PR adds internal allowNullKey support - public API tests
+    // will be added when null category support is fully implemented.
 });
