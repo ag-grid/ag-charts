@@ -726,6 +726,7 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         if (this.annotationData.length !== annotations.length) {
+            this.reset();
             this.annotationData.set(annotations);
             return;
         }
@@ -733,14 +734,16 @@ export class Annotations extends AbstractModuleInstance {
         for (let i = 0; i < annotations.length; i += 1) {
             const datum = this.annotationData.at(i);
             const incoming = annotations[i];
-            if (!datum || datum.type !== incoming?.type) {
+            const incomingType = stringToAnnotationType(incoming?.type);
+            if (!datum || incomingType == null || datum.type !== incomingType) {
+                this.reset();
                 this.annotationData.set(annotations);
                 return;
             }
         }
 
         for (let i = 0; i < annotations.length; i += 1) {
-            this.annotationData[i]!.set(annotations[i] as any);
+            this.annotationData[i].set(annotations[i]);
         }
     }
 

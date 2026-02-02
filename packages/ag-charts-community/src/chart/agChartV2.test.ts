@@ -215,6 +215,38 @@ describe('AgChartV2', () => {
         });
     });
 
+    describe('#setState', () => {
+        it('restores originators when a state key is missing', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+                series: [{ id: 'series-0', type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const activeManager = (chart as any).ctx.activeManager;
+            activeManager.update({ type: 'series-area', seriesId: 'series-0', itemId: 0 }, undefined);
+            expect(chart.getState().active?.activeItem).toMatchObject({
+                type: 'series-area',
+                seriesId: 'series-0',
+                itemId: 0,
+            });
+
+            const state = chart.getState();
+            delete (state as any).active;
+
+            await chart.setState(state);
+            await waitForChartStability(chart);
+
+            expect(chart.getState().active?.activeItem).toBeUndefined();
+        });
+    });
+
     describe('AG-16360', () => {
         beforeEach(async () => {
             const options: AgChartOptions = {

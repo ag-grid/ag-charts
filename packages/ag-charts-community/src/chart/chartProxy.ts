@@ -217,7 +217,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (originators.length === 0) return;
 
         const initialChart = chart;
-        if (state == null || typeof state !== 'object' || typeof (state as AgChartState).version !== 'string') {
+        if (state == null || typeof state !== 'object' || typeof state.version !== 'string') {
             if (chart.ctx.interactionManager.isUpdateBlocked()) {
                 await this.waitForInteractionIdle();
                 if (this.chart !== initialChart) return;
@@ -312,7 +312,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
     ): MementoOriginator[] {
         return originators.filter((originator) => {
             const key = originator.mementoOriginatorKey as keyof AgChartState;
-            if (!Object.hasOwn(state, key)) return false;
             if (baselineState && !objectsEqual((baselineState as any)[key], (currentState as any)[key])) {
                 return false;
             }
@@ -359,7 +358,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
 
-            // Add watermark if no license
+            // Add watermark if no licence
             const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
             if (foreground) {
                 // @ts-expect-error undocumented option
