@@ -471,8 +471,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /**
      * Creates a HeatmapNodeDatum for a single data point.
+     * Returns undefined for invalid data points (e.g., null/undefined keys when not allowed).
      */
-    private createNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
+    private createNodeDatum(
+        ctx: HeatmapSeriesNodeDatumContext,
+        datumIndex: number,
+        datum: unknown
+    ): HeatmapNodeDatum | undefined {
+        const { xScale, yScale, xOffset, yOffset } = ctx;
+        const xDatum = ctx.xValues[datumIndex];
+        const yDatum = ctx.yValues[datumIndex];
+        const x = xScale.convert(xDatum) + xOffset;
+        const y = yScale.convert(yDatum) + yOffset;
+
+        // Skip creating nodes for data with invalid keys (not in domain)
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            return undefined;
+        }
+
         const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
         this.updateNodeDatum(ctx, node, datumIndex, datum);
         return node;
