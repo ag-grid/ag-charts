@@ -49,6 +49,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { DeepReadonly } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
@@ -1303,6 +1304,14 @@ describe('AG-15850 activeChange', () => {
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
     let version: string | undefined = undefined;
 
+    const INACTIVE_SETSTATE_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+        activeItem: undefined,
+        datum: undefined,
+        frozen: false,
+        source: 'state-change',
+        type: 'activeChange',
+    };
+
     beforeEach(() => {
         mockActiveChange = newFreezableMock<D, C, M>();
     });
@@ -1397,19 +1406,19 @@ describe('AG-15850 activeChange', () => {
         test('setState series-area seriesId not found', async () => {
             await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'LineSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
             await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'LineSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
             await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'LineSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
@@ -1417,7 +1426,7 @@ describe('AG-15850 activeChange', () => {
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"LineSeries-2","itemId":"myValue22"}'],
             ]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState validation failure', async () => {
@@ -1497,25 +1506,25 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toMatchSnapshot();
 
             await setActiveItem(undefined);
-            expect(popCalls()).toMatchSnapshot();
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area seriesId not found', async () => {
             await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'DonutSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
             await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'DonutSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
             await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'DonutSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not shown', async () => {
@@ -1523,7 +1532,7 @@ describe('AG-15850 activeChange', () => {
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-2","itemId":0}'],
             ]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
@@ -1531,7 +1540,7 @@ describe('AG-15850 activeChange', () => {
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-1","itemId":1000}'],
             ]);
-            expect(popCalls()).toEqual([]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
     });
 

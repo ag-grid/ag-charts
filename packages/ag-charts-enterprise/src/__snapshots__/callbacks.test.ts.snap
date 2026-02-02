@@ -147,20 +147,6 @@ exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend setState 4`] = `
-[
-  [
-    {
-      "activeItem": undefined,
-      "datum": undefined,
-      "frozen": false,
-      "source": "state-change",
-      "type": "activeChange",
-    },
-  ],
-]
-`;
-
 exports[`AG-15850 activeChange line mouse 1`] = `
 [
   [
