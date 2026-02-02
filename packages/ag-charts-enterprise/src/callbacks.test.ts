@@ -1820,6 +1820,138 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('box-plot', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    {
+                        myX: 'CatA',
+                        plot1min: 10,
+                        plot1q1: 44,
+                        plot1median: 57,
+                        plot1q3: 88,
+                        plot1max: 148,
+                        plot2min: 8,
+                        plot2q1: 35,
+                        plot2median: 52,
+                        plot2q3: 81,
+                        plot2max: 140,
+                    },
+                    {
+                        myX: 'CatB',
+                        plot1min: 10,
+                        plot1q1: 27,
+                        plot1median: 43,
+                        plot1q3: 77,
+                        plot1max: 148,
+                        plot2min: 12,
+                        plot2q1: 30,
+                        plot2median: 46,
+                        plot2q3: 70,
+                        plot2max: 135,
+                    },
+                    {
+                        myX: 'CatC',
+                        plot1min: 15,
+                        plot1q1: 26,
+                        plot1median: 40,
+                        plot1q3: 97,
+                        plot1max: 197,
+                        plot2min: 18,
+                        plot2q1: 33,
+                        plot2median: 55,
+                        plot2q3: 110,
+                        plot2max: 185,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        yName: 'myBoxPlot1',
+                        xKey: 'myX',
+                        minKey: 'plot1min',
+                        q1Key: 'plot1q1',
+                        medianKey: 'plot1median',
+                        q3Key: 'plot1q3',
+                        maxKey: 'plot1max',
+                    },
+                    {
+                        type: 'box-plot',
+                        yName: 'myBoxPlot2',
+                        xKey: 'myX',
+                        minKey: 'plot2min',
+                        q1Key: 'plot2q1',
+                        medianKey: 'plot2median',
+                        q3Key: 'plot2q3',
+                        maxKey: 'plot2max',
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            // hover on a bar (myBoxPlot1-CatB)
+            await hover(375, 380);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on another bar (myBoxPlot2-CatC)
+            await hover(700, 341);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover on a legend item (myBoxPlot2)
+            await hover(459, 571);
+            expect(popCalls()).toMatchSnapshot();
+
+            // hover nowhere (miss)
+            await hover(166, 560);
+            expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('setState', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1, seriesId: 'BoxPlotSeries-1' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 2, seriesId: 'BoxPlotSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem({ type: 'legend', itemId: 'BoxPlotSeries-2', seriesId: 'BoxPlotSeries-2' });
+            expect(popCalls()).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 0, seriesId: 'BoxPlotSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BoxPlotSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 1000, seriesId: 'BoxPlotSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 'BoxPlotSeries-1000', seriesId: 'BoxPlotSeries-1000' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BoxPlotSeries-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'BoxPlotSeries-1' });
+            expectWarningsCalls().toEqual([
+                ['AG Charts - cannot find legend item: {"seriesId":"BoxPlotSeries-1","itemId":0}'],
+            ]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
     // TODO add tests for other series:
     //   * sankey
     //   * chord

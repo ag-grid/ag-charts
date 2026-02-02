@@ -294,6 +294,185 @@ exports[`AG-15850 activeChange bar setState 3`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange box-plot mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "BoxPlotSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "CatB",
+        "plot1max": 148,
+        "plot1median": 43,
+        "plot1min": 10,
+        "plot1q1": 27,
+        "plot1q3": 77,
+        "plot2max": 135,
+        "plot2median": 46,
+        "plot2min": 12,
+        "plot2q1": 30,
+        "plot2q3": 70,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 2,
+        "seriesId": "BoxPlotSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "CatC",
+        "plot1max": 197,
+        "plot1median": 40,
+        "plot1min": 15,
+        "plot1q1": 26,
+        "plot1q3": 97,
+        "plot2max": 185,
+        "plot2median": 55,
+        "plot2min": 18,
+        "plot2q1": 33,
+        "plot2q3": 110,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot mouse 3`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+  [
+    {
+      "activeItem": {
+        "itemId": "BoxPlotSeries-2",
+        "seriesId": "BoxPlotSeries-2",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot mouse 4`] = `
+[
+  [
+    {
+      "activeItem": undefined,
+      "datum": undefined,
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 1,
+        "seriesId": "BoxPlotSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "CatB",
+        "plot1max": 148,
+        "plot1median": 43,
+        "plot1min": 10,
+        "plot1q1": 27,
+        "plot1q3": 77,
+        "plot2max": 135,
+        "plot2median": 46,
+        "plot2min": 12,
+        "plot2q1": 30,
+        "plot2q3": 70,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 2,
+        "seriesId": "BoxPlotSeries-2",
+        "type": "series-area",
+      },
+      "datum": {
+        "myX": "CatC",
+        "plot1max": 197,
+        "plot1median": 40,
+        "plot1min": 15,
+        "plot1q1": 26,
+        "plot1q3": 97,
+        "plot2max": 185,
+        "plot2median": 55,
+        "plot2min": 18,
+        "plot2q1": 33,
+        "plot2q3": 110,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange box-plot setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "BoxPlotSeries-2",
+        "seriesId": "BoxPlotSeries-2",
+        "type": "legend",
+      },
+      "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
 [
   [
