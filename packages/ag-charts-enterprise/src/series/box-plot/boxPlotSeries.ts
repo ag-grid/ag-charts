@@ -276,7 +276,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     ): BoxPlotNodeDatum {
         return {
             series: this,
-            itemId: ctx.xValues[params.datumIndex],
             datum: params.datum,
             datumIndex: params.datumIndex,
             xKey: ctx.xKey,
@@ -310,7 +309,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         // Update datum and index
         mutableNode.datum = params.datum;
         mutableNode.datumIndex = params.datumIndex;
-        mutableNode.itemId = ctx.xValues[params.datumIndex];
         mutableNode.bandwidth = barWidth;
 
         // Update scaledValues in place
