@@ -35,7 +35,8 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly domManagerId: string;
     readonly classList: string[];
-    readonly ariaLabel: TranslationKey;
+    readonly ariaLabel: TranslationKey | undefined;
+    readonly role?: string;
 };
 
 type ProxyMeta = {
@@ -148,15 +149,18 @@ export class ProxyInteractionService {
 
         this.domManager.addChild('canvas-proxy', params.domManagerId, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
-        div.role = params.type;
+        div.role = params.role ?? params.type;
 
         if (checkType('toolbar', meta)) {
             meta.result.orientation = meta.params.orientation;
         }
 
-        this.addLocalisation(() => {
-            div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
-        });
+        const { ariaLabel } = params;
+        if (ariaLabel) {
+            this.addLocalisation(() => {
+                div.ariaLabel = this.localeManager.t(ariaLabel.id, ariaLabel.params);
+            });
+        }
 
         return result;
     }
