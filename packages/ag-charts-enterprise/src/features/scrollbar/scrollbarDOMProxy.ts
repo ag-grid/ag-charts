@@ -165,13 +165,16 @@ export class ScrollbarDOMProxy {
             type: 'group',
             domManagerId: `scrollbar-${orientation}`,
             classList: ['ag-charts-proxy-scrollbar', `ag-charts-proxy-scrollbar-${orientation}`],
-            ariaLabel: { id: 'ariaLabelNavigatorRange' },
+            role: 'presentation',
         });
 
+        const ariaLabelId =
+            orientation === 'horizontal' ? 'ariaLabelScrollbarHorizontal' : 'ariaLabelScrollbarVertical';
         this.slider = ctx.proxyInteractionService.createProxyElement({
             type: 'slider',
             domIndex: 0,
-            ariaLabel: { id: 'ariaLabelNavigatorRange' },
+            tabIndex: 0,
+            ariaLabel: { id: ariaLabelId },
             role: 'slider',
             parent: this.container,
             classList: ['ag-charts-proxy-scrollbar-slider'],
