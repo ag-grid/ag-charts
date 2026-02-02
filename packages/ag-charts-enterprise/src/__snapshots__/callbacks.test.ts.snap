@@ -781,6 +781,210 @@ exports[`AG-15850 activeChange line setState 4`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange treemap mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "children": [
+          {
+            "children": [
+              {
+                "name": "A1",
+                "size": 30,
+              },
+              {
+                "name": "A2",
+                "size": 70,
+              },
+            ],
+            "name": "A",
+            "size": 100,
+          },
+          {
+            "children": [
+              {
+                "name": "B1",
+                "size": 50,
+              },
+              {
+                "name": "B2",
+                "size": 30,
+              },
+            ],
+            "name": "B",
+            "size": 80,
+          },
+        ],
+        "name": "Root",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange treemap mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0;0;1",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "name": "A2",
+        "size": 70,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange treemap mouse 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0;1",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "children": [
+          {
+            "name": "B1",
+            "size": 50,
+          },
+          {
+            "name": "B2",
+            "size": 30,
+          },
+        ],
+        "name": "B",
+        "size": 80,
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange treemap setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "children": [
+          {
+            "children": [
+              {
+                "name": "A1",
+                "size": 30,
+              },
+              {
+                "name": "A2",
+                "size": 70,
+              },
+            ],
+            "name": "A",
+            "size": 100,
+          },
+          {
+            "children": [
+              {
+                "name": "B1",
+                "size": 50,
+              },
+              {
+                "name": "B2",
+                "size": 30,
+              },
+            ],
+            "name": "B",
+            "size": 80,
+          },
+        ],
+        "name": "Root",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange treemap setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0;0;1",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "name": "A2",
+        "size": 70,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange treemap setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "0;1",
+        "seriesId": "TreemapSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "children": [
+          {
+            "name": "B1",
+            "size": 50,
+          },
+          {
+            "name": "B2",
+            "size": 30,
+          },
+        ],
+        "name": "B",
+        "size": 80,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange waterfall mouse 1`] = `
 [
   [

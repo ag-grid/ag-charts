@@ -1312,6 +1312,14 @@ describe('AG-15850 activeChange', () => {
         type: 'activeChange',
     };
 
+    const INACTIVE_USERINTERACTION_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+        activeItem: undefined,
+        datum: undefined,
+        frozen: false,
+        source: 'user-interaction',
+        type: 'activeChange',
+    };
+
     beforeEach(() => {
         mockActiveChange = newFreezableMock<D, C, M>();
     });
@@ -1952,6 +1960,111 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('treemap', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    {
+                        name: 'Root',
+                        children: [
+                            {
+                                name: 'A',
+                                size: 100,
+                                children: [
+                                    { name: 'A1', size: 30 },
+                                    { name: 'A2', size: 70 },
+                                ],
+                            },
+                            {
+                                name: 'B',
+                                size: 80,
+                                children: [
+                                    { name: 'B1', size: 50 },
+                                    { name: 'B2', size: 30 },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        secondaryLabelKey: 'size',
+                        tile: {
+                            label: { enabled: true },
+                            secondaryLabel: { enabled: true },
+                        },
+                        group: {
+                            label: { enabled: true },
+                        },
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            await hover(28, 28);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('Root');
+            expect(calls).toMatchSnapshot();
+
+            await hover(231, 271);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('A2');
+            expect(calls).toMatchSnapshot();
+
+            await hover(525, 54);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('B');
+            expect(calls).toMatchSnapshot();
+
+            await hover(9, 9); //miss
+            expect(popCalls()).toEqual([[INACTIVE_USERINTERACTION_EVENT]]);
+        });
+
+        test('setState', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            await setActiveItem({ type: 'series-area', itemId: '0', seriesId: 'TreemapSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('Root');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: '0;0;1', seriesId: 'TreemapSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('A2');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: '0;1', seriesId: 'TreemapSeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum?.name).toEqual('B');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: '0', seriesId: 'TreemapSeries-2' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "TreemapSeries-2"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: '0;0;4', seriesId: 'TreemapSeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "0;0;4"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
     // TODO add tests for other series:
     //   * sankey
     //   * chord
@@ -1961,7 +2074,6 @@ describe('AG-15850 activeChange', () => {
     //   * map-marker
     //   * map-line
     //   * sunburst
-    //   * treemap
     //   * range-area
     //   * range-bar
     //   * bubble
