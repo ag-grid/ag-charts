@@ -35,7 +35,7 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly domManagerId: string;
     readonly classList: string[];
-    readonly ariaLabel?: TranslationKey;
+    readonly ariaLabel: TranslationKey | undefined;
     readonly role?: string;
 };
 
