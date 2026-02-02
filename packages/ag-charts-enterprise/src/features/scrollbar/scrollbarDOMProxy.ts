@@ -165,6 +165,7 @@ export class ScrollbarDOMProxy {
             type: 'group',
             domManagerId: `scrollbar-${orientation}`,
             classList: ['ag-charts-proxy-scrollbar', `ag-charts-proxy-scrollbar-${orientation}`],
+            ariaLabel: undefined,
             role: 'presentation',
         });
 
