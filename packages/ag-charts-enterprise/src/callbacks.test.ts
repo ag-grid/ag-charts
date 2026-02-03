@@ -50,14 +50,25 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { DeepReadonly } from 'ag-charts-core';
-import type {
-    AgActiveChangeEvent,
-    AgActiveItemState,
-    AgCartesianChartOptions,
-    AgDataSourceCallbackParams,
-} from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgActiveItemState, AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
+
+async function createChart<TDatum, TContext>(options: AgChartOptions<TDatum, TContext>) {
+    prepareEnterpriseTestOptions(options);
+    const chart = AgCharts.create(options);
+    await waitForChartStability(deproxy(chart));
+    return chart;
+}
+
+async function createGauge(
+    options: AgRadialGaugeOptions | AgLinearGaugeOptions
+): Promise<AgChartInstance<AgGaugeOptions>> {
+    prepareEnterpriseTestOptions(options);
+    const chart = AgCharts.createGauge(options);
+    await waitForChartStability(chart);
+    return chart;
+}
 
 describe('AG-14631 context enterprise', () => {
     setupMockConsole();
@@ -67,13 +78,6 @@ describe('AG-14631 context enterprise', () => {
         chart?.destroy();
         (chart as unknown) = undefined;
     });
-
-    async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
-        return chart;
-    }
 
     test('zoom', async () => {
         type TDatum = Readonly<{ x: number; y: number }>;
@@ -454,15 +458,6 @@ describe('AG-13024 API context gauges', () => {
     let rootContext: object;
     const chartLabelFormatter = newFreezableMock<TDatum, TContext, TMock>((_params) => undefined);
 
-    async function createChart(
-        options: AgRadialGaugeOptions | AgLinearGaugeOptions
-    ): Promise<AgChartInstance<AgGaugeOptions>> {
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.createGauge(options);
-        await waitForChartStability(chart);
-        return chart;
-    }
-
     beforeEach(() => {
         rootContext = { name: 'root context' };
         chartLabelFormatter.mock.mockClear();
@@ -488,28 +483,28 @@ describe('AG-13024 API context gauges', () => {
         test('undefined', async () => {
             const options = initOptions();
             expect(options).not.toHaveProperty('context');
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
         });
 
         test('defined to undefined', async () => {
             const options = initOptions();
             options.context = undefined;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
         });
 
         test('defined to null', async () => {
             const options = initOptions();
             options.context = null;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
         });
 
         test('defined to object', async () => {
             const options = initOptions();
             options.context = rootContext;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
         });
     });
@@ -527,28 +522,28 @@ describe('AG-13024 API context gauges', () => {
         test('undefined', async () => {
             const options = initOptions();
             expect(options).not.toHaveProperty('context');
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
         test('defined to undefined', async () => {
             const options = initOptions();
             options.context = undefined;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
         test('defined to null', async () => {
             const options = initOptions();
             options.context = null;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(null);
         });
 
         test('defined to object', async () => {
             const options = initOptions();
             options.context = rootContext;
-            chart = await createChart(options);
+            chart = await createGauge(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
         });
     });
@@ -632,21 +627,9 @@ describe('AG-15850 labels', () => {
         (chart as unknown) = undefined;
     });
 
-    async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
-        prepareEnterpriseTestOptions(opts);
-        chart = AgCharts.create(opts);
-        await waitForChartStability(chart);
-    }
-
-    async function createGauge<O extends AgGaugeOptions>(opts: O): Promise<void> {
-        prepareEnterpriseTestOptions(opts);
-        chart = AgCharts.createGauge(opts);
-        await waitForChartStability(chart);
-    }
-
     describe('sankey', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: flowData,
                 series: [
                     {
@@ -674,7 +657,7 @@ describe('AG-15850 labels', () => {
 
     describe('chord', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: flowData,
                 series: [
                     {
@@ -702,7 +685,7 @@ describe('AG-15850 labels', () => {
 
     describe('pyramid', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -729,7 +712,7 @@ describe('AG-15850 labels', () => {
 
     describe('funnel', () => {
         beforeEach(async () => {
-            await createChart<AgCartesianChartOptions<D, C>>({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -756,7 +739,7 @@ describe('AG-15850 labels', () => {
 
     describe('map-shape', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [{ myId: 'myPoly', myValue: 10 }],
                 topology: geoJson,
                 series: [
@@ -786,7 +769,7 @@ describe('AG-15850 labels', () => {
 
     describe('map-marker', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 topology: geoJson,
                 data: [{ myId: 'myPoly', myLat: 0.5, myLon: 0.5 }],
                 series: [
@@ -820,7 +803,7 @@ describe('AG-15850 labels', () => {
 
     describe('map-line', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [{ myId: 'myLine', myValue: 10 }],
                 topology: geoJson,
                 series: [
@@ -849,7 +832,7 @@ describe('AG-15850 labels', () => {
 
     describe('sunburst', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: hierarchyData,
                 series: [
                     {
@@ -876,7 +859,7 @@ describe('AG-15850 labels', () => {
 
     describe('treemap', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: hierarchyData,
                 series: [
                     {
@@ -905,7 +888,7 @@ describe('AG-15850 labels', () => {
 
     describe('line', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -932,7 +915,7 @@ describe('AG-15850 labels', () => {
 
     describe('area', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -959,7 +942,7 @@ describe('AG-15850 labels', () => {
 
     describe('bar', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -986,7 +969,7 @@ describe('AG-15850 labels', () => {
 
     describe('range-area', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1014,7 +997,7 @@ describe('AG-15850 labels', () => {
 
     describe('range-bar', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1042,7 +1025,7 @@ describe('AG-15850 labels', () => {
 
     describe('bubble', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1070,7 +1053,7 @@ describe('AG-15850 labels', () => {
 
     describe('donut', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1097,7 +1080,7 @@ describe('AG-15850 labels', () => {
 
     describe('radial-bar', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1124,7 +1107,7 @@ describe('AG-15850 labels', () => {
 
     describe('radial-column', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1151,7 +1134,7 @@ describe('AG-15850 labels', () => {
 
     describe('radars', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: basicData,
                 series: [
                     {
@@ -1220,7 +1203,7 @@ describe('AG-15850 labels', () => {
 
     describe('waterfall', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myCategory: 'CatA', myValue: 10 },
                     { myCategory: 'CatB', myValue: -5 },
@@ -1267,7 +1250,7 @@ describe('AG-15850 labels', () => {
 
     describe('histogram', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [{ myValue: 1 }, { myValue: 2 }, { myValue: 3 }, { myValue: 4 }],
                 series: [
                     {
@@ -1330,14 +1313,6 @@ describe('AG-15850 activeChange', () => {
         expect(popCalls()).toEqual([]);
     });
 
-    // TODO: there's multiple `createChart` wrapper with the same implement but different scopes (i.e. reference different `chart` variables). This could be improved.
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
-        prepareEnterpriseTestOptions(opts);
-        chart = AgCharts.create(opts);
-        await waitForChartStability(chart);
-    }
-
     async function hover(x: number, y: number): Promise<void> {
         await hoverAction(x, y)(deproxy(chart));
     }
@@ -1355,7 +1330,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('line', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myCategory: 'CatA', myValue: 10, myValue2: 7 },
                     { myCategory: 'CatB', myValue: 20, myValue2: 14 },
@@ -1453,7 +1428,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('bar', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myCategory: 'CatA', myValue: 10, myValue2: 7 },
                     { myCategory: 'CatB', myValue: 20, myValue2: 14 },
@@ -1540,7 +1515,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('area', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myCategory: 'CatA', myValue: 10, myValue2: 7 },
                     { myCategory: 'CatB', myValue: 20, myValue2: 14 },
@@ -1627,7 +1602,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('donut-shared-legend', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { name: 'Slice0', outerSlices: 8000, innerSlices: 5000 },
                     { name: 'Slice1', outerSlices: 4500, innerSlices: 3000 },
@@ -1730,7 +1705,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('waterfall', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myX: 'Positive 1', myY: 185 },
                     { myX: 'Positive 2', myY: 145 },
@@ -1832,7 +1807,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('box-plot', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     {
                         myX: 'CatA',
@@ -1964,7 +1939,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('sankey', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myFrom: 'A', myTo: 'C', mySize: 10 },
                     { myFrom: 'A', myTo: 'D', mySize: 15 },
@@ -2068,7 +2043,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('chord', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { myFrom: 'A', myTo: 'C', mySize: 10 },
                     { myFrom: 'A', myTo: 'D', mySize: 15 },
@@ -2172,7 +2147,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('treemap', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     {
                         name: 'Root',
@@ -2277,7 +2252,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('sunburst', () => {
         beforeEach(async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     {
                         name: 'Root',
