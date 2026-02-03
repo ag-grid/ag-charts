@@ -428,6 +428,22 @@ const ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = 
     ],
 };
 
+const ORDINAL_TIME_AXIS_REVERSED_ZOOM_END: AgCartesianChartOptions = {
+    data: DATA,
+    axes: {
+        x: { type: 'ordinal-time', reverse: true },
+    },
+    series: [
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'open',
+        },
+    ],
+    zoom: {},
+    initialState: { zoom: { ratioX: { start: 0.7, end: 1 } } },
+};
+
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
@@ -694,6 +710,12 @@ describe('Ordinal Time Axis Examples', () => {
     it('should render interval between as expected', async () => {
         const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
         chart = await createEnterpriseChart(options);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('should render reversed ordinal-time axis zoomed to end as expected', async () => {
+        chart = await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END);
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     });
