@@ -135,9 +135,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: 10000, seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual([
-                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: 10000 }',
-                ]);
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: 10000']);
                 consoleLogs.clear();
             }
 
@@ -149,9 +147,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual([
-                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: "0" }',
-                ]);
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: "0"']);
                 consoleLogs.clear();
             }
 
@@ -675,6 +671,24 @@ test.describe('state', () => {
                 });
             }
 
+            async function setInvalidStateShowInLegend(logs: ConsoleLogs, version: string, page: Page): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: {
+                            type: 'legend',
+                            seriesId: 'DonutSeries-2', // showInLegend is false for this series
+                            itemId: 3,
+                        },
+                    },
+                });
+                expect(logs.getLogs()).toEqual([
+                    'AG Charts - cannot find legend item: {"seriesId":"DonutSeries-2","itemId":3}',
+                ]);
+                logs.clear();
+            }
+
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'multi-donut-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -871,6 +885,36 @@ test.describe('state', () => {
                         frozen: false,
                         activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
                     });
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] should ignore legend setState with showInLegend false', () => {
+                const consoleLogs = createConsoleLogs();
+
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await setStateBondsLegend(version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+
+                    await setInvalidStateShowInLegend(consoleLogs, version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await setStateBondsLegend(version, page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 1, seriesId: 'DonutSeries-1' },
+                    });
+
+                    await setInvalidStateShowInLegend(consoleLogs, version, page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
                 });
             });
         });

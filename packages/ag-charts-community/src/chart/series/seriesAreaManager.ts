@@ -1111,8 +1111,8 @@ export class SeriesAreaManager extends BaseManager {
     private onActiveClear() {
         this.pickManager.onClearAPI();
         this.hoverDevice = 'setState';
-        this.clearHighlight(true);
-        this.clearTooltip(true);
+        this.clearHighlight();
+        this.clearTooltip();
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
@@ -1132,14 +1132,13 @@ export class SeriesAreaManager extends BaseManager {
     private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
-            Logger.warn(`Cannot find series '${desiredSeries}'`);
+            Logger.warn(`Cannot find seriesId: "${desiredSeriesId}"`);
             return undefined;
         }
 
         const desiredDatum: PickedNode['datum'] | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
-            const stringifiedItemId: string = JSON.stringify(desiredItemId);
-            Logger.warn(`Cannot find datum: { seriesId: "${desiredSeriesId}", itemId: ${stringifiedItemId} }`);
+            Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
             return undefined;
         }
 
