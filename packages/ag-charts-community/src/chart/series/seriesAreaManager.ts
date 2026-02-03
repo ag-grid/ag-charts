@@ -990,32 +990,33 @@ export class SeriesAreaManager extends BaseManager {
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
+        const isTooltipIntent = intent === 'tooltip';
 
         // Check if any series with 'area' tooltip range contains the point
         const { x, y } = point;
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
-            if (series.visible && series.contentGroup.visible && series.properties.tooltip.range === 'area') {
-                if (series.isPointInArea?.(x, y)) {
-                    seriesContainingPoint.add(series);
-                }
+            if (!series.visible || !series.contentGroup.visible || series.properties.tooltip.range !== 'area') continue;
+            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
+            if (series.isPointInArea?.(x, y)) {
+                seriesContainingPoint.add(series);
             }
         }
 
-        const filterToContainingSeries = seriesContainingPoint.size > 0;
+        const hasSeriesContainingPoint = seriesContainingPoint.size > 0;
 
         let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.contentGroup.visible) continue;
+            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
 
             // If we found series with 'area' tooltip range containing the point, only pick from those series
             if (
-                filterToContainingSeries &&
+                hasSeriesContainingPoint &&
                 series.properties.tooltip.range === 'area' &&
                 !seriesContainingPoint.has(series)
-            ) {
+            )
                 continue;
-            }
 
             const pick = series.pickNodes(point, intent, exactMatchOnly);
             if (pick == null || pick.datums.length === 0) continue;
