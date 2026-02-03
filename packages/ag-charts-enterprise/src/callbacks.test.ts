@@ -1330,6 +1330,8 @@ describe('AG-15850 activeChange', () => {
         expect(popCalls()).toEqual([]);
     });
 
+    // TODO: there's multiple `createChart` wrapper with the same implement but different scopes (i.e. reference different `chart` variables). This could be improved.
+    // eslint-disable-next-line sonarjs/no-identical-functions
     async function createChart<O extends AgChartOptions>(opts: O): Promise<void> {
         prepareEnterpriseTestOptions(opts);
         chart = AgCharts.create(opts);
