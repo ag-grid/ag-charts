@@ -1117,7 +1117,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
 
                     await setChartState(page, state);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE.png');
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE-tooltip-moved.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1153,7 +1153,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
 
                     await setChartState(page, state);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC.png');
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC-tooltip-moved.png');
                 });
 
                 test('states', async ({ page }) => {
