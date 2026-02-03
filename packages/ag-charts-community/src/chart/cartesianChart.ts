@@ -570,6 +570,7 @@ export class CartesianChart extends Chart {
         axis.range = [start, end];
         axis.visibleRange = [min, max];
         axis.gridLength = isLeftRight ? width : height;
+        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
     }
 
     private positionAxes(opts: {

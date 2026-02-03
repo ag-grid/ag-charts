@@ -434,6 +434,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(true, true),
+    bandAlignment: union('justify', 'start', 'center', 'end'),
     bandHighlight: cartesianAxisBandHighlightOptions,
     min: and(or(number, date), lessThan('max')),
     max: and(or(number, date), greaterThan('min')),

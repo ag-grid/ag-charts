@@ -1126,7 +1126,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this._firstAutoSize = false;
             }
 
-            this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
+            let updateType = ChartUpdateType.PERFORM_LAYOUT;
+            for (const axis of this.axes) {
+                const axisUpdateType = axis.getUpdateTypeOnResize();
+                if (axisUpdateType < updateType) {
+                    updateType = axisUpdateType;
+                }
+            }
+
+            this.update(updateType, { forceNodeDataRefresh: true, skipAnimations });
             this._autoSizeNotify.notify();
         }
     }
