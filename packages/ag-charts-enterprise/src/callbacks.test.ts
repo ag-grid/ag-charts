@@ -2165,7 +2165,7 @@ describe('AG-15850 activeChange', () => {
 
         test('setState series-area node not found', async () => {
             await setActiveItem({ type: 'series-area', itemId: 'node-1000', seriesId: 'ChordSeries-1' });
-            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId asdfasdf: "node-1000"']]);
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "node-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
     });
