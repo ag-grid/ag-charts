@@ -223,7 +223,8 @@ generate_to_temp() {
         touch "$TEMP_DIR/AGENTS.md"
     fi
     git add AGENTS.md
-    git commit -m "initial" --quiet
+    # Use inline config for git identity to avoid relying on global config (may be unset in CI)
+    git -c user.name="verify-rulesync" -c user.email="verify@localhost" commit -m "initial" --quiet
 
     # Symlink node_modules for rulesync binary
     ln -s "$REPO_ROOT/node_modules" "$TEMP_DIR/node_modules"
