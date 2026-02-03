@@ -483,7 +483,7 @@ export abstract class RadarSeries<
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
-        if (angleValue === undefined && !allowNullKeys) return;
+        if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
             isHighlight: false,
