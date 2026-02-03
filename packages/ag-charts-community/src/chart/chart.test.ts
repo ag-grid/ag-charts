@@ -18,6 +18,7 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    expectWarningsCalls,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -1481,6 +1482,23 @@ describe('Chart', () => {
                     expect(item.value).toBeGreaterThan(0);
                 }
             });
+        });
+    });
+
+    describe('displayNullData option', () => {
+        it('should not generate warnings when using displayNullData', async () => {
+            const options: AgCartesianChartOptions = {
+                container: document.body,
+                data: [
+                    { x: null, y: 1 },
+                    { x: 'a', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                displayNullData: true,
+            } as any;
+
+            chart = await createChart(options);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });
