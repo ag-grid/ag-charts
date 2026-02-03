@@ -18,11 +18,11 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
-    FlowProportionDatumType,
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
-    type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';

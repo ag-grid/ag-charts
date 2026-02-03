@@ -14,6 +14,8 @@ import type {
     Point,
 } from 'ag-charts-core';
 
+import { FlowProportionDatumType } from './flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
@@ -28,16 +30,6 @@ const {
     Series,
     TransformableText,
 } = _ModuleSupport;
-
-export enum FlowProportionDatumType {
-    Link,
-    Node,
-}
-
-export type FlowProportionNodeDatumIndex = {
-    type: FlowProportionDatumType;
-    index: number;
-};
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
