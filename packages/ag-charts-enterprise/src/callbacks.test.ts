@@ -1962,6 +1962,110 @@ describe('AG-15850 activeChange', () => {
         });
     });
 
+    describe('sankey', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { myFrom: 'A', myTo: 'C', mySize: 10 },
+                    { myFrom: 'A', myTo: 'D', mySize: 15 },
+                    { myFrom: 'B', myTo: 'C', mySize: 20 },
+                    { myFrom: 'B', myTo: 'E', mySize: 25 },
+                    { myFrom: 'C', myTo: 'E', mySize: 30 },
+                ],
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'myFrom',
+                        toKey: 'myTo',
+                        sizeKey: 'mySize',
+                        label: { enabled: true },
+                    },
+                ],
+                 listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+           });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('mouse', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            // Hover on a link (A - D)
+            await hover(397, 85);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'A', myTo: 'D', mySize: 15 });
+            expect(calls).toMatchSnapshot();
+
+            // Hover on another link (B - E)
+            await hover(387, 247);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'B', myTo: 'E', mySize: 25 });
+            expect(calls).toMatchSnapshot();
+
+            // Hover on a node (A)
+            await hover(43, 119);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls).toMatchSnapshot();
+
+            // Hover on another node (E)
+            await hover(757, 357);
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls).toMatchSnapshot();
+
+            // Hover miss
+            await hover(9, 9);
+            expect(popCalls()).toEqual([[INACTIVE_USERINTERACTION_EVENT]]);
+        });
+
+        test('setState', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            await setActiveItem({ type: 'series-area', itemId: 'link-1', seriesId: 'SankeySeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'A', myTo: 'D', mySize: 15 });
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 'link-3', seriesId: 'SankeySeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'B', myTo: 'E', mySize: 25 });
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 'node-0', seriesId: 'SankeySeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem({ type: 'series-area', itemId: 'node-4', seriesId: 'SankeySeries-1' });
+            calls = popCalls();
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls).toMatchSnapshot();
+
+            await setActiveItem(undefined);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 'node-0', seriesId: 'SankeySeries-2' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "SankeySeries-2"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area link not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 'link-1000', seriesId: 'SankeySeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "link-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+
+        test('setState series-area node not found', async () => {
+            await setActiveItem({ type: 'series-area', itemId: 'node-1000', seriesId: 'SankeySeries-1' });
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "node-1000"']]);
+            expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
     describe('treemap', () => {
         beforeEach(async () => {
             await createChart({
