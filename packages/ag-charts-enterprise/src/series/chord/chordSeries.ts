@@ -14,11 +14,11 @@ import {
 } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
-    FlowProportionDatumType,
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
-    type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';

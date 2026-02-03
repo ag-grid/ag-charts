@@ -473,6 +473,166 @@ exports[`AG-15850 activeChange box-plot setState 3`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange chord mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-1",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "A",
+        "mySize": 15,
+        "myTo": "D",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-3",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "B",
+        "mySize": 25,
+        "myTo": "E",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord mouse 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-0",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord mouse 4`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-4",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-1",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "A",
+        "mySize": 15,
+        "myTo": "D",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-3",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "B",
+        "mySize": 25,
+        "myTo": "E",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-0",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange chord setState 4`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-4",
+        "seriesId": "ChordSeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
 [
   [
@@ -773,6 +933,166 @@ exports[`AG-15850 activeChange line setState 4`] = `
     {
       "activeItem": undefined,
       "datum": undefined,
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey mouse 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-1",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "A",
+        "mySize": 15,
+        "myTo": "D",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey mouse 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-3",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "B",
+        "mySize": 25,
+        "myTo": "E",
+      },
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey mouse 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-0",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey mouse 4`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-4",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey setState 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-1",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "A",
+        "mySize": 15,
+        "myTo": "D",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey setState 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "link-3",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {
+        "myFrom": "B",
+        "mySize": 25,
+        "myTo": "E",
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey setState 3`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-0",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange sankey setState 4`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": "node-4",
+        "seriesId": "SankeySeries-1",
+        "type": "series-area",
+      },
+      "datum": {},
       "frozen": false,
       "source": "state-change",
       "type": "activeChange",

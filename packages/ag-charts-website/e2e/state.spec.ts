@@ -1084,5 +1084,98 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('sankey-example', () => {
+            let canvas: Locator;
+
+            async function hoverOnLinkFromBtoE(page: Page): Promise<void> {
+                await page.mouse.move(394, 269);
+            }
+
+            async function hoverOnNodeC(page: Page): Promise<void> {
+                await page.mouse.move(399, 464);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(383, 33);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'sankey-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('getState on link-hover and restore with setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await hoverOnLinkFromBtoE(page);
+                    const state: AgChartState = await getChartState(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await setChartState(page, state);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE-tooltip-moved.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnLinkFromBtoE(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: 'link-3', seriesId: 'SankeySeries-1' },
+                    });
+                    const hoverLinkState: AgChartState = state;
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(hoverLinkState.active);
+                });
+            });
+
+            test.describe('getState on node-hover and restore with setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await hoverOnNodeC(page);
+                    const state: AgChartState = await getChartState(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await setChartState(page, state);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC-tooltip-moved.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnNodeC(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-area', itemId: 'node-1', seriesId: 'SankeySeries-1' },
+                    });
+                    const hoverLinkState: AgChartState = state;
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(hoverLinkState.active);
+                });
+            });
+        });
     });
 });
