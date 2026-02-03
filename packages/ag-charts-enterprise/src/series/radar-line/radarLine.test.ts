@@ -12,6 +12,7 @@ import {
 import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarLineStyler,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     looserSnapshotDefaults,
@@ -631,6 +632,155 @@ describe('RadarLineSeries', () => {
                     { type: 'radar-line', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('null category key', () => {
+        const RADAR_LINE_NULL_CATEGORY_KEY_DATA = [
+            { subject: 'Maths', gradeA: 7 },
+            { subject: null, gradeA: 4.3 },
+            { subject: 'Biology', gradeA: 3 },
+        ];
+
+        const RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADAR_LINE_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'gradeA',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RadarLineSeries-1 / angleValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const RADAR_LINE_UNDEFINED_CATEGORY_KEY_DATA = [
+            { subject: 'Maths', gradeA: 7 },
+            { subject: undefined, gradeA: 4.3 },
+            { subject: 'Biology', gradeA: 3 },
+        ];
+
+        const RADAR_LINE_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { subject: 'Maths', gradeA: 7 },
+            { subject: null, gradeA: 4.3 },
+            { subject: undefined, gradeA: 5 },
+            { subject: 'Biology', gradeA: 3 },
+        ];
+
+        const RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADAR_LINE_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'gradeA',
+                },
+            ],
+        };
+
+        const RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RADAR_LINE_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'gradeA',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RadarLineSeries-1 / angleValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });
