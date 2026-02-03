@@ -704,8 +704,10 @@ export function diff(
 
 type KeyType = string | number | boolean | null | undefined;
 
-// FIXME: ReturnType should be `string | number | boolean`
-export function createDatumId(...keys: KeyType[]): any {
+export function createDatumId(key: number): number;
+export function createDatumId(key: boolean): boolean;
+export function createDatumId(...keys: KeyType[]): string;
+export function createDatumId(...keys: KeyType[]): string | number | boolean {
     if (keys.length === 1) {
         const key = transformIntegratedCategoryValue(keys[0]);
         // Handle null and undefined distinctly to avoid collision with strings "null" and "undefined"

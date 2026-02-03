@@ -650,7 +650,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const scratch = params.nodeDatumScratch;
         return {
             series: this,
-            itemId: phantom ? createDatumId(ctx.yKey, phantom) : ctx.yKey,
             datum: scratch.datum,
             datumIndex: params.datumIndex,
             cumulativeValue: 0, // Will be updated by updateNodeDatum
