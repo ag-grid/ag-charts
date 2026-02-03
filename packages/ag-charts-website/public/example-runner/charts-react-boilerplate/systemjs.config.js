@@ -3,9 +3,9 @@
 
     const reactConfig = {
         map: {
-            react: 'npm:react@19.2.0/cjs/react.production.min.js',
-            'react-dom': 'npm:react-dom@19.2.0/cjs/react-dom.production.min.js',
-            'react-dom/client': 'npm:react-dom@19.2.0/cjs/react-dom-client.production.min.js',
+            react: 'npm:react@19.2.4/cjs/react.production.min.js',
+            'react-dom': 'npm:react-dom@19.2.4/cjs/react-dom.production.min.js',
+            'react-dom/client': 'npm:react-dom@19.2.4/cjs/react-dom-client.production.min.js',
             scheduler: 'npm:scheduler@0.26.0/cjs/scheduler.production.min.js',
         },
         packages: {
