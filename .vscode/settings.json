@@ -3,6 +3,9 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
+  "files.associations": {
+    "*.mdoc": "markdown"
+  },
   "eslint.validate": ["json", "typescript"],
   "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [{ "mode": "auto" }],
