@@ -1127,7 +1127,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'link-TODO', seriesId: 'SankeySeries-1' },
+                        activeItem: { type: 'series-area', itemId: 'link-3', seriesId: 'SankeySeries-1' },
                     });
                     const hoverLinkState: AgChartState = state;
 
@@ -1136,6 +1136,7 @@ test.describe('state', () => {
                     expect(state.active?.activeItem).toBeUndefined();
 
                     await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
                     expect(state.active).toEqual(hoverLinkState.active);
                 });
             });
@@ -1171,6 +1172,7 @@ test.describe('state', () => {
                     expect(state.active?.activeItem).toBeUndefined();
 
                     await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
                     expect(state.active).toEqual(hoverLinkState.active);
                 });
             });
