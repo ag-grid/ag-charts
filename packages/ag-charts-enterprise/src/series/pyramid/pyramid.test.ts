@@ -557,6 +557,38 @@ describe('PyramidSeries', () => {
             expectWarningsCalls().toEqual([]);
             await compare();
         });
+
+        it('should call stageLabel.formatter for null category key when allowNullKeys is true', async () => {
+            const formatterCalls: any[] = [];
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                        stageLabel: {
+                            formatter: (params: any) => {
+                                formatterCalls.push(params.datum.group);
+                                return String(params.datum.group);
+                            },
+                        },
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(formatterCalls).toContain(null);
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     test('AG-8290 label boxing', async () => {
