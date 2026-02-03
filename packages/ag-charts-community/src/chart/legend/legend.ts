@@ -1274,7 +1274,7 @@ export class Legend extends BaseProperties {
     }
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (activeItem?.type === 'series-area') {
+        if (activeItem?.type === 'series-node') {
             this.ctx.highlightManager.updateHighlight(this.id, undefined);
         }
     }

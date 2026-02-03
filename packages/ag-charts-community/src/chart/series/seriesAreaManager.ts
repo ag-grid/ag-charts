@@ -1100,7 +1100,7 @@ export class SeriesAreaManager extends BaseManager {
             case undefined:
             case 'legend':
                 return this.onActiveClear();
-            case 'series-area':
+            case 'series-node':
                 return this.onActiveDatum(event.activeItem, event);
             default:
                 return event.activeItem?.type satisfies undefined;

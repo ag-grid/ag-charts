@@ -116,7 +116,7 @@ function onSetState(): void {
     } else {
         chart.setState({
             version,
-            active: { activeItem: { type: 'series-area', seriesId, itemId }, frozen },
+            active: { activeItem: { type: 'series-node', seriesId, itemId }, frozen },
         });
     }
 }
