@@ -756,10 +756,7 @@ export class SeriesAreaManager extends BaseManager {
         if (keyboardEvent != null && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
             // came from the keyboard so that's what we should honour.
-            this.tooltip.lastHover = undefined;
-            this.highlight.appliedHoverEvent = undefined;
-            this.highlight.pendingHoverEvent = undefined;
-            this.highlight.stashedHoverEvent = undefined;
+            this.clearCachedEvents();
 
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
@@ -835,6 +832,13 @@ export class SeriesAreaManager extends BaseManager {
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
+    }
+
+    private clearCachedEvents(): void {
+        this.tooltip.lastHover = undefined;
+        this.highlight.appliedHoverEvent = undefined;
+        this.highlight.pendingHoverEvent = undefined;
+        this.highlight.stashedHoverEvent = undefined;
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
@@ -1124,6 +1128,7 @@ export class SeriesAreaManager extends BaseManager {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
+            this.clearCachedEvents();
             this.hoverScheduler.schedule();
         }
     }
