@@ -1981,10 +1981,10 @@ describe('AG-15850 activeChange', () => {
                         label: { enabled: true },
                     },
                 ],
-                 listeners: {
+                listeners: {
                     activeChange: mockActiveChange.frozen,
                 },
-           });
+            });
             expect(popCalls()).toEqual([]);
         });
 
