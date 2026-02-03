@@ -2165,22 +2165,4 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
     });
-
-    // TODO add tests for other series:
-    //   * sankey
-    //   * chord
-    //   * pyramid
-    //   * funnel
-    //   * map-shape
-    //   * map-marker
-    //   * map-line
-    //   * range-area
-    //   * range-bar
-    //   * bubble
-    //   * radial-bar
-    //   * radial-column
-    //   * radars
-    //   * radial-gauge
-    //   * linear-gauge
-    //   * histogram
 });
