@@ -47,7 +47,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
-    readonly itemId: undefined;
+    readonly itemId: `link-${number}`;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -60,7 +60,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
-    readonly itemId: undefined;
+    readonly itemId: `node-${number}`;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
@@ -268,7 +268,7 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
-                    itemId: undefined,
+                    itemId: `node-${datumIndex}`,
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
@@ -332,7 +332,7 @@ export abstract class FlowProportionSeries<
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: undefined,
+                        itemId: `node-${datumIndex}`,
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -420,7 +420,7 @@ export abstract class FlowProportionSeries<
 
                 const link = createLink({
                     series: this,
-                    itemId: undefined,
+                    itemId: `link-${datumIndex}`,
                     datum,
                     datumIndex: linkNodeDatumIndex,
                     type: FlowProportionDatumType.Link,
