@@ -22,7 +22,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import { FlowProportionDatumType } from '../flow-proportion/flowProportionSeries';
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('ChordSeries', () => {
     setupMockConsole();
