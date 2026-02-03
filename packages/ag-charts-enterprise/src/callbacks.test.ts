@@ -1645,7 +1645,7 @@ describe('AG-15850 activeChange', () => {
                     {
                         type: 'donut',
                         outerRadiusRatio: 0.4,
-                        innerRadiusRatio: 0.0,
+                        innerRadiusRatio: 0,
                         angleKey: 'innerSlices',
                         calloutLabelKey: 'name',
                         legendItemKey: 'name',
