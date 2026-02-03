@@ -63,7 +63,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     public createMemento(): AgActiveState {
         const frozen = this.isFrozen();
         switch (this.currentItem?.type) {
-            case 'series-area':
+            case 'series-node':
             case 'legend': {
                 const { type, seriesId, itemId } = this.currentItem;
                 return { frozen, activeItem: { type, seriesId, itemId } };

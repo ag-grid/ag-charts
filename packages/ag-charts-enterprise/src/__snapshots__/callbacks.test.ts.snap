@@ -7,7 +7,7 @@ exports[`AG-15850 activeChange area mouse 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "AreaSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatB",
@@ -29,7 +29,7 @@ exports[`AG-15850 activeChange area mouse 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "AreaSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatD",
@@ -92,7 +92,7 @@ exports[`AG-15850 activeChange area setState 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "AreaSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatB",
@@ -114,7 +114,7 @@ exports[`AG-15850 activeChange area setState 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "AreaSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatD",
@@ -154,7 +154,7 @@ exports[`AG-15850 activeChange bar mouse 1`] = `
       "activeItem": {
         "itemId": 0,
         "seriesId": "BarSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatA",
@@ -176,7 +176,7 @@ exports[`AG-15850 activeChange bar mouse 2`] = `
       "activeItem": {
         "itemId": 2,
         "seriesId": "BarSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatC",
@@ -239,7 +239,7 @@ exports[`AG-15850 activeChange bar setState 1`] = `
       "activeItem": {
         "itemId": 0,
         "seriesId": "BarSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatA",
@@ -261,7 +261,7 @@ exports[`AG-15850 activeChange bar setState 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "BarSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatD",
@@ -301,7 +301,7 @@ exports[`AG-15850 activeChange box-plot mouse 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "BoxPlotSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "CatB",
@@ -331,7 +331,7 @@ exports[`AG-15850 activeChange box-plot mouse 2`] = `
       "activeItem": {
         "itemId": 2,
         "seriesId": "BoxPlotSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "CatC",
@@ -402,7 +402,7 @@ exports[`AG-15850 activeChange box-plot setState 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "BoxPlotSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "CatB",
@@ -432,7 +432,7 @@ exports[`AG-15850 activeChange box-plot setState 2`] = `
       "activeItem": {
         "itemId": 2,
         "seriesId": "BoxPlotSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "CatC",
@@ -480,7 +480,7 @@ exports[`AG-15850 activeChange chord mouse 1`] = `
       "activeItem": {
         "itemId": "link-1",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "A",
@@ -502,7 +502,7 @@ exports[`AG-15850 activeChange chord mouse 2`] = `
       "activeItem": {
         "itemId": "link-3",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "B",
@@ -524,7 +524,7 @@ exports[`AG-15850 activeChange chord mouse 3`] = `
       "activeItem": {
         "itemId": "node-0",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -542,7 +542,7 @@ exports[`AG-15850 activeChange chord mouse 4`] = `
       "activeItem": {
         "itemId": "node-4",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -560,7 +560,7 @@ exports[`AG-15850 activeChange chord setState 1`] = `
       "activeItem": {
         "itemId": "link-1",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "A",
@@ -582,7 +582,7 @@ exports[`AG-15850 activeChange chord setState 2`] = `
       "activeItem": {
         "itemId": "link-3",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "B",
@@ -604,7 +604,7 @@ exports[`AG-15850 activeChange chord setState 3`] = `
       "activeItem": {
         "itemId": "node-0",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -622,7 +622,7 @@ exports[`AG-15850 activeChange chord setState 4`] = `
       "activeItem": {
         "itemId": "node-4",
         "seriesId": "ChordSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -640,7 +640,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
       "activeItem": {
         "itemId": 2,
         "seriesId": "DonutSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "innerSlices": 40000,
@@ -662,7 +662,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "DonutSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "innerSlices": 60000,
@@ -725,7 +725,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 1`] = `
       "activeItem": {
         "itemId": 0,
         "seriesId": "DonutSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "innerSlices": 5000,
@@ -747,7 +747,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "DonutSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "innerSlices": 60000,
@@ -787,7 +787,7 @@ exports[`AG-15850 activeChange line mouse 1`] = `
       "activeItem": {
         "itemId": 0,
         "seriesId": "LineSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatA",
@@ -809,7 +809,7 @@ exports[`AG-15850 activeChange line mouse 2`] = `
       "activeItem": {
         "itemId": 2,
         "seriesId": "LineSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatC",
@@ -872,7 +872,7 @@ exports[`AG-15850 activeChange line setState 1`] = `
       "activeItem": {
         "itemId": 0,
         "seriesId": "LineSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatA",
@@ -894,7 +894,7 @@ exports[`AG-15850 activeChange line setState 2`] = `
       "activeItem": {
         "itemId": 3,
         "seriesId": "LineSeries-2",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myCategory": "CatD",
@@ -948,7 +948,7 @@ exports[`AG-15850 activeChange sankey mouse 1`] = `
       "activeItem": {
         "itemId": "link-1",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "A",
@@ -970,7 +970,7 @@ exports[`AG-15850 activeChange sankey mouse 2`] = `
       "activeItem": {
         "itemId": "link-3",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "B",
@@ -992,7 +992,7 @@ exports[`AG-15850 activeChange sankey mouse 3`] = `
       "activeItem": {
         "itemId": "node-0",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -1010,7 +1010,7 @@ exports[`AG-15850 activeChange sankey mouse 4`] = `
       "activeItem": {
         "itemId": "node-4",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -1028,7 +1028,7 @@ exports[`AG-15850 activeChange sankey setState 1`] = `
       "activeItem": {
         "itemId": "link-1",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "A",
@@ -1050,7 +1050,7 @@ exports[`AG-15850 activeChange sankey setState 2`] = `
       "activeItem": {
         "itemId": "link-3",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myFrom": "B",
@@ -1072,7 +1072,7 @@ exports[`AG-15850 activeChange sankey setState 3`] = `
       "activeItem": {
         "itemId": "node-0",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -1090,7 +1090,7 @@ exports[`AG-15850 activeChange sankey setState 4`] = `
       "activeItem": {
         "itemId": "node-4",
         "seriesId": "SankeySeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {},
       "frozen": false,
@@ -1108,7 +1108,7 @@ exports[`AG-15850 activeChange sunburst mouse 1`] = `
       "activeItem": {
         "itemId": "0",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1158,7 +1158,7 @@ exports[`AG-15850 activeChange sunburst mouse 2`] = `
       "activeItem": {
         "itemId": "0;0;1",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "name": "A2",
@@ -1179,7 +1179,7 @@ exports[`AG-15850 activeChange sunburst mouse 3`] = `
       "activeItem": {
         "itemId": "0;1",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1210,7 +1210,7 @@ exports[`AG-15850 activeChange sunburst setState 1`] = `
       "activeItem": {
         "itemId": "0",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1260,7 +1260,7 @@ exports[`AG-15850 activeChange sunburst setState 2`] = `
       "activeItem": {
         "itemId": "0;0;1",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "name": "A2",
@@ -1281,7 +1281,7 @@ exports[`AG-15850 activeChange sunburst setState 3`] = `
       "activeItem": {
         "itemId": "0;1",
         "seriesId": "SunburstSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1312,7 +1312,7 @@ exports[`AG-15850 activeChange treemap mouse 1`] = `
       "activeItem": {
         "itemId": "0",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1362,7 +1362,7 @@ exports[`AG-15850 activeChange treemap mouse 2`] = `
       "activeItem": {
         "itemId": "0;0;1",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "name": "A2",
@@ -1383,7 +1383,7 @@ exports[`AG-15850 activeChange treemap mouse 3`] = `
       "activeItem": {
         "itemId": "0;1",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1414,7 +1414,7 @@ exports[`AG-15850 activeChange treemap setState 1`] = `
       "activeItem": {
         "itemId": "0",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1464,7 +1464,7 @@ exports[`AG-15850 activeChange treemap setState 2`] = `
       "activeItem": {
         "itemId": "0;0;1",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "name": "A2",
@@ -1485,7 +1485,7 @@ exports[`AG-15850 activeChange treemap setState 3`] = `
       "activeItem": {
         "itemId": "0;1",
         "seriesId": "TreemapSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "children": [
@@ -1516,7 +1516,7 @@ exports[`AG-15850 activeChange waterfall mouse 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "Positive 2",
@@ -1537,7 +1537,7 @@ exports[`AG-15850 activeChange waterfall mouse 2`] = `
       "activeItem": {
         "itemId": 5,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "axisLabel": "Subtotal 1",
@@ -1560,7 +1560,7 @@ exports[`AG-15850 activeChange waterfall mouse 3`] = `
       "activeItem": {
         "itemId": 8,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "Negative 3",
@@ -1595,7 +1595,7 @@ exports[`AG-15850 activeChange waterfall setState 1`] = `
       "activeItem": {
         "itemId": 1,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "Positive 2",
@@ -1616,7 +1616,7 @@ exports[`AG-15850 activeChange waterfall setState 2`] = `
       "activeItem": {
         "itemId": 5,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "axisLabel": "Subtotal 1",
@@ -1639,7 +1639,7 @@ exports[`AG-15850 activeChange waterfall setState 3`] = `
       "activeItem": {
         "itemId": 8,
         "seriesId": "WaterfallSeries-1",
-        "type": "series-area",
+        "type": "series-node",
       },
       "datum": {
         "myX": "Negative 3",

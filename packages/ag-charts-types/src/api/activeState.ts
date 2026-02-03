@@ -1,6 +1,6 @@
 export interface AgActiveItemState {
     /** Where the item activation originates from. */
-    type: 'series-area' | 'legend';
+    type: 'series-node' | 'legend';
     /** The unique identifier of the series that this picked datum belongs to. */
     seriesId: string;
     /** The unique identifier of the picked datum. */

@@ -86,7 +86,7 @@ export class PickManager implements IPickManager {
         } else {
             const seriesId: string = this.active.series.id;
             const itemId: string | number = getItemId(this.active);
-            this.activeManager.update({ type: 'series-area', seriesId, itemId }, active?.datum);
+            this.activeManager.update({ type: 'series-node', seriesId, itemId }, active?.datum);
         }
         return this.active;
     }
