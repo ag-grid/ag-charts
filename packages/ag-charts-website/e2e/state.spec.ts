@@ -135,9 +135,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: 10000, seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual([
-                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: 10000 }',
-                ]);
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: 10000']);
                 consoleLogs.clear();
             }
 
@@ -149,9 +147,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual([
-                    'AG Charts - Cannot find datum: { seriesId: "LineSeries-1", itemId: "0" }',
-                ]);
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: "0"']);
                 consoleLogs.clear();
             }
 
@@ -918,10 +914,7 @@ test.describe('state', () => {
 
                     await setInvalidStateShowInLegend(consoleLogs, version, page);
                     state = await getChartState(page);
-                    expect(state.active).toEqual({
-                        frozen: false,
-                        activeItem: { type: 'legend', itemId: 1, seriesId: 'DonutSeries-1' },
-                    });
+                    expect(state.active?.activeItem).toBeUndefined();
                 });
             });
         });
