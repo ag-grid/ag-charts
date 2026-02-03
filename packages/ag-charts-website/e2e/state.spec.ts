@@ -151,6 +151,16 @@ test.describe('state', () => {
                 consoleLogs.clear();
             }
 
+            async function setStateSpain2010(page: Page, version: string): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
+                    },
+                });
+            }
+
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'line-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -610,6 +620,37 @@ test.describe('state', () => {
                     await hoverInTopLeft(page); // test 'mouseleave'
                     state = await getChartState(page);
                     expect(state.active).toEqual(expectedFrozenState);
+                });
+            });
+
+            test.describe('setState when hovering clears hovered datum', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await hoverInCenter(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+
+                    await setStateSpain2010(page, version);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await hoverInCenter(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 6, seriesId: 'LineSeries-5' },
+                    });
+
+                    await setStateSpain2010(page, version);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
+                    });
                 });
             });
         });
