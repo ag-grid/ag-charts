@@ -15,7 +15,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# Allow REPO_ROOT override via environment variable (useful for testing)
+REPO_ROOT="${SETUP_PROMPTS_REPO_ROOT:-$(cd "$SCRIPT_DIR/../../../.." && pwd)}"
 
 # Colors for output
 RED='\033[0;31m'
