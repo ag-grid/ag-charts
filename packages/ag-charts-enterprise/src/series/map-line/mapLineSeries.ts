@@ -528,7 +528,6 @@ export class MapLineSeries
 
             geoGeometry.setProperties(style);
             geoGeometry.drawingMode = drawingMode;
-            nodeDatum.midPoint = geoGeometry.getBBox().computeCenter();
         });
     }
 
