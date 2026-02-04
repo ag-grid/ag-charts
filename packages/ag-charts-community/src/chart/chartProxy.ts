@@ -22,6 +22,7 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
+import type { CategoryLegendDatum } from './legend/legendDatum';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
@@ -296,12 +297,45 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
         cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.zoomManager.getZoom());
 
-        // sync legend
-        cloneProxy.chart?.ctx.legendManager.clearData();
-        cloneProxy.chart?.ctx.legendManager.update(chart.ctx.legendManager.getData());
+        const cloneChart = cloneProxy.chart;
+        if (cloneChart) {
+            const seriesIdMap = new Map<string, string>();
+            for (const [index, series] of chart.series.entries()) {
+                const cloneSeries = cloneChart.series[index];
+                if (!cloneSeries) continue;
+                seriesIdMap.set(series.id, cloneSeries.id);
+                cloneSeries.visible = series.visible; // sync series visibility
+            }
 
-        for (const [index, series] of chart.series.entries()) {
-            cloneProxy.chart!.series[index].visible = series.visible; // sync series visibility
+            // sync legend data (including per-item visibility)
+            const legendManager = cloneChart.ctx.legendManager;
+            const legendData = chart.ctx.legendManager.getData();
+            const remappedLegendData: CategoryLegendDatum[] = legendData.map((datum) => {
+                const mappedSeriesId = seriesIdMap.get(datum.seriesId);
+                if (!mappedSeriesId || mappedSeriesId === datum.seriesId) {
+                    return datum;
+                }
+                return {
+                    ...datum,
+                    seriesId: mappedSeriesId,
+                    id: datum.id === datum.seriesId ? mappedSeriesId : datum.id,
+                };
+            });
+
+            legendManager.clearData();
+            const legendDataBySeries = new Map<string, CategoryLegendDatum[]>();
+            for (const datum of remappedLegendData) {
+                const data = legendDataBySeries.get(datum.seriesId);
+                if (data) {
+                    data.push(datum);
+                } else {
+                    legendDataBySeries.set(datum.seriesId, [datum]);
+                }
+            }
+            for (const [seriesId, data] of legendDataBySeries) {
+                legendManager.updateData(seriesId, data);
+            }
+            legendManager.update(remappedLegendData);
         }
 
         // Sync legend pagination
