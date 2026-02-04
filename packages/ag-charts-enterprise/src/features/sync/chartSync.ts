@@ -1,5 +1,3 @@
-import type { ActiveLoadMementoEvent } from 'packages/ag-charts-community/src/core/eventsHub';
-
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
@@ -207,7 +205,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         );
     }
 
-    private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
+    private onActiveLoadMemento(event: _ModuleSupport.ActiveLoadMementoEvent): void {
         const { activeItem, chartId } = event;
         if (activeItem === undefined) {
             this.moduleContext.highlightManager.updateHighlight(`${chartId}-sync`, undefined, false);

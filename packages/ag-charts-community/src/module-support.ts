@@ -68,6 +68,7 @@ export { hasDimmedOpacity } from './chart/series/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
 export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
 export type {
+    ActiveLoadMementoEvent,
     AxisLayout,
     ContextMenuEvent,
     DataModelDiff,
