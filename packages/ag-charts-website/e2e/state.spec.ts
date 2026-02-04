@@ -1222,20 +1222,20 @@ test.describe('state', () => {
         test.describe('initial-state', () => {
             let canvas: Locator;
 
-            async function hoverOnGermany2015(page: Page): Promise<void> {
-                await page.mouse.move(339, 319);
-            }
+            test.describe('series-node initialState matches hover event', () => {
+                async function hoverOnGermany2015(page: Page): Promise<void> {
+                    await page.mouse.move(339, 319);
+                }
 
-            async function hoverMiss(page: Page): Promise<void> {
-                await page.mouse.move(9, 9);
-            }
+                async function hoverMiss(page: Page): Promise<void> {
+                    await page.mouse.move(9, 9);
+                }
 
-            test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state', 'vanilla').url);
-                canvas = page.locator(SELECTORS.canvasCenter);
-            });
+                test.beforeEach(async ({ page }) => {
+                    await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state', 'vanilla').url);
+                    canvas = page.locator(SELECTORS.canvasCenter);
+                });
 
-            test.describe('initialState matches hover event', () => {
                 test('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
 
