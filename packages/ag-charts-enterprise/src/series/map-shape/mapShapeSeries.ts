@@ -613,6 +613,7 @@ export class MapShapeSeries
             geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
 
             geoGeometry.drawingMode = drawingMode;
+            nodeDatum.midPoint = geoGeometry.getBBox().computeCenter();
         });
     }
 
