@@ -1218,5 +1218,53 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('initial-state', () => {
+            let canvas: Locator;
+
+            async function hoverOnGermany2015(page: Page): Promise<void> {
+                await page.mouse.move(339, 319);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(9, 9);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('initialState matches hover event', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
+
+                    await hoverOnGermany2015(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 15, seriesId: 'AreaSeries-3' },
+                    });
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await hoverOnGermany2015(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 15, seriesId: 'AreaSeries-3' },
+                    });
+                });
+            });
+        });
     });
 });
