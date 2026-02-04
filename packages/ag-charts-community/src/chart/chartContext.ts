@@ -143,10 +143,16 @@ export class ChartContext implements ModuleContext {
         this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
-        this.activeManager = new ActiveManager(this.chartService, this.eventsHub, this.interactionManager, fireEvent);
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
         this.updateService = new UpdateService(updateCallback);
+        this.activeManager = new ActiveManager(
+            this.chartService,
+            this.eventsHub,
+            this.updateService,
+            this.interactionManager,
+            fireEvent
+        );
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.eventsHub);
