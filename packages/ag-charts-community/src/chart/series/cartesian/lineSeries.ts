@@ -323,7 +323,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;

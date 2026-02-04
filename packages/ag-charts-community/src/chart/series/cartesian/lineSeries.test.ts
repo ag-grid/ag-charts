@@ -27,6 +27,7 @@ import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
@@ -1815,6 +1816,44 @@ describe('LineSeries', () => {
                     { type: 'line', xKey: 'x', yKey: 's3', yName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('aggregation data size transitions', () => {
+        it('should render consistent node count after data size transitions (small -> large -> small)', async () => {
+            const smallData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+            const largeData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+
+            const options: AgCartesianChartOptions = {
+                data: smallData,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const getNodeDataCount = () => {
+                const chartInstance = deproxy(chart);
+                const series = chartInstance.series[0] as any;
+                return series.contextNodeData?.nodeData?.length ?? 0;
+            };
+
+            const initialNodeCount = getNodeDataCount();
+            expect(initialNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: largeData });
+            await waitForChartStability(chart);
+
+            const largeDataNodeCount = getNodeDataCount();
+            expect(largeDataNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: smallData });
+            await waitForChartStability(chart);
+
+            const finalNodeCount = getNodeDataCount();
+
+            expect(finalNodeCount).toBe(initialNodeCount);
         });
     });
 });
