@@ -486,6 +486,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             scale: scaleProps,
             label,
             defaultColorRange,
+            defaultScale,
         } = properties;
 
         scale.domain = [scaleProps.min, scaleProps.max];
@@ -541,12 +542,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleProps.min, scaleProps.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
+        const scaleLabel = mergeDefaults({ parallel: horizontal }, scaleProps.label, defaultScale.label);
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
-            label: this.properties.scale.label,
-            interval: this.properties.scale.interval,
+            label: scaleLabel,
+            interval: scaleProps.interval,
             tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
             domain: scale.domain,
             range: this.range,
