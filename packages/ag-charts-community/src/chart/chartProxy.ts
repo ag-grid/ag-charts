@@ -325,15 +325,15 @@ export class AgChartInstanceProxy implements AgChartProxy {
             legendManager.clearData();
             const legendDataBySeries = new Map<string, CategoryLegendDatum[]>();
             for (const datum of remappedLegendData) {
-                const data = legendDataBySeries.get(datum.seriesId);
-                if (data) {
-                    data.push(datum);
+                const seriesLegendData = legendDataBySeries.get(datum.seriesId);
+                if (seriesLegendData) {
+                    seriesLegendData.push(datum);
                 } else {
                     legendDataBySeries.set(datum.seriesId, [datum]);
                 }
             }
-            for (const [seriesId, data] of legendDataBySeries) {
-                legendManager.updateData(seriesId, data);
+            for (const [seriesId, seriesLegendData] of legendDataBySeries) {
+                legendManager.updateData(seriesId, seriesLegendData);
             }
             legendManager.update(remappedLegendData);
         }
