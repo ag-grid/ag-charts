@@ -1670,6 +1670,9 @@ describe('AreaSeries', () => {
                     { x: 3, y: 10 },
                     { x: 4, y: 20 },
                 ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
                 series: [
                     {
                         type: 'area',
