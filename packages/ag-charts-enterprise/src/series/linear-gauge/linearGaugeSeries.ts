@@ -736,11 +736,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         }
         for (const dataArray of [scaleData, nodeData]) {
             for (const datum of dataArray) {
-                const x0 = datum.clipX0 ?? datum.x0;
-                const x1 = datum.clipX1 ?? datum.x1;
-                const y0 = datum.clipY0 ?? datum.y0;
-                const y1 = datum.clipY1 ?? datum.y1;
-                datum.midPoint = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+                const dx0 = datum.clipX0 ?? datum.x0;
+                const dx1 = datum.clipX1 ?? datum.x1;
+                const dy0 = datum.clipY0 ?? datum.y0;
+                const dy1 = datum.clipY1 ?? datum.y1;
+                datum.midPoint = { x: (dx0 + dx1) / 2, y: (dy0 + dy1) / 2 };
             }
         }
 
