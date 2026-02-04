@@ -1,5 +1,5 @@
-import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
-import type { AgActiveItemState } from 'ag-charts-types';
+import { type BoxBounds, Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
 import { type HighlightState, highlightStates } from './seriesProperties';
@@ -178,6 +178,45 @@ export function getItemStylesPerItemId<TItemId extends string, TNodeDatum, TStyl
 
 export function hasDimmedOpacity(style?: { opacity?: number; fillOpacity?: number; strokeOpacity?: number }) {
     return (style?.opacity ?? 1) < 1 || (style?.fillOpacity ?? 1) < 1 || (style?.strokeOpacity ?? 1) < 1;
+}
+
+const opaqueMarkerFillCache = new Map<string, boolean>();
+
+export function isOpaqueMarkerFillStyle(
+    style?: { fill?: unknown; fillOpacity?: number; opacity?: number },
+    opts?: { ignoreOpacity?: boolean; ignoreFillOpacity?: boolean }
+): boolean {
+    if (style == null) return false;
+    if (!opts?.ignoreOpacity && (style.opacity ?? 1) < 1) return false;
+    if (!opts?.ignoreFillOpacity && (style.fillOpacity ?? 1) < 1) return false;
+
+    const fill = style.fill;
+    if (!isString(fill)) return false;
+
+    const fillString = fill.trim();
+    const fillLower = fillString.toLowerCase();
+    if (fillLower === 'transparent' || fillLower === 'none') return false;
+
+    let cached = opaqueMarkerFillCache.get(fillString);
+    if (cached == null) {
+        try {
+            cached = Color.fromString(fillString).a === 1;
+        } catch {
+            cached = false;
+        }
+        opaqueMarkerFillCache.set(fillString, cached);
+    }
+
+    return cached;
+}
+
+export function resolveMarkerDrawingMode(
+    baseDrawingMode: AgDrawingMode,
+    style?: { fill?: unknown; fillOpacity?: number; opacity?: number },
+    opts?: { ignoreOpacity?: boolean; ignoreFillOpacity?: boolean }
+): AgDrawingMode {
+    if (baseDrawingMode !== 'cutout') return baseDrawingMode;
+    return isOpaqueMarkerFillStyle(style, opts) ? 'cutout' : 'overlay';
 }
 
 export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(

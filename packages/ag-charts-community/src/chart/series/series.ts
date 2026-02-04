@@ -66,7 +66,12 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
+import {
+    HighlightState,
+    type SeriesProperties,
+    getHighlightStyleOptionKeys,
+    toHighlightString,
+} from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
@@ -78,7 +83,7 @@ import type {
     SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
-import { hasDimmedOpacity } from './util';
+import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -799,6 +804,32 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         highlightState ??= this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
+    }
+
+    protected shouldIgnoreDefaultHighlightOpacity(highlightState: HighlightState): boolean {
+        const basePath = ['series', `${this.declarationOrder}`, 'highlight'];
+        const keys = getHighlightStyleOptionKeys(highlightState);
+        return (
+            keys.length > 0 &&
+            keys.every((key) => !this.ctx.optionsGraphService.hasUserOption([...basePath, key, 'opacity']))
+        );
+    }
+
+    protected shouldIgnoreDefaultMarkerFillOpacity(): boolean {
+        return false;
+    }
+
+    protected resolveMarkerDrawingModeForState(
+        drawingMode: AgDrawingMode,
+        highlightState: HighlightState,
+        style?: AgSeriesMarkerStyle
+    ): AgDrawingMode {
+        if (drawingMode === 'cutout' && this.ctx.optionsGraphService.hasUserOption(['highlight', 'drawingMode'])) {
+            return drawingMode;
+        }
+        const ignoreOpacity = this.shouldIgnoreDefaultHighlightOpacity(highlightState);
+        const ignoreFillOpacity = this.shouldIgnoreDefaultMarkerFillOpacity();
+        return resolveMarkerDrawingMode(drawingMode, style, { ignoreOpacity, ignoreFillOpacity });
     }
 
     protected abstract hasItemStylers(): boolean;

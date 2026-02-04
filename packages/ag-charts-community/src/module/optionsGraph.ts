@@ -433,6 +433,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     hasUserOption(path: Array<string>) {
         const hasUserOptionSimple = hasPathSafe(this.userOptions, path);
         if (hasUserOptionSimple) return true;
+        if (!this.root) return false;
 
         // In some cases we expand the user options edge of the graph with additional values. These will not appear in
         // the original object and must be found in the graph.

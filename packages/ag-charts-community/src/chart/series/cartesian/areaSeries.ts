@@ -1347,11 +1347,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
-            node.drawingMode = drawingMode;
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, state, style);
         });
 
         if (!isHighlight) {

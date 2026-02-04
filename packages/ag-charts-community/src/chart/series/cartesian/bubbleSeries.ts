@@ -949,11 +949,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 area,
                 dilation,
             } = datum;
-            let style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-
-            style = { ...style };
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = { ...(datum.style ?? contextNodeData.styles[state]) };
             style.size = size;
 
             if (dilation > 1) {
@@ -970,7 +967,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
-            node.drawingMode = drawingMode;
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, state, style);
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 
@@ -1373,6 +1370,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     protected override hasItemStylers(): boolean {
         const { styler, itemStyler, marker, label } = this.properties;
         return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler);
+    }
+
+    protected override shouldIgnoreDefaultMarkerFillOpacity(): boolean {
+        const seriesPath = ['series', `${this.declarationOrder}`];
+        return !this.ctx.optionsGraphService.hasUserOption([...seriesPath, 'fillOpacity']);
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {

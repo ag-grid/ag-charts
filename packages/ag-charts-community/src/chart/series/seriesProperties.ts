@@ -41,6 +41,27 @@ export const highlightStates = [
     HighlightState.OtherItem,
 ];
 
+export type HighlightStyleOptionKey =
+    | 'highlightedItem'
+    | 'unhighlightedItem'
+    | 'highlightedSeries'
+    | 'unhighlightedSeries';
+
+export function getHighlightStyleOptionKeys(highlightState: HighlightState): HighlightStyleOptionKey[] {
+    switch (highlightState) {
+        case HighlightState.Item:
+            return ['highlightedItem', 'highlightedSeries'];
+        case HighlightState.OtherItem:
+            return ['unhighlightedItem', 'highlightedSeries'];
+        case HighlightState.Series:
+            return ['highlightedSeries'];
+        case HighlightState.OtherSeries:
+            return ['unhighlightedSeries'];
+        case HighlightState.None:
+            return [];
+    }
+}
+
 type HighlightMixins = {
     fill: AgColorType;
     fillOpacity: number;
@@ -117,35 +138,10 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
     readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
 
-    private getItemHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
-        switch (highlightState) {
-            case HighlightState.Item:
-                return this.highlightedItem;
-            case HighlightState.OtherItem:
-                return this.unhighlightedItem;
-            case HighlightState.Series:
-                return this.highlightedSeries;
-            case HighlightState.OtherSeries:
-                return this.unhighlightedSeries;
-        }
-    }
-
-    private getSeriesHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
-        switch (highlightState) {
-            case HighlightState.Item:
-            case HighlightState.OtherItem:
-            case HighlightState.Series:
-                return this.highlightedSeries;
-            case HighlightState.OtherSeries:
-                return this.unhighlightedSeries;
-        }
-    }
-
     getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
-        return mergeDefaults<HighlightOptions<TOpts>>(
-            this.getItemHighlightStyle(highlightState),
-            this.getSeriesHighlightStyle(highlightState)
-        );
+        const keys = getHighlightStyleOptionKeys(highlightState);
+        if (keys.length === 0) return {};
+        return mergeDefaults<HighlightOptions<TOpts>>(...keys.map((key) => this[key]));
     }
 }
 
