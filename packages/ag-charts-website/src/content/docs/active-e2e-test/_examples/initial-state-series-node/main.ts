@@ -62,7 +62,7 @@ const options: AgCartesianChartOptions<DatumType> = {
             activeItem: {
                 type: 'series-node',
                 seriesId: 'AreaSeries-3',
-                itemId: 15,
+                itemId: 5,
             },
             frozen: false,
         },

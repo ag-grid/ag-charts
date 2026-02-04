@@ -1251,7 +1251,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-node', itemId: 15, seriesId: 'AreaSeries-3' },
+                        activeItem: { type: 'series-node', itemId: 5, seriesId: 'AreaSeries-3' },
                     });
 
                     await hoverMiss(page);
@@ -1261,7 +1261,7 @@ test.describe('state', () => {
                     await hoverOnGermany2015(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-node', itemId: 15, seriesId: 'AreaSeries-3' },
+                        activeItem: { type: 'series-node', itemId: 5, seriesId: 'AreaSeries-3' },
                     });
                 });
             });
