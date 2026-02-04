@@ -2016,4 +2016,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
         await this.waitForUpdate();
     }
+
+    public onSyncActiveClear(): void {
+        this.seriesAreaManager.onActiveClear();
+    }
 }

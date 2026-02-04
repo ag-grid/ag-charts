@@ -46,6 +46,7 @@ export type SyncChartLike = {
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[];
+    onSyncActiveClear(): void;
 };
 
 type ChartDomainState = {
