@@ -894,6 +894,7 @@ export class RadialGaugeSeries
 
             sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
             sector.concentricEdgeInset = sector.strokeWidth / 2;
+            datum.midPoint = sector.getBBox().computeCenter();
 
             if (animationDisabled || sector.previousDatum == null) {
                 sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
