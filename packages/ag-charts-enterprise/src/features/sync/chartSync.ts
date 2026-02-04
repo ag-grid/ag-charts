@@ -303,8 +303,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private dispatchHighlightUpdate(
         chart: _ModuleSupport.SyncChartLike,
-        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any>,
-        stale?: boolean
+        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any>
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
