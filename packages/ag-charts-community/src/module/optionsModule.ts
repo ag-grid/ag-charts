@@ -55,7 +55,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { OptionsGraph, createOptionsGraph } from './optionsGraph';
+import { type OptionsGraphAccessor, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -139,7 +139,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     fastDelta?: DeepPartial<T>;
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
-    optionsGraph?: OptionsGraph;
+    optionsGraph?: OptionsGraphAccessor;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
