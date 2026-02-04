@@ -74,6 +74,23 @@ const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'linear-gauge': true,
 };
 
+function hasUserOptionLessThan1(key: string) {
+    return {
+        $or: {
+            $map: [
+                {
+                    $isUserOption: [
+                        `/series/$index/${key}`,
+                        { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
+                        false,
+                    ],
+                },
+                { $path: '/series' },
+            ],
+        },
+    };
+}
+
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
@@ -373,6 +390,23 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+            },
+            highlight: {
+                drawingMode: {
+                    $if: [
+                        {
+                            $or: [
+                                hasUserOptionLessThan1('highlight.highlightedItem.opacity'),
+                                hasUserOptionLessThan1('highlight.unhighlightedItem.opacity'),
+                                hasUserOptionLessThan1('highlight.highlightedSeries.opacity'),
+                                hasUserOptionLessThan1('highlight.unhighlightedSeries.opacity'),
+                                hasUserOptionLessThan1('fillOpacity'),
+                            ],
+                        },
+                        'cutout',
+                        'overlap',
+                    ],
+                },
             },
             tooltip: {
                 enabled: true,
