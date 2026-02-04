@@ -185,6 +185,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Bars",
+                            "path": "bars"
+                        },
+                        {
+                            "type": "item",
                             "title": "Series Fills",
                             "path": "fills"
                         },
