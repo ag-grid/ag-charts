@@ -1342,9 +1342,9 @@ describe('AG-15850 activeChange', () => {
         await hoverAction(x, y)(deproxy(chart));
     }
 
-    async function setActiveItem(activeItem: AgActiveItemState | undefined): Promise<void> {
+    async function setActiveItem(activeItem: AgActiveItemState | undefined, frozen = false): Promise<void> {
         version ??= chart.getState().version;
-        await chart.setState({ version, active: { activeItem, frozen: false } });
+        await chart.setState({ version, active: { activeItem, frozen } });
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
@@ -1411,6 +1411,36 @@ describe('AG-15850 activeChange', () => {
 
             await setActiveItem(undefined);
             expect(popCalls()).toMatchSnapshot();
+        });
+
+        test('only broadcast changes', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls().length).toBe(1);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls()).toEqual([]);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('broadcast frozen changes', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            calls = popCalls();
+            expect(calls).toMatchSnapshot();
+            expect(calls.length).toBe(1);
+            expect(calls[0]?.[0].frozen).toBe(false);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
+            calls = popCalls();
+            expect(calls).toMatchSnapshot();
+            expect(calls.length).toBe(1);
+            expect(calls[0]?.[0].frozen).toBe(true);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
+            expect(popCalls().length).toBe(0);
         });
 
         test('setState series-area seriesId not found', async () => {
