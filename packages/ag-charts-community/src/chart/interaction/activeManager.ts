@@ -44,6 +44,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
             const { pendingMemento } = this;
             if (pendingMemento) {
                 this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
+                this.pendingMemento = undefined;
             }
             removeListener();
         });
@@ -137,8 +138,9 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         let nodeDatum: DatumArg = undefined;
         const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
+        const initialState: boolean = this.pendingMemento !== undefined;
         const chartId = this.chartService.id;
-        this.eventsHub.emit('active:load-memento', { chartId, activeItem, reject, setDatum });
+        this.eventsHub.emit('active:load-memento', { initialState, chartId, activeItem, reject, setDatum });
         return rejection ? [undefined, undefined] : [activeItem, nodeDatum];
     }
 }

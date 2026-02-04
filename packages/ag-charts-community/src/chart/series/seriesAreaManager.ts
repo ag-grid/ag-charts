@@ -1133,8 +1133,12 @@ export class SeriesAreaManager extends BaseManager {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
-            this.clearCachedEvents();
-            this.hoverScheduler.schedule();
+            if (event.initialState) {
+                this.handleHoverFromState();
+            } else {
+                this.clearCachedEvents();
+                this.hoverScheduler.schedule();
+            }
         }
     }
 
