@@ -662,7 +662,7 @@ export abstract class Series<
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
 
-    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): TDatum | undefined;
+    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
 
     toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
         const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};

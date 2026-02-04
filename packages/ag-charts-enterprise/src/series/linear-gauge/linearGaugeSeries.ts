@@ -28,7 +28,7 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
-import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
+import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
@@ -46,7 +46,6 @@ import {
 } from './linearGaugeUtil';
 
 const {
-    findNodeDatumInArray,
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
@@ -63,6 +62,9 @@ const {
     generateTicks,
     NiceMode,
 } = _ModuleSupport;
+
+type DatumIndexType = _ModuleSupport.DatumIndexType;
+type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
 
 interface TargetLabel {
     enabled: boolean;
@@ -776,8 +778,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    override findNodeDatum(itemId: AgActiveItemState['itemId']): LinearGaugeNodeDatum | undefined {
-        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+        return findGaugeNodeDatum(this, itemId);
     }
 
     updateSelections(resize: boolean) {
