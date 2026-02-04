@@ -279,7 +279,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;

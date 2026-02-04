@@ -36,6 +36,7 @@ export interface PartialAggregationResult<TFilter> {
  */
 export class AggregationManager<TFilter extends AggregationFilterBase> {
     private _filters: TFilter[] | undefined;
+    private _dataLength: number = 0;
     private readonly executor = new DeferredExecutor<TFilter[]>();
 
     get filters(): TFilter[] | undefined {
@@ -108,14 +109,23 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     }
 
     /**
-     * Mark all filters as stale (for invalidation on data refresh).
+     * Mark filters as stale or discard them based on data size change.
+     * When data size changes significantly (>10x), filters are discarded to prevent
+     * incorrect array reuse.
      */
-    markStale(): void {
-        if (this._filters) {
+    markStale(dataLength: number): void {
+        const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
+        if (ratio > 10 || ratio < 0.1 || this._dataLength === 0) {
+            this._filters = undefined;
+            this._dataLength = dataLength;
+        } else if (this._filters) {
             for (const f of this._filters) {
                 (f as TFilter & { stale?: boolean }).stale = true;
             }
+        } else {
+            this._dataLength = dataLength;
         }
+
         this.executor.cancel();
     }
 

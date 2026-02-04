@@ -447,8 +447,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        // Mark existing filters as stale before recomputing
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedDataIsAnimatable(processedData)) return;
 

@@ -447,7 +447,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedDataIsAnimatable(processedData)) return;
 
