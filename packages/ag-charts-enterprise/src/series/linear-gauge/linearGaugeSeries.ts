@@ -734,15 +734,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 });
             }
         }
-        for (const dataArray of [scaleData, nodeData]) {
-            for (const datum of dataArray) {
-                const dx0 = datum.clipX0 ?? datum.x0;
-                const dx1 = datum.clipX1 ?? datum.x1;
-                const dy0 = datum.clipY0 ?? datum.y0;
-                const dy1 = datum.clipY1 ?? datum.y1;
-                datum.midPoint = { x: (dx0 + dx1) / 2, y: (dy0 + dy1) / 2 };
-            }
-        }
 
         if (label.enabled) {
             labelData.push(this.labelDatum(label, value));
@@ -889,6 +880,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             rect.pointerEvents = this.properties.bar.enabled
                 ? _ModuleSupport.PointerEvents.All
                 : _ModuleSupport.PointerEvents.None;
+            datum.midPoint = rect.getBBox().computeCenter();
 
             if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
