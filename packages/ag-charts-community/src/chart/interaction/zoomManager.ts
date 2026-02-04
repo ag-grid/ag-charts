@@ -96,7 +96,6 @@ export type UpdateZoomChanges = Record<AxisID, ZoomMinMax | undefined>;
 export type UpdateZoomParams = UpdateZoomSourcing & {
     isReset: boolean;
     changes: UpdateZoomChanges;
-    skipOnDataChange?: boolean;
 };
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -387,7 +386,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public updateChanges(params: UpdateZoomParams): boolean {
-        const { source, sourceDetail, isReset, changes, skipOnDataChange } = params;
+        const { source, sourceDetail, isReset, changes } = params;
         validateChanges(changes);
 
         const changedAxes = this.computeChangedAxesIds(changes);
@@ -403,7 +402,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
         this.state = newState;
 
-        return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState, skipOnDataChange);
+        return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState);
     }
 
     public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
@@ -653,7 +652,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             sourceDetail: 'internal-requiredWidth',
             changes,
             isReset: false,
-            skipOnDataChange: true,
         });
     }
 
@@ -683,8 +681,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         sourceDetail: ZoomEventSourceDetail,
         changedAxes: readonly AxisID[],
         isReset: boolean,
-        oldState: CoreZoomStateSafeRetrieval,
-        skipOnDataChange?: boolean
+        oldState: CoreZoomStateSafeRetrieval
     ): boolean {
         const { x, y } = this.getZoom() ?? {};
         const state = this.state;
@@ -700,7 +697,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             oldState,
             x,
             y,
-            skipOnDataChange,
             stateAsDefinedZoom(): DefinedZoomState {
                 return definedZoomState(zoomManager.toZoomState(event.state));
             },

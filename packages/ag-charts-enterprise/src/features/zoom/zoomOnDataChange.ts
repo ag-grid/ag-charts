@@ -121,7 +121,7 @@ export class ZoomOnDataChange {
     }
 
     private onZoomChangeRequest(e: _ModuleSupport.ZoomChangeRequestEvent): void {
-        if (e.skipOnDataChange) {
+        if (e.sourceDetail === 'internal-requiredWidth') {
             this.desiredChanges = undefined;
         }
         const changes = this.popDesiredChanges();
