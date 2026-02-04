@@ -90,7 +90,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const oldFrozen = this.isFrozen();
         const newFrozen = memento?.frozen;
         const frozenChanged: boolean =
-            newFrozen === undefined ? false : (oldFrozen satisfies boolean) === (newFrozen satisfies boolean);
+            newFrozen === undefined ? false : (oldFrozen satisfies boolean) !== (newFrozen satisfies boolean);
 
         if (newFrozen === true) {
             this.interactionManager.pushState(InteractionState.Frozen);
