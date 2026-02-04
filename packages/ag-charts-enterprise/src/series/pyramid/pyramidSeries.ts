@@ -246,7 +246,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 'x',
                 xDomain,
                 this.properties.stageLabel,
-                { datum, value: yValue, stageKey, valueKey }
+                { datum, value: yValue, stageKey, valueKey },
+                this.properties.allowNullKeys ?? false
             );
 
             const { width, height } = isArray(text)
