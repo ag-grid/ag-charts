@@ -1342,9 +1342,9 @@ describe('AG-15850 activeChange', () => {
         await hoverAction(x, y)(deproxy(chart));
     }
 
-    async function setActiveItem(activeItem: AgActiveItemState | undefined): Promise<void> {
+    async function setActiveItem(activeItem: AgActiveItemState | undefined, frozen = false): Promise<void> {
         version ??= chart.getState().version;
-        await chart.setState({ version, active: { activeItem, frozen: false } });
+        await chart.setState({ version, active: { activeItem, frozen } });
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
@@ -1413,25 +1413,67 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toMatchSnapshot();
         });
 
+        test('only broadcast changes', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls().length).toBe(1);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls()).toEqual([]);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('broadcast frozen changes', async () => {
+            let calls: AgActiveChangeEvent<any, C>[][];
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            calls = popCalls();
+            expect(calls).toMatchSnapshot();
+            expect(calls.length).toBe(1);
+            expect(calls[0]?.[0].frozen).toBe(false);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
+            calls = popCalls();
+            expect(calls).toMatchSnapshot();
+            expect(calls.length).toBe(1);
+            expect(calls[0]?.[0].frozen).toBe(true);
+
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
+            expect(popCalls().length).toBe(0);
+        });
+
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'LineSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'LineSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "LineSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, false);
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'LineSeries-2' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"LineSeries-2","itemId":"myValue22"}'],
@@ -1512,24 +1554,36 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BarSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BarSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BarSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BarSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'BarSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BarSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'BarSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BarSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BarSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'BarSeries-2' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"BarSeries-2","itemId":"myValue22"}'],
@@ -1599,24 +1653,36 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'AreaSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'AreaSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "AreaSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'AreaSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'AreaSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'AreaSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue', seriesId: 'AreaSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "AreaSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'AreaSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'myValue22', seriesId: 'AreaSeries-2' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"AreaSeries-2","itemId":"myValue22"}'],
@@ -1694,24 +1760,36 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'DonutSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'DonutSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "DonutSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not shown', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'DonutSeries-2' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-2","itemId":0}'],
@@ -1720,6 +1798,9 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'DonutSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 1000, seriesId: 'DonutSeries-1' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"DonutSeries-1","itemId":1000}'],
@@ -1818,12 +1899,18 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'WaterfallSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'WaterfallSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "WaterfallSeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'WaterfallSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'WaterfallSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
@@ -1936,24 +2023,36 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BoxPlotSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BoxPlotSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BoxPlotSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BoxPlotSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 1000, seriesId: 'BoxPlotSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: 1000']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BoxPlotSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 'BoxPlotSeries-1000', seriesId: 'BoxPlotSeries-1000' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "BoxPlotSeries-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState legend itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'BoxPlotSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'legend', itemId: 0, seriesId: 'BoxPlotSeries-1' });
             expectWarningsCalls().toEqual([
                 ['AG Charts - cannot find legend item: {"seriesId":"BoxPlotSeries-1","itemId":0}'],
@@ -2048,18 +2147,27 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'link-1', seriesId: 'SankeySeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'SankeySeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "SankeySeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area link not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'link-1', seriesId: 'SankeySeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'link-1000', seriesId: 'SankeySeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "link-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area node not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'link-1', seriesId: 'SankeySeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'node-1000', seriesId: 'SankeySeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "node-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
@@ -2152,18 +2260,27 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "ChordSeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area link not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'link-1000', seriesId: 'ChordSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "link-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area node not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: 'node-1000', seriesId: 'ChordSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "node-1000"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
@@ -2263,12 +2380,18 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'TreemapSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'TreemapSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "TreemapSeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'TreemapSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: '0;0;4', seriesId: 'TreemapSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "0;0;4"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
@@ -2362,12 +2485,18 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'SunburstSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'SunburstSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "SunburstSeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area itemId not found', async () => {
+            await setActiveItem({ type: 'series-node', itemId: '0', seriesId: 'SunburstSeries-1' });
+            expect(popCalls().length).toBe(1);
+
             await setActiveItem({ type: 'series-node', itemId: '0;0;4', seriesId: 'SunburstSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "0;0;4"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);

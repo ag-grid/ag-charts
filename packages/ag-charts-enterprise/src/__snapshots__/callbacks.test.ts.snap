@@ -780,6 +780,50 @@ exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange line broadcast frozen changes 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "LineSeries-1",
+        "type": "series-node",
+      },
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "frozen": false,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 activeChange line broadcast frozen changes 2`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "LineSeries-1",
+        "type": "series-node",
+      },
+      "datum": {
+        "myCategory": "CatA",
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "frozen": true,
+      "source": "state-change",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange line mouse 1`] = `
 [
   [
