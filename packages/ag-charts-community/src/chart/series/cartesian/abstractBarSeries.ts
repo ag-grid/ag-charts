@@ -221,10 +221,15 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     private getBarWidth() {
         const { seriesGrouping } = this;
-        const { width, widthRatio } = this.properties;
+        const { width } = this.properties;
+        let { widthRatio } = this.properties;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const bandwidth = groupScale?.bandwidth ?? 0;
+
+        if (seriesGrouping == null) {
+            widthRatio ??= 1;
+        }
 
         if (widthRatio != null) {
             let relativeWidth = width;
