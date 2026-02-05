@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
@@ -651,6 +653,58 @@ describe('Chart', () => {
 
             expect(chart.series[0].data).toEqual(chart.data);
             expect(chart.series[1].data).toEqual(chart.data);
+        });
+    });
+
+    describe('preSeriesUpdate', () => {
+        const baseOptions: AgCartesianChartOptions = {
+            container: document.body,
+            data: datasets.economy.data,
+            series: [
+                {
+                    type: 'line',
+                    xKey: datasets.economy.categoryKey,
+                    yKey: datasets.economy.valueKey,
+                },
+            ],
+        };
+
+        it('dispatches required range ratio based on seriesRect and direction', async () => {
+            chart = await createChart(baseOptions);
+            const chartAny = chart as any;
+            let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
+
+            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+                capturedEvent = event;
+            });
+
+            chartAny.seriesRect = new BBox(0, 0, 200, 100);
+            chartAny._requiredRange = 50;
+            chartAny._requiredRangeDirection = ChartAxisDirection.Y;
+
+            chartAny.preSeriesUpdate();
+
+            expect(capturedEvent).toBeDefined();
+            expect(capturedEvent?.requiredRangeDirection).toBe(ChartAxisDirection.Y);
+            expect(capturedEvent?.requiredRangeRatio).toBeCloseTo(0.5, 5);
+        });
+
+        it('falls back to 0 when the ratio is NaN', async () => {
+            chart = await createChart(baseOptions);
+            const chartAny = chart as any;
+            let capturedEvent: { requiredRangeRatio: number } | undefined;
+
+            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+                capturedEvent = event;
+            });
+
+            chartAny.seriesRect = new BBox(0, 0, 0, 0);
+            chartAny._requiredRange = 0;
+            chartAny._requiredRangeDirection = ChartAxisDirection.X;
+
+            chartAny.preSeriesUpdate();
+
+            expect(capturedEvent?.requiredRangeRatio).toBe(0);
         });
     });
 
