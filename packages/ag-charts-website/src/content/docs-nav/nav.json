@@ -239,11 +239,6 @@
                         },
                         {
                             "type": "item",
-                            "title": "Programmatic Highlighting",
-                            "path": "active"
-                        },
-                        {
-                            "type": "item",
                             "title": "Tooltips",
                             "path": "tooltips"
                         },
