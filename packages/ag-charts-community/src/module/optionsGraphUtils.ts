@@ -21,6 +21,13 @@ export interface OptionsGraphInterface {
     getPathArray(vertex: VertexInterface): Array<string>;
     getVertexValue(vertex: VertexInterface): unknown;
     graftAndResolveOrphan(context: VertexInterface, branch: VertexInterface): unknown;
+    graftAndResolveOrphanValue(
+        context: VertexInterface,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue?: string
+    ): unknown;
     graftConfig(target: VertexInterface, configPathArray: Array<string>, ignorePaths: Set<string>): void;
     graftObject(
         target: VertexInterface,

@@ -366,28 +366,35 @@ function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 enum LogicOperation {
     And = '$and',
     Eq = '$eq',
+    Every = '$every',
     GreaterThan = '$greaterThan',
     If = '$if',
     LessThan = '$lessThan',
     Not = '$not',
     Or = '$or',
+    Some = '$some',
     Switch = '$switch',
 }
 
 const logicOperations: Record<LogicOperation, OperationFns> = {
     $and: andOperation,
     $eq: eqOperation,
+    $every: everyOperation,
     $greaterThan: greaterThanOperation,
     $if: ifOperation,
     $lessThan: lessThanOperation,
     $not: notOperation,
     $or: orOperation,
+    $some: someOperation,
     $switch: switchOperation,
 };
 
 function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
+        if (values.length === 1 && Array.isArray(value)) {
+            return value.every((v) => Boolean(v));
+        }
         if (!value) return false;
     }
     return true;
@@ -405,6 +412,23 @@ function eqOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
             return false;
         }
     }
+    return true;
+}
+
+function everyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [mapOperationVertex, mapValuesVertex] = values;
+
+    const mapOperationValue = graph.getVertexValue(mapOperationVertex);
+    const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
+    if (!Array.isArray(mapValues)) return;
+
+    let index = 0;
+    for (const value of mapValues) {
+        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        if (!resolved) return false;
+        index++;
+    }
+
     return true;
 }
 
@@ -444,8 +468,28 @@ function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
+        if (values.length === 1 && Array.isArray(value)) {
+            return value.some((v) => Boolean(v));
+        }
         if (value) return true;
     }
+    return false;
+}
+
+function someOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [mapOperationVertex, mapValuesVertex] = values;
+
+    const mapOperationValue = graph.getVertexValue(mapOperationVertex);
+    const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
+    if (!Array.isArray(mapValues)) return;
+
+    let index = 0;
+    for (const value of mapValues) {
+        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        if (resolved) return true;
+        index++;
+    }
+
     return false;
 }
 
@@ -1054,6 +1098,8 @@ function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
 }
+
+// --- EXPORTS ---
 
 export const operations: Record<Operation, OperationFns> = {
     ...cacheOperations,

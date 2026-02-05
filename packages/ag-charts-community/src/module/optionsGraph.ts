@@ -636,10 +636,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      */
     graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown, edgeValue = this.graftEdge) {
         const pathArray = [...this.getPathArray(target), path];
+        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);
-
-        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
         this.buildDependencyGraph();
@@ -657,6 +656,30 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.resolveVertex(orphanVertex, orphan);
 
         return getPathSafe(orphan, contextPathArray);
+    }
+
+    /**
+     * Resolve a value as if it were a child of the context vertex, but without attaching it to the resolved root.
+     */
+    graftAndResolveOrphanValue(
+        context: Vertex<unknown>,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue = this.graftEdge
+    ) {
+        const orphan: PlainObject = {};
+        const orphanVertex = this.addVertex(orphan);
+        const contextPathArray = this.getPathArray(context);
+        const pathArray = [...contextPathArray, path];
+        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
+
+        this.value$1.set(pathArray.join('.'), value);
+
+        this.buildGraphFromValue(orphanVertex, pathVertex, edgeValue, pathArray, ontoObject);
+        this.resolveVertex(orphanVertex, orphan);
+
+        return getPathSafe(orphan, pathArray);
     }
 
     private buildGraphFromObject(

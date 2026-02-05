@@ -506,6 +506,10 @@ describe('OptionsGraph', () => {
                     one: { $and: [true, true] },
                     two: { $and: [true, false] },
                     three: { $and: [false, false] },
+                    four: { $and: { $path: '/caseBoth' } },
+                    five: { $and: { $path: '/caseOne' } },
+                    caseBoth: [true, true],
+                    caseOne: [true, false],
                 },
             };
             const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
@@ -513,6 +517,25 @@ describe('OptionsGraph', () => {
                 one: true,
                 two: false,
                 three: false,
+                four: true,
+                five: false,
+                caseBoth: expect.anything(),
+                caseOne: expect.anything(),
+                axes: expect.any(Object),
+            });
+        });
+
+        it.failing('should resolve `$and` operations with `$map`', () => {
+            const themeConfig = {
+                line: {
+                    one: { $and: { $map: [{ $value: '$1' }, { $path: './two' }] } },
+                    two: [true, false],
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                one: false,
+                two: [true, false],
                 axes: expect.any(Object),
             });
         });
@@ -580,6 +603,10 @@ describe('OptionsGraph', () => {
                     one: { $or: [true, true] },
                     two: { $or: [true, false] },
                     three: { $or: [false, false] },
+                    four: { $or: { $path: '/caseOne' } },
+                    five: { $or: { $path: '/caseNeither' } },
+                    caseOne: [true, false],
+                    caseNeither: [false, false],
                 },
             };
             const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
@@ -587,6 +614,25 @@ describe('OptionsGraph', () => {
                 one: true,
                 two: true,
                 three: false,
+                four: true,
+                five: false,
+                caseOne: expect.anything(),
+                caseNeither: expect.anything(),
+                axes: expect.any(Object),
+            });
+        });
+
+        it.failing('should resolve `or` operations with `$map`', () => {
+            const themeConfig = {
+                line: {
+                    one: { or: { $map: [{ $value: '$1' }, { $path: './two' }] } },
+                    two: [true, false],
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                one: true,
+                two: [true, false],
                 axes: expect.any(Object),
             });
         });
@@ -609,6 +655,42 @@ describe('OptionsGraph', () => {
             expect(options).toStrictEqual({
                 one: 'case-a-value',
                 two: 'case-a',
+                axes: expect.any(Object),
+            });
+        });
+
+        it('should resolve `$every` operations', () => {
+            const themeConfig = {
+                line: {
+                    one: { $every: [{ $lessThan: [{ $value: '$1' }, 10] }, { $path: '/compare' }] },
+                    two: { $every: [{ $lessThan: [{ $value: '$1' }, 20] }, { $path: '/compare' }] },
+                    compare: [0, 5, 10],
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                one: false,
+                two: true,
+                compare: expect.anything(),
+                axes: expect.any(Object),
+            });
+        });
+
+        it('should resolve `$some` operations', () => {
+            const themeConfig = {
+                line: {
+                    one: {
+                        $some: [{ $greaterThan: [{ $path: '/compare/$index/value' }, 5] }, { $path: '/compare' }],
+                    },
+                    two: { $some: [{ $greaterThan: [{ $path: '/compare/$index/value' }, 20] }, { $path: '/compare' }] },
+                    compare: [{ value: 0 }, { value: 5 }, { value: 10 }],
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                one: true,
+                two: false,
+                compare: expect.anything(),
                 axes: expect.any(Object),
             });
         });
