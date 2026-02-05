@@ -143,7 +143,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly seriesArea: SeriesArea;
     foreground?: Background<any>;
 
-    private readonly debug = Debug.create();
+    protected readonly debug = Debug.create(true, 'chart');
 
     private extraDebugStats: Record<string, number> = {};
 
@@ -932,10 +932,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (this.performUpdateType <= checkUpdateType) {
+            this.debug('Chart.checkUpdateShortcut() - BLOCKED AT: ', ChartUpdateType[checkUpdateType]);
+
             // A previous step modified series state, and we need to re-run this or an earlier step before rendering.
             this.updateShortcutCount++;
             return true;
         }
+
+        this.debug('Chart.checkUpdateShortcut() - PROCEEDING TO: ', ChartUpdateType[checkUpdateType]);
 
         return false;
     }

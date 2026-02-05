@@ -172,6 +172,7 @@ export class CartesianChart extends Chart {
                 from: lastUpdateClipRect,
                 to: seriesPaddedRect,
                 onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
+                onStop: () => this.setRootClipRects(clipRect),
                 onComplete: () => this.setRootClipRects(clipRect),
             });
         } else {
