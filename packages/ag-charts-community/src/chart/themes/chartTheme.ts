@@ -78,7 +78,24 @@ function hasUserOptionLessThan1(key: string) {
     return {
         $some: [
             {
-                $isUserOption: [`/series/$index/${key}`, { $lessThan: [{ $path: `/series/$index/${key}` }, 1] }, false],
+                $and: [
+                    {
+                        $or: [
+                            { $isSeriesType: 'line' },
+                            { $isSeriesType: 'scatter' },
+                            { $isSeriesType: 'area' },
+                            { $isSeriesType: 'radar' },
+                            { $isSeriesType: 'rangeArea' },
+                        ],
+                    },
+                    {
+                        $isUserOption: [
+                            `/series/$index/${key}`,
+                            { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
+                            false,
+                        ],
+                    },
+                ],
             },
             { $path: '/series' },
         ],
@@ -390,10 +407,6 @@ export class ChartTheme {
                     $if: [
                         {
                             $or: [
-                                hasUserOptionLessThan1('highlight/highlightedItem/fillOpacity'),
-                                hasUserOptionLessThan1('highlight/unhighlightedItem/fillOpacity'),
-                                hasUserOptionLessThan1('highlight/highlightedSeries/fillOpacity'),
-                                hasUserOptionLessThan1('highlight/unhighlightedSeries/fillOpacity'),
                                 hasUserOptionLessThan1('highlight/highlightedItem/opacity'),
                                 hasUserOptionLessThan1('highlight/unhighlightedItem/opacity'),
                                 hasUserOptionLessThan1('highlight/highlightedSeries/opacity'),
