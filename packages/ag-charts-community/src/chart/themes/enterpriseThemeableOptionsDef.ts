@@ -715,5 +715,6 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
         ...lineDashOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
+    width: positiveNumberNonZero,
     ...commonSeriesThemeableOptionsDefs,
 };
