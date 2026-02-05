@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Мінімум',
     ariaLabelNavigatorRange: 'Діапазон',
     ariaLabelRangesToolbar: 'Діапазони',
-    ariaLabelScrollbarHorizontal: '"Смуга прокрутки осі X"',
+    ariaLabelScrollbarHorizontal: 'Смуга прокрутки осі X',
     ariaLabelScrollbarVertical: 'Смужка прокрутки осі Y',
     ariaLabelSettingsTabBar: 'Налаштування',
     ariaLabelZoomToolbar: 'Масштаб',
