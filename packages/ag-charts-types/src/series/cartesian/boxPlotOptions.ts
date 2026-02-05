@@ -113,6 +113,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions, AgBoxPlotHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
+    /** Fixed width of each box in the series. */
+    width?: PixelSize;
 }
 export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
