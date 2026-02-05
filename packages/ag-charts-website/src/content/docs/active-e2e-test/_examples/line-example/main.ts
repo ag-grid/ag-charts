@@ -111,12 +111,18 @@ function onSetState(): void {
     if (itemId === undefined) {
         chart.setState({
             version,
-            active: { activeItem: { type: 'legend', seriesId, itemId: country }, frozen },
+            active: {
+                activeItem: { type: 'legend', seriesId, itemId: country },
+                // frozen, // undocumented
+            },
         });
     } else {
         chart.setState({
             version,
-            active: { activeItem: { type: 'series-node', seriesId, itemId }, frozen },
+            active: {
+                activeItem: { type: 'series-node', seriesId, itemId },
+                // frozen, // undocumented
+            },
         });
     }
 }
