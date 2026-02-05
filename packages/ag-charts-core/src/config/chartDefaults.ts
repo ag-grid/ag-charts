@@ -533,6 +533,8 @@ commonChartOptionsDefs.foreground = undocumented({
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.displayNullData = undocumented(boolean);
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
@@ -545,6 +547,9 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
     },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+commonSeriesThemeableOptionsDefs.allowNullKeys = undocumented(boolean);
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     ...commonSeriesThemeableOptionsDefs,

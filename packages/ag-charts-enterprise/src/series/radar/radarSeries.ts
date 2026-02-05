@@ -27,6 +27,7 @@ const {
     DEFAULT_POLAR_DIRECTION_NAMES,
     PolarAxis,
     SeriesNodePickMode,
+    keyProperty,
     valueProperty,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
@@ -140,7 +141,7 @@ export abstract class RadarSeries<
         if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            const domain = dataModel.getDomain(this, `angleValue`, 'value', processedData).domain;
+            const domain = dataModel.getDomain(this, `angleValue`, 'key', processedData).domain;
             const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
             return { domain, sortMetadata };
         } else {
@@ -160,10 +161,11 @@ export abstract class RadarSeries<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                keyProperty(angleKey, angleScaleType, { id: 'angleValue', allowNullKey }),
                 valueProperty(radiusKey, radiusScaleType, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
@@ -212,15 +214,25 @@ export abstract class RadarSeries<
             return;
         }
 
-        const angleValues = dataModel.resolveColumnById<number | string>(this, `angleValue`, processedData);
+        const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
         const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
-        const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const nodeData: RadarNodeDatum[] = [];
+
+        for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
+            const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
+
+            // eslint-disable-next-line sonarjs/different-types-comparison
+            if (angleDatum === undefined && !allowNullKeys) {
+                continue;
+            }
+
             const radiusDatum = radiusValues[datumIndex];
 
             const angle = angleScale.convert(angleDatum);
@@ -269,7 +281,7 @@ export abstract class RadarSeries<
                 }
             }
 
-            return {
+            nodeData.push({
                 series: this,
                 datum,
                 datumIndex,
@@ -280,8 +292,8 @@ export abstract class RadarSeries<
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
                 missing: !isFiniteNumber(angle) || !isFiniteNumber(radius),
-            };
-        });
+            });
+        }
 
         return {
             itemId: radiusKey,
@@ -467,10 +479,11 @@ export abstract class RadarSeries<
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const angleValue = dataModel.resolveColumnById(this, `angleValue`, processedData)[datumIndex];
+        const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
 
-        if (angleValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
             isHighlight: false,
@@ -479,7 +492,15 @@ export abstract class RadarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(angleAxis, 'tooltip', angleValue, datum, angleKey, undefined),
+                heading: this.getAxisValueText(
+                    angleAxis,
+                    'tooltip',
+                    angleValue,
+                    datum,
+                    angleKey,
+                    undefined,
+                    allowNullKeys
+                ),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {

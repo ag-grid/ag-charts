@@ -28,7 +28,7 @@ import type {
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
-        type: strictUnion<AgActiveItemState['type']>()('series-area', 'legend'),
+        type: required(strictUnion<AgActiveItemState['type']>()('series-node', 'legend')),
         seriesId: string,
         itemId: required(or(string, positiveNumber)),
     },

@@ -1,5 +1,6 @@
 import type { Scale } from 'ag-charts-core';
 import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { BBox } from '../../scene/bbox';
@@ -11,10 +12,12 @@ import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import type { DatumIndexType, ItemId, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
+    itemId?: never;
+}
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
@@ -128,7 +131,7 @@ export abstract class DataModelSeries<
 
     public abstract getNodeData(): TDatum[] | undefined;
 
-    override findNodeDatum(itemId: ItemId): TDatum | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum | undefined {
         return findNodeDatumInArray(itemId, this.getNodeData());
     }
 

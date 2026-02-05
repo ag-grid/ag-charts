@@ -21,6 +21,7 @@ type ParentProperties<T = NativeWidget<HTMLDivElement>> =
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly cursor?: BaseStyleTypeMap['cursor'];
+    readonly classList?: string[];
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
@@ -34,7 +35,8 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly domManagerId: string;
     readonly classList: string[];
-    readonly ariaLabel: TranslationKey;
+    readonly ariaLabel: TranslationKey | undefined;
+    readonly role?: string;
 };
 
 type ProxyMeta = {
@@ -65,7 +67,7 @@ type ProxyMeta = {
         result: SwitchWidget;
     };
     region: {
-        params: ParentProperties & ElemParams<'region'>;
+        params: ParentProperties<GroupWidget> & ElemParams<'region'> & { readonly role?: string };
         result: NativeWidget<HTMLDivElement>;
     };
 
@@ -147,15 +149,18 @@ export class ProxyInteractionService {
 
         this.domManager.addChild('canvas-proxy', params.domManagerId, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
-        div.role = params.type;
+        div.role = params.role ?? params.type;
 
         if (checkType('toolbar', meta)) {
             meta.result.orientation = meta.params.orientation;
         }
 
-        this.addLocalisation(() => {
-            div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
-        });
+        const { ariaLabel } = params;
+        if (ariaLabel) {
+            this.addLocalisation(() => {
+                div.ariaLabel = this.localeManager.t(ariaLabel.id, ariaLabel.params);
+            });
+        }
 
         return result;
     }
@@ -211,7 +216,7 @@ export class ProxyInteractionService {
             const { params, result } = meta;
             const region = result.getElement();
             this.initInteract(params, result);
-            region.role = 'region';
+            region.role = params.role ?? 'region';
             this.setParent(meta.params, meta.result);
         }
 
@@ -222,6 +227,9 @@ export class ProxyInteractionService {
         const element = widget.getElement();
         setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
+        if (params.classList?.length) {
+            element.classList.add(...params.classList);
+        }
         return element;
     }
 

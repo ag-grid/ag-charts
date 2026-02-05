@@ -315,8 +315,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             common.forceValue = 0;
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any, any>[] = [
-            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
             ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),
         ];
@@ -446,7 +447,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedDataIsAnimatable(processedData)) return;
 
@@ -987,6 +988,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
         scratch.y = ctx.yScale.convert(currY);
+
+        if (!Number.isFinite(scratch.x)) {
+            scratch.validPoint = false;
+        }
     }
 
     /**
@@ -1000,7 +1005,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     ): void {
         // Populate scratch from context arrays
         scratch.xDatum = ctx.xValues[datumIndex];
-        if (scratch.xDatum == null) return;
+        if (scratch.xDatum === undefined && !this.properties.allowNullKeys) return;
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
@@ -1035,7 +1040,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             } else {
                 ctx.nodes.push({
                     series: this,
-                    itemId: ctx.yKey,
                     datum: scratch.datum,
                     datumIndex,
                     midPoint: { x: scratch.x, y: scratch.y },
@@ -1076,7 +1080,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             ctx.labelData.push({
                 series: this,
-                itemId: ctx.yKey,
                 datum: scratch.datum,
                 datumIndex,
                 x: scratch.x,
@@ -1456,6 +1459,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const allowNullKeys = properties.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1465,7 +1469,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
@@ -1481,7 +1486,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {

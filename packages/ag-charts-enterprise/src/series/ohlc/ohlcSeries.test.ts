@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -143,5 +144,175 @@ describe('OhlcSeries', () => {
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
+    });
+
+    describe('null category key', () => {
+        const OHLC_NULL_CATEGORY_KEY_DATA = [
+            { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
+            { year: null, low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
+            { year: '2022', low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+        ];
+
+        const OHLC_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: OHLC_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'ohlc',
+                    xKey: 'year',
+                    lowKey: 'low',
+                    openKey: 'open',
+                    closeKey: 'close',
+                    highKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...OHLC_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [ohlc-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compareSnapshot(chart);
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...OHLC_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...OHLC_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compareSnapshot(chart);
+        });
+    });
+
+    describe('undefined category key', () => {
+        const OHLC_UNDEFINED_CATEGORY_KEY_DATA = [
+            { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
+            { year: undefined, low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
+            { year: '2022', low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+        ];
+
+        const OHLC_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
+            { year: null, low: 4, open: 5, close: 6, high: 7 },
+            { year: undefined, low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
+            { year: '2023', low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+        ];
+
+        const OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: OHLC_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'ohlc',
+                    xKey: 'year',
+                    lowKey: 'low',
+                    openKey: 'open',
+                    closeKey: 'close',
+                    highKey: 'high',
+                },
+            ],
+        };
+
+        const OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: OHLC_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'ohlc',
+                    xKey: 'year',
+                    lowKey: 'low',
+                    openKey: 'open',
+                    closeKey: 'close',
+                    highKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [ohlc-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compareSnapshot(chart);
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compareSnapshot(chart);
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compareSnapshot(chart);
+        });
     });
 });

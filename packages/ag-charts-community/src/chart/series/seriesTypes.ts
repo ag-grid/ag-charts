@@ -1,4 +1,5 @@
 import type {
+    AreMutuallyExclusive,
     ChartAxisDirection,
     DomainWithMetadata,
     PlacedLabel,
@@ -19,8 +20,11 @@ interface ChartAxisLike {
 }
 
 export type DatumIndexType = number | object | undefined;
-export type ItemId = number | string;
+export type ItemId = string;
 export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+
+// Assert that DatumIndexType and ItemId share no types in common:
+true satisfies AreMutuallyExclusive<DatumIndexType, ItemId>;
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'

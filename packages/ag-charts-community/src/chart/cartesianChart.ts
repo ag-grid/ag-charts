@@ -172,6 +172,7 @@ export class CartesianChart extends Chart {
                 from: lastUpdateClipRect,
                 to: seriesPaddedRect,
                 onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
+                onStop: () => this.setRootClipRects(clipRect),
                 onComplete: () => this.setRootClipRects(clipRect),
             });
         } else {
@@ -570,6 +571,7 @@ export class CartesianChart extends Chart {
         axis.range = [start, end];
         axis.visibleRange = [min, max];
         axis.gridLength = isLeftRight ? width : height;
+        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
     }
 
     private positionAxes(opts: {

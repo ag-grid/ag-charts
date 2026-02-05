@@ -112,7 +112,6 @@ class BubbleScatterSeriesNodeEvent<
 }
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly itemId: string;
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -272,10 +271,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
         const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: `xValue` }),
-                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
                 ...(xFilterKey == null ? [] : [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })]),
                 ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })]),
                 ...(sizeFilterKey == null
@@ -687,12 +687,15 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xDatum = ctx.xDataValues[datumIndex];
         const yDatum = ctx.yDataValues[datumIndex];
 
-        // Skip invalid data points
-        if (xDatum == null || yDatum == null) return undefined;
+        // Skip invalid data points (unless allowNullKeys is enabled)
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if ((xDatum === undefined || yDatum === undefined) && !allowNullKeys) return undefined;
 
         const sizeValue = ctx.sizeDataValues?.[datumIndex];
         const x = ctx.xScale.convert(xDatum) + ctx.xOffset;
         const y = ctx.yScale.convert(yDatum) + ctx.yOffset;
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined;
 
         // Compute selection state
         let selected: boolean | undefined;
@@ -800,7 +803,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     ): BubbleScatterNodeDatum {
         return {
             series: this,
-            itemId: ctx.yKey,
             yKey: ctx.yKey,
             xKey: ctx.xKey,
             datum: undefined,
@@ -999,9 +1001,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     private updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum
-                ? (highlightedDatum as BubbleScatterNodeDatum)
-                : undefined;
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         const highlightLabelData =
             highlightItem == null
@@ -1172,7 +1172,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: TooltipContentDataRow[] = [];
 
@@ -1197,14 +1198,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                missing: isTooltipValueMissing(xValue),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                missing: isTooltipValueMissing(yValue),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
         );
 

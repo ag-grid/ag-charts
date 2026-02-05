@@ -3,6 +3,7 @@ import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from
 import type { Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { IrregularBandScale } from '../../../scale/irregularBandScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
@@ -207,6 +208,9 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         if (ContinuousScale.is(xAxis.scale)) {
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
+            const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
+            barOffset = (rangeWidth - barWidth) / 2;
+        } else if (groupScale && this.properties.widthRatio != null) {
             barOffset = (groupScale.bandwidth - barWidth) / 2;
         }
 
@@ -216,13 +220,22 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     private getBarWidth() {
+        const { seriesGrouping } = this;
         const { width, widthRatio } = this.properties;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const bandwidth = groupScale?.bandwidth ?? 0;
 
         if (widthRatio != null) {
-            return (width ?? bandwidth) * widthRatio;
+            let relativeWidth = width;
+
+            // Ungrouped bars with widthRatio but no fixed width use a percentage of the full width of the band.
+            if (seriesGrouping == null && relativeWidth == null && groupScale) {
+                relativeWidth = this.getGroupScaleRangeWidth(groupScale);
+            }
+
+            // Grouped bars, or ungrouped with a fixed width, fallback to a percentage of the calculated bandwidth.
+            return (relativeWidth ?? bandwidth) * widthRatio;
         }
 
         if (width != null) {
@@ -236,6 +249,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         // Pixel-rounded value for low-volume bar charts.
         return bandwidth;
+    }
+
+    private getGroupScaleRangeWidth(groupScale: IrregularBandScale) {
+        let rangeWidth = groupScale.range[1] - groupScale.range[0];
+        if (groupScale.round && rangeWidth > 0) rangeWidth = Math.floor(rangeWidth);
+        return rangeWidth;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {

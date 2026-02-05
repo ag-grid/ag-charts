@@ -191,6 +191,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
         const hasMissingValue = 'missingValue' in def;
         const missingValue = def.missingValue;
         const missing = def.missing;
+        const allowNullKey = def.allowNullKey ?? false;
         const validationMeta = this.createValidationMeta(context);
 
         if (accessor) {
@@ -207,10 +208,11 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
                 } catch {
                     // Swallow errors
                 }
-                const valueInDatum = value != null;
+                const valueInDatum = value != null || (allowNullKey && value == null);
 
-                // Keys cannot be null/undefined
-                if (!valueInDatum || value == null || validation(value, datum, idx) === false) {
+                // Keys cannot be null/undefined unless allowNullKey is set
+                const nullInvalid = !allowNullKey && value == null;
+                if (!valueInDatum || nullInvalid || validation(value, datum, idx) === false) {
                     reusableResult.missing = !valueInDatum;
 
                     if (!valueInDatum && !hasMissingValue) {
@@ -238,8 +240,9 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             const valueInDatum = property in (datum as any);
             const value = valueInDatum ? (datum as any)[property] : missingValue;
 
-            // Keys cannot be null/undefined
-            if (!valueInDatum || value == null || validation(value, datum as any, idx) === false) {
+            // Keys cannot be null/undefined unless allowNullKey is set
+            const nullInvalid = !allowNullKey && value == null;
+            if (!valueInDatum || nullInvalid || validation(value, datum as any, idx) === false) {
                 reusableResult.missing = !valueInDatum;
 
                 if (!valueInDatum && !hasMissingValue) {
@@ -511,7 +514,8 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
             handleMissingTracking(valueInDatum, hasMissingValue, missing, valueScopes, reusableResult);
 
-            const isKeyWithNullValue = def.type === 'key' && value == null;
+            const allowNullKey = def.allowNullKey ?? false;
+            const isKeyWithNullValue = def.type === 'key' && value == null && !allowNullKey;
             if (isKeyWithNullValue) {
                 handleInvalidValue(validationMeta, value);
                 return reusableResult;

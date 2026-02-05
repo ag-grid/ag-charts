@@ -62,6 +62,9 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
             nodeDatum?.datumIndex
         );
 
+        const itemId: string | number | undefined =
+            typeof nodeDatum?.datumIndex === 'number' ? nodeDatum.datumIndex : nodeDatum?.itemId;
+
         const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
             fontSize: number;
         } = {
@@ -76,7 +79,7 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            itemId: nodeDatum?.itemId,
+            itemId,
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: label.padding,

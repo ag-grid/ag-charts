@@ -54,7 +54,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 0
+                  fetch-depth: 1
 
             - name: Run Codex PR Review
               uses: ./external/ag-shared/github/actions/codex-pr-review

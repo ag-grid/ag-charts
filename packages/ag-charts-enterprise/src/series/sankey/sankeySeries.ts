@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-community';
 import {
     Logger,
+    type RequireOptional,
     TextMeasurer,
     cachedTextMeasurer,
     calcLineHeight,
@@ -17,11 +18,11 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
-    FlowProportionDatumType,
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
-    type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
@@ -732,7 +733,12 @@ export class SankeySeries extends FlowProportionSeries<
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
             const { x, y, textAlign, text, datumIndex, nodeDatum } = datum;
-            const params: AgSankeySeriesLabelFormatterParams = datum;
+            const params: RequireOptional<AgSankeySeriesLabelFormatterParams> = {
+                fromKey: this.properties.fromKey,
+                size: datum.size,
+                sizeKey: this.properties.sizeKey,
+                toKey: this.properties.toKey,
+            };
 
             const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
             const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);

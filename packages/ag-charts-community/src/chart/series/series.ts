@@ -26,6 +26,7 @@ import {
     without,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLabelFormatterParams,
     AgColorType,
     AgDrawingMode,
@@ -72,7 +73,6 @@ import type {
     DatumIndexType,
     INodeEvent,
     ISeries,
-    ItemId,
     NodeDataDependencies,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
@@ -662,7 +662,7 @@ export abstract class Series<
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
 
-    abstract findNodeDatum(itemId: ItemId): TDatum | undefined;
+    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
 
     toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
         const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};
@@ -1041,11 +1041,24 @@ export abstract class Series<
         value: any,
         datum: any,
         key: string,
-        legendItemName: string | undefined
+        legendItemName: string | undefined,
+        allowNull?: boolean
     ) {
         const { id: seriesId, properties } = this;
 
-        return axis.formatDatum(properties, value, source, seriesId, legendItemName, datum, key);
+        return axis.formatDatum(
+            properties,
+            value,
+            source,
+            seriesId,
+            legendItemName,
+            datum,
+            key,
+            undefined,
+            undefined,
+            undefined,
+            allowNull
+        );
     }
 
     protected getLabelText<TParams extends object>(
@@ -1055,9 +1068,10 @@ export abstract class Series<
         property: FormatterPropertyType,
         domain: any[],
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
-        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
+        allowNullValue: boolean = false
     ): TextOrSegments {
-        if (value == null) return '';
+        if (value == null && !allowNullValue) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
         const source = 'series-label';
@@ -1080,7 +1094,8 @@ export abstract class Series<
                 key,
                 domain,
                 label,
-                params
+                params,
+                allowNullValue
             );
         }
 
@@ -1090,7 +1105,7 @@ export abstract class Series<
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
             formatManager.format(formatInContext, formatParams) ??
-            String(value);
+            (value == null ? '' : String(value));
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {

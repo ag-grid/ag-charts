@@ -148,10 +148,18 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
         this.disableNodeInteractionSync?.(); // Cleanup any existing listeners.
-        this.disableNodeInteractionSync = this.moduleContext.eventsHub.on(
+        const offHighlightChange = this.moduleContext.eventsHub.on(
             'highlight:change',
             this.onHighlightChange.bind(this)
         );
+        const offActiveChangeListener = this.moduleContext.eventsHub.on(
+            'active:load-memento',
+            this.onActiveLoadMemento.bind(this)
+        );
+        this.disableNodeInteractionSync = () => {
+            offHighlightChange();
+            offActiveChangeListener();
+        };
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
@@ -195,6 +203,17 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
             eventValue,
             event
         );
+    }
+
+    private onActiveLoadMemento(event: _ModuleSupport.ActiveLoadMementoEvent): void {
+        const { activeItem, chartId } = event;
+        if (activeItem === undefined) {
+            this.moduleContext.highlightManager.updateHighlight(`${chartId}-sync`, undefined, false);
+            this.moduleContext.tooltipManager.removeTooltip(`${chartId}-sync`, undefined, false);
+            for (const chart of this.moduleContext.syncManager.getGroupSiblings(this.groupId)) {
+                chart.onSyncActiveClear();
+            }
+        }
     }
 
     private findMatchingHighlightNodes(

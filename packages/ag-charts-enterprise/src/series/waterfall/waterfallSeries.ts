@@ -200,12 +200,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = this.getValueAxis()?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(
             dataController,
             DataSet.wrap(dataWithTotals),
             {
                 props: [
-                    keyProperty(xKey, xScaleType, { id: `xValue` }),
+                    keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                     accumulativeValueProperty(yKey, yScaleType, {
                         ...propertyDefinition,
                         id: `yCurrent`,
@@ -302,7 +303,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
             const xDatum = ctx.xValues[datumIndex];
-            if (xDatum == null) continue;
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue;
 
             const rawValue = ctx.yRawValues[datumIndex];
             const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
@@ -537,6 +538,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const mutableNode = node as Mutable<WaterfallNodeDatum>;
 
         const x = Math.round(xScale.convert(xDatum));
+        if (!Number.isFinite(x)) return;
+
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
         const { strokeWidth, label } = this.getItemConfig(seriesItemType);
@@ -930,7 +933,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             processedData
         );
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const datumType = totalTypeValues[datumIndex];
         const isPositive = (yValue ?? 0) >= 0;

@@ -1,21 +1,32 @@
 import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
 import { type HighlightState, highlightStates } from './seriesProperties';
-import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, ItemId, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
-    if (datum == null || domain.length === 0) {
+    if (domain.length === 0) {
+        return [false, false];
+    }
+
+    const d0 = domain[0];
+    const d1 = domain.at(-1);
+
+    // Handle discrete keys (strings, null, undefined) with strict identity comparison
+    if (typeof d0 === 'string' || d0 === null || d0 === undefined) {
+        return [datum === d0, datum === d1];
+    }
+
+    // Handle numeric/date domains
+    if (datum == null) {
         return [false, false];
     }
 
     const datumValue = datum.valueOf();
 
-    const d0 = domain[0];
-    const d1 = domain.at(-1);
-
-    if (typeof d0 === 'string') {
-        return [datumValue === d0, datumValue === d1];
+    if (d0 == null || d1 == null) {
+        return [false, false];
     }
 
     let min = d0.valueOf();
@@ -169,17 +180,24 @@ export function hasDimmedOpacity(style?: { opacity?: number; fillOpacity?: numbe
     return (style?.opacity ?? 1) < 1 || (style?.fillOpacity ?? 1) < 1 || (style?.strokeOpacity ?? 1) < 1;
 }
 
-export function findNodeDatumInArray<I extends DatumIndexType, D extends SeriesNodeDatum<I>>(
-    itemId: ItemId,
+export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
+    itemIdOrIndex: AgActiveItemState['itemId'],
     nodeData: D[] | undefined
 ): D | undefined {
     for (const node of nodeData ?? []) {
-        if (node.itemId === itemId) {
-            return node;
-        }
-        // TODO: Temporarily compare `itemId` as a numerical index:
-        if (node.itemId === undefined && typeof node.datumIndex === 'number' && `${node.datumIndex}` === itemId) {
-            return node;
+        switch (typeof itemIdOrIndex) {
+            case 'string':
+                if (node.itemId === itemIdOrIndex) {
+                    return node;
+                }
+                break;
+            case 'number':
+                if (node.datumIndex === itemIdOrIndex) {
+                    return node;
+                }
+                break;
+            default:
+                return itemIdOrIndex satisfies never;
         }
     }
     return undefined;

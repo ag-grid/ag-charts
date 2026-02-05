@@ -36,3 +36,20 @@
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
+
+.ag-charts-proxy-scrollbar-slider:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.ag-charts-proxy-scrollbar-thumb-focus {
+    border: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ag-charts-proxy-scrollbar-slider:focus-visible ~ .ag-charts-proxy-scrollbar-thumb-focus {
+    opacity: 1;
+}

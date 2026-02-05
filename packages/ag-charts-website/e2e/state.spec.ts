@@ -132,13 +132,33 @@ test.describe('state', () => {
                     version,
                     active: {
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '10000', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 10000, seriesId: 'LineSeries-1' },
                     },
                 });
-                expect(consoleLogs.getLogs()).toEqual([
-                    "AG Charts - Cannot find datum: { seriesId: 'LineSeries-1', itemId: '10000' }",
-                ]);
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: 10000']);
                 consoleLogs.clear();
+            }
+
+            async function setStateStringNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: '0', seriesId: 'LineSeries-1' },
+                    },
+                });
+                expect(consoleLogs.getLogs()).toEqual(['AG Charts - Cannot find itemId: "0"']);
+                consoleLogs.clear();
+            }
+
+            async function setStateSpain2010(page: Page, version: string): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
+                    },
+                });
             }
 
             test.beforeEach(async ({ page }) => {
@@ -170,21 +190,21 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
                     });
 
                     await pickDatum(page, { country: 'France', year: '2014' });
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'LineSeries-4' },
                     });
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
                 });
             });
@@ -211,21 +231,21 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: true,
-                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
                     });
 
                     await pickDatum(page, { country: 'France', year: '2014' });
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: true,
-                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'LineSeries-4' },
                     });
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: true,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
                 });
             });
@@ -251,14 +271,14 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'LineSeries-4' },
                     });
 
                     await pickDatum(page, { country: 'France', year: '2014' });
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'LineSeries-4' },
                     });
                 });
             });
@@ -282,14 +302,14 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
 
                     await hoverInCenter(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
+                        activeItem: { type: 'series-node', itemId: 6, seriesId: 'LineSeries-5' },
                     });
 
                     await hoverInTopLeft(page);
@@ -324,7 +344,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
+                        activeItem: { type: 'series-node', itemId: 6, seriesId: 'LineSeries-5' },
                     });
 
                     await hoverInTopLeft(page);
@@ -352,7 +372,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
 
                     await setStateInactive(version, page);
@@ -388,10 +408,48 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await consoleLogs.expectLogs([]);
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] setState with incorrect string-type id should deactivate', () => {
+                const consoleLogs = createConsoleLogs();
+
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await setStateStringNodeId(consoleLogs, page, version);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+
+                    await consoleLogs.expectLogs([]);
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
+                    });
+
+                    await setStateStringNodeId(consoleLogs, page, version);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
 
@@ -415,14 +473,14 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '13', seriesId: 'LineSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
 
                     await repeat(3, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
                     });
                 });
             });
@@ -454,7 +512,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '0', seriesId: 'LineSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
                     });
 
                     await page.keyboard.press('ArrowDown');
@@ -463,7 +521,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'LineSeries-3' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'LineSeries-3' },
                     });
 
                     await setStateInactive(version, page);
@@ -474,7 +532,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '2', seriesId: 'LineSeries-3' },
+                        activeItem: { type: 'series-node', itemId: 2, seriesId: 'LineSeries-3' },
                     });
                 });
             });
@@ -495,7 +553,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '6', seriesId: 'LineSeries-5' },
+                        activeItem: { type: 'series-node', itemId: 6, seriesId: 'LineSeries-5' },
                     });
 
                     await hoverOnUKLegend(page);
@@ -534,7 +592,7 @@ test.describe('state', () => {
                     let state: AgChartState;
                     const expectedFrozenState = {
                         frozen: true,
-                        activeItem: { type: 'series-area', itemId: '4', seriesId: 'LineSeries-4' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'LineSeries-4' },
                     } as const;
 
                     await checkFrozen(page);
@@ -564,6 +622,37 @@ test.describe('state', () => {
                     expect(state.active).toEqual(expectedFrozenState);
                 });
             });
+
+            test.describe('setState when hovering clears hovered datum', () => {
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await hoverInCenter(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+
+                    await setStateSpain2010(page, version);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await hoverInCenter(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 6, seriesId: 'LineSeries-5' },
+                    });
+
+                    await setStateSpain2010(page, version);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
+                    });
+                });
+            });
         });
 
         test.describe('donut-example', () => {
@@ -587,7 +676,7 @@ test.describe('state', () => {
                     active: {
                         frozen: false,
                         activeItem: {
-                            type: 'series-area',
+                            type: 'series-node',
                             seriesId: 'DonutSeries-2',
                             itemId: 1,
                         },
@@ -623,6 +712,24 @@ test.describe('state', () => {
                 });
             }
 
+            async function setInvalidStateShowInLegend(logs: ConsoleLogs, version: string, page: Page): Promise<void> {
+                await setChartState(page, {
+                    version,
+                    active: {
+                        frozen: false,
+                        activeItem: {
+                            type: 'legend',
+                            seriesId: 'DonutSeries-2', // showInLegend is false for this series
+                            itemId: 3,
+                        },
+                    },
+                });
+                expect(logs.getLogs()).toEqual([
+                    'AG Charts - cannot find legend item: {"seriesId":"DonutSeries-2","itemId":3}',
+                ]);
+                logs.clear();
+            }
+
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'multi-donut-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -648,7 +755,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'DonutSeries-2' },
                     });
 
                     await hoverSeriesAreaMiss(page);
@@ -673,7 +780,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'DonutSeries-2' },
                     });
 
                     await hoverOnRealEstateLegendItem(page);
@@ -708,7 +815,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'DonutSeries-2' },
                     });
                 });
             });
@@ -782,7 +889,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'DonutSeries-2' },
                     });
 
                     await setStateInactive(version, page);
@@ -810,7 +917,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: '1', seriesId: 'DonutSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'DonutSeries-2' },
                     });
 
                     await setStateRealEstateLegend(version, page);
@@ -819,6 +926,36 @@ test.describe('state', () => {
                         frozen: false,
                         activeItem: { type: 'legend', itemId: 3, seriesId: 'DonutSeries-1' },
                     });
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] should ignore legend setState with showInLegend false', () => {
+                const consoleLogs = createConsoleLogs();
+
+                test('screenshots', async ({ page }) => {
+                    const { version } = await getChartState(page);
+
+                    await setStateBondsLegend(version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+
+                    await setInvalidStateShowInLegend(consoleLogs, version, page);
+                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    const { version } = await getChartState(page);
+                    let state: AgChartState;
+
+                    await setStateBondsLegend(version, page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 1, seriesId: 'DonutSeries-1' },
+                    });
+
+                    await setInvalidStateShowInLegend(consoleLogs, version, page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
                 });
             });
         });
@@ -870,26 +1007,214 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 1, seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-2' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'BubbleSeries-2' },
                     });
 
                     await nextCandidate(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-area', itemId: 'crashRate', seriesId: 'BubbleSeries-1' },
+                        activeItem: { type: 'series-node', itemId: 4, seriesId: 'BubbleSeries-1' },
                     });
 
                     await hoverInTopLeft(page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+        });
+
+        test.describe('grouped-category-bars', () => {
+            let canvas: Locator;
+
+            async function hoverOnCoalLegendItem(page: Page): Promise<void> {
+                await page.mouse.move(50, 300);
+            }
+
+            async function hoverOnChinaRenewable2025(page: Page): Promise<void> {
+                await page.mouse.move(547, 247);
+            }
+
+            async function keynavToGermanyGas2024(page: Page): Promise<void> {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            }
+
+            async function keynavToNaturalGasLegendItem(page: Page): Promise<void> {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'grouped-category-bars', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('series-area hover updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnChinaRenewable2025(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-chinarenewable2025-hover.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await hoverOnChinaRenewable2025(page);
+                    const state: AgChartState = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 7, seriesId: 'BarSeries-3' },
+                    });
+                });
+            });
+
+            test.describe('legend hover updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await hoverOnCoalLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-coallegend-hover.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await hoverOnCoalLegendItem(page);
+                    const state: AgChartState = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 'coal', seriesId: 'BarSeries-1' },
+                    });
+                });
+            });
+
+            test.describe('series-area keynav updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await keynavToGermanyGas2024(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-germangas2024-focused.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await keynavToGermanyGas2024(page);
+                    const state: AgChartState = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 3, seriesId: 'BarSeries-2' },
+                    });
+                });
+            });
+
+            test.describe('legend keynav updates state', () => {
+                test('screenshots', async ({ page }) => {
+                    await keynavToNaturalGasLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-gaslegend-focused.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await keynavToNaturalGasLegendItem(page);
+                    const state: AgChartState = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 'gas', seriesId: 'BarSeries-2' },
+                    });
+                });
+            });
+        });
+
+        test.describe('sankey-example', () => {
+            let canvas: Locator;
+
+            async function hoverOnLinkFromBtoE(page: Page): Promise<void> {
+                await page.mouse.move(394, 269);
+            }
+
+            async function hoverOnNodeC(page: Page): Promise<void> {
+                await page.mouse.move(399, 464);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(383, 33);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'sankey-example', 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('getState on link-hover and restore with setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await hoverOnLinkFromBtoE(page);
+                    const state: AgChartState = await getChartState(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await setChartState(page, state);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE-tooltip-moved.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnLinkFromBtoE(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 'link-3', seriesId: 'SankeySeries-1' },
+                    });
+                    const hoverLinkState: AgChartState = state;
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(hoverLinkState.active);
+                });
+            });
+
+            test.describe('getState on node-hover and restore with setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await hoverOnNodeC(page);
+                    const state: AgChartState = await getChartState(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+
+                    await setChartState(page, state);
+                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC-tooltip-moved.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    await hoverOnNodeC(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 'node-1', seriesId: 'SankeySeries-1' },
+                    });
+                    const hoverLinkState: AgChartState = state;
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await setChartState(page, hoverLinkState);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(hoverLinkState.active);
                 });
             });
         });

@@ -87,6 +87,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
+    // Used to define the range the axis line will occupy, e.g. when bandAlignment is not 'justify'.
+    lineRange?: [number, number];
+
     protected animationManager: AnimationManager;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(
@@ -492,7 +495,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getAxisLineCoordinates() {
         const { horizontal } = this;
-        const [c1, c2] = findMinMax(this.range);
+        const [c1, c2] = findMinMax(this.lineRange ?? this.range);
 
         return horizontal ? { x1: c1, x2: c2, y1: 0, y2: 0 } : { x1: 0, x2: 0, y1: c1, y2: c2 };
     }

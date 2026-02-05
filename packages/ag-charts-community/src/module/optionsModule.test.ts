@@ -2941,4 +2941,41 @@ describe('ChartOptions', () => {
             });
         });
     });
+
+    describe('displayNullData propagation', () => {
+        it('should propagate displayNullData to series allowNullKeys', () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 1 },
+                    { x: 'a', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                displayNullData: true,
+            } as any;
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBe(true);
+        });
+
+        it('should not propagate displayNullData when series has explicit allowNullKeys', () => {
+            const options: AgCartesianChartOptions = {
+                data: [{ x: null, y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: false } as any],
+                displayNullData: true,
+            } as any;
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBe(false);
+        });
+
+        it('should not set allowNullKeys when displayNullData is not provided', () => {
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBeUndefined();
+        });
+    });
 });

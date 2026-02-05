@@ -1,4 +1,10 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgActiveItemState,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type {
     ChartAnimationPhase,
     ChartAxisDirection,
@@ -8,6 +14,8 @@ import type {
     Point,
 } from 'ag-charts-core';
 
+import { FlowProportionDatumType } from './flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
@@ -23,16 +31,6 @@ const {
     TransformableText,
 } = _ModuleSupport;
 
-export enum FlowProportionDatumType {
-    Link,
-    Node,
-}
-
-export type FlowProportionNodeDatumIndex = {
-    type: FlowProportionDatumType;
-    index: number;
-};
-
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
@@ -41,7 +39,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
-    readonly itemId: undefined;
+    readonly itemId: `link-${number}`;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -54,7 +52,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
-    readonly itemId: undefined;
+    readonly itemId: `node-${number}`;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
@@ -262,7 +260,7 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
-                    itemId: undefined,
+                    itemId: `node-${datumIndex}`,
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
@@ -326,7 +324,7 @@ export abstract class FlowProportionSeries<
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: undefined,
+                        itemId: `node-${datumIndex}`,
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -349,7 +347,7 @@ export abstract class FlowProportionSeries<
         this.processedNodes = processedNodes;
     }
 
-    override findNodeDatum(itemId: _ModuleSupport.ItemId): TDatum<TNodeDatum, TLinkDatum> | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {
         return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
     }
 
@@ -414,7 +412,7 @@ export abstract class FlowProportionSeries<
 
                 const link = createLink({
                     series: this,
-                    itemId: undefined,
+                    itemId: `link-${datumIndex}`,
                     datum,
                     datumIndex: linkNodeDatumIndex,
                     type: FlowProportionDatumType.Link,

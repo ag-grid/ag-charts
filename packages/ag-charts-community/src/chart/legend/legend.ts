@@ -61,6 +61,7 @@ import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ChartService } from '../chartService';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
@@ -75,7 +76,30 @@ import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
-type StrictHighlightNodeDatum = HighlightNodeDatum & { itemId: CategoryLegendDatum['itemId'] };
+type SeriesType = ChartService['series'][number];
+
+function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
+    switch (typeof legendDatum.itemId) {
+        case 'number':
+            return {
+                series,
+                itemId: undefined,
+                datum: undefined,
+                datumIndex: legendDatum.itemId,
+                legendItemName: legendDatum.legendItemName,
+            };
+        case 'string':
+            return {
+                series,
+                itemId: legendDatum.itemId,
+                datum: undefined,
+                datumIndex: undefined,
+                legendItemName: legendDatum.legendItemName,
+            };
+        default:
+            return legendDatum.itemId satisfies never;
+    }
+}
 
 class LegendLabel extends BaseProperties {
     @Property
@@ -327,7 +351,6 @@ export class Legend extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
-    private pendingHighlightDatum?: StrictHighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -1211,47 +1234,47 @@ export class Legend extends BaseProperties {
     private updateHighlight(
         enabled: boolean | undefined,
         legendDatum: CategoryLegendDatum | undefined,
-        series: (typeof this.ctx.chartService.series)[0] | undefined
+        series: SeriesType | undefined
     ): void {
-        const updateManagers = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
-            this.ctx.highlightManager.updateHighlight(this.id, nodeDatum);
-            if (nodeDatum === undefined) {
-                this.ctx.activeManager.update(undefined);
+        type InternalUpdateOpts = {
+            readonly itemId: NonNullable<CategoryLegendDatum['itemId']>;
+            readonly nodeDatum: HighlightNodeDatum;
+        };
+
+        const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
+            this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
+            if (opts === undefined) {
+                this.ctx.activeManager.clear();
             } else {
-                const seriesId = nodeDatum.series.id;
-                const itemId = nodeDatum.itemId;
-                this.ctx.activeManager.update({ type: 'legend', seriesId, itemId });
+                const seriesId = opts.nodeDatum.series.id;
+                const itemId = opts.itemId;
+                this.ctx.activeManager.update({ type: 'legend', seriesId, itemId }, undefined);
             }
         };
 
-        const highlightNodeDatum = (nodeDatum: StrictHighlightNodeDatum | undefined): void => {
-            if (this.ctx.interactionManager.isState(InteractionState.Default) || nodeDatum == null) {
-                updateManagers(nodeDatum);
+        const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
+            if (this.ctx.interactionManager.isState(InteractionState.Default) || opts === undefined) {
+                updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
                 // Updating the highlight can interrupt animations, so only clear the highlight if the chart
                 // is in a state when highlighting is possible.
-                this.pendingHighlightDatum = nodeDatum;
                 this.ctx.animationManager.onBatchStop(() => {
-                    updateManagers(this.pendingHighlightDatum);
+                    updateManagers(opts);
                 });
             }
         };
 
         if (enabled === true && series !== undefined && legendDatum !== undefined) {
-            highlightNodeDatum({
-                series,
-                itemId: legendDatum.itemId,
-                datum: undefined,
-                datumIndex: typeof legendDatum?.itemId === 'number' ? legendDatum.itemId : undefined,
-                legendItemName: legendDatum?.legendItemName,
-            });
+            const itemId = legendDatum.itemId;
+            const nodeDatum = toHighlightNodeDatum(series, legendDatum);
+            highlightNodeDatum({ itemId, nodeDatum });
         } else {
             highlightNodeDatum(undefined);
         }
     }
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (activeItem?.type === 'series-area') {
+        if (activeItem?.type === 'series-node') {
             this.ctx.highlightManager.updateHighlight(this.id, undefined);
         }
     }
@@ -1265,11 +1288,11 @@ export class Legend extends BaseProperties {
         const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
-            Logger.error(`cannot series with id '${activeItem.seriesId}'`);
+            Logger.warn(`Cannot find seriesId: "${activeItem.seriesId}"`);
             event.reject();
         } else if (datum === undefined) {
             const json = JSON.stringify({ seriesId: activeItem.seriesId, itemId: activeItem.itemId });
-            Logger.error(`cannot find legend item: ${json}`);
+            Logger.warn(`cannot find legend item: ${json}`);
             event.reject();
         } else {
             this.updateHighlight(datum.enabled, datum, series);

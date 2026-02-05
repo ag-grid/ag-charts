@@ -231,7 +231,11 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
-    /** The alignment of bands when used with bar-like series with fixed widths. */
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
     bandAlignment?: AgBandAlignmentOptions;
 }
 
@@ -306,6 +310,12 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
+    bandAlignment?: AgBandAlignmentOptions;
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
@@ -327,6 +337,12 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
+    bandAlignment?: AgBandAlignmentOptions;
 }
 
 export interface AgNumberAxisOptions<TContext = ContextDefault>

@@ -61,6 +61,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelNavigator: 'Navigator',
     // Screen reader text for an accessibility control that changes the position of the navigator's range
     ariaLabelNavigatorRange: 'Range',
+    // Screen reader text for the horizontal axis scrollbar
+    ariaLabelScrollbarHorizontal: 'X-axis scrollbar',
+    // Screen reader text for the vertical axis scrollbar
+    ariaLabelScrollbarVertical: 'Y-axis scrollbar',
     // Screen reader text for an accessibility control that changes the start of the navigator's range
     ariaLabelNavigatorMinimum: 'Minimum',
     // Screen reader text for an accessibility control that changes the end of the navigator's range

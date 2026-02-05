@@ -588,13 +588,7 @@ export function calculateLabelRotation(
     const parallelFlipFlag = !configuredRotation && axisRotation >= 0 && axisRotation <= Math.PI ? -1 : 1;
     const regularFlipFlag =
         !configuredRotation && axisRotation - Math.PI / 2 >= 0 && axisRotation - Math.PI / 2 <= Math.PI ? -1 : 1;
-
-    let defaultRotation = 0;
-    if (parallel) {
-        defaultRotation = parallelFlipFlag * (Math.PI / 2);
-    } else if (regularFlipFlag === -1) {
-        defaultRotation = Math.PI;
-    }
+    const defaultRotation = parallel ? parallelFlipFlag * (Math.PI / 2) : 0;
 
     return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };
 }

@@ -192,11 +192,16 @@ preflight_checks() {
 # =============================================================================
 
 generate_to_temp() {
-    log_info "Generating rulesync output to temp directory..."
+    log_info "Setting up temp directory for setup-prompts.sh..."
     log_info "Target: $TARGET"
     log_info "Temp dir: $TEMP_DIR"
 
-    # Copy .rulesync/ to temp directory so rulesync outputs there
+    cd "$TEMP_DIR"
+
+    # Initialize git repo (required for stash/restore_agents_md in setup-prompts.sh)
+    git init --quiet
+
+    # Copy .rulesync/ to temp directory
     log_info "Copying .rulesync/ to temp directory..."
     cp -R "$REPO_ROOT/.rulesync" "$TEMP_DIR/.rulesync"
 
@@ -211,20 +216,33 @@ generate_to_temp() {
         fi
     done 2>/dev/null || true
 
-    cd "$TEMP_DIR"
+    # Copy original AGENTS.md from repo (the expected final state)
+    if [[ -f "$REPO_ROOT/AGENTS.md" ]]; then
+        cp "$REPO_ROOT/AGENTS.md" "$TEMP_DIR/AGENTS.md"
+    else
+        touch "$TEMP_DIR/AGENTS.md"
+    fi
+    git add AGENTS.md
+    # Use inline config for git identity to avoid relying on global config (may be unset in CI)
+    git -c user.name="verify-rulesync" -c user.email="verify@localhost" commit -m "initial" --quiet
 
-    # Run rulesync generate from temp directory
-    # Use the repo's rulesync to ensure we test the patched version
-    if ! "$REPO_ROOT/node_modules/.bin/rulesync" generate \
-        --targets="$TARGET" \
-        --features="rules,ignore,mcp,commands,subagents" \
-        --delete 2>&1; then
-        log_error "Rulesync execution failed"
+    # Symlink node_modules for rulesync binary
+    ln -s "$REPO_ROOT/node_modules" "$TEMP_DIR/node_modules"
+
+    # Symlink external directory for script dependencies
+    ln -s "$REPO_ROOT/external" "$TEMP_DIR/external"
+
+    # Run setup-prompts.sh with specific target and postinstall flag
+    # Use SETUP_PROMPTS_REPO_ROOT to override the repo root to our temp directory
+    # This will: 1) run rulesync, 2) reset AGENTS.md to committed state (for codexcli)
+    if ! SETUP_PROMPTS_REPO_ROOT="$TEMP_DIR" "$REPO_ROOT/external/ag-shared/scripts/setup-prompts/setup-prompts.sh" \
+        --targets="$TARGET" --postinstall 2>&1; then
+        log_error "setup-prompts.sh execution failed"
         exit 4
     fi
 
     cd "$REPO_ROOT"
-    log_success "Rulesync generation completed"
+    log_success "setup-prompts.sh completed successfully"
 }
 
 # =============================================================================
@@ -292,6 +310,17 @@ build_expected_inventory() {
                 local basename
                 basename=$(basename "$agent_file")
                 EXPECTED_FILES+=("agents/$basename")
+            fi
+        done
+    fi
+
+    # Skills (claudecode only - goes to skills/<name>/SKILL.md)
+    if [[ "$TARGET" == "claudecode" ]] && [[ -d "$REPO_ROOT/.rulesync/skills" ]]; then
+        for skill_dir in "$REPO_ROOT/.rulesync/skills/"*/; do
+            if [[ -d "$skill_dir" ]]; then
+                local dirname
+                dirname=$(basename "$skill_dir")
+                EXPECTED_FILES+=("skills/$dirname/SKILL.md")
             fi
         done
     fi
@@ -400,10 +429,12 @@ verify_content() {
         basename=$(basename "$rule_file")
         local source_file
         source_file=$(resolve_symlink "$rule_file")
+        local is_root_rule=false
 
         # Determine output path
         local output_file
         if grep -q "^root:[[:space:]]*true" "$rule_file"; then
+            is_root_rule=true
             if [[ "$TARGET" == "claudecode" ]]; then
                 output_file="$temp_output/CLAUDE.md"
             else
@@ -414,6 +445,28 @@ verify_content() {
         fi
 
         if [[ -f "$output_file" ]]; then
+            if [[ "$is_root_rule" == "true" ]]; then
+                if [[ -f "$REPO_ROOT/AGENTS.md" ]]; then
+                    local original_content
+                    local output_content
+                    original_content=$(cat "$REPO_ROOT/AGENTS.md" | normalise_content)
+                    output_content=$(cat "$output_file" | normalise_content)
+
+                    if [[ "$original_content" != "$output_content" ]]; then
+                        log_error "AGENTS.md was not properly reset by setup-prompts.sh"
+                        log_info "  Expected: matches $REPO_ROOT/AGENTS.md"
+                        log_info "  Actual: modified content (possibly TOON header not removed)"
+                        diff <(echo "$original_content") <(echo "$output_content") | head -20 || true
+                        ((content_errors++)) || true
+                    else
+                        log_success "AGENTS.md verified: properly reset to original state"
+                    fi
+                else
+                    log_success "AGENTS.md verified: no original to compare (expected empty)"
+                fi
+                continue
+            fi
+
             # Compare content after stripping frontmatter
             local source_content
             local output_content
@@ -497,6 +550,39 @@ verify_content() {
                     ((content_errors++)) || true
                 else
                     log_success "Content verified: agents/$basename"
+                fi
+            fi
+        done
+    fi
+
+    # Verify skills content (claudecode only)
+    if [[ "$TARGET" == "claudecode" ]] && [[ -d "$REPO_ROOT/.rulesync/skills" ]]; then
+        for skill_dir in "$REPO_ROOT/.rulesync/skills/"*/; do
+            if [[ ! -d "$skill_dir" ]]; then
+                continue
+            fi
+
+            local dirname
+            dirname=$(basename "$skill_dir")
+            local source_skill_dir
+            source_skill_dir=$(resolve_symlink "$skill_dir")
+            local source_file="$source_skill_dir/SKILL.md"
+            local output_file="$temp_output/skills/$dirname/SKILL.md"
+
+            if [[ -f "$source_file" && -f "$output_file" ]]; then
+                local source_content
+                local output_content
+                source_content=$(strip_frontmatter "$source_file" | normalise_content)
+                output_content=$(strip_frontmatter "$output_file" | normalise_content)
+
+                if [[ "$source_content" != "$output_content" ]]; then
+                    log_error "Content mismatch: skills/$dirname/SKILL.md"
+                    log_info "  Source: $source_file"
+                    log_info "  Output: $output_file"
+                    diff <(echo "$source_content") <(echo "$output_content") | head -20 || true
+                    ((content_errors++)) || true
+                else
+                    log_success "Content verified: skills/$dirname/SKILL.md"
                 fi
             fi
         done

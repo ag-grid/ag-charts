@@ -65,7 +65,7 @@ Files in `.rulesync/` are either simple files, or symlinks to files in other loc
 | Source                        | Purpose                                                         | Examples                            |
 | ----------------------------- | --------------------------------------------------------------- | ----------------------------------- |
 | `.rulesync/`                  | Repo-specific rules + symlink-based inclusion of shared content | `ag-charts.md`, `ag-grid.md`        |
-| `external/ag-shared/prompts/` | Cross-repo shared content                                       | `code-reviewer.md`, `jira.md`       |
+| `external/ag-shared/prompts/` | Cross-repo shared content                                       | `code-reviewer.md`                  |
 | `external/prompts/`           | Repo-private shared content                                     | `spruce-example.md`, `visual-qa.md` |
 
 ## Frontmatter Requirements
@@ -101,10 +101,24 @@ claudecode:
 
 ```yaml
 ---
-globs:
+globs: ['pattern1', 'pattern2']
 alwaysApply: true|false
 ---
 ```
+
+**Choosing globs**: Match file paths where the guidance applies:
+
+| Rule Type | Glob Pattern Example | When Loaded |
+|-----------|---------------------|-------------|
+| Domain-specific | `['**/series/**/*.ts']` | Working with series code |
+| Script/tool | `['**/setup-prompts/**/*', '**/patches/rulesync*']` | Working with setup scripts or patches |
+| Test guidance | `['**/*.test.ts', '**/*.spec.ts']` | Working with test files |
+| Always needed | `alwaysApply: true` | Every conversation |
+
+**Tips**:
+- Use specific patterns to avoid loading irrelevant context
+- Combine multiple patterns for related file types
+- Use `alwaysApply: true` sparingly (core project rules only)
 
 ### Skills
 
@@ -144,6 +158,9 @@ ln -s ../../external/prompts/agents/visual-qa.md visual-qa.md
 
 # From .rulesync/rules/
 ln -s ../../external/ag-shared/prompts/guides/code-quality.md code-quality.md
+
+# From .rulesync/skills/ (NOTE: skills use directory symlinks, not file symlinks)
+ln -s ../../external/prompts/skills/spruce-example/ spruce-example
 ```
 
 ## Verification

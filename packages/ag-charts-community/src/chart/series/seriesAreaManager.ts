@@ -48,6 +48,7 @@ import type { UpdateOpts } from '../updateService';
 import { type IPickManager, PickManager, type PickedNode, type PickedNodes } from './pickManager';
 import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -756,10 +757,7 @@ export class SeriesAreaManager extends BaseManager {
         if (keyboardEvent != null && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
             // came from the keyboard so that's what we should honour.
-            this.tooltip.lastHover = undefined;
-            this.highlight.appliedHoverEvent = undefined;
-            this.highlight.pendingHoverEvent = undefined;
-            this.highlight.stashedHoverEvent = undefined;
+            this.clearCachedEvents();
 
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
@@ -837,6 +835,13 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator?.clear();
     }
 
+    private clearCachedEvents(): void {
+        this.tooltip.lastHover = undefined;
+        this.highlight.appliedHoverEvent = undefined;
+        this.highlight.pendingHoverEvent = undefined;
+        this.highlight.stashedHoverEvent = undefined;
+    }
+
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (this.hoverDevice === 'setState') {
             return this.handleHoverFromState();
@@ -864,9 +869,12 @@ export class SeriesAreaManager extends BaseManager {
         if (active === undefined) return;
 
         this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
-        if (this.chart.tooltip.enabled && active.datum.midPoint) {
-            const { x: canvasX, y: canvasY } = active.series.toCanvasFromMidPoint(active.datum);
-            this.showTooltip(active, canvasX, canvasY, paginationState);
+        const refPoint = getDatumRefPoint(active.series, active.datum, undefined);
+        if (this.chart.tooltip.enabled) {
+            if (refPoint) {
+                const { canvasX, canvasY } = refPoint;
+                this.showTooltip(active, canvasX, canvasY, paginationState);
+            }
         }
     }
 
@@ -990,32 +998,33 @@ export class SeriesAreaManager extends BaseManager {
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
+        const isTooltipIntent = intent === 'tooltip';
 
         // Check if any series with 'area' tooltip range contains the point
         const { x, y } = point;
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
-            if (series.visible && series.contentGroup.visible && series.properties.tooltip.range === 'area') {
-                if (series.isPointInArea?.(x, y)) {
-                    seriesContainingPoint.add(series);
-                }
+            if (!series.visible || !series.contentGroup.visible || series.properties.tooltip.range !== 'area') continue;
+            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
+            if (series.isPointInArea?.(x, y)) {
+                seriesContainingPoint.add(series);
             }
         }
 
-        const filterToContainingSeries = seriesContainingPoint.size > 0;
+        const hasSeriesContainingPoint = seriesContainingPoint.size > 0;
 
         let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.contentGroup.visible) continue;
+            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
 
             // If we found series with 'area' tooltip range containing the point, only pick from those series
             if (
-                filterToContainingSeries &&
+                hasSeriesContainingPoint &&
                 series.properties.tooltip.range === 'area' &&
                 !seriesContainingPoint.has(series)
-            ) {
+            )
                 continue;
-            }
 
             const pick = series.pickNodes(point, intent, exactMatchOnly);
             if (pick == null || pick.datums.length === 0) continue;
@@ -1100,18 +1109,18 @@ export class SeriesAreaManager extends BaseManager {
             case undefined:
             case 'legend':
                 return this.onActiveClear();
-            case 'series-area':
+            case 'series-node':
                 return this.onActiveDatum(event.activeItem, event);
             default:
                 return event.activeItem?.type satisfies undefined;
         }
     }
 
-    private onActiveClear() {
+    public onActiveClear() {
         this.pickManager.onClearAPI();
         this.hoverDevice = 'setState';
-        this.clearHighlight(true);
-        this.clearTooltip(true);
+        this.clearHighlight();
+        this.clearTooltip();
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
@@ -1121,8 +1130,10 @@ export class SeriesAreaManager extends BaseManager {
             event.reject();
             this.onActiveClear();
         } else {
-            this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+            const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+            event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
+            this.clearCachedEvents();
             this.hoverScheduler.schedule();
         }
     }
@@ -1130,13 +1141,13 @@ export class SeriesAreaManager extends BaseManager {
     private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): PickedNodes | undefined {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
-            Logger.warn(`Cannot find series '${desiredSeries}'`);
+            Logger.warn(`Cannot find seriesId: "${desiredSeriesId}"`);
             return undefined;
         }
 
         const desiredDatum: PickedNode['datum'] | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
-            Logger.warn(`Cannot find datum: { seriesId: '${desiredSeriesId}', itemId: '${desiredItemId}' }`);
+            Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
             return undefined;
         }
 

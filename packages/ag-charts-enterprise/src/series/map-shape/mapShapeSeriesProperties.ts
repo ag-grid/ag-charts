@@ -26,7 +26,6 @@ export interface MapShapeNodeLabelDatum {
 }
 
 export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
-    readonly itemId: string;
     readonly idValue: string;
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;

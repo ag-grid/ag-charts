@@ -170,17 +170,18 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         };
 
         const props: DataModelOptions<any, false, false>['props'] = [];
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         // If two or more datum share an x-value, i.e. lined up vertically, they will have the same datum id.
         // They must be identified this way when animated to ensure they can be tracked when their y-value
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
         if (!isContinuousX || stacked) {
-            props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
+            props.push(keyProperty(xKey, xScaleType, { id: 'xKey', allowNullKey }));
         }
 
         props.push(
-            valueProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, {
                 id: `yValueRaw`,
                 ...common,
@@ -322,7 +323,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
-        this.aggregationManager.markStale();
+        this.aggregationManager.markStale(processedData.input.count);
 
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
@@ -851,6 +852,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const allowNullKeys = properties.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -860,7 +862,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
@@ -876,7 +878,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {

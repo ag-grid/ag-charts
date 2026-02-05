@@ -22,6 +22,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { deepClone } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
@@ -120,6 +121,14 @@ describe('TreemapSeries', () => {
                 await compare();
             });
         }
+
+        it(`for TREEMAP_SERIES_LABELS it should render to canvas with group labels disabled`, async () => {
+            const options = deepClone(TREEMAP_SERIES_LABELS);
+            (options as any).series[0].group.label = { enabled: false };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('Label itemStyler', () => {

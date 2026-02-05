@@ -3,6 +3,7 @@ import {
     Logger,
     ScaleAlignment,
     attachDescription,
+    clamp,
     deepClone,
     deepFreeze,
     defined,
@@ -149,7 +150,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
-    private lastRestoredRequiredWidth?: number;
+    private lastRestoredRequiredRange?: number;
+    private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -175,14 +177,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             eventsHub.on('zoom:change-request', (event) => {
                 this.constrainZoomToRequiredWidth(event);
             }),
-            updateService.addListener('pre-series-update', ({ requiredWidthRatio }) => {
+            updateService.addListener('pre-series-update', ({ requiredRangeRatio, requiredRangeDirection }) => {
                 this.didLayoutAxes = true;
 
                 const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 } else {
-                    this.restoreRequiredWidth(requiredWidthRatio);
+                    this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection);
                 }
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
@@ -390,6 +392,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const changedAxes = this.computeChangedAxesIds(changes);
         const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
+
         for (const id of changedAxes) {
             const axis = newState[id];
             if (axis != undefined) {
@@ -599,23 +602,51 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return memento;
     }
 
-    private restoreRequiredWidth(requiredWidthRatio: number) {
-        if (this.lastRestoredRequiredWidth === requiredWidthRatio || requiredWidthRatio === 0) return;
+    private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+        const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
 
-        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        const directionInvalid =
+            requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y;
+        const requiredRangeUnchanged =
+            lastRestoredRequiredRangeDirection === requiredRangeDirection &&
+            lastRestoredRequiredRange === requiredRangeRatio;
+        const requiredRangeUnset =
+            requiredRangeRatio === 0 && (lastRestoredRequiredRange == null || lastRestoredRequiredRange === 0);
+
+        if (directionInvalid || requiredRangeUnchanged || requiredRangeUnset) return;
+
+        const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
 
         const crossAxisZoom = this.getAxisZoom(crossAxisId);
-        const requiredZoom = Math.min(1, 1 / requiredWidthRatio);
+        const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
-        const min = Math.max(0, Math.min(1 - requiredZoom, crossAxisZoom.min));
-        const max = min + requiredZoom;
+        let min = 0;
+        let max = 1;
 
-        this.lastRestoredRequiredWidth = requiredWidthRatio;
+        // For vertical bars, pin to the left and extend right until the right reaches max, then extend left.
+        // For horizontal bars, pin to the top and extend down until the bottom reaches max, then extend up.
+        if (requiredRangeDirection === ChartAxisDirection.X) {
+            min = clamp(0, 1 - requiredZoom, crossAxisZoom.min);
+            max = clamp(0, min + requiredZoom, 1);
+        } else {
+            max = Math.min(1, crossAxisZoom.max);
+            min = max - requiredZoom;
+            if (min < 0) {
+                max -= min;
+                min = 0;
+            }
+            min = clamp(0, min, 1);
+            max = clamp(0, max, 1);
+        }
 
-        const zoom = { x: { min, max } };
+        this.lastRestoredRequiredRange = requiredRangeRatio;
+        this.lastRestoredRequiredRangeDirection = requiredRangeDirection;
+
+        const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
+
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-requiredWidth',
@@ -625,21 +656,23 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
-        if (this.lastRestoredRequiredWidth == null) return;
+        if (this.lastRestoredRequiredRange == null || this.lastRestoredRequiredRangeDirection == null) return;
 
-        const crossAxisId = this.getPrimaryAxisId(ChartAxisDirection.X);
+        const axis = this.lastRestoredRequiredRangeDirection;
+
+        const crossAxisId = this.getPrimaryAxisId(this.lastRestoredRequiredRangeDirection);
         if (!crossAxisId) return;
 
         const zoom = event.stateAsDefinedZoom();
         const oldState = event.oldState[crossAxisId]!;
 
-        const delta = zoom.x.max - zoom.x.min;
-        const minDelta = 1 / this.lastRestoredRequiredWidth;
+        const delta = zoom[axis].max - zoom[axis].min;
+        const minDelta = 1 / this.lastRestoredRequiredRange;
         if (delta <= minDelta) return;
 
         event.constrainZoom({
-            x: { min: oldState.min, max: oldState.min + minDelta },
-            y: zoom.y,
+            ...zoom,
+            [axis]: { min: oldState.min, max: oldState.min + minDelta },
         });
     }
 

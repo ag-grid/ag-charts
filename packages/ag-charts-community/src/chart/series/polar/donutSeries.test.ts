@@ -8,6 +8,7 @@ import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import * as examples from '../../test/examples';
 import { type MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -161,6 +162,166 @@ describe('DonutSeries', () => {
                     { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
                 ],
             });
+            await compare();
+        });
+    });
+
+    describe('#validation', () => {
+        test('null callout label key warning', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'A', value: 10 },
+                    { label: null, value: 20 },
+                    { label: 'B', value: 15 },
+                ],
+                series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label', innerRadiusRatio: 0.5 }],
+            });
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should reject undefined category key with warning', async () => {
+            const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item '' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
+            const calloutLabelFormatter = jest.fn((params: any) =>
+                params.value === null ? 'Unknown' : String(params.value)
+            );
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: { formatter: calloutLabelFormatter },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expect(calloutLabelFormatter).toHaveBeenCalled();
+            const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+            expect(callWithNull).toBeDefined();
+        });
+
+        it('should render formatted callout label for null category when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: {
+                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                        },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
             await compare();
         });
     });

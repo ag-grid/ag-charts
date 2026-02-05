@@ -5,6 +5,8 @@ import {
     commonSeriesOptionsDefs,
     constant,
     number,
+    positiveNumberNonZero,
+    ratio,
     required,
     shapeSegmentation,
     string,
@@ -28,6 +30,8 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     yHighName: string,
     legendItemName: string,
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 // @ts-expect-error undocumented option

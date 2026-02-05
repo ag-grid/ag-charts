@@ -112,6 +112,12 @@ export type MockErrorBarStyler<TDatum, TContext> = NonNullablePath<
 export type MockChartLabelFormatter<TDatum, TContext> = NonNullable<
     NonNullable<AgChartLabelOptions<TDatum, TContext>['formatter']>
 >;
+export type MockChartLabelItemStyler<TDatum, TContext> = NonNullable<
+    NonNullable<AgChartLabelOptions<TDatum, TContext>['itemStyler']>
+>;
+export type MockActiveChangeListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['activeChange']
+>;
 export type MockAnnotationsListener<TDatum, TContext> = NonNullable<
     AgBaseChartListeners<TDatum, TContext>['annotations']
 >;
@@ -184,6 +190,8 @@ export type MockAPICallback<TDatum, TContext> =
     | MockTooltipRenderer<TDatum, TContext>
     | MockErrorBarStyler<TDatum, TContext>
     | MockChartLabelFormatter<TDatum, TContext>
+    | MockChartLabelItemStyler<TDatum, TContext>
+    | MockActiveChangeListener<TDatum, TContext>
     | MockAnnotationsListener<TDatum, TContext>
     | MockZoomListener<TDatum, TContext>
     | MockGetDataCallback<TDatum, TContext>

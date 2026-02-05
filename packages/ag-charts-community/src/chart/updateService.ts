@@ -1,4 +1,4 @@
-import { ChartUpdateType, EventEmitter, type EventListener } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, EventEmitter, type EventListener } from 'ag-charts-core';
 
 import type { ISeries } from './series/seriesTypes';
 
@@ -16,7 +16,8 @@ export interface PreDomUpdateEvent {
 
 export interface PreSeriesUpdateEvent {
     readonly type: 'pre-series-update';
-    readonly requiredWidthRatio: number;
+    readonly requiredRangeRatio: number;
+    readonly requiredRangeDirection: ChartAxisDirection;
 }
 
 export interface PreSceneRenderEvent {
@@ -71,8 +72,12 @@ export class UpdateService {
         this.events.emit('pre-dom-update', { type: 'pre-dom-update' });
     }
 
-    public dispatchPreSeriesUpdate(requiredWidthRatio: number) {
-        this.events.emit('pre-series-update', { type: 'pre-series-update', requiredWidthRatio });
+    public dispatchPreSeriesUpdate(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+        this.events.emit('pre-series-update', {
+            type: 'pre-series-update',
+            requiredRangeRatio,
+            requiredRangeDirection,
+        });
     }
 
     public dispatchPreSceneRender() {

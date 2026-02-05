@@ -27,6 +27,7 @@ import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
@@ -174,6 +175,34 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             }),
         },
     }),
+    LINE_NULL_CATEGORY_KEY: {
+        options: examples.LINE_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xKey] ignored:', '[null]'],
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]'],
+        ],
+    },
+    LINE_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.LINE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    LINE_UNDEFINED_CATEGORY_KEY: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xKey] ignored:', '[undefined]'],
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    LINE_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    LINE_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.LINE_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
 };
 
 describe('LineSeries', () => {
@@ -744,6 +773,47 @@ describe('LineSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-16613 should not error on hover with null category keys', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 20 },
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        allowNullKeys: true,
+                        marker: {
+                            size: 20,
+                            itemStyler: (params: AgLineSeriesMarkerItemStylerParams<unknown, unknown>) => {
+                                if (params.first) return { fill: 'red' };
+                                if (params.last) return { fill: 'blue' };
+                            },
+                        },
+                    } as any,
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hover over the null category data point
+            await hoverAction(100, 300)(chart);
+            await waitForChartStability(chart);
+
+            // Hover over a non-null category data point
+            await hoverAction(400, 300)(chart);
             await compare();
         });
     });
@@ -1746,6 +1816,44 @@ describe('LineSeries', () => {
                     { type: 'line', xKey: 'x', yKey: 's3', yName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('aggregation data size transitions', () => {
+        it('should render consistent node count after data size transitions (small -> large -> small)', async () => {
+            const smallData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+            const largeData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+
+            const options: AgCartesianChartOptions = {
+                data: smallData,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const getNodeDataCount = () => {
+                const chartInstance = deproxy(chart);
+                const series = chartInstance.series[0] as any;
+                return series.contextNodeData?.nodeData?.length ?? 0;
+            };
+
+            const initialNodeCount = getNodeDataCount();
+            expect(initialNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: largeData });
+            await waitForChartStability(chart);
+
+            const largeDataNodeCount = getNodeDataCount();
+            expect(largeDataNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: smallData });
+            await waitForChartStability(chart);
+
+            const finalNodeCount = getNodeDataCount();
+
+            expect(finalNodeCount).toBe(initialNodeCount);
         });
     });
 });

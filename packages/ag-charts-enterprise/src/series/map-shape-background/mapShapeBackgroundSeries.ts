@@ -141,7 +141,6 @@ export class MapShapeBackgroundSeries
 
             nodeData.push({
                 series: this,
-                itemId: index,
                 datum: feature,
                 datumIndex: 0,
                 index,

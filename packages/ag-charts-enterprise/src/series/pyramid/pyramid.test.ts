@@ -13,6 +13,7 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -411,6 +412,182 @@ describe('PyramidSeries', () => {
 
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should render with null category key value', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PyramidSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should filter undefined category key value', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: undefined, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [PyramidSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: undefined, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: undefined, value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should call stageLabel.formatter for null category key when allowNullKeys is true', async () => {
+            const formatterCalls: any[] = [];
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                        stageLabel: {
+                            formatter: (params: any) => {
+                                formatterCalls.push(params.datum.group);
+                                return String(params.datum.group);
+                            },
+                        },
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(formatterCalls).toContain(null);
+            expectWarningsCalls().toEqual([]);
         });
     });
 

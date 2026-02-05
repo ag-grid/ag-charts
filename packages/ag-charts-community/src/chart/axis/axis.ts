@@ -1,13 +1,19 @@
-import type { AxisID, ChartAnimationPhase, DomainWithMetadata, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    Callback,
+    CallbackParam,
+    ChartAnimationPhase,
+    DomainWithMetadata,
+    Point,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import {
-    type Callback,
-    type CallbackParam,
     ChartAxisDirection,
+    ChartUpdateType,
     CleanupRegistry,
     ObserveChanges,
-    type Point,
     Property,
-    type RequireOptional,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -211,6 +217,7 @@ export abstract class Axis<
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
+    private allowNull = false;
 
     @Property
     readonly title = new AxisTitle();
@@ -244,7 +251,7 @@ export abstract class Axis<
         unit: 'percent',
     };
 
-    requiredWidth?: number;
+    requiredRange?: number;
 
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -577,6 +584,9 @@ export abstract class Axis<
         }
 
         this.dataDomain = this.normaliseDataDomain(normalizedDomain);
+        this.allowNull = this.dataDomain.domain.some(function (v) {
+            return v == null;
+        });
 
         if (this.reverse) {
             this.dataDomain.domain.reverse();
@@ -831,9 +841,13 @@ export abstract class Axis<
         const currentLabel = primaryLabel ?? label;
         const specifier = primary ? label.format : undefined;
 
+        // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
+        const { allowNull } = this;
+
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
             truncateDate,
+            allowNull,
         };
 
         return (value: any, index: number): TextOrSegments => {
@@ -868,7 +882,9 @@ export abstract class Axis<
         datum: undefined,
         key: undefined,
         domain: undefined,
-        label?: AxisFormattableLabel<Params, FormatterParams<any>>
+        label?: AxisFormattableLabel<Params, FormatterParams<any>>,
+        params?: undefined,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -892,9 +908,11 @@ export abstract class Axis<
         key?: string,
         domain?: any[],
         label?: AxisFormattableLabel<any>,
-        params?: any
+        params?: any,
+        allowNull?: boolean
     ): TextOrSegments {
-        if (input == null) return '';
+        // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
+        if (input == null && !allowNull) return '';
 
         const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;
@@ -939,7 +957,7 @@ export abstract class Axis<
         const f = this.createCallWithContext(contextProvider);
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
-            formatManager.format(f, formatParams) ??
+            formatManager.format(f, formatParams, { allowNull }) ??
             this.label.formatValue(f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
@@ -1021,6 +1039,10 @@ export abstract class Axis<
         return this.moduleMap;
     }
 
+    getUpdateTypeOnResize() {
+        return ChartUpdateType.PERFORM_LAYOUT;
+    }
+
     createModuleContext(): ModuleContextWithParent<AxisContext> {
         this.axisContext ??= this.createAxisContext();
         return { ...this.moduleCtx, parent: this.axisContext };
@@ -1047,8 +1069,9 @@ export abstract class Axis<
             seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
-            formatScaleValue: (value, source, label) =>
-                this.formatDatum(
+            formatScaleValue: (value, source, label) => {
+                const { allowNull } = this;
+                return this.formatDatum(
                     undefined,
                     value,
                     source,
@@ -1057,8 +1080,11 @@ export abstract class Axis<
                     undefined,
                     undefined,
                     undefined,
-                    label
-                ),
+                    label,
+                    undefined,
+                    allowNull
+                );
+            },
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

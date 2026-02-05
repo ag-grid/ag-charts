@@ -289,34 +289,41 @@ export abstract class Node<TDatum = unknown> {
 
     batchedUpdate(fn: () => void) {
         this.batchLevel++;
-        fn();
-        this.batchLevel--;
-        if (this.batchLevel === 0 && this.batchDirty) {
-            this.markDirty();
-            this.batchDirty = false;
+        try {
+            fn();
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
         }
     }
 
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
-        assignIfNotStrictlyEqual(this, styles);
-        this.batchLevel--;
-
-        if (this.batchLevel === 0 && this.batchDirty) {
-            this.markDirty();
-            this.batchDirty = false;
+        try {
+            assignIfNotStrictlyEqual(this, styles);
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
         }
         return this;
     }
 
     setPropertiesWithKeys<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys: readonly string[]) {
         this.batchLevel++;
-        assignIfNotStrictlyEqual(this, styles, keys);
-        this.batchLevel--;
-
-        if (this.batchLevel === 0 && this.batchDirty) {
-            this.markDirty();
-            this.batchDirty = false;
+        try {
+            assignIfNotStrictlyEqual(this, styles, keys);
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
         }
         return this;
     }

@@ -20,6 +20,7 @@ import {
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -549,6 +550,8 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {

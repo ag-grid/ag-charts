@@ -1,4 +1,5 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { AgActiveItemState } from 'ag-charts-community';
 import { type Point, clamp, iterate } from 'ag-charts-core';
 
 type SceneNode = _ModuleSupport.Node;
@@ -44,4 +45,11 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
             return { bounds, clipFocusBox: true, datum, datumIndex, otherIndex };
         }
     }
+}
+
+export function findGaugeNodeDatum(self: GaugeSeries, itemId: AgActiveItemState['itemId']) {
+    return (
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.nodeData) ??
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.targetData)
+    );
 }

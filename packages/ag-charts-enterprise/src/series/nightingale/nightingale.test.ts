@@ -17,6 +17,7 @@ import {
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     newFreezableMock,
@@ -788,6 +789,155 @@ describe('NightingaleSeries', () => {
                     { type: 'nightingale', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('null category key', () => {
+        const NIGHTINGALE_NULL_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [NightingaleSeries-1 / angleValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const NIGHTINGALE_UNDEFINED_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: undefined, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: undefined, value: 25 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        const NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [NightingaleSeries-1 / angleValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });

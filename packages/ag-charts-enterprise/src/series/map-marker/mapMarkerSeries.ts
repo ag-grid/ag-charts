@@ -434,7 +434,6 @@ export class MapMarkerSeries
     ): MapMarkerNodeDatum {
         return {
             series: this,
-            itemId: this.properties.latitudeKey,
             datum,
             datumIndex,
             index,

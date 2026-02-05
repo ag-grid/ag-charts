@@ -45,7 +45,6 @@ const {
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
-    readonly itemId: string;
     midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
@@ -57,7 +56,7 @@ interface HeatmapLabelDatum extends Point {
     datumIndex: number;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
-    itemId: string;
+    itemId?: never;
     text: TextOrSegments;
     fontSize: number;
     lineHeight: number;
@@ -179,10 +178,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: 'yValue' }),
+                valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: 'yValue', allowNullKey }),
                 ...(colorKey
                     ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
                     : []),
@@ -406,7 +406,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         return {
             series: this,
-            itemId: yKey,
             datumIndex,
             yKey,
             xKey,
@@ -439,12 +438,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const yDatum = ctx.yValues[datumIndex];
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
         const colorValue = colorValues?.[datumIndex];
 
         // Update properties
         mutableNode.datumIndex = datumIndex;
         mutableNode.datum = datum;
-        mutableNode.itemId = yKey;
         mutableNode.yKey = yKey;
         mutableNode.xKey = xKey;
         mutableNode.xValue = xDatum;
@@ -470,8 +471,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /**
      * Creates a HeatmapNodeDatum for a single data point.
+     * Returns undefined for invalid data points (e.g., null/undefined keys when not allowed).
      */
-    private createNodeDatum(ctx: HeatmapSeriesNodeDatumContext, datumIndex: number, datum: unknown): HeatmapNodeDatum {
+    private createNodeDatum(
+        ctx: HeatmapSeriesNodeDatumContext,
+        datumIndex: number,
+        datum: unknown
+    ): HeatmapNodeDatum | undefined {
+        const { xScale, yScale, xOffset, yOffset } = ctx;
+        const xDatum = ctx.xValues[datumIndex];
+        const yDatum = ctx.yValues[datumIndex];
+        const x = xScale.convert(xDatum) + xOffset;
+        const y = yScale.convert(yDatum) + yOffset;
+
+        // Skip creating nodes for data with invalid keys (not in domain)
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            return undefined;
+        }
+
         const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
         this.updateNodeDatum(ctx, node, datumIndex, datum);
         return node;
@@ -537,7 +554,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         return {
             series: this,
-            itemId: ctx.yKey,
             datum,
             datumIndex,
             text,
@@ -719,7 +735,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
                 : undefined;
 
-        if (xValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 

@@ -22,6 +22,7 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 ## Must-Know Checklist
 
+-   **API verification:** For AG Charts code, verify every property against both `ag-charts-types` AND a working example before using it. Training data is unreliable. Ask the user if no working examples are found, don't guess.
 -   **Yarn and Nx based repo:** Use Yarn for package management and Nx for build and test orchestration.
 -   **Main constraint:** Community and enterprise runtime bundles stay dependency-free beyond AG Charts code.
 -   **Default branch:** Target `latest`; follow release/JIRA naming conventions below for topic branches.

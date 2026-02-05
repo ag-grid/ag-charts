@@ -127,45 +127,33 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     );
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
-        const { labelValue } = node;
-        const { label: font } = this.properties.group;
-
         const heightRatioThreshold = 3;
+        const { label } = this.properties.group;
+        const { labelValue } = node;
+        const { fontSize } = label;
 
-        if (labelValue == null) {
-            return;
-        } else if (
-            font.fontSize > bbox.width / heightRatioThreshold ||
-            font.fontSize > bbox.height / heightRatioThreshold
+        if (
+            label.enabled &&
+            labelValue != null &&
+            fontSize <= bbox.width / heightRatioThreshold &&
+            fontSize <= bbox.height / heightRatioThreshold
         ) {
-            return;
-        } else {
-            const { height: fontHeight } = cachedTextMeasurer(font).measureLines(labelValue);
-            return Math.max(fontHeight, font.fontSize);
+            const { height: fontHeight } = cachedTextMeasurer(label).measureLines(labelValue);
+            return Math.max(fontHeight, fontSize);
         }
     }
 
     private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
         if (node.parent == null) {
-            return {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-            };
+            return { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (node.children.length === 0) {
             const { padding } = this.properties.tile;
-            return {
-                top: padding,
-                right: padding,
-                bottom: padding,
-                left: padding,
-            };
+            return { top: padding, right: padding, bottom: padding, left: padding };
         }
 
         const {
-            label: { spacing },
             padding,
+            label: { spacing },
         } = this.properties.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;

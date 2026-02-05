@@ -1,1 +1,1 @@
-../../external/ag-shared/prompts/guides/jira.md
+../../external/prompts/guides/jira.md
