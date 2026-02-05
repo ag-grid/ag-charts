@@ -1218,5 +1218,100 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('initial-state', () => {
+            let canvas: Locator;
+
+            async function hoverOnUKLegend(page: Page): Promise<void> {
+                await page.mouse.move(303, 554);
+            }
+
+            async function hoverOnGermany2015(page: Page): Promise<void> {
+                await page.mouse.move(339, 319);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                const { width, height } = await locateCanvas(page);
+                await page.mouse.move(width / 2, height / 2);
+                await page.mouse.move(9, 9);
+            }
+
+            test.describe('series-node initialState matches hover event', () => {
+                test.beforeEach(async ({ page }) => {
+                    await gotoExample(
+                        page,
+                        toExamplePageUrl('active-e2e-test', 'initial-state-series-node', 'vanilla').url
+                    );
+                    canvas = page.locator(SELECTORS.canvasCenter);
+                });
+
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
+
+                    await hoverOnGermany2015(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 5, seriesId: 'AreaSeries-3' },
+                    });
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await hoverOnGermany2015(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'series-node', itemId: 5, seriesId: 'AreaSeries-3' },
+                    });
+                });
+            });
+
+            test.describe('legend initialState matches hover event', () => {
+                test.beforeEach(async ({ page }) => {
+                    await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state-legend', 'vanilla').url);
+                    canvas = page.locator(SELECTORS.canvasCenter);
+                });
+
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
+
+                    await hoverOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 'UK', seriesId: 'AreaSeries-2' },
+                    });
+
+                    await hoverMiss(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await hoverOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        frozen: false,
+                        activeItem: { type: 'legend', itemId: 'UK', seriesId: 'AreaSeries-2' },
+                    });
+                });
+            });
+        });
     });
 });

@@ -1133,8 +1133,15 @@ export class SeriesAreaManager extends BaseManager {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
-            this.clearCachedEvents();
-            this.hoverScheduler.schedule();
+            if (event.initialState) {
+                // Tooltip positioning relies on call `getBoundingClientRect()` on the `<canvas>`, whose size is not
+                // yet initialised when applying `initialState`:
+                this.chart.ctx.scene.applyPendingResize();
+                this.handleHoverFromState();
+            } else {
+                this.clearCachedEvents();
+                this.hoverScheduler.schedule();
+            }
         }
     }
 

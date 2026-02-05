@@ -5,6 +5,7 @@ import type { AgActiveChangeEvent, AgActiveChangeEventSource, AgActiveItemState,
 import type { EventsHub } from '../../core/eventsHub';
 import { commonChartOptions } from '../chartOptionsDefs';
 import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
+import type { UpdateService } from '../updateService';
 import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
@@ -21,12 +22,33 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     private currentItem?: ActiveItem;
     private updateable: boolean = true;
 
+    // FIXME: same pattern as `ZoomManager`. Perhaps an architectural rewrite is warranted.
+    private didLayout = false;
+    private pendingMemento:
+        | {
+              version: string;
+              mementoVersion: string;
+              memento: AgActiveState | undefined;
+          }
+        | undefined = undefined;
+
     constructor(
         private readonly chartService: { readonly id: string },
         private readonly eventsHub: EventsHub,
+        updateService: UpdateService,
         private readonly interactionManager: InteractionManager,
         private readonly fireEvent: (event: ActiveChangeEvent) => void
-    ) {}
+    ) {
+        const removeListener: () => void = updateService.addListener('pre-scene-render', () => {
+            this.didLayout = true;
+            const { pendingMemento } = this;
+            if (pendingMemento) {
+                this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
+                this.pendingMemento = undefined;
+            }
+            removeListener();
+        });
+    }
 
     private isFrozen(): boolean {
         return this.interactionManager.isState(InteractionState.Frozen);
@@ -83,7 +105,12 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         return validationResult.invalid.length === 0;
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AgActiveState | undefined): void {
+    public restoreMemento(version: string, mementoVersion: string, memento: AgActiveState | undefined): void {
+        if (!this.didLayout) {
+            this.pendingMemento = { version, mementoVersion, memento };
+            return;
+        }
+
         this.updateable = false;
         const [activeItem, nodeDatum]: [ActiveItem, DatumArg] = this.performRestoration(memento?.activeItem);
         this.updateable = true;
@@ -111,8 +138,9 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         let nodeDatum: DatumArg = undefined;
         const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
+        const initialState: boolean = this.pendingMemento !== undefined;
         const chartId = this.chartService.id;
-        this.eventsHub.emit('active:load-memento', { chartId, activeItem, reject, setDatum });
+        this.eventsHub.emit('active:load-memento', { initialState, chartId, activeItem, reject, setDatum });
         return rejection ? [undefined, undefined] : [activeItem, nodeDatum];
     }
 }

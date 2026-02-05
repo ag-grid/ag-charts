@@ -148,6 +148,15 @@ export class Scene extends EventEmitter<EventMap> {
         return false;
     }
 
+    applyPendingResize(): boolean {
+        if (this.pendingSize) {
+            this.layersManager.resize(...this.pendingSize);
+            this.pendingSize = null;
+            return true;
+        }
+        return false;
+    }
+
     render(opts?: {
         debugSplitTimes: Record<string, number>;
         extraDebugStats: Record<string, number>;
@@ -155,15 +164,7 @@ export class Scene extends EventEmitter<EventMap> {
         debugColors?: { background?: string; foreground?: string };
     }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect, debugColors } = opts ?? {};
-        const {
-            canvas,
-            canvas: { context: ctx } = {},
-            root,
-            pendingSize,
-            width,
-            height,
-            pixelRatio: devicePixelRatio,
-        } = this;
+        const { canvas, canvas: { context: ctx } = {}, root, width, height, pixelRatio: devicePixelRatio } = this;
 
         if (!ctx) {
             // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
@@ -176,12 +177,7 @@ export class Scene extends EventEmitter<EventMap> {
         }
 
         const renderStartTime = performance.now();
-        let resized = false;
-        if (pendingSize) {
-            resized = true;
-            this.layersManager.resize(...pendingSize);
-            this.pendingSize = null;
-        }
+        const resized: boolean = this.applyPendingResize();
 
         if (root && !root.visible) {
             this.isDirty = false;
