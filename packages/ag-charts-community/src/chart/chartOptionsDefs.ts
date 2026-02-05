@@ -32,8 +32,9 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
         seriesId: string,
         itemId: required(or(string, positiveNumber)),
     },
-    frozen: boolean,
 };
+// @ts-expect-error undocumented option
+initialStatePickedOptionsDef.frozen = undocumented(boolean);
 
 // These options are being validated by other modules
 export const commonChartOptions = {

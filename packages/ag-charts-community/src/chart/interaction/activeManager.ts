@@ -77,23 +77,22 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
 
         // External (API) dispatch:
         if (frozenChanged || !objectsEqual(oldItemState, newItemState)) {
-            const { frozen, activeItem } = this.createMemento();
+            const { activeItem } = this.createMemento();
             const { datum } = nodeDatum ?? {};
-            this.fireEvent({ type: 'activeChange', source, frozen, activeItem, datum });
+            this.fireEvent({ type: 'activeChange', source, activeItem, datum });
         }
     }
 
     public createMemento(): AgActiveState {
-        const frozen = this.isFrozen();
         switch (this.currentItem?.type) {
             case 'series-node':
             case 'legend': {
                 const { type, seriesId, itemId } = this.currentItem;
-                return { frozen, activeItem: { type, seriesId, itemId } };
+                return { activeItem: { type, seriesId, itemId } };
             }
             default:
                 this.currentItem?.type satisfies undefined;
-                return { frozen };
+                return {};
         }
     }
 
@@ -116,7 +115,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         this.updateable = true;
 
         const oldFrozen = this.isFrozen();
-        const newFrozen = memento?.frozen;
+        const newFrozen = (memento as { frozen?: boolean })?.frozen; // undocumented
         const frozenChanged: boolean =
             newFrozen === undefined ? false : (oldFrozen satisfies boolean) !== (newFrozen satisfies boolean);
 
