@@ -14,6 +14,7 @@ import type {
     AgChartOptions,
     AgChartState,
     AgDataTransaction,
+    AgInitialStateLegendOptions,
     DownloadOptions,
     ImageDataUrlOptions,
 } from 'ag-charts-types';
@@ -290,19 +291,22 @@ export class AgChartInstanceProxy implements AgChartProxy {
             optionsMetadata,
             data
         );
+
+        if (state.legend) {
+            this.syncLegend(chart, cloneProxy, state);
+        }
+
+        // prepared chart is updated so everything is configured before state is restored
+        cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        await cloneProxy.waitForUpdate();
         await cloneProxy.setState(state);
 
         // sync zoom
         const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
         cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.zoomManager.getZoom());
 
-        // sync legend
-        cloneProxy.chart?.ctx.legendManager.clearData();
-        cloneProxy.chart?.ctx.legendManager.update(chart.ctx.legendManager.getData());
-
-        for (const [index, series] of chart.series.entries()) {
-            cloneProxy.chart!.series[index].visible = series.visible; // sync series visibility
-        }
+        cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        await cloneProxy.waitForUpdate();
 
         // Sync legend pagination
         const legendPages = [];
@@ -318,6 +322,22 @@ export class AgChartInstanceProxy implements AgChartProxy {
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
         return cloneProxy;
+    }
+
+    private syncLegend(chart: Chart, cloneProxy: AgChartProxy, state: AgChartState) {
+        const seriesIdMap = new Map<string, string>();
+        for (const [index, series] of chart.series.entries()) {
+            const cloneSeries = cloneProxy.chart?.series[index];
+            if (!cloneSeries) continue;
+            seriesIdMap.set(series.id, cloneSeries.id);
+        }
+
+        state.legend = state.legend?.map((legend: AgInitialStateLegendOptions) => {
+            return {
+                ...legend,
+                seriesId: seriesIdMap.get(legend.seriesId ?? '') ?? legend.seriesId,
+            };
+        });
     }
 
     private getEnabledOriginators(): MementoOriginator<unknown>[] {
