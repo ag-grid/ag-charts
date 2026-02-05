@@ -49,5 +49,7 @@ const options: AgCartesianChartOptions<DataType> = {
 const chart = AgCharts.create(options);
 
 function restoreState(): void {
-    chart.setState(state);
+    if (state) {
+        chart.setState(state);
+    }
 }
