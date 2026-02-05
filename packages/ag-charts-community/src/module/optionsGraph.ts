@@ -38,20 +38,55 @@ import {
 
 const debug = Debug.create('opts', 'options-graph');
 
+// Interface that only exposes safe access methods to the OptionsGraph.
+export interface OptionsGraphAccessor {
+    resolve(): PlainObject;
+    resolveParams(): PlainObject;
+    resolveAnnotationThemes(): PlainObject;
+    resolvePartial(
+        path: Array<string>,
+        partialOptions?: PlainObject,
+        resolveOptions?: OptionsGraphAccessorResolvePartialOptions
+    ): PlainObject | undefined;
+    clearSafe(): void;
+}
+
+export interface OptionsGraphAccessorResolvePartialOptions {
+    permissivePath?: boolean;
+    pick?: boolean;
+    proxyPaths?: Record<string, Array<string>>;
+}
+
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
-export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
-    return debug.group(
-        'OptionsGraph.constructor()',
-        () =>
-            new OptionsGraph(
-                theme.config,
-                options,
-                theme.params,
-                theme.palette,
-                theme.overrides,
-                theme.getTemplateParameters()
-            )
-    );
+export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): OptionsGraphAccessor {
+    return debug.group('OptionsGraph.constructor()', () => {
+        const optionsGraph = new OptionsGraph(
+            theme.config,
+            options,
+            theme.params,
+            theme.palette,
+            theme.overrides,
+            theme.getTemplateParameters()
+        );
+
+        return {
+            resolve() {
+                return optionsGraph.resolve();
+            },
+            resolveParams() {
+                return optionsGraph.resolveParams();
+            },
+            resolveAnnotationThemes() {
+                return optionsGraph.resolveAnnotationThemes();
+            },
+            resolvePartial(path, partialOptions, resolveOptions) {
+                return optionsGraph.resolvePartial(path, partialOptions, resolveOptions);
+            },
+            clearSafe() {
+                return optionsGraph.clearSafe();
+            },
+        };
+    });
 }
 
 /**

@@ -1,26 +1,23 @@
 import type { PlainObject } from 'ag-charts-core';
 
-export type ResolvePartialCallback = (
-    path: Array<string>,
-    partialOptions?: PlainObject,
-    resolveOptions?: ResolvePartialOpts
-) => Resolved;
+import type { OptionsGraphAccessor, OptionsGraphAccessorResolvePartialOptions } from '../module/optionsGraph';
 
-type Resolved = Pick<PlainObject, string> | undefined;
-type ResolvePartialOpts = {
-    permissivePath?: boolean;
-    pick?: boolean;
-    proxyPaths?: Record<string, Array<string>>;
-};
-
+/**
+ * Note: Do not use this service to expose direct access to the OptionsGraph. Instead, use operations to resolve
+ * against the graph.
+ */
 export class OptionsGraphService {
-    private resolvePartialCallback?: ResolvePartialCallback;
+    private resolvePartialCallback?: OptionsGraphAccessor['resolvePartial'];
 
-    updateCallback(resolvePartialCallback: ResolvePartialCallback) {
+    updateCallback(resolvePartialCallback: OptionsGraphAccessor['resolvePartial']) {
         this.resolvePartialCallback = resolvePartialCallback;
     }
 
-    resolvePartial(path: Array<string>, partialOptions?: PlainObject, resolveOptions?: ResolvePartialOpts) {
+    resolvePartial(
+        path: Array<string>,
+        partialOptions?: PlainObject,
+        resolveOptions?: OptionsGraphAccessorResolvePartialOptions
+    ) {
         return this.resolvePartialCallback?.(path, partialOptions, resolveOptions);
     }
 }
