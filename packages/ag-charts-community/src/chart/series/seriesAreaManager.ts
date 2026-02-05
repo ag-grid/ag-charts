@@ -1134,6 +1134,9 @@ export class SeriesAreaManager extends BaseManager {
             event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
             if (event.initialState) {
+                // Tooltip positioning relies on call `getBoundingClientRect()` on the `<canvas>`, whose size is not
+                // yet initialised when applying `initialState`:
+                this.chart.ctx.scene.applyPendingResize();
                 this.handleHoverFromState();
             } else {
                 this.clearCachedEvents();
