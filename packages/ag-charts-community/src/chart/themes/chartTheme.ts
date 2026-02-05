@@ -76,18 +76,12 @@ const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
 
 function hasUserOptionLessThan1(key: string) {
     return {
-        $or: {
-            $map: [
-                {
-                    $isUserOption: [
-                        `/series/$index/${key}`,
-                        { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
-                        false,
-                    ],
-                },
-                { $path: '/series' },
-            ],
-        },
+        $some: [
+            {
+                $isUserOption: [`/series/$index/${key}`, { $lessThan: [{ $path: `/series/$index/${key}` }, 1] }, false],
+            },
+            { $path: '/series' },
+        ],
     };
 }
 
@@ -396,11 +390,11 @@ export class ChartTheme {
                     $if: [
                         {
                             $or: [
-                                hasUserOptionLessThan1('highlight.highlightedItem.opacity'),
-                                hasUserOptionLessThan1('highlight.unhighlightedItem.opacity'),
-                                hasUserOptionLessThan1('highlight.highlightedSeries.opacity'),
-                                hasUserOptionLessThan1('highlight.unhighlightedSeries.opacity'),
-                                hasUserOptionLessThan1('fillOpacity'),
+                                hasUserOptionLessThan1('highlight/highlightedItem/opacity'),
+                                hasUserOptionLessThan1('highlight/unhighlightedItem/opacity'),
+                                hasUserOptionLessThan1('highlight/highlightedSeries/opacity'),
+                                hasUserOptionLessThan1('highlight/unhighlightedSeries/opacity'),
+                                hasUserOptionLessThan1('marker/fillOpacity'),
                             ],
                         },
                         'cutout',
