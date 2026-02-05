@@ -1327,7 +1327,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (seriesRect == null) return;
 
         const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
-        const requiredRangeRatio = _requiredRange / dimension;
+        const requiredRangeRatio = _requiredRange / dimension || 0; // In case it's NaN, return 0.
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
         this.ctx.updateService.dispatchPreSeriesUpdate(requiredRangeRatio, this._requiredRangeDirection);
