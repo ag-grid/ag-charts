@@ -1116,7 +1116,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onActiveClear() {
+    public onActiveClear() {
         this.pickManager.onClearAPI();
         this.hoverDevice = 'setState';
         this.clearHighlight();

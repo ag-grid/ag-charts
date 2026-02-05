@@ -22,6 +22,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     private updateable: boolean = true;
 
     constructor(
+        private readonly chartService: { readonly id: string },
         private readonly eventsHub: EventsHub,
         private readonly interactionManager: InteractionManager,
         private readonly fireEvent: (event: ActiveChangeEvent) => void
@@ -110,7 +111,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         let nodeDatum: DatumArg = undefined;
         const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
-        this.eventsHub.emit('active:load-memento', { activeItem, reject, setDatum });
+        const chartId = this.chartService.id;
+        this.eventsHub.emit('active:load-memento', { chartId, activeItem, reject, setDatum });
         return rejection ? [undefined, undefined] : [activeItem, nodeDatum];
     }
 }
