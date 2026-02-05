@@ -1232,7 +1232,7 @@ test.describe('state', () => {
                 }
 
                 test.beforeEach(async ({ page }) => {
-                    await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state', 'vanilla').url);
+                    await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state-series-node', 'vanilla').url);
                     canvas = page.locator(SELECTORS.canvasCenter);
                 });
 
