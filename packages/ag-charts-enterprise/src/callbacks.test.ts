@@ -53,6 +53,7 @@ import { DeepReadonly } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
+    AgActiveState,
     AgCartesianChartOptions,
     AgDataSourceCallbackParams,
 } from 'ag-charts-types';
@@ -1307,7 +1308,7 @@ describe('AG-15850 activeChange', () => {
     const INACTIVE_SETSTATE_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
         activeItem: undefined,
         datum: undefined,
-        frozen: false,
+        // frozen: false, // undocumented
         source: 'state-change',
         type: 'activeChange',
     };
@@ -1315,7 +1316,7 @@ describe('AG-15850 activeChange', () => {
     const INACTIVE_USERINTERACTION_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
         activeItem: undefined,
         datum: undefined,
-        frozen: false,
+        // frozen: false, // undocumented
         source: 'user-interaction',
         type: 'activeChange',
     };
@@ -1344,7 +1345,7 @@ describe('AG-15850 activeChange', () => {
 
     async function setActiveItem(activeItem: AgActiveItemState | undefined, frozen = false): Promise<void> {
         version ??= chart.getState().version;
-        await chart.setState({ version, active: { activeItem, frozen } });
+        await chart.setState({ version, active: { activeItem, frozen } as AgActiveState}); // undocumented frozen
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
@@ -1431,13 +1432,13 @@ describe('AG-15850 activeChange', () => {
             calls = popCalls();
             expect(calls).toMatchSnapshot();
             expect(calls.length).toBe(1);
-            expect(calls[0]?.[0].frozen).toBe(false);
+            // expect(calls[0]?.[0].frozen).toBe(false); // undocumented
 
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
             calls = popCalls();
             expect(calls).toMatchSnapshot();
             expect(calls.length).toBe(1);
-            expect(calls[0]?.[0].frozen).toBe(true);
+            // expect(calls[0]?.[0].frozen).toBe(true); // undocumented
 
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
             expect(popCalls().length).toBe(0);
