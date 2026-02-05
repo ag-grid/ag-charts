@@ -1234,7 +1234,8 @@ export class Legend extends BaseProperties {
     private updateHighlight(
         enabled: boolean | undefined,
         legendDatum: CategoryLegendDatum | undefined,
-        series: SeriesType | undefined
+        series: SeriesType | undefined,
+        event?: ActiveLoadMementoEvent
     ): void {
         type InternalUpdateOpts = {
             readonly itemId: NonNullable<CategoryLegendDatum['itemId']>;
@@ -1253,7 +1254,11 @@ export class Legend extends BaseProperties {
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
-            if (this.ctx.interactionManager.isState(InteractionState.Default) || opts === undefined) {
+            if (
+                this.ctx.interactionManager.isState(InteractionState.Default) ||
+                opts === undefined ||
+                event?.initialState
+            ) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
                 // Updating the highlight can interrupt animations, so only clear the highlight if the chart
@@ -1295,7 +1300,7 @@ export class Legend extends BaseProperties {
             Logger.warn(`cannot find legend item: ${json}`);
             event.reject();
         } else {
-            this.updateHighlight(datum.enabled, datum, series);
+            this.updateHighlight(datum.enabled, datum, series, event);
         }
     }
 
