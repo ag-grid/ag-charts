@@ -110,10 +110,12 @@ test.describe('state', () => {
                 await page.mouse.move(width / 2, height / 2);
             }
 
+            /* // undocumented: frozen
             async function clickInCenter(page: Page): Promise<void> {
                 const { width, height } = await locateCanvas(page);
                 await page.mouse.move(width / 2, height / 2);
             }
+            */ // undocumented: frozen
 
             async function hoverInTopLeft(page: Page): Promise<void> {
                 await page.mouse.move(20, 20);
@@ -123,9 +125,11 @@ test.describe('state', () => {
                 await page.mouse.move(304, 556);
             }
 
+            /* // undocumented: frozen
             async function clickOnUKLegend(page: Page): Promise<void> {
                 await page.mouse.move(304, 556);
             }
+            */ // undocumented: frozen
 
             async function setStateInvalidNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
                 await setChartState(page, {
