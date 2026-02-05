@@ -239,6 +239,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
                 relativeWidth = this.getGroupScaleRangeWidth(groupScale);
             }
 
+            // For high-volume bar charts, ignore the widthRatio when applied against the bandwidth.
+            if (relativeWidth == null && bandwidth < 1 && groupScale) {
+                return groupScale.rawBandwidth;
+            }
+
             // Grouped bars, or ungrouped with a fixed width, fallback to a percentage of the calculated bandwidth.
             return (relativeWidth ?? bandwidth) * widthRatio;
         }
