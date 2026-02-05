@@ -136,6 +136,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {

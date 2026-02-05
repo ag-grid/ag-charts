@@ -4,6 +4,7 @@ import {
     boolean,
     commonSeriesOptionsDefs,
     constant,
+    positiveNumberNonZero,
     required,
     shapeSegmentation,
     string,
@@ -33,4 +34,5 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     grouped: boolean,
     legendItemName: string,
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
 };
