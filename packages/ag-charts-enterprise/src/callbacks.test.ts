@@ -1345,7 +1345,7 @@ describe('AG-15850 activeChange', () => {
 
     async function setActiveItem(activeItem: AgActiveItemState | undefined, frozen = false): Promise<void> {
         version ??= chart.getState().version;
-        await chart.setState({ version, active: { activeItem, frozen } as AgActiveState}); // undocumented frozen
+        await chart.setState({ version, active: { activeItem, frozen } as AgActiveState }); // undocumented frozen
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
