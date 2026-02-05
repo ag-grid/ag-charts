@@ -1116,9 +1116,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     updateCalloutLineNodes() {
         const { strokes } = this.properties;
         const { offset } = this.properties.calloutLabel;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
             const datum = line.closestDatum() as PieDonutNodeDatum;
+            const isDatumHighlighted =
+                seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
             const { length: calloutLength, strokeWidth, color, colors } = this.getCalloutLineStyle(datum, false);
             const calloutStrokeWidth = strokeWidth;
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
@@ -1128,7 +1132,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
-                line.strokeOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                line.strokeOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
