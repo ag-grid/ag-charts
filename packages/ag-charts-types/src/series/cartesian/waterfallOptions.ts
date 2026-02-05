@@ -72,6 +72,8 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Fixed width of each bar in the series. */
+    width?: PixelSize;
 }
 
 export interface AgWaterfallSeriesOptionsKeys<TDatum = DatumDefault> {

@@ -5,6 +5,7 @@ import {
     commonSeriesOptionsDefs,
     constant,
     positiveNumber,
+    positiveNumberNonZero,
     required,
     string,
     union,
@@ -30,4 +31,5 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
         },
         'a total definition options array'
     ),
+    width: positiveNumberNonZero,
 };
