@@ -565,6 +565,7 @@ test.describe('state', () => {
                 });
             });
 
+            /* // undocumented: frozen
             test.describe('frozen chart ignores mouse events', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
@@ -622,6 +623,7 @@ test.describe('state', () => {
                     expect(state.active).toEqual(expectedFrozenState);
                 });
             });
+            */ // undocumented: frozen
 
             test.describe('setState when hovering clears hovered datum', () => {
                 test('screenshots', async ({ page }) => {
