@@ -48,6 +48,7 @@ import type { UpdateOpts } from '../updateService';
 import { type IPickManager, PickManager, type PickedNode, type PickedNodes } from './pickManager';
 import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -868,9 +869,12 @@ export class SeriesAreaManager extends BaseManager {
         if (active === undefined) return;
 
         this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
-        if (this.chart.tooltip.enabled && active.datum.midPoint) {
-            const { x: canvasX, y: canvasY } = active.series.toCanvasFromMidPoint(active.datum);
-            this.showTooltip(active, canvasX, canvasY, paginationState);
+        const refPoint = getDatumRefPoint(active.series, active.datum, undefined);
+        if (this.chart.tooltip.enabled) {
+            if (refPoint) {
+                const { canvasX, canvasY } = refPoint;
+                this.showTooltip(active, canvasX, canvasY, paginationState);
+            }
         }
     }
 
