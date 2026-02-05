@@ -931,7 +931,6 @@ export class SeriesAreaManager extends BaseManager {
             }
         } else {
             this.showTooltip(active, canvasX, canvasY, paginationState);
-            this.hoverDevice = 'pointer';
         }
     }
 
