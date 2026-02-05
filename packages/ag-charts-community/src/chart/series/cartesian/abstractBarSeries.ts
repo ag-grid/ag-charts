@@ -221,10 +221,15 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     private getBarWidth() {
         const { seriesGrouping } = this;
-        const { width, widthRatio } = this.properties;
+        const { width } = this.properties;
+        let { widthRatio } = this.properties;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const bandwidth = groupScale?.bandwidth ?? 0;
+
+        if (seriesGrouping == null) {
+            widthRatio ??= 1;
+        }
 
         if (widthRatio != null) {
             let relativeWidth = width;
@@ -232,6 +237,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             // Ungrouped bars with widthRatio but no fixed width use a percentage of the full width of the band.
             if (seriesGrouping == null && relativeWidth == null && groupScale) {
                 relativeWidth = this.getGroupScaleRangeWidth(groupScale);
+            }
+
+            // For high-volume bar charts, ignore the widthRatio when applied against the bandwidth.
+            if (relativeWidth == null && bandwidth < 1 && groupScale) {
+                return groupScale.rawBandwidth;
             }
 
             // Grouped bars, or ungrouped with a fixed width, fallback to a percentage of the calculated bandwidth.
