@@ -1288,7 +1288,7 @@ test.describe('state', () => {
                 });
 
                 test('screenshots', async ({ page }) => {
-                    //await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
+                    await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
 
                     await hoverMiss(page);
                     await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
