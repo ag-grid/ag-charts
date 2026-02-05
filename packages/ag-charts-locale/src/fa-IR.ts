@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'حداقل',
     ariaLabelNavigatorRange: 'محدوده',
     ariaLabelRangesToolbar: 'محدوده‌ها',
+    ariaLabelScrollbarHorizontal: 'نوار پیمایش محور X',
+    ariaLabelScrollbarVertical: 'نوار پیمایش محور Y',
     ariaLabelSettingsTabBar: 'تنظیمات',
     ariaLabelZoomToolbar: 'بزرگنمایی',
     ariaRoleDescription2DSlider: 'اسلایدر ۲ بعدی',

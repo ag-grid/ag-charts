@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelNavigatorMinimum: '최소',
     ariaLabelNavigatorRange: '범위',
     ariaLabelRangesToolbar: '범위',
+    ariaLabelScrollbarHorizontal: 'X축 스크롤바',
+    ariaLabelScrollbarVertical: 'Y-축 스크롤바',
     ariaLabelSettingsTabBar: '설정',
     ariaLabelZoomToolbar: '확대',
     ariaRoleDescription2DSlider: '2D 슬라이더',

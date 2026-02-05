@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Bereik',
     ariaLabelRangesToolbar: 'Bereiken',
+    ariaLabelScrollbarHorizontal: 'X-as schuifbalk',
+    ariaLabelScrollbarVertical: 'Y-as schuifbalk',
     ariaLabelSettingsTabBar: 'Instellingen',
     ariaLabelZoomToolbar: 'Zoom',
     ariaRoleDescription2DSlider: '2D schuifregelaar',

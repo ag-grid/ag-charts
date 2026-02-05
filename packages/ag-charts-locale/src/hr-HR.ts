@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Raspon',
     ariaLabelRangesToolbar: 'Rasponi',
+    ariaLabelScrollbarHorizontal: 'Klizač za vodoravnu os (X-os)',
+    ariaLabelScrollbarVertical: 'klizna traka za Y-os',
     ariaLabelSettingsTabBar: 'Postavke',
     ariaLabelZoomToolbar: 'Zum',
     ariaRoleDescription2DSlider: '2D klizač',

@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaLabelNavigatorMinimum: '最小',
     ariaLabelNavigatorRange: '範圍',
     ariaLabelRangesToolbar: '範圍',
+    ariaLabelScrollbarHorizontal: 'X軸滾動條',
+    ariaLabelScrollbarVertical: 'Y 軸捲軸',
     ariaLabelSettingsTabBar: '設定',
     ariaLabelZoomToolbar: '縮放',
     ariaRoleDescription2DSlider: '二维滑块',

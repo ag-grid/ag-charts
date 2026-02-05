@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelNavigatorMinimum: '最小',
     ariaLabelNavigatorRange: '範囲',
     ariaLabelRangesToolbar: '範囲',
+    ariaLabelScrollbarHorizontal: 'X軸スクロールバー',
+    ariaLabelScrollbarVertical: 'Y軸スクロールバー',
     ariaLabelSettingsTabBar: '設定',
     ariaLabelZoomToolbar: 'ズーム',
     ariaRoleDescription2DSlider: '2Dスライダー',

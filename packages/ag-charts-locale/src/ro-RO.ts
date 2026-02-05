@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minim',
     ariaLabelNavigatorRange: 'Interval',
     ariaLabelRangesToolbar: 'Intervale',
+    ariaLabelScrollbarHorizontal: 'Bara de derulare a axei X',
+    ariaLabelScrollbarVertical: 'Scrollbar axă Y',
     ariaLabelSettingsTabBar: 'Setări',
     ariaLabelZoomToolbar: 'Zoomare',
     ariaRoleDescription2DSlider: 'Cursor 2D',

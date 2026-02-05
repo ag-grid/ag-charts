@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Zakres',
     ariaLabelRangesToolbar: 'Zakresy',
+    ariaLabelScrollbarHorizontal: 'Pasek przewijania osi X',
+    ariaLabelScrollbarVertical: 'Pasek przewijania osi Y',
     ariaLabelSettingsTabBar: 'Ustawienia',
     ariaLabelZoomToolbar: 'Powiększenie',
     ariaRoleDescription2DSlider: 'Suwak 2D',

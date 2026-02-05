@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimo',
     ariaLabelNavigatorRange: 'Intervallo',
     ariaLabelRangesToolbar: 'Intervalli',
+    ariaLabelScrollbarHorizontal: "Barra di scorrimento dell'asse X",
+    ariaLabelScrollbarVertical: 'Barra di scorrimento asse Y',
     ariaLabelSettingsTabBar: 'Impostazioni',
     ariaLabelZoomToolbar: 'Zoom',
     ariaRoleDescription2DSlider: 'cursore 2D',
