@@ -11982,7 +11982,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
   },
   "keyboard": {
     "enabled": true,
