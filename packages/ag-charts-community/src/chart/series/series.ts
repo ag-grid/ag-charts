@@ -500,7 +500,7 @@ export abstract class Series<
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? 'cutout' : 'overlay';
+        return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
     }
 
     readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
