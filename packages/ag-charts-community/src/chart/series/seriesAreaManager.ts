@@ -900,7 +900,6 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
         } else {
             this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum, false);
-            this.hoverDevice = 'pointer';
         }
     }
 
