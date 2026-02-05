@@ -879,6 +879,48 @@ describe('PieSeries', () => {
         });
     });
 
+    describe('AG-16665 downloaded image excludes hidden sectors', () => {
+        let chartProxy: AgChartProxy;
+
+        beforeEach(async () => {
+            const testOptions: AgPolarChartOptions = prepareTestOptions({
+                data: [
+                    { name: 'A (deselected)', value: 10 },
+                    { name: 'B', value: 20 },
+                    { name: 'C', value: 30 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
+            });
+            chartProxy = AgCharts.create(testOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+        });
+
+        test('should exclude hidden sectors from downloaded image', async () => {
+            // Get first legend item coordinates
+            const [{ x, y }] = [...iterLegendMarkerLabels(chart)];
+
+            // Hide sector by clicking legend item
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            // Take snapshot of current chart state (with hidden sector)
+            const reference = ctx.snapshot();
+
+            // Get downloaded image
+            const canvasCount = ctx.getActiveCanvasInstances().length;
+            const imageURL = await chartProxy.getImageDataURL();
+            const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
+            expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+            // Verify downloaded image matches current chart (both should have hidden sector)
+            const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+            expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(
+                reference
+            );
+        });
+    });
+
     describe('applyTransaction', () => {
         let chartProxy: AgChartProxy;
         let pieSeries: PieSeries;

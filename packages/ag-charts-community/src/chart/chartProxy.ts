@@ -14,6 +14,7 @@ import type {
     AgChartOptions,
     AgChartState,
     AgDataTransaction,
+    AgInitialStateLegendOptions,
     DownloadOptions,
     ImageDataUrlOptions,
 } from 'ag-charts-types';
@@ -22,7 +23,6 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
-import type { CategoryLegendDatum } from './legend/legendDatum';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
@@ -291,52 +291,22 @@ export class AgChartInstanceProxy implements AgChartProxy {
             optionsMetadata,
             data
         );
+
+        if (state.legend) {
+            this.syncLegend(chart, cloneProxy, state);
+        }
+
+        // prepared chart is updated so everything is configured before state is restored
+        cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        await cloneProxy.waitForUpdate();
         await cloneProxy.setState(state);
 
         // sync zoom
         const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
         cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.zoomManager.getZoom());
 
-        const cloneChart = cloneProxy.chart;
-        if (cloneChart) {
-            const seriesIdMap = new Map<string, string>();
-            for (const [index, series] of chart.series.entries()) {
-                const cloneSeries = cloneChart.series[index];
-                if (!cloneSeries) continue;
-                seriesIdMap.set(series.id, cloneSeries.id);
-                cloneSeries.visible = series.visible; // sync series visibility
-            }
-
-            // sync legend data (including per-item visibility)
-            const legendManager = cloneChart.ctx.legendManager;
-            const legendData = chart.ctx.legendManager.getData();
-            const remappedLegendData: CategoryLegendDatum[] = legendData.map((datum) => {
-                const mappedSeriesId = seriesIdMap.get(datum.seriesId);
-                if (!mappedSeriesId || mappedSeriesId === datum.seriesId) {
-                    return datum;
-                }
-                return {
-                    ...datum,
-                    seriesId: mappedSeriesId,
-                    id: datum.id === datum.seriesId ? mappedSeriesId : datum.id,
-                };
-            });
-
-            legendManager.clearData();
-            const legendDataBySeries = new Map<string, CategoryLegendDatum[]>();
-            for (const datum of remappedLegendData) {
-                const seriesLegendData = legendDataBySeries.get(datum.seriesId);
-                if (seriesLegendData) {
-                    seriesLegendData.push(datum);
-                } else {
-                    legendDataBySeries.set(datum.seriesId, [datum]);
-                }
-            }
-            for (const [seriesId, seriesLegendData] of legendDataBySeries) {
-                legendManager.updateData(seriesId, seriesLegendData);
-            }
-            legendManager.update(remappedLegendData);
-        }
+        cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        await cloneProxy.waitForUpdate();
 
         // Sync legend pagination
         const legendPages = [];
@@ -352,6 +322,22 @@ export class AgChartInstanceProxy implements AgChartProxy {
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
         return cloneProxy;
+    }
+
+    private syncLegend(chart: Chart, cloneProxy: AgChartProxy, state: AgChartState) {
+        const seriesIdMap = new Map<string, string>();
+        for (const [index, series] of chart.series.entries()) {
+            const cloneSeries = cloneProxy.chart?.series[index];
+            if (!cloneSeries) continue;
+            seriesIdMap.set(series.id, cloneSeries.id);
+        }
+
+        state.legend = state.legend?.map((legend: AgInitialStateLegendOptions) => {
+            return {
+                ...legend,
+                seriesId: seriesIdMap.get(legend.seriesId ?? '') ?? legend.seriesId,
+            };
+        });
     }
 
     private getEnabledOriginators(): MementoOriginator<unknown>[] {
