@@ -2231,7 +2231,16 @@ describe('BarSeries', () => {
                 {},
             ],
             [
-                'mixed grouped and ungrouped series',
+                'grouped series width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+                ],
+                {},
+            ],
+            [
+                'mixed grouped and ungrouped series width ratio',
                 [
                     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
                     { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.75, grouped: false },

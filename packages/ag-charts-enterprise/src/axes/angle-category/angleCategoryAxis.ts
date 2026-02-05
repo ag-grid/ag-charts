@@ -1,7 +1,7 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { Property, type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
-import { loopSymmetrically } from '../../utils/polar';
+import { walkPairsOutward } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
@@ -63,7 +63,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
             if (spacing > minSpacing) {
                 // Filter ticks by step
                 const visibleTicks = new Set([startTick]);
-                loopSymmetrically(ticks, step, (_, next) => {
+                walkPairsOutward(ticks, step, (_, next) => {
                     visibleTicks.add(next);
                 });
                 return ticks.map((value) => {
@@ -101,9 +101,9 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
         const maxStep = Math.floor(labelData.length / 2);
         for (let step = 1; step <= maxStep; step++) {
             const labels = lastLabelIsOverFirst ? labelData.slice(0, -1) : labelData;
-            const collisionDetected = loopSymmetrically(labels, step, labelsCollide);
+            const collisionDetected = walkPairsOutward(labels, step, labelsCollide);
             if (!collisionDetected) {
-                loopSymmetrically(labels, step, (_, next) => {
+                walkPairsOutward(labels, step, (_, next) => {
                     visibleLabels.add(next);
                 });
                 break;

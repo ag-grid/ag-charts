@@ -392,6 +392,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const changedAxes = this.computeChangedAxesIds(changes);
         const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);
         const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
+
         for (const id of changedAxes) {
             const axis = newState[id];
             if (axis != undefined) {
@@ -602,14 +603,17 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
-        if (requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y) return;
-        if (
-            (this.lastRestoredRequiredRangeDirection === requiredRangeDirection &&
-                this.lastRestoredRequiredRange === requiredRangeRatio) ||
-            requiredRangeRatio === 0
-        ) {
-            return;
-        }
+        const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
+
+        const directionInvalid =
+            requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y;
+        const requiredRangeUnchanged =
+            lastRestoredRequiredRangeDirection === requiredRangeDirection &&
+            lastRestoredRequiredRange === requiredRangeRatio;
+        const requiredRangeUnset =
+            requiredRangeRatio === 0 && (lastRestoredRequiredRange == null || lastRestoredRequiredRange === 0);
+
+        if (directionInvalid || requiredRangeUnchanged || requiredRangeUnset) return;
 
         const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
@@ -642,6 +646,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
+
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-requiredWidth',

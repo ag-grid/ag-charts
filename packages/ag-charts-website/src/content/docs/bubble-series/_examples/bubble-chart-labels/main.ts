@@ -80,7 +80,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function updateFontSize(event: any) {
-    var value = +event.target.value;
+    const value = Number(event.target.value);
 
     (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
     (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;

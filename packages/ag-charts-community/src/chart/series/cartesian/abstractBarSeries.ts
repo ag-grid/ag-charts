@@ -210,6 +210,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         } else if (this.seriesGrouping == null && groupScale) {
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
+        } else if (groupScale && this.properties.widthRatio != null) {
+            barOffset = (groupScale.bandwidth - barWidth) / 2;
         }
 
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
@@ -218,6 +220,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     private getBarWidth() {
+        const { seriesGrouping } = this;
         const { width, widthRatio } = this.properties;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
@@ -225,9 +228,13 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         if (widthRatio != null) {
             let relativeWidth = width;
-            if (relativeWidth == null && groupScale) {
+
+            // Ungrouped bars with widthRatio but no fixed width use a percentage of the full width of the band.
+            if (seriesGrouping == null && relativeWidth == null && groupScale) {
                 relativeWidth = this.getGroupScaleRangeWidth(groupScale);
             }
+
+            // Grouped bars, or ungrouped with a fixed width, fallback to a percentage of the calculated bandwidth.
             return (relativeWidth ?? bandwidth) * widthRatio;
         }
 
