@@ -8,22 +8,22 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Monthly Sales Data' },
     subtitle: {
-        text:
-            'Zoomed to show Jan-Apr. Click button to pan to October and highlight it.',
+        text: 'Zoomed to show Jan-Apr. Click button to pan to October and highlight it.',
     },
-    data:  [   { month: 'Jan', sales: 120 },
-    { month: 'Feb', sales: 145 },
-    { month: 'Mar', sales: 132 },
-    { month: 'Apr', sales: 178 },
-    { month: 'May', sales: 156 },
-    { month: 'Jun', sales: 189 },
-    { month: 'Jul', sales: 201 },
-    { month: 'Aug', sales: 167 },
-    { month: 'Sep', sales: 195 },
-    { month: 'Oct', sales: 220 },
-    { month: 'Nov', sales: 245 },
-    { month: 'Dec', sales: 280 },
-],
+    data: [
+        { month: 'Jan', sales: 120 },
+        { month: 'Feb', sales: 145 },
+        { month: 'Mar', sales: 132 },
+        { month: 'Apr', sales: 178 },
+        { month: 'May', sales: 156 },
+        { month: 'Jun', sales: 189 },
+        { month: 'Jul', sales: 201 },
+        { month: 'Aug', sales: 167 },
+        { month: 'Sep', sales: 195 },
+        { month: 'Oct', sales: 220 },
+        { month: 'Nov', sales: 245 },
+        { month: 'Dec', sales: 280 },
+    ],
     listeners: {
         activeChange: (ev) => {
             console.log(JSON.stringify(ev));
@@ -51,26 +51,25 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
-const DESIRED_STATE: Pick<AgChartState, 'zoom'|'active'>  =           {
+const DESIRED_STATE: Pick<AgChartState, 'zoom' | 'active'> = {
     zoom: {
-                ratioX: { start: 0.65, end: 1.0 },
-            },
-            active: {
-                activeItem: {
-                    type: 'series-node',
-                    seriesId: 'sales',
-                    itemId: 9,
-                },
-            },
+        ratioX: { start: 0.65, end: 1.0 },
+    },
+    active: {
+        activeItem: {
+            type: 'series-node',
+            seriesId: 'sales',
+            itemId: 9,
+        },
+    },
 };
 
-
 function onUpdateDelta() {
-    chart.updateDelta({initialState: DESIRED_STATE});
+    chart.updateDelta({ initialState: DESIRED_STATE });
 }
 
 function onSetState() {
-    chart.setState({version, ...DESIRED_STATE});
+    chart.setState({ version, ...DESIRED_STATE });
 }
 
 // For e2e testing:
