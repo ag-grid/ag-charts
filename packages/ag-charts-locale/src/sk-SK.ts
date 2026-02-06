@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimálne',
     ariaLabelNavigatorRange: 'Rozsah',
     ariaLabelRangesToolbar: 'Rozsahy',
+    ariaLabelScrollbarHorizontal: 'Posúvač osi X',
+    ariaLabelScrollbarVertical: 'Posuvník osi Y',
     ariaLabelSettingsTabBar: 'Nastavenia',
     ariaLabelZoomToolbar: 'Priblížiť',
     ariaRoleDescription2DSlider: '2D posuvník',

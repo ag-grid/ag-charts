@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'الحد الأدنى',
     ariaLabelNavigatorRange: 'المدى',
     ariaLabelRangesToolbar: 'النطاقات',
+    ariaLabelScrollbarHorizontal: 'شريط تمرير المحور السيني',
+    ariaLabelScrollbarVertical: 'شريط التمرير لمحور Y',
     ariaLabelSettingsTabBar: 'الإعدادات',
     ariaLabelZoomToolbar: 'تكبير',
     ariaRoleDescription2DSlider: 'منزلق ثنائي الأبعاد',

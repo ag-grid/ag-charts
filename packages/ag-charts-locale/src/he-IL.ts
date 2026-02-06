@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'מינימום',
     ariaLabelNavigatorRange: 'טווח',
     ariaLabelRangesToolbar: 'טווחים',
+    ariaLabelScrollbarHorizontal: 'סרגל גלילה של ציר ה-X',
+    ariaLabelScrollbarVertical: 'גלילת ציר Y',
     ariaLabelSettingsTabBar: 'הגדרות',
     ariaLabelZoomToolbar: 'זום',
     ariaRoleDescription2DSlider: 'מחוון דו-ממדי',

@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'کم از کم',
     ariaLabelNavigatorRange: 'حد',
     ariaLabelRangesToolbar: 'حدود',
+    ariaLabelScrollbarHorizontal: 'ایکس محور اسکرول بار',
+    ariaLabelScrollbarVertical: 'وائی محور اسکرول بار',
     ariaLabelSettingsTabBar: 'ترتیبات',
     ariaLabelZoomToolbar: 'زوم',
     ariaRoleDescription2DSlider: '2D سلائیڈر',

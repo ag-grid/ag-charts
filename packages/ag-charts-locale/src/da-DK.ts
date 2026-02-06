@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Rækkevidde',
     ariaLabelRangesToolbar: 'Områder',
+    ariaLabelScrollbarHorizontal: 'X-akse rullepanel',
+    ariaLabelScrollbarVertical: 'Y-akse rullepanel',
     ariaLabelSettingsTabBar: 'Indstillinger',
     ariaLabelZoomToolbar: 'Zoom',
     ariaRoleDescription2DSlider: '2D skyder',
