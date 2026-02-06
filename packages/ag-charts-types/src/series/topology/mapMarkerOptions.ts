@@ -17,7 +17,6 @@ import type {
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
 } from '../seriesOptions';
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
@@ -25,8 +24,6 @@ export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = Conte
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {}
-
-export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 
 export type AgMapMarkerSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
     AgMapMarkerSeriesOptionsNames;
