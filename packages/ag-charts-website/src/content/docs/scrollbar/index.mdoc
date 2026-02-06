@@ -1,5 +1,6 @@
 ---
 title: 'Scrollbar'
+description: 'Scrollbar provides panning navigation for zoomed or overflow chart data.'
 enterprise: true
 ---
 
@@ -7,6 +8,7 @@ The scrollbar provides an interface for panning around a chart.
 
 The Scrollbar becomes available when the chart is zoomed in or when fixed-width bars require more space than the series
 area. For fixed-width bar configuration, see the [Series Bars](./bars/#fixed-width) documentation.
+For other navigation features, see [Navigator](./navigator/) and [Zoom](./zoom/).
 
 ## Enabling the Scrollbar
 
@@ -51,8 +53,7 @@ With `visible: 'auto'`, the Scrollbar appears in these common scenarios:
 
 {% chartExampleRunner title="Scrollbar Initial Zoom" name="scrollbar-initial-zoom" type="generated" /%}
 
-To start in a zoomed state with the scrollbar visible, set an initial zoom state with the [Chart Initial State API](./api-state/#initial-state). This works without
-enabling zoom interactions:
+To start in a zoomed state with the scrollbar visible, set an initial zoom state with the [Chart Initial State API](./api-state/#initial-state). Only the `ScrollbarModule` needs to be registered; interactive zoom is not required:
 
 ```js format="snippet"
 {
@@ -69,12 +70,8 @@ enabling zoom interactions:
 The Scrollbar track mirrors native scrollbar behaviour:
 
 -   Clicking the track pages the thumb by one viewport width towards the click position.
--   If the click lands on the thumb, nothing moves.
--   Page increments clamp to the click position, so the thumb never overshoots the cursor.
--   Holding the mouse button down repeats the page increment after 400ms, then every 50ms.
--   Repeats stop when the thumb reaches the cursor, on mouse up, or when the pointer leaves the track perpendicularly.
--   Shift+Click jumps the thumb so the click is centred within the thumb (clamped at the ends).
--   All calculations use logical ratios (percentage of range), not pixels, for consistent behaviour at any size.
+-   Holding the mouse button down repeats the page increment automatically.
+-   Shift+Click jumps the thumb so the click is centred within the thumb.
 -   Dragging continues if the pointer moves away from the track, with the thumb clamped to the valid range.
 -   On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable hit
     target for dragging.
@@ -121,7 +118,7 @@ The `placement` property determines whether the Scrollbar appears inside or outs
 {
     scrollbar: {
         enabled: true,
-        placement: 'inner',
+        placement: 'outer',
         spacing: 8,
         tickSpacing: 6,
     },
@@ -168,7 +165,7 @@ In this configuration:
 -   `thumb.hoverStyle` customises the thumb colour on hover.
 
 Both `track` and `thumb` support standard fill and stroke options including `fill`, `stroke`, `fillOpacity`,
-`strokeWidth`, `lineDash`, `lineDashOffset`, `opacity`, and `cornerRadius`.
+`strokeOpacity`, `strokeWidth`, `lineDash`, `lineDashOffset`, `opacity`, and `cornerRadius`.
 
 ## Thumb Size and Disabled State
 

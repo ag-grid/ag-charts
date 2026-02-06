@@ -53,14 +53,4 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
-
-function updateWidthRatio(event: any) {
-    const value = Number(event.target?.value);
-    for (const series of options.series ?? []) {
-        if (!('widthRatio' in series)) continue;
-        series.widthRatio = value;
-    }
-    chart.update(options);
-    document.getElementById('widthRatioSliderValue')!.innerHTML = String(value);
-}
+AgCharts.create(options);

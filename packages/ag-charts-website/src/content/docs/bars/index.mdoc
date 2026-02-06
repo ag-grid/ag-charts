@@ -1,5 +1,6 @@
 ---
 title: 'Series Bars'
+description: 'Series Bars can have fixed widths in pixels or widths proportional to category bands.'
 ---
 
 Bar-like series can have fixed widths in pixels or widths proportional to the category bands.
@@ -97,9 +98,20 @@ The `width` and `widthRatio` options can be used on [Bar](./bar-series), [Box Pl
 
 ## Actual vs Target Bars
 
+Bars can be layered to create actual vs target comparisons by combining ungrouped and grouped series.
+
 {% chartExampleRunner title="Actual vs Target Bars" name="actual-target" type="generated" /%}
 
 In this example:
 
 -   The "Actual" series is ungrouped and has a width ratio of 0.7.
 -   The "Satisfactory" and "Excellent" target series are grouped, and so each takes up half the category's width.
+
+## API Reference
+
+For series-specific API details, refer to:
+
+-   [Bar Series API](./bar-series/#api-reference)
+-   [Box Plot Series API](./box-plot-series/#api-reference)
+-   [Range Bar Series API](./range-bar-series/#api-reference)
+-   [Waterfall Series API](./waterfall-series/#api-reference)
