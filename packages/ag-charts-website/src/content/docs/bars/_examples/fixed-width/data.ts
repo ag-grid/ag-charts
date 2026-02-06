@@ -1,130 +1,17 @@
-export function getData() {
+export interface DataType {
+    year: string;
+    visitors: number;
+}
+
+export function getData(): DataType[] {
     return [
-        {
-            year: new Date(2004, 0, 1),
-            cd: 17000,
-            digitalDownloads: 2500,
-            streaming: 0,
-        },
-        {
-            year: new Date(2005, 0, 1),
-            cd: 16000,
-            digitalDownloads: 3000,
-            streaming: 0,
-        },
-        {
-            year: new Date(2006, 0, 1),
-            cd: 14000,
-            digitalDownloads: 4000,
-            streaming: 100,
-        },
-        {
-            year: new Date(2007, 0, 1),
-            cd: 12000,
-            digitalDownloads: 5000,
-            streaming: 200,
-        },
-        {
-            year: new Date(2008, 0, 1),
-            cd: 11000,
-            digitalDownloads: 5500,
-            streaming: 400,
-        },
-        {
-            year: new Date(2009, 0, 1),
-            cd: 9000,
-            digitalDownloads: 6000,
-            streaming: 800,
-        },
-        {
-            year: new Date(2010, 0, 1),
-            cd: 7000,
-            digitalDownloads: 8000,
-            streaming: 1200,
-        },
-        {
-            year: new Date(2011, 0, 1),
-            cd: 6000,
-            digitalDownloads: 9000,
-            streaming: 2000,
-        },
-        {
-            year: new Date(2012, 0, 1),
-            cd: 5000,
-            digitalDownloads: 10000,
-            streaming: 3000,
-        },
-        {
-            year: new Date(2013, 0, 1),
-            cd: 4000,
-            digitalDownloads: 9500,
-            streaming: 6000,
-        },
-        {
-            year: new Date(2014, 0, 1),
-            cd: 3000,
-            digitalDownloads: 8000,
-            streaming: 9000,
-        },
-        {
-            year: new Date(2015, 0, 1),
-            cd: 2000,
-            digitalDownloads: 7000,
-            streaming: 12000,
-        },
-        {
-            year: new Date(2016, 0, 1),
-            cd: 1000,
-            digitalDownloads: 5000,
-            streaming: 15000,
-        },
-        {
-            year: new Date(2017, 0, 1),
-            cd: 500,
-            digitalDownloads: 3000,
-            streaming: 18000,
-        },
-        {
-            year: new Date(2018, 0, 1),
-            cd: 200,
-            digitalDownloads: 1500,
-            streaming: 20000,
-        },
-        {
-            year: new Date(2019, 0, 1),
-            cd: 100,
-            digitalDownloads: 1000,
-            streaming: 22000,
-        },
-        {
-            year: new Date(2020, 0, 1),
-            cd: 50,
-            digitalDownloads: 500,
-            streaming: 25000,
-        },
-        {
-            year: new Date(2021, 0, 1),
-            cd: 20,
-            digitalDownloads: 200,
-            streaming: 28000,
-        },
-        {
-            year: new Date(2022, 0, 1),
-            cd: 10,
-            digitalDownloads: 100,
-            streaming: 30000,
-        },
-        {
-            year: new Date(2023, 0, 1),
-            cd: 5,
-            digitalDownloads: 50,
-            streaming: 32000,
-        },
-        {
-            year: new Date(2024, 0, 1),
-            cd: 2,
-            digitalDownloads: 10,
-            streaming: 35000,
-        },
+        { year: '2016', visitors: 46636720 },
+        { year: '2017', visitors: 48772922 },
+        { year: '2018', visitors: 50800193 },
+        { year: '2019', visitors: 48023342 },
+        { year: '2020', visitors: 47271912 },
+        { year: '2021', visitors: 47155093 },
+        { year: '2022', visitors: 49441678 },
+        { year: '2023', visitors: 50368190 },
     ];
 }

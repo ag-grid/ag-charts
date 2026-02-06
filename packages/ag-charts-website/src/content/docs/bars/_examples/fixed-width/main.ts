@@ -2,83 +2,55 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BarSeriesModule,
-    LegendModule,
+    CategoryAxisModule,
     ModuleRegistry,
     NumberAxisModule,
-    OrdinalTimeAxisModule,
-    ScrollbarModule,
-} from 'ag-charts-enterprise';
+} from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([
-    BarSeriesModule,
-    LegendModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    ScrollbarModule,
-]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
+    theme: 'ag-default',
     title: {
-        text: 'Music Revenue Trends, 2004–2024',
-    },
-    subtitle: {
-        text: 'The Evolution of Music Formats',
+        text: 'Total Visitors to Museums and Galleries',
     },
     footnote: {
-        text: 'Data represents global music revenue (in millions of USD) by format, based on historical trends and estimates.',
+        text: 'Source: Department for Digital, Culture, Media & Sport',
     },
-    scrollbar: { enabled: true },
     series: [
         {
             type: 'bar',
             xKey: 'year',
-            yKey: 'cd',
-            yName: 'CD',
-            width: 20,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'streaming',
-            yName: 'Streaming',
-            width: 20,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'digitalDownloads',
-            yName: 'Digital Downloads',
-            width: 20,
+            yKey: 'visitors',
+            width: 30,
         },
     ],
     axes: {
         x: {
-            type: 'ordinal-time',
+            type: 'category',
+            title: {
+                text: 'Year',
+            },
+        },
+        y: {
+            type: 'number',
+            title: {
+                text: 'Total Visitors (Millions)',
+            },
+        },
+    },
+    formatter: {
+        y(params) {
+            const value = params.value as number;
+            const millions = value / 1_000_000;
+            const accuracy = ['series-label', 'axis-label'].includes(params.source) ? 0 : 1;
+            return `${millions.toFixed(accuracy)}M`;
         },
     },
 };
 
-const chart = AgCharts.create(options);
-
-function toggleFixedWidth() {
-    for (const series of options.series ?? []) {
-        if (!('width' in series)) continue;
-        series.width =
-            series.width == null ? Number(document.getElementById('fixedWidthSliderValue')!.innerHTML) : undefined;
-    }
-    chart.update(options);
-}
-
-function updateFixedWidth(event: any) {
-    const value = Number(event.target?.value);
-    for (const series of options.series ?? []) {
-        if (!('width' in series)) continue;
-        series.width = value;
-    }
-    chart.update(options);
-    document.getElementById('fixedWidthSliderValue')!.innerHTML = String(value);
-}
+AgCharts.create(options);

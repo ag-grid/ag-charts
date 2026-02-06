@@ -212,7 +212,7 @@ export interface AgAxisDiscreteTimeIntervalOptions
     placement?: AgAxisIntervalPlacement;
 }
 
-export type AgBandAlignmentOptions = 'justify' | 'start' | 'center' | 'end';
+export type AgBandAlignment = 'justify' | 'start' | 'center' | 'end';
 
 export interface AgCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisOptions<
@@ -236,7 +236,7 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
      *
      * Default: `'justify'`
      */
-    bandAlignment?: AgBandAlignmentOptions;
+    bandAlignment?: AgBandAlignment;
 }
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
@@ -315,7 +315,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
      *
      * Default: `'justify'`
      */
-    bandAlignment?: AgBandAlignmentOptions;
+    bandAlignment?: AgBandAlignment;
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
@@ -342,7 +342,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
      *
      * Default: `'justify'`
      */
-    bandAlignment?: AgBandAlignmentOptions;
+    bandAlignment?: AgBandAlignment;
 }
 
 export interface AgNumberAxisOptions<TContext = ContextDefault>

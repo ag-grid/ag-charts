@@ -14,6 +14,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     BandHighlightModule,
+    ContextMenuModule,
     LegendModule,
     RangeBarSeriesModule,
     UnitTimeAxisModule,
