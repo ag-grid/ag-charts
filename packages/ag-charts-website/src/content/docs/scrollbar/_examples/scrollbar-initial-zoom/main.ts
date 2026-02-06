@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgScrollbarPlacement,
     BarSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -17,6 +16,9 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Museum Visitors',
+    },
+    subtitle: {
+        text: 'Initial zoom positions the scrollbar on load',
     },
     data: getData(),
     series: [
@@ -38,10 +40,6 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'ordinal-time',
-            position: 'bottom',
-            title: {
-                text: 'Date',
-            },
             interval: { maxSpacing: 200 },
         },
         y: {
@@ -53,18 +51,12 @@ const options: AgCartesianChartOptions = {
     },
     scrollbar: {
         enabled: true,
-        placement: 'outer',
-        spacing: 8,
-        tickSpacing: 6,
     },
-    legend: {
-        enabled: false,
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.15, end: 0.5 },
+        },
     },
 };
 
 const chart = AgCharts.create(options);
-
-function setPlacement(value: AgScrollbarPlacement) {
-    options.scrollbar!.placement = value;
-    chart.update(options);
-}

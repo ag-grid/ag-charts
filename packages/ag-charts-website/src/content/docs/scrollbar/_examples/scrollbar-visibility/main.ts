@@ -2,17 +2,16 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgScrollbarVisibility,
-    LineSeriesModule,
+    BarSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
+    OrdinalTimeAxisModule,
     ScrollbarModule,
-    UnitTimeAxisModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, ScrollbarModule, UnitTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ScrollbarModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -22,34 +21,31 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     series: [
         {
-            type: 'line',
+            type: 'bar',
             xKey: 'date',
             yKey: 'Tate Modern',
-            stroke: '#c16068',
-            marker: { enabled: false },
+            yName: 'Tate Modern',
+            width: 12,
         },
         {
-            type: 'line',
+            type: 'bar',
             xKey: 'date',
             yKey: 'Tate Britain',
-            stroke: '#a2bf8a',
-            marker: { enabled: false },
+            yName: 'Tate Britain',
+            width: 12,
         },
     ],
     axes: {
         x: {
-            type: 'unit-time',
+            type: 'ordinal-time',
             interval: { maxSpacing: 200 },
         },
         y: {
             type: 'number',
             label: {
-                formatter: (params) => params.value / 1000 + 'k',
+                formatter: (params) => `${params.value / 1000}k`,
             },
         },
-    },
-    zoom: {
-        enabled: true,
     },
     scrollbar: {
         enabled: true,

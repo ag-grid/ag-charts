@@ -1,17 +1,16 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    LineSeriesModule,
+    BarSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
+    OrdinalTimeAxisModule,
     ScrollbarModule,
-    UnitTimeAxisModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, ScrollbarModule, UnitTimeAxisModule, ZoomModule]);
+ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ScrollbarModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -21,50 +20,48 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     series: [
         {
-            type: 'line',
+            type: 'bar',
             xKey: 'date',
             yKey: 'Tate Modern',
-            stroke: '#c16068',
-            marker: { enabled: false },
+            yName: 'Tate Modern',
+            width: 12,
         },
         {
-            type: 'line',
+            type: 'bar',
             xKey: 'date',
             yKey: 'Tate Britain',
-            stroke: '#a2bf8a',
-            marker: { enabled: false },
+            yName: 'Tate Britain',
+            width: 12,
         },
     ],
     axes: {
         x: {
-            type: 'unit-time',
-            interval: { maxSpacing: 200 },
+            type: 'ordinal-time',
+            position: 'bottom',
         },
         y: {
             type: 'number',
             label: {
-                formatter: (params) => params.value / 1000 + 'k',
+                formatter: (params) => `${params.value / 1000}k`,
             },
         },
     },
-    zoom: {
-        enabled: true,
-    },
-    initialState: { zoom: { ratioX: { start: 0, end: 0.4 } } },
     scrollbar: {
         enabled: true,
-        thickness: 16,
+        placement: 'inner',
+        thickness: 8,
+        spacing: 8,
         track: {
-            fill: '#e0e0e0',
-            stroke: '#bdbdbd',
-            strokeWidth: 1,
-            cornerRadius: 8,
+            fillOpacity: 0,
+            strokeWidth: 0,
         },
         thumb: {
-            fill: '#666666',
-            stroke: '#444444',
-            strokeWidth: 1,
+            fill: '#6b7280',
+            strokeWidth: 0,
             cornerRadius: 8,
+            hoverStyle: {
+                fill: '#374151',
+            },
         },
     },
 };
