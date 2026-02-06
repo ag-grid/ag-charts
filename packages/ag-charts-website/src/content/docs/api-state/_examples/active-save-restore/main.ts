@@ -47,7 +47,8 @@ const options: AgCartesianChartOptions<DataType> = {
         toggleSeries: false,
         listeners: {
             legendItemClick: () => {
-                console.log('Legend item clicked');
+                state = chart.getState();
+                console.log('Saved', state);
             },
         },
     },
