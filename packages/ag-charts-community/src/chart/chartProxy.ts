@@ -349,7 +349,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             modulesManager,
         } = this.chart;
 
-        const originators: MementoOriginator<unknown>[] = [this.chart.ctx.activeManager];
+        const originators: MementoOriginator<unknown>[] = [];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);
@@ -369,6 +369,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(legendManager);
         }
 
+        originators.push(this.chart.ctx.activeManager);
         return originators;
     }
 

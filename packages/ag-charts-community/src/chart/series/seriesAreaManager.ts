@@ -107,6 +107,10 @@ export class SeriesAreaManager extends BaseManager {
         lastHover: undefined as HoverLikeEvent | undefined,
     };
 
+    private readonly activeState = {
+        lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined | 'legend',
+    };
+
     /**
      * A11y Requirements for Tooltip/Highlight (see AG-13051 for details):
      *
@@ -227,6 +231,10 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.tooltip.lastHover != null) {
             this.handleHoverTooltip(this.tooltip.lastHover, true);
+        }
+
+        if (this.hoverDevice === 'setState') {
+            this.refreshSetState();
         }
     }
 
@@ -1123,17 +1131,34 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (this.hoverDevice === 'setState' && activeItem?.type === 'legend') {
-            this.clearHighlight();
-            this.clearTooltip();
+        if (activeItem?.type === 'legend') {
+            if (this.hoverDevice === 'setState') {
+                this.clearHighlight();
+                this.clearTooltip();
+            }
+            this.activeState.lastActive = 'legend';
         }
     }
 
     public onActiveClear() {
         this.pickManager.onClearAPI();
         this.hoverDevice = 'setState';
+        this.activeState.lastActive = undefined;
         this.clearHighlight();
         this.clearTooltip();
+    }
+
+    private refreshSetState(): void {
+        if (this.activeState.lastActive === undefined) {
+            this.clearAll();
+        } else if (this.activeState.lastActive !== 'legend') {
+            const { seriesId, itemId } = this.activeState.lastActive;
+            const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
+            if (desiredPickedNodes) {
+                this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+                this.hoverScheduler.schedule();
+            }
+        }
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
@@ -1146,6 +1171,7 @@ export class SeriesAreaManager extends BaseManager {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             event.setDatum(picked?.datum);
             this.hoverDevice = 'setState';
+            this.activeState.lastActive = { seriesId, itemId };
             if (event.initialState) {
                 // Tooltip positioning relies on call `getBoundingClientRect()` on the `<canvas>`, whose size is not
                 // yet initialised when applying `initialState`:

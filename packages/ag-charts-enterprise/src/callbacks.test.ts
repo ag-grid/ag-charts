@@ -55,6 +55,7 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
+    AgChartState,
     AgDataSourceCallbackParams,
 } from 'ag-charts-types';
 
@@ -2537,6 +2538,92 @@ describe('AG-15850 activeChange', () => {
             // Different position, same bar is nearest — no events
             await hover(500, 250);
             expect(popCalls()).toEqual([]);
+        });
+    });
+
+    describe('AG-16703 bar zoom and active restoration', () => {
+        function getDesiredState(): Pick<AgChartState, 'zoom' | 'active'> {
+            return {
+                zoom: {
+                    ratioX: { start: 0.65, end: 1 },
+                },
+                active: {
+                    activeItem: {
+                        type: 'series-node',
+                        seriesId: 'sales',
+                        itemId: 9,
+                    },
+                },
+            };
+        }
+
+        beforeEach(async () => {
+            await createChart({
+                data: [
+                    { month: 'Jan', sales: 120 },
+                    { month: 'Feb', sales: 145 },
+                    { month: 'Mar', sales: 132 },
+                    { month: 'Apr', sales: 178 },
+                    { month: 'May', sales: 156 },
+                    { month: 'Jun', sales: 189 },
+                    { month: 'Jul', sales: 201 },
+                    { month: 'Aug', sales: 167 },
+                    { month: 'Sep', sales: 195 },
+                    { month: 'Oct', sales: 220 },
+                    { month: 'Nov', sales: 245 },
+                    { month: 'Dec', sales: 280 },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'month',
+                        yKey: 'sales',
+                        yName: 'Sales',
+                        id: 'sales',
+                    },
+                ],
+                zoom: {
+                    enabled: true,
+                },
+                initialState: {
+                    zoom: {
+                        ratioX: { start: 0, end: 0.35 },
+                    },
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('updateDelta', async () => {
+            await chart.updateDelta({ initialState: getDesiredState() });
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        datum: { month: 'Oct', sales: 220 },
+                    },
+                ],
+            ]);
+        });
+
+        test('setState', async () => {
+            version ??= chart.getState().version;
+            await chart.setState({ version, ...getDesiredState() });
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        datum: { month: 'Oct', sales: 220 },
+                    },
+                ],
+            ]);
         });
     });
 });
