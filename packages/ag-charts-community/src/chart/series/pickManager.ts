@@ -77,7 +77,7 @@ export class PickManager implements IPickManager {
         private readonly focusState: { readonly series: UnknownSeries | undefined }
     ) {}
 
-    private get active(): PickedNode | undefined {
+    private getActive(): PickedNode | undefined {
         return this.activeState.stateValue();
     }
 
@@ -98,7 +98,7 @@ export class PickManager implements IPickManager {
     }
 
     private syncActiveManager(): void {
-        const resolved = this.active;
+        const resolved = this.getActive();
         const prev = this.lastNotifiedActive;
         if (resolved === prev) return;
         if (resolved !== undefined && prev !== undefined && pickedNodesEqual(resolved, prev)) return;
@@ -132,7 +132,7 @@ export class PickManager implements IPickManager {
 
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined {
         if (pickedNodes !== undefined) {
-            const previousActive = this.active;
+            const previousActive = this.getActive();
             if (this.tooltipProperties.pagination && previousActive !== undefined) {
                 const tooltipMatch = pickedNodes.matches.find((m) => pickedNodesEqual(m, previousActive));
                 if (tooltipMatch) {
@@ -148,7 +148,7 @@ export class PickManager implements IPickManager {
 
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate {
         if (pickedNodes !== undefined && this.tooltipProperties.pagination) {
-            const previous = this.active;
+            const previous = this.getActive();
             const nextCandidates = pickedNodes.matches;
 
             this.candidates = nextCandidates;
@@ -188,7 +188,8 @@ export class PickManager implements IPickManager {
 
     nextCandidate(): TooltipCandidate {
         if (this.tooltipProperties.pagination) {
-            const { candidates, active: previous } = this;
+            const { candidates } = this;
+            const previous = this.getActive();
             const hoverIndex = previous == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, previous));
             if (hoverIndex === -1) return { active: undefined, paginationState: undefined };
 
@@ -203,6 +204,6 @@ export class PickManager implements IPickManager {
             return { active: node, paginationState };
         }
 
-        return { active: this.active };
+        return { active: this.getActive() };
     }
 }
