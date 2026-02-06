@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require('node-fetch').default;
 
 const COMMITTED_ISSUES_FILTER = 11906;
 const PENDING_RC_ISSUES_FILTER = 11905;
