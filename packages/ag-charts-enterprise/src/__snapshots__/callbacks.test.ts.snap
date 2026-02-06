@@ -278,6 +278,26 @@ exports[`AG-15850 activeChange bar setState 3`] = `
 ]
 `;
 
+exports[`AG-15850 activeChange bar tooltip disabled (race condition) hover does not produce spurious activeChange events 1`] = `
+[
+  [
+    {
+      "activeItem": {
+        "itemId": 0,
+        "seriesId": "BarSeries-1",
+        "type": "series-node",
+      },
+      "datum": {
+        "iphone": 140,
+        "quarter": "Q1'18",
+      },
+      "source": "user-interaction",
+      "type": "activeChange",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 activeChange box-plot mouse 1`] = `
 [
   [
