@@ -257,16 +257,12 @@ export class ChartTheme {
                     avoidCollisions: true,
                     cornerRadius: 4,
                     border: {
-                        enabled: { $isUserOption: ['../border', true, false] },
+                        enabled: false,
                         strokeWidth: 1,
                         stroke: { $foregroundOpacity: 0.08 },
                     },
                     padding: {
-                        $if: [
-                            { $eq: [{ $path: './border/enabled' }, true] },
-                            { left: 12, right: 12, top: 8, bottom: 8 },
-                            undefined,
-                        ],
+                        $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
                     },
                 },
                 line: {
@@ -314,13 +310,16 @@ export class ChartTheme {
                                 fontSize: { $ref: 'fontSize' },
                                 fontFamily: { $ref: 'fontFamily' },
                                 fontWeight: { $ref: 'fontWeight' },
-                                padding: 5,
+                                padding: {
+                                    $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
+                                },
                                 color: { $ref: 'textColor' },
+                                cornerRadius: 4,
                                 border: {
                                     enabled: false,
-                                    stroke: { $ref: 'foregroundColor' },
+                                    stroke: { $foregroundOpacity: 0.08 },
                                     strokeOpacity: 1,
-                                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                                    strokeWidth: 1,
                                 },
                             },
                         },
@@ -363,7 +362,7 @@ export class ChartTheme {
                     strokeWidth: 1,
                 },
                 cornerRadius: 4,
-                padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
+                padding: { $if: [{ $path: './border/enabled' }, 5, 0] },
             },
             keyboard: { enabled: true },
             title: {

@@ -3,6 +3,7 @@ import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
+    Padding,
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -106,12 +107,11 @@ const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
 };
 
 class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
-    // TODO: The OptionsGraph autoEnable should set this to a boolean, the undefined should not be needed
     @Property
-    enabled: boolean | undefined = undefined;
+    enabled!: boolean;
 
     @Property
-    override padding: number = 5;
+    override padding: Padding = 5;
 
     @Property
     text?: string;
@@ -378,19 +378,31 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     private positionLabel(bounds: BBox) {
-        const { crossLineLabel, label, anchor } = this;
+        const {
+            crossLineLabel,
+            label: { padding, rotation },
+            anchor,
+        } = this;
 
-        crossLineLabel.rotation = toRadians(label.rotation ?? 0);
+        crossLineLabel.rotation = toRadians(rotation ?? 0);
 
         const bbox = crossLineLabel.getBBox();
         if (!bbox) return;
         const { width, height } = bbox;
 
-        const xOffset = label.padding + width / 2;
-        const yOffset = label.padding + height / 2;
+        const xPaddingDiff = typeof padding === 'number' ? 0 : (padding.right ?? 0) - (padding.left ?? 0);
+        const yPaddingDiff = typeof padding === 'number' ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0);
 
-        const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH;
-        const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV;
+        let xOffset = width / 2;
+        let yOffset = height / 2;
+
+        if (typeof padding === 'number' && !crossLineLabel.hasBoxing()) {
+            xOffset += padding;
+            yOffset += padding;
+        }
+
+        const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH - xPaddingDiff / 2;
+        const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV - yPaddingDiff / 2;
 
         crossLineLabel.x = x;
         crossLineLabel.y = y;
@@ -419,14 +431,20 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
-        const { label, anchor } = this;
+        const {
+            label: { padding },
+            anchor,
+        } = this;
 
         const size = this.computeLabelSize();
         if (!size) return;
         const { width, height } = size;
 
-        const xOffset = label.padding + width;
-        const yOffset = label.padding + height;
+        const xPadding = typeof padding === 'number' ? padding * 2 : (padding.left ?? 0) + (padding.right ?? 0);
+        const yPadding = typeof padding === 'number' ? padding * 2 : (padding.top ?? 0) + (padding.bottom ?? 0);
+
+        const xOffset = xPadding + width;
+        const yOffset = yPadding + height;
         const horizontal = this.position === 'left' || this.position === 'right';
 
         if (horizontal) {

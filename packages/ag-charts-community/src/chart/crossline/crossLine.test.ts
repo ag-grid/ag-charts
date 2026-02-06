@@ -64,6 +64,21 @@ const applyCrossLinesLabelPosition = (
     };
 };
 
+const applyCrossLinesLabelPositionFilled = (
+    crossLineOptions: AgCartesianCrossLineOptions,
+    position: AgCrossLineLabelPosition
+): AgCartesianCrossLineOptions => {
+    return {
+        ...crossLineOptions,
+        label: {
+            ...crossLineOptions.label,
+            position,
+            fill: 'red',
+            padding: { top: 10, right: 10, bottom: 30, left: 30 },
+        },
+    };
+};
+
 const mixinFlippedRangeCases = (
     baseRangeCases: Record<string, CartesianTestCase>
 ): Record<string, CartesianTestCase> => {
@@ -102,6 +117,25 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
                               ...axis,
                               crossLines: axis.crossLines.map((c: AgCartesianCrossLineOptions) =>
                                   applyCrossLinesLabelPosition(c, position)
+                              ),
+                          }
+                        : axis
+                ),
+            },
+        };
+    }
+
+    for (const position of ['top', 'right', 'bottom', 'left'] as const) {
+        result[`${position}_filled_LABEL_POSITION_CROSSLINES`] = {
+            ...example,
+            options: {
+                ...example.options,
+                axes: mapValues(example.options.axes ?? {}, (axis: any) =>
+                    axis.crossLines
+                        ? {
+                              ...axis,
+                              crossLines: axis.crossLines.map((c: AgCartesianCrossLineOptions) =>
+                                  applyCrossLinesLabelPositionFilled(c, position)
                               ),
                           }
                         : axis

@@ -26,6 +26,7 @@ import {
     object,
     optionsDefs,
     or,
+    padding,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -86,7 +87,7 @@ export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a tim
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    padding: number,
+    padding: padding,
     border: borderOptionsDef,
     cornerRadius: number,
     ...fontOptionsDef,
