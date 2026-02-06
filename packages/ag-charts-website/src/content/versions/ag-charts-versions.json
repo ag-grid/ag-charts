@@ -4,16 +4,20 @@
         "date": "February 11th, 2026",
         "highlights": [
             {
-                "text": "Fixed-Width Bars",
-                "path": "./bar-series"
+                "text": "Series Bar Width Customisation",
+                "path": "./bars"
             },
             {
-                "text": "Target/Value Bars",
-                "path": "./bar-series"
+                "text": "Actual vs Target Bars",
+                "path": "./bars"
             },
             {
                 "text": "Scrollbars",
                 "path": "./scrollbar"
+            },
+            {
+                "text": "Active Item State and Event",
+                "path": "./api-state/#active"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-13-1"

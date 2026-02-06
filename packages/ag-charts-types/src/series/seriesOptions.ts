@@ -54,8 +54,11 @@ export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefau
 }
 
 export interface AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions> {
+    /** Whether segmentation is enabled. */
     enabled?: boolean;
+    /** The axis key used for segmentation. */
     key: 'x' | 'y';
+    /** Configuration for each segment. */
     segments: SegmentOptions[];
 }
 

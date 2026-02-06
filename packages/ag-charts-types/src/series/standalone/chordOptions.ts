@@ -25,9 +25,9 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDef
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesNodeStyle> {
-    /** Label of the node */
+    /** Label of the node. */
     label: string | undefined;
-    /** Size of the node */
+    /** Size of the node. */
     size: number;
 }
 
@@ -92,7 +92,7 @@ export interface AgChordSeriesOptionsNames {
 }
 
 interface SizeParams {
-    /* Size of the link, or the computed size of the node */
+    /** Size of the link, or the computed size of the node. */
     size: number;
 }
 

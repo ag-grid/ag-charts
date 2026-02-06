@@ -76,7 +76,9 @@ export interface AgTooltipPositionOptions {
 }
 
 export interface AgTooltipRendererDataRow {
+    /** The label text for this data row. */
     label: string;
+    /** The value to display for this data row. */
     value: TextValue;
 }
 
