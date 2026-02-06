@@ -584,6 +584,9 @@ describe('ErrorBars', () => {
 
     it('should dim opacity on highlight', async () => {
         chart = await createEnterpriseChart({
+            highlight: {
+                drawingMode: 'cutout',
+            },
             series: [
                 { type: 'line', ...SERIES_CANADA },
                 { type: 'line', ...SERIES_AUSTRALIA, highlight: { unhighlightedSeries: { opacity: 0.3 } } },

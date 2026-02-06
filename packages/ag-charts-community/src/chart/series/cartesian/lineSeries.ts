@@ -747,7 +747,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 applyTranslation,
                 selected: datum.selected,
             });
-            node.drawingMode = drawingMode;
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
         });
 
         if (!isHighlight) {
