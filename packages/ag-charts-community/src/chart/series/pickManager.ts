@@ -1,9 +1,12 @@
 import { objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
+import { StateTracker } from '../../util/stateTracker';
 import type { ActiveManager } from '../interaction/activeManager';
 import type { PickFocusOutputs, UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+
+type ActiveSource = 'highlight' | 'tooltip' | 'focus';
 
 export interface PickedNode {
     series: UnknownSeries;
@@ -64,7 +67,8 @@ export interface IPickManager {
 export class PickManager implements IPickManager {
     private candidates: PickedNode[] = [];
 
-    private active: PickedNode | undefined;
+    private readonly activeState = new StateTracker<PickedNode, ActiveSource>();
+    private lastNotifiedActive: PickedNode | undefined;
     private pendingPickedNodes?: PickedNodes;
 
     constructor(
@@ -73,22 +77,40 @@ export class PickManager implements IPickManager {
         private readonly focusState: { readonly series: UnknownSeries | undefined }
     ) {}
 
+    private get active(): PickedNode | undefined {
+        return this.activeState.stateValue();
+    }
+
     private clear(): void {
-        this.active = undefined;
+        this.activeState.clear();
+        this.lastNotifiedActive = undefined;
         this.candidates.length = 0;
         this.pendingPickedNodes = undefined;
     }
 
-    private updateActive(active: PickedNode | undefined): PickedNode | undefined {
-        this.active = active;
-        if (this.active === undefined) {
+    private setSource(source: ActiveSource, node: PickedNode | undefined): void {
+        if (node === undefined) {
+            this.activeState.delete(source);
+        } else {
+            this.activeState.set(source, node);
+        }
+        this.syncActiveManager();
+    }
+
+    private syncActiveManager(): void {
+        const resolved = this.active;
+        const prev = this.lastNotifiedActive;
+        if (resolved === prev) return;
+        if (resolved !== undefined && prev !== undefined && pickedNodesEqual(resolved, prev)) return;
+
+        this.lastNotifiedActive = resolved;
+        if (resolved === undefined) {
             this.activeManager.clear();
         } else {
-            const seriesId: string = this.active.series.id;
-            const itemId: string | number = getItemId(this.active);
-            this.activeManager.update({ type: 'series-node', seriesId, itemId }, active?.datum);
+            const seriesId: string = resolved.series.id;
+            const itemId: string | number = getItemId(resolved);
+            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved.datum);
         }
-        return this.active;
     }
 
     private popPendingPickedNodes(): PickedNodes | undefined {
@@ -119,7 +141,9 @@ export class PickManager implements IPickManager {
             }
         }
 
-        return this.updateActive(pickedNodes?.matches[0]);
+        const node = pickedNodes?.matches[0];
+        this.setSource('highlight', node);
+        return node;
     }
 
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate {
@@ -131,13 +155,17 @@ export class PickManager implements IPickManager {
 
             let nextIndex = indexOf(nextCandidates, previous);
             if (nextIndex === -1) nextIndex = 0;
-            this.updateActive(nextCandidates[nextIndex]);
+
+            const node = nextCandidates[nextIndex];
+            this.setSource('tooltip', node);
 
             const paginationState = { index: nextIndex, length: nextCandidates.length };
-            return { active: this.active, paginationState };
+            return { active: node, paginationState };
         }
 
-        return { active: this.updateActive(pickedNodes?.matches[0]) };
+        const node = pickedNodes?.matches[0];
+        this.setSource('tooltip', node);
+        return { active: node };
     }
 
     onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void {
@@ -145,7 +173,7 @@ export class PickManager implements IPickManager {
         this.clear();
         if (series !== undefined && pickedFocus !== undefined) {
             const { datum, datumIndex } = pickedFocus;
-            this.updateActive({ series, datum, datumIndex });
+            this.setSource('focus', { series, datum, datumIndex });
         }
     }
 
@@ -168,10 +196,11 @@ export class PickManager implements IPickManager {
             if (nextIndex >= candidates.length) {
                 nextIndex = 0;
             }
-            const nextActive = this.updateActive(candidates[nextIndex]);
+            const node = candidates[nextIndex];
+            this.setSource('tooltip', node);
 
             const paginationState = { index: nextIndex, length: this.candidates.length };
-            return { active: nextActive, paginationState };
+            return { active: node, paginationState };
         }
 
         return { active: this.active };
