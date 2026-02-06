@@ -169,6 +169,7 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -1118,6 +1119,13 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onActiveDatum(event.activeItem, event);
             default:
                 return event.activeItem?.type satisfies undefined;
+        }
+    }
+
+    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
+        if (this.hoverDevice === 'setState' && activeItem?.type === 'legend') {
+            this.clearHighlight();
+            this.clearTooltip();
         }
     }
 
