@@ -2503,4 +2503,40 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
     });
+
+    describe('bar tooltip disabled (race condition)', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [{ quarter: "Q1'18", iphone: 140 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        tooltip: { enabled: false },
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('hover does not produce spurious activeChange events', async () => {
+            // Hover in the series area — highlight picks bar, tooltip picks nothing
+            await hover(400, 300);
+            const firstCalls = popCalls();
+            expect(firstCalls.length).toBe(1);
+            expect(firstCalls).toMatchSnapshot();
+
+            // Same position again — no state change, no events
+            await hover(400, 300);
+            expect(popCalls()).toEqual([]);
+
+            // Different position, same bar is nearest — no events
+            await hover(500, 250);
+            expect(popCalls()).toEqual([]);
+        });
+    });
 });
