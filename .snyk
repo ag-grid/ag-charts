@@ -62,11 +62,11 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-11-20T10:29:00.007Z
     SNYK-JS-MODELCONTEXTPROTOCOLSDK-14171914:
-        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.17.1':
+        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.26.0':
               reason: Only used for development
               expires: 2026-06-08T12:00:00.000Z
               created: 2025-12-03T14:34:00.007Z
-        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.17.1':
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0':
               reason: Only used for development
               expires: 2026-06-08T12:00:00.000Z
               created: 2025-12-03T14:34:00.007Z
@@ -84,25 +84,25 @@ ignore:
                   qs is only used in controlled scripts
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-05T10:10:00.000Z
-        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.17.1 > express@5.1.0 > body-parser@2.2.0 > qs@6.14.0':
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.0 > qs@6.14.0':
               reason: >-
                   qs is only used during development so an attack would only affect
                   developer machines
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-05T10:10:00.000Z
-        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.17.1 > express@5.1.0 > body-parser@2.2.0 > qs@6.14.0':
+        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.0 > qs@6.14.0':
               reason: >-
                   qs is only used during development so an attack would only affect
                   developer machines
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-05T10:10:00.000Z
-        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.17.1 > express@5.1.0 > qs@6.14.0':
+        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
               reason: >-
                   qs is only used during development so an attack would only affect
                   developer machines
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-05T10:10:00.000Z
-        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.17.1 > express@5.1.0 > qs@6.14.0':
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
               reason: >-
                   qs is only used during development so an attack would only affect
                   developer machines
@@ -120,14 +120,32 @@ ignore:
                   developer machines
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-12T10:10:00.000Z
+        - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+              reason: >-
+                  qs is only used during development so an attack would only affect
+                  developer machines
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-02-06T10:30:00.000Z
+        - '@modelcontextprotocol/server-sequential-thinking@2025.7.1 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+              reason: >-
+                  qs is only used during development so an attack would only affect
+                  developer machines
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-02-06T10:30:00.000Z
+        - 'rulesync@5.2.0 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+              reason: >-
+                  qs is only used during development so an attack would only affect
+                  developer machines
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-02-06T10:30:00.000Z
     SNYK-JS-MODELCONTEXTPROTOCOLSDK-14871802:
-        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.17.1':
+        - '@kazuph/mcp-fetch@1.5.0 > @modelcontextprotocol/sdk@1.26.0':
               reason: >-
                   mcp-fetch is only used during development so an attack would only affect
                   developer machines
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-01-05T10:10:00.000Z
-        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.17.1':
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0':
               reason: >-
                   @upstash/context7-mcp is only used during development so an attack would only affect
                   developer machines
