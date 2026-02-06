@@ -1005,7 +1005,6 @@ export class SeriesAreaManager extends BaseManager {
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
-        const isTooltipIntent = intent === 'tooltip';
 
         const clickIntent = intent === 'event' || intent === 'context-menu';
         const tooltipIntent = intent === 'tooltip' || intent === 'highlight-tooltip';
@@ -1019,7 +1018,6 @@ export class SeriesAreaManager extends BaseManager {
         const { x, y } = point;
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
-            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
             if (series.visible && series.contentGroup.visible && getIntentRange(series) === 'area') {
                 if (series.isPointInArea?.(x, y)) {
                     seriesContainingPoint.add(series);
@@ -1032,7 +1030,6 @@ export class SeriesAreaManager extends BaseManager {
         let result: PickedNodes | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.contentGroup.visible) continue;
-            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
 
             // If we found series with 'area' range containing the point, prefer those series.
             if (hasSeriesContainingPoint) {

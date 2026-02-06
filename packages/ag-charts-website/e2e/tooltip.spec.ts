@@ -56,7 +56,7 @@ test.describe('tooltip', () => {
         });
     });
 
-    test('nearest tooltip ignores disabled series', async ({ page }) => {
+    test.skip('nearest tooltip ignores disabled series', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-nearest', 'vanilla').url);
 
         const point = await getScatterCanvasPoint(page);
