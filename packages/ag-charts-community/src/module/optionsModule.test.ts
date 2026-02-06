@@ -460,6 +460,37 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('tooltip range warnings', () => {
+        it('warns when tooltip.range is set to area for non-area series', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', tooltip: { range: 'area' } }],
+            });
+
+            const messages = (console.warn as jest.Mock).mock.calls.map(([message]) => String(message));
+            expect(messages.some((message) => message.includes('series[0].tooltip.range'))).toBe(true);
+            expect(messages.some((message) => /["'`]?area["'`]?/.test(message))).toBe(true);
+        });
+
+        it('allows tooltip.range to be set to area for area series', () => {
+            const options = prepareOptions({
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', tooltip: { range: 'area' } }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(options.series?.[0]?.tooltip?.range).toBe('area');
+        });
+
+        it('falls back to the default range when chart tooltip range is area for bar series', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                tooltip: { range: 'area' },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(options.series?.[0]?.tooltip?.range).toBe('exact');
+        });
+    });
+
     describe('#processSeriesOptions', () => {
         test('Simple series options processing works as expected', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });

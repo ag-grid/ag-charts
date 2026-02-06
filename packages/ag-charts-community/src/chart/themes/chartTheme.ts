@@ -457,7 +457,13 @@ export class ChartTheme {
             // TODO: remove this
             series: {
                 tooltip: {
-                    range: { $path: ['/tooltip/range', 'exact'] },
+                    range: {
+                        $if: [
+                            { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
+                            'exact',
+                            { $path: ['/tooltip/range', 'exact'] },
+                        ],
+                    },
                     position: {
                         anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
                         placement: { $path: ['/tooltip/position/placement', undefined] },

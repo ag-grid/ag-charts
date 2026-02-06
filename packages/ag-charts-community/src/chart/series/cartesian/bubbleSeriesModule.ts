@@ -44,7 +44,13 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             color: { $ref: 'textColor' },
         },
         tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
+            range: {
+                $if: [
+                    { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
+                    'nearest',
+                    { $path: ['/tooltip/range', 'nearest'] },
+                ],
+            },
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
