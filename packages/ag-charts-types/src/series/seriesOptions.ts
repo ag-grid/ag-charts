@@ -5,6 +5,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/co
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
 
 export interface AgSeriesHighlightSeriesStyle {
+    /** Whether series highlight styling is enabled. */
     enabled?: boolean;
     /** The opacity of the whole series (area line, area fill, labels and markers, if any) when another chart series or another stack level in the same area series is highlighted by hovering a data point or a legend item. Use `undefined` or `1` for no dimming. */
     dimOpacity?: Opacity;
@@ -71,8 +72,11 @@ export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefau
 }
 
 export interface AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions> {
+    /** Whether segmentation is enabled. */
     enabled?: boolean;
+    /** The axis key used for segmentation. */
     key: 'x' | 'y';
+    /** Configuration for each segment. */
     segments: SegmentOptions[];
 }
 

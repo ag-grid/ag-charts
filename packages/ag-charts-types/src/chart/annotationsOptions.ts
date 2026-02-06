@@ -52,23 +52,31 @@ export interface AgAnnotationAxesButtons extends Toggleable {
     axes?: 'x' | 'y' | 'xy';
 }
 
+/** Configuration for annotation drag handle styling. */
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
 // Lines
 export interface AgLineAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
+    /** Configuration for the line text. */
     text?: AgLineAnnotationTextStyles;
 }
 
 export interface AgCrossLineAnnotationStyles extends Writeable, Visible, StrokeOptions, LineOptions {
+    /** Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
+    /** Configuration for the drag handle. */
     handle?: AgAnnotationHandleStyles;
+    /** Configuration for the line text. */
     text?: AgLineAnnotationTextStyles;
 }
 
 // Channels
+/** Configuration for disjoint channel annotation styling. */
 export interface AgDisjointChannelAnnotationStyles extends AgChannelAnnotationStyles {}
 export interface AgParallelChannelAnnotationStyles extends AgChannelAnnotationStyles {
+    /** Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
 }
 
@@ -90,11 +98,14 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
 
 // Texts
 export interface AgTextAnnotationStyles extends TextOptions, Writeable, Visible {
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
 }
 
+/** Configuration for callout annotation styling. */
 export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
+/** Configuration for comment annotation styling. */
 export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
@@ -104,24 +115,33 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 
 // Shapes
 export interface AgShapeAnnotationStyles extends Writeable, Visible, FillOptions {
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
 }
 
 // Measurers
 export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Writeable, Visible {
+    /** Configuration for the background fill. */
     background?: FillOptions;
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
+    /** Configuration for the statistics display. */
     statistics?: AgMeasurerAnnotationStatistics;
+    /** Configuration for the line text. */
     text?: AgLineAnnotationTextStyles;
 }
 
 export interface AgQuickMeasurerAnnotationStyles extends Visible {
+    /** Configuration for the annotation when measuring up the y-axis. */
     up?: AgQuickMeasurerAnnotationDirectionStyles;
+    /** Configuration for the annotation when measuring down the y-axis. */
     down?: AgQuickMeasurerAnnotationDirectionStyles;
 }
 
 export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
+    /** Configuration for the statistics display. */
     statistics?: AgMeasurerAnnotationStatistics;
 }
 
@@ -239,6 +259,7 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // ***********************
 // * Channel Annotations *
 // ***********************/
+/** Configuration for channel annotation styling. */
 export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
@@ -400,10 +421,12 @@ export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, V
 }
 
 export interface AgMeasurerAnnotationDirection extends FillOptions, StrokeOptions {
+    /** Configuration for the statistics display. */
     statistics?: AgMeasurerAnnotationStatistics;
 }
 
 export interface AgMeasurerAnnotationStatistics extends TextOptions, FillOptions, StrokeOptions {
+    /** Configuration for the divider line between statistics. */
     divider?: StrokeOptions;
 }
 
@@ -418,12 +441,16 @@ export interface LineOptions extends LineDashOptions {
     lineStyle?: AgAnnotationLineStyleType;
 }
 
+/** Configuration for annotation drag handles. */
 export interface AgAnnotationHandle extends AgAnnotationHandleStyles {}
 
+/** Configuration for the middle line in a parallel channel annotation. */
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
 
+/** Configuration for channel annotation background fill. */
 export interface AgChannelAnnotationBackground extends FillOptions {}
 
+/** Configuration for note annotation background. */
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 
 export interface AgAnnotationAxisLabel
@@ -442,20 +469,26 @@ export interface AgAnnotationLabelFormatterParams {
 }
 
 export interface AgLineAnnotationText extends AgLineAnnotationTextStyles {
+    /** The text to display on the annotation. */
     label?: string;
 }
 
 export interface AgChannelAnnotationText extends AgChannelAnnotationTextStyles {
+    /** The text to display on the annotation. */
     label?: string;
 }
 
 export interface AgLineAnnotationTextStyles extends TextOptions {
+    /** The vertical position of the text relative to the line. */
     position?: 'top' | 'center' | 'bottom';
+    /** The horizontal alignment of the text. */
     alignment?: 'left' | 'center' | 'right';
 }
 
 export interface AgChannelAnnotationTextStyles extends TextOptions {
+    /** The vertical position of the text relative to the channel. */
     position?: 'top' | 'inside' | 'bottom';
+    /** The horizontal alignment of the text. */
     alignment?: 'left' | 'center' | 'right';
 }
 
@@ -511,7 +544,9 @@ interface Extendable {
 export type ValueType = string | number | AgStateSerializableDate;
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
 export interface AgGroupingValueType {
+    /** The value at the annotation position. */
     value: ValueType;
+    /** The percentage position within a grouped category. */
     groupPercentage: number;
 }
 
@@ -520,11 +555,14 @@ export interface AgGroupingValueType {
 // ***********/
 
 export interface AgAnnotationsToolbar extends Toggleable {
+    /** The buttons to show in the toolbar. */
     buttons?: AgAnnotationsToolbarButton[];
+    /** Padding in pixels around the toolbar. */
     padding?: number;
 }
 
 export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    /** The action to perform when the button is clicked. */
     value: AgAnnotationsToolbarButtonValue;
 }
 
@@ -554,14 +592,17 @@ export type AgAnnotationsToolbarButtonValue =
 type AgAnnotationToolbarButton = AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch;
 
 export interface AgAnnotationOptionsToolbar extends Toggleable {
+    /** The buttons to show in the options toolbar. */
     buttons?: AgAnnotationToolbarButton[];
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
+    /** The action to perform when the button is clicked. */
     value: AgAnnotationOptionsToolbarButtonValue;
 }
 
 export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
+    /** The action to perform when the switch is toggled. */
     value: AgAnnotationOptionsToolbarSwitchValue;
 }
 

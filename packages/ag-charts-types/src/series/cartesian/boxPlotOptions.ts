@@ -52,6 +52,11 @@ interface BoxPlotOptionsNames {
 }
 
 export interface AgBoxPlotCapOptions {
+    /**
+     * The length of the cap lines as a ratio of the box width.
+     *
+     * Default: `0.5`
+     */
     lengthRatio?: Ratio;
 }
 

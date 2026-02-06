@@ -96,6 +96,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
 type GetItemsParamsOmissions = 'type' | 'event';
 
 interface GetItemsParamsMixin<TDatum, TContext> {
+    /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
 }
 

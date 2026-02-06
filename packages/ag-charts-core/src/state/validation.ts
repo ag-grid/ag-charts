@@ -27,9 +27,8 @@ const similarOptionsMap = [
     ['padding', 'spacing', 'gap'],
     ['color', 'fill', 'stroke'],
     ['whisker', 'wick'],
-    ['nodeClick', 'seriesNodeClick'],
-    ['nodeDoubleClick', 'seriesNodeDoubleClick'],
     ['src', 'url'],
+    ['width', 'thickness'],
 ].reduce((map, words) => {
     for (const word of words) {
         map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));

@@ -187,7 +187,9 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
 
 export interface AgGroupedCategoryDepthOptions<TContext = ContextDefault> {
+    /** Configuration for the axis labels at this depth level. */
     label?: AgGroupedCategoryDepthLabelOptions<TContext>;
+    /** Configuration for the axis ticks at this depth level. */
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
@@ -406,6 +408,7 @@ export interface AgBaseCartesianThemeOptions<TDatum = DatumDefault, TContext = C
 }
 
 export interface AgCartesianAxesCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> {
+    /** Theme configuration for Cross Lines. */
     crossLines?: AgCrossLineThemeOptions<LabelType>;
 }
 
