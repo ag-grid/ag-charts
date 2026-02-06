@@ -115,6 +115,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Fixed width of each box in the series. */
     width?: PixelSize;
+    /** Ratio of the bandwidth (or specified width) to use for the width for each box in the series. */
+    widthRatio?: Ratio;
 }
 export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

@@ -414,6 +414,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
+        const { barWidth } = this.getBarDimensions();
+
         return {
             xAxis,
             yAxis,
@@ -422,7 +424,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             categoryAxis,
             valueAxis,
             barAlongX: this.getBarDirection() === ChartAxisDirection.X,
-            barWidth: this.getBandwidth(categoryAxis) ?? 10,
+            barWidth,
             categoryAxisReversed: categoryAxis.isReversed(),
             valueAxisReversed: valueAxis.isReversed(),
             crisp: checkCrisp(
