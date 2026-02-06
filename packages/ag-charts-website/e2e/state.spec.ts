@@ -569,6 +569,37 @@ test.describe('state', () => {
                 });
             });
 
+            test.describe('legend hover clears active active from setState-series-node', () => {
+                test('screenshots', async ({ page }) => {
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await hoverOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        // frozen: false, // undocumented
+                        activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
+                    });
+
+                    await hoverOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual({
+                        // frozen: false, // undocumented
+                        activeItem: { type: 'legend', itemId: 'UK', seriesId: 'LineSeries-2' },
+                    });
+                });
+            });
+
             /* // undocumented: frozen
             test.describe('frozen chart ignores mouse events', () => {
                 test('screenshots', async ({ page }) => {
