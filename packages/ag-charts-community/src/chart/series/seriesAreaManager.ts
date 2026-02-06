@@ -108,7 +108,7 @@ export class SeriesAreaManager extends BaseManager {
     };
 
     private readonly activeState = {
-        lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined,
+        lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined | 'legend',
     };
 
     /**
@@ -1131,9 +1131,12 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (this.hoverDevice === 'setState' && activeItem?.type === 'legend') {
-            this.clearHighlight();
-            this.clearTooltip();
+        if (activeItem?.type === 'legend') {
+            if (this.hoverDevice === 'setState') {
+                this.clearHighlight();
+                this.clearTooltip();
+            }
+            this.activeState.lastActive = 'legend';
         }
     }
 
@@ -1148,7 +1151,7 @@ export class SeriesAreaManager extends BaseManager {
     private refreshSetState(): void {
         if (this.activeState.lastActive === undefined) {
             this.clearAll();
-        } else {
+        } else if (this.activeState.lastActive !== 'legend') {
             const { seriesId, itemId } = this.activeState.lastActive;
             const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
             if (desiredPickedNodes) {
