@@ -6,11 +6,18 @@ import {
     NumberAxisModule,
     OrdinalTimeAxisModule,
     ScrollbarModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ScrollbarModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ScrollbarModule,
+    ZoomModule,
+]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
