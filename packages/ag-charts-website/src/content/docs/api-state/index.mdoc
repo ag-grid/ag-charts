@@ -109,6 +109,17 @@ For series with multiple legend items, such as `pie` or `donut`, an `itemId` spe
 
 A `legendItemName` can be added to the legend initial state and series options, taking priority over both `seriesId` and `itemId`.
 
+### Active
+
+The current highlight/tooltip state can be controlled using the `active` property.
+
+{% chartExampleRunner title="Active State" name="active-save-restore" type="generated" /%}
+
+In this example:
+
+-   Clicking a Bar saves the current active state using `getState()`.
+-   Clicking the Restore button restores that active state using `setState()`.
+
 ## API Reference
 
 {% tabs %}
