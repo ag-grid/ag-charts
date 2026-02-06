@@ -2,16 +2,104 @@
 title: 'Series Bars'
 ---
 
-Description.
+Bar-like series can have fixed widths in pixels or widths proportional to the category bands.
 
 ## Fixed Width
 
+Use the `width` option on a bar-like series to set the pixel width of the bars.
+
 {% chartExampleRunner title="Fixed Width" name="fixed-width" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            width: 30,
+        },
+    ],
+}
+```
+
+In this example:
+
+-   The width of each bar in the series is set to 30 pixels.
+-   Resizing the chart does not affect the width of the bars.
+-   If the chart is too narrow, the bars will be clipped on the right-hand side.
+
+## Clipping
+
+When the widths of multiple bar-like series adds up to wider than the [series area](./layout/#chart-layout-calculation) of a chart, the bars will be clipped. The clipped bars can be viewed using the [Scrollbar](./scrollbar), [Navigator](./navigator) or [Zoom](./zoom) modules.
+
+{% chartExampleRunner title="Fixed Width Clipping" name="fixed-width-clipping" type="generated" /%}
+
+In this example:
+
+-   Toggle the fixed width on and off. When off the bars are automatically sized to fit the width of the series area.
+-   Use the slider to change the size of the width in pixels.
+-   A [Scrollbar](./scrollbar) is used to allow the clipped bars to be viewed.
+
+## Band Alignment
+
+Use the `bandAlignment` option on a [Category](./axes-types/#category) or [Unit Time](./axes-time/#unit-time) axis to align fixed width bars.
+
+{% chartExampleRunner title="Band Alignment" name="band-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            bandAlignment: 'start',
+        },
+    },
+}
+```
+
+In this example:
+
+-   The category axis has an initial band alignment of start.
+-   Use the buttons to compare other band alignment options.
 
 ## Width Ratio
 
+Use the `widthRatio` option to set the bar width as a proportion of the default width.
+
 {% chartExampleRunner title="Width Ratio" name="width-ratio" type="generated" /%}
 
-## Targets & Comparisons
+When the series is ungrouped, with `grouped: false`, the width ratio will be relative to the full width of the category, including other series.
 
-{% chartExampleRunner title="Targets & Comparisons" name="targets-comparisons" type="generated" /%}
+When the series is grouped, by default or with `grouped: true`, the width ratio will be relative to the automatically calculated width based on the size of the series area.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'range-bar',
+            grouped: false,
+            widthRatio: 0.4,
+        },
+    ],
+}
+```
+
+In this example:
+
+-   The "Australia" series is ungrouped and has an initial width ratio of 0.4.
+-   Use the slider to change the width ratio.
+-   The bars will not be clipped, since they take up a proportion of the default width.
+
+## Series Types
+
+The `width` and `widthRatio` options can be used on [Bar](./bar-series), [Box Plot](./box-plot-series), [Range Bar](./range-bar-series) and [Waterfall](./waterfall-series) series.
+
+{% chartExampleRunner title="Waterfall Width" name="waterfall-width" type="generated" /%}
+
+## Actual vs Target Bars
+
+{% chartExampleRunner title="Actual vs Target Bars" name="actual-target" type="generated" /%}
+
+In this example:
+
+-   The "Actual" series is ungrouped and has a width ratio of 0.7.
+-   The "Satisfactory" and "Excellent" target series are grouped, and so each takes up half the category's width.

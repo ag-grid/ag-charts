@@ -1,44 +1,81 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BarSeriesModule,
-    CategoryAxisModule,
+    CrosshairModule,
     LegendModule,
-    LogAxisModule,
     ModuleRegistry,
-} from 'ag-charts-community';
+    NumberAxisModule,
+    RangeBarSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LogAxisModule]);
+ModuleRegistry.registerModules([
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+    UnitTimeAxisModule,
+]);
+const data = getData();
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
-        text: "Chemical Composition of the Earth's Crust",
+        text: 'Australia vs Global Temperature Patterns',
+        spacing: 8,
+    },
+    subtitle: {
+        text: 'Monthly temperature ranges (2020) showing seasonal variations across regions',
+        spacing: 16,
+    },
+    footnote: {
+        text: 'Data: World Meteorological Organization. Ranges show typical monthly lows and highs.',
+        fontStyle: 'italic',
+        spacing: 12,
     },
     series: [
         {
-            type: 'bar',
-            xKey: 'chemical',
-            yKey: 'oceanic',
-            yName: 'Oceanic',
+            data: data.World,
+            type: 'range-bar',
+            xKey: 'month',
+            xName: 'Month',
+            yName: 'World',
+            yLowKey: 'lowTemperature',
+            yHighKey: 'highTemperature',
+            yLowName: 'Min Temp',
+            yHighName: 'Max Temp',
+            cornerRadius: 3,
         },
         {
-            type: 'bar',
-            xKey: 'chemical',
-            yKey: 'continental',
-            yName: 'Continental',
+            data: data.Australia,
+            type: 'range-bar',
+            xKey: 'month',
+            xName: 'Month',
+            yName: 'Australia',
             grouped: false,
             widthRatio: 0.4,
+            yLowKey: 'lowTemperature',
+            yHighKey: 'highTemperature',
+            yLowName: 'Min Temp',
+            yHighName: 'Max Temp',
+            cornerRadius: 3,
         },
     ],
     axes: {
-        y: {
-            type: 'log',
+        x: {
+            type: 'unit-time',
             label: {
-                formatter: (params) => `${params.value}%`,
+                formatter: ({ value }) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString('en-US', { month: 'short' });
+                },
+            },
+        },
+        y: {
+            label: {
+                formatter: ({ value }) => `${value}°C`,
             },
         },
     },

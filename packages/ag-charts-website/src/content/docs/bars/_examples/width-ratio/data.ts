@@ -1,12 +1,128 @@
 export function getData() {
-    return [
-        { chemical: 'Aluminium Oxide', oceanic: 15, continental: 14 },
-        { chemical: 'Calcium Oxide', oceanic: 12.3, continental: 5.5 },
-        { chemical: 'Iron Oxide', oceanic: 8.5, continental: 6.2 },
-        { chemical: 'Magnesium Oxide', oceanic: 6.8, continental: 3 },
-        { chemical: 'Manganese Oxide', oceanic: 0.2, continental: 0.1 },
-        { chemical: 'Potassium Oxide', oceanic: 2.9, continental: 0.4 },
-        { chemical: 'Silicon Dioxide', oceanic: 49, continental: 60 },
-        { chemical: 'Titanium Dioxide', oceanic: 1.4, continental: 0.7 },
-    ];
+    return {
+        World: [
+            {
+                month: new Date(2020, 0, 1),
+                lowTemperature: 5,
+                highTemperature: 30,
+            },
+            {
+                month: new Date(2020, 1, 1),
+                lowTemperature: 8,
+                highTemperature: 28,
+            },
+            {
+                month: new Date(2020, 2, 1),
+                lowTemperature: 10,
+                highTemperature: 30,
+            },
+            {
+                month: new Date(2020, 3, 1),
+                lowTemperature: 12,
+                highTemperature: 32,
+            },
+            {
+                month: new Date(2020, 4, 1),
+                lowTemperature: 12,
+                highTemperature: 35,
+            },
+            {
+                month: new Date(2020, 5, 1),
+                lowTemperature: 10,
+                highTemperature: 40,
+            },
+            {
+                month: new Date(2020, 6, 1),
+                lowTemperature: 8,
+                highTemperature: 42,
+            },
+            {
+                month: new Date(2020, 7, 1),
+                lowTemperature: 9,
+                highTemperature: 40,
+            },
+            {
+                month: new Date(2020, 8, 1),
+                lowTemperature: 12,
+                highTemperature: 35,
+            },
+            {
+                month: new Date(2020, 9, 1),
+                lowTemperature: 12,
+                highTemperature: 30,
+            },
+            {
+                month: new Date(2020, 10, 1),
+                lowTemperature: 8,
+                highTemperature: 30,
+            },
+            {
+                month: new Date(2020, 11, 1),
+                lowTemperature: 5,
+                highTemperature: 30,
+            },
+        ],
+        Australia: [
+            {
+                month: new Date(2020, 0, 1),
+                lowTemperature: 19,
+                highTemperature: 26,
+            },
+            {
+                month: new Date(2020, 1, 1),
+                lowTemperature: 19,
+                highTemperature: 26,
+            },
+            {
+                month: new Date(2020, 2, 1),
+                lowTemperature: 15,
+                highTemperature: 25,
+            },
+            {
+                month: new Date(2020, 3, 1),
+                lowTemperature: 15,
+                highTemperature: 23,
+            },
+            {
+                month: new Date(2020, 4, 1),
+                lowTemperature: 12,
+                highTemperature: 20,
+            },
+            {
+                month: new Date(2020, 5, 1),
+                lowTemperature: 10,
+                highTemperature: 18,
+            },
+            {
+                month: new Date(2020, 6, 1),
+                lowTemperature: 8,
+                highTemperature: 17,
+            },
+            {
+                month: new Date(2020, 7, 1),
+                lowTemperature: 9,
+                highTemperature: 18,
+            },
+            {
+                month: new Date(2020, 8, 1),
+                lowTemperature: 12,
+                highTemperature: 20,
+            },
+            {
+                month: new Date(2020, 9, 1),
+                lowTemperature: 14,
+                highTemperature: 22,
+            },
+            {
+                month: new Date(2020, 10, 1),
+                lowTemperature: 16,
+                highTemperature: 24,
+            },
+            {
+                month: new Date(2020, 11, 1),
+                lowTemperature: 18,
+                highTemperature: 26,
+            },
+        ],
+    };
 }
