@@ -141,6 +141,7 @@ const tooltipPlacementValidator = union(
     'center'
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
+export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
 export const textOrSegments = or(
     string,
     number,
@@ -643,7 +644,7 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
 export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     enabled: boolean,
     showArrow: boolean,
-    range: rangeValidator,
+    range: seriesTooltipRangeValidator,
     renderer: callbackOf(
         or(
             string,
@@ -689,6 +690,11 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     interaction: {
         enabled: boolean,
     },
+};
+
+export const tooltipOptionsDefsWithArea: OptionsDefs<AgSeriesTooltip<any>> = {
+    ...tooltipOptionsDefs,
+    range: rangeValidator,
 };
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {

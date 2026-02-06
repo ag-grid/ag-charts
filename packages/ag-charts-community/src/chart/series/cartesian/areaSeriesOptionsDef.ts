@@ -19,7 +19,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
-    tooltipOptionsDefs,
+    tooltipOptionsDefsWithArea,
     undocumented,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
@@ -40,7 +40,7 @@ export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOpt
     label: seriesLabelOptionsDefs,
     styler: areaStyler,
     marker: markerOptionsDefs,
-    tooltip: tooltipOptionsDefs,
+    tooltip: tooltipOptionsDefsWithArea,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
