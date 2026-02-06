@@ -7,7 +7,6 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
 } from '../seriesOptions';
 
 export type AgMapLineSeriesTooltipRendererParams<
@@ -17,8 +16,6 @@ export type AgMapLineSeriesTooltipRendererParams<
     AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames &
     AgMapLineSeriesStyle;
-
-export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & StrokeOptions;
 
 export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
 
