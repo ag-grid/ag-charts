@@ -137,6 +137,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
@@ -717,5 +718,6 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
     },
     tooltip: tooltipOptionsDefs,
     width: positiveNumberNonZero,
+    widthRatio: ratio,
     ...commonSeriesThemeableOptionsDefs,
 };
