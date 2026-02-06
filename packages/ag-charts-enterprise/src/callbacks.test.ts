@@ -2545,7 +2545,7 @@ describe('AG-15850 activeChange', () => {
         function getDesiredState(): Pick<AgChartState, 'zoom' | 'active'> {
             return {
                 zoom: {
-                    ratioX: { start: 0.65, end: 1.0 },
+                    ratioX: { start: 0.65, end: 1 },
                 },
                 active: {
                     activeItem: {
