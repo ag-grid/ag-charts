@@ -1533,24 +1533,30 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const { properties } = this;
         const { positionOffset, positionRatio } = this.properties.sectorLabel;
 
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+
         const innerRadius = this.radiusScale.convert(0);
         const shouldPutTextInCenter =
             innerRadius <= 0 && // is donut?
             this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
         const align = { textAlign: 'center', textBaseline: 'middle' } as const;
-        const updateSelection = (selection: Selection<Text, PieDonutNodeDatum>, isHighlight: boolean) =>
+        const updateSelection = (selection: Selection<Text, PieDonutNodeDatum>) =>
             selection.each((text, datum) => {
                 const { outerRadius, startAngle, endAngle } = datum;
 
+                const isDatumHighlighted =
+                    seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
+
                 let isTextVisible = false;
                 if (datum.sectorLabel && outerRadius !== 0) {
-                    const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isHighlight);
+                    const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isDatumHighlighted);
                     const labelRadius =
                         innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                     text.fill = style.color;
-                    text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                    text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
                     text.text = datum.sectorLabel.text;
                     if (shouldPutTextInCenter) {
                         text.x = 0;
@@ -1578,8 +1584,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 text.visible = isTextVisible;
             });
 
-        updateSelection(this.labelSelection, false);
-        updateSelection(this.highlightLabelSelection, true);
+        updateSelection(this.labelSelection);
+        updateSelection(this.highlightLabelSelection);
     }
 
     private updateInnerLabelNodes() {
