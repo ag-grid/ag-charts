@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minsta',
     ariaLabelNavigatorRange: 'Räckvidd',
     ariaLabelRangesToolbar: 'Områden',
+    ariaLabelScrollbarHorizontal: 'X-axel rullningslist',
+    ariaLabelScrollbarVertical: 'Skjutreglage för Y-axel',
     ariaLabelSettingsTabBar: 'Inställningar',
     ariaLabelZoomToolbar: 'Zooma',
     ariaRoleDescription2DSlider: '2D-skjutreglage',

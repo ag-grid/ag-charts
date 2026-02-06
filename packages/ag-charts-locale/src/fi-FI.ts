@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimi',
     ariaLabelNavigatorRange: 'Alue',
     ariaLabelRangesToolbar: 'Alueet',
+    ariaLabelScrollbarHorizontal: 'X-akselin vierityspalkki',
+    ariaLabelScrollbarVertical: 'Y-akselin vierityspalkki',
     ariaLabelSettingsTabBar: 'Asetukset',
     ariaLabelZoomToolbar: 'Zoomaa',
     ariaRoleDescription2DSlider: '2D liukusäädin',

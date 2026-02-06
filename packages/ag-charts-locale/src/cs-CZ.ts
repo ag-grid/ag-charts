@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimální',
     ariaLabelNavigatorRange: 'Rozsah',
     ariaLabelRangesToolbar: 'Rozsahy',
+    ariaLabelScrollbarHorizontal: 'Posuvník vodorovné osy',
+    ariaLabelScrollbarVertical: 'Posuvník svislé osy',
     ariaLabelSettingsTabBar: 'Nastavení',
     ariaLabelZoomToolbar: 'Přiblížit',
     ariaRoleDescription2DSlider: 'dvojrozměrný jezdec',

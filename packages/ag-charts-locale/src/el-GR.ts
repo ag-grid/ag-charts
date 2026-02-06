@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Ελάχιστο',
     ariaLabelNavigatorRange: 'Εύρος',
     ariaLabelRangesToolbar: 'Εύρη',
+    ariaLabelScrollbarHorizontal: 'Ρυθμιστική γραμμή κύλισης άξονα Χ',
+    ariaLabelScrollbarVertical: 'Κύλιση κατακόρυφου άξονα',
     ariaLabelSettingsTabBar: 'Ρυθμίσεις',
     ariaLabelZoomToolbar: 'Ζουμ',
     ariaRoleDescription2DSlider: '2D ρυθμιστικό',

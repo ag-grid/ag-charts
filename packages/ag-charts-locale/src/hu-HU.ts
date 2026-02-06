@@ -44,6 +44,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Tartomány',
     ariaLabelRangesToolbar: 'Tartományok',
+    ariaLabelScrollbarHorizontal: 'X-tengely görgetősáv',
+    ariaLabelScrollbarVertical: 'Y-tengely görgetősáv',
     ariaLabelSettingsTabBar: 'Beállítások',
     ariaLabelZoomToolbar: 'Nagyítás',
     ariaRoleDescription2DSlider: '2D csúszka',

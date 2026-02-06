@@ -949,11 +949,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 area,
                 dilation,
             } = datum;
-            let style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-
-            style = { ...style };
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = { ...(datum.style ?? contextNodeData.styles[state]) };
             style.size = size;
 
             if (dilation > 1) {
@@ -970,7 +967,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
-            node.drawingMode = drawingMode;
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 

@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Område',
     ariaLabelRangesToolbar: 'Områder',
+    ariaLabelScrollbarHorizontal: 'X-aksens rullefelt',
+    ariaLabelScrollbarVertical: 'Y-akse rullefelt',
     ariaLabelSettingsTabBar: 'Innstillinger',
     ariaLabelZoomToolbar: 'Zoom',
     ariaRoleDescription2DSlider: '2D skyveknapp',

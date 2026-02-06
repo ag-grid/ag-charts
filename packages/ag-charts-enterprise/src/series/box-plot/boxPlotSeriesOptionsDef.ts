@@ -5,6 +5,7 @@ import {
     commonSeriesOptionsDefs,
     constant,
     positiveNumberNonZero,
+    ratio,
     required,
     shapeSegmentation,
     string,
@@ -35,4 +36,5 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     legendItemName: string,
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
+    widthRatio: ratio,
 };

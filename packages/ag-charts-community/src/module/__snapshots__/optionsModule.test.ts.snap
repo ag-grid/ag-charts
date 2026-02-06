@@ -173,6 +173,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -647,6 +650,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -1087,6 +1093,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "text": "Source: HM Revenue & Customs",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -1757,6 +1766,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "text": "Source: Environmental Agency",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -2546,6 +2558,9 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -2861,6 +2876,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "text": "Source: US Geological Survey",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -3340,6 +3358,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -3943,6 +3964,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -4252,6 +4276,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "text": "Source: Office for National Statistics",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -4574,6 +4601,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -4867,6 +4897,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "text": "Source: Simple Maps",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -5163,6 +5196,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -5537,6 +5573,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "text": "Source: Office for National Statistics",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -5922,6 +5961,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "text": "Source: Office for National Statistics",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -6679,6 +6721,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "text": "Source: Department for Environment, Food and Rural Affairs",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -7910,6 +7955,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -8209,6 +8257,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -9014,6 +9065,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -9472,6 +9526,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "text": "Source: Department for Education",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -10157,6 +10214,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -10676,6 +10736,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -10876,6 +10939,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "text": "Source: Home Office",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -11301,6 +11367,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -11552,6 +11621,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "text": "Source: Office for National Statistics",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -11909,6 +11981,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "overlap",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -12222,6 +12297,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,
@@ -12922,6 +13000,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "highlight": {
+    "drawingMode": "cutout",
+  },
   "keyboard": {
     "enabled": true,
   },
@@ -13449,6 +13530,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "text": "Source: Transport for London",
     "textAlign": "center",
     "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
   },
   "keyboard": {
     "enabled": true,

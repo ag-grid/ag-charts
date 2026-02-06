@@ -67,7 +67,16 @@ In this example:
 
 ### activeChange
 
-This event is fired when the [active](./active/) state (highlight) is changed.
+This event is fired when the [active](./api-state/#active) state is changed.
+This occurs when a user interaction (mouse, touch, keyboard) on a series node or legend causes a highlight or tooltip change.
+
+The event contains:
+
+-   `activeItem` - the item that is now active, or `undefined` if no item is active.
+-   The `activeItem` contains:
+    -   `type` - the type of the active item, either `'series-node'` or `'legend'`.
+    -   Details about the active item, such as `seriesId`, `itemId` and `datum`.
+-   `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
 
 {% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}
 
@@ -88,7 +97,7 @@ This event is fired when the [active](./active/) state (highlight) is changed.
 
 In this example:
 
--   Whenever a user interaction (mouse, touch, keyboard) changes the highlight state, a message is shown in the console.
+-   Whenever a user interaction (mouse, touch, keyboard) on the series-area or legend changes the highlight state, a message is shown in the console.
 
 ### annotations
 
@@ -164,7 +173,7 @@ These events contain:
 {
     legend: {
         listeners: {
-            legendItemClick: ({ seriesId, itemId, enabled }) => {
+            legendItemClick: ({ seriesId, itemId }) => {
                 console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
             },
         },

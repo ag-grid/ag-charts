@@ -53,6 +53,7 @@ import { DeepReadonly } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
+    AgActiveState,
     AgCartesianChartOptions,
     AgDataSourceCallbackParams,
 } from 'ag-charts-types';
@@ -1307,7 +1308,7 @@ describe('AG-15850 activeChange', () => {
     const INACTIVE_SETSTATE_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
         activeItem: undefined,
         datum: undefined,
-        frozen: false,
+        // frozen: false, // undocumented
         source: 'state-change',
         type: 'activeChange',
     };
@@ -1315,7 +1316,7 @@ describe('AG-15850 activeChange', () => {
     const INACTIVE_USERINTERACTION_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
         activeItem: undefined,
         datum: undefined,
-        frozen: false,
+        // frozen: false, // undocumented
         source: 'user-interaction',
         type: 'activeChange',
     };
@@ -1344,7 +1345,7 @@ describe('AG-15850 activeChange', () => {
 
     async function setActiveItem(activeItem: AgActiveItemState | undefined, frozen = false): Promise<void> {
         version ??= chart.getState().version;
-        await chart.setState({ version, active: { activeItem, frozen } });
+        await chart.setState({ version, active: { activeItem, frozen } as AgActiveState }); // undocumented frozen
     }
 
     function popCalls(): AgActiveChangeEvent<D, C>[][] {
@@ -1431,13 +1432,13 @@ describe('AG-15850 activeChange', () => {
             calls = popCalls();
             expect(calls).toMatchSnapshot();
             expect(calls.length).toBe(1);
-            expect(calls[0]?.[0].frozen).toBe(false);
+            // expect(calls[0]?.[0].frozen).toBe(false); // undocumented
 
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
             calls = popCalls();
             expect(calls).toMatchSnapshot();
             expect(calls.length).toBe(1);
-            expect(calls[0]?.[0].frozen).toBe(true);
+            // expect(calls[0]?.[0].frozen).toBe(true); // undocumented
 
             await setActiveItem({ type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' }, true);
             expect(popCalls().length).toBe(0);
@@ -2500,6 +2501,42 @@ describe('AG-15850 activeChange', () => {
             await setActiveItem({ type: 'series-node', itemId: '0;0;4', seriesId: 'SunburstSeries-1' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "0;0;4"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
+        });
+    });
+
+    describe('bar tooltip disabled (race condition)', () => {
+        beforeEach(async () => {
+            await createChart({
+                data: [{ quarter: "Q1'18", iphone: 140 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        tooltip: { enabled: false },
+                    },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('hover does not produce spurious activeChange events', async () => {
+            // Hover in the series area — highlight picks bar, tooltip picks nothing
+            await hover(400, 300);
+            const firstCalls = popCalls();
+            expect(firstCalls.length).toBe(1);
+            expect(firstCalls).toMatchSnapshot();
+
+            // Same position again — no state change, no events
+            await hover(400, 300);
+            expect(popCalls()).toEqual([]);
+
+            // Different position, same bar is nearest — no events
+            await hover(500, 250);
+            expect(popCalls()).toEqual([]);
         });
     });
 });

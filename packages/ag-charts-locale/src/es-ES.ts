@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Mínimo',
     ariaLabelNavigatorRange: 'Rango',
     ariaLabelRangesToolbar: 'Rangos',
+    ariaLabelScrollbarHorizontal: 'Barra de desplazamiento del eje X',
+    ariaLabelScrollbarVertical: 'Barra de desplazamiento del eje Y',
     ariaLabelSettingsTabBar: 'Configuración',
     ariaLabelZoomToolbar: 'Zoom',
     ariaRoleDescription2DSlider: 'Deslizador en 2D',

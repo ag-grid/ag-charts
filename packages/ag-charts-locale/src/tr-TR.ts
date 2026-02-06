@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorRange: 'Aralık',
     ariaLabelRangesToolbar: 'Aralıklar',
+    ariaLabelScrollbarHorizontal: 'X ekseni kaydırma çubuğu',
+    ariaLabelScrollbarVertical: 'Y ekseni kaydırma çubuğu',
     ariaLabelSettingsTabBar: 'Ayarlar',
     ariaLabelZoomToolbar: 'Yakınlaştır',
     ariaRoleDescription2DSlider: '2D kaydırıcı',

@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Минимум',
     ariaLabelNavigatorRange: 'Обхват',
     ariaLabelRangesToolbar: 'Обхвати',
+    ariaLabelScrollbarHorizontal: 'Превъртачка на оста X',
+    ariaLabelScrollbarVertical: 'Плъзгач за вертикалната ос',
     ariaLabelSettingsTabBar: 'Настройки',
     ariaLabelZoomToolbar: 'Мащабиране',
     ariaRoleDescription2DSlider: '2D плъзгач',

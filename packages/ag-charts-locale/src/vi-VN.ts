@@ -43,6 +43,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Tối thiểu',
     ariaLabelNavigatorRange: 'Phạm vi',
     ariaLabelRangesToolbar: 'Phạm vi',
+    ariaLabelScrollbarHorizontal: 'Thanh cuộn trục X',
+    ariaLabelScrollbarVertical: 'Thanh cuộn trục Y',
     ariaLabelSettingsTabBar: 'Cài đặt',
     ariaLabelZoomToolbar: 'Thu phóng',
     ariaRoleDescription2DSlider: 'Thanh trượt 2D',
