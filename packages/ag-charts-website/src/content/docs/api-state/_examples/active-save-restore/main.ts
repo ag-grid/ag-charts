@@ -1,6 +1,5 @@
+import type { AgCartesianChartOptions, AgChartState } from 'ag-charts-community';
 import {
-    AgCartesianChartOptions,
-    AgChartState,
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
@@ -9,7 +8,8 @@ import {
     NumberAxisModule,
 } from 'ag-charts-community';
 
-import { DataType, getData } from './data';
+import { getData } from './data';
+import type { DataType } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, LegendModule, NumberAxisModule, CategoryAxisModule]);
 
@@ -48,7 +48,7 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function restoreState(): void {
+function restoreState() {
     if (state) {
         chart.setState(state);
     }
