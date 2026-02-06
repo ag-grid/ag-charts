@@ -1012,6 +1012,7 @@ export class SeriesAreaManager extends BaseManager {
         const { x, y } = point;
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
+            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
             if (series.visible && series.contentGroup.visible && getIntentRange(series) === 'area') {
                 if (series.isPointInArea?.(x, y)) {
                     seriesContainingPoint.add(series);
