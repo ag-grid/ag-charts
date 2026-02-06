@@ -1354,5 +1354,63 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('AG-16703 zoom and active restoration', () => {
+            let canvas: Locator;
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'zoom-and-active-restoration', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('updateDelta', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-inactive.png');
+
+                    await page.click('#myUpdateDelta');
+                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-active.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await page.click('#myUpdateDelta');
+                    state = await getChartState(page);
+
+                    expect(state.active).toEqual({
+                        // frozen: false, // undocumented
+                        activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                    });
+                });
+            });
+
+            test.describe('setState', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-inactive.png');
+
+                    await page.click('#mySetState');
+                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-active.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await page.click('#mySetState');
+                    state = await getChartState(page);
+
+                    expect(state.active).toEqual({
+                        // frozen: false, // undocumented
+                        activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                    });
+                });
+            });
+        });
     });
 });
