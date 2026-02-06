@@ -1116,7 +1116,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (activeItem?.type === 'legend') {
+        if (this.hoverDevice === 'setState' && activeItem?.type === 'legend') {
             this.clearHighlight();
             this.clearTooltip();
         }
