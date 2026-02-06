@@ -33,6 +33,7 @@ const options: AgCartesianChartOptions<DataType> = {
     listeners: {
         seriesNodeClick: () => {
             state = chart.getState();
+            console.log('Saved', state);
         },
     },
     axes: {
@@ -43,6 +44,12 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     legend: {
         position: 'bottom',
+        toggleSeries: false,
+        listeners: {
+            legendItemClick: () => {
+                console.log('Legend item clicked');
+            },
+        },
     },
 };
 
@@ -50,6 +57,8 @@ const chart = AgCharts.create(options);
 
 function restoreState() {
     if (state) {
-        chart.setState(state);
+        chart.setState(state).then(() => {
+            console.log('Restored', state);
+        });
     }
 }

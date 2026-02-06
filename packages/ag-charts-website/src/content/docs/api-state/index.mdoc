@@ -80,6 +80,7 @@ In this example:
 
 -   `zoom` - This object contains start and end ranges of the zoom.
 -   `legend` - This array contains the current visibility of each series or item in the legend.
+-   `active` - This object contains the currently active item, which is the series node or legend item that is highlighted/showing a tooltip.
 -   `annotations` - This object contains the position and style of any displayed drawings or text annotations.
 -   `chartType` - This string is one of the [Chart Types](./financial-charts-configuration/#chart-types).
 
@@ -111,14 +112,15 @@ A `legendItemName` can be added to the legend initial state and series options, 
 
 ### Active
 
-The current highlight/tooltip state can be controlled using the `active` property.
+The `active` state gives programmatic control over chart highlighting and tooltips, as well as saving and restoring the active state.
 
 {% chartExampleRunner title="Active State" name="active-save-restore" type="generated" /%}
 
 In this example:
 
--   Clicking a Bar saves the current active state using `getState()`.
--   Clicking the Restore button restores that active state using `setState()`.
+-   Click a bar or legend item to store the chart state using `chart.getState()`.
+-   Click the 'Restore' button to restore the saved state to the chart using `chart.setState()`.
+-   This will make the same item active again, showing its tooltip and highlight.
 
 ## API Reference
 
