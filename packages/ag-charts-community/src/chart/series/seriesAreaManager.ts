@@ -1000,14 +1000,22 @@ export class SeriesAreaManager extends BaseManager {
         const reverseSeries = [...this.series].reverse();
         const isTooltipIntent = intent === 'tooltip';
 
-        // Check if any series with 'area' tooltip range contains the point
+        const clickIntent = intent === 'event' || intent === 'context-menu';
+        const tooltipIntent = intent === 'tooltip' || intent === 'highlight-tooltip';
+        const getIntentRange = (series: UnknownSeries) => {
+            if (clickIntent) return series.properties.nodeClickRange;
+            if (tooltipIntent) return series.properties.tooltip.range;
+            return undefined;
+        };
+
+        // Check if any series with 'area' range (for the current intent) contains the point.
         const { x, y } = point;
         const seriesContainingPoint = new Set<UnknownSeries>();
         for (const series of reverseSeries) {
-            if (!series.visible || !series.contentGroup.visible || series.properties.tooltip.range !== 'area') continue;
-            if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
-            if (series.isPointInArea?.(x, y)) {
-                seriesContainingPoint.add(series);
+            if (series.visible && series.contentGroup.visible && getIntentRange(series) === 'area') {
+                if (series.isPointInArea?.(x, y)) {
+                    seriesContainingPoint.add(series);
+                }
             }
         }
 
@@ -1018,13 +1026,11 @@ export class SeriesAreaManager extends BaseManager {
             if (!series.visible || !series.contentGroup.visible) continue;
             if (isTooltipIntent && !this.isTooltipEnabled(series)) continue;
 
-            // If we found series with 'area' tooltip range containing the point, only pick from those series
-            if (
-                hasSeriesContainingPoint &&
-                series.properties.tooltip.range === 'area' &&
-                !seriesContainingPoint.has(series)
-            )
-                continue;
+            // If we found series with 'area' range containing the point, prefer those series.
+            if (hasSeriesContainingPoint) {
+                const hasAreaHit = getIntentRange(series) === 'area' && seriesContainingPoint.has(series);
+                if (!hasAreaHit) continue;
+            }
 
             const pick = series.pickNodes(point, intent, exactMatchOnly);
             if (pick == null || pick.datums.length === 0) continue;

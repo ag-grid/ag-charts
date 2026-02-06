@@ -466,9 +466,7 @@ describe('ChartOptions', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', tooltip: { range: 'area' } }],
             });
 
-            const messages = (console.warn as jest.Mock).mock.calls.map(
-                ([message]) => String(message)
-            );
+            const messages = (console.warn as jest.Mock).mock.calls.map(([message]) => String(message));
             expect(messages.some((message) => message.includes('series[0].tooltip.range'))).toBe(true);
             expect(messages.some((message) => /["'`]?area["'`]?/.test(message))).toBe(true);
         });
