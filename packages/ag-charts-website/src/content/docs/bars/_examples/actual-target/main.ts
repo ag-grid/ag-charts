@@ -16,27 +16,16 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Quarterly Sales vs Targets',
+        text: 'Quarterly Sales vs Target',
     },
     series: [
         {
             type: 'bar',
             direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'satisfactory',
-            yName: 'Satisfactory',
-            fillOpacity: 0.3,
-            cornerRadius: 3,
-            highlight: {
-                enabled: false,
-            },
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'excellent',
-            yName: 'Excellent',
+            yKey: 'target',
+            yName: 'Target',
+            grouped: false,
             fillOpacity: 0.3,
             cornerRadius: 3,
             highlight: {
@@ -50,20 +39,10 @@ const options: AgCartesianChartOptions = {
             yKey: 'actual',
             yName: 'Actual',
             grouped: false,
-            widthRatio: 0.7,
+            widthRatio: 0.5,
             cornerRadius: 6,
         },
     ],
 };
 
-const chart = AgCharts.create(options);
-
-function updateWidthRatio(event: any) {
-    const value = Number(event.target?.value);
-    for (const series of options.series ?? []) {
-        if (!('widthRatio' in series)) continue;
-        series.widthRatio = value;
-    }
-    chart.update(options);
-    document.getElementById('widthRatioSliderValue')!.innerHTML = String(value);
-}
+AgCharts.create(options);

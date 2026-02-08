@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BarSeriesModule,
+    AreaSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     OrdinalTimeAxisModule,
@@ -11,31 +11,34 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ScrollbarModule, ZoomModule]);
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ScrollbarModule,
+    ZoomModule,
+]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Museum Visitors',
     },
-    subtitle: {
-        text: 'Initial zoom positions the scrollbar on load',
-    },
     data: getData(),
     series: [
         {
-            type: 'bar',
+            type: 'area',
             xKey: 'date',
             yKey: 'Tate Modern',
             yName: 'Tate Modern',
-            width: 12,
+            stacked: true,
         },
         {
-            type: 'bar',
+            type: 'area',
             xKey: 'date',
             yKey: 'Tate Britain',
             yName: 'Tate Britain',
-            width: 12,
+            stacked: true,
         },
     ],
     axes: {
@@ -52,12 +55,41 @@ const options: AgCartesianChartOptions = {
     },
     scrollbar: {
         enabled: true,
+        vertical: {
+            position: 'right',
+        },
     },
     initialState: {
         zoom: {
-            ratioX: { start: 0.15, end: 0.5 },
+            ratioX: { start: 0.1, end: 0.5 },
+            ratioY: { start: 0.2, end: 0.75 },
         },
+    },
+    legend: {
+        enabled: false,
     },
 };
 
 const chart = AgCharts.create(options);
+
+function setVerticalPosition(value: 'left' | 'right') {
+    options.scrollbar = {
+        ...options.scrollbar,
+        vertical: {
+            ...options.scrollbar!.vertical,
+            position: value,
+        },
+    };
+    chart.update(options);
+}
+
+function setHorizontalPosition(value: 'top' | 'bottom') {
+    options.scrollbar = {
+        ...options.scrollbar,
+        horizontal: {
+            ...options.scrollbar!.horizontal,
+            position: value,
+        },
+    };
+    chart.update(options);
+}

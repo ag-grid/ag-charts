@@ -24,35 +24,34 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Australia vs Global Temperature Patterns',
-        spacing: 8,
     },
     subtitle: {
         text: 'Monthly temperature ranges (2020) showing seasonal variations across regions',
-        spacing: 16,
     },
     footnote: {
         text: 'Data: World Meteorological Organization. Ranges show typical monthly lows and highs.',
         fontStyle: 'italic',
-        spacing: 12,
     },
     series: [
         {
             data: data.World,
             type: 'range-bar',
             xKey: 'month',
-            xName: 'Month',
             yName: 'World',
             yLowKey: 'lowTemperature',
             yHighKey: 'highTemperature',
             yLowName: 'Min Temp',
             yHighName: 'Max Temp',
-            cornerRadius: 3,
+            cornerRadius: 5,
+            fill: 'transparent',
+            strokeWidth: 2,
+            strokeOpacity: 0.6,
+            highlight: { enabled: false },
         },
         {
             data: data.Australia,
             type: 'range-bar',
             xKey: 'month',
-            xName: 'Month',
             yName: 'Australia',
             grouped: false,
             widthRatio: 0.4,
@@ -60,7 +59,7 @@ const options: AgCartesianChartOptions = {
             yHighKey: 'highTemperature',
             yLowName: 'Min Temp',
             yHighName: 'Max Temp',
-            cornerRadius: 3,
+            cornerRadius: 5,
         },
     ],
     axes: {
@@ -85,10 +84,7 @@ const chart = AgCharts.create(options);
 
 function updateWidthRatio(event: any) {
     const value = Number(event.target?.value);
-    for (const series of options.series ?? []) {
-        if (!('widthRatio' in series)) continue;
-        series.widthRatio = value;
-    }
+    (options.series![1] as any).widthRatio = value;
     chart.update(options);
     document.getElementById('widthRatioSliderValue')!.innerHTML = String(value);
 }

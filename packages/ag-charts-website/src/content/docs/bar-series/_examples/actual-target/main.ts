@@ -23,9 +23,11 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'satisfactory',
-            yName: 'Satisfactory',
+            yKey: 'quota',
+            yName: 'Quota',
+            stacked: true,
             fillOpacity: 0.3,
+            grouped: false,
             highlight: {
                 enabled: false,
             },
@@ -34,9 +36,11 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'excellent',
-            yName: 'Excellent',
+            yKey: 'stretch',
+            yName: 'Stretch Target',
+            stacked: true,
             fillOpacity: 0.3,
+            grouped: false,
             highlight: {
                 enabled: false,
             },
@@ -54,13 +58,3 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-
-function updateWidthRatio(event: any) {
-    const value = Number(event.target?.value);
-    for (const series of options.series ?? []) {
-        if (!('widthRatio' in series)) continue;
-        series.widthRatio = value;
-    }
-    chart.update(options);
-    document.getElementById('widthRatioSliderValue')!.innerHTML = String(value);
-}

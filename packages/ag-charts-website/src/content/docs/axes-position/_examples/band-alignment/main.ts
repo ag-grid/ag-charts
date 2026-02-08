@@ -1,11 +1,13 @@
 import {
+    AgBandAlignment,
     AgCartesianChartOptions,
+    AgCategoryAxisOptions,
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -14,7 +16,6 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisM
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: 'ag-default',
     title: {
         text: 'Total Visitors to Museums and Galleries',
     },
@@ -24,17 +25,30 @@ const options: AgCartesianChartOptions<DataType> = {
     series: [
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'visitors',
-            width: 30,
+            xKey: 'quarter',
+            yKey: 'museums',
+            yName: 'Museums',
+            width: 10,
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'galleries',
+            yName: 'Galleries',
+            width: 10,
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'heritage',
+            yName: 'Heritage Sites',
+            width: 10,
         },
     ],
     axes: {
         x: {
             type: 'category',
-            title: {
-                text: 'Year',
-            },
+            bandAlignment: 'start',
         },
         y: {
             type: 'number',
@@ -53,4 +67,9 @@ const options: AgCartesianChartOptions<DataType> = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function changeBandAlignment(alignment: AgBandAlignment) {
+    (options.axes!.x! as AgCategoryAxisOptions).bandAlignment = alignment;
+    chart.update(options);
+}

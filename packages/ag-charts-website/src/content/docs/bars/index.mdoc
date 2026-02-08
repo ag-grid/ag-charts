@@ -1,14 +1,17 @@
 ---
 title: 'Series Bars'
+description: '$framework charts support bar styling including fixed width, width ratio, band alignment and actual vs target visualisations.'
 ---
 
-Bar-like series can have fixed widths in pixels or widths proportional to the category bands.
+Data points can be represented by vertical or horizontal bars in many series types, such as [Bar](./bar-series), [Range Bar](./range-bar-series), [Waterfall](./waterfall-series) and [Box Plot](./box-plot-series).
+
+Styling and customisation options such as `fill`, `stroke` and `cornerRadius` are configurable within each series. See [API Reference](#api-reference) for details.
 
 ## Fixed Width
 
-Use the `width` option on a bar-like series to set the pixel width of the bars.
+Use the `width` option to set a fixed pixel width for each bar.
 
-{% chartExampleRunner title="Fixed Width" name="fixed-width" type="generated" /%}
+{% chartExampleRunner title="Fixed Width" name="fixed-width-clipping" type="generated" /%}
 
 ```js format="snippet"
 {
@@ -23,25 +26,19 @@ Use the `width` option on a bar-like series to set the pixel width of the bars.
 
 In this example:
 
--   The width of each bar in the series is set to 30 pixels.
+-   Each bar in the series has a fixed width of 30 pixels.
+-   Toggle the fixed width off to let bars automatically size to fit the series area.
+-   Use the slider to change the width in pixels.
+
+When using fixed width bars:
+
 -   Resizing the chart does not affect the width of the bars.
--   If the chart is too narrow, the bars will be clipped on the right-hand side.
+-   The bars will be clipped if the fixed width exceeds the available space in the series area.
+-   Clipped bars can be viewed using the [Scrollbar](./scrollbar), [Navigator](./navigator) or [Zoom](./zoom) controls.
 
-## Clipping
+### Band Alignment
 
-When the widths of multiple bar-like series adds up to wider than the [series area](./layout/#chart-layout-calculation) of a chart, the bars will be clipped. The clipped bars can be viewed using the [Scrollbar](./scrollbar), [Navigator](./navigator) or [Zoom](./zoom) modules.
-
-{% chartExampleRunner title="Fixed Width Clipping" name="fixed-width-clipping" type="generated" /%}
-
-In this example:
-
--   Toggle the fixed width on and off. When off the bars are automatically sized to fit the width of the series area.
--   Use the slider to change the size of the width in pixels.
--   A [Scrollbar](./scrollbar) is used to allow the clipped bars to be viewed.
-
-## Band Alignment
-
-Use the `bandAlignment` option on a [Category](./axes-types/#category) or [Unit Time](./axes-time/#unit-time) axis to align fixed width bars.
+Use the `bandAlignment` option on a [Category](./axes-types/#category), [Unit Time](./axes-time/#unit-time) or [Ordinal Time](./axes-time/#ordinal-time) axis to align fixed width bars.
 
 {% chartExampleRunner title="Band Alignment" name="band-alignment" type="generated" /%}
 
@@ -58,18 +55,18 @@ Use the `bandAlignment` option on a [Category](./axes-types/#category) or [Unit 
 
 In this example:
 
--   The category axis has an initial band alignment of start.
+-   The category axis has an initial band alignment of `start`.
 -   Use the buttons to compare other band alignment options.
+    -   `justify` - bands are sized to fill the chart width, with the bars centred within each band.
+    -   `start` - bands are sized to fit the bar width and aligned to the start of the axis.
+    -   `center` - bands are sized to fit the bar width and centred within the chart width.
+    -   `end` - bands are sized to fit the bar width and aligned to the end of the axis.
 
 ## Width Ratio
 
 Use the `widthRatio` option to set the bar width as a proportion of the default width.
 
 {% chartExampleRunner title="Width Ratio" name="width-ratio" type="generated" /%}
-
-When the series is ungrouped, with `grouped: false`, the width ratio will be relative to the full width of the category, including other series.
-
-When the series is grouped, by default or with `grouped: true`, the width ratio will be relative to the automatically calculated width based on the size of the series area.
 
 ```js format="snippet"
 {
@@ -85,21 +82,72 @@ When the series is grouped, by default or with `grouped: true`, the width ratio 
 
 In this example:
 
--   The "Australia" series is ungrouped and has an initial width ratio of 0.4.
+-   The World series uses the default width ratio of 1.
+-   The Australia series has an initial width ratio of 0.4.
 -   Use the slider to change the width ratio.
--   The bars will not be clipped, since they take up a proportion of the default width.
-
-## Series Types
-
-The `width` and `widthRatio` options can be used on [Bar](./bar-series), [Box Plot](./box-plot-series), [Range Bar](./range-bar-series) and [Waterfall](./waterfall-series) series.
-
-{% chartExampleRunner title="Waterfall Width" name="waterfall-width" type="generated" /%}
+-   This gives an [Actual vs Target](#actual-vs-target-bars) style visualisation, with the "World" series as a background reference.
 
 ## Actual vs Target Bars
 
-{% chartExampleRunner title="Actual vs Target Bars" name="actual-target" type="generated" /%}
+Bars can be layered to create actual vs target comparisons by using `grouped: false` to overlay series.
+
+{% chartExampleRunner title="Actual vs Target" name="actual-target" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            yKey: 'target',
+            grouped: false,
+            fillOpacity: 0.3,
+        },
+        {
+            type: 'bar',
+            yKey: 'actual',
+            grouped: false,
+            widthRatio: 0.5,
+        },
+    ],
+}
+```
 
 In this example:
 
--   The "Actual" series is ungrouped and has a width ratio of 0.7.
--   The "Satisfactory" and "Excellent" target series are grouped, and so each takes up half the category's width.
+-   The Target series uses `grouped: false` to span the full category width as a background bar.
+-   The Actual series also uses `grouped: false` with a `widthRatio` of 0.5 to appear narrower in front.
+-   The Target series is specified first in the `series` array so that it appears behind the Actual series.
+-   The target has reduced `fillOpacity` and highlighting disabled.
+
+### Multiple Metrics
+
+Multiple grouped series can be displayed over a single ungrouped target bar.
+
+{% chartExampleRunner title="Multiple Metrics vs Target" name="targets-comparisons" type="generated" /%}
+
+In this example:
+
+-   The "Target" series is ungrouped and spans the full category width as a background reference.
+-   The "Europe" and "Asia" series are grouped by default, sharing their portion of the category width.
+-   When a series has `grouped: false`, its `widthRatio` is relative to the full category width.
+-   When `grouped: true` (the default), `widthRatio` is relative to the automatically calculated width allocated to each series within group.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgBarSeriesThemeableOptions" label="Bar Options" %}
+
+These properties are common to [Bar](./bar-series), [Range Bar](./range-bar-series), [Waterfall](./waterfall-series) and [Box Plot](./box-plot-series) series types.
+
+{% apiReference id="AgBarSeriesThemeableOptions" include=["fill", "fillOpacity", "stroke", "strokeWidth", "strokeOpacity", "lineDash", "lineDashOffset", "cornerRadius", "width", "widthRatio"] hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgBandAlignment" label="Band Alignment" %}
+
+This property is available on [Category](./axes-types/#category), [Ordinal Time](./axes-time/#ordinal-time) and [Unit Time](./axes-time/#unit-time) axes.
+
+{% apiReference id="AgCategoryAxisOptions" include=["bandAlignment"] hideHeader=true /%}
+{% /tabItem %}
+
+{% /tabs %}
