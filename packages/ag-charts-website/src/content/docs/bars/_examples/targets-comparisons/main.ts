@@ -16,45 +16,35 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Quarterly Sales vs Targets',
+        text: 'Regional Sales vs Target',
     },
     series: [
         {
             type: 'bar',
-            direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'quota',
-            yName: 'Quota',
-            stacked: true,
-            fillOpacity: 0.3,
+            yKey: 'target',
+            yName: 'Target',
             grouped: false,
+            fillOpacity: 0.3,
             highlight: {
                 enabled: false,
             },
         },
         {
             type: 'bar',
-            direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'stretch',
-            yName: 'Stretch Target',
-            stacked: true,
-            fillOpacity: 0.3,
-            grouped: false,
-            highlight: {
-                enabled: false,
-            },
+            yKey: 'europe',
+            yName: 'Europe',
+            widthRatio: 0.8,
         },
         {
             type: 'bar',
-            direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'actual',
-            yName: 'Actual',
-            grouped: false,
-            widthRatio: 0.7,
+            yKey: 'asia',
+            yName: 'Asia',
+            widthRatio: 0.8,
         },
     ],
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

@@ -18,7 +18,7 @@ const options: AgCartesianChartOptions = {
         text: 'Museum Visitors',
     },
     subtitle: {
-        text: 'Fixed bar widths enable panning with the scrollbar',
+        text: 'Fixed bar widths require panning with the scrollbar',
     },
     data: getData(),
     series: [

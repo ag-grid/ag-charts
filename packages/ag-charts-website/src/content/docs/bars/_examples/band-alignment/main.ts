@@ -5,67 +5,64 @@ import {
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
-    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: "Apple's Revenue by Product Category",
+        text: 'Total Visitors to Museums and Galleries',
+    },
+    footnote: {
+        text: 'Source: Department for Digital, Culture, Media & Sport',
     },
     series: [
         {
             type: 'bar',
             xKey: 'quarter',
-            yKey: 'iphone',
-            yName: 'iPhone',
-            stacked: true,
-            width: 50,
+            yKey: 'museums',
+            yName: 'Museums',
+            width: 10,
         },
         {
             type: 'bar',
             xKey: 'quarter',
-            yKey: 'mac',
-            yName: 'Mac',
-            stacked: true,
-            width: 50,
+            yKey: 'galleries',
+            yName: 'Galleries',
+            width: 10,
         },
         {
             type: 'bar',
             xKey: 'quarter',
-            yKey: 'ipad',
-            yName: 'iPad',
-            stacked: true,
-            width: 50,
-        },
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'wearables',
-            yName: 'Wearables',
-            stacked: true,
-            width: 50,
-        },
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'services',
-            yName: 'Services',
-            stacked: true,
-            width: 50,
+            yKey: 'heritage',
+            yName: 'Heritage Sites',
+            width: 10,
         },
     ],
     axes: {
         x: {
             type: 'category',
             bandAlignment: 'start',
+        },
+        y: {
+            type: 'number',
+            title: {
+                text: 'Total Visitors (Millions)',
+            },
+        },
+    },
+    formatter: {
+        y(params) {
+            const value = params.value as number;
+            const millions = value / 1_000_000;
+            const accuracy = ['series-label', 'axis-label'].includes(params.source) ? 0 : 1;
+            return `${millions.toFixed(accuracy)}M`;
         },
     },
 };

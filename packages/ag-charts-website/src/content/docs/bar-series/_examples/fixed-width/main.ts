@@ -60,6 +60,12 @@ const options: AgCartesianChartOptions = {
             width: 50,
         },
     ],
+    axes: {
+        x: {
+            type: 'category',
+            bandAlignment: 'start',
+        },
+    },
 };
 
 AgCharts.create(options);

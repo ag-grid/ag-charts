@@ -1,116 +1,61 @@
 ---
 title: 'Scrollbar'
-description: 'Scrollbar provides panning navigation for zoomed or overflow chart data.'
+description: 'Scrollbars provide panning navigation for zoomed or overflow chart data.'
 enterprise: true
 ---
 
-The scrollbar provides an interface for panning around a chart.
+The Scrollbar provides an intuitive control for panning when [fixed width bars](./bars/#fixed-width) require more space than
+the series area, or when zoom is applied with the [State API](./api-state/) or [Zoom](./zoom) functionality.
 
-The Scrollbar becomes available when the chart is zoomed in or when fixed-width bars require more space than the series
-area. For fixed-width bar configuration, see the [Series Bars](./bars/#fixed-width) documentation.
-For other navigation features, see [Navigator](./navigator/) and [Zoom](./zoom/).
+## Simple Scrollbar
 
-## Enabling the Scrollbar
-
-The Scrollbar is disabled by default. To enable it, add the following configuration:
-
-```js format="snippet"
-{
-    scrollbar: {
-        enabled: true,
-    },
-}
-```
+The Scrollbar is disabled by default. Use `scrollbar.enabled` to enable.
 
 {% chartExampleRunner title="Scrollbar" name="scrollbar" type="generated" /%}
 
-## Visibility
-
-The `scrollbar.visible` property controls when the Scrollbar is displayed if enabled:
-
--   `'auto'` (default) - shows the Scrollbar only when the data window is smaller than the full range.
--   `'always'` - always shows the Scrollbar.
--   `'never'` - hides the Scrollbar even when the data window is smaller than the full range.
-
-With `visible: 'auto'`, the Scrollbar appears in these common scenarios:
-
--   Fixed-width bars push the data beyond the available series area, so not all categories fit in view.
--   An initial zoom is set via `initialState`.
--   Zooming is enabled and the user zooms in.
-
-{% chartExampleRunner title="Scrollbar Visibility" name="scrollbar-visibility" type="generated" /%}
-
 ```js format="snippet"
 {
     scrollbar: {
         enabled: true,
-        visible: 'always',
     },
 }
 ```
-
-## Initial Zoom
-
-{% chartExampleRunner title="Scrollbar Initial Zoom" name="scrollbar-initial-zoom" type="generated" /%}
-
-To start in a zoomed state with the scrollbar visible, set an initial zoom state with the [Chart Initial State API](./api-state/#initial-state). Only the `ScrollbarModule` needs to be registered; interactive zoom is not required:
-
-```js format="snippet"
-{
-    initialState: {
-        zoom: {
-            ratioX: { start: 0.15, end: 0.5 },
-        },
-    },
-}
-```
-
-## Track Interactivity
-
-The Scrollbar track mirrors native scrollbar behaviour:
-
--   Clicking the track pages the thumb by one viewport width towards the click position.
--   Holding the mouse button down repeats the page increment automatically.
--   Shift+Click jumps the thumb so the click is centred within the thumb.
--   Dragging continues if the pointer moves away from the track, with the thumb clamped to the valid range.
--   On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable hit
-    target for dragging.
 
 ## Vertical and Horizontal Scrollbars
 
-By default, scrollbars appear in any direction that is scrollable based on the current data window.
+Both vertical and horizontal Scrollbars are shown when necessary.
 
-Only one Scrollbar can be shown in each direction.
-
-Configure horizontal and vertical scrollbars through the
-`scrollbar.horizontal` and `scrollbar.vertical` properties.
+{% chartExampleRunner title="Vertical Scrollbar" name="vertical-scrollbar" type="generated" /%}
 
 Any options supplied on the top-level `scrollbar` object
 apply to both orientations unless they are overridden within the specific `horizontal` or `vertical` configuration.
 
-{% chartExampleRunner title="Vertical Scrollbar" name="vertical-scrollbar" type="generated" /%}
+## Position
+
+Both horizontal and vertical Scrollbars can be positioned on either side of the chart with the `position` property.
+
+{% chartExampleRunner title="Scrollbar Position" name="scrollbar-position" type="generated" /%}
 
 ```js format="snippet"
 {
     scrollbar: {
         enabled: true,
         vertical: {
-            enabled: true,
-            position: 'left',
+            position: 'right',
         },
     },
 }
 ```
 
-The `position` can be set to `'left'` or `'right'` for vertical scrollbars, and `'top'` or `'bottom'` for horizontal
-scrollbars.
+In the above example:
+
+-   Set `'left'` or `'right'` positions for the vertical Scrollbar.
+-   Set `'top'` or `'bottom'` positions for the horizontal Scrollbar.
+-   By default, `position` matches the primary axis for each direction.
 
 ## Placement and Spacing
 
-The `placement` property determines whether the Scrollbar appears inside or outside the axis ticks and labels:
-
--   `'outer'` (default) - positions the scrollbar outside the ticks and labels, but inside the axis title.
--   `'inner'` - positions the scrollbar inside the ticks and labels, but still outside the chart series area.
+The `placement` property determines where the Scrollbar appears within the axis layout.
 
 {% chartExampleRunner title="Scrollbar Placement" name="scrollbar-placement" type="generated" /%}
 
@@ -118,19 +63,25 @@ The `placement` property determines whether the Scrollbar appears inside or outs
 {
     scrollbar: {
         enabled: true,
-        placement: 'outer',
-        spacing: 8,
-        tickSpacing: 6,
+        placement: 'inner',
+        spacing: 0,
+        tickSpacing: 0,
     },
 }
 ```
 
-The `spacing` value controls the gap between the scrollbar and the series area or axis labels (depending on placement),
-while `tickSpacing` controls the gap between axis ticks and an inner Scrollbar.
+In the above example:
+
+-   Use the buttons to change the `placement` option:
+    -   `'outer'` (default) - positions the scrollbar outside the axis ticks and labels, but inside title.
+    -   `'inner'` - positions the scrollbar inside the ticks and labels, but outside the series area.
+-   Use the sliders to change the spacing between elements:
+    -   The `spacing` value controls the gap between the Scrollbar and the series area or axis labels.
+    -   The `tickSpacing` value controls the gap between axis ticks and an `inner` Scrollbar.
 
 ## Customisation
 
-The Scrollbar's appearance can be customised through its `track` and `thumb` properties.
+Use the `track` and `thumb` properties to style the Scrollbar components.
 
 {% chartExampleRunner title="Scrollbar Styling" name="scrollbar-styling" type="generated" /%}
 
@@ -138,19 +89,19 @@ The Scrollbar's appearance can be customised through its `track` and `thumb` pro
 {
     scrollbar: {
         enabled: true,
-        placement: 'inner',
-        thickness: 8,
-        spacing: 8,
+        thickness: 12,
         track: {
-            fillOpacity: 0,
+            fill: '#e2e8f0',
+            cornerRadius: 0,
             strokeWidth: 0,
         },
         thumb: {
-            fill: '#6b7280',
-            strokeWidth: 0,
-            cornerRadius: 8,
+            fill: '#3b82f6',
+            cornerRadius: 0,
+            strokeWidth: 1,
+            stroke: '#2563eb',
             hoverStyle: {
-                fill: '#374151',
+                fill: '#2563eb',
             },
         },
     },
@@ -164,14 +115,40 @@ In this configuration:
 -   `thumb` styles the draggable indicator showing the current position.
 -   `thumb.hoverStyle` customises the thumb colour on hover.
 
-Both `track` and `thumb` support standard fill and stroke options including `fill`, `stroke`, `fillOpacity`,
-`strokeOpacity`, `strokeWidth`, `lineDash`, `lineDashOffset`, `opacity`, and `cornerRadius`.
+Both `track` and `thumb` support standard fill, stroke and corner radius options.
 
-## Thumb Size and Disabled State
+See [API Reference](#api-reference) for more details.
 
-The thumb has a minimum size to remain clickable (configurable via `scrollbar.thumb.minSize`). When the
-data window spans the full range, the Scrollbar disables its interactions; if `visible: 'always'` is set, the thumb
-fills the track to indicate that panning is not available.
+## Interactivity
+
+The Scrollbar track mirrors native scrollbar behaviour:
+
+-   Clicking the track pages the thumb by one viewport width towards the click position.
+-   Holding the mouse button down repeats the page increment automatically.
+-   Shift+Click jumps the thumb so the click is centred within the thumb.
+-   On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable target for dragging.
+-   The Scrollbars are fully accessible with keyboard navigation and screen readers automatically supported.
+
+## Visibility
+
+When enabled, the Scrollbar is shown automatically when the data exceeds the available space. Use the `visible` property to override this behaviour.
+
+{% chartExampleRunner title="Scrollbar Visibility" name="scrollbar-visibility" type="generated" /%}
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+        visible: 'always',
+    },
+}
+```
+
+In this example:
+
+-   `'auto'` (default) - shows the Scrollbar only when the data does not fit within the viewport.
+-   `'always'` - always shows the Scrollbar.
+-   `'never'` - hides the Scrollbar even when it is needed.
 
 ## API Reference
 

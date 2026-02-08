@@ -48,19 +48,19 @@ const options: AgCartesianChartOptions = {
     },
     scrollbar: {
         enabled: true,
-        placement: 'inner',
-        thickness: 8,
-        spacing: 8,
+        thickness: 12,
         track: {
-            fillOpacity: 0,
+            fill: '#e2e8f0',
+            cornerRadius: 0,
             strokeWidth: 0,
         },
         thumb: {
-            fill: '#6b7280',
-            strokeWidth: 0,
-            cornerRadius: 8,
+            fill: '#3b82f6',
+            cornerRadius: 0,
+            strokeWidth: 1,
+            stroke: '#2563eb',
             hoverStyle: {
-                fill: '#374151',
+                fill: '#2563eb',
             },
         },
     },

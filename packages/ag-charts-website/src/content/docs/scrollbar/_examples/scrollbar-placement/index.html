@@ -1,7 +1,34 @@
 <div class="example-controls">
     <div class="controls-row">
+        <label>Placement:</label>
         <button onclick="setPlacement('outer')">Outer</button>
         <button onclick="setPlacement('inner')">Inner</button>
+    </div>
+    <div class="controls-row">
+        <label for="spacingSlider">spacing:</label>
+        <input
+            type="range"
+            id="spacingSlider"
+            min="0"
+            max="25"
+            value="0"
+            oninput="setSpacing(event)"
+            onchange="setSpacing(event)"
+        />
+        <span id="spacingValue" style="display: inline-block; min-width: 3ch; text-align: right">0</span>
+        <label for="tickSpacingSlider" class="gap-left">tickSpacing:</label>
+        <input
+            type="range"
+            id="tickSpacingSlider"
+            min="0"
+            max="25"
+            value="0"
+            oninput="setTickSpacing(event)"
+            onchange="setTickSpacing(event)"
+        />
+        <span id="tickSpacingValue" style="display: inline-block; min-width: 3ch; text-align: right">0</span>
+        <input type="checkbox" id="ticksEnabled" class="gap-left" onchange="setTicksEnabled(event.target.checked)" />
+        <label for="ticksEnabled">Enable Ticks</label>
     </div>
 </div>
 <div id="myChart"></div>

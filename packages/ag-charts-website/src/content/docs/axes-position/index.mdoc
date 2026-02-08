@@ -69,3 +69,22 @@ In this example:
 When the target value leaves the visible range, such as by [Zooming](./zoom/), the axis will stick to the edge of the chart and remain in view.
 
 Set `sticky: false` to allow the axis to be moved out of view in this scenario.
+
+## Band Alignment
+
+The `bandAlignment` option controls the band layout when using [fixed width bars](./bars/#fixed-width).
+
+{% chartExampleRunner title="Band Alignment" name="band-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            bandAlignment: 'start',
+        },
+    },
+}
+```
+
+See the [Series Bars](./bars/#band-alignment) documentation for more details.

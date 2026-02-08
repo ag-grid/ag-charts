@@ -23,41 +23,52 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Music Revenue Trends, 2004–2024',
+        text: 'Quarterly Revenue by Product Line',
     },
     subtitle: {
-        text: 'The Evolution of Music Formats',
-    },
-    footnote: {
-        text: 'Data represents global music revenue (in millions of USD) by format, based on historical trends and estimates.',
+        text: 'Revenue in millions (USD)',
     },
     scrollbar: { enabled: true },
     series: [
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'cd',
-            yName: 'CD',
-            width: 20,
+            xKey: 'quarter',
+            yKey: 'software',
+            yName: 'Software',
+            width: 30,
         },
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'streaming',
-            yName: 'Streaming',
-            width: 20,
+            xKey: 'quarter',
+            yKey: 'hardware',
+            yName: 'Hardware',
+            width: 30,
         },
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'digitalDownloads',
-            yName: 'Digital Downloads',
-            width: 20,
+            xKey: 'quarter',
+            yKey: 'services',
+            yName: 'Services',
+            width: 30,
         },
     ],
     axes: {
         x: {
             type: 'ordinal-time',
+            label: {
+                formatter: ({ value }) => {
+                    const date = new Date(value);
+                    const q = Math.floor(date.getMonth() / 3) + 1;
+                    const year = String(date.getFullYear()).slice(2);
+                    return `Q${q} '${year}`;
+                },
+            },
+        },
+        y: {
+            type: 'number',
+            label: {
+                formatter: ({ value }) => `$${(value / 1000).toFixed(1)}B`,
+            },
         },
     },
 };
