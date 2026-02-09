@@ -4,7 +4,6 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
-    callback,
     color,
     fillOptionsDef,
     fontOptionsDef,
@@ -81,7 +80,6 @@ export const annotationChannelTextDefs: OptionsDefs<AgChannelAnnotationTextStyle
 const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
-    formatter: callback,
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,
