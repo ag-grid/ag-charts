@@ -972,7 +972,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(yValue),
+                        missing: _ModuleSupport.isTooltipValueMissing(total),
                     },
                 ],
             },

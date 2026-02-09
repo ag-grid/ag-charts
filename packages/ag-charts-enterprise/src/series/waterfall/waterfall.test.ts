@@ -10,6 +10,7 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
@@ -19,6 +20,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import type { WaterfallSeries } from './waterfallSeries';
 
 describe('WaterfallSeries', () => {
     setupMockConsole();
@@ -766,6 +768,90 @@ describe('WaterfallSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('CRT-1049: tooltip content for subtotal and total nodes', () => {
+        const WATERFALL_TOTALS_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { year: '2020', spending: 10 },
+                { year: '2021', spending: 20 },
+                { year: '2022', spending: 30 },
+                { year: '2023', spending: -20 },
+                { year: '2024', spending: -30 },
+                { year: '2025', spending: 40 },
+                { year: '2026', spending: -30 },
+                { year: '2027', spending: 40 },
+                { year: '2028', spending: 50 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    totals: [
+                        { totalType: 'subtotal', index: 2, axisLabel: 'Subtotal 1' },
+                        { totalType: 'subtotal', index: 5, axisLabel: 'Subtotal 2' },
+                        { totalType: 'total', index: 8, axisLabel: 'Total' },
+                    ],
+                },
+            ],
+        };
+
+        it('should return valid tooltip content for subtotal nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Index 3 is the first subtotal (after data indices 0, 1, 2)
+            const subtotalContent = series.getTooltipContent(3);
+            expect(subtotalContent).toBeDefined();
+            expect(subtotalContent?.type).toBe('structured');
+            if (subtotalContent?.type === 'structured') {
+                expect(subtotalContent.data?.[0].missing).not.toBe(true);
+            }
+        });
+
+        it('should return valid tooltip content for total nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Last index is the total node
+            const nodeData = series['contextNodeData']?.nodeData;
+            const totalIndex = nodeData ? nodeData.length - 1 : -1;
+            const totalContent = series.getTooltipContent(totalIndex);
+            expect(totalContent).toBeDefined();
+            expect(totalContent?.type).toBe('structured');
+            if (totalContent?.type === 'structured') {
+                expect(totalContent.data?.[0].missing).not.toBe(true);
+            }
+        });
+
+        it('should return valid tooltip content for regular data nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Index 0 is the first regular data node
+            const regularContent = series.getTooltipContent(0);
+            expect(regularContent).toBeDefined();
+            expect(regularContent?.type).toBe('structured');
+            if (regularContent?.type === 'structured') {
+                expect(regularContent.data?.[0].missing).not.toBe(true);
+            }
         });
     });
 });
