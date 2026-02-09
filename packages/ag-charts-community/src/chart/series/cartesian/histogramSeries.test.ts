@@ -359,6 +359,50 @@ describe('HistogramSeries', () => {
         });
     });
 
+    // CRT-1043: Invisible histogram series must still populate nodeData so the remove animation
+    // has actual positions to animate from rather than empty data (which causes no animation).
+    describe('legend toggle nodeData (CRT-1043)', () => {
+        const animate = spyOnAnimationManager();
+
+        it('should populate nodeData for invisible histogram series after legend toggle', async () => {
+            animate(1200, 1);
+
+            const options: AgChartOptions = {
+                data: Array.from({ length: 20 }, (_, i) => ({ value: i * 10 })),
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'value',
+                        bins: [
+                            [0, 50],
+                            [50, 100],
+                            [100, 150],
+                            [150, 200],
+                        ],
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Toggle series invisible (simulates legend click)
+            animate(1200, 0.5);
+            (options.series![0] as any).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const invisibleSeries = chartInstance.series[0] as any;
+            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData!.map((d: any) => d.frequency)).toEqual([5, 5, 5, 5]);
+            expect(nodeData!.map((d: any) => d.height)).toEqual([Number.NaN, Number.NaN, Number.NaN, Number.NaN]);
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render histogram series with default gradient fill', async () => {
             const options = {
