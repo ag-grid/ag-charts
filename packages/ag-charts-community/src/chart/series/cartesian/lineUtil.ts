@@ -224,7 +224,7 @@ export function prepareLinePathPropertyAnimation(
     if (visibleToggleMode === 'fade') {
         return {
             fromFn(path: Path, datum) {
-                const opacity = status === 'added' ? 0 : path.opacity;
+                const opacity = status === 'added' ? 0 : 1;
                 const segments = status === 'removed' ? path.previousDatum ?? datum : datum;
                 return { ...result.fromFn(path, datum), opacity, segments };
             },
