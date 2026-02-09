@@ -738,6 +738,46 @@ describe('BarSeries', () => {
         }
     });
 
+    // CRT-1040: Invisible stacked series must still populate nodeData so animation uses the
+    // coordinated 'update' phase rather than the out-of-sync 'remove'/'add' phases.
+    describe('stacked bar legend toggle nodeData (CRT-1040)', () => {
+        const animate = spyOnAnimationManager();
+
+        it('should populate nodeData for invisible stacked series after legend toggle', async () => {
+            animate(1200, 1);
+
+            const options: AgChartOptions = {
+                data: [
+                    { category: 'A', v1: 10, v2: 20 },
+                    { category: 'B', v1: 30, v2: 40 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Toggle second series invisible (simulates legend click)
+            animate(1200, 0.5);
+            (options.series![1] as AgBarSeriesOptions).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const invisibleSeries = chartInstance.series[1] as any;
+            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+
+            expect(nodeData).toHaveLength(2);
+            for (const datum of nodeData!) {
+                expect(datum.yValue).toBe(0);
+            }
+        });
+    });
+
     describe('invalid data domain', () => {
         it.each(Object.entries(INVALID_DATA_EXAMPLES))(
             'for %s it should create chart instance as expected',

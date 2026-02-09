@@ -513,7 +513,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         // Phase 3: INITIALISE (abstract hook - subclasses must implement)
         const result = this.initializeResult(ctx);
-        if (!this.visible) return result;
+        if (!this.visible && (this.seriesGrouping == null || !ctx.animationEnabled)) return result;
 
         // Phase 4: POPULATE (abstract hook - subclasses must implement)
         this.populateNodeData(ctx);
