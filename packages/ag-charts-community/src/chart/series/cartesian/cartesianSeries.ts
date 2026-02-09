@@ -64,6 +64,7 @@ type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     propertyNames: SeriesDirectionKeysMapping<PropertiesOf<TTypes>>;
     datumSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
+    animationAlwaysPopulateNodeData: boolean;
     segmentedDataNodes: boolean;
     animationResetFns?: {
         path?: (path: Path<DatumOf<TTypes>>) => Partial<Path<DatumOf<TTypes>>>;
@@ -200,6 +201,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
+        animationAlwaysPopulateNodeData = false,
         segmentedDataNodes = true,
         animationResetFns,
         propertyKeys,
@@ -224,6 +226,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             propertyNames,
             animationResetFns,
             animationAlwaysUpdateSelections,
+            animationAlwaysPopulateNodeData,
             datumSelectionGarbageCollection,
             segmentedDataNodes,
         };
@@ -513,7 +516,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         // Phase 3: INITIALISE (abstract hook - subclasses must implement)
         const result = this.initializeResult(ctx);
-        if (!this.visible && (this.seriesGrouping == null || !ctx.animationEnabled)) return result;
+        if (
+            !this.visible &&
+            ((this.seriesGrouping == null && !this.opts.animationAlwaysPopulateNodeData) || !ctx.animationEnabled)
+        )
+            return result;
 
         // Phase 4: POPULATE (abstract hook - subclasses must implement)
         this.populateNodeData(ctx);
