@@ -164,9 +164,6 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'category',
             position: 'top',
-            title: {
-                text: 'Dolphin',
-            },
             paddingInner: 0.5,
             paddingOuter: 0.2,
             crossLines: [
