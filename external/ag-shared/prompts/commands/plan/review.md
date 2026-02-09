@@ -59,7 +59,7 @@ Optional flags:
     If no original request can be located:
     - Flag as IMPORTANT: "Plan does not embed or reference the original request/specification"
     - Recommend the plan include a **Source Request** section quoting or summarising the original ask
-    - Proceed using the plan's stated goals as a proxy, but note reduced confidence in coverage assessment
+    - **Fallback:** Derive `${ORIGINAL_REQUIREMENTS}` from the plan's stated goals/objectives instead — decompose them into the same numbered checklist format. Note in the output that coverage assessment is based on plan goals (lower confidence) rather than the original request
 
 4. **Extract and validate intent:**
 
@@ -633,7 +633,49 @@ fi
 
 ## Review Agent Prompts
 
-### Intent Reviewer Prompt
+### Intent & Completeness Reviewer Prompt (Quick Mode)
+
+```markdown
+Review this plan for intent clarity, completeness, and specification coverage. This is a combined
+review for quick mode — cover both intent propagation AND original request coverage.
+
+**Original Requirements (source of truth):**
+${ORIGINAL_REQUIREMENTS}
+
+**Plan:**
+${PLAN_CONTENT}
+
+**Check for:**
+
+1. **Intent:** Is there a clear statement of WHY this plan exists? Does each task connect to the core intent?
+2. **Sub-agent prompts:** Would sub-agents understand the broader context and WHY?
+3. **Specification coverage:** For EACH original requirement, which plan task(s) address it?
+   - Flag requirements with NO plan coverage as CRITICAL
+   - Flag requirements with only PARTIAL coverage as IMPORTANT
+   - Flag plan tasks that don't trace to any original requirement as MINOR (scope creep)
+4. **Edge cases:** Are error scenarios and boundary conditions considered?
+5. **Non-goals:** Are boundaries clear so agents don't over-solve?
+
+**Return findings as:**
+
+-   CRITICAL: [uncovered requirements; intent missing or would cause misunderstanding]
+-   IMPORTANT: [partially covered requirements; intent unclear]
+-   MINOR: [scope creep; intent improvements]
+
+**Also return a traceability table:**
+
+| # | Original Requirement | Plan Task(s) | Coverage |
+|---|---------------------|--------------|----------|
+| 1 | [requirement text]  | [task refs]  | Full/Partial/Missing |
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
+```
+
+### Intent Reviewer Prompt (Thorough Mode)
 
 ```markdown
 Review this plan for intent clarity and propagation. Your goal is to ensure the "why" is understood and conveyed throughout.
