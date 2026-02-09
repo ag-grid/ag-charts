@@ -1,5 +1,8 @@
+import type { Framework } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import type { HeroGalleryExample } from '@ag-website-shared/components/landing-pages/types';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import styles from './HeroGallery.module.scss';
@@ -8,10 +11,10 @@ interface Props {
     examples: HeroGalleryExample[];
     height: number;
     autoAdvanceDelay?: number;
-    framework?: string;
+    framework?: Framework;
 }
 
-export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framework = 'reactFunctional' }: Props) {
+export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framework = 'react' }: Props) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,11 +58,14 @@ export function HeroGallery({ examples, height, autoAdvanceDelay = 7000, framewo
     // Build iframe URL based on whether it's a gallery or docs example
     const getExampleUrl = (example: HeroGalleryExample) => {
         if (example.pageName) {
-            // Docs example: /charts/{internalFramework}/{pageName}/examples/{exampleName}/
-            return `/charts/${framework}/${example.pageName}/examples/${example.exampleName}/`;
+            // Docs example: /{framework}/{pageName}/examples/{exampleName}/
+            return urlWithPrefix({
+                url: `./${example.pageName}/examples/${example.exampleName}`,
+                framework,
+            });
         }
-        // Gallery example: /charts/gallery/examples/{exampleName}/example-runner
-        return `/charts/gallery/examples/${example.exampleName}/example-runner`;
+        // Gallery example: /gallery/examples/{exampleName}/example-runner
+        return urlWithBaseUrl(`/gallery/examples/${example.exampleName}/example-runner`);
     };
 
     return (
