@@ -1648,7 +1648,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // reset zoom to initial state
             this.ctx.zoomManager.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
-                { x: { min: 0, max: 1 } }
+                { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );
         }
 
