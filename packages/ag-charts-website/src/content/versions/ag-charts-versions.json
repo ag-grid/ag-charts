@@ -5,11 +5,11 @@
         "highlights": [
             {
                 "text": "Series Bar Width Customisation",
-                "path": "./bars"
+                "path": "./bars/#fixed-width"
             },
             {
                 "text": "Actual vs Target Bars",
-                "path": "./bars"
+                "path": "./bars/#actual-vs-target-bars"
             },
             {
                 "text": "Scrollbars",
