@@ -25,6 +25,7 @@ import {
     isArray,
     isPlainObject,
     isSegmentTruncated,
+    isTextTruncated,
     measureTextSegments,
     normalizeAngle360FromDegrees,
     toPlainText,
@@ -239,7 +240,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             const tickLabel = wrappedLabel ?? inputText;
             const isSegmented = isArray(tickLabel);
-            const isTruncated = tickLabel !== inputText && (!isSegmented || isSegmentTruncated(tickLabel.at(-1)));
+            const isTruncated =
+                tickLabel !== inputText &&
+                (isSegmented ? isSegmentTruncated(tickLabel.at(-1)) : isTextTruncated(toTextString(tickLabel)));
 
             let tickId: string;
             if (isContinuous) {
