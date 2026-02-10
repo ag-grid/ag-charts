@@ -76,7 +76,9 @@ export function preparePieSeriesAnimationFunctions(
             stroke = (typeof sect.stroke === 'string' ? sect.stroke : undefined) ?? stroke;
         }
 
-        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase };
+        const animatableFill = typeof fill === 'string' ? { fill } : {};
+
+        return { startAngle, endAngle, innerRadius, outerRadius, stroke, phase, ...animatableFill };
     };
     const toFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
         _sect: Sector,
@@ -102,7 +104,9 @@ export function preparePieSeriesAnimationFunctions(
             outerRadius = radii.outerRadius;
         }
 
-        return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
+        const animatableFill = typeof fill === 'string' ? { fill } : {};
+
+        return { startAngle, endAngle, outerRadius, innerRadius, stroke, ...animatableFill };
     };
 
     const innerCircleFromFn: FromToMotionPropFn<Marker, any, { radius: number }> = (node, _) => {
