@@ -8,6 +8,7 @@ import type {
     HighlightNodeDatum,
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
+    LegendItemHoverEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
@@ -260,7 +261,8 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
-            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
+            chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -1421,6 +1423,13 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return result;
+    }
+
+    private onLegendHover(_event: LegendItemHoverEvent): void {
+        if (!this.isState(InteractionState.Clickable)) return;
+        this.hoverDevice = 'pointer';
+        this.clearHighlight();
+        this.clearCachedEvents();
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
