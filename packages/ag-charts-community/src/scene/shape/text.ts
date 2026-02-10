@@ -345,15 +345,10 @@ export class Text<D = any> extends Shape<D> {
             this.renderText(renderCtx);
         }
 
-        if (Text.debug.check() && !this.textMap?.size) {
+        if (Text.debug.check()) {
             const bbox = this.getBBox();
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-        } else if (Text.debug.check()) {
-            const bbox = this.getBBox();
-            ctx.strokeStyle = 'blue';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = this.textMap?.size ? 2 : 1;
+            ctx.strokeStyle = this.textMap?.size ? 'blue' : 'red';
             ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
         }
 
