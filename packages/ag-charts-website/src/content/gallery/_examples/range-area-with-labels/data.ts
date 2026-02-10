@@ -89,7 +89,7 @@ export function getData() {
             'Flats and maisonettes': 116.9,
         },
         {
-            Date: new Date('2020-11-01'),
+            Date: new Date('2020-12-01'),
             'All property types': 122.67,
             'Detached houses': 128.78,
             'Semi-detached houses': 131.16,
@@ -185,7 +185,7 @@ export function getData() {
             'Flats and maisonettes': 118.27,
         },
         {
-            Date: new Date('2021-11-01'),
+            Date: new Date('2021-12-01'),
             'All property types': 126.38,
             'Detached houses': 139.54,
             'Semi-detached houses': 139.13,
@@ -281,7 +281,7 @@ export function getData() {
             'Flats and maisonettes': 122.7,
         },
         {
-            Date: new Date('2022-11-01'),
+            Date: new Date('2022-12-01'),
             'All property types': 132.9,
             'Detached houses': 146.5,
             'Semi-detached houses': 147.8,
