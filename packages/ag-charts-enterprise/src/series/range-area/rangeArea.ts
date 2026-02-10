@@ -1313,7 +1313,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
         resetMotion([datumSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
+        markerSwipeScaleInAnimation(
+            this,
+            animationManager,
+            { ...this.getAnimationDrawingModes(), phase: 'initial' },
+            datumSelection
+        );
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
     }
 
@@ -1362,7 +1367,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
+            markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'low_stroke_path_properties', animationManager, 'add', lowStroke);
             pathFadeInAnimation(this, 'high_stroke_path_properties', animationManager, 'add', highStroke);
@@ -1398,7 +1403,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
 
         if (fns.hasMotion) {
-            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
+            markerFadeInAnimation(this, animationManager, undefined, this.getAnimationDrawingModes(), datumSelection);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
         }
 

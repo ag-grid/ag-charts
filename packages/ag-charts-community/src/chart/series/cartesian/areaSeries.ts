@@ -1586,7 +1586,12 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
         resetMotion([datumSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
+        markerSwipeScaleInAnimation(
+            this,
+            animationManager,
+            { ...this.getAnimationDrawingModes(), phase: 'initial' },
+            datumSelection
+        );
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
@@ -1623,7 +1628,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
+            markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
@@ -1644,7 +1649,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, undefined, datumSelection);
+        markerFadeInAnimation(this, animationManager, undefined, this.getAnimationDrawingModes(), datumSelection);
 
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
