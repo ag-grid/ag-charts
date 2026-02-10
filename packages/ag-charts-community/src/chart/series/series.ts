@@ -503,6 +503,14 @@ export abstract class Series<
         return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
     }
 
+    protected getAnimationDrawingModes() {
+        const drawingMode = this.getDrawingMode(false);
+        return {
+            start: { drawingMode: 'overlay' as AgDrawingMode },
+            finish: { drawingMode },
+        };
+    }
+
     readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;

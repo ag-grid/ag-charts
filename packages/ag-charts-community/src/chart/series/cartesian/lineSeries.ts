@@ -997,7 +997,12 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.updateLinePaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
         resetMotion([datumSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
+        markerSwipeScaleInAnimation(
+            this,
+            animationManager,
+            { ...this.getAnimationDrawingModes(), phase: 'initial' },
+            datumSelection
+        );
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
     }
@@ -1039,7 +1044,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
+            markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), datumSelection);
             staticFromToMotion(
                 this.id,
                 'path_properties',
@@ -1084,7 +1089,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
 
         if (fns.hasMotion) {
-            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
+            markerFadeInAnimation(this, animationManager, undefined, this.getAnimationDrawingModes(), datumSelection);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
         }

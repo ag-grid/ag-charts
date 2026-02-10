@@ -762,7 +762,7 @@ export abstract class RadarSeries<
             onStop: () => this.animatePaths(1),
         });
 
-        markerFadeInAnimation(this, animationManager, 'added', itemSelection);
+        markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), itemSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
     }
 
