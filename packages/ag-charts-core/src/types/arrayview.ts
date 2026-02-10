@@ -8,7 +8,7 @@ export interface ArrayViewSource<T> {
     at(index: number): T | undefined;
 }
 
-export function makeJITArrayView<T>(arrayLike: ArrayViewSource<T>): ArrayView<T> {
+export function makeArrayView<T>(arrayLike: ArrayViewSource<T>): ArrayView<T> {
     const impl: ArrayView<T> = Object.freeze({
         get length() {
             return arrayLike.length;
@@ -20,7 +20,7 @@ export function makeJITArrayView<T>(arrayLike: ArrayViewSource<T>): ArrayView<T>
         },
 
         map<U>(callbackfn: (value: T, index: number, array: ArrayView<T>) => U, thisArg?: any): ArrayView<U> {
-            return makeJITArrayView<U>({
+            return makeArrayView<U>({
                 length: arrayLike.length,
                 at: (i: number) => {
                     const v = impl.at(i);

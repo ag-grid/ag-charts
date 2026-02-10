@@ -1,4 +1,4 @@
-import { type ArrayView, makeJITArrayView } from 'ag-charts-core';
+import { type ArrayView, makeArrayView } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { unitEncoding } from './encoding';
@@ -225,7 +225,7 @@ export function intervalRangeNumeric(
     } = rangeData(interval, start, stop, params);
 
     return {
-        encodedValues: makeJITArrayView({
+        encodedValues: makeArrayView({
             length: Math.max(0, e1 - e0 + 1),
             at(index: number): number | undefined {
                 return e0 + index;
