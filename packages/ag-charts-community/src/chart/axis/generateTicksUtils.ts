@@ -102,14 +102,11 @@ export function axisLabelsOverlap(data: readonly BoxBounds[], padding: number = 
     const result: BoxBounds[] = [];
 
     for (const datum of data) {
-        const { x, y } = datum;
-        let { width, height } = datum;
-        width += padding;
-        height += padding;
-        if (result.some((l) => boxCollides(l, x, y, width, height))) {
+        const { x, y, width, height } = datum;
+        if (result.some((l) => boxCollides(l, x, y, width + padding, height + padding))) {
             return true;
         }
-        result.push({ x, y, width, height });
+        result.push(datum);
     }
 
     return false;
