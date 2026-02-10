@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest, test } from '@jest/globals';
 
 import type {
     AgCartesianChartOptions,
@@ -12,6 +12,7 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { InteractionState } from '../interaction/interactionManager';
 import * as examples from '../test/examples';
 import { seedRandom } from '../test/random';
 import type { AgChartProxy } from '../test/utils';
@@ -24,10 +25,12 @@ import {
     doubleClickAction,
     doubleTapAction,
     extractImageData,
+    hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationManager,
     tapAction,
     waitForChartStability,
 } from '../test/utils';
@@ -558,7 +561,7 @@ describe('Legend', () => {
 
             await clickAction(400, 570)(chart);
 
-            expect(legendItemClick.mock.lastCall[0]).toMatchInlineSnapshot(`
+            expect(legendItemClick.mock.lastCall![0]).toMatchInlineSnapshot(`
 {
   "event": MouseEvent {
     "isTrusted": false,
@@ -589,7 +592,7 @@ describe('Legend', () => {
 
             await doubleClickAction(400, 570)(chart);
 
-            expect(legendItemDoubleClick.mock.lastCall[0]).toMatchInlineSnapshot(`
+            expect(legendItemDoubleClick.mock.lastCall![0]).toMatchInlineSnapshot(`
 {
   "event": MouseEvent {
     "isTrusted": false,
@@ -843,6 +846,54 @@ describe('Legend', () => {
                 },
             });
             chart = deproxy(AgCharts.create(options));
+            await compare(chart);
+        });
+    });
+
+    describe('CRT-1034', () => {
+        const animate = spyOnAnimationManager();
+
+        test('legend hover should not interrupt show animation', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                    { year: '2024', gold: 40, silver: 27, bronze: 24 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'year', yKey: 'gold' },
+                    { type: 'bar', xKey: 'year', yKey: 'silver' },
+                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            animate(1200, 1);
+            chart = await createChart(options);
+
+            // Hide first series via legend click, then show it again.
+            const { x, y } = computeLegendBBox(chart);
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            // Simulate mid-animation state (spyOnAnimationManager completes animations
+            // instantly via forceTimeJump, so we push Animation state directly to test
+            // the legend's highlight deferral behaviour).
+            chart.ctx.interactionManager.pushState(InteractionState.Animation);
+
+            const startBatchSpy = jest.spyOn(chart.ctx.animationManager, 'startBatch');
+
+            // Hover a different legend item while animation is in progress.
+            await hoverAction(x + 75, y)(chart);
+
+            // startBatch should NOT have been called — animation must not be interrupted.
+            expect(startBatchSpy).not.toHaveBeenCalled();
+
+            startBatchSpy.mockRestore();
+            chart.ctx.interactionManager.popState(InteractionState.Animation);
+
+            await waitForChartStability(chart);
             await compare(chart);
         });
     });

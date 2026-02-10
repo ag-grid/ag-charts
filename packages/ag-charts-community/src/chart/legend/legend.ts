@@ -1254,18 +1254,16 @@ export class Legend extends BaseProperties {
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
-            if (
-                this.ctx.interactionManager.isState(InteractionState.Default) ||
-                opts === undefined ||
-                event?.initialState
-            ) {
+            if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-                // Updating the highlight can interrupt animations, so only clear the highlight if the chart
-                // is in a state when highlighting is possible.
+                // Updating the highlight can interrupt animations, so defer both setting and
+                // clearing highlights until the current animation batch completes.
                 this.ctx.animationManager.onBatchStop(() => {
                     updateManagers(opts);
                 });
+            } else if (opts === undefined) {
+                updateManagers(opts);
             }
         };
 
