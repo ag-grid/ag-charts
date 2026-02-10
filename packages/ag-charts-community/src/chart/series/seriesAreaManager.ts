@@ -396,9 +396,7 @@ export class SeriesAreaManager extends BaseManager {
         // Ignore hover events outside the series-area for the purpose of tooltips + highlights.
         if (current !== this.chart.ctx.widgets.seriesWidget) return;
 
-        if (event.device === 'touch' || excludesType(event, 'drag-move')) {
-            this.tooltip.lastHover = event;
-        }
+        this.tooltip.lastHover = event;
 
         this.hoverDevice = 'pointer';
         this.highlight.pendingHoverEvent = event;
@@ -1201,11 +1199,4 @@ export class SeriesAreaManager extends BaseManager {
         };
         return { matches: [restoredPick], distance: 0 };
     }
-}
-
-function excludesType<T extends string, O extends { type: T }, X extends T>(
-    obj: O & { type: T },
-    excluded: X
-): obj is O & { type: Exclude<T, X> } {
-    return obj.type !== excluded;
 }
