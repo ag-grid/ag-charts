@@ -238,6 +238,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     mode: ChartMode = 'standalone';
 
     @Property
+    skipLicenseCheck: boolean | undefined = undefined;
+
+    @Property
     styleNonce: string | undefined = undefined;
 
     @ProxyProperty('chartCaptions.title')
