@@ -12,7 +12,7 @@ import {
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion } from '../../../motion/fromToMotion';
+import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
@@ -80,7 +80,7 @@ import {
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
 } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
@@ -1040,7 +1040,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             update();
 
             markerFadeInAnimation(this, animationManager, 'added', datumSelection);
-            pathFadeInAnimation(this, 'path_properties', animationManager, 'add', path);
+            staticFromToMotion(
+                this.id,
+                'path_properties',
+                animationManager,
+                [path],
+                { opacity: 0 },
+                { opacity: this.getOpacity() },
+                { phase: 'add' }
+            );
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
             return;
@@ -1054,7 +1062,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const fns = prepareLinePathAnimation(
             contextData,
             previousContextData,
-            this.processedData?.reduced?.diff?.[this.id]
+            this.processedData?.reduced?.diff?.[this.id],
+            this.getOpacity()
         );
 
         if (fns === undefined) {
