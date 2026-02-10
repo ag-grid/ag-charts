@@ -8,7 +8,6 @@ import type {
     HighlightNodeDatum,
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
-    LegendItemHoverEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
@@ -1425,7 +1424,7 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private onLegendHover(_event: LegendItemHoverEvent): void {
+    private onLegendHover(_event: null): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.hoverDevice = 'pointer';
         this.clearHighlight();
