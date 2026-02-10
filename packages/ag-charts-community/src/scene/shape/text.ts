@@ -202,6 +202,33 @@ export class Text<D = any> extends Shape<D> {
         }
     }
 
+    private static calcSegmentedTopOffset(
+        height: number,
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        textBaseline: CanvasTextBaseline
+    ): number {
+        switch (textBaseline) {
+            case 'alphabetic':
+                return lineMetrics[0]?.ascent ?? 0;
+
+            case 'middle':
+                return lineMetrics.length === 1
+                    ? lineMetrics[0].ascent +
+                          lineMetrics[0].segments.reduce(
+                              (offsetY, segment) =>
+                                  Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                              0
+                          )
+                    : height / 2;
+
+            case 'bottom':
+                return height;
+
+            default:
+                return 0;
+        }
+    }
+
     private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign): number {
         let offset = 0;
         switch (textAlign) {
@@ -213,6 +240,18 @@ export class Text<D = any> extends Shape<D> {
                 offset = 1;
         }
         return width * offset;
+    }
+
+    override getBBox(): BBox {
+        const bbox = super.getBBox();
+        if (!this.textMap?.size || !isArray(this.text)) return bbox;
+
+        const { height, lineMetrics } = measureTextSegments(this.text, this);
+        const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
+        const y = this.y - offsetTop;
+        if (bbox.y === y) return bbox;
+
+        return new BBox(bbox.x, y, bbox.width, bbox.height);
     }
 
     protected override computeBBox(): BBox {
@@ -293,29 +332,7 @@ export class Text<D = any> extends Shape<D> {
                     translateX = width / -2;
             }
 
-            let translateY = this.y;
-            switch (this.textBaseline) {
-                case 'alphabetic':
-                    translateY -= lineMetrics[0]?.ascent ?? 0;
-                    break;
-
-                case 'middle':
-                    translateY -=
-                        lineMetrics.length === 1
-                            ? lineMetrics[0].ascent +
-                              lineMetrics[0].segments.reduce(
-                                  (offsetY, segment) =>
-                                      Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
-                                  0
-                              )
-                            : height / 2;
-
-                    break;
-
-                case 'bottom':
-                    translateY -= height;
-                    break;
-            }
+            const translateY = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
 
             this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, translateY));
 
@@ -332,6 +349,11 @@ export class Text<D = any> extends Shape<D> {
             const bbox = this.getBBox();
             ctx.strokeStyle = 'red';
             ctx.lineWidth = 1;
+            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+        } else if (Text.debug.check()) {
+            const bbox = this.getBBox();
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
             ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
         }
 

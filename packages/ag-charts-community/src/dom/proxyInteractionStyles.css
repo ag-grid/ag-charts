@@ -37,6 +37,10 @@
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
+.ag-charts-proxy-elem svg {
+    display: block;
+}
+
 .ag-charts-proxy-scrollbar-slider:focus-visible {
     outline: none;
     box-shadow: none;
