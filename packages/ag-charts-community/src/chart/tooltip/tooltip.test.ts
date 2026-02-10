@@ -8,9 +8,13 @@ import type { AgChartProxy, Chart } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
+    delay,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    mouseDownAction,
+    mouseMoveAction,
+    mouseUpAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -856,6 +860,48 @@ describe('Tooltip', () => {
 
             // Should still be hidden (no errors)
             expect(chart.tooltip.isVisible()).toBe(false);
+        });
+    });
+
+    describe('CRT-1038 Drag', () => {
+        it('should update tooltip when click-dragging between data points', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                tooltip: { range: 'nearest' },
+            });
+
+            // Hover over first bar to establish tooltip
+            await hoverAction(160, 300)(chart);
+            await waitForChartStability(chart);
+
+            const tooltipElements = () => Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip'));
+            const tooltipText = () =>
+                tooltipElements()
+                    .map((e) => e.textContent)
+                    .join('');
+
+            const textBeforeDrag = tooltipText();
+            expect(textBeforeDrag).toContain('A');
+
+            // Start drag (mouseDown + delay to establish drag state)
+            await mouseDownAction(160, 300)(chart);
+            await delay(500);
+
+            // Drag to third bar
+            await mouseMoveAction(160, 300)(chart);
+            await mouseMoveAction(640, 300)(chart);
+            await waitForChartStability(chart);
+
+            const textDuringDrag = tooltipText();
+            expect(textDuringDrag).toContain('C');
+            expect(textDuringDrag).not.toEqual(textBeforeDrag);
+
+            await mouseUpAction(640, 300)(chart);
         });
     });
 });
