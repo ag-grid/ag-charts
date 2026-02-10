@@ -1,4 +1,4 @@
-import { ScaleAlignment, type ScaleTickParams, findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { type ArrayView, ScaleAlignment, type ScaleTickParams, findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
@@ -72,7 +72,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     }
 
     /** Cached numeric band values for efficient binary search. Subclasses should override with a cached version. */
-    protected get numericBands(): number[] {
+    protected get numericBands(): ArrayView<number> {
         return this.bands.map((d) => d.valueOf());
     }
 

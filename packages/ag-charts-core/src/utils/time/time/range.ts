@@ -1,3 +1,4 @@
+import { type ArrayView, makeJITArrayView } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { unitEncoding } from './encoding';
@@ -194,7 +195,7 @@ export function intervalRange(
 
 export interface IntervalRangeNumericResult {
     /** Encoded band values (not timestamps - internal encoding) */
-    encodedValues: number[];
+    encodedValues: ArrayView<number>;
     /** Encoding parameters needed to decode back to Date objects */
     encodingParams: {
         unit: AgTimeIntervalUnit;
@@ -223,6 +224,17 @@ export function intervalRangeNumeric(
         offset,
     } = rangeData(interval, start, stop, params);
 
+    return {
+        encodedValues: makeJITArrayView({
+            length: Math.max(0, e1 - e0 + 1),
+            at(index: number): number | undefined {
+                return e0 + index;
+            },
+        }),
+        encodingParams: { unit, step, utc, offset },
+    };
+
+    /* TODO(olegat): Maybe we want to keep this for small `length` values?
     // Pre-allocate array for better performance
     const count = Math.max(0, e1 - e0 + 1);
     const encodedValues = new Array<number>(count);
@@ -234,6 +246,7 @@ export function intervalRangeNumeric(
         encodedValues,
         encodingParams: { unit, step, utc, offset },
     };
+    //*/
 }
 
 /**

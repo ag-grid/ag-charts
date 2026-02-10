@@ -3,6 +3,7 @@ export * from './types/global';
 export * from './modules/moduleDefinition';
 export * from './types/scene';
 export * from './types/scales';
+export * from './types/arrayview';
 
 // Structures
 export * from './structures/eventEmitter';

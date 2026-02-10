@@ -1,7 +1,7 @@
 import { clamp, readIntegratedWrappedValue } from 'ag-charts-core';
 
 function visibleTickRange<T = any>(
-    ticks: T[],
+    ticks: ArrayLike<T>,
     reversed: boolean,
     visibleRange: [number, number] | undefined
 ): [number, number] | undefined {
@@ -17,7 +17,7 @@ function visibleTickRange<T = any>(
 }
 
 export function visibleTickSliceIndices<T = any>(
-    ticks: T[],
+    ticks: ArrayLike<T>,
     reversed: boolean,
     visibleRange: [number, number] | undefined
 ): [number, number] {

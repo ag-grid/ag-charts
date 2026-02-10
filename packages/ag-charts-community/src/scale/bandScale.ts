@@ -1,4 +1,4 @@
-import type { ScaleAlignment } from 'ag-charts-core';
+import type { ArrayView, ScaleAlignment } from 'ag-charts-core';
 import { Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
@@ -81,7 +81,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return this._paddingOuter;
     }
 
-    abstract readonly bands: readonly D[];
+    abstract readonly bands: Readonly<ArrayView<D>>;
 
     /** Override in subclass to provide band count without triggering full band materialization */
     protected getBandCountForUpdate(): number {

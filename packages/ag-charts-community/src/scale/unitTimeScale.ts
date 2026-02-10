@@ -1,4 +1,5 @@
 import type {
+    ArrayView,
     DomainWithMetadata,
     IntervalRangeNumericResult,
     NormalizedDomain,
@@ -49,7 +50,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     private _domainBoundaries: { d0: number; dNext: number } | undefined;
     private _bandRangeCache: { start: Date; stop: Date } | undefined;
     /** Encoded band values (internal encoding, not timestamps) */
-    private _encodedBands: number[] | undefined;
+    private _encodedBands: ArrayView<number> | undefined;
     /** Encoding params needed to decode encoded bands to Date/timestamp */
     private _encodingParams: IntervalRangeNumericResult['encodingParams'] | undefined;
     /** Cached linear params for O(1) findIndex */
@@ -91,8 +92,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._linearParams = undefined;
     }
 
-    private _bands: Date[] | undefined = undefined;
-    get bands(): readonly Date[] {
+    private _bands: ArrayView<Date> | undefined = undefined;
+    get bands(): Readonly<ArrayView<Date>> {
         if (this._bands === undefined) {
             // Lazily decode from encoded bands
             this.ensureEncodedBands();
@@ -106,8 +107,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._bands;
     }
 
-    private _numericBands: number[] | undefined;
-    protected override get numericBands(): number[] {
+    private _numericBands: ArrayView<number> | undefined;
+    protected override get numericBands(): ArrayView<number> {
         if (this._numericBands === undefined) {
             // Compute timestamps from encoded bands without creating Date objects first
             this.ensureEncodedBands();
@@ -334,7 +335,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         domain: Date[],
         visibleRange: [number, number],
         extend: boolean = false
-    ): { bands: Date[]; firstBandIndex: number | undefined } {
+    ): { bands: ArrayLike<Date>; firstBandIndex: number | undefined } {
         if (
             domain === this.domain &&
             visibleRange[0] === 0 &&
@@ -376,7 +377,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 
-        let bands: Date[];
+        let bands: ArrayLike<Date>;
         let firstBandIndex: number | undefined;
         let bandsSliceIndices: [number, number] | undefined;
 
@@ -390,7 +391,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
         }
 
         if (interval == null) {
+            return { ticks: Array.from(bands), count: undefined, firstTickIndex: firstBandIndex };
+            /* TODO: restore this
             return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
+            //*/
         }
 
         const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
@@ -398,7 +402,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
 
-        let intervalTicks: Date[];
+        let intervalTicks: ArrayLike<Date>;
         let intervalStartIndex: number;
         let intervalEndIndex: number;
         if (isPlainObject(interval) || typeof interval === 'string') {
