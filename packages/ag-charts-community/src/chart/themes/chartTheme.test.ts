@@ -759,7 +759,7 @@ describe('ChartTheme', () => {
             expect(axisY.label.fontStyle).toBe('italic');
             expect(axisY.label.fontFamily).toBe('Tahoma');
             expect(axisY.label.fontWeight).toBe(400);
-            expect(axisY.label.padding).toBe(undefined);
+            expect(axisY.label.padding).toBe(5);
             expect(axisY.label.rotation).toBe(undefined);
 
             const axisX = chart.axes.x as any;

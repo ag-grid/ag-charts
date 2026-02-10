@@ -50,6 +50,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Impact, Charcoal, Sans-Serif",
         "fontSize": 14,
         "fontWeight": "bold",
+        "padding": 5,
         "rotation": -30,
         "spacing": 11,
       },
@@ -73,6 +74,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "fontFamily": "Impact, Charcoal, Sans-Serif",
           "fontSize": 14,
           "fontWeight": "bold",
+          "padding": 5,
           "spacing": 11,
         },
         "tick": {
@@ -126,6 +128,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Impact, Charcoal, Sans-Serif",
         "fontSize": 14,
         "fontWeight": "bold",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -497,6 +500,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -553,6 +557,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -606,6 +611,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -996,6 +1002,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "rotation": -30,
         "spacing": 11,
         "wrapping": "on-space",
@@ -1050,6 +1057,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -1670,6 +1678,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -1723,6 +1732,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -2463,6 +2473,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -2514,6 +2525,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -2759,6 +2771,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontSize": 12,
         "fontWeight": 400,
         "format": "%d/%m",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -2781,6 +2794,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
+          "padding": 5,
           "spacing": 11,
         },
         "tick": {
@@ -2834,6 +2848,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -3263,6 +3278,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -3315,6 +3331,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -3863,6 +3880,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -3919,6 +3937,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -4176,6 +4195,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -4232,6 +4252,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -4502,6 +4523,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 5,
         "wrapping": "on-space",
       },
@@ -4554,6 +4576,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 5,
         "wrapping": "on-space",
       },
@@ -4797,6 +4820,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -4851,6 +4875,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -5101,6 +5126,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -5153,6 +5179,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -5473,6 +5500,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -5529,6 +5557,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -5865,6 +5894,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -5918,6 +5948,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -6623,6 +6654,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -6675,6 +6707,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -7858,6 +7891,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -7911,6 +7945,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontSize": 10,
         "fontWeight": 400,
         "format": ",.0f",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -8161,6 +8196,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -8214,6 +8250,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontSize": 12,
         "fontWeight": 400,
         "format": "#{.0f}%",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -8963,6 +9000,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
         "format": ".0%",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -9019,6 +9057,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "rotation": -30,
         "spacing": 11,
         "wrapping": "on-space",
@@ -9430,6 +9469,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -9483,6 +9523,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontSize": 12,
         "fontWeight": 400,
         "format": "#{.0f}%",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -10094,6 +10135,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -10116,6 +10158,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
+          "padding": 5,
           "spacing": 11,
         },
         "tick": {
@@ -10170,6 +10213,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -10639,6 +10683,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -10692,6 +10737,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -11247,6 +11293,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -11269,6 +11316,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
+          "padding": 5,
           "spacing": 11,
         },
         "tick": {
@@ -11323,6 +11371,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -11886,6 +11935,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -11937,6 +11987,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -12178,6 +12229,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "format": "%b",
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -12200,6 +12252,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
+          "padding": 5,
           "spacing": 11,
         },
         "tick": {
@@ -12254,6 +12307,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -12898,6 +12952,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
@@ -12955,6 +13010,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "spacing": 11,
         "wrapping": "on-space",
       },
@@ -13433,6 +13489,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": 5,
         "rotation": 30,
         "spacing": 11,
         "wrapping": "never",
@@ -13487,6 +13544,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": 5,
         "spacing": 11,
       },
       "line": {
