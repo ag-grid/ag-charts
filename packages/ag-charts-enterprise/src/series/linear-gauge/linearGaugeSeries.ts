@@ -499,7 +499,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         let sideFlag: 1 | -1;
         if (horizontal) {
             sideFlag = 1;
-            axisRotation = Math.PI / 2;
+            axisRotation = Math.PI / -2;
         } else if (scaleProps.label.placement === 'before') {
             sideFlag = 1;
             axisRotation = 0;

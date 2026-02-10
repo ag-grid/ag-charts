@@ -278,7 +278,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             sideFlag,
             labelOffset: labelX,
             primaryTickCount: initialPrimaryTickCount,
-            axisRotation: this.horizontal ? -0.5 * Math.PI : 0,
+            axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
@@ -724,13 +724,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             case 'left':
                 x = -padding;
                 y = midOffset;
-                rotation = -0.5 * Math.PI;
+                rotation = Math.PI / -2;
                 textBaseline = 'bottom';
                 break;
             case 'right':
                 x = padding;
                 y = midOffset;
-                rotation = 0.5 * Math.PI;
+                rotation = Math.PI / 2;
                 textBaseline = 'bottom';
                 break;
         }

@@ -67,21 +67,16 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     );
 
     const initialRotation = configuredRotation + defaultRotation;
-    const textBaseline = getTextBaseline(label.parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const checkLabelOverlap = (tickData: TickData, rotation = 0) => {
         // minSpacing defaults to 10 unless label is rotated
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
-        let labelData = createTimeLabelData(options, tickData, labelRotation);
-
-        if (axisLabelsOverlap(labelData, labelSpacing)) return true;
-
         const labelPadding = expandLabelPadding(label);
-        const textAlign = getTextAlign(label.parallel, configuredRotation, rotation, sideFlag, regularFlipFlag);
 
-        labelData = createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding, textAlign, textBaseline);
-
-        return axisLabelsOverlap(labelData, labelSpacing);
+        return (
+            axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
+            axisLabelsOverlap(createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding), labelSpacing)
+        );
     };
 
     const { maxTickCount } = estimateScaleTickCount(options);
@@ -113,6 +108,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     }
 
     const textAlign = getTextAlign(label.parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+    const textBaseline = getTextBaseline(label.parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const rotation = configuredRotation + autoRotation;
 
     return { tickData, textAlign, textBaseline, rotation };
@@ -445,9 +441,7 @@ function createLabelData(
     tickData: TickDatum[],
     labelOffset: number,
     labelRotation: number,
-    labelPadding: Required<PaddingOptions>,
-    textAlign: CanvasTextAlign,
-    textBaseline: CanvasTextBaseline
+    labelPadding: Required<PaddingOptions>
 ) {
     const labelData: BoxBounds[] = [];
     const xPadding = labelPadding.left + labelPadding.right;
@@ -460,22 +454,7 @@ function createLabelData(
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
 
-        let alignedX = x;
-        let alignedY = y;
-
-        if (textAlign === 'center') {
-            alignedX -= width / 2;
-        } else if (textAlign === 'end' || textAlign === 'right') {
-            alignedX -= width;
-        }
-
-        if (textBaseline === 'middle') {
-            alignedY -= height / 2;
-        } else if (textBaseline === 'bottom' || textBaseline === 'alphabetic' || textBaseline === 'ideographic') {
-            alignedY -= height;
-        }
-
-        labelData.push({ x: alignedX, y: alignedY, width, height });
+        labelData.push({ x, y, width, height });
     }
 
     return labelData;
