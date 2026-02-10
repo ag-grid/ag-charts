@@ -134,12 +134,12 @@ export class LegendDOMProxy {
         const groupBBox = Transformable.toCanvas(group);
         this.itemList.setBounds(groupBBox);
 
-        const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getBBox().height));
+        const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getTextMeasureBBox().height));
         itemSelection.each((l, _datum) => {
             if (l.proxyButton) {
                 const visible = l.pageIndex === pagination.currentPage;
 
-                const { x, y, height, width } = Transformable.toCanvas(l);
+                const { x, y, height, width } = Transformable.toCanvas(l, l.getTextMeasureBBox());
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
                 const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 

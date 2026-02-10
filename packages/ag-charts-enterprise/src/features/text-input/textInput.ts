@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { CleanupRegistry, type Point, attachListener, focusCursorAtEnd, setAttributes } from 'ag-charts-core';
+import { CleanupRegistry, type Point, attachListener, ceilTo, focusCursorAtEnd, setAttributes } from 'ag-charts-core';
 import type { TextAlign, TextOptions } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -173,7 +173,9 @@ export class TextInput {
 
     public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
-        return new _ModuleSupport.BBox(left, top, width, height);
+        // Ceil the width to 2dp to fix floating point issues with dropping last character onto next line after
+        // converting text to canvas.
+        return new _ModuleSupport.BBox(left, top, ceilTo(width, 2), height);
     }
 
     public destroy() {

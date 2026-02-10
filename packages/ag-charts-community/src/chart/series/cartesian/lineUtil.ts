@@ -169,12 +169,13 @@ export function plotInterpolatedLinePathStroke(ratio: number, path: Path, spans:
 export function prepareLinePathStrokeAnimationFns(
     status: NodeUpdateState,
     spans: SpanAnimation,
-    visibleToggleMode: 'fade' | 'none'
+    visibleToggleMode: 'fade' | 'none',
+    targetOpacity: number = 1
 ) {
     const removePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.removed);
     const updatePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.moved);
     const addPhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.added);
-    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode, targetOpacity);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
@@ -188,7 +189,8 @@ interface PathAnimation {
 
 export function prepareLinePathPropertyAnimation(
     status: NodeUpdateState,
-    visibleToggleMode: 'fade' | 'none'
+    visibleToggleMode: 'fade' | 'none',
+    targetOpacity: number = 1
 ): FromToFns<Path, any, unknown> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
@@ -224,12 +226,12 @@ export function prepareLinePathPropertyAnimation(
     if (visibleToggleMode === 'fade') {
         return {
             fromFn(path: Path, datum) {
-                const opacity = status === 'added' ? 0 : path.opacity;
+                const opacity = status === 'added' ? 0 : targetOpacity;
                 const segments = status === 'removed' ? path.previousDatum ?? datum : datum;
                 return { ...result.fromFn(path, datum), opacity, segments };
             },
             toFn(path: Path, datum) {
-                const opacity = status === 'removed' ? 0 : 1;
+                const opacity = status === 'removed' ? 0 : targetOpacity;
                 const segments = status === 'removed' ? path.previousDatum ?? datum : datum;
                 return { ...result.toFn(path, datum), opacity, segments };
             },
@@ -242,7 +244,8 @@ export function prepareLinePathPropertyAnimation(
 export function prepareLinePathAnimation(
     newData: LineSeriesNodeDataContext,
     oldData: LineSeriesNodeDataContext,
-    diff: ProcessedOutputDiff | undefined
+    diff: ProcessedOutputDiff | undefined,
+    targetOpacity: number = 1
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
@@ -268,7 +271,7 @@ export function prepareLinePathAnimation(
     );
     if (strokeSpans == null) return;
 
-    const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, 'fade');
+    const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, 'fade', targetOpacity);
 
     const hasMotion =
         (diff?.changed ?? true) ||

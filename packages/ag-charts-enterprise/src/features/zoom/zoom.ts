@@ -686,7 +686,7 @@ export class Zoom extends AbstractModuleInstance {
             event.deltaY > 0 && zoom[axisDirection].min === UNIT_MIN && zoom[axisDirection].max === UNIT_MAX;
 
         this.autoScaler.onManualAdjustment(axisDirection);
-        this.handleWheelScrolling(event, isZoomCapped, props);
+        this.wheelSequencer.onWheel(event, () => this.handleWheelScrolling(event, isZoomCapped, props));
     }
 
     private handleWheelScrolling(

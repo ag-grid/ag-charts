@@ -33,6 +33,9 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
     yFilterKey: string | undefined;
 
     @Property
+    stackGroup?: string;
+
+    @Property
     normalizedTo?: number;
 
     @Property

@@ -17,6 +17,9 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Museum Visitors',
     },
+    subtitle: {
+        text: 'Vertical Scrollbar is used when panning vertically is required',
+    },
     data: getData(),
     series: [
         {
@@ -51,7 +54,6 @@ const options: AgCartesianChartOptions = {
     scrollbar: {
         enabled: true,
         vertical: {
-            enabled: true,
             position: 'left',
         },
     },

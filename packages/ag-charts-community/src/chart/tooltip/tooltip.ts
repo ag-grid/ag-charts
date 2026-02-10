@@ -320,6 +320,7 @@ export class Tooltip extends BaseProperties {
         if (element != null && content != null && content.length !== 0) {
             const html = tooltipHtml(this.localeManager, content, this.mode, this.pagination ? pagination : undefined);
             if (html == null) {
+                element.innerHTML = '';
                 this.toggle(false);
                 return;
             }

@@ -23,6 +23,11 @@ export function roundTo(value: number, decimals: number = 2) {
     return Math.round(value * base) / base;
 }
 
+export function ceilTo(value: number, decimals: number = 2) {
+    const base = 10 ** decimals;
+    return Math.ceil(value * base) / base;
+}
+
 /**
  * Returns the mathematically correct n modulus of m. For context, the JS % operator is remainder
  * NOT modulus, which is why this is needed.

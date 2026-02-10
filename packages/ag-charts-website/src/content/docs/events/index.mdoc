@@ -63,7 +63,7 @@ In this example:
 -   When a legend item is clicked, the visibility change is prevented and a counter decreases.
     This is done by using `preventDefault` on the [legendItemClick](#legenditemclick-and-legenditemdoubleclick) event.
 -   When the counter hits zero, the series toggle is allowed to occur.
--   The series visibility change is fired, and with the relevant information shown in the console.
+-   The series visibility change is fired, with the relevant information shown in the console.
 
 ### activeChange
 
@@ -75,7 +75,8 @@ The event contains:
 -   `activeItem` - the item that is now active, or `undefined` if no item is active.
 -   The `activeItem` contains:
     -   `type` - the type of the active item, either `'series-node'` or `'legend'`.
-    -   Details about the active item, such as `seriesId`, `itemId` and `datum`.
+    -   `seriesId` and `itemId` identifying the active item.
+-   `datum` - the data from the chart data array for the active item.
 -   `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
 
 {% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}

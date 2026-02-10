@@ -8,7 +8,6 @@ import type {
     Visible,
 } from '../series/cartesian/commonOptions';
 import type { ToolbarButton, ToolbarSwitch } from './buttonOptions';
-import type { Formatter } from './callbackOptions';
 import type { CssColor, PixelSize } from './types';
 
 // *********
@@ -453,19 +452,9 @@ export interface AgChannelAnnotationBackground extends FillOptions {}
 /** Configuration for note annotation background. */
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 
-export interface AgAnnotationAxisLabel
-    extends Toggleable,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions,
-        LabelOptions<AgAnnotationLabelFormatterParams> {
+export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOptions, LineDashOptions, TextOptions {
     /** Apply rounded corners to the axis label container. */
     cornerRadius?: PixelSize;
-}
-
-export interface AgAnnotationLabelFormatterParams {
-    /** The default label value that would have been used without a formatter. */
-    value: any;
 }
 
 export interface AgLineAnnotationText extends AgLineAnnotationTextStyles {
@@ -504,11 +493,6 @@ export interface AgAnnotationPoint {
     x: AgAnnotationValue;
     /** The y-value of the point. */
     y: number;
-}
-
-interface LabelOptions<T> extends TextOptions {
-    /** A custom formatting function used to convert values into text for display by labels. */
-    formatter?: Formatter<T>;
 }
 
 interface Writeable {
