@@ -127,7 +127,7 @@ export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
         this.__x = x;
         this.__y = y;
         this.__size = size;
-        this.__opacity = opacity;
+        this.__opacity = 1; // opacity;
         // Use encapsulated method for scaling properties from Scalable mixin
         this.resetScalingProperties(scalingX, scalingY, x, y);
         this.dirtyPath = true;

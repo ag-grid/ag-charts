@@ -2,7 +2,6 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BubbleSeriesModule,
-    ContextMenuModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
@@ -14,77 +13,35 @@ const data = getData();
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Revenue and Employee Distribution by Industry' },
-    subtitle: {
-        text: 'with Growth Indicators',
+    // animation: { enabled: false },
+    animation: { duration: 1000 },
+    seriesArea: {
+        padding: 200,
     },
     data,
     series: [
         {
-            type: 'bubble',
-            title: 'Tech',
-            data: data.filter((d) => d.industry === 'Tech'),
+            type: 'scatter',
             xKey: 'revenue',
             yKey: 'employees',
-            sizeKey: 'growth',
+            // sizeKey: 'growth',
+            size: 50,
+            shape: 'square',
+            highlight: { enabled: false },
             fill: {
                 type: 'pattern',
-            },
-        },
-        {
-            type: 'bubble',
-            title: 'Healthcare',
-            data: data.filter((d) => d.industry === 'Healthcare'),
-            xKey: 'revenue',
-            yKey: 'employees',
-            sizeKey: 'growth',
-            fill: {
-                type: 'pattern',
-            },
-        },
-        {
-            type: 'bubble',
-            title: 'Finance',
-            data: data.filter((d) => d.industry === 'Finance'),
-            xKey: 'revenue',
-            yKey: 'employees',
-            sizeKey: 'growth',
-            fill: {
-                type: 'pattern',
-            },
-        },
-        {
-            type: 'bubble',
-            title: 'Retail',
-            data: data.filter((d) => d.industry === 'Retail'),
-            xKey: 'revenue',
-            yKey: 'employees',
-            sizeKey: 'growth',
-            fill: {
-                type: 'pattern',
-            },
-        },
-        {
-            type: 'bubble',
-            title: 'Energy',
-            data: data.filter((d) => d.industry === 'Energy'),
-            xKey: 'revenue',
-            yKey: 'employees',
-            sizeKey: 'growth',
-            fill: {
-                type: 'pattern',
+                // pattern: 'circles',
+                // width: 100,
+                fill: 'blue',
+                fillOpacity: 1,
+                backgroundFill: 'red',
+                backgroundFillOpacity: 1,
             },
         },
     ],
     axes: {
-        x: {
-            type: 'number',
-            title: { text: 'Revenue (millions)' },
-        },
-        y: {
-            type: 'number',
-            title: { text: 'Employees (hundreds)' },
-        },
+        x: { type: 'number', min: 100, max: 140 },
+        y: { type: 'number', min: 60, max: 100 },
     },
 };
 

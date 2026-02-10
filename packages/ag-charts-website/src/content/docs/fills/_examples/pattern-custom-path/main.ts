@@ -1,5 +1,5 @@
-import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
-import { AreaSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-enterprise';
+import { AreaSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -15,18 +15,19 @@ const options: AgCartesianChartOptions = {
     },
     series: [
         {
-            type: 'area',
+            type: 'scatter',
             xKey: 'date',
             yKey: 'sales',
             yName: 'Sales',
-            strokeWidth: 1,
+            size: 20,
+            // strokeWidth: 1,
             fill: {
                 type: 'pattern',
-                path: 'M0,6 Q4,1 8,6 T16,6',
-                width: 16,
-                height: 10,
-                strokeWidth: 1,
-                fill: 'none',
+                // path: 'M0,6 Q4,1 8,6 T16,6',
+                // width: 16,
+                // height: 10,
+                // strokeWidth: 1,
+                // fill: 'none',
             },
         },
     ],

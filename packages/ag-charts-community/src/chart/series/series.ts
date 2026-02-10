@@ -260,6 +260,7 @@ export abstract class Series<
 
     @ActionOnSet<Series<TDatumIndex, TDatum, TOpts, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
+            console.log(newVal);
             this.onSeriesGroupingChange(oldVal, newVal);
         },
     })

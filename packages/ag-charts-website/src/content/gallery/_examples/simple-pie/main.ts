@@ -37,6 +37,7 @@ const options: AgPolarChartOptions = {
             sectorLabelKey: 'revenue',
             angleKey: 'revenue',
             sectorSpacing: 3,
+            fills: [{ type: 'pattern' }],
             calloutLabel: {
                 minAngle: 30,
                 formatter: ({ datum }) => [

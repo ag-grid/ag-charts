@@ -196,6 +196,7 @@ export class AnimationManager {
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
         this.requestId = getWindow().requestAnimationFrame((t) => {
+            console.log(t);
             cb(t).catch((e) => Logger.error(e));
         });
     }

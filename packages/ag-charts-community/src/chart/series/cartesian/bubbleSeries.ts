@@ -963,7 +963,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                     0.004449 * count * area +
                     -0 * count ** 2 +
                     44.428603 * area ** 2;
-                style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
+                style.fillOpacity = 1; //clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
@@ -1045,7 +1045,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             text.fontSize = style.fontSize;
             text.fontFamily = style.fontFamily;
             text.textBaseline = 'top';
-            text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity = 1; //this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
         });
     }
@@ -1341,7 +1341,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         return {
             fill: stylerResult.fill ?? properties.fill!,
-            fillOpacity: stylerResult.fillOpacity ?? properties.fillOpacity,
+            fillOpacity: 1, //stylerResult.fillOpacity ?? properties.fillOpacity,
             lineDash: stylerResult.lineDash ?? properties.lineDash,
             lineDashOffset: stylerResult.lineDashOffset ?? properties.lineDashOffset,
             shape: stylerResult.shape ?? properties.shape,
