@@ -891,14 +891,87 @@ describe('CartesianAxis', () => {
             ];
             expect(axisLabelsOverlap(labels)).toBe(true);
         });
+
+        it('should auto-rotate labels to avoid collision on narrow chart', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'Corp Tax', value: 150 },
+                    { category: 'Council Tax', value: 120 },
+                    { category: 'Income Tax', value: 200 },
+                    { category: 'VAT', value: 180 },
+                    { category: 'Capital Gains', value: 90 },
+                    { category: 'Stamp Duty', value: 60 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            };
+
+            prepareTestOptions(options);
+            options.width = 300;
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Verify auto-rotation was applied: label datums should have non-zero rotation.
+            const chartInstance = deproxy(chart as any) as any;
+            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+            expect(categoryAxis).toBeDefined();
+            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            expect(labelNodes.length).toBeGreaterThan(0);
+            const visibleLabels = labelNodes.filter((node: any) => node.datum.visible);
+            expect(visibleLabels.length).toBeGreaterThan(0);
+            for (const node of visibleLabels) {
+                expect(node.datum.rotation).not.toBe(0);
+            }
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot({
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'cartesian-axis-label-auto-rotation-narrow',
+            });
+        });
     });
 
     // CRT-1055: Wrapped (multi-line) labels should NOT trigger tooltips. Only truncated labels
     // (with ellipsis) should show tooltips.
     describe('CRT-1055 wrapped label tooltip', () => {
+        it('should not mark wrapped labels as truncated', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'First Category Label', value: 100 },
+                    { category: 'Second Category Label', value: 200 },
+                    { category: 'Third Category Label', value: 150 },
+                    { category: 'Fourth Category Label', value: 120 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            wrapping: 'always',
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            };
+
+            prepareTestOptions(options);
+            options.width = 300;
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-wrapped-label-not-truncated');
+
+            // Verify wrapped labels are NOT marked as truncated (textUntruncated should be undefined).
+            const chartInstance = deproxy(chart as any) as any;
+            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+            expect(categoryAxis).toBeDefined();
+            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            expect(labelNodes.length).toBeGreaterThan(0);
+            for (const node of labelNodes) {
+                expect(node.datum.textUntruncated).toBeUndefined();
+            }
+        });
+
         it('should mark truncated labels with textUntruncated', async () => {
             const options: AgCartesianChartOptions = {
-                width: 400,
                 data: [
                     { category: 'A Very Long Category Label That Must Be Truncated With Ellipsis', value: 100 },
                     { category: 'Another Extremely Long Category Label That Overflows Band', value: 200 },
@@ -918,6 +991,7 @@ describe('CartesianAxis', () => {
             };
 
             prepareTestOptions(options);
+            options.width = 400;
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 

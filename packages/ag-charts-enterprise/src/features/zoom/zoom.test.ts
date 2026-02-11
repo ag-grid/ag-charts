@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import {
     type AgCartesianChartOptions,
@@ -16,6 +16,7 @@ import {
     doubleTapAction,
     dragAction,
     extractImageData,
+    findChartTarget,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -29,7 +30,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
-import { WheelDeltaMode } from 'ag-charts-test';
+import { WheelDeltaMode, dispatchEvent } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -1055,6 +1056,102 @@ describe('Zoom', () => {
                 await chart.updateDelta({ data: getData().slice(0, -10) });
                 await compare();
             });
+        });
+    });
+
+    // CRT-1042: Scrolling mousewheel on axis area should zoom AND call preventDefault.
+    // CRT-1050: Non-cancelable wheel events (trackpad inertia) should be ignored on axes.
+    describe('CRT-1042/1050 axis wheel zoom', () => {
+        it('should zoom the y-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), 30, cy);
+            const event = new WheelEvent('wheel', {
+                clientX: target.clientX,
+                clientY: target.clientY,
+                deltaY: -100,
+                deltaMode: 0,
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+            const stateAfter = chart.getState().zoom;
+
+            expect(stateAfter!.ratioY).not.toEqual(stateBefore?.ratioY);
+            expect(preventDefaultSpy).toHaveBeenCalled();
+            await compare();
+        });
+
+        it('should zoom the x-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), cx, cy * 2 - 30);
+            const event = new WheelEvent('wheel', {
+                clientX: target.clientX,
+                clientY: target.clientY,
+                deltaY: -100,
+                deltaMode: 0,
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+            const stateAfter = chart.getState().zoom;
+
+            expect(stateAfter!.ratioX).not.toEqual(stateBefore?.ratioX);
+            expect(preventDefaultSpy).toHaveBeenCalled();
+            await compare();
+        });
+
+        it('should ignore non-cancelable wheel events on axes (CRT-1050)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), 30, cy);
+            const event = new WheelEvent('wheel', {
+                clientX: target.clientX,
+                clientY: target.clientY,
+                deltaY: -100,
+                deltaMode: 0,
+                bubbles: true,
+                cancelable: false,
+            });
+            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+
+            const stateAfter = chart.getState().zoom;
+            expect(stateAfter).toEqual(stateBefore);
+            expect(preventDefaultSpy).not.toHaveBeenCalled();
         });
     });
 });

@@ -2,6 +2,8 @@ import { describe, expect, test } from '@jest/globals';
 
 import type { TextAlign } from 'ag-charts-types';
 
+import { Transformable } from '../scene/transformable';
+import type { Caption } from './caption';
 import type { Chart } from './chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -85,6 +87,59 @@ describe('Caption', () => {
   ],
 ]
 `);
+        });
+    });
+
+    // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
+    // for the accessibility proxy element.
+    describe('CRT-1041 footnote caption bounds', () => {
+        function assertProxyBoundsMatchCanvas(caption: Caption) {
+            const canvasBBox = Transformable.toCanvas(caption.node);
+            const proxyBBox = (caption as any).lastProxyBBox as
+                | { x: number; y: number; width: number; height: number }
+                | undefined;
+
+            expect(proxyBBox).toBeDefined();
+            expect(proxyBBox!.x).toBeCloseTo(canvasBBox.x, 0);
+            expect(proxyBBox!.y).toBeCloseTo(canvasBBox.y, 0);
+            expect(proxyBBox!.width).toBeCloseTo(canvasBBox.width, 0);
+            expect(proxyBBox!.height).toBeCloseTo(canvasBBox.height, 0);
+        }
+
+        test('multi-line footnote proxy bounds match canvas position', async () => {
+            chart = await createChart({
+                title: { text: 'Chart Title' },
+                footnote: { text: 'Source: Test Data\nUpdated: 2026' },
+            });
+            await compare();
+
+            const { footnote } = chart;
+            assertProxyBoundsMatchCanvas(footnote);
+
+            // Footnote proxy must be fully within the canvas area.
+            const proxyBBox = (footnote as any).lastProxyBBox;
+            expect(proxyBBox.y).toBeGreaterThan(0);
+            expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
+        });
+
+        test('multi-line captions proxy bounds match canvas position', async () => {
+            chart = await createChart({
+                title: { text: 'Title Line 1\nTitle Line 2' },
+                subtitle: { text: 'Subtitle Line 1\nSubtitle Line 2' },
+                footnote: { text: 'Footnote Line 1\nFootnote Line 2' },
+            });
+            await compare();
+
+            assertProxyBoundsMatchCanvas(chart.title);
+            assertProxyBoundsMatchCanvas(chart.subtitle);
+            assertProxyBoundsMatchCanvas(chart.footnote);
+
+            // All proxy elements must be fully within the canvas area.
+            for (const caption of [chart.title, chart.subtitle, chart.footnote]) {
+                const proxyBBox = (caption as any).lastProxyBBox;
+                expect(proxyBBox.y).toBeGreaterThanOrEqual(0);
+                expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
+            }
         });
     });
 });
