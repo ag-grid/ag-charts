@@ -80,9 +80,9 @@ export class ChartToolbar extends AbstractModuleInstance {
 
     private hidePopover() {
         if (this.menuShowing) {
+            this.menuShowing = false;
             this.toolbar.clearActiveButton();
         }
-        this.menuShowing = false;
         this.menu.hide();
     }
 

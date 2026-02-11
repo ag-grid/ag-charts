@@ -30,10 +30,6 @@ export enum InteractionState {
 export class InteractionManager {
     private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
 
-    public getStates(): InteractionState {
-        return this.stateQueue;
-    }
-
     public pushState(state: InteractionState) {
         this.stateQueue |= state;
     }
