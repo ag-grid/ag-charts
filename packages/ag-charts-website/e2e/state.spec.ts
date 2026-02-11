@@ -128,6 +128,10 @@ test.describe('state', () => {
                 await page.mouse.click(304, 556);
             }
 
+            async function clickOnGermanyLegend(page: Page): Promise<void> {
+                await page.mouse.click(574, 556);
+            }
+
             async function setStateInvalidNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
                 await setChartState(page, {
                     version,
@@ -721,6 +725,42 @@ test.describe('state', () => {
                     expect(state.active).toEqual(frozenState.active);
 
                     await clickOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+                });
+            });
+
+            test.describe('frozen series-node highlight moves when Germany legend clicked', () => {
+                test('screenshots', async ({ page }) => {
+                    await checkFrozen(page);
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await clickOnGermanyLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023-Germany-hidden.png');
+
+                    await clickOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    const frozenState: DeepReadonly<Pick<AgChartState, 'active'>> = Object.freeze({
+                        active: {
+                            frozen: true,
+                            activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
+                        },
+                    });
+
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnGermanyLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
 
