@@ -1372,7 +1372,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
 
                     expect(state.active).toEqual({
-                        // frozen: false, // undocumented
+                        frozen: false,
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                     });
                 });
@@ -1396,7 +1396,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
 
                     expect(state.active).toEqual({
-                        // frozen: false, // undocumented
+                        frozen: false,
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                     });
                 });
