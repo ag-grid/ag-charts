@@ -162,7 +162,7 @@ symlink_nx_cache() {
 # Try to symlink node_modules from root worktree if lockfiles match
 # Returns 0 if symlink was created, 1 if fallback to install needed
 try_symlink_node_modules() {
-    if ! is_claude_worktree; then
+    if ! is_claude_worktree && [[ -z "${ROOT_WORKTREE_PATH:-}" ]]; then
         return 1
     fi
 
@@ -224,12 +224,14 @@ main() {
     # Full mode: install dependencies, yarn, nx, etc.
     if [ -d node_modules ]; then
         log_info "node_modules directory exists, checking dependencies"
+        symlink_nx_cache
         if ! install_dependencies; then
             exit 2
         fi
     elif try_symlink_node_modules; then
         # Successfully symlinked node_modules from root worktree
         log_info "Using symlinked node_modules, skipping install"
+        symlink_nx_cache
     else
         log_info "node_modules directory not found, performing fresh install"
         if ! install_yarn; then
@@ -238,17 +240,13 @@ main() {
         if ! install_nx; then
             exit 2
         fi
-
+        symlink_nx_cache
         if ! install_dependencies; then
             exit 2
         fi
     fi
 
     if ! opt_enable_direnv; then
-        exit 2
-    fi
-
-    if ! symlink_nx_cache; then
         exit 2
     fi
 
