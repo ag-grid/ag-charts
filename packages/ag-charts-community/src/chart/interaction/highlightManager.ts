@@ -138,8 +138,10 @@ export class HighlightManager {
         return (
             this.pointsAreEqual(a.point, b.point) &&
             this.pointsAreEqual(a.midPoint, b.midPoint) &&
-            this.pointsAreEqual(a.yBar?.lowerPoint, b.yBar?.upperPoint) &&
-            this.pointsAreEqual(a.xBar?.lowerPoint, b.xBar?.upperPoint)
+            this.pointsAreEqual(a.xBar?.lowerPoint, b.xBar?.lowerPoint) &&
+            this.pointsAreEqual(a.xBar?.upperPoint, b.xBar?.upperPoint) &&
+            this.pointsAreEqual(a.yBar?.lowerPoint, b.yBar?.lowerPoint) &&
+            this.pointsAreEqual(a.yBar?.upperPoint, b.yBar?.upperPoint)
         );
     }
 
