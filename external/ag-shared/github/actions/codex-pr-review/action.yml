@@ -1,5 +1,23 @@
 name: codex-pr-review
 description: Run a Codex PR review with complete log suppression - no LLM output appears in workflow logs
+#
+# Flow Overview:
+#
+# 1. TRIGGER: PR opened/ready, `/pr-review` command comment, or manual dispatch
+# 2. REACT STARTED: Add 👀 reaction to the PR description to signal review in progress
+# 3. FETCH & REVIEW: Fetch PR refs, install tools, run Codex review
+# 4. CLEANUP OLD COMMENTS: Delete stale bot inline review comments from prior runs
+#    (only those with no user reactions or replies - preserving conversations)
+# 5. POST RESULTS: Create/update summary comment (<!-- codex-pr-review --> marker)
+#    and post new inline comments on specific file/line locations
+# 6. REACT COMPLETE: Remove 👀 from PR description, add 👍 on success
+# 7. CLEANUP FILES: Remove sensitive review output and auth files
+#
+# Re-review behaviour:
+# - Summary comment is updated in-place (found via marker)
+# - Old inline comments are deleted (unless users have reacted/replied)
+# - Reactions target the PR description, not the trigger comment
+#
 inputs:
     openai-api-key:
         description: 'OpenAI API key for Codex CLI (alternative to codex-auth-json-b64)'
@@ -28,7 +46,7 @@ inputs:
         required: false
         default: 'false'
     comment-id:
-        description: 'Comment ID to add reactions to (for issue_comment triggers)'
+        description: 'Deprecated - reactions now target the PR description. Kept for backwards compatibility.'
         required: false
         default: ''
     base-ref:
@@ -72,20 +90,22 @@ runs:
               fi
 
         - name: React Started
-          if: inputs.comment-id != '' && steps.check-auth.outputs.skipped != 'true'
+          if: steps.check-auth.outputs.skipped != 'true'
+          id: react-started
           uses: actions/github-script@v7
           continue-on-error: true
           env:
-              COMMENT_ID: ${{ inputs.comment-id }}
+              PR_NUMBER: ${{ inputs.pr-number }}
           with:
               github-token: ${{ inputs.github-token }}
               script: |
-                  await github.rest.reactions.createForIssueComment({
+                  const { data: reaction } = await github.rest.reactions.createForIssue({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    comment_id: parseInt(process.env.COMMENT_ID, 10),
+                    issue_number: parseInt(process.env.PR_NUMBER, 10),
                     content: 'eyes'
                   });
+                  core.setOutput('reaction_id', reaction.id);
 
         - name: Fetch PR refs
           if: steps.check-auth.outputs.skipped != 'true'
@@ -381,7 +401,7 @@ runs:
                             path: finding.file,
                             line: finding.end_line || finding.line,
                             side: 'RIGHT',
-                            body: `${priorityEmoji} **[${finding.priority}] ${finding.title}**\n\n${finding.description}`
+                            body: `${priorityEmoji} **[${finding.priority}] ${finding.title}**\n\n${finding.description}\n\n${commentMarker}`
                           };
 
                           // For multi-line comments, add start_line and start_side
@@ -460,6 +480,51 @@ runs:
                     reviewBody = rawContent;
                   }
 
+                  // Clean up old inline review comments from previous Codex reviews
+                  // Only remove comments with no user reactions or replies (preserving conversations)
+                  try {
+                    const allReviewComments = await github.paginate(
+                      github.rest.pulls.listReviewComments,
+                      {
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        per_page: 100
+                      }
+                    );
+                    const botComments = allReviewComments.filter(c => c.user.login === 'github-actions[bot]' && c.body.includes(commentMarker));
+                    const nonBotComments = allReviewComments.filter(c => c.user.login !== 'github-actions[bot]');
+
+                    // Build set of bot comment IDs that have user replies
+                    const repliedToIds = new Set(
+                      nonBotComments
+                        .filter(c => c.in_reply_to_id)
+                        .map(c => c.in_reply_to_id)
+                    );
+
+                    let deleted = 0;
+                    let preserved = 0;
+                    for (const comment of botComments) {
+                      const hasUserReply = repliedToIds.has(comment.id);
+                      const hasReactions = (comment.reactions?.total_count || 0) > 0;
+                      if (!hasUserReply && !hasReactions) {
+                        await github.rest.pulls.deleteReviewComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          comment_id: comment.id
+                        });
+                        deleted++;
+                      } else {
+                        preserved++;
+                      }
+                    }
+                    if (deleted > 0 || preserved > 0) {
+                      console.log(`Cleaned up ${deleted} old inline review comments (preserved ${preserved} with user interactions)`);
+                    }
+                  } catch (e) {
+                    console.log(`Warning: Failed to clean up old review comments: ${e.message}`);
+                  }
+
                   // Post inline comments as a review if we have any
                   if (inlineReviewComments.length > 0) {
                     try {
@@ -518,19 +583,36 @@ runs:
                     console.log('Created new review comment');
                   }
 
-        - name: React Success
-          if: steps.check-auth.outputs.skipped != 'true' && inputs.comment-id != '' && steps.verify.outputs.success == 'true'
+        - name: Remove Eyes Reaction
+          if: always() && steps.check-auth.outputs.skipped != 'true' && steps.react-started.outputs.reaction_id != ''
           uses: actions/github-script@v7
           continue-on-error: true
           env:
-              COMMENT_ID: ${{ inputs.comment-id }}
+              PR_NUMBER: ${{ inputs.pr-number }}
+              REACTION_ID: ${{ steps.react-started.outputs.reaction_id }}
           with:
               github-token: ${{ inputs.github-token }}
               script: |
-                  await github.rest.reactions.createForIssueComment({
+                  await github.rest.reactions.deleteForIssue({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    comment_id: parseInt(process.env.COMMENT_ID, 10),
+                    issue_number: parseInt(process.env.PR_NUMBER, 10),
+                    reaction_id: parseInt(process.env.REACTION_ID, 10)
+                  });
+
+        - name: React Success
+          if: steps.check-auth.outputs.skipped != 'true' && steps.verify.outputs.success == 'true'
+          uses: actions/github-script@v7
+          continue-on-error: true
+          env:
+              PR_NUMBER: ${{ inputs.pr-number }}
+          with:
+              github-token: ${{ inputs.github-token }}
+              script: |
+                  await github.rest.reactions.createForIssue({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: parseInt(process.env.PR_NUMBER, 10),
                     content: '+1'
                   });
 
