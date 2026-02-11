@@ -743,7 +743,7 @@ test.describe('state', () => {
                     await clickOnGermanyLegend(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023-Germany-hidden.png');
 
-                    await clickOnUKLegend(page);
+                    await clickOnGermanyLegend(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
                 });
 
@@ -765,7 +765,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
 
-                    await clickOnUKLegend(page);
+                    await clickOnGermanyLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
                 });
