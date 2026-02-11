@@ -1862,6 +1862,8 @@ describe('LineSeries', () => {
 
     // CRT-1025: After toggling a line series off and back on while highlighting is active,
     // the re-shown series should animate to dimmed opacity (not full opacity 1).
+    // The fix ensures lineSeries passes this.getOpacity() (0.2 when dimmed) instead of
+    // hardcoded 1 to staticFromToMotion and prepareLinePathAnimation.
     describe('CRT-1025 legend toggle with highlighting', () => {
         const animate = spyOnAnimationManager();
 
@@ -1892,15 +1894,16 @@ describe('LineSeries', () => {
                 await chart.update({ ...options });
                 await waitForChartStability(chart);
 
-                // Hover over series 1 to trigger highlighting
+                // Activate highlighting on series 1 directly via highlightManager
                 const chartInstance = deproxy(chart);
                 const series1 = chartInstance.series[1] as any;
                 const nodeData = series1.contextNodeData?.nodeData;
-                if (nodeData?.length > 0) {
-                    const { x, y } = nodeData[0].midPoint ?? nodeData[0].point ?? { x: 200, y: 200 };
-                    await hoverAction(x, y)(chart);
-                    await waitForChartStability(chart);
-                }
+                expect(nodeData?.length).toBeGreaterThan(0);
+                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                await waitForChartStability(chart);
+
+                // Precondition: highlighting must be active for series 0 to be dimmed
+                expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();
 
                 // Re-show series 0 while highlighting is active
                 animate(1200, ratio);
@@ -1908,13 +1911,23 @@ describe('LineSeries', () => {
                 await chart.update({ ...options });
                 await waitForChartStability(chart);
 
-                await compare();
+                // The default theme sets unhighlightedSeries.opacity = 0.2.
+                // With the fix, animation targets 0.2; with the bug, it targeted 1.
+                const series0 = chartInstance.series[0] as any;
+                const path = series0.paths?.[0];
+                if (ratio === 1) {
+                    expect(path.opacity).toBeCloseTo(0.2, 1);
+                } else if (ratio === 0) {
+                    expect(path.opacity).toBeLessThan(0.1);
+                }
             });
         }
     });
 
     // CRT-1052: Line series with markers should not have stroke gaps during fade-in animation.
     // Markers should use overlay drawing mode while animating in.
+    // The fix ensures getAnimationDrawingModes() passes start: { drawingMode: 'overlay' }
+    // so markers don't use 'cutout' (destination-out compositing) during animation.
     describe('CRT-1052 line stroke gaps with markers', () => {
         const animate = spyOnAnimationManager();
 
@@ -1983,6 +1996,69 @@ describe('LineSeries', () => {
                 await waitForChartStability(chart);
 
                 await compare();
+            });
+        }
+
+        for (const ratio of [0, 0.5]) {
+            it(`should use overlay drawing mode on markers during animation at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'macos',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Activate highlighting so steady-state drawing mode would be 'cutout'
+                const chartInstance = deproxy(chart);
+                const series1 = chartInstance.series[1] as any;
+                const nodeData = series1.contextNodeData?.nodeData;
+                expect(nodeData?.length).toBeGreaterThan(0);
+                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                await waitForChartStability(chart);
+
+                expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();
+
+                // Toggle series 0 off then back on while highlighting is active
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                // During animation (ratio < 1), markers should use 'overlay' not 'cutout'.
+                // With the bug, markers used 'cutout' (destination-out) during animation,
+                // erasing the line stroke underneath and creating gaps.
+                const series0 = chartInstance.series[0] as any;
+                const datumSelection = series0.datumSelection;
+                for (const { node } of datumSelection) {
+                    expect(node.drawingMode).toBe('overlay');
+                }
             });
         }
     });
