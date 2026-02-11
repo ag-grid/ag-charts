@@ -228,7 +228,6 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    await checkFrozen(page);
                     let state: AgChartState;
 
                     await checkFrozen(page);
