@@ -322,6 +322,13 @@ const EXAMPLES: Record<
         options: examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
     },
+    STACKED_AREA_SERIES_STACK_GROUPS: {
+        options: examples.STACKED_AREA_SERIES_STACK_GROUPS,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: repeat('area', 4),
+        }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {

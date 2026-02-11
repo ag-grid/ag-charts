@@ -2473,6 +2473,66 @@ export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
     },
 };
 
+export const STACKED_AREA_SERIES_STACK_GROUPS: AgCartesianChartOptions = {
+    data: DATA_BROWSER_MARKET_SHARE,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            yName: 'IE',
+            stacked: true,
+            stackGroup: 'group-one',
+            marker: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            yName: 'Firefox',
+            stacked: true,
+            stackGroup: 'group-one',
+            marker: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            yName: 'Safari',
+            stacked: true,
+            stackGroup: 'group-two',
+            marker: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            yName: 'Chrome',
+            stacked: true,
+            stackGroup: 'group-two',
+            marker: {
+                enabled: true,
+            },
+        },
+    ],
+    title: {
+        text: 'Browser Wars',
+    },
+    subtitle: {
+        text: '2009-2019',
+    },
+};
+
 export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: {
         x: { type: 'unit-time', position: 'bottom' },
