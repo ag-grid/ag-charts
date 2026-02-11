@@ -13,6 +13,7 @@ import {
     lowestGranularityForInterval,
     normalizeAngle360FromDegrees,
     rotatePoint,
+    type ArrayView,
 } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
@@ -260,7 +261,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
     };
 
-    let secondaryAxisTicks: { domain: TDatum[]; ticks: number[] } | undefined;
+    let secondaryAxisTicks: { domain: ArrayView<TDatum>; ticks: number[] } | undefined;
     if (
         tickGenerationType === TickGenerationType.CREATE_SECONDARY &&
         primaryTickCount != null &&
@@ -273,8 +274,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
         ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
         : domain;
-    let tickDomain: TDatum[] = niceDomain;
-    let rawTicks: any[] | undefined;
+    let tickDomain: ArrayView<TDatum> = niceDomain;
+    let rawTicks: ArrayView<any> | undefined;
     let rawTickCount: number | undefined;
     let rawFirstTickIndex: number | undefined;
     let timeInterval: AnyTimeInterval | undefined;
@@ -322,7 +323,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     (UnitTimeScale.is(scale) ||
                         (generatePrimaryTicks && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
-                    const dates = niceDomain as (Date | number)[];
+                    const dates = niceDomain as ArrayView<Date | number>;
                     const start = Math.min(dates[0].valueOf(), dates.at(-1)!.valueOf());
                     const end = Math.max(dates[0].valueOf(), dates.at(-1)!.valueOf());
                     timeInterval = getTickTimeInterval(start, end, tickCount, minTickCount, maxTickCount, {

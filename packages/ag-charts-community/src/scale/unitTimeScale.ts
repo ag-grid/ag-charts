@@ -335,7 +335,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         domain: Date[],
         visibleRange: [number, number],
         extend: boolean = false
-    ): { bands: ArrayLike<Date>; firstBandIndex: number | undefined } {
+    ): { bands: ArrayView<Date>; firstBandIndex: number | undefined } {
         if (
             domain === this.domain &&
             visibleRange[0] === 0 &&
@@ -377,7 +377,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 
-        let bands: ArrayLike<Date>;
+        let bands: ArrayView<Date>;
         let firstBandIndex: number | undefined;
         let bandsSliceIndices: [number, number] | undefined;
 
@@ -391,10 +391,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         }
 
         if (interval == null) {
-            return { ticks: Array.from(bands), count: undefined, firstTickIndex: firstBandIndex };
-            /* TODO: restore this
             return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
-            //*/
         }
 
         const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;

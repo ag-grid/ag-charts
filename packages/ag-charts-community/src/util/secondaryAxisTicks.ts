@@ -1,4 +1,4 @@
-import { countFractionDigits, createTicks, findMinMax, niceTicksDomain } from 'ag-charts-core';
+import { countFractionDigits, createTicks, findMinMax, niceTicksDomain, type ArrayView } from 'ag-charts-core';
 
 interface SecondaryTickScale<D> {
     toDomain(d: number): D;
@@ -11,11 +11,11 @@ export interface AxisPrimaryTickCount {
 
 export function calculateNiceSecondaryAxis<D extends number>(
     scale: SecondaryTickScale<D>,
-    domain: D[],
+    domain: ArrayView<D>,
     primaryTickCount: AxisPrimaryTickCount,
     reverse: boolean,
     visibleRange: [number, number]
-): { domain: D[]; ticks: number[] } {
+): { domain: ArrayView<D>; ticks: number[] } {
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 

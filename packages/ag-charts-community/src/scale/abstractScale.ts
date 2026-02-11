@@ -1,4 +1,5 @@
 import type {
+    ArrayView,
     DomainWithMetadata,
     NormalizedDomain,
     Scale,
@@ -21,7 +22,7 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
         _ticks: ScaleTickParams<I>,
         _domain?: D[],
         _visibleRange?: [number, number]
-    ): { ticks: D[]; count: number | undefined } | undefined {
+    ): { ticks: ArrayView<D>; count: number | undefined } | undefined {
         return undefined;
     }
     niceDomain(_ticks: ScaleTickParams<I>, domain: D[] = this.domain): D[] {

@@ -18,6 +18,7 @@ import {
     toArray,
     toPlainText,
     wrapTextOrSegments,
+    type ArrayView,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
@@ -618,7 +619,7 @@ function separatorDepth2(node: TreeNode) {
 }
 
 function buildTickInfos(
-    ticks: GroupedCategoryKey[],
+    ticks: ArrayView<GroupedCategoryKey>,
     tickNodes: Map<GroupedCategoryKey, TreeNode> | undefined,
     tickScale: GroupedCategoryScale<GroupedCategoryKey>,
     maxDepth: number

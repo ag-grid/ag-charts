@@ -1,4 +1,5 @@
 import type {
+    ArrayView,
     AxisID,
     Callback,
     CallbackParam,
@@ -106,9 +107,9 @@ export type AxisTickFormatParams =
       };
 
 interface TickLayout<D, TickLayoutMeta> {
-    niceDomain: D[];
-    tickDomain: D[];
-    ticks: D[];
+    niceDomain: ArrayView<D>;
+    tickDomain: ArrayView<D>;
+    ticks: ArrayView<D>;
     rawTickCount: number | undefined;
     fractionDigits: number;
     timeInterval: AnyTimeInterval | undefined;
@@ -117,7 +118,7 @@ interface TickLayout<D, TickLayoutMeta> {
 }
 
 interface TickLayoutCache<D, TickLayoutMeta> {
-    domain: D[];
+    domain: ArrayView<D>;
     rangeExtent: number;
     nice: [boolean, boolean];
     gridLength: number;
@@ -744,14 +745,14 @@ export abstract class Axis<
     abstract layoutCrossLines(): void;
 
     abstract calculateTickLayout(
-        domain: D[],
+        domain: ArrayView<D>,
         niceMode: NiceMode[],
         visibleRange: [number, number],
         primaryTickCount?: AxisPrimaryTickCount
     ): {
-        niceDomain: D[];
-        tickDomain: D[];
-        ticks: D[];
+        niceDomain: ArrayView<D>;
+        tickDomain: ArrayView<D>;
+        ticks: ArrayView<D>;
         rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: AnyTimeInterval | undefined;
@@ -783,8 +784,8 @@ export abstract class Axis<
     protected abstract updateLabels(): void;
 
     abstract tickFormatParams(
-        domain: D[],
-        ticks: D[],
+        domain: ArrayView<D>,
+        ticks: ArrayView<D>,
         fractionDigits: number | undefined,
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
     ): AxisTickFormatParams;
@@ -799,8 +800,8 @@ export abstract class Axis<
 
     // For formatting (nice rounded) tick values.
     tickFormatter(
-        domain: D[],
-        ticks: D[],
+        domain: ArrayView<D>,
+        ticks: ArrayView<D>,
         primary: boolean,
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
@@ -834,7 +835,10 @@ export abstract class Axis<
             key: undefined,
             source: 'axis-label',
             property: this.getFormatterProperty(),
+            domain: Array.from(domain),
+            /* TODO(olegat) should the API contract be updated?
             domain,
+            //*/
             boundSeries,
         };
 
@@ -1004,7 +1008,7 @@ export abstract class Axis<
         return resolvedDirection;
     }
 
-    protected getTitleFormatterParams(domain: D[]) {
+    protected getTitleFormatterParams(domain: ArrayView<D>) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
         return { domain, direction, boundSeries, defaultValue: this.title?.text };

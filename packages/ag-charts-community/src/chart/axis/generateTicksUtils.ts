@@ -31,6 +31,7 @@ import {
     toPlainText,
     toTextString,
     wrapTextOrSegments,
+    type ArrayView,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
 
@@ -51,7 +52,7 @@ export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
     label: ChartAxisLabel;
     scale: TScale;
-    domain: TDatum[];
+    domain: ArrayView<TDatum>;
     range: [number, number];
     visibleRange: [number, number];
     niceMode: NiceMode[];
@@ -70,8 +71,8 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
 
     tickFormatter(
         this: void,
-        domain: TDatum[],
-        ticks: TDatum[],
+        domain: ArrayView<TDatum>,
+        ticks: ArrayView<TDatum>,
         primary: boolean,
         fractionDigits: number | undefined,
         timeInterval: AnyTimeInterval | undefined,
@@ -80,9 +81,9 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
 }
 
 export interface TickData<D = any> {
-    niceDomain: D[];
-    tickDomain: D[];
-    rawTicks: D[];
+    niceDomain: ArrayView<D>;
+    tickDomain: ArrayView<D>;
+    rawTicks: ArrayView<D>;
     rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
@@ -140,7 +141,7 @@ function createTimeScaleTicks(
     return ticks;
 }
 
-export function ticksEqual(a: unknown[], b: unknown[]) {
+export function ticksEqual(a: ArrayView<unknown>, b: ArrayView<unknown>) {
     if (a.length !== b.length) {
         return false;
     }
@@ -178,8 +179,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
         fractionDigits,
         timeInterval,
     }: {
-        niceDomain: D[];
-        rawTicks: any[];
+        niceDomain: ArrayView<D>;
+        rawTicks: ArrayView<any>;
         rawFirstTickIndex: number | undefined;
         generatePrimaryTicks: boolean;
         primaryTicksIndices: Set<number> | undefined;
@@ -273,7 +274,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
 export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>, D>(
     scale: S,
-    temporaryDomain: D[],
+    temporaryDomain: ArrayView<D>,
     callback: () => void
 ): void {
     const originalDomain = scale.domain;
@@ -288,8 +289,8 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
 function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
     labelEnabled: boolean,
     generatePrimaryTicks: boolean,
-    niceDomain: D[],
-    rawTicks: any[],
+    niceDomain: ArrayView<D>,
+    rawTicks: ArrayView<any>,
     fractionDigits: number,
     timeInterval: AnyTimeInterval | undefined,
     tickFormatter: GenerateTicksOptions<S, D>['tickFormatter']
@@ -395,7 +396,7 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
             Math.min((dv1 - p0.valueOf()) / dp, 1),
         ];
 
-        let intervalTicks: Date[];
+        let intervalTicks: ArrayView<Date>;
         switch (parentLevelMode) {
             case ParentLevelMode.ContinuousTimeScaleTicks:
                 intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
@@ -462,7 +463,7 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
 export function timeIntervalMaxLabelSize(
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
-    domain: Date[],
+    domain: ArrayView<Date>,
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
     textMeasurer: ITextMeasurer
 ) {

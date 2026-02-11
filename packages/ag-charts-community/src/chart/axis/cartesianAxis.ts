@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, Scale } from 'ag-charts-core';
+import type { ArrayView, ChartAnimationPhase, Scale } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Property,
@@ -216,9 +216,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         visibleRange: [number, number],
         initialPrimaryTickCount?: AxisPrimaryTickCount
     ): {
-        niceDomain: D[];
-        tickDomain: D[];
-        ticks: D[];
+        niceDomain: ArrayView<D>;
+        tickDomain: ArrayView<D>;
+        ticks: ArrayView<D>;
         rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
@@ -542,7 +542,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
     }
 
-    protected titleBBox(domain: D[], spacing: number) {
+    protected titleBBox(domain: ArrayView<D>, spacing: number) {
         const { tempCaption } = this;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
         return tempCaption.node.getBBox();
@@ -599,7 +599,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private measureAxisLayout(
-        domain: D[],
+        domain: ArrayView<D>,
         ticks: TickDatum[],
         labels: LabelNodeDatum[],
         scrollbar: ScrollbarLayout | undefined,
@@ -675,7 +675,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { bbox, spacing };
     }
 
-    protected titleProps(caption: Caption, domain: D[], spacing: number) {
+    protected titleProps(caption: Caption, domain: ArrayView<D>, spacing: number) {
         const { title } = this;
 
         if (!title.enabled) {
@@ -831,7 +831,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         });
     }
 
-    protected updateTitle(domain: D[], spacing: number): void {
+    protected updateTitle(domain: ArrayView<D>, spacing: number): void {
         const { caption } = this.title;
         const titleProps = this.titleProps(caption, domain, spacing);
         caption.node.visible = titleProps.visible;

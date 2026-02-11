@@ -1,3 +1,4 @@
+import type { ArrayView } from '../../types/arrayview';
 import { clamp } from './numbers';
 
 export function clampArray(value: number, array: readonly number[]) {
@@ -5,7 +6,7 @@ export function clampArray(value: number, array: readonly number[]) {
     return clamp(min, value, max);
 }
 
-export function findMinMax(array: readonly number[]) {
+export function findMinMax(array: ArrayView<number>) {
     if (array.length === 0) return [];
 
     // Optimized min/max algorithm, single array pass.

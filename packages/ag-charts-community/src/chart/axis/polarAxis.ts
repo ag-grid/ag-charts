@@ -1,4 +1,4 @@
-import type { Scale } from 'ag-charts-core';
+import type { ArrayView, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, Property } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
@@ -22,7 +22,7 @@ export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
 > extends Axis<S, D> {
-    gridAngles: number[] | undefined;
+    gridAngles: ArrayView<number> | undefined;
     gridRange: number[] | undefined;
 
     @Property
