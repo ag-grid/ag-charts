@@ -114,13 +114,17 @@ type WheelEventData = {
     deltaX: number;
     deltaY: number;
     deltaMode: WheelDeltaMode;
+    cancelable?: boolean;
 };
 
-export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
+export function wheelEvent(
+    mockEvent: MockEvent,
+    { deltaX, deltaY, deltaMode, cancelable }: WheelEventData
+): WheelEvent {
     const { offsetX, offsetY, clientX, clientY } = mockEvent;
     const event = new WheelEvent('wheel', {
         bubbles: true,
-        cancelable: true,
+        cancelable: cancelable ?? true,
         clientX,
         clientY,
         deltaX,

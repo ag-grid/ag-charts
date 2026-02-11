@@ -1917,6 +1917,9 @@ describe('LineSeries', () => {
                 const path = series0.paths?.[0];
                 if (ratio === 1) {
                     expect(path.opacity).toBeCloseTo(0.2, 1);
+                } else if (ratio === 0.5) {
+                    expect(path.opacity).toBeGreaterThanOrEqual(0);
+                    expect(path.opacity).toBeLessThanOrEqual(0.2);
                 } else if (ratio === 0) {
                     expect(path.opacity).toBeLessThan(0.1);
                 }

@@ -30,7 +30,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
-import { WheelDeltaMode, dispatchEvent } from 'ag-charts-test';
+import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -1073,15 +1073,7 @@ describe('Zoom', () => {
 
             const stateBefore = chart.getState().zoom;
             const target = findChartTarget(deproxy(chart), 30, cy);
-            const event = new WheelEvent('wheel', {
-                clientX: target.clientX,
-                clientY: target.clientY,
-                deltaY: -100,
-                deltaMode: 0,
-                bubbles: true,
-                cancelable: true,
-            });
-            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
+            const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
             const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
@@ -1104,15 +1096,7 @@ describe('Zoom', () => {
 
             const stateBefore = chart.getState().zoom;
             const target = findChartTarget(deproxy(chart), cx, cy * 2 - 30);
-            const event = new WheelEvent('wheel', {
-                clientX: target.clientX,
-                clientY: target.clientY,
-                deltaY: -100,
-                deltaMode: 0,
-                bubbles: true,
-                cancelable: true,
-            });
-            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
+            const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
             const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
@@ -1135,15 +1119,12 @@ describe('Zoom', () => {
 
             const stateBefore = chart.getState().zoom;
             const target = findChartTarget(deproxy(chart), 30, cy);
-            const event = new WheelEvent('wheel', {
-                clientX: target.clientX,
-                clientY: target.clientY,
+            const event = wheelEvent(target, {
+                deltaX: 0,
                 deltaY: -100,
-                deltaMode: 0,
-                bubbles: true,
+                deltaMode: WheelDeltaMode.Pixels,
                 cancelable: false,
             });
-            Object.assign(event, { offsetX: target.offsetX, offsetY: target.offsetY });
             const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
