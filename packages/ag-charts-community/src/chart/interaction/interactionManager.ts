@@ -30,6 +30,10 @@ export enum InteractionState {
 export class InteractionManager {
     private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
 
+    public getStates(): InteractionState {
+        return this.stateQueue;
+    }
+
     public pushState(state: InteractionState) {
         this.stateQueue |= state;
     }
@@ -40,6 +44,6 @@ export class InteractionManager {
 
     public isState(allowedStates: InteractionState): boolean {
         // Bitwise operation to get the least significant bit:
-        return !!(this.stateQueue & -this.stateQueue & allowedStates);
+        return Boolean(this.stateQueue & -this.stateQueue & allowedStates);
     }
 }

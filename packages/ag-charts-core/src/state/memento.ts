@@ -32,13 +32,9 @@ export class MementoCaretaker {
     }
 
     restore(blob: unknown, ...originators: Array<MementoOriginator>) {
-        if (typeof blob !== 'object') {
-            warnOnce(`Could not restore data of type [${typeof blob}], expecting an object, ignoring.`);
-            return;
-        }
-
-        if (blob == null) {
-            warnOnce(`Could not restore data of type [null], expecting an object, ignoring.`);
+        if (!isObject(blob)) {
+            const blobType = blob === null ? 'null' : typeof blob;
+            warnOnce(`Could not restore data of type [${blobType}], expecting an object, ignoring.`);
             return;
         }
 
@@ -48,15 +44,15 @@ export class MementoCaretaker {
         }
 
         for (const originator of originators) {
-            const memento = this.decode(originator, (blob as any)[originator.mementoOriginatorKey]);
+            const memento = this.decode(originator, blob[originator.mementoOriginatorKey]);
+            const messages: string[] = [];
 
-            const messages: Array<string> = [];
             if (!originator.guardMemento(memento, messages)) {
-                const messagesString = messages.length > 0 ? `\n\n${messages.join('\n\n')}\n\n` : '';
-                warnOnce(
-                    `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.${messagesString}`,
-                    memento
-                );
+                let messagesString = `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.`;
+                if (messages.length > 0) {
+                    messagesString += `\n\n${messages.join('\n\n')}\n\n`;
+                }
+                warnOnce(messagesString, memento);
                 return;
             }
 

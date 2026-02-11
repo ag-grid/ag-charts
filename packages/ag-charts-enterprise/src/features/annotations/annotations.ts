@@ -45,14 +45,12 @@ import { invertCoords } from './utils/values';
 
 const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _ModuleSupport;
 
-type AnnotationPropertiesArray = PropertiesArray<AnnotationProperties>;
-
-type AnnotationAxis = {
+interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _ModuleSupport.BBox;
     button?: AxisButton;
-};
+}
 
 export class Annotations extends AbstractModuleInstance {
     @Property
@@ -87,9 +85,7 @@ export class Annotations extends AbstractModuleInstance {
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
-        Annotations.createAnnotationDatum
-    );
+    private readonly annotationData = new PropertiesArray<AnnotationProperties>(Annotations.createAnnotationDatum);
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -173,12 +169,7 @@ export class Annotations extends AbstractModuleInstance {
 
             getNodeAtCoords: (coords: Point, active: number) => {
                 const node = this.annotations.at(active);
-
-                if (!node) {
-                    return;
-                }
-
-                return node.getNodeAtCoords(coords.x, coords.y);
+                return node?.getNodeAtCoords(coords.x, coords.y);
             },
 
             translate: (index: number, translation: Point) => {
@@ -211,20 +202,16 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             select: (index?: number, previous?: number) => {
-                const { annotations, optionsToolbar, toolbar } = this;
+                const { annotations, optionsToolbar } = this;
 
                 this.hideOverlays();
-                toolbar.clearActiveButton();
-                toolbar.resetButtonIcons();
 
                 const selectedNode = index == null ? null : annotations.at(index);
                 const previousNode = previous == null ? null : annotations.at(previous);
                 const selectedDatum = index == null ? null : this.annotationData.at(index);
 
                 // Only change anything else if a different node has been selected or when deselecting
-                if (previousNode === selectedNode && selectedNode != null) {
-                    return;
-                }
+                if (previousNode === selectedNode && selectedNode != null) return;
 
                 // Deselect the previous node
                 previousNode?.toggleActive(false);
@@ -245,6 +232,10 @@ export class Annotations extends AbstractModuleInstance {
                         });
                     }
                 } else {
+                    if (previousNode != null && !this.textInput.isVisible()) {
+                        this.toolbar.clearActiveButton();
+                        this.toolbar.resetButtonIcons();
+                    }
                     this.popAnnotationState(InteractionState.AnnotationsSelected);
                     this.popAnnotationState(InteractionState.Annotations);
                 }
@@ -278,13 +269,8 @@ export class Annotations extends AbstractModuleInstance {
 
             deleteAll: () => {
                 // Filter the readOnly data and recreate the array since this is not a standard array.
-                const readOnly = this.annotationData.filter((datum) => {
-                    if (datum.readOnly === true) return datum;
-                });
-                this.annotationData.splice(0, this.annotationData.length);
-                for (const datum of readOnly) {
-                    this.annotationData.push(datum);
-                }
+                const readOnly = this.annotationData.filter((datum) => (datum.readOnly ? datum : false));
+                this.annotationData.splice(0, this.annotationData.length, ...readOnly);
             },
 
             validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => {
@@ -711,8 +697,22 @@ export class Annotations extends AbstractModuleInstance {
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
         if (!this.enabled) return;
 
-        this.clear();
-        this.annotationData.set(event.annotations);
+        const { annotations } = event;
+        const canPatchInPlace =
+            this.annotationData.length === annotations.length &&
+            annotations.every((annotation, index) => {
+                const current = this.annotationData.at(index);
+                return current != null && current.type === (annotation.type as AnnotationType);
+            });
+
+        if (canPatchInPlace) {
+            for (let i = 0; i < annotations.length; i += 1) {
+                this.annotationData[i].set(annotations[i]);
+            }
+        } else {
+            this.reset();
+            this.annotationData.set(annotations);
+        }
 
         this.postUpdateFns.push(() => {
             this.ctx.annotationManager.fireChangedEvent();
