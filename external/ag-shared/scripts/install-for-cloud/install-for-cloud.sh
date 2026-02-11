@@ -232,6 +232,8 @@ main() {
         # Successfully symlinked node_modules from root worktree
         log_info "Using symlinked node_modules, skipping install"
         symlink_nx_cache
+        log_info "Running setup-prompts for worktree"
+        yarn postinstall:setup-prompts || log_error "setup-prompts failed, continuing anyway"
     else
         log_info "node_modules directory not found, performing fresh install"
         if ! install_yarn; then
