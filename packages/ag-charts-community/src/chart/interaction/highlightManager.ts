@@ -1,8 +1,9 @@
-import { objectsEqual } from 'ag-charts-core';
+import { type Point, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
+import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
 
 /**
  * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from
@@ -111,8 +112,15 @@ export class HighlightManager {
     }
 
     private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {
+        if (a === b) return true;
+
         return (
-            a === b || (a != null && b != null && a.series === b.series && this.idsMatch(a, b) && a.datum === b.datum)
+            a != null &&
+            b != null &&
+            a.series === b.series &&
+            this.idsMatch(a, b) &&
+            this.pointsMatch(a, b) &&
+            a.datum === b.datum
         );
     }
 
@@ -121,5 +129,21 @@ export class HighlightManager {
             (a.itemId != null && b.itemId != null && a.itemId === b.itemId) ||
             (a.datumIndex != null && b.datumIndex != null && objectsEqual(a.datumIndex, b.datumIndex))
         );
+    }
+
+    private pointsMatch(
+        a: HighlightNodeDatum & Partial<ErrorBoundSeriesNodeDatum>,
+        b: HighlightNodeDatum & Partial<ErrorBoundSeriesNodeDatum>
+    ): boolean {
+        return (
+            this.pointsAreEqual(a.point, b.point) &&
+            this.pointsAreEqual(a.midPoint, b.midPoint) &&
+            this.pointsAreEqual(a.yBar?.lowerPoint, b.yBar?.upperPoint) &&
+            this.pointsAreEqual(a.xBar?.lowerPoint, b.xBar?.upperPoint)
+        );
+    }
+
+    private pointsAreEqual(a: Point | undefined, b: Point | undefined): boolean {
+        return a === b || (a !== undefined && b !== undefined && a.x === b.x && a.y === b.y);
     }
 }
