@@ -579,4 +579,30 @@ test.describe('keyboard-nav', () => {
             await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
         });
     });
+
+    test('CRT-1047 legend focus indicator updates when font family changes', async ({ page }) => {
+        await gotoExample(
+            page,
+            toExamplePageUrl('accessibility-test', 'keyboard-navigation-change-font-family', 'vanilla').url
+        );
+
+        // Tab through to the legend
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+
+        // Move to the 2nd legend item
+        await page.keyboard.press('ArrowRight');
+
+        // Change the font
+        await page.getByTestId('changeFontFamily').click();
+
+        // Tab through to the legend
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+
+        // Should already be on the 2nd legend item
+
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('CRT-1047-after-change-font.png');
+    });
 });
