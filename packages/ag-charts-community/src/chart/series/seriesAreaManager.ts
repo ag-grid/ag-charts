@@ -878,7 +878,10 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
         const refPoint = getDatumRefPoint(active.series, active.datum, undefined);
         if (this.chart.tooltip.enabled) {
-            if (refPoint) {
+            if (!active.series.visible) {
+                this.clearTooltip();
+                this.clearHighlight();
+            } else if (refPoint) {
                 const { canvasX, canvasY } = refPoint;
                 this.showTooltip(active, canvasX, canvasY, paginationState);
             }
