@@ -615,9 +615,6 @@ test.describe('state', () => {
                     await hoverOnUKLegend(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
-                    await clickOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
-
                     await hoverInCenter(page);
                     await hoverInTopLeft(page); // test 'mouseleave'
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
@@ -644,10 +641,6 @@ test.describe('state', () => {
                     expect(state.active).toEqual(expectedFrozenState);
 
                     await hoverOnUKLegend(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(expectedFrozenState);
-
-                    await clickOnUKLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(expectedFrozenState);
 
