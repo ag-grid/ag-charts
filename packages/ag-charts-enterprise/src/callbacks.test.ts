@@ -2552,6 +2552,7 @@ describe('AG-15850 activeChange', () => {
                         seriesId: 'sales',
                         itemId: 9,
                     },
+                    frozen: false,
                 },
             };
         }
@@ -2604,6 +2605,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        frozen: false,
                         datum: { month: 'Oct', sales: 220 },
                     },
                 ],
@@ -2619,6 +2621,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        frozen: false,
                         datum: { month: 'Oct', sales: 220 },
                     },
                 ],

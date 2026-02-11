@@ -307,6 +307,7 @@ exports[`AG-15850 activeChange bar tooltip disabled (race condition) hover does 
         "iphone": 140,
         "quarter": "Q1'18",
       },
+      "frozen": false,
       "source": "user-interaction",
       "type": "activeChange",
     },
