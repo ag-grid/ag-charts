@@ -21,6 +21,32 @@ test.describe('legend', () => {
 
     for (const { framework, url } of toExamplePageUrls('accessibility-test', 'keyboard-navigation-with-highlight')) {
         test.describe(`for ${framework}`, () => {
+            test('AG-16449 focus replay does not reapply hover highlight', async ({ page }) => {
+                await gotoExample(page, url);
+                const canvasCenter = page.locator(SELECTORS.canvasCenter);
+                const legendItem = page.locator(SELECTORS.legendItems).first();
+                const focusTarget = page.locator('#above-chart');
+
+                // Toggle the series off and back on again so the legend item keeps focus.
+                await legendItem.click();
+                await waitForAllChartUpdates(page);
+                await legendItem.click();
+                await waitForAllChartUpdates(page);
+
+                // Ensure hover highlight is applied before moving away.
+                await legendItem.hover();
+                await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
+
+                // Move the pointer away to clear hover highlight.
+                await focusTarget.hover();
+                await expect(canvasCenter).toHaveScreenshot('renewables-nothing-highlighted.png');
+
+                // Focus replay (e.g. tab switch) should not reapply hover highlight.
+                await focusTarget.focus();
+                await legendItem.focus();
+                await expect(canvasCenter).toHaveScreenshot('renewables-nothing-highlighted.png');
+            });
+
             test('mouse hovering updates highlight', async ({ page }) => {
                 await gotoExample(page, url);
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
