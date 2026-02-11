@@ -12,4 +12,6 @@ export interface AgActiveState {
      * The active series datum shape. If the entire series is active, then `itemId` will be set to `undefined`.
      */
     activeItem?: AgActiveItemState;
+    /** The frozen state. When the picked item is frozen, user interactions with the chart will be ignored and not updated the currently picked item. */
+    frozen: boolean;
 }
