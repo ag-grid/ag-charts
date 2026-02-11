@@ -205,6 +205,10 @@ export class Annotations extends AbstractModuleInstance {
                 const { annotations, optionsToolbar } = this;
 
                 this.hideOverlays();
+                if (!this.textInput.isVisible()) {
+                    this.toolbar.clearActiveButton();
+                    this.toolbar.resetButtonIcons();
+                }
 
                 const selectedNode = index == null ? null : annotations.at(index);
                 const previousNode = previous == null ? null : annotations.at(previous);
@@ -232,10 +236,6 @@ export class Annotations extends AbstractModuleInstance {
                         });
                     }
                 } else {
-                    if (previousNode != null && !this.textInput.isVisible()) {
-                        this.toolbar.clearActiveButton();
-                        this.toolbar.resetButtonIcons();
-                    }
                     this.popAnnotationState(InteractionState.AnnotationsSelected);
                     this.popAnnotationState(InteractionState.Annotations);
                 }
