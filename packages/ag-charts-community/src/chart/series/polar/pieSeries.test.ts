@@ -24,6 +24,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationManager,
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
@@ -1129,6 +1130,73 @@ describe('PieSeries', () => {
         test('image', async () => {
             await compare();
         });
+    });
+
+    // CRT-1053: Pie sectors with non-string fills (patterns/gradients) should not render black
+    // during animation. The fix conditionally excludes fill from animation properties when
+    // the fill is not a plain colour string.
+    describe('CRT-1053 pattern fill animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const PIE_PATTERN_DATA = [
+            { label: 'A', value: 30 },
+            { label: 'B', value: 25 },
+            { label: 'C', value: 20 },
+            { label: 'D', value: 15 },
+        ];
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render pattern fills (not black) at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const opts: AgChartOptions = {
+                    data: PIE_PATTERN_DATA,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'label',
+                            fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
+                        } as AgPieSeriesOptions,
+                    ],
+                };
+                prepareTestOptions(opts);
+
+                chart = AgCharts.create(opts) as any;
+                await waitForChartStability(chart);
+
+                await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
+            });
+        }
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render gradient fills (not black) at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const opts: AgChartOptions = {
+                    data: PIE_PATTERN_DATA,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'label',
+                            fills: [
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                };
+                prepareTestOptions(opts);
+
+                chart = AgCharts.create(opts) as any;
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
     });
 
     afterEach(() => {

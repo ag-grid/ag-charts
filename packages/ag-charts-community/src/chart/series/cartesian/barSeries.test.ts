@@ -776,6 +776,36 @@ describe('BarSeries', () => {
                 expect(datum.yValue).toBe(0);
             }
         });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should animate coordinated legend toggle at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: [
+                        { category: 'A', v1: 10, v2: 20, v3: 15 },
+                        { category: 'B', v1: 30, v2: 40, v3: 25 },
+                        { category: 'C', v1: 20, v2: 10, v3: 35 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                        { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                        { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
+                    ],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![0] as AgBarSeriesOptions).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
     });
 
     describe('invalid data domain', () => {

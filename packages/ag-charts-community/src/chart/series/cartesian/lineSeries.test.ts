@@ -1859,4 +1859,131 @@ describe('LineSeries', () => {
             expect(finalNodeCount).toBe(initialNodeCount);
         });
     });
+
+    // CRT-1025: After toggling a line series off and back on while highlighting is active,
+    // the re-shown series should animate to dimmed opacity (not full opacity 1).
+    describe('CRT-1025 legend toggle with highlighting', () => {
+        const animate = spyOnAnimationManager();
+
+        const OPTIONS: AgChartOptions = {
+            data: ANIMATION_CATEGORY_DATA,
+            series: [
+                { type: 'line', xKey: 'quarter', yKey: 'iphone' },
+                { type: 'line', xKey: 'quarter', yKey: 'macos' },
+            ],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'category', position: 'bottom' },
+            },
+        };
+
+        for (const ratio of [0, 0.5, 1]) {
+            it(`should animate re-shown series to dimmed opacity at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = deepClone(OPTIONS);
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Hide series 0
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                // Hover over series 1 to trigger highlighting
+                const chartInstance = deproxy(chart);
+                const series1 = chartInstance.series[1] as any;
+                const nodeData = series1.contextNodeData?.nodeData;
+                if (nodeData?.length > 0) {
+                    const { x, y } = nodeData[0].midPoint ?? nodeData[0].point ?? { x: 200, y: 200 };
+                    await hoverAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+
+                // Re-show series 0 while highlighting is active
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+    });
+
+    // CRT-1052: Line series with markers should not have stroke gaps during fade-in animation.
+    // Markers should use overlay drawing mode while animating in.
+    describe('CRT-1052 line stroke gaps with markers', () => {
+        const animate = spyOnAnimationManager();
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render continuous stroke at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+
+        for (const ratio of [0, 0.5, 1]) {
+            it(`should render continuous stroke after legend toggle at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Toggle series off then back on
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+    });
 });

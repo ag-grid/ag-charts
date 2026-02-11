@@ -94,6 +94,15 @@ export function setupIntrinsicAssertions(
         }
 
         page.on('console', (msg: any) => {
+            // Capture Chrome violation/intervention warnings (emitted as 'log' type with [Violation]/[Intervention] prefix).
+            if (msg.type() === 'log') {
+                const text = msg.text();
+                if (text.startsWith('[Violation]') || text.startsWith('[Intervention]')) {
+                    consoleWarnOrErrors.push(text);
+                }
+                return;
+            }
+
             // We only care about warnings/errors.
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
 
