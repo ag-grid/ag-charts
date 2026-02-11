@@ -853,5 +853,27 @@ describe('WaterfallSeries', () => {
                 expect(regularContent.data?.[0].missing).not.toBe(true);
             }
         });
+
+        it('should return non-missing tooltip content for all node types in sequence', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = series['contextNodeData']?.nodeData;
+            expect(nodeData).toBeDefined();
+
+            // Verify every node returns non-missing tooltip content
+            for (let i = 0; i < nodeData!.length; i++) {
+                const content = series.getTooltipContent(i);
+                expect(content).toBeDefined();
+                expect(content?.type).toBe('structured');
+                if (content?.type === 'structured') {
+                    expect(content.data?.[0].missing).not.toBe(true);
+                }
+            }
+        });
     });
 });

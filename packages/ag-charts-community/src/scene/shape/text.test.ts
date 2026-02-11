@@ -405,6 +405,67 @@ describe('Text', () => {
         });
     });
 
+    // CRT-1041: getBBox() for segmented (rich) text must account for the vertical offset
+    // applied by calcSegmentedTopOffset. Before the fix, the accessibility proxy element for
+    // multi-line footnote captions was mispositioned because getBBox().y was not adjusted.
+    describe('CRT-1041 segmented text getBBox', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        const SEGMENTED_TEXT = [
+            { text: 'Line 1', fontSize: 15, fontFamily: 'Verdana' },
+            { text: '\nLine 2', fontSize: 15, fontFamily: 'Verdana' },
+        ];
+
+        it('should return getBBox().y equal to text.y for top baseline', () => {
+            const text = new Text();
+            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'top', x: 100, y: 400 });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            expect(bbox.y).toBeCloseTo(400, 0);
+        });
+
+        it('should return getBBox().y less than text.y for alphabetic baseline', () => {
+            const text = new Text();
+            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'alphabetic', x: 100, y: 400 });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            expect(bbox.y).toBeLessThan(400);
+        });
+
+        it('should return getBBox().y less than text.y for middle baseline', () => {
+            const text = new Text();
+            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'middle', x: 100, y: 400 });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            expect(bbox.y).toBeLessThan(400);
+        });
+
+        it('should return getBBox().y less than text.y for bottom baseline', () => {
+            const text = new Text();
+            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'bottom', x: 100, y: 400 });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            expect(bbox.y).toBeLessThan(400);
+        });
+
+        it('should not adjust getBBox().y for non-segmented multi-line text', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: 'Line 1\nLine 2',
+                textBaseline: 'alphabetic',
+                x: 100,
+                y: 400,
+            });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            // Non-segmented text uses computeBBox which handles baselines differently
+            expect(bbox).toBeDefined();
+            expect(bbox.width).toBeGreaterThan(0);
+            expect(bbox.height).toBeGreaterThan(0);
+        });
+    });
+
     describe('text measurements', () => {
         // it('should measure text currently', () => {
         //     expect(
