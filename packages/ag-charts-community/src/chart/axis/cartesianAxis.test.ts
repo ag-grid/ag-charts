@@ -5,12 +5,14 @@ import type { AgBaseChartThemeOptions, AgCartesianChartOptions, AgChartInstance 
 import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import { axisLabelsOverlap } from './generateTicksUtils';
 
 const NUMERIC_DATA = [
     { x: -10, y: -8 },
@@ -858,6 +860,74 @@ describe('CartesianAxis', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await compare('cartesian-axis-rotated-category-label-wrap');
+        });
+    });
+
+    // CRT-1048: Category axis labels like "Corp Tax" and "Council Tax" should not overlap on
+    // narrow charts. Auto-rotation must be triggered when labels would collide.
+    describe('CRT-1048 axis label collision', () => {
+        it('should detect overlap when three labels collide with padding', () => {
+            const labels = [
+                { x: 0, y: 0, width: 40, height: 20 },
+                { x: 60, y: 0, width: 40, height: 20 },
+                { x: 45, y: 0, width: 40, height: 20 },
+            ];
+            expect(axisLabelsOverlap(labels, 15)).toBe(true);
+        });
+
+        it('should not report overlap for well-spaced labels', () => {
+            const labels = [
+                { x: 0, y: 0, width: 40, height: 20 },
+                { x: 80, y: 0, width: 40, height: 20 },
+                { x: 160, y: 0, width: 40, height: 20 },
+            ];
+            expect(axisLabelsOverlap(labels, 15)).toBe(false);
+        });
+
+        it('should detect overlap without padding', () => {
+            const labels = [
+                { x: 0, y: 0, width: 50, height: 20 },
+                { x: 30, y: 0, width: 50, height: 20 },
+            ];
+            expect(axisLabelsOverlap(labels)).toBe(true);
+        });
+    });
+
+    // CRT-1055: Wrapped (multi-line) labels should NOT trigger tooltips. Only truncated labels
+    // (with ellipsis) should show tooltips.
+    describe('CRT-1055 wrapped label tooltip', () => {
+        it('should mark truncated labels with textUntruncated', async () => {
+            const options: AgCartesianChartOptions = {
+                width: 400,
+                data: [
+                    { category: 'A Very Long Category Label That Must Be Truncated With Ellipsis', value: 100 },
+                    { category: 'Another Extremely Long Category Label That Overflows Band', value: 200 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            wrapping: 'never',
+                            truncate: true,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart as any) as any;
+            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+            expect(categoryAxis).toBeDefined();
+            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            expect(labelNodes.length).toBeGreaterThan(0);
+            const truncatedNodes = labelNodes.filter((node: any) => node.datum.textUntruncated != null);
+            expect(truncatedNodes.length).toBeGreaterThan(0);
         });
     });
 });
