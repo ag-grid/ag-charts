@@ -23,7 +23,6 @@
  */
 
 const SONAR_TOKEN = process.env.SONAR_TOKEN;
-const SONAR_ORG = 'ag-grid';
 const SONAR_BASE_URL = 'https://sonarcloud.io/api';
 const DEFAULT_SOURCE_PROJECT = 'ag-charts-community-latest';
 const DEFAULT_TARGET_PROJECT = 'ag-charts-community';
@@ -298,7 +297,7 @@ async function main() {
     // Show verbose matching info
     if (config.verbose) {
         console.log('\n--- Matched Issues ---');
-        for (const { sourceIssue, targetIssue } of matched) {
+        for (const { sourceIssue } of matched) {
             const path = formatFilePath(sourceIssue.component, config.sourceProject);
             const transition = getTransitionType(sourceIssue);
             console.log(`  ✓ ${sourceIssue.rule} at ${path}:${sourceIssue.line ?? '?'} -> ${transition}`);
