@@ -756,6 +756,7 @@ test.describe('state', () => {
                         },
                     });
 
+                    await checkFrozen(page);
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
