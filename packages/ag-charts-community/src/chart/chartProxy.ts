@@ -22,6 +22,7 @@ import type {
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
+import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 
 const debug = Debug.create(true, 'opts');
@@ -166,7 +167,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
 
             debug('transaction', transaction);
-            return await this.chart?.applyTransaction(transaction);
+            return this.chart?.applyTransaction(transaction);
         });
     }
 
@@ -208,23 +209,24 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async setState(state: AgChartState) {
-        const { chart } = this;
-        if (!chart) return;
+        if (!this.chart) return;
 
+        const { interactionManager, legendManager, zoomManager } = this.chart.ctx;
         const originators = this.getEnabledOriginators();
+        const originatorsSet = new Set(originators);
 
-        if (!originators.includes(chart.ctx.legendManager)) {
-            await this.setStateOriginators(state, originators);
-            return;
-        }
+        // console.log(interactionManager.getStates());
+        if (interactionManager.isState(InteractionState.AnnotationsSelected)) return;
 
         // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
         // has updated the axis scale domains.
-        await this.setStateOriginators(
-            state,
-            originators.filter((originator) => originator !== chart.ctx.zoomManager)
-        );
-        await this.setStateOriginators(state, [chart.ctx.zoomManager]);
+        if (originatorsSet.has(legendManager) && originatorsSet.has(zoomManager)) {
+            originatorsSet.delete(zoomManager);
+            await this.setStateOriginators(state, Array.from(originatorsSet));
+            await this.setStateOriginators(state, [zoomManager]);
+        } else {
+            await this.setStateOriginators(state, originators);
+        }
     }
 
     resetAnimations(): void {

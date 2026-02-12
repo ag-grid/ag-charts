@@ -25,6 +25,7 @@ export class ChartToolbar extends AbstractModuleInstance {
 
     private readonly toolbar: SharedToolbarWithSection;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
+    private menuShowing = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -34,6 +35,7 @@ export class ChartToolbar extends AbstractModuleInstance {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
+            ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
             () => this.toolbar.destroy()
         );
     }
@@ -59,9 +61,11 @@ export class ChartToolbar extends AbstractModuleInstance {
             },
             onHide: () => {
                 this.toolbar.clearActiveButton();
+                this.menuShowing = false;
             },
         });
 
+        this.menuShowing = true;
         this.toolbar.toggleActiveButtonByIndex(0);
     }
 
@@ -75,7 +79,10 @@ export class ChartToolbar extends AbstractModuleInstance {
     }
 
     private hidePopover() {
-        this.toolbar.clearActiveButton();
+        if (this.menuShowing) {
+            this.menuShowing = false;
+            this.toolbar.clearActiveButton();
+        }
         this.menu.hide();
     }
 

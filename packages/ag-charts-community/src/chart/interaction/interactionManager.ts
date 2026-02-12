@@ -40,6 +40,6 @@ export class InteractionManager {
 
     public isState(allowedStates: InteractionState): boolean {
         // Bitwise operation to get the least significant bit:
-        return !!(this.stateQueue & -this.stateQueue & allowedStates);
+        return Boolean(this.stateQueue & -this.stateQueue & allowedStates);
     }
 }

@@ -72,7 +72,9 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     private cleanData(annotations: AnnotationsMemento) {
         // Strip text align from annotations as this is fixed by annotation type
         for (const annotation of annotations) {
-            if ('textAlign' in annotation) delete annotation.textAlign;
+            if ('textAlign' in annotation) {
+                delete annotation.textAlign;
+            }
         }
         return annotations;
     }

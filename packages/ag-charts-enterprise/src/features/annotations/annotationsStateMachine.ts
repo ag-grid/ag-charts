@@ -446,8 +446,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     this.hovered = undefined;
                     this.active = undefined;
 
-                    ctx.select(this.active, this.active);
-
+                    ctx.select();
                     ctx.resetToIdle();
                 },
 
