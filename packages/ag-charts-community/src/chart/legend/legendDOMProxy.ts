@@ -55,6 +55,11 @@ export class LegendDOMProxy {
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
+    private shouldApplyHoverOnFocus(button: SwitchWidget): boolean {
+        const element = button.getElement();
+        return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
+    }
+
     public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
@@ -103,7 +108,11 @@ export class LegendDOMProxy {
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
             button.addListener('blur', () => itemListener.onLeave());
-            button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            button.addListener('focus', (ev) =>
+                this.shouldApplyHoverOnFocus(button)
+                    ? itemListener.onHover(ev.sourceEvent, markerLabel)
+                    : itemListener.onLeave()
+            );
             // Enable touch long-tap context menus:
             //
             // We don't actually need to listen for drag events. However, on of the quirks of `Widget` is that it only

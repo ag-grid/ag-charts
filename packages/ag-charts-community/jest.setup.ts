@@ -52,6 +52,17 @@ globalThis.HTMLElement.prototype.togglePopover = function (visible) {
     return visible;
 };
 
+globalThis.HTMLElement.prototype.matches = function (selector: string): boolean {
+    if (selector === ':focus-visible') {
+        return false;
+    }
+    try {
+        return HTMLElement.prototype.matches.call(this, selector);
+    } catch {
+        return false;
+    }
+};
+
 declare module 'expect' {
     interface Matchers<R> {
         toMatchImage(expected: ImageData, options?: { writeDiff: boolean }): R;
