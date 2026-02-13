@@ -237,6 +237,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @Property
     mode: ChartMode = 'standalone';
 
+    // undocumented property for studio
+    @Property
+    withinStudio: boolean | undefined = undefined;
+
     @Property
     styleNonce: string | undefined = undefined;
 

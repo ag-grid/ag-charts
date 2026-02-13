@@ -38,12 +38,18 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
-    private static licenseCheck(options: AgChartOptions) {
-        if (this.licenseChecked) return;
-
-        this.licenseManager = enterpriseRegistry.licenseManager?.(options);
-        this.licenseManager?.validateLicense();
-        this.licenseChecked = true;
+    private static licenseCheck(options: AgChartOptions): LicenseManager | undefined {
+        if ((options as { withinStudio?: boolean }).withinStudio) {
+            return undefined;
+        }
+        let licenseManager = this.licenseManager;
+        if (!this.licenseChecked) {
+            licenseManager = enterpriseRegistry.licenseManager?.(options);
+            this.licenseManager = licenseManager;
+            licenseManager?.validateLicense();
+            this.licenseChecked = true;
+        }
+        return licenseManager;
     }
 
     /** @private - for use by Charts website dark-mode support. */
@@ -72,18 +78,16 @@ export abstract class AgCharts {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
             this.licenseCheck(userOptions);
+            const licenseManager = this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
-                licenseManager: this.licenseManager,
+                licenseManager,
                 optionsMetadata,
                 apiStartTime,
             });
 
-            if (this.licenseManager?.isDisplayWatermark()) {
-                enterpriseRegistry.injectWatermark?.(
-                    chart.chart!.ctx.domManager,
-                    this.licenseManager.getWatermarkMessage()
-                );
+            if (licenseManager?.isDisplayWatermark()) {
+                enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
             }
             return chart as unknown as AgChartInstance<O>;
         });
