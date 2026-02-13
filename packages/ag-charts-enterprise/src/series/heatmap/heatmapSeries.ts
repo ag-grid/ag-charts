@@ -675,10 +675,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             rect.setStyleProperties(style);
 
             rect.crisp = crisp;
-            rect.x = Math.floor(point.x - width / 2);
-            rect.y = Math.floor(point.y - height / 2);
-            rect.width = Math.ceil(width);
-            rect.height = Math.ceil(height);
+            rect.x = point.x - width / 2;
+            rect.y = point.y - height / 2;
+            rect.width = width;
+            rect.height = height;
         });
     }
 
