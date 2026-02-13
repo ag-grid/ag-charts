@@ -39,7 +39,7 @@ export abstract class AgCharts {
     private static licenseChecked = false;
 
     private static licenseCheck(options: AgChartOptions): LicenseManager | undefined {
-        if ((options as { skipLicenseCheck?: boolean }).skipLicenseCheck) {
+        if ((options as { withinStudio?: boolean }).withinStudio) {
             return undefined;
         }
         let licenseManager = this.licenseManager;

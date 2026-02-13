@@ -39,7 +39,7 @@ initialStatePickedOptionsDef.frozen = undocumented(boolean);
 // These options are being validated by other modules
 export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
-    skipLicenseCheck: undocumented(boolean),
+    withinStudio: undocumented(boolean),
     container: htmlElement,
     context: () => true,
     theme: defined,
