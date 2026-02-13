@@ -33,19 +33,27 @@ yarn add ag-charts-server-side ag-charts-community
 {% /tabItem %}
 {% /tabs %}
 
-## Module Registration
+## Module registration
 
 Register modules before rendering any charts. This is typically done once at application startup:
 
-```ts
+```ts format="snippet"
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 ```
 
-## Rendering a Chart
+## Rendering a chart
 
-Call `AgChartsServerSide.render()` with chart options and output dimensions. The method returns a `Promise<Buffer>` containing the image data.
+{% note %}
+Multiple render calls can safely be issued concurrently. The package serialises rendering internally to prevent global state conflicts.
+{% /note %}
+
+`AgChartsServerSide` exposes static `render()`, `renderGauge()`, and `renderFinancialChart()` methods. Each returns a `Promise<Buffer>` containing the image data.
+
+{% apiReference id="AgChartsServerSideApi" include=["render"] hideHeader=true hideRequired=true /%}
+
+The `options` property accepts the same chart options as `AgCharts.create()`, excluding `container`, `width`, and `height` which are provided as top-level render options instead.
 
 ```ts
 import * as fs from 'fs';
@@ -71,54 +79,25 @@ const buffer = await AgChartsServerSide.render({
 fs.writeFileSync('chart.png', buffer);
 ```
 
-{% imageCaption imagePath="resources/bar-chart-output.png" alt="Server-side rendered bar chart" constrained=true centered=true /%}
-
-The `options` property accepts the same chart options as `AgCharts.create()`, excluding `container`, `width`, and `height` which are provided as top-level render options instead.
-
-## Render Options
-
-All render methods accept the following base options:
-
-| Property     | Type              | Default | Description                                                  |
-| ------------ | ----------------- | ------- | ------------------------------------------------------------ |
-| `width`      | `number`          | —       | Output image width in pixels.                                |
-| `height`     | `number`          | —       | Output image height in pixels.                               |
-| `format`     | `'png' \| 'jpeg'` | `'png'` | Output image format.                                         |
-| `pixelRatio` | `number`          | `1`     | Pixel density multiplier for high-DPI output.                |
-| `quality`    | `number`          | —       | JPEG quality 0–100 (only applies when `format` is `'jpeg'`). |
-| `timeout`    | `number`          | `30000` | Render timeout in milliseconds.                              |
-
-## JPEG Output
+## JPEG output
 
 Set `format: 'jpeg'` to render JPEG images. Use `quality` to control the compression level.
 
 ```ts
 const buffer = await AgChartsServerSide.render({
-    options: {
-        data: [{ x: 1, y: 2 }],
-        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-    },
-    width: 800,
-    height: 600,
+      // ... chart options ...
     format: 'jpeg',
     quality: 85,
 });
 ```
 
-## High-DPI Output
+## High-DPI output
 
 Set `pixelRatio` to produce higher-resolution images. The actual pixel dimensions of the output are `width * pixelRatio` by `height * pixelRatio`.
 
 ```ts
 const buffer = await AgChartsServerSide.render({
-    options: {
-        data: [
-            { x: 0, y: 0 },
-            { x: 1, y: 5 },
-            { x: 2, y: 3 },
-        ],
-        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-    },
+      // ... chart options ...
     width: 200,
     height: 150,
     pixelRatio: 2,
@@ -126,7 +105,7 @@ const buffer = await AgChartsServerSide.render({
 // Output image is 400x300 actual pixels
 ```
 
-## Enterprise Features
+## Enterprise features
 
 To use enterprise chart types such as waterfall, heatmap, or gauges, install the `ag-charts-enterprise` package and register `AllEnterpriseModule`:
 
@@ -147,7 +126,7 @@ yarn add ag-charts-enterprise
 {% /tabItem %}
 {% /tabs %}
 
-```ts
+```ts format="snippet"
 import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
 
 LicenseManager.setLicenseKey('your-licence-key');
@@ -156,43 +135,9 @@ ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 See [Enterprise Licence Key](./license-install/) for details on obtaining and configuring a licence key.
 
-## Rendering Gauges
+## Custom fonts
 
-Use `AgChartsServerSide.renderGauge()` to render gauge charts. Pass gauge-specific options via the `options` property.
-
-```ts
-const buffer = await AgChartsServerSide.renderGauge({
-    options: {
-        type: 'radial-gauge',
-        value: 75,
-        scale: { min: 0, max: 100 },
-    },
-    width: 300,
-    height: 300,
-});
-```
-
-## Rendering Financial Charts
-
-Use `AgChartsServerSide.renderFinancialChart()` to render financial charts with candlestick or OHLC series.
-
-```ts
-const buffer = await AgChartsServerSide.renderFinancialChart({
-    options: {
-        data: [
-            { date: new Date('2024-01-02'), open: 100, high: 105, low: 98, close: 103 },
-            { date: new Date('2024-01-03'), open: 103, high: 107, low: 101, close: 106 },
-            { date: new Date('2024-01-04'), open: 106, high: 110, low: 104, close: 108 },
-        ],
-    },
-    width: 800,
-    height: 400,
-});
-```
-
-## Custom Fonts
-
-Use `AgChartsServerSide.loadFonts()` to register custom fonts before rendering. Each font definition specifies a family name, file path, and optional weight and style.
+{% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
 
 ```ts
 AgChartsServerSide.loadFonts([
@@ -202,32 +147,9 @@ AgChartsServerSide.loadFonts([
 ]);
 ```
 
-## Concurrent Rendering
+## Example use-cases
 
-Multiple render calls can safely be issued concurrently. The package serialises rendering internally to prevent global state conflicts.
-
-```ts
-const charts = [
-    { data: [{ x: 1, y: 10 }], width: 400, height: 300 },
-    { data: [{ x: 1, y: 20 }], width: 400, height: 300 },
-    { data: [{ x: 1, y: 30 }], width: 400, height: 300 },
-];
-
-const buffers = await Promise.all(
-    charts.map((chart) =>
-        AgChartsServerSide.render({
-            options: {
-                data: chart.data,
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            },
-            width: chart.width,
-            height: chart.height,
-        })
-    )
-);
-```
-
-## Express.js Integration
+### Express.js endpoint
 
 Serve chart images from an HTTP endpoint:
 
@@ -264,43 +186,18 @@ app.listen(3000);
 
 ## API Reference
 
-### AgChartsServerSide
+{% tabs %}
 
-| Method                          | Returns           | Description                                   |
-| ------------------------------- | ----------------- | --------------------------------------------- |
-| `render(options)`               | `Promise<Buffer>` | Renders a standard chart to an image buffer.  |
-| `renderGauge(options)`          | `Promise<Buffer>` | Renders a gauge chart to an image buffer.     |
-| `renderFinancialChart(options)` | `Promise<Buffer>` | Renders a financial chart to an image buffer. |
-| `loadFonts(fonts)`              | `void`            | Registers custom fonts for rendering.         |
+{% tabItem id="AgChartsServerSideApi" label="AgChartsServerSide" %}
+{% apiReference id="AgChartsServerSideApi" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
 
-### BaseRenderOptions
+{% tabItem id="AgBaseRenderOptions" label="AgBaseRenderOptions" %}
+{% apiReference id="AgBaseRenderOptions" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
 
-All render methods accept these base options alongside a chart-type-specific `options` property.
+{% tabItem id="AgFontDefinition" label="AgFontDefinition" %}
+{% apiReference id="AgFontDefinition" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
 
-| Property     | Type              | Required | Description                                          |
-| ------------ | ----------------- | -------- | ---------------------------------------------------- |
-| `width`      | `number`          | Yes      | Output image width in pixels.                        |
-| `height`     | `number`          | Yes      | Output image height in pixels.                       |
-| `format`     | `'png' \| 'jpeg'` | No       | Output image format. Default: `'png'`.               |
-| `pixelRatio` | `number`          | No       | Pixel density multiplier. Default: `1`.              |
-| `quality`    | `number`          | No       | JPEG quality 0–100 (only when `format` is `'jpeg'`). |
-| `timeout`    | `number`          | No       | Render timeout in milliseconds. Default: `30000`.    |
-
-### Chart Options by Render Method
-
-Each render method extends `BaseRenderOptions` with a chart-type-specific `options` property. The `container`, `width`, and `height` properties are excluded from `options` as they are provided as top-level render options.
-
-| Method                   | `options` Type            |
-| ------------------------ | ------------------------- |
-| `render()`               | `AgChartOptions`          |
-| `renderGauge()`          | `AgGaugeOptions`          |
-| `renderFinancialChart()` | `AgFinancialChartOptions` |
-
-### FontDefinition
-
-| Property | Type     | Required | Description                                        |
-| -------- | -------- | -------- | -------------------------------------------------- |
-| `family` | `string` | Yes      | Font family name used in chart options.            |
-| `path`   | `string` | Yes      | File path to the font file (`.ttf`, `.otf`, etc.). |
-| `weight` | `string` | No       | Font weight (e.g., `'bold'`, `'600'`).             |
-| `style`  | `string` | No       | Font style (e.g., `'italic'`).                     |
+{% /tabs %}

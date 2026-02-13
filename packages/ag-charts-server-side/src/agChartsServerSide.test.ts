@@ -2,7 +2,7 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { setupMockConsole } from 'ag-charts-test';
 
 import { AgChartsServerSide } from './agChartsServerSide';
-import type { RenderOptions } from './types';
+import type { AgRenderOptions } from './types';
 
 // Register community modules for testing
 ModuleRegistry.registerModules(AllCommunityModule);
@@ -15,7 +15,7 @@ const IMAGE_SNAPSHOT_OPTIONS = {
 describe('AgChartsServerSide', () => {
     describe('render', () => {
         it('should render a simple line chart to buffer', async () => {
-            const renderOptions: RenderOptions = {
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [
                         { x: 1, y: 10 },
@@ -42,7 +42,7 @@ describe('AgChartsServerSide', () => {
         });
 
         it('should render a bar chart to buffer', async () => {
-            const renderOptions: RenderOptions = {
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [
                         { category: 'A', value: 10 },
@@ -61,7 +61,7 @@ describe('AgChartsServerSide', () => {
         });
 
         it('should render JPEG format when specified', async () => {
-            const renderOptions: RenderOptions = {
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [
                         { x: 1, y: 10 },
@@ -121,7 +121,7 @@ describe('AgChartsServerSide', () => {
         });
 
         it('should throw error for invalid dimensions', async () => {
-            const renderOptions: RenderOptions = {
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [],
                     series: [],
@@ -134,7 +134,7 @@ describe('AgChartsServerSide', () => {
         });
 
         it('should throw error for negative dimensions', async () => {
-            const renderOptions: RenderOptions = {
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [],
                     series: [],
