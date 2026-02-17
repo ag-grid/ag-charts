@@ -25,9 +25,6 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Quarterly Revenue by Product Line',
     },
-    subtitle: {
-        text: 'Revenue in millions (USD)',
-    },
     scrollbar: { enabled: true },
     series: [
         {

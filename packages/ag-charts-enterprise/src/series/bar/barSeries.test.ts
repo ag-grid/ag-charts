@@ -219,4 +219,58 @@ describe('BarSeries', () => {
             });
         });
     });
+
+    describe('skip null bars', () => {
+        const cases = ['unit-time', 'ordinal-time'] as const;
+
+        it.each(cases)('%s', async (axisType) => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    {
+                        quarter: new Date(2024, 0, 1),
+                        software: 5100,
+                        hardware: 3400,
+                        services: 3500,
+                        investments: undefined,
+                    },
+                    {
+                        quarter: new Date(2024, 3, 1),
+                        software: 5400,
+                        hardware: null,
+                        services: 3200,
+                        investments: 3100,
+                    },
+                    {
+                        quarter: new Date(2024, 6, 1),
+                        software: null,
+                        hardware: 3800,
+                        services: undefined,
+                        investments: 2500,
+                    },
+                    {
+                        quarter: new Date(2024, 9, 1),
+                        software: 5700,
+                        hardware: null,
+                        services: undefined,
+                        investments: null,
+                    },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'hardware' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'investments' },
+                ],
+                axes: {
+                    x: {
+                        type: axisType,
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

@@ -132,6 +132,17 @@ In this example:
 -   When a series has `grouped: false`, its `widthRatio` is relative to the full category width.
 -   When `grouped: true` (the default), `widthRatio` is relative to the automatically calculated width allocated to each series within group.
 
+## Skip Null Bars
+
+Use the `skipNullBars` option to prevent bars with nullish values from taking up space in each category.
+
+{% chartExampleRunner title="Skip Null Bars" name="skip-null-bars" type="generated" /%}
+
+In this example:
+
+-   Various values in the data are set to `null` or `undefined`.
+-   When an axis has `skipNullBars: true`, these nullish values are not represented on the chart.
+
 ## API Reference
 
 {% tabs %}

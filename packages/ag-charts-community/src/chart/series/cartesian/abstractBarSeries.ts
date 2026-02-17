@@ -196,24 +196,35 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return { groupOffset, barOffset, barWidth };
     }
 
+    /**
+     * The offset for this series from the start of the group when grouped with other series.
+     */
     private getGroupOffset() {
         return this.ctx.seriesStateManager.getGroupOffset(this);
     }
 
+    /**
+     * The offset for each bar in this series to centre it on the datum.
+     */
     private getBarOffset(barWidth: number) {
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const xAxis = this.getCategoryAxis()!;
 
         let barOffset = 0;
         if (ContinuousScale.is(xAxis.scale)) {
+            // For continuous scales, simply centre the bar on its own width.
             barOffset = -barWidth / 2;
         } else if (this.seriesGrouping == null && groupScale) {
+            // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
         } else if (groupScale && this.properties.widthRatio != null) {
+            // For grouped series with fixed widths, centre the bar on its own width adjusted by the default width of
+            // bars within the group.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
         }
 
+        // Apply a further offset if this series is stacked with another.
         const stackOffset = this.ctx.seriesStateManager.getStackOffset(this, barWidth);
 
         return barOffset + stackOffset;
@@ -265,6 +276,18 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         let rangeWidth = groupScale.range[1] - groupScale.range[0];
         if (groupScale.round && rangeWidth > 0) rangeWidth = Math.floor(rangeWidth);
         return rangeWidth;
+    }
+
+    /**
+     * The individual offset for each datum bar when skipping nullish bars. It shifts the bar an accumulated amount
+     * left or right to reduce the space occupied by nullish bars before or after it, respectively.
+     */
+    protected getDatumOffset(datumIndex: number) {
+        if (!this.processedData?.invalidData || !this.getCategoryAxis()?.skipNullBars) {
+            return 0;
+        }
+
+        return this.ctx.seriesStateManager.getDatumOffset(this, this.processedData.invalidData, datumIndex);
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {

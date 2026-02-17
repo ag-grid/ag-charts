@@ -239,6 +239,12 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
      * Default: `'justify'`
      */
     bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
@@ -318,6 +324,12 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
      * Default: `'justify'`
      */
     bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
@@ -345,6 +357,12 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
      * Default: `'justify'`
      */
     bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 export interface AgNumberAxisOptions<TContext = ContextDefault>
