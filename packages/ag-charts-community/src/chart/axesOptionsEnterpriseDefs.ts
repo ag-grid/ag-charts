@@ -47,6 +47,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
     bandAlignment: union('justify', 'start', 'center', 'end'),
+    skipNullBars: boolean,
 };
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {

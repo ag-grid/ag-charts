@@ -30,6 +30,11 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
         return this.domain;
     }
 
+    get paddingInnerWidth() {
+        if (this._hasFixedWidth) return this._paddingInnerWidth;
+        return this.paddingInner * this._bandwidth;
+    }
+
     protected _bandRanges = new Map<number, Map<number, I | undefined>>();
     addBand(groupIndex: number, stackIndex: number, value: I | undefined) {
         this._domain.push(this.getDomainValue(groupIndex, stackIndex));

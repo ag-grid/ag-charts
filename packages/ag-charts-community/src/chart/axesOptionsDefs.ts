@@ -364,6 +364,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
         ...commonAxisIntervalOptionsDefs,
         placement: union('on', 'between'),
     },
+    skipNullBars: boolean,
 };
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
@@ -437,6 +438,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandAlignment: union('justify', 'start', 'center', 'end'),
     bandHighlight: cartesianAxisBandHighlightOptions,
+    skipNullBars: boolean,
     min: and(or(number, date), lessThan('max')),
     max: and(or(number, date), greaterThan('min')),
     preferredMin: and(or(number, date), lessThan('preferredMax'), lessThan('max')),

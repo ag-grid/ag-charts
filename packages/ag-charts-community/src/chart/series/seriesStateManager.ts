@@ -105,6 +105,8 @@ export class SeriesStateManager {
         const groupScale = this.groupScales.get(type) ?? new IrregularBandScale();
         this.groupScales.set(type, groupScale);
 
+        // TODO: can we short-circuit here if the groupScale already exists (with this bandwidth and axis?)
+
         groupScale.domain = []; // reset domain and band ranges
 
         const group = this.groups.get(type);
@@ -173,5 +175,74 @@ export class SeriesStateManager {
         if (maxStackWidth === 0) return 0;
 
         return maxStackWidth / 2 - barWidth / 2;
+    }
+
+    public getDatumOffset(series: SeriesLike, invalidData: Map<string, boolean[]>, datumIndex: number) {
+        const group = this.groups.get(series.type);
+
+        if (!series.visible || !series.seriesGrouping || !group) {
+            return 0;
+        }
+
+        // If this series has an invalid datum it will not be visible, so skip any further processing.
+        if (invalidData.get(series.internalId)?.[datumIndex]) {
+            return 0;
+        }
+
+        // The datum only needs to be offset if every datum in a group (visually stacked) is invalid.
+        const partialValidGroups = new Set<number>();
+        for (const [seriesId, compareSeries] of group) {
+            if (!compareSeries.visible) continue;
+            const seriesInvalidData = invalidData.get(seriesId);
+            if (!seriesInvalidData?.[datumIndex]) {
+                partialValidGroups.add(compareSeries.grouping.groupIndex);
+            }
+        }
+
+        if (partialValidGroups.size === series.seriesGrouping?.groupCount) {
+            return 0;
+        }
+
+        const groupScale = this.groupScales.get(series.type);
+
+        const before = new Map<number, number>();
+        const after = new Map<number, number>();
+        for (const [seriesId, compareSeries] of group) {
+            if (seriesId === series.internalId) continue;
+            if (!compareSeries.visible) continue;
+            if (partialValidGroups.has(compareSeries.grouping.groupIndex)) continue;
+
+            if (series.seriesGrouping.groupIndex < compareSeries.grouping.groupIndex) {
+                after.set(
+                    compareSeries.grouping.groupIndex,
+                    Math.max(
+                        compareSeries.width ?? groupScale?.bandwidth ?? 0,
+                        after.get(compareSeries.grouping.groupIndex) ?? 0
+                    )
+                );
+            } else if (series.seriesGrouping.groupIndex > compareSeries.grouping.groupIndex) {
+                before.set(
+                    compareSeries.grouping.groupIndex,
+                    Math.max(
+                        compareSeries.width ?? groupScale?.bandwidth ?? 0,
+                        before.get(compareSeries.grouping.groupIndex) ?? 0
+                    )
+                );
+            }
+        }
+
+        let widthOffset = 0;
+        for (const [, a] of after) {
+            widthOffset += a;
+        }
+        for (const [, b] of before) {
+            widthOffset -= b;
+        }
+        widthOffset /= 2;
+
+        const paddingInnerWidth = (groupScale?.paddingInnerWidth ?? 0) / 2;
+        const paddingOffset = (after.size - before.size) * paddingInnerWidth;
+
+        return widthOffset + paddingOffset;
     }
 }

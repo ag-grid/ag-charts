@@ -33,6 +33,9 @@ export class CategoryAxis<
     @ProxyPropertyOnWrite('layoutConstraints', 'align')
     bandAlignment?: 'justify' | 'start' | 'center' | 'end';
 
+    @Property
+    skipNullBars?: boolean;
+
     @ActionOnSet<CategoryAxis>({
         newValue(value?: number) {
             if (value == null || value <= 0) {
