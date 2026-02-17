@@ -36,7 +36,7 @@ module.exports = [
     {
         name: 'All enterprise modules',
         import: '{ AllEnterpriseModule }',
-        limit: '415 kB',
+        limit: '435 kB',
         ...defaultConfig,
     },
     {

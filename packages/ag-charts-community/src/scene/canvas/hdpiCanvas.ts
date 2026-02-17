@@ -1,5 +1,3 @@
-import { ObserveChanges } from 'ag-charts-core';
-
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
@@ -20,9 +18,6 @@ export interface CanvasOptions {
 export class HdpiCanvas {
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
-
-    @ObserveChanges<HdpiCanvas>((target) => target.onEnabledChange())
-    enabled: boolean = true;
 
     width: number = 600;
     height: number = 300;
@@ -45,7 +40,6 @@ export class HdpiCanvas {
 
         this.context = this.element.getContext('2d', { willReadFrequently })!;
 
-        this.onEnabledChange(); // Force `display: block` style
         this.resize(width ?? 0, height ?? 0, this.pixelRatio);
 
         debugContext(this.context);
@@ -95,11 +89,5 @@ export class HdpiCanvas {
     reset() {
         this.context.reset();
         this.context.verifyDepthZero?.();
-    }
-
-    private onEnabledChange() {
-        if (this.element) {
-            this.element.style.display = this.enabled ? '' : 'none';
-        }
     }
 }

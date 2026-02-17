@@ -1,15 +1,17 @@
+import { isObject } from '../types/typeGuards';
 import type { StrictHTMLElement } from './attributeUtil';
+
+type WindowEventRegistration = {
+    listener: EventListener;
+    options?: boolean | AddEventListenerOptions;
+};
 
 export class AgDocument {
     private container?: HTMLElement;
     private cachedDocument?: Document;
     private cachedWindow?: Window;
 
-    private readonly windowEvents = new Map<string, Set<EventListenerOrEventListenerObject>>();
-    private readonly windowEventsOptions = new Map<
-        EventListenerOrEventListenerObject,
-        boolean | AddEventListenerOptions
-    >();
+    private readonly windowEvents = new Map<string, Set<WindowEventRegistration>>();
 
     constructor(
         private readonly fallbackDocument: Document,
@@ -24,7 +26,6 @@ export class AgDocument {
         this.cachedWindow = undefined;
 
         this.windowEvents.clear();
-        this.windowEventsOptions.clear();
     }
 
     get document(): Document {
@@ -61,16 +62,16 @@ export class AgDocument {
 
     private removeWindowEvents() {
         for (const [type, listeners] of this.windowEvents) {
-            for (const listener of listeners) {
-                this.window.removeEventListener(type, listener);
+            for (const { listener, options } of listeners) {
+                this.window.removeEventListener(type, listener, options);
             }
         }
     }
 
     private reattachWindowEvents() {
         for (const [type, listeners] of this.windowEvents) {
-            for (const listener of listeners) {
-                this.window.addEventListener(type, listener, this.windowEventsOptions.get(listener));
+            for (const { listener, options } of listeners) {
+                this.window.addEventListener(type, listener, options);
             }
         }
     }
@@ -128,7 +129,7 @@ export class AgDocument {
     }
 
     /**
-     * Attaches a window event listener that is automatically reattached when the
+     * Attaches a window event listener that's automatically reattached when the
      * active container window changes.
      *
      * @param type Window event name.
@@ -140,34 +141,36 @@ export class AgDocument {
         type: K,
         listener: (this: Window, ev: WindowEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
-    ): (options?: boolean | EventListenerOptions) => void;
-    attachListener(
-        type: string,
-        listener: EventListenerOrEventListenerObject,
-        options?: boolean | AddEventListenerOptions
-    ): (options?: boolean | EventListenerOptions) => void;
-    attachListener(
-        type: string,
-        listener: any,
-        options?: boolean | AddEventListenerOptions
-    ): (options?: boolean | EventListenerOptions) => void {
+    ): () => void;
+    attachListener(type: string, listener: EventListener, options?: boolean | AddEventListenerOptions): () => void;
+    attachListener(type: string, listener: EventListener, options?: boolean | AddEventListenerOptions): () => void {
         let typeListeners = this.windowEvents.get(type);
         if (typeListeners == null) {
             typeListeners = new Set();
             this.windowEvents.set(type, typeListeners);
         }
-        if (options != null) {
-            this.windowEventsOptions.set(listener, options);
-        }
-        typeListeners.add(listener);
-        this.window.addEventListener(type, listener, options);
-        return (removeOptions?: boolean | EventListenerOptions) => {
-            typeListeners?.delete(listener);
+
+        const cleanup = () => {
+            typeListeners?.delete(registration);
             if (typeListeners?.size === 0) {
                 this.windowEvents.delete(type);
             }
-            this.windowEventsOptions.delete(listener);
-            this.window.removeEventListener(type, listener, removeOptions);
+        };
+
+        const activeListener =
+            isObject(options) && options.once
+                ? (event: Event) => {
+                      cleanup();
+                      listener(event);
+                  }
+                : listener;
+
+        const registration = { listener: activeListener, options };
+        typeListeners.add(registration);
+        this.window.addEventListener(type, activeListener, options);
+        return () => {
+            cleanup();
+            this.window.removeEventListener(type, activeListener, options);
         };
     }
 
