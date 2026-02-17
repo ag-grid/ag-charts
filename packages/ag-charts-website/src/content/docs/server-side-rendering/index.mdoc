@@ -37,7 +37,7 @@ yarn add ag-charts-server-side ag-charts-community
 
 Register modules before rendering any charts. This is typically done once at application startup:
 
-```ts format="snippet"
+```js format="snippet"
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -55,7 +55,7 @@ Multiple render calls can safely be issued concurrently. The package serialises 
 
 The `options` property accepts the same chart options as `AgCharts.create()`, excluding `container`, `width`, and `height` which are provided as top-level render options instead.
 
-```ts
+```js
 import * as fs from 'fs';
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartsServerSide } from 'ag-charts-server-side';
@@ -83,7 +83,7 @@ fs.writeFileSync('chart.png', buffer);
 
 Set `format: 'jpeg'` to render JPEG images. Use `quality` to control the compression level.
 
-```ts
+```js
 const buffer = await AgChartsServerSide.render({
       // ... chart options ...
     format: 'jpeg',
@@ -95,7 +95,7 @@ const buffer = await AgChartsServerSide.render({
 
 Set `pixelRatio` to produce higher-resolution images. The actual pixel dimensions of the output are `width * pixelRatio` by `height * pixelRatio`.
 
-```ts
+```js
 const buffer = await AgChartsServerSide.render({
       // ... chart options ...
     width: 200,
@@ -126,7 +126,7 @@ yarn add ag-charts-enterprise
 {% /tabItem %}
 {% /tabs %}
 
-```ts format="snippet"
+```js format="snippet"
 import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
 
 LicenseManager.setLicenseKey('your-licence-key');
@@ -139,7 +139,7 @@ See [Enterprise Licence Key](./license-install/) for details on obtaining and co
 
 {% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
 
-```ts
+```js
 AgChartsServerSide.loadFonts([
     { family: 'CustomFont', path: '/path/to/CustomFont-Regular.ttf' },
     { family: 'CustomFont', path: '/path/to/CustomFont-Bold.ttf', weight: 'bold' },
@@ -153,7 +153,7 @@ AgChartsServerSide.loadFonts([
 
 Serve chart images from an HTTP endpoint:
 
-```ts
+```js
 import express from 'express';
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartsServerSide } from 'ag-charts-server-side';
