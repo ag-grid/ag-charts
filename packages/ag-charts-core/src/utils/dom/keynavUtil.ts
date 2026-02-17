@@ -1,7 +1,7 @@
 import { CleanupRegistry } from '../../state/cleanupRegistry';
 import { getAttribute, setAttribute } from './attributeUtil';
 import { attachListener } from './domEvents';
-import { getWindow, isElement, isNode } from './globalsProxy';
+import { isElement, isNode } from './globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,
@@ -16,7 +16,8 @@ export function addEscapeEventListener(
 }
 
 export function addMouseCloseListener(menu: HTMLElement, hideCallback: () => void): () => void {
-    const removeEvent = attachListener(getWindow(), 'mousedown', (event: MouseEvent) => {
+    const elWin = menu.ownerDocument.defaultView!;
+    const removeEvent = attachListener(elWin, 'mousedown', (event: MouseEvent) => {
         if ([0, 2].includes(event.button) && !containsEvent(menu, event)) {
             hideCallback();
             removeEvent();
@@ -26,7 +27,8 @@ export function addMouseCloseListener(menu: HTMLElement, hideCallback: () => voi
 }
 
 export function addTouchCloseListener(menu: HTMLElement, hideCallback: () => void): () => void {
-    const removeEvent = attachListener(getWindow(), 'touchstart', (event: TouchEvent) => {
+    const elWin = menu.ownerDocument.defaultView!;
+    const removeEvent = attachListener(elWin, 'touchstart', (event: TouchEvent) => {
         const touches = Array.from(event.targetTouches);
         if (touches.some((touch) => !containsEvent(menu, touch))) {
             hideCallback();

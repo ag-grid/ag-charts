@@ -1,9 +1,7 @@
 import type { BaseAttributeTypeMap, BaseStyleTypeMap, BoxBounds, ElementID } from 'ag-charts-core';
 import {
-    attachListener,
     getAttribute,
     getElementBBox,
-    getWindow,
     setAttribute,
     setElementBBox,
     setElementStyle,
@@ -118,7 +116,8 @@ export abstract class Widget<
     }
 
     isHidden(): boolean {
-        return getWindow()?.getComputedStyle?.(this.elem).display === 'none';
+        const { defaultView } = this.elem.ownerDocument;
+        return defaultView?.getComputedStyle(this.elem).display === 'none';
     }
 
     setCursor(cursor: BaseStyleTypeMap['cursor'] | undefined) {
@@ -307,15 +306,5 @@ export abstract class Widget<
             }
             parent = parent.parent;
         }
-    }
-
-    static addWindowEvent(_type: 'page-left', listener: () => unknown): () => void {
-        const pagehideHandler = (event: PageTransitionEvent) => {
-            if (event.persisted) {
-                return; // Don't fire the page-left event since the page maybe revisited.
-            }
-            listener();
-        };
-        return attachListener(getWindow(), 'pagehide', pagehideHandler);
     }
 }

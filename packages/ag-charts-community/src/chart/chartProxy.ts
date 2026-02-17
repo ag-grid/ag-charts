@@ -257,9 +257,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
         const state = proxy.getState();
 
+        const document = chart.chartOptions.specialOverrides.document ?? getDocument();
         const processedOverrides: Partial<AgChartOptions> = {
             ...chart.chartOptions.processedOverrides,
-            container: getDocument().createElement('div'),
+            container: document.createElement('div'),
             width,
             height,
         };
@@ -273,7 +274,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
 
-            // Add watermark if no license
+            // Add watermark if no licence
             const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
             if (foreground) {
                 // @ts-expect-error undocumented option

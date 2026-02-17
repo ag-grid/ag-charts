@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
 import { type AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -113,7 +112,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip'));
+            const element = Array.from(chart.chart!.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip'));
             expect(element.map((e) => e.textContent).join('')).toEqual('4 1.48');
 
             await nextValue(10, 1.3249187570726666);
@@ -218,7 +217,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).not.toContain('ag-charts-tooltip-symbol');
         });
 
@@ -244,7 +243,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
             expect(element?.innerHTML).toContain('<path');
             expect(element?.innerHTML).not.toContain('<line');
@@ -272,7 +271,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
             expect(element?.innerHTML).not.toContain('<path');
             expect(element?.innerHTML).toContain('<line');
@@ -300,7 +299,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
             expect(element?.innerHTML).toContain('d="M 4 0 L 16 0 L 16 12 L 4 12 Z"');
             expect(element?.innerHTML).toContain('fill="red"');
@@ -328,7 +327,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('<line');
             expect(element?.innerHTML).toContain('stroke="red"');
         });
@@ -362,7 +361,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('<line');
             expect(element?.innerHTML).toContain('stroke="purple"');
         });
@@ -389,7 +388,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('<line');
         });
 
@@ -415,7 +414,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).not.toContain('<line');
         });
     });
@@ -449,7 +448,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 200)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             const content = element?.textContent ?? '';
             // Should show Category row even though value is null
             expect(content).toContain('Category');
@@ -506,7 +505,7 @@ describe('Tooltip', () => {
             await hoverAction(200, 250)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             const content = element?.textContent ?? '';
             // Should contain Series 1 and 2, but not Series 3 (missing data)
             expect(content).toContain('Series 1');
@@ -540,7 +539,7 @@ describe('Tooltip', () => {
                 await hoverAction(500, 300)(chart);
                 await waitForChartStability(chart);
 
-                const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+                const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
                 const content = element?.textContent ?? '';
                 // Should show X and Y, but not Size or Age
                 expect(content).toContain('X Value');
@@ -576,7 +575,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             const content = element?.textContent ?? '';
             // Should show both labels even though first has empty value
             expect(content).toContain('label 1');
@@ -602,7 +601,7 @@ describe('Tooltip', () => {
             await hoverAction(150, 200)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip')).at(0);
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             const content = element?.textContent ?? '';
             // Should contain only Valid Series, not NaN or Infinity series
             expect(content).toContain('Valid Series');
@@ -879,7 +878,8 @@ describe('Tooltip', () => {
             await hoverAction(160, 300)(chart);
             await waitForChartStability(chart);
 
-            const tooltipElements = () => Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip'));
+            const { agDocument } = chart.ctx;
+            const tooltipElements = () => Array.from(agDocument.body.getElementsByClassName('ag-charts-tooltip'));
             const tooltipText = () =>
                 tooltipElements()
                     .map((e) => e.textContent)

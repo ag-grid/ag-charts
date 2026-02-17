@@ -1,4 +1,5 @@
 import {
+    AgDocument,
     BaseProperties,
     type Bounds,
     CleanupRegistry,
@@ -6,7 +7,6 @@ import {
     Property,
     calculatePlacement,
     clamp,
-    getWindow,
     isNode,
 } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
@@ -171,13 +171,13 @@ export class Tooltip extends BaseProperties {
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly cleanup = new CleanupRegistry();
-    private readonly springAnimation = new SpringAnimation();
+    private readonly springAnimation = new SpringAnimation(this.agDocument);
 
     private enableInteraction: boolean = false;
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
     private element?: HTMLElement;
-    private readonly sizeMonitor = new SizeMonitor();
+    private readonly sizeMonitor: SizeMonitor;
 
     private interactiveLeave?: {
         callback: () => void;
@@ -202,26 +202,25 @@ export class Tooltip extends BaseProperties {
         return this.enableInteraction;
     }
 
-    constructor() {
+    constructor(private readonly agDocument: AgDocument) {
         super();
 
+        this.sizeMonitor = new SizeMonitor(agDocument);
         this.cleanup.register(this.springAnimation.events.on('update', this.updateTooltipPosition.bind(this)));
     }
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
-        if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
-            this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-            this.element.setAttribute('popover', 'manual');
-            this.element.className = DEFAULT_TOOLTIP_CLASS;
-            // @ts-expect-error Typings need updating
-            this.element.style.positionAnchor = domManager.anchorName;
+        this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
+        this.element.setAttribute('popover', 'manual');
+        this.element.className = DEFAULT_TOOLTIP_CLASS;
+        // @ts-expect-error Typings need updating
+        this.element.style.positionAnchor = domManager.anchorName;
 
-            this.sizeMonitor.observe(this.element, (size) => {
-                this._elementSize = size;
-                this.updateTooltipPosition();
-            });
-        }
+        this.sizeMonitor.observe(this.element, (size) => {
+            this._elementSize = size;
+            this.updateTooltipPosition();
+        });
         this.localeManager = localeManager;
 
         return () => {
@@ -444,8 +443,14 @@ export class Tooltip extends BaseProperties {
         this.element.togglePopover(visible);
 
         if (visible) {
-            // We can only measure the element when it's actually visible
-            // This removes a possible jump for the tooltip
+            // After togglePopover(true) the element is visible and measurable,
+            // but the ResizeObserver may not have fired yet (especially cross-window).
+            if (this._elementSize == null) {
+                const { width, height } = this.element.getBoundingClientRect();
+                if (width > 0 || height > 0) {
+                    this._elementSize = { width, height };
+                }
+            }
             this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();

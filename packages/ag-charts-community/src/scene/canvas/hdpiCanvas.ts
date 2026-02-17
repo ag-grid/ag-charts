@@ -1,4 +1,4 @@
-import { ObserveChanges, createElement, getWindow } from 'ag-charts-core';
+import { ObserveChanges } from 'ag-charts-core';
 
 import { clearContext, debugContext } from './canvasUtil';
 
@@ -6,11 +6,11 @@ import { clearContext, debugContext } from './canvasUtil';
 type OffscreenCanvasRenderingContext2D = any;
 
 export interface CanvasOptions {
+    canvasElement: HTMLCanvasElement;
+    pixelRatio: number;
     width?: number;
     height?: number;
-    pixelRatio?: number;
     willReadFrequently?: boolean;
-    canvasElement?: HTMLCanvasElement;
 }
 
 /**
@@ -29,12 +29,12 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, canvasElement, willReadFrequently = false } = options;
+        const { width, height, willReadFrequently = false } = options;
 
-        this.pixelRatio = options.pixelRatio ?? getWindow('devicePixelRatio') ?? 1;
+        this.element = options.canvasElement;
+        this.pixelRatio = options.pixelRatio;
 
-        // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        this.element = canvasElement ?? createElement('canvas');
+        // Immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         // Safari needs a width and height set before calling getContext or the output can appear blurry
         // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
         this.element.style.display = 'block';

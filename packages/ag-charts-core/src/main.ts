@@ -39,6 +39,7 @@ export * from './types/text';
 // Core utilities
 export * from './state/callbackCache';
 export * from './utils/types/decorator';
+export * from './utils/dom/agDocument';
 export * from './utils/dom/domUtil';
 export * from './utils/geometry/math';
 export * from './utils/data/arrays';

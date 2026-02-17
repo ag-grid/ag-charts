@@ -1,5 +1,3 @@
-import { getWindow } from 'ag-charts-core';
-
 export interface DeferredExecutorOptions {
     /** Minimum time to wait before execution can begin (ms). Default: 0 */
     minimumDelay?: number;
@@ -78,11 +76,10 @@ export class DeferredExecutor<T> {
     }
 
     private scheduleIdleCallback(): void {
-        const window = getWindow();
         const remainingTimeout = Math.max(0, this.timeout - this.minimumDelay);
 
-        if (typeof window.requestIdleCallback === 'function') {
-            this.idleCallbackId = window.requestIdleCallback(this.execute.bind(this), { timeout: remainingTimeout });
+        if (typeof requestIdleCallback === 'function') {
+            this.idleCallbackId = requestIdleCallback(this.execute.bind(this), { timeout: remainingTimeout });
         } else {
             // Fallback for environments without requestIdleCallback
             this.idleCallbackId = setTimeout(() => this.execute(), remainingTimeout) as unknown as number;
@@ -95,13 +92,10 @@ export class DeferredExecutor<T> {
             this.delayTimeoutId = undefined;
         }
 
-        if (this.idleCallbackId == null) {
-            return;
-        }
+        if (this.idleCallbackId == null) return;
 
-        const window = getWindow();
-        if (typeof window.cancelIdleCallback === 'function') {
-            window.cancelIdleCallback(this.idleCallbackId);
+        if (typeof cancelIdleCallback === 'function') {
+            cancelIdleCallback(this.idleCallbackId);
         } else {
             clearTimeout(this.idleCallbackId);
         }
@@ -109,10 +103,8 @@ export class DeferredExecutor<T> {
     }
 
     private execute(): T | undefined {
-        const pending = this.pending;
-        if (!pending) {
-            return undefined;
-        }
+        const { pending } = this;
+        if (!pending) return;
 
         this.pending = undefined;
         this.delayTimeoutId = undefined;

@@ -269,8 +269,7 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
     const result: RenderContext['debugNodeSearch'] = [];
     for (const name of config) {
         if (name === 'layout') {
-            // eslint-disable-next-line sonarjs/slow-regex
-            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
+            result.push('seriesRoot', 'legend', 'root', /Axis-\d+-axis/);
         } else {
             result.push(name);
         }

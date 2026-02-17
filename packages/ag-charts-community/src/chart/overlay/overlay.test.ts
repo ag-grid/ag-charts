@@ -1,7 +1,5 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
-
 import type { Chart } from '../chart';
 import { createChart, expectWarningsCalls, setupMockCanvas, setupMockConsole } from '../test/utils';
 
@@ -74,7 +72,7 @@ describe('Overlay', () => {
                     { type: 'line', xKey: 'x', yKey: 'y2' },
                 ],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
@@ -86,7 +84,7 @@ describe('Overlay', () => {
                     { type: 'line', xKey: 'x', yKey: 'y2' },
                 ],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -115,7 +113,7 @@ describe('Overlay', () => {
                 data: ['f'],
                 series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone' }],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
@@ -124,7 +122,7 @@ describe('Overlay', () => {
                 data: [123, 456],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
@@ -133,7 +131,7 @@ describe('Overlay', () => {
                 data: ['string', 123, true, null],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
@@ -143,7 +141,7 @@ describe('Overlay', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
             // Should NOT show overlay because there are some valid data items
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl).toBeFalsy();
         });
 
@@ -159,7 +157,7 @@ describe('Overlay', () => {
                     { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No visible series');
         });
 
@@ -171,7 +169,7 @@ describe('Overlay', () => {
                     { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
@@ -186,7 +184,7 @@ describe('Overlay', () => {
                     noData: { text: 'TEST CUSTOM NO DATA TEXT' },
                 },
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
         });
 
@@ -198,7 +196,7 @@ describe('Overlay', () => {
                     noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' },
                 },
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.children;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.children;
             expect(overlayEl).toMatchInlineSnapshot(`
 HTMLCollection [
   <div>
@@ -216,7 +214,7 @@ HTMLCollection [
                     noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div><div>CUSTOM NO DATA TEXT 2</div>' },
                 },
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.children;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.children;
             expect(overlayEl).toMatchInlineSnapshot(`
 HTMLCollection [
   <div>
@@ -246,7 +244,7 @@ HTMLCollection [
                     noVisibleSeries: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },
                 },
             });
-            const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO VISIBLE SERIES TEXT');
         });
 
@@ -269,7 +267,7 @@ HTMLCollection [
                     });
 
                     // Check that no data overlay is NOT shown
-                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
 
@@ -289,7 +287,7 @@ HTMLCollection [
                     });
 
                     // Check that no data overlay IS shown
-                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).not.toBe(null);
                 });
 
@@ -317,7 +315,7 @@ HTMLCollection [
                     ]);
 
                     // Check that no data overlay IS shown
-                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).not.toBe(null);
                 });
 
@@ -340,7 +338,7 @@ HTMLCollection [
                     });
 
                     // Check that no data overlay is NOT shown
-                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
 
@@ -354,7 +352,7 @@ HTMLCollection [
                     });
 
                     // Check that no data overlay is NOT shown
-                    const overlayEl = getDocument('body').querySelector('.ag-charts-no-data-overlay');
+                    const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
             }
@@ -372,7 +370,7 @@ HTMLCollection [
                 });
 
                 // Verify the overlay element contains the custom text
-                const overlayEl = getDocument('body').querySelector('.ag-charts-overlay');
+                const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
                 // Verify the overlay's getFocusInfo returns the custom text for screenreaders
@@ -392,7 +390,7 @@ HTMLCollection [
                 });
 
                 // Verify the overlay element contains the custom text
-                const overlayEl = getDocument('body').querySelector('.ag-charts-overlay');
+                const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
                 // Verify the overlay's getFocusInfo returns the custom text for screenreaders

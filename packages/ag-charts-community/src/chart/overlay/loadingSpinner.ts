@@ -1,13 +1,13 @@
-import { createElement } from 'ag-charts-core';
+import { AgDocument } from 'ag-charts-core';
 
 import { PHASE_METADATA } from '../../motion/animation';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
 
-export function getLoadingSpinner(text: string, defaultDuration: number) {
+export function getLoadingSpinner(agDocument: AgDocument, text: string, defaultDuration: number) {
     const { animationDuration } = PHASE_METADATA['add'];
     const duration = animationDuration * defaultDuration;
 
-    const container = createElement('div', `${DEFAULT_OVERLAY_CLASS}--loading`, {
+    const container = agDocument.createElement('div', `${DEFAULT_OVERLAY_CLASS}--loading`, {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -19,7 +19,7 @@ export function getLoadingSpinner(text: string, defaultDuration: number) {
         animation: `ag-charts-loading ${duration}ms linear 50ms both`,
     });
 
-    const matrix = createElement('span', {
+    const matrix = agDocument.createElement('span', {
         width: '45px',
         height: '40px',
         backgroundImage: [
@@ -32,17 +32,17 @@ export function getLoadingSpinner(text: string, defaultDuration: number) {
         animation: 'ag-charts-loading-matrix 1s infinite linear',
     });
 
-    const label = createElement('p', { marginTop: '1em' });
+    const label = agDocument.createElement('p', { marginTop: '1em' });
     label.innerText = text;
 
-    const background = createElement('div', `${DEFAULT_OVERLAY_CLASS}__loading-background`, {
+    const background = agDocument.createElement('div', `${DEFAULT_OVERLAY_CLASS}__loading-background`, {
         position: 'absolute',
         inset: '0',
         opacity: '0.5',
         zIndex: '-1',
     });
 
-    const animationStyles = createElement('style');
+    const animationStyles = agDocument.createElement('style');
     animationStyles.innerText = [
         '@keyframes ag-charts-loading { from { opacity: 0 } to { opacity: 1 } }',
         '@keyframes ag-charts-loading-matrix {',

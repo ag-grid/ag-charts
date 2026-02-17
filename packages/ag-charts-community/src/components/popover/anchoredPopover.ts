@@ -1,4 +1,4 @@
-import { type Point, clamp, getWindow } from 'ag-charts-core';
+import { type Point, clamp } from 'ag-charts-core';
 
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { Popover, type PopoverOptions } from './popover';
@@ -47,7 +47,7 @@ export abstract class AnchoredPopover<
 
         // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
         // bounding box
-        getWindow().requestAnimationFrame(() => {
+        this.ctx.agDocument.requestAnimationFrame(() => {
             this.repositionWithinBounds();
         });
 

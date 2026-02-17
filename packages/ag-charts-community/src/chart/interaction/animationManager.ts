@@ -1,4 +1,4 @@
-import { Debug, EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
+import { AgDocument, Debug, EventEmitter, type EventListener, Logger } from 'ag-charts-core';
 
 import type {
     AdditionalAnimationOptions,
@@ -49,6 +49,7 @@ export class AnimationManager {
     private cumulativeAnimationTime: number = 0;
 
     constructor(
+        private readonly agDocument: AgDocument,
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex
     ) {}
@@ -195,7 +196,7 @@ export class AnimationManager {
 
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
-        this.requestId = getWindow().requestAnimationFrame((t) => {
+        this.requestId = this.agDocument.requestAnimationFrame((t) => {
             cb(t).catch((e) => Logger.error(e));
         });
     }
@@ -267,7 +268,7 @@ export class AnimationManager {
     private cancelAnimation() {
         if (this.requestId === null) return;
 
-        cancelAnimationFrame(this.requestId);
+        this.agDocument.cancelAnimationFrame(this.requestId);
         this.events.emit('animation-stop', {
             type: 'animation-stop',
             deltaMs: this.batch.consumedTimeMs,

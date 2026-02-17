@@ -1,4 +1,4 @@
-import { createElement, createSvgElement, getWindow, setElementBBox } from 'ag-charts-core';
+import { createElement, createSvgElement, setElementBBox } from 'ag-charts-core';
 
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
@@ -93,6 +93,7 @@ export class FocusIndicator {
         if (!force && !this.hasBeenActivated) return false;
 
         const parent = this.element.parentElement;
-        return parent != null && getWindow().getComputedStyle(parent).opacity === '1';
+        const elWin = this.element.ownerDocument.defaultView!;
+        return parent != null && elWin.getComputedStyle(parent).opacity === '1';
     }
 }

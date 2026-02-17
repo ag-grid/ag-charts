@@ -1,7 +1,7 @@
 import type { AgIconName } from 'ag-charts-types';
 
 import type { BoxBounds } from '../geometry/boxBounds';
-import { getDocument, getWindow } from './globalsProxy';
+import { getWindow } from './globalsProxy';
 
 export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoxBounds>) {
     if (!element) return;
@@ -34,11 +34,12 @@ export function focusCursorAtEnd(element: HTMLElement) {
 
     if (element.lastChild?.textContent == null) return;
 
-    const range = getDocument().createRange();
+    const { ownerDocument } = element;
+    const range = ownerDocument.createRange();
     range.setStart(element.lastChild, element.lastChild.textContent.length);
     range.setEnd(element.lastChild, element.lastChild.textContent.length);
 
-    const selection = getWindow().getSelection();
+    const selection = ownerDocument.defaultView?.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
 }

@@ -74,7 +74,7 @@ export class Overlay extends BaseProperties {
                     this.content = tempDiv;
                 }
             }
-            this.rendererAsText = this.content?.textContent?.trim() ?? undefined;
+            this.rendererAsText = this.content?.textContent?.trim();
         } else {
             const content = createElement('div', {
                 display: 'flex',

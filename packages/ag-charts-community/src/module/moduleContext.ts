@@ -1,4 +1,4 @@
-import type { CallbackCache } from 'ag-charts-core';
+import { AgDocument, type CallbackCache } from 'ag-charts-core';
 
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
@@ -31,6 +31,7 @@ import type { Scene } from '../scene/scene';
 export interface ModuleContext {
     readonly scene: Scene;
 
+    readonly agDocument: AgDocument;
     readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
 

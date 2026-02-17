@@ -1,4 +1,5 @@
 import {
+    AgDocument,
     CallbackCache,
     ChartUpdateType,
     CleanupRegistry,
@@ -66,6 +67,7 @@ export class ChartContext implements ModuleContext {
     chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
     dataService: DataService<any>;
+    agDocument: AgDocument;
     domManager: DOMManager;
     fontManager: FontManager;
     historyManager: HistoryManager;
@@ -87,6 +89,7 @@ export class ChartContext implements ModuleContext {
             root: Group;
             syncManager: SyncManager;
             container?: HTMLElement;
+            agDocument: AgDocument;
             styleContainer?: HTMLElement;
             skipCss?: boolean;
             domMode?: 'normal' | 'minimal';
@@ -100,6 +103,7 @@ export class ChartContext implements ModuleContext {
             scene,
             root,
             syncManager,
+            agDocument,
             container,
             fireEvent,
             updateCallback,
@@ -113,15 +117,19 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
+        this.agDocument = agDocument;
         this.domManager = new DOMManager(
             this.eventsHub,
             this.chartService,
+            this.agDocument,
             container,
             styleContainer,
             skipCss,
             domMode
         );
         this.widgets = new WidgetSet(this.domManager, { withDragInterpretation });
+
+        const localWindow = this.agDocument.window;
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
@@ -130,7 +138,7 @@ export class ChartContext implements ModuleContext {
             scene?.canvas.element
         ) as HTMLCanvasElement & StrictHTMLElement;
 
-        this.scene = scene ?? new Scene({ canvasElement });
+        this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
         this.cleanup.register(
             this.scene.on('scene-changed', () => {
@@ -156,7 +164,7 @@ export class ChartContext implements ModuleContext {
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.eventsHub);
-        this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
+        this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
         this.zoomManager = new ZoomManager(this.eventsHub, this.updateService, fireEvent);

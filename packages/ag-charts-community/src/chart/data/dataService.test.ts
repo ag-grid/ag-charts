@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { EventEmitter } from 'ag-charts-core';
+import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
 import { Mutex } from '../../util/mutex';
 import { AnimationManager } from '../interaction/animationManager';
@@ -27,7 +27,11 @@ describe('DataService', () => {
 
         const interactionManager = new InteractionManager();
         const chartUpdateMutex = new Mutex();
-        const animationManager = new AnimationManager(interactionManager, chartUpdateMutex);
+        const animationManager = new AnimationManager(
+            new AgDocument(getDocument()),
+            interactionManager,
+            chartUpdateMutex
+        );
         dataService = new DataService(eventsHub, {}, animationManager);
         dataService.requestThrottle = REQUEST_THROTTLE;
     });

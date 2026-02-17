@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener } from 'ag-charts-core';
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
@@ -88,7 +88,7 @@ export class TouchDragger {
             const contextMenuEvent = new PointerEvent('contextmenu', {
                 bubbles: true,
                 cancelable: true,
-                view: getWindow(),
+                view: target.ownerDocument.defaultView,
                 clientX,
                 clientY,
                 pointerType: 'touch',

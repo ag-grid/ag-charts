@@ -1,8 +1,7 @@
-import { getWindow } from 'ag-charts-core';
-
 // SONARCLOUD EXCEPTION (S6836): Named function declarations are intentionally used throughout
 // this file instead of arrow functions. Named functions appear properly in Chrome DevTools
 // profiler, whereas anonymous arrow functions get grouped together making profiling difficult.
+import { AgDocument } from 'ag-charts-core';
 
 type VoidCallback = {
     (): void;
@@ -25,19 +24,20 @@ type Callback = {
  * after the first schedule() call, and subsequent schedule() calls will be ignored until the
  * animation callback executes.
  */
-export function debouncedAnimationFrame(cb: Callback): {
+export function debouncedAnimationFrame(
+    agDocument: AgDocument,
+    cb: Callback
+): {
     schedule(delayMs?: number): void;
     cancel(): void;
     waitForCompletion(): Promise<void>;
 } {
-    const window = getWindow();
-
     function scheduleWithAnimationFrame(innerCb: VoidCallback, _delayMs?: number): number {
-        return window.requestAnimationFrame(innerCb);
+        return agDocument.requestAnimationFrame(innerCb);
     }
 
     function cancelWithAnimationFrame(id: number | void): void {
-        window.cancelAnimationFrame(id as number);
+        agDocument.cancelAnimationFrame(id as number);
     }
 
     return buildScheduler(scheduleWithAnimationFrame, cb, cancelWithAnimationFrame);
