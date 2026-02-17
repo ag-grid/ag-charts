@@ -73,6 +73,7 @@ jobs:
                         - 'external/ag-shared/src/**'
                         - 'external/ag-shared/tools/**'
                         - 'external/ag-shared/*.json'
+                        - 'external/ag-charts-server-side-example/**'
                         - '*.json'
                         - '*.ts'
                         - '*.js'

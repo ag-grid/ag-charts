@@ -1,0 +1,31 @@
+import express from 'express';
+
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartsServerSide } from 'ag-charts-server-side';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+const app = express();
+
+app.get('/chart.png', async (req, res) => {
+    const buffer = await AgChartsServerSide.render({
+        options: {
+            data: [
+                { category: 'Q1', value: 10 },
+                { category: 'Q2', value: 25 },
+                { category: 'Q3', value: 15 },
+                { category: 'Q4', value: 30 },
+            ],
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+        },
+        width: 800,
+        height: 600,
+    });
+
+    res.set('Content-Type', 'image/png');
+    res.send(buffer);
+});
+
+app.listen(3000, () => {
+    console.log('Chart server running at http://localhost:3000/chart.png');
+});
