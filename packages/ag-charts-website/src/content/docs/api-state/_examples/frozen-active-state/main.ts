@@ -51,6 +51,7 @@ function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<Tra
 
     const format = (v: number) => `$${v.toFixed(2)}`;
 
+    (window as any).unfreeze = unfreeze;
     return `
         <div class="custom-tooltip">
           <span>${heading}</span>
@@ -71,7 +72,7 @@ function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<Tra
             <span>${format(datum.close)}</span>
           </div>
           <div ${frozenChart ? '' : 'style="display: none"'}>
-            <button type="button" onclick="unfreeze()">Unfreeze</button>
+            <button type="button" onclick="window.unfreeze()">Unfreeze</button>
           </div>
         </div>`;
 }
