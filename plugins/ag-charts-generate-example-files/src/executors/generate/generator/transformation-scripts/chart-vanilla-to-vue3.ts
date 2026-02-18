@@ -249,7 +249,7 @@ export async function vanillaToVue3(
         mainFile = mainFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
         // Replace `chart` references but not in variable declarations or strings
         mainFile = mainFile.replace(
-            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\b.)chart\b/g,
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
             (match) => (match === 'chart' ? 'agCharts.value.chart' : match)
         );
     }

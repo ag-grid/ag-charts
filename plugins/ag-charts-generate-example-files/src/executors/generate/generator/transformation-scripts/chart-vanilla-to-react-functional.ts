@@ -234,7 +234,7 @@ export async function vanillaToReactFunctional(
         indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
         // Replace `chart` references but not in variable declarations or strings
         indexFile = indexFile.replace(
-            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)chart\b/g,
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
             (match) => (match === 'chart' ? 'chartRef.current' : match)
         );
     }
