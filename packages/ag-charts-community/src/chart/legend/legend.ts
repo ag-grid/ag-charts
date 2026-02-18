@@ -1243,15 +1243,21 @@ export class Legend extends BaseProperties {
             readonly nodeDatum: HighlightNodeDatum;
         };
 
-        const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
+        const updateActive = (opts: InternalUpdateOpts | undefined): boolean => {
             if (opts === undefined) {
-                this.ctx.activeManager.clear();
+                return this.ctx.activeManager.clear();
             } else {
                 const seriesId = opts.nodeDatum.series.id;
                 const itemId = opts.itemId;
-                this.ctx.activeManager.update({ type: 'legend', seriesId, itemId }, undefined);
+                return this.ctx.activeManager.update({ type: 'legend', seriesId, itemId }, undefined);
             }
-            this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
+        };
+
+        const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
+            const defaultPrevented: boolean = updateActive(opts);
+            if (!defaultPrevented) {
+                this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
+            }
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
