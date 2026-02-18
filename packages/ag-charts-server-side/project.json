@@ -17,15 +17,13 @@
     },
     "build:types": {
       "options": {
-        "main": "{projectRoot}/src/main.ts",
-        "additionalEntryPoints": ["{projectRoot}/src/test/index.ts"]
+        "main": "{projectRoot}/src/main.ts"
       }
     },
     "build:package": {
       "dependsOn": ["^build:types", "^build:package"],
       "options": {
         "main": "{projectRoot}/src/main.ts",
-        "additionalEntryPoints": ["{projectRoot}/src/test/index.ts"],
         "external": ["ag-charts-community", "ag-charts-core", "jsdom", "skia-canvas"],
         "platform": "node"
       }
