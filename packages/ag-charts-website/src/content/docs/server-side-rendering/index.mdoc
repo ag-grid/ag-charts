@@ -1,0 +1,205 @@
+---
+title: 'Server-Side Rendering'
+description: 'Render AG Charts to PNG and JPEG image buffers in Node.js without a browser.'
+enterprise: true
+---
+
+The `ag-charts-server-side` package renders AG Charts to PNG and JPEG image buffers in Node.js, without a browser or DOM. Use it to generate chart images for email reports, PDF documents, social media cards, thumbnails, or API endpoints.
+
+## Prerequisites
+
+{% note %}
+Server-side rendering requires Node.js 20.0.0 or later, and an [AG Charts Enterprise licence](./license-install/).
+{% /note %}
+
+## Installation
+
+Install `ag-charts-server-side` alongside `ag-charts-community`:
+
+{% tabs omitFromOverview=true snippetTabs=true %}
+{% tabItem id="ssr-npm" label="NPM" %}
+
+```bash
+npm install ag-charts-server-side ag-charts-community
+```
+
+{% /tabItem %}
+{% tabItem id="ssr-yarn" label="Yarn" %}
+
+```bash
+yarn add ag-charts-server-side ag-charts-community
+```
+
+{% /tabItem %}
+{% /tabs %}
+
+## Module registration
+
+Register modules before rendering any charts. This is typically done once at application startup:
+
+```js format="snippet"
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+```
+
+## Rendering a chart
+
+{% note %}
+Multiple render calls can safely be issued concurrently. The package serialises rendering internally to prevent global state conflicts.
+{% /note %}
+
+`AgChartsServerSide` exposes static `render()`, `renderGauge()`, and `renderFinancialChart()` methods. Each returns a `Promise<Buffer>` containing the image data.
+
+{% apiReference id="AgChartsServerSideApi" include=["render"] hideHeader=true hideRequired=true /%}
+
+The `options` property accepts the same chart options as `AgCharts.create()`, excluding `container`, `width`, and `height` which are provided as top-level render options instead.
+
+```js
+import * as fs from 'fs';
+
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartsServerSide } from 'ag-charts-server-side';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+const buffer = await AgChartsServerSide.render({
+    options: {
+        data: [
+            { category: 'Q1', value: 10 },
+            { category: 'Q2', value: 25 },
+            { category: 'Q3', value: 15 },
+            { category: 'Q4', value: 30 },
+        ],
+        series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+    },
+    width: 400,
+    height: 300,
+});
+
+fs.writeFileSync('chart.png', buffer);
+```
+
+## JPEG output
+
+Set `format: 'jpeg'` to render JPEG images. Use `quality` to control the compression level.
+
+```js
+const buffer = await AgChartsServerSide.render({
+    // ... chart options ...
+    format: 'jpeg',
+    quality: 85,
+});
+```
+
+## High-DPI output
+
+Set `pixelRatio` to produce higher-resolution images. The actual pixel dimensions of the output are `width * pixelRatio` by `height * pixelRatio`.
+
+```js
+const buffer = await AgChartsServerSide.render({
+    // ... chart options ...
+    width: 200,
+    height: 150,
+    pixelRatio: 2,
+});
+// Output image is 400x300 actual pixels
+```
+
+## Enterprise features
+
+To use enterprise chart types such as waterfall, heatmap, or gauges, install the `ag-charts-enterprise` package and register `AllEnterpriseModule`:
+
+{% tabs omitFromOverview=true snippetTabs=true %}
+{% tabItem id="ent-npm" label="NPM" %}
+
+```bash
+npm install ag-charts-enterprise
+```
+
+{% /tabItem %}
+{% tabItem id="ent-yarn" label="Yarn" %}
+
+```bash
+yarn add ag-charts-enterprise
+```
+
+{% /tabItem %}
+{% /tabs %}
+
+```js format="snippet"
+import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
+
+LicenseManager.setLicenseKey('your-licence-key');
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+```
+
+See [Enterprise Licence Key](./license-install/) for details on obtaining and configuring a licence key.
+
+## Custom fonts
+
+{% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
+
+```js
+AgChartsServerSide.loadFonts([
+    { family: 'CustomFont', path: '/path/to/CustomFont-Regular.ttf' },
+    { family: 'CustomFont', path: '/path/to/CustomFont-Bold.ttf', weight: 'bold' },
+    { family: 'CustomFont', path: '/path/to/CustomFont-Italic.ttf', style: 'italic' },
+]);
+```
+
+## Example use-cases
+
+### Express.js endpoint
+
+Serve chart images from an HTTP endpoint:
+
+```js
+import express from 'express';
+
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AgChartsServerSide } from 'ag-charts-server-side';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+const app = express();
+
+app.get('/chart.png', async (req, res) => {
+    const buffer = await AgChartsServerSide.render({
+        options: {
+            data: [
+                { category: 'Q1', value: 10 },
+                { category: 'Q2', value: 25 },
+                { category: 'Q3', value: 15 },
+                { category: 'Q4', value: 30 },
+            ],
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+        },
+        width: 800,
+        height: 600,
+    });
+
+    res.set('Content-Type', 'image/png');
+    res.send(buffer);
+});
+
+app.listen(3000);
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgChartsServerSideApi" label="AgChartsServerSide" %}
+{% apiReference id="AgChartsServerSideApi" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgBaseRenderOptions" label="AgBaseRenderOptions" %}
+{% apiReference id="AgBaseRenderOptions" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgFontDefinition" label="AgFontDefinition" %}
+{% apiReference id="AgFontDefinition" hideHeader=true hideRequired=true /%}
+{% /tabItem %}
+
+{% /tabs %}

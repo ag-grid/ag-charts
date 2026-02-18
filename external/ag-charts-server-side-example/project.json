@@ -1,0 +1,17 @@
+{
+  "name": "ag-charts-server-side-example",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "external/ag-charts-server-side-example",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["ag-charts-server-side:build", "ag-charts-community:build"],
+      "options": {
+        "cwd": "external/ag-charts-server-side-example",
+        "commands": ["tsx examples/01-basic-render.ts", "tsx examples/02-jpeg-output.ts"]
+      }
+    }
+  },
+  "tags": ["example"],
+  "implicitDependencies": ["ag-charts-community", "ag-charts-server-side"]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "ag-charts-server-side-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "basic": "tsx examples/01-basic-render.ts",
+    "jpeg": "tsx examples/02-jpeg-output.ts",
+    "server": "tsx examples/03-express-server.ts"
+  },
+  "dependencies": {
+    "ag-charts-community": "^13.0.0",
+    "ag-charts-server-side": "^13.0.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "@types/express": "^4.17.0",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.6.0"
+  }
+}

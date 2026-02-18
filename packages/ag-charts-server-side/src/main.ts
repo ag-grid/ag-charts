@@ -1,10 +1,10 @@
 export { AgChartsServerSide } from './agChartsServerSide';
 export type {
-    BaseRenderOptions,
-    ChartRenderOptions,
-    RenderOptions,
-    GaugeRenderOptions,
-    FinancialChartRenderOptions,
-    FontDefinition,
-    ImageFormat,
+    AgBaseRenderOptions,
+    AgChartRenderOptions,
+    AgFinancialChartRenderOptions,
+    AgFontDefinition,
+    AgGaugeRenderOptions,
+    AgImageFormat,
+    AgRenderOptions,
 } from './types';

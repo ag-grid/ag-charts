@@ -41,6 +41,12 @@
                             "type": "item",
                             "title": "Migration",
                             "path": "migration"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Server-Side Rendering",
+                            "path": "server-side-rendering",
+                            "isEnterprise": true
                         }
                     ]
                 },

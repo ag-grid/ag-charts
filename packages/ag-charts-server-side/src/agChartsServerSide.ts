@@ -6,7 +6,7 @@ import { enterpriseRegistry, withTimeout } from 'ag-charts-core';
 import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
 import { patchDocumentCreateElement } from './documentPatch';
 import { createIsolatedEnvironment } from './environment';
-import type { FinancialChartRenderOptions, FontDefinition, GaugeRenderOptions, RenderOptions } from './types';
+import type { AgFinancialChartRenderOptions, AgFontDefinition, AgGaugeRenderOptions, AgRenderOptions } from './types';
 
 const DEFAULT_TIMEOUT = 30000;
 
@@ -32,35 +32,35 @@ export class AgChartsServerSide {
     /**
      * Render a standard chart to an image buffer.
      */
-    static async render(renderOptions: RenderOptions): Promise<Buffer> {
+    static async render(renderOptions: AgRenderOptions): Promise<Buffer> {
         return this.renderInternal(renderOptions, 'create');
     }
 
     /**
      * Render a gauge to an image buffer.
      */
-    static async renderGauge(renderOptions: GaugeRenderOptions): Promise<Buffer> {
+    static async renderGauge(renderOptions: AgGaugeRenderOptions): Promise<Buffer> {
         return this.renderInternal(renderOptions, 'createGauge');
     }
 
     /**
      * Render a financial chart to an image buffer.
      */
-    static async renderFinancialChart(renderOptions: FinancialChartRenderOptions): Promise<Buffer> {
+    static async renderFinancialChart(renderOptions: AgFinancialChartRenderOptions): Promise<Buffer> {
         return this.renderInternal(renderOptions, 'createFinancialChart');
     }
 
     /**
      * Load custom fonts for rendering.
      */
-    static loadFonts(fonts: FontDefinition[]): void {
+    static loadFonts(fonts: AgFontDefinition[]): void {
         for (const font of fonts) {
             FontLibrary.use(font.family, font.path);
         }
     }
 
     private static async renderInternal(
-        renderOptions: RenderOptions | GaugeRenderOptions | FinancialChartRenderOptions,
+        renderOptions: AgRenderOptions | AgGaugeRenderOptions | AgFinancialChartRenderOptions,
         api: 'create' | 'createGauge' | 'createFinancialChart'
     ): Promise<Buffer> {
         const {

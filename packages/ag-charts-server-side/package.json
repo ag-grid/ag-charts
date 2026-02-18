@@ -1,6 +1,5 @@
 {
   "name": "ag-charts-server-side",
-  "private": true,
   "version": "13.1.0-beta.20260215",
   "description": "Server-side rendering for AG Charts",
   "main": "./dist/package/main.cjs.js",
