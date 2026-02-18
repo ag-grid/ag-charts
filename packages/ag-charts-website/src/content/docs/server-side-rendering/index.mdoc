@@ -57,6 +57,7 @@ The `options` property accepts the same chart options as `AgCharts.create()`, ex
 
 ```js
 import * as fs from 'fs';
+
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
@@ -85,7 +86,7 @@ Set `format: 'jpeg'` to render JPEG images. Use `quality` to control the compres
 
 ```js
 const buffer = await AgChartsServerSide.render({
-      // ... chart options ...
+    // ... chart options ...
     format: 'jpeg',
     quality: 85,
 });
@@ -97,7 +98,7 @@ Set `pixelRatio` to produce higher-resolution images. The actual pixel dimension
 
 ```js
 const buffer = await AgChartsServerSide.render({
-      // ... chart options ...
+    // ... chart options ...
     width: 200,
     height: 150,
     pixelRatio: 2,
@@ -155,6 +156,7 @@ Serve chart images from an HTTP endpoint:
 
 ```js
 import express from 'express';
+
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
