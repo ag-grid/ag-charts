@@ -28,6 +28,17 @@ ModuleRegistry.registerModules([
 
 let frozenChart: AgChartInstance | undefined;
 
+function unfreeze() {
+    if (frozenChart) {
+        const currentState: AgChartState = frozenChart.getState();
+        frozenChart.setState({
+            version: currentState.version,
+            active: { activeItem: currentState.active.activeItem, frozen: false },
+        });
+    }
+    frozenChart = undefined;
+}
+
 function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<TradeDatum>): string {
     const date = new Date(datum.date);
     const heading = date.toLocaleString('en-GB', {
@@ -121,14 +132,3 @@ const options: AgCartesianChartOptions<TradeDatum> = {
 };
 
 const chart = AgCharts.create(options);
-
-function unfreeze() {
-    if (frozenChart) {
-        const currentState: AgChartState = frozenChart.getState();
-        frozenChart.setState({
-            version: currentState.version,
-            active: { activeItem: currentState.active.activeItem, frozen: false },
-        });
-    }
-    frozenChart = undefined;
-}
