@@ -2510,4 +2510,81 @@ describe('BarSeries', () => {
             expect(clicks[0].x).toBeNull();
         });
     });
+
+    describe('skip null bars', () => {
+        const data = [
+            { quarter: "Q1'24", software: 5100, hardware: 3400, services: 3500, investments: undefined },
+            { quarter: "Q2'24", software: 5400, hardware: null, services: 3200, investments: 3100 },
+            { quarter: "Q3'24", software: null, hardware: 3800, services: undefined, investments: 2500 },
+            { quarter: "Q4'24", software: 5700, hardware: null, services: undefined, investments: null },
+        ];
+
+        const cases = ['horizontal', 'vertical'] as const;
+
+        it.each(cases)('%s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'hardware' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'investments' },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it.each(cases)('stacked %s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'software', stackGroup: 'one' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'hardware', stackGroup: 'one' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'services', stackGroup: 'two' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'investments', stackGroup: 'two' },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('fixed width', async () => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'hardware', width: 10 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'investments', width: 50 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

@@ -151,6 +151,7 @@ export interface ChartAxis {
     reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
+    skipNullBars?: boolean;
     thickness?: number;
     maxThicknessRatio?: number;
     minimumTimeGranularity?: AgTimeIntervalUnit;
