@@ -1,4 +1,5 @@
 import {
+    AgActiveItemState,
     AgCandlestickSeriesTooltipRendererParams,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -33,7 +34,7 @@ function unfreeze() {
         const currentState: AgChartState = frozenChart.getState();
         frozenChart.setState({
             version: currentState.version,
-            active: { activeItem: currentState.active.activeItem, frozen: false },
+            active: { activeItem: currentState.active?.activeItem, frozen: false },
         });
     }
     frozenChart = undefined;
@@ -95,16 +96,21 @@ const options: AgCartesianChartOptions<TradeDatum> = {
                 seriesNodeClick: (event) => {
                     frozenChart = chart;
                     const currentState: AgChartState = chart.getState();
+                    const activeItem: AgActiveItemState | undefined =
+                        currentState.active?.activeItem?.type === 'series-node'
+                            ? {
+                                  type: 'series-node',
+                                  // TODO: should event include `itemId`?
+                                  itemId: currentState.active.activeItem.itemId,
+                                  seriesId: event.seriesId,
+                              }
+                            : undefined;
+
                     chart.setState({
                         version: currentState.version,
                         active: {
                             frozen: true,
-                            activeItem: {
-                                type: 'series-node',
-                                // TODO: should event include `itemId`?
-                                itemId: currentState.active.activeItem.itemId,
-                                seriesId: event.seriesId,
-                            },
+                            activeItem,
                         },
                     });
                 },
