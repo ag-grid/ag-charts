@@ -1,6 +1,8 @@
 import {
     AgCandlestickSeriesTooltipRendererParams,
     AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartState,
     AgCharts,
     AnimationModule,
     CandlestickSeriesModule,
@@ -24,13 +26,7 @@ ModuleRegistry.registerModules([
     TimeAxisModule,
 ]);
 
-let isFrozen = false;
-let version: string | undefined;
-
-function getVersion(): string {
-    version ??= chart.getState().version;
-    return version;
-}
+let frozenChart: AgChartInstance | undefined;
 
 function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<TradeDatum>): string {
     const date = new Date(datum.date);
@@ -63,7 +59,7 @@ function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<Tra
             <span>close</span>
             <span>${format(datum.close)}</span>
           </div>
-          <div ${isFrozen ? '' : 'style="display: none"'}>
+          <div ${frozenChart ? '' : 'style="display: none"'}>
             <button type="button" onclick="unfreeze()">Unfreeze</button>
           </div>
         </div>`;
@@ -85,15 +81,16 @@ const options: AgCartesianChartOptions<TradeDatum> = {
             closeKey: 'close',
             listeners: {
                 seriesNodeClick: (event) => {
-                    isFrozen = true;
+                    frozenChart = chart;
+                    const currentState: AgChartState = chart.getState();
                     chart.setState({
-                        version: getVersion(),
+                        version: currentState.version,
                         active: {
                             frozen: true,
                             activeItem: {
                                 type: 'series-node',
                                 // TODO: should event include `itemId`?
-                                itemId: chart.getState().active.activeItem.itemId,
+                                itemId: currentState.active.activeItem.itemId,
                                 seriesId: event.seriesId,
                             },
                         },
@@ -126,9 +123,12 @@ const options: AgCartesianChartOptions<TradeDatum> = {
 const chart = AgCharts.create(options);
 
 function unfreeze() {
-    isFrozen = false;
-    chart.setState({
-        version: getVersion(),
-        active: { activeItem: chart.getState().active.activeItem, frozen: false },
-    });
+    if (frozenChart) {
+        const currentState: AgChartState = frozenChart.getState();
+        frozenChart.setState({
+            version: currentState.version,
+            active: { activeItem: currentState.active.activeItem, frozen: false },
+        });
+    }
+    frozenChart = undefined;
 }
