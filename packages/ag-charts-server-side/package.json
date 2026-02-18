@@ -10,11 +10,6 @@
       "import": "./dist/package/main.esm.mjs",
       "require": "./dist/package/main.cjs.js",
       "types": "./dist/types/src/main.d.ts"
-    },
-    "./test": {
-      "import": "./dist/package/test/index.esm.mjs",
-      "require": "./dist/package/test/index.cjs.js",
-      "types": "./dist/types/src/test/index.d.ts"
     }
   },
   "repository": {
