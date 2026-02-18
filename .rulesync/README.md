@@ -72,22 +72,26 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Command | 🔵 `/plan-implementation-review`   | `/plan-implementation-review`   | Review plan execution, identify delivery gaps      |
 | Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis` | Analyse requirements with competitor research      |
 | Command | 🟠 `/analyze-jira-issue`           | `/analyze-jira-issue <key>`     | Analyse a JIRA issue and propose solutions         |
-| Command | 🟠 `/optimise-context`             | `/optimise-context`             | Audit and reduce agentic tooling token usage       |
 | Skill   | 🟠 `estimate-jira`                 | `/estimate-jira`                | Estimate complexity, effort, and risks for tickets |
 | Skill   | 🟠 `jira-create`                   | `/jira-create`                  | Create JIRA tickets with proper formatting         |
 | Agent   | 🟠 `technical-research-analyst`    | Auto                            | In-depth technical research with citations         |
 | Agent   | 🔵 `nx-expert`                     | Auto                            | Nx monorepo configuration and build optimisation   |
 
+## Memory
+
+| Type    | Name                       | Invoke              | What it does                                       |
+| ------- | -------------------------- | ------------------- | -------------------------------------------------- |
+| Command | 🔵 `/remember`              | `/remember`         | Save branch context or project learnings as memory |
+| Command | 🔵 `/recall`                | `/recall`           | Load branch context, browse project memories       |
+| Command | 🟠 `/optimise-context`      | `/optimise-context` | Audit and reduce agentic tooling token usage       |
+
 ## Git and Branch Management
 
-| Type    | Name                          | Invoke                     | What it does                                   |
-| ------- | ----------------------------- | -------------------------- | ---------------------------------------------- |
-| Command | 🔵 `/git-branch-save-context` | `/git-branch-save-context` | Save branch-specific context to `.context/`    |
-| Command | 🔵 `/git-branch-load-context` | `/git-branch-load-context` | Load branch-specific context from `.context/`  |
-| Command | 🔵 `/git-worktree-clean`      | `/git-worktree-clean`      | Hard-reset worktree to `origin/latest`         |
-| Command | 🔵 `/git-split`               | `/git-split`               | Split large files preserving git history       |
-| Command | 🔵 `/pr-split`                | `/pr-split`                | Split a branch into stacked PRs                |
-| Command | 🔵 `/context-remember`        | `/context-remember`        | Persist learnings from conversations as memory |
+| Type    | Name                     | Invoke               | What it does                             |
+| ------- | ------------------------ | -------------------- | ---------------------------------------- |
+| Command | 🔵 `/git-worktree-clean` | `/git-worktree-clean` | Hard-reset worktree to `origin/latest`  |
+| Command | 🔵 `/git-split`          | `/git-split`          | Split large files preserving git history |
+| Command | 🔵 `/pr-split`           | `/pr-split`           | Split a branch into stacked PRs          |
 
 ## Release Management
 
