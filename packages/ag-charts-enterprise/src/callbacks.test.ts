@@ -22,6 +22,7 @@ import {
     type AgZoomEvent,
 } from 'ag-charts-community';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     type MockAPICallback,
     MockActiveChangeListener,
     type MockAnnotationsListener,
@@ -42,6 +43,7 @@ import {
     deproxy,
     doubleClickAction,
     expectWarningsCalls,
+    extractImageData,
     hoverAction,
     newFreezableMock,
     scrollAction,
@@ -1295,7 +1297,7 @@ describe('AG-15850 labels', () => {
 
 describe('AG-15850 activeChange', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     type D = unknown;
     type C = unknown;
@@ -2623,6 +2625,84 @@ describe('AG-15850 activeChange', () => {
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
+                    },
+                ],
+            ]);
+        });
+    });
+
+    describe('AG-16704 preventDefault', () => {
+        const noHighlightImageSnapshot = async () => {
+            await waitForChartStability(chart);
+            expect(extractImageData(ctx)).toMatchImageSnapshot({
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'AG-16704-noHighlightImageSnapshot',
+            });
+        };
+
+        beforeEach(async () => {
+            mockActiveChange.mock.mockImplementation((ev) => {
+                ev.preventDefault();
+            });
+            await createChart({
+                data: [
+                    { x: 'Q1', apples: 16, oranges: 14 },
+                    { x: 'Q2', apples: 12, oranges: 11 },
+                    { x: 'Q3', apples: 12, oranges: 8 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'apples' },
+                    { type: 'bar', xKey: 'x', yKey: 'oranges' },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('legend', async () => {
+            // Hover on "apples" legend item
+            await hover(360, 571);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'legend', seriesId: 'BarSeries-1', itemId: 'apples' },
+                        frozen: false,
+                        datum: undefined,
+                    },
+                ],
+            ]);
+
+            // Hover on "oranges" legend item
+            await hover(444, 571);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'legend', seriesId: 'BarSeries-2', itemId: 'oranges' },
+                        frozen: false,
+                        datum: undefined,
+                    },
+                ],
+            ]);
+
+            // Hover miss
+            await hover(20, 555);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([
+                [
+                    {
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: undefined,
+                        frozen: false,
+                        datum: undefined,
                     },
                 ],
             ]);
