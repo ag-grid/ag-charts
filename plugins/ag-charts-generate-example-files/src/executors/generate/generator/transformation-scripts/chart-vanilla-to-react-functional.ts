@@ -232,8 +232,11 @@ export async function vanillaToReactFunctional(
         indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
         // Split multi-variable declarations containing 'chart' to avoid breaking syntax
         indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
-        // Replace 'chart' references but not in variable declarations
-        indexFile = indexFile.replace(/(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g, 'chartRef.current');
+        // Replace `chart` references but not in variable declarations and not inside single/double quote strings
+        indexFile = indexFile.replace(
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)chart\b/g,
+            (match) => (match === 'chart' ? 'chartRef.current' : match)
+        );
     }
 
     return indexFile;
