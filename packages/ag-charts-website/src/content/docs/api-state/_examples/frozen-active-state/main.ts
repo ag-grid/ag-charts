@@ -25,6 +25,12 @@ ModuleRegistry.registerModules([
 ]);
 
 let isFrozen = false;
+let version: string | undefined;
+
+function getVersion(): string {
+    version ??= chart.getState().version;
+    return version;
+}
 
 function tooltipRenderer({ datum }: AgCandlestickSeriesTooltipRendererParams<TradeDatum>): string {
     const date = new Date(datum.date);
@@ -81,7 +87,7 @@ const options: AgCartesianChartOptions<TradeDatum> = {
                 seriesNodeClick: (event) => {
                     isFrozen = true;
                     chart.setState({
-                        version,
+                        version: getVersion(),
                         active: {
                             frozen: true,
                             activeItem: {
@@ -118,9 +124,11 @@ const options: AgCartesianChartOptions<TradeDatum> = {
 };
 
 const chart = AgCharts.create(options);
-const version = chart.getState().version;
 
 function unfreeze() {
     isFrozen = false;
-    chart.setState({ version, active: { activeItem: chart.getState().active.activeItem, frozen: false } });
+    chart.setState({
+        version: getVersion(),
+        active: { activeItem: chart.getState().active.activeItem, frozen: false },
+    });
 }
