@@ -42,9 +42,9 @@ export const MIN_CATEGORY_SPACING = 5;
 type TreeNode = TreeLayout['nodes'][number];
 
 interface FilterTicksResult {
-    ticks: string[][];
-    positions?: Map<string[], number>;
-    depthsMap: Map<string[], number>;
+    ticks: GroupedCategoryKey[];
+    positions?: Map<GroupedCategoryKey, number>;
+    depthsMap: Map<GroupedCategoryKey, number>;
 }
 
 interface ComputedGroupAxisLayout {
@@ -137,16 +137,16 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
-    private tickNodes?: Map<string[], TreeNode> = undefined;
-    private tickNodeLeftmostLabel?: Map<TreeNode, string[]> = undefined;
+    private tickNodes?: Map<GroupedCategoryKey, TreeNode> = undefined;
+    private tickNodeLeftmostLabel?: Map<TreeNode, GroupedCategoryKey> = undefined;
     private tickSeparatorDepths?: Map<TreeNode, number> = undefined;
     private filterTickCache?: { range0: number; range1: number; vr0: number; vr1: number; result: FilterTicksResult };
 
     // Reusable working data structures for filterTicksTopDown
-    private readonly ftdPositions = new Map<string[], number>();
-    private readonly ftdCandidates = new Set<string[]>();
-    private readonly ftdKept = new Set<string[]>();
-    private ftdByDepth: { positions: number[]; ticks: string[][] }[] = [];
+    private readonly ftdPositions = new Map<GroupedCategoryKey, number>();
+    private readonly ftdCandidates = new Set<GroupedCategoryKey>();
+    private readonly ftdKept = new Set<GroupedCategoryKey>();
+    private ftdByDepth: { positions: number[]; ticks: GroupedCategoryKey[] }[] = [];
     private readonly ftdStack: TreeNode[] = [];
 
     @Property
@@ -456,11 +456,11 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         return { bbox: mergedBBox, spacing, depthLabelMaxSize, tickLabelLayout, optionsMap };
     }
 
-    private buildDepthsMap(ticks: string[][]): Map<string[], number> {
+    private buildDepthsMap(ticks: GroupedCategoryKey[]): Map<GroupedCategoryKey, number> {
         const { tickNodes, tickSeparatorDepths, tickScale, tickTreeLayout } = this;
         if (!tickTreeLayout || !tickNodes) return new Map();
         const maxDepth = tickTreeLayout.depth;
-        const map = new Map<string[], number>();
+        const map = new Map<GroupedCategoryKey, number>();
         for (const tickLabel of ticks) {
             const node = tickNodes.get(tickLabel);
             const depth = node == null ? maxDepth - 1 : Math.min(tickSeparatorDepths?.get(node) ?? 0, maxDepth - 1);
@@ -479,7 +479,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         return map;
     }
 
-    private filterTicksTopDown(rawTicks: string[][], visibleRange?: [number, number]): FilterTicksResult {
+    private filterTicksTopDown(rawTicks: GroupedCategoryKey[], visibleRange?: [number, number]): FilterTicksResult {
         const { tickScale, tickTreeLayout, tickNodes, tickNodeLeftmostLabel } = this;
         if (!tickTreeLayout || tickNodes == null || tickNodeLeftmostLabel == null) {
             return { ticks: rawTicks, depthsMap: new Map() };
@@ -513,14 +513,14 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         const stack = this.ftdStack;
         stack.length = 0;
 
-        const getPosition = (tickLabel: string[]) => {
+        const getPosition = (tickLabel: GroupedCategoryKey) => {
             if (!tickPositions.has(tickLabel)) {
                 tickPositions.set(tickLabel, tickScale.convert(tickLabel));
             }
             return tickPositions.get(tickLabel)!;
         };
 
-        const countFiniteTicks = (ticks: string[][]) => {
+        const countFiniteTicks = (ticks: GroupedCategoryKey[]) => {
             let count = 0;
             for (const tickLabel of ticks) {
                 if (Number.isFinite(getPosition(tickLabel))) {
@@ -615,7 +615,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
             return !isTooCloseToLast(keptByDepth[depth].positions, position);
         };
 
-        const keepPosition = (position: number, tickLabel: string[], depth: number) => {
+        const keepPosition = (position: number, tickLabel: GroupedCategoryKey, depth: number) => {
             const entries = keptByDepth[depth];
             entries.positions.push(position);
             entries.ticks.push(tickLabel);
@@ -734,7 +734,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         rawTicks = filteredTicks.ticks;
 
         const { depthsMap } = filteredTicks;
-        const tickDepth = (tickLabel: string[]) => depthsMap.get(tickLabel) ?? maxDepth - 1;
+        const tickDepth = (tickLabel: GroupedCategoryKey) => depthsMap.get(tickLabel) ?? maxDepth - 1;
 
         const gridLineData = rawTicks.map(
             (t, index): GridLineStyleTickDatum => ({
@@ -835,7 +835,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         }
         this.ftdByDepth = Array.from({ length: Math.max(0, layout.depth - 1) + 1 }, () => ({
             positions: [] as number[],
-            ticks: [] as string[][],
+            ticks: [] as GroupedCategoryKey[],
         }));
 
         const orderedDomain: GroupedCategoryKey[] = [];
@@ -862,14 +862,14 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         });
     }
 
-    private buildLeftmostLabelMap(layout: TreeLayout, tickNodes: Map<string[], TreeNode>) {
-        const nodeToTickLabel = new Map<TreeNode, string[]>();
+    private buildLeftmostLabelMap(layout: TreeLayout, tickNodes: Map<GroupedCategoryKey, TreeNode>) {
+        const nodeToTickLabel = new Map<TreeNode, GroupedCategoryKey>();
         for (const [tickLabel, node] of tickNodes) {
             nodeToTickLabel.set(node, tickLabel);
         }
 
-        const leftmostLabel = new Map<TreeNode, string[]>();
-        const getLeftmostLabel = (node: TreeNode): string[] | undefined => {
+        const leftmostLabel = new Map<TreeNode, GroupedCategoryKey>();
+        const getLeftmostLabel = (node: TreeNode): GroupedCategoryKey | undefined => {
             const cached = leftmostLabel.get(node);
             if (cached) return cached;
             const label = node.children.length ? getLeftmostLabel(node.children[0]) : nodeToTickLabel.get(node);
@@ -897,7 +897,7 @@ function separatorDepth2(node: TreeNode) {
     return depth;
 }
 
-function convertIntegratedCategoryValue(datum: unknown): string[] {
+function convertIntegratedCategoryValue(datum: unknown): GroupedCategoryKey {
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
 }
