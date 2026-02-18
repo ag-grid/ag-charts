@@ -2519,9 +2519,9 @@ describe('BarSeries', () => {
             { quarter: "Q4'24", software: 5700, hardware: null, services: undefined, investments: null },
         ];
 
-        const cases = ['horizontal', 'vertical'] as const;
+        const directions = ['horizontal', 'vertical'] as const;
 
-        it.each(cases)('%s', async (direction) => {
+        it.each(directions)('%s', async (direction) => {
             const options: AgCartesianChartOptions = {
                 data,
                 series: [
@@ -2543,7 +2543,7 @@ describe('BarSeries', () => {
             await compare();
         });
 
-        it.each(cases)('stacked %s', async (direction) => {
+        it.each(directions)('stacked %s', async (direction) => {
             const options: AgCartesianChartOptions = {
                 data,
                 series: [
@@ -2585,6 +2585,34 @@ describe('BarSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        describe('width ratio', () => {
+            const groupings = ['grouped', 'ungrouped'] as const;
+
+            it.each(groupings)('%s', async (grouping) => {
+                const grouped = grouping === 'grouped';
+
+                const options: AgCartesianChartOptions = {
+                    data,
+                    series: [
+                        { type: 'bar', xKey: 'quarter', yKey: 'software', widthRatio: 0.3, grouped },
+                        { type: 'bar', xKey: 'quarter', yKey: 'hardware', widthRatio: 0.7, grouped },
+                        { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'investments' },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            skipNullBars: true,
+                        },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            });
         });
     });
 });
