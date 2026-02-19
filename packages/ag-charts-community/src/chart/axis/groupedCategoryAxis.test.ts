@@ -407,6 +407,40 @@ describe('Grouped Category Axis Examples', () => {
         await compare();
     });
 
+    describe('reversed range tick filtering', () => {
+        it('should render reversed axis with wide spacing', async () => {
+            const data = Array.from({ length: 12 }, (_, i) => ({
+                grouping: [`Group ${Math.floor(i / 3)}`, `Item ${i}`],
+                value: 100 + i * 10,
+            }));
+            chart = await createChart({
+                data,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', reverse: true },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            await compare();
+        });
+
+        it('should render reversed axis with dense spacing', async () => {
+            const data = Array.from({ length: 200 }, (_, i) => ({
+                grouping: [`G${Math.floor(i / 10)}`, `I${i}`],
+                value: 100 + i,
+            }));
+            chart = await createChart({
+                data,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', reverse: true },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            });
+            await compare();
+        });
+    });
+
     describe('AG-16613 null values in grouped categories', () => {
         test('handles null at first level of grouped category', async () => {
             const options = prepareTestOptions({
