@@ -6,28 +6,6 @@ export type GroupedCategoryKey = (string | null)[];
  * and the tree grows downward from the root.
  */
 
-class Dimensions {
-    top: number = Infinity;
-    right: number = -Infinity;
-    bottom: number = -Infinity;
-    left: number = Infinity;
-
-    update(x: number, y: number) {
-        if (x > this.right) {
-            this.right = x;
-        }
-        if (x < this.left) {
-            this.left = x;
-        }
-        if (y > this.bottom) {
-            this.bottom = y;
-        }
-        if (y < this.top) {
-            this.top = y;
-        }
-    }
-}
-
 class TreeNode {
     position: number = 0;
     subtreeLeft: number = Number.NaN;
@@ -41,6 +19,8 @@ class TreeNode {
     change: number = 0;
     shift: number = 0;
     index: number = 0;
+    separatorDepth: number = 0;
+    leftmostLeaf: TreeNode = this;
     // screen is meant to be recomputed from (layout) when the tree is resized (without performing another layout)
     screen: number = 0;
 
@@ -222,6 +202,7 @@ function firstWalk(node: TreeNode) {
 
 function secondWalk(v: TreeNode, m: number, layout: TreeLayout) {
     v.position = v.prelim + m;
+    v.separatorDepth = v.index === 0 ? 1 + (v.parent?.separatorDepth ?? 0) : 0;
     layout.insertNode(v);
     for (const w of v.children) {
         secondWalk(w, m + v.mod, layout);
@@ -247,6 +228,7 @@ function thirdWalk(v: TreeNode) {
         v.subtreeLeft = children[0].subtreeLeft;
         v.subtreeRight = children.at(-1)!.subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;
+        v.leftmostLeaf = children[0].leftmostLeaf;
     } else {
         v.subtreeLeft = v.position;
         v.subtreeRight = v.position;
@@ -269,7 +251,8 @@ export function treeLayout(ticks: GroupedCategoryKey[]): {
 }
 
 export class TreeLayout {
-    private readonly dimensions = new Dimensions();
+    private minPosition = Infinity;
+    private maxPosition = -Infinity;
 
     public nodes: TreeNode[] = [];
     public depth: number = 0;
@@ -278,21 +261,43 @@ export class TreeLayout {
         if (this.depth < node.depth) {
             this.depth = node.depth;
         }
-        this.dimensions.update(node.position, node.depth);
+        if (node.position < this.minPosition) {
+            this.minPosition = node.position;
+        }
+        if (node.position > this.maxPosition) {
+            this.maxPosition = node.position;
+        }
         this.nodes.push(node);
     }
 
-    scaling(extent: number, flip?: boolean) {
+    private scaling(extent: number, flip?: boolean) {
         let scaling = 1;
-        if (extent > 0) {
-            const { left, right } = this.dimensions;
-            if (right !== left) {
-                scaling = extent / (right - left);
-            }
+        if (extent > 0 && this.maxPosition !== this.minPosition) {
+            scaling = extent / (this.maxPosition - this.minPosition);
         }
         if (flip) {
             scaling *= -1;
         }
         return scaling;
+    }
+
+    resize(range: number[], step: number, inset: number, bandwidth: number) {
+        const width = Math.abs(range[1] - range[0]) - step;
+        const scaling = this.scaling(width, range[0] > range[1]);
+        const shift = inset + bandwidth / 2;
+
+        let offset = 0;
+        for (const node of this.nodes) {
+            const screen = node.position * scaling;
+            if (offset > screen) {
+                offset = screen;
+            }
+            node.screen = screen + shift;
+        }
+
+        // Normalize so that root top and leftmost leaf starts at zero.
+        for (const node of this.nodes) {
+            node.screen -= offset;
+        }
     }
 }
