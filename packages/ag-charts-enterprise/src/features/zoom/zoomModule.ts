@@ -41,6 +41,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         deceleration: or(union('off', 'short', 'long'), ratio),
         minVisibleItems: positiveNumber,
         panKey: union('alt', 'ctrl', 'meta', 'shift'),
+        scrollingMode: union('pan', 'zoom'),
         scrollingStep: ratio,
         autoScaling: {
             enabled: boolean,

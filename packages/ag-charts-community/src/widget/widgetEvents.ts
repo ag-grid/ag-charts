@@ -215,11 +215,20 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     },
     wheel: (sourceEvent: WheelEvent): WheelWidgetEvent => {
         const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+
         // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
         // So we divide this by 100 to give us the desired step.
         const factor = sourceEvent.deltaMode === 0 ? 0.01 : 1;
-        const deltaX = sourceEvent.deltaX * factor;
-        const deltaY = sourceEvent.deltaY * factor;
+        let deltaX = sourceEvent.deltaX * factor;
+        let deltaY = sourceEvent.deltaY * factor;
+
+        // AG-11225 On Windows, unlike MacOS, wheel scrolls with shift do not automatically apply the vertical
+        // scrolling to the deltaX component of the event. So we normalise that here.
+        const swapXY = Math.abs(sourceEvent.deltaX) === 0 && sourceEvent.shiftKey;
+        if (swapXY) {
+            [deltaX, deltaY] = [deltaY, deltaX];
+        }
+
         return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
     },
     touchstart: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchstart'> => {

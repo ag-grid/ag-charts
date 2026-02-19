@@ -8,6 +8,7 @@ export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
 export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
+export type AgZoomScrollingMode = 'pan' | 'zoom';
 export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveRatios';
 
 export interface AgZoomRange {
@@ -182,6 +183,12 @@ export interface AgZoomOptions {
      * Default: `alt`
      */
     panKey?: AgZoomPanKey;
+    /**
+     * Whether scrolling the mouse wheel or track pad vertically zooms or pans.
+     *
+     * Default: `zoom`;
+     */
+    scrollingMode?: AgZoomScrollingMode;
     /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.
      *
