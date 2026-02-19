@@ -3,7 +3,8 @@
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+EXAMPLE_DIR="${REPO_ROOT}/external/ag-charts-server-side-example"
 STAGING_DIR="${SCRIPT_DIR}/.staging"
 
 # Parse arguments
@@ -80,12 +81,12 @@ cat > "${STAGING_DIR}/package.json" <<'PACKAGE_EOF'
 PACKAGE_EOF
 
 # Copy example sources, tsconfig, and Dockerfile
-cp -R "${SCRIPT_DIR}/../examples" "${STAGING_DIR}/examples"
-cp "${SCRIPT_DIR}/../tsconfig.json" "${STAGING_DIR}/tsconfig.json"
-cp "${SCRIPT_DIR}/Dockerfile" "${STAGING_DIR}/Dockerfile"
+cp -R "${EXAMPLE_DIR}/examples" "${STAGING_DIR}/examples"
+cp "${EXAMPLE_DIR}/tsconfig.json" "${STAGING_DIR}/tsconfig.json"
+cp "${EXAMPLE_DIR}/Dockerfile" "${STAGING_DIR}/Dockerfile"
 
 # Ensure output directory exists on host for volume mount
-mkdir -p "${SCRIPT_DIR}/../output"
+mkdir -p "${EXAMPLE_DIR}/output"
 
 # Build Docker image
 echo ">>> Building Docker image..."
@@ -96,14 +97,14 @@ case "${mode}" in
     basic)
         echo ">>> Running basic render..."
         docker run --rm \
-            -v "${SCRIPT_DIR}/../output:/app/output" \
+            -v "${EXAMPLE_DIR}/output:/app/output" \
             ag-charts-ssr-example \
             npx tsx examples/01-basic-render.ts
         ;;
     jpeg)
         echo ">>> Running JPEG render..."
         docker run --rm \
-            -v "${SCRIPT_DIR}/../output:/app/output" \
+            -v "${EXAMPLE_DIR}/output:/app/output" \
             ag-charts-ssr-example \
             npx tsx examples/02-jpeg-output.ts
         ;;
@@ -123,7 +124,7 @@ case "${mode}" in
         # allowing the cleanup handler to fire and remove the container.
         docker run --rm \
             --name "${container_name}" \
-            -v "${SCRIPT_DIR}/../output:/app/output" \
+            -v "${EXAMPLE_DIR}/output:/app/output" \
             -p 3000:3000 \
             ag-charts-ssr-example \
             npx tsx examples/03-express-server.ts &

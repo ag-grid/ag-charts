@@ -1,7 +1,7 @@
 {
-  "name": "ag-charts-server-side-example",
+  "name": "ssr-example-ci",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "root": "external/ag-charts-server-side-example",
+  "root": "tools/ssr-example",
   "targets": {
     "test": {
       "executor": "nx:run-commands",
@@ -21,9 +21,7 @@
         "ag-charts-enterprise:pack",
         "ag-charts-server-side:pack"
       ],
-      "options": {
-        "command": "./external/ag-charts-server-side-example/.docker/run.sh basic --skip-build"
-      }
+      "options": { "command": "./tools/ssr-example/docker-run.sh basic --skip-build" }
     },
     "docker:jpeg": {
       "executor": "nx:run-commands",
@@ -35,9 +33,7 @@
         "ag-charts-enterprise:pack",
         "ag-charts-server-side:pack"
       ],
-      "options": {
-        "command": "./external/ag-charts-server-side-example/.docker/run.sh jpeg --skip-build"
-      }
+      "options": { "command": "./tools/ssr-example/docker-run.sh jpeg --skip-build" }
     },
     "docker:server": {
       "executor": "nx:run-commands",
@@ -50,11 +46,9 @@
         "ag-charts-server-side:pack"
       ],
       "cache": false,
-      "options": {
-        "command": "./external/ag-charts-server-side-example/.docker/run.sh server --skip-build"
-      }
+      "options": { "command": "./tools/ssr-example/docker-run.sh server --skip-build" }
     }
   },
-  "tags": ["example"],
-  "implicitDependencies": ["ag-charts-community", "ag-charts-server-side"]
+  "implicitDependencies": ["ag-charts-server-side-example"],
+  "tags": ["example", "ci"]
 }

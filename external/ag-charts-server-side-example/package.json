@@ -17,5 +17,15 @@
     "@types/express": "^4.17.0",
     "@types/node": "^22.0.0",
     "typescript": "~5.6.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ag-charts-community",
+      "ag-charts-server-side"
+    ],
+    "tags": [
+      "example"
+    ],
+    "includedScripts": []
   }
 }
