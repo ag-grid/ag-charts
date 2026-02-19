@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
+import type { DeepReadonly } from 'ag-charts-core';
 import type { AgChartState } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
@@ -124,7 +125,11 @@ test.describe('state', () => {
             }
 
             async function clickOnUKLegend(page: Page): Promise<void> {
-                await page.mouse.move(304, 556);
+                await page.mouse.click(304, 556);
+            }
+
+            async function clickOnGermanyLegend(page: Page): Promise<void> {
+                await page.mouse.click(574, 556);
             }
 
             async function setStateInvalidNodeId(consoleLogs: ConsoleLogs, page: Page, version: string): Promise<void> {
@@ -223,7 +228,6 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    await checkFrozen(page);
                     let state: AgChartState;
 
                     await checkFrozen(page);
@@ -611,9 +615,6 @@ test.describe('state', () => {
                     await hoverOnUKLegend(page);
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
 
-                    await clickOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
-
                     await hoverInCenter(page);
                     await hoverInTopLeft(page); // test 'mouseleave'
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
@@ -640,10 +641,6 @@ test.describe('state', () => {
                     expect(state.active).toEqual(expectedFrozenState);
 
                     await hoverOnUKLegend(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(expectedFrozenState);
-
-                    await clickOnUKLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(expectedFrozenState);
 
@@ -682,6 +679,87 @@ test.describe('state', () => {
                         frozen: false,
                         activeItem: { type: 'series-node', itemId: 0, seriesId: 'LineSeries-1' },
                     });
+                });
+            });
+
+            test.describe('frozen series-node hides and shows and legend toggles', () => {
+                test('screenshots', async ({ page }) => {
+                    await checkFrozen(page);
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await hoverOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await clickOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive-UK-hidden.png');
+
+                    await clickOnUKLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    const frozenState: DeepReadonly<Pick<AgChartState, 'active'>> = Object.freeze({
+                        active: {
+                            frozen: true,
+                            activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
+                        },
+                    });
+
+                    await checkFrozen(page);
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await hoverOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnUKLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+                });
+            });
+
+            test.describe('frozen series-node highlight moves when Germany legend clicked', () => {
+                test('screenshots', async ({ page }) => {
+                    await checkFrozen(page);
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+
+                    await clickOnGermanyLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023-Germany-hidden.png');
+
+                    await clickOnGermanyLegend(page);
+                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+                    const frozenState: DeepReadonly<Pick<AgChartState, 'active'>> = Object.freeze({
+                        active: {
+                            frozen: true,
+                            activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
+                        },
+                    });
+
+                    await checkFrozen(page);
+                    await pickDatum(page, { country: 'UK', year: '2023' });
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnGermanyLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
+
+                    await clickOnGermanyLegend(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(frozenState.active);
                 });
             });
         });

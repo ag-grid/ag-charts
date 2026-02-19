@@ -1052,7 +1052,6 @@ export class Legend extends BaseProperties {
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {
-        if (this.checkInteractionState()) return;
         if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
@@ -1120,7 +1119,6 @@ export class Legend extends BaseProperties {
     }
 
     onDoubleClick(event: Event, datum: CategoryLegendDatum) {
-        if (this.checkInteractionState()) return;
         if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
@@ -1237,6 +1235,7 @@ export class Legend extends BaseProperties {
         series: SeriesType | undefined,
         event?: ActiveLoadMementoEvent
     ): void {
+        if (this.checkInteractionState()) return;
         type InternalUpdateOpts = {
             readonly itemId: NonNullable<CategoryLegendDatum['itemId']>;
             readonly nodeDatum: HighlightNodeDatum;
