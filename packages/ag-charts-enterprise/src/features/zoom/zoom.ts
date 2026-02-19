@@ -637,7 +637,7 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
-        const { deltaX, deltaY } = event.sourceEvent;
+        const { deltaX, deltaY } = event;
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
         if (enablePanning && isHorizontalScrolling) {
