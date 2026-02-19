@@ -61,6 +61,7 @@ const DESIRED_STATE: Pick<AgChartState, 'zoom' | 'active'> = {
             seriesId: 'sales',
             itemId: 9,
         },
+        frozen: false,
     },
 };
 

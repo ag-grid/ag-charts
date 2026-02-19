@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions<DatumType> = {
                 seriesId: 'AreaSeries-2',
                 itemId: 'UK',
             },
-            // frozen: false, // undocumented
+            frozen: false,
         },
     },
 };
