@@ -145,7 +145,9 @@ Rules load automatically when you edit files matching their glob patterns.
 | 🟢 `docs-checklist`              | `**/docs/**/*.mdoc`                               | Pre-submission documentation checklist      |
 | 🟢 `examples`                    | `**/_examples/**`, `**/gallery/**`                | Working with examples in AG Charts          |
 | 🟢 `examples-framework-patterns` | `**/_examples/**`, `**/generate-example-files/**` | React, Angular, Vue transformation patterns |
-| 🟢 `website-css`                 | `**/*.scss`, `**/*.css` (website packages)        | CSS architecture and design system          |
+| 🔵 `website-astro-pages`         | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Astro page patterns, layouts, and code conventions |
+| 🔵 `website-browser-testing`     | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Chrome DevTools MCP browser testing workflow |
+| 🔵 `website-css`                 | `**/src/pages-styles/**/*.scss`, design-system     | CSS architecture, design system, and styling |
 
 ### Playbooks
 

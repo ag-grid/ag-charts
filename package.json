@@ -8,7 +8,7 @@
     "package": "nx pack --prod && nx pack:verify --prod",
     "subrepo": "tsx external/ag-shared/scripts/subrepo",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "preinstall": "npx --yes --package=npm-run-all -- run-s preinstall:*",
+    "preinstall": "yarn run preinstall:verify-native-dep-versions",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "npx run-s postinstall:*",
     "postinstall:patch": "./external/ag-shared/scripts/apply-patches.sh",
