@@ -1,12 +1,13 @@
 import { objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
-import { StateTracker } from '../../util/stateTracker';
 import type { ActiveManager } from '../interaction/activeManager';
-import type { PickFocusOutputs, UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
-type ActiveSource = 'highlight' | 'tooltip' | 'focus';
+// Strict `ActiveManager.update` args (both defined, or both undefined):
+type ActivationArgs =
+    | [NonNullable<Parameters<ActiveManager['update']>[0]>, NonNullable<Parameters<ActiveManager['update']>[1]>]
+    | [undefined, undefined];
 
 export type PickedNode = SeriesNodeDatum<DatumIndexType>;
 
@@ -48,58 +49,39 @@ type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number
  *   3.  Track tooltip candidates (if pagination is enabled).
  */
 export class PickManager {
+    private active: PickedNode | undefined;
     private candidates: PickedNode[] = [];
-
-    private readonly activeState = new StateTracker<PickedNode, ActiveSource>();
-    private lastNotifiedActive: PickedNode | undefined;
     private pendingPickedNodes?: PickedNodes;
 
     constructor(
         private readonly activeManager: ActiveManager,
-        private readonly tooltipProperties: { readonly pagination: boolean },
-        private readonly focusState: { readonly series: UnknownSeries | undefined }
+        private readonly tooltipProperties: { readonly pagination: boolean }
     ) {}
 
-    private getActive(): PickedNode | undefined {
-        return this.activeState.stateValue();
-    }
-
     private clear(): void {
-        this.activeState.clear();
-        this.lastNotifiedActive = undefined;
         this.candidates.length = 0;
         this.pendingPickedNodes = undefined;
-    }
-
-    private setSource(source: ActiveSource, node: PickedNode | undefined): void {
-        if (node === undefined) {
-            this.activeState.delete(source);
-        } else {
-            this.activeState.set(source, node);
-        }
-        this.syncActiveManager();
-    }
-
-    private syncActiveManager(): void {
-        const resolved = this.getActive();
-        const prev = this.lastNotifiedActive;
-        if (resolved === prev) return;
-        if (resolved !== undefined && prev !== undefined && pickedNodesEqual(resolved, prev)) return;
-
-        this.lastNotifiedActive = resolved;
-        if (resolved === undefined) {
-            this.activeManager.clear();
-        } else {
-            const seriesId: string = resolved.series.id;
-            const itemId: string | number = getItemId(resolved);
-            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved);
-        }
     }
 
     private popPendingPickedNodes(): PickedNodes | undefined {
         const result = this.pendingPickedNodes;
         this.pendingPickedNodes = undefined;
         return result;
+    }
+
+    private getActivationArgs(desiredActive: PickedNode | undefined): ActivationArgs {
+        if (desiredActive === undefined) {
+            return [undefined, undefined];
+        } else {
+            const seriesId: string = desiredActive.series.id;
+            const itemId: string | number = getItemId(desiredActive);
+            return [{ type: 'series-node', seriesId, itemId }, desiredActive];
+        }
+    }
+
+    maybeActivate(desiredActive: PickedNode | undefined): boolean {
+        const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(desiredActive);
+        return this.activeManager.update(newItemState, nodeDatum);
     }
 
     // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
@@ -115,7 +97,7 @@ export class PickManager {
 
     onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined {
         if (pickedNodes !== undefined) {
-            const previousActive = this.getActive();
+            const previousActive = this.active;
             if (this.tooltipProperties.pagination && previousActive !== undefined) {
                 const tooltipMatch = pickedNodes.matches.find((m) => pickedNodesEqual(m, previousActive));
                 if (tooltipMatch) {
@@ -125,13 +107,12 @@ export class PickManager {
         }
 
         const node = pickedNodes?.matches[0];
-        this.setSource('highlight', node);
         return node;
     }
 
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate {
         if (pickedNodes !== undefined && this.tooltipProperties.pagination) {
-            const previous = this.getActive();
+            const previous = this.active;
             const nextCandidates = pickedNodes.matches;
 
             this.candidates = nextCandidates;
@@ -140,23 +121,12 @@ export class PickManager {
             if (nextIndex === -1) nextIndex = 0;
 
             const node = nextCandidates[nextIndex];
-            this.setSource('tooltip', node);
-
             const paginationState = { index: nextIndex, length: nextCandidates.length };
             return { active: node, paginationState };
         }
 
         const node = pickedNodes?.matches[0];
-        this.setSource('tooltip', node);
         return { active: node };
-    }
-
-    onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void {
-        const { series } = this.focusState;
-        this.clear();
-        if (series !== undefined && pickedFocus !== undefined) {
-            this.setSource('focus', pickedFocus.datum);
-        }
     }
 
     onPickedNodesAPI(debouncedPickedNodes: PickedNodes): PickedNode | undefined {
@@ -171,7 +141,7 @@ export class PickManager {
     nextCandidate(): TooltipCandidate {
         if (this.tooltipProperties.pagination) {
             const { candidates } = this;
-            const previous = this.getActive();
+            const previous = this.active;
             const hoverIndex = previous == null ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, previous));
             if (hoverIndex === -1) return { active: undefined, paginationState: undefined };
 
@@ -180,12 +150,10 @@ export class PickManager {
                 nextIndex = 0;
             }
             const node = candidates[nextIndex];
-            this.setSource('tooltip', node);
-
             const paginationState = { index: nextIndex, length: this.candidates.length };
             return { active: node, paginationState };
         }
 
-        return { active: this.getActive() };
+        return { active: this.active };
     }
 }

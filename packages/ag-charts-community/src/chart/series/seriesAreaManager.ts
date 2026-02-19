@@ -146,7 +146,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.hoverScheduler = this.createHoverScheduler();
 
-        this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip, this.focus);
+        this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
 
         const initialAltText = chart.ctx.localeManager.t('ariaInitSeriesArea');
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
@@ -683,14 +683,6 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
-    private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
-        const pick = series.pickFocus(opts);
-        if (this.hoverDevice === 'keyboard') {
-            this.pickManager.onPickedNodesFocus(pick);
-        }
-        return pick;
-    }
-
     private updatePickedFocus(
         datumIndex: number,
         datumIndexDelta: number,
@@ -703,7 +695,7 @@ export class SeriesAreaManager extends BaseManager {
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
-        const pick = this.pickFocus(focus.series, focusInputs);
+        const pick = focus.series.pickFocus(focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
 
         const { datum } = pick;
