@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:ag-grid/ag-charts-server-side-example.git
+	branch = main
+	commit = d805a08a4279a9a1359bced12194a3a264b3314f
+	method = merge
+	cmdver = 0.4.9
+	parent = a95f8a2ae8afa6a44fcd37d7b68f727603ca0e2f

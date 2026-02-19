@@ -79,17 +79,17 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Memory
 
-| Type    | Name                       | Invoke              | What it does                                       |
-| ------- | -------------------------- | ------------------- | -------------------------------------------------- |
-| Command | 🔵 `/remember`              | `/remember`         | Save branch context or project learnings as memory |
-| Command | 🔵 `/recall`                | `/recall`           | Load branch context, browse project memories       |
-| Command | 🟠 `/optimise-context`      | `/optimise-context` | Audit and reduce agentic tooling token usage       |
+| Type    | Name                   | Invoke              | What it does                                       |
+| ------- | ---------------------- | ------------------- | -------------------------------------------------- |
+| Command | 🔵 `/remember`         | `/remember`         | Save branch context or project learnings as memory |
+| Command | 🔵 `/recall`           | `/recall`           | Load branch context, browse project memories       |
+| Command | 🟠 `/optimise-context` | `/optimise-context` | Audit and reduce agentic tooling token usage       |
 
 ## Git and Branch Management
 
-| Type    | Name                     | Invoke               | What it does                             |
-| ------- | ------------------------ | -------------------- | ---------------------------------------- |
-| Command | 🔵 `/git-worktree-clean` | `/git-worktree-clean` | Hard-reset worktree to `origin/latest`  |
+| Type    | Name                     | Invoke                | What it does                             |
+| ------- | ------------------------ | --------------------- | ---------------------------------------- |
+| Command | 🔵 `/git-worktree-clean` | `/git-worktree-clean` | Hard-reset worktree to `origin/latest`   |
 | Command | 🔵 `/git-split`          | `/git-split`          | Split large files preserving git history |
 | Command | 🔵 `/pr-split`           | `/pr-split`           | Split a branch into stacked PRs          |
 

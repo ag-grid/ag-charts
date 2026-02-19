@@ -8,8 +8,8 @@
     "server": "tsx examples/03-express-server.ts"
   },
   "dependencies": {
-    "ag-charts-community": "^13.0.0",
-    "ag-charts-server-side": "^13.0.0",
+    "ag-charts-community": "13.1.0-beta.20260215",
+    "ag-charts-server-side": "13.1.0-beta.20260215",
     "express": "^4.21.0"
   },
   "devDependencies": {
@@ -17,5 +17,15 @@
     "@types/express": "^4.17.0",
     "@types/node": "^22.0.0",
     "typescript": "~5.6.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "ag-charts-community",
+      "ag-charts-server-side"
+    ],
+    "tags": [
+      "example"
+    ],
+    "includedScripts": []
   }
 }
