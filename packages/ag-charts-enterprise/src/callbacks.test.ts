@@ -2710,7 +2710,7 @@ describe('AG-15850 activeChange', () => {
             // Hover miss
             await hover(20, 555);
             await noHighlightImageSnapshot();
-            expect(popCalls()).toEqual([[]]);
+            expect(popCalls()).toEqual([]);
         });
     });
 });
