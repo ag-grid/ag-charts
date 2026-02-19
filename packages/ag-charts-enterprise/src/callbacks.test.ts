@@ -1302,29 +1302,41 @@ describe('AG-15850 activeChange', () => {
     type D = unknown;
     type C = unknown;
     type M = MockActiveChangeListener<D, C>;
-    type ExpectedAgActiveChangeEvent = RequireOptional<
-        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
-    >;
-
     let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
     let version: string | undefined = undefined;
 
-    const INACTIVE_SETSTATE_EVENT: ExpectedAgActiveChangeEvent = {
+    type ExpectedAgActiveChangeEventProperties = RequireOptional<
+        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
+    >;
+    function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
+        const { activeItem, datum, frozen, source, type, ...rest } = props;
+        rest satisfies {}; // ensure the deconstruction is exhaustive
+        return expect.objectContaining({
+            activeItem,
+            datum,
+            frozen,
+            source,
+            type,
+            preventDefault: expect.any(Function),
+        });
+    }
+
+    const INACTIVE_SETSTATE_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
         datum: undefined,
         frozen: false,
         source: 'state-change',
         type: 'activeChange',
-    };
+    });
 
-    const INACTIVE_USERINTERACTION_EVENT: ExpectedAgActiveChangeEvent = {
+    const INACTIVE_USERINTERACTION_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
         datum: undefined,
         frozen: false,
         source: 'user-interaction',
         type: 'activeChange',
-    };
+    });
 
     beforeEach(() => {
         mockActiveChange = newFreezableMock<D, C, M>();
