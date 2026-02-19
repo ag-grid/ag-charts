@@ -10,6 +10,49 @@
         "cwd": "external/ag-charts-server-side-example",
         "commands": ["tsx examples/01-basic-render.ts", "tsx examples/02-jpeg-output.ts"]
       }
+    },
+    "docker": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "options": {
+        "command": "./external/ag-charts-server-side-example/.docker/run.sh basic --skip-build"
+      }
+    },
+    "docker:jpeg": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "options": {
+        "command": "./external/ag-charts-server-side-example/.docker/run.sh jpeg --skip-build"
+      }
+    },
+    "docker:server": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "cache": false,
+      "options": {
+        "command": "./external/ag-charts-server-side-example/.docker/run.sh server --skip-build"
+      }
     }
   },
   "tags": ["example"],

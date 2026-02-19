@@ -22,6 +22,8 @@ app.get('/chart.png', async (req, res) => {
         height: 600,
     });
 
+    console.log('Serving rendered chart to client');
+
     res.set('Content-Type', 'image/png');
     res.send(buffer);
 });
