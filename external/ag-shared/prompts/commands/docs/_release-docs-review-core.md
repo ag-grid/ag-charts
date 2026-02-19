@@ -135,7 +135,7 @@ Find all modified examples and their associated documentation pages:
 
 ```bash
 # Get list of modified examples (substitute DOCS_PATH from product config)
-git diff --name-only $PREVIOUS_BRANCH $CURRENT_BRANCH -- '${DOCS_PATH}/**/_examples/' | \
+git diff --name-only $PREVIOUS_BRANCH $CURRENT_BRANCH -- '${DOCS_PATH}/**/_examples/**' | \
   grep -E '/_examples/' | \
   sed "s|${DOCS_PATH}/||" | \
   sed 's|/_examples/.*||' | \
@@ -514,7 +514,7 @@ Generate two task lists using the paths from **Output Paths** in the product con
 **Create the filtered list:**
 
 ```bash
-cat > ${FILTERED_LIST} << 'EOF'
+cat > ${FILTERED_LIST} << EOF
 # Release Documentation Review (Filtered)
 
 ## Summary
@@ -534,10 +534,10 @@ Pages are prioritised by risk score (0-100) based on:
 - Content type (new sections, warnings)
 - Page importance (from **Priority Pages** configuration)
 
-- **Critical (80-100)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '$2 >= 80' | wc -l) pages
-- **High (60-79)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '$2 >= 60 && $2 < 80' | wc -l) pages
-- **Medium (40-59)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '$2 >= 40 && $2 < 60' | wc -l) pages
-- **Low (0-39)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '$2 < 40' | wc -l) pages
+- **Critical (80-100)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '\$2 >= 80' | wc -l) pages
+- **High (60-79)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '\$2 >= 60 && \$2 < 80' | wc -l) pages
+- **Medium (40-59)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '\$2 >= 40 && \$2 < 60' | wc -l) pages
+- **Low (0-39)**: $(grep '^REVIEW_NEEDED,' /tmp/categorized-docs.txt | awk -F',' '\$2 < 40' | wc -l) pages
 
 ## Skipped Pages
 
@@ -890,7 +890,7 @@ Format:
 
 3. **Review Scope Management**:
 
-    - For large releases (>50 pages after filtering), consider batching reviews
+    - For large releases (>50 pages after filtering), use wave-based parallelism (launch multiple single-page sub-agents concurrently) rather than batching
     - Prioritise based on user-facing importance (getting started, key features, upgrade guides)
     - Start with largest changes first (they often reveal patterns)
     - Skip generated or auto-updated sections if identified
