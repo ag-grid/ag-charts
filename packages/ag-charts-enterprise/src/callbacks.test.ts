@@ -2684,7 +2684,7 @@ describe('AG-15850 activeChange', () => {
                 [
                     expectAgActiveChangeEvent({
                         type: 'activeChange',
-                        source: 'state-change',
+                        source: 'user-interaction',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-1', itemId: 'apples' },
                         frozen: false,
                         datum: undefined,
@@ -2699,7 +2699,7 @@ describe('AG-15850 activeChange', () => {
                 [
                     expectAgActiveChangeEvent({
                         type: 'activeChange',
-                        source: 'state-change',
+                        source: 'user-interaction',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-2', itemId: 'oranges' },
                         frozen: false,
                         datum: undefined,
@@ -2714,7 +2714,7 @@ describe('AG-15850 activeChange', () => {
                 [
                     expectAgActiveChangeEvent({
                         type: 'activeChange',
-                        source: 'state-change',
+                        source: 'user-interaction',
                         activeItem: undefined,
                         frozen: false,
                         datum: undefined,
