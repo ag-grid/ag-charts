@@ -5,7 +5,7 @@ globs:
     [
         '**/src/pages-styles/**/*.scss',
         '**/src/pages-styles/**/*.css',
-        '**/src/components/**/*.module.scss',
+        '**/src/components/**/*.scss',
         'external/ag-website-shared/src/design-system/**/*.scss',
     ]
 ---
