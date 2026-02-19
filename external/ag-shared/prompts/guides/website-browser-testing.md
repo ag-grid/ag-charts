@@ -32,10 +32,10 @@ Use Chrome DevTools MCP for browser testing and debugging AG product websites.
 ### 1. Start Development Server
 
 ```bash
-nx dev
+yarn nx dev
 ```
 
-The dev server port is product-specific. Use `nx dev` to start the server and check the output for the local URL.
+The dev server port is product-specific. Use `yarn nx dev` to start the server and check the output for the local URL.
 
 ### 2. Navigate to Page
 
