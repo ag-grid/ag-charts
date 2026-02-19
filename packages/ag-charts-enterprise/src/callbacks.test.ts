@@ -51,7 +51,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { DeepReadonly, RequireOptional } from 'ag-charts-core';
+import { AreExact, DeepReadonly, RequireOptional } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
@@ -1311,7 +1311,7 @@ describe('AG-15850 activeChange', () => {
     >;
     function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
         const { activeItem, datum, frozen, source, type, ...rest } = props;
-        rest satisfies {}; // ensure the deconstruction is exhaustive
+        true satisfies AreExact<keyof typeof rest, never>; // ensure the deconstruction is exhaustive
         return expect.objectContaining({
             activeItem,
             datum,
