@@ -1059,14 +1059,11 @@ export class SeriesAreaManager extends BaseManager {
                 }
 
                 for (const datum of datums) {
-                    const { datumIndex } = datum;
-                    result.matches.push({ series, datum, datumIndex });
+                    result.matches.push(datum);
                 }
             } else if (result == null || result.distance > distance) {
                 // Don't accumulate multiple datums when matching by nearest distance
-                const [datum] = datums;
-                const { datumIndex } = datum;
-                result = { matches: [{ series, datum, datumIndex }], distance };
+                result = { matches: datums, distance };
             }
         }
 
