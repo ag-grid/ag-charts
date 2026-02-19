@@ -74,7 +74,7 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<L
     label: LinearGaugeTargetDatumLabel;
     style: AgLinearGaugeSeriesStyle;
 }
-export type LinearGaugeLabelDatum = {
+export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     placement: AgLinearGaugeLabelPlacement;
     avoidCollisions: boolean;
     spacing: number;
@@ -90,7 +90,7 @@ export type LinearGaugeLabelDatum = {
     wrapping: TextWrap;
     overflowStrategy: OverflowStrategy;
     formatter: RichFormatter<AgChartLabelFormatterParams<any>> | undefined;
-};
+}
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
     @Property
