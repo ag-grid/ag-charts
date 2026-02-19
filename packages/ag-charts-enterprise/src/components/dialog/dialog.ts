@@ -17,7 +17,6 @@ import {
     createTextArea,
     entries,
     getIconClassNames,
-    getWindow,
     initRovingTabIndex,
     mapValues,
     setAttribute,
@@ -95,7 +94,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        getWindow().requestAnimationFrame(() => this.reposition());
+        this.ctx.agDocument.requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 

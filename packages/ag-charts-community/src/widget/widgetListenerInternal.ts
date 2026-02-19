@@ -141,6 +141,11 @@ export class WidgetListenerInternal {
 
     private triggerMouseDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
         if (downEvent.button === 0) {
+            if (downEvent.view == null) {
+                // Fallback event `view` in case it's missing. (local tests)
+                const elWin = current.getElement().ownerDocument.defaultView!;
+                downEvent = new elWin.MouseEvent(downEvent.type, { ...downEvent, view: elWin });
+            }
             this.startMouseDrag(current, downEvent);
         }
     }

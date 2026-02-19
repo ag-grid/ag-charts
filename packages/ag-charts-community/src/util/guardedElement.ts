@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getDocument, getWindow, isHTMLElement, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, isHTMLElement, setAttribute } from 'ag-charts-core';
 
 export class GuardedElement {
     private readonly cleanup = new CleanupRegistry();
@@ -67,11 +67,11 @@ export class GuardedElement {
         }
     }
 
-    private static queryFocusable(element: Document | Element, selectors: string) {
-        const myWindow = getWindow();
+    private static queryFocusable(element: Element, selectors: string) {
+        const elWin = element.ownerDocument.defaultView!;
         return Array.from(element.querySelectorAll(selectors)).filter((e): e is HTMLElement => {
             if (isHTMLElement(e)) {
-                const style = myWindow.getComputedStyle(e);
+                const style = elWin.getComputedStyle(e);
                 return style.display !== 'none' && style.visibility !== 'none';
             }
             return false;
@@ -85,7 +85,7 @@ export class GuardedElement {
     }
 
     private findExitTarget(reverse: boolean): HTMLElement | undefined {
-        const focusables = GuardedElement.queryFocusable(getDocument(), '[tabindex]')
+        const focusables = GuardedElement.queryFocusable(this.element.ownerDocument.body, '[tabindex]')
             .filter((e) => e.tabIndex > 0)
             .sort((a, b) => a.tabIndex - b.tabIndex);
         const { before, after } = GuardedElement.findBeforeAndAfter(focusables, this.guardTabIndex);

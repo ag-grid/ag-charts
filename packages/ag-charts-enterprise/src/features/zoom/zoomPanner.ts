@@ -1,13 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    type BoxBounds,
-    ChartAxisDirection,
-    UNIT_MAX,
-    UNIT_MIN,
-    definedZoomState,
-    entries,
-    getWindow,
-} from 'ag-charts-core';
+import { type BoxBounds, ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries } from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
@@ -36,6 +28,8 @@ const decelerationValues = {
 };
 
 export class ZoomPanner {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {
         const { deceleration } = this;
@@ -65,7 +59,7 @@ export class ZoomPanner {
 
     stopInteractions() {
         if (this.inertiaHandle != null) {
-            cancelAnimationFrame(this.inertiaHandle);
+            this.ctx.agDocument.cancelAnimationFrame(this.inertiaHandle);
             this.inertiaHandle = undefined;
         }
     }
@@ -119,7 +113,7 @@ export class ZoomPanner {
             const velocity = Math.hypot(xVelocity, yVelocity);
             const angle = Math.atan2(yVelocity, xVelocity);
             const t0 = performance.now();
-            this.inertiaHandle = getWindow().requestAnimationFrame((t) => {
+            this.inertiaHandle = this.ctx.agDocument.requestAnimationFrame((t) => {
                 this.animateInertia(t, t, t0, velocity, angle);
             });
         }
@@ -153,7 +147,7 @@ export class ZoomPanner {
         // If we won't advance more than one pixel, stop inertial panning
         if (s1 >= maxS - 1) return;
 
-        this.inertiaHandle = requestAnimationFrame((nextT) => {
+        this.inertiaHandle = this.ctx.agDocument.requestAnimationFrame((nextT) => {
             this.animateInertia(nextT, t, t0, velocity, angle);
         });
     }

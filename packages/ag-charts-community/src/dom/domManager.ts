@@ -1,11 +1,10 @@
 import {
+    AgDocument,
     type StrictHTMLElement,
     attachListener,
     createElement,
     createId,
     entries,
-    getDocument,
-    getWindow,
     isDocumentFragment,
     kebabCase,
     setAttribute,
@@ -52,11 +51,9 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['tooltip-container', { childElementType: 'div' }],
 ]);
 
-function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
+function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.
-    if (typeof IntersectionObserver === 'undefined') return;
-
-    const observer = new IntersectionObserver(
+    const observer = agDocument.createIntersectionObserver(
         (observedEntries) => {
             for (const entry of observedEntries) {
                 if (entry.target === element) {
@@ -66,7 +63,7 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
         },
         { root: element }
     );
-    observer.observe(element);
+    observer?.observe(element);
     return observer;
 }
 
@@ -115,7 +112,7 @@ export class DOMManager extends BaseManager {
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
-    private readonly sizeMonitor = new SizeMonitor();
+    private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
 
     private minWidth: number = 0;
@@ -124,6 +121,7 @@ export class DOMManager extends BaseManager {
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly chart: { styleNonce?: string },
+        private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
         private readonly skipCss?: boolean,
@@ -131,13 +129,15 @@ export class DOMManager extends BaseManager {
     ) {
         super();
 
+        this.sizeMonitor = new SizeMonitor(agDocument);
+
         this.element = this.initDOM();
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
         let hidden = false;
-        this.observer = setupObserver(this.element, (intersectionRatio) => {
+        this.observer = setupObserver(agDocument, this.element, (intersectionRatio) => {
             if (intersectionRatio === 0 && !hidden) {
                 this.eventsHub.emit('dom:hidden', null);
             }
@@ -241,7 +241,7 @@ export class DOMManager extends BaseManager {
         if (this.pendingContainer == null || this.pendingContainer === this.container) return;
 
         if (DOMManager.batchedUpdateContainer.length === 0) {
-            getWindow().setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
+            setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
         }
         DOMManager.batchedUpdateContainer.push(this);
     }
@@ -343,6 +343,7 @@ export class DOMManager extends BaseManager {
 
         this.container = pendingContainer;
         this.pendingContainer = undefined;
+        this.agDocument.setContainer(pendingContainer);
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
 
@@ -424,8 +425,8 @@ export class DOMManager extends BaseManager {
      * main chart area.
      */
     getOverlayClientRect() {
-        const window = getWindow();
-        const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
+        const { innerWidth, innerHeight } = this.agDocument;
+        const windowBBox = new BBox(0, 0, innerWidth, innerHeight);
         const containerBBox = this.getRawOverlayClientRect();
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
@@ -459,12 +460,12 @@ export class DOMManager extends BaseManager {
         // viewport.
         if (this.documentRoot != null) return BBox.fromObject(this.documentRoot.getBoundingClientRect());
 
-        const { innerWidth, innerHeight } = getWindow();
+        const { innerWidth, innerHeight } = this.agDocument;
         return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     private getShadowDocumentRoot(current = this.container) {
-        const docRoot = current?.ownerDocument?.body ?? getDocument('body');
+        const docRoot = current?.ownerDocument?.body ?? this.agDocument.body;
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
         // to attach listeners etc.. to that node, not the document body.
@@ -564,7 +565,7 @@ export class DOMManager extends BaseManager {
             styleElement = this.addChild('styles', id);
         } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
-            styleElement = addStyleElement(getDocument('head'));
+            styleElement = addStyleElement(this.agDocument.head);
             DOMManager.headStyles.add(id);
         } else if (this.documentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
@@ -647,6 +648,10 @@ export class DOMManager extends BaseManager {
 
     setDataNumber(name: string, value: number) {
         this.element.dataset[name] = String(value);
+    }
+
+    getDocument() {
+        return this.agDocument;
     }
 
     private updateContainerClassName() {

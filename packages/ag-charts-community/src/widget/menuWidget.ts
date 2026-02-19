@@ -5,7 +5,6 @@ import {
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
     createElementId,
-    getDocument,
     getLastFocus,
     hasNoModifiers,
     setAttribute,
@@ -40,7 +39,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
     }
 
     public addSeparator(): Element {
-        const sep = getDocument().createElement('div');
+        const sep = this.elem.ownerDocument.createElement('div');
         setAttribute(sep, 'role', 'separator');
         this.elem.appendChild(sep);
         return sep;

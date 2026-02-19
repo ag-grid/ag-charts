@@ -1,17 +1,19 @@
-import { getDocument, getResizeObserver, getWindow } from 'ag-charts-core';
+import type { AgDocument } from 'ag-charts-core';
 
 import { PixelRatioObserver } from './pixelRatioObserver';
 
-export type Size = {
+export interface Size {
     width: number;
     height: number;
     pixelRatio: number;
-};
+}
+
 type OnSizeChange = (size: Size, element: HTMLElement) => void;
-type Entry = {
+
+interface Entry {
     cb: OnSizeChange;
     size?: Size;
-};
+}
 
 export class SizeMonitor {
     private readonly elements = new Map<HTMLElement, Entry>();
@@ -19,32 +21,30 @@ export class SizeMonitor {
     private pixelRatioObserver: PixelRatioObserver | undefined;
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
+    private removeLoadListener: (() => void) | undefined;
 
-    constructor() {
-        const ResizeObserverCtor = getResizeObserver();
-        if (ResizeObserverCtor !== undefined) {
-            this.resizeObserver = new ResizeObserverCtor((entries) => {
-                for (const {
-                    target,
-                    contentRect: { width, height },
-                } of entries) {
-                    const entry = this.elements.get(target as HTMLElement);
-                    this.checkSize(entry, target as HTMLElement, width, height);
-                }
-            });
-        }
+    constructor(agDocument: AgDocument) {
+        this.resizeObserver = agDocument.createResizeObserver((entries) => {
+            for (const {
+                target,
+                contentRect: { width, height },
+            } of entries) {
+                const entry = this.elements.get(target as HTMLElement);
+                this.checkSize(entry, target as HTMLElement, width, height);
+            }
+        });
 
         // The resize observer should most pixel ratio changes
         // with the exception of moving the browser to a monitor with a different scaling
         // The resize observer will re-read the pixel ratio
         // so make sure this fires after the resize observer to avoid double rendering
         let animationFrame: NodeJS.Timeout;
-        this.pixelRatioObserver = new PixelRatioObserver(() => {
+        this.pixelRatioObserver = new PixelRatioObserver(agDocument, () => {
             clearTimeout(animationFrame);
             animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
         });
 
-        this.documentReady = getDocument('readyState') === 'complete';
+        this.documentReady = agDocument.isReady();
         if (this.documentReady) {
             this.observeWindow();
         } else {
@@ -54,7 +54,7 @@ export class SizeMonitor {
             // If we attach before document.readyState === 'complete', then additional incorrect resize events
             // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
             // document to be loaded irons out this browser quirk.
-            getWindow()?.addEventListener('load', this.onLoad);
+            this.removeLoadListener = agDocument.attachListener('load', this.onLoad);
         }
     }
 
@@ -68,7 +68,8 @@ export class SizeMonitor {
     };
 
     private destroy() {
-        getWindow()?.removeEventListener('load', this.onLoad);
+        this.removeLoadListener?.();
+        this.removeLoadListener = undefined;
         this.resizeObserver?.disconnect();
         this.resizeObserver = undefined;
         this.pixelRatioObserver?.disconnect();
@@ -112,8 +113,15 @@ export class SizeMonitor {
         } else {
             this.resizeObserver?.observe(element);
         }
-        const entry = { cb };
+        const entry: Entry = { cb };
         this.elements.set(element, entry);
+
+        // Synchronous initial size read — cross-window ResizeObserver
+        // may delay its first callback until the target window gains focus.
+        const { width, height } = element.getBoundingClientRect();
+        if (width > 0 || height > 0) {
+            this.checkSize(entry, element, width, height);
+        }
     }
 
     unobserve(element: HTMLElement) {

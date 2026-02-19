@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener } from 'ag-charts-core';
 
 export type MouseDragCallbacks = {
     mousedown: (event: MouseEvent) => void;
@@ -7,7 +7,6 @@ export type MouseDragCallbacks = {
 };
 
 export class MouseDragger {
-    private readonly window = getWindow();
     private readonly cleanup = new CleanupRegistry();
 
     constructor(
@@ -16,15 +15,16 @@ export class MouseDragger {
         myCallbacks: MouseDragCallbacks,
         downEvent: MouseEvent
     ) {
-        const { window, mousegeneral, mousemove, mouseup } = this;
+        const { mousegeneral, mousemove, mouseup } = this;
+        const eventView = downEvent.view!;
         this.cleanup.register(
-            attachListener(window, 'mousedown', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseenter', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseleave', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseout', mousegeneral, { capture: true }),
-            attachListener(window, 'mouseover', mousegeneral, { capture: true }),
-            attachListener(window, 'mousemove', mousemove, { capture: true }),
-            attachListener(window, 'mouseup', mouseup, { capture: true })
+            attachListener(eventView, 'mousedown', mousegeneral, { capture: true }),
+            attachListener(eventView, 'mouseenter', mousegeneral, { capture: true }),
+            attachListener(eventView, 'mouseleave', mousegeneral, { capture: true }),
+            attachListener(eventView, 'mouseout', mousegeneral, { capture: true }),
+            attachListener(eventView, 'mouseover', mousegeneral, { capture: true }),
+            attachListener(eventView, 'mousemove', mousemove, { capture: true }),
+            attachListener(eventView, 'mouseup', mouseup, { capture: true })
         );
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
@@ -62,6 +62,6 @@ export class MouseDragger {
 
 type Arg = ConstructorParameters<typeof MouseDragger>;
 export function startMouseDrag(glob: Arg[0], self: Arg[1], myCallbacks: Arg[2], downEvent: Arg[3]) {
-    if (glob.globalMouseDragCallbacks != null) return undefined;
+    if (glob.globalMouseDragCallbacks != null) return;
     return new MouseDragger(glob, self, myCallbacks, downEvent);
 }

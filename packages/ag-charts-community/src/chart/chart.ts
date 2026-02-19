@@ -1,5 +1,6 @@
 import {
     ActionOnSet,
+    AgDocument,
     AsyncAwaitQueue,
     type AxisID,
     type ChartAnimationPhase,
@@ -55,7 +56,6 @@ import { Mutex } from '../util/mutex';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
-import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TimeAxis } from './axis/timeAxis';
 import { Background } from './background/background';
@@ -328,7 +328,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.titleGroup.append(this.subtitle.node);
         this.titleGroup.append(this.footnote.node);
 
-        this.tooltip = new Tooltip();
+        const agDocument = new AgDocument(options.specialOverrides.document, options.specialOverrides.window);
+
+        this.tooltip = new Tooltip(agDocument);
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
         this.styleNonce = options.processedOptions.styleNonce;
@@ -339,6 +341,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             container,
             styleContainer,
             skipCss,
+            agDocument,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
@@ -358,7 +361,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
+            getLoadingSpinner(
+                ctx.agDocument,
+                this.overlays.loading.getText(ctx.localeManager),
+                ctx.animationManager.defaultDuration
+            );
 
         this.processors = [
             new DataWindowProcessor(
@@ -412,7 +419,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             () => this.subtitle.destroy(),
             () => this.footnote.destroy(),
 
-            Widget.addWindowEvent('page-left', () => this.destroy()),
+            this.ctx.agDocument.attachListener('pagehide', (event: PageTransitionEvent) => {
+                // Don't fire if persisted since the page may be revisited.
+                if (!event.persisted) {
+                    this.destroy();
+                }
+            }),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -562,9 +574,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
-        if (this.destroyed) {
-            return;
-        }
+        if (this.destroyed) return;
 
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;

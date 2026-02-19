@@ -1,4 +1,4 @@
-import { getWindow } from 'ag-charts-core';
+import type { AgDocument } from 'ag-charts-core';
 
 /**
  * Chrome & FireFox reports devicePixelRatio as the pixel ratio of the screen multiplied by the browser zoom.
@@ -11,19 +11,24 @@ export class PixelRatioObserver {
         return this.devicePixelRatio;
     }
 
-    private devicePixelRatio = getWindow('devicePixelRatio') ?? 1;
+    private devicePixelRatio: number;
     private devicePixelRatioMediaQuery: MediaQueryList | undefined = undefined;
 
     private readonly devicePixelRatioListener = (e: MediaQueryListEvent) => {
         if (e.matches) return;
 
-        this.devicePixelRatio = getWindow('devicePixelRatio') ?? 1;
+        this.devicePixelRatio = this.agDocument.devicePixelRatio;
         this.unregisterDevicePixelRatioListener();
         this.registerDevicePixelRatioListener();
         this.callback(this.pixelRatio);
     };
 
-    constructor(private readonly callback: (pixelRatio: number) => void) {}
+    constructor(
+        private readonly agDocument: AgDocument,
+        private readonly callback: (pixelRatio: number) => void
+    ) {
+        this.devicePixelRatio = agDocument.devicePixelRatio;
+    }
 
     observe() {
         this.registerDevicePixelRatioListener();
@@ -39,7 +44,7 @@ export class PixelRatioObserver {
     }
 
     private registerDevicePixelRatioListener() {
-        const devicePixelRatioMediaQuery = getWindow('matchMedia')?.(`(resolution: ${this.pixelRatio}dppx)`);
+        const devicePixelRatioMediaQuery = this.agDocument.matchMedia(`(resolution: ${this.pixelRatio}dppx)`);
         devicePixelRatioMediaQuery?.addEventListener('change', this.devicePixelRatioListener);
         this.devicePixelRatioMediaQuery = devicePixelRatioMediaQuery;
     }

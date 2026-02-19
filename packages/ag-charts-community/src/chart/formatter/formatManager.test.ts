@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -252,7 +252,8 @@ describe('Format Manager', () => {
         await hoverAction(250, 150)(chart);
         await waitForChartStability(chart);
 
-        const element = getDocument('body').getElementsByClassName('ag-charts-tooltip')[0];
+        const { body } = deproxy(chart).ctx.agDocument;
+        const element = body.getElementsByClassName('ag-charts-tooltip')[0];
         expect(element.textContent).toMatchInlineSnapshot(`"product Apple iPhone iPhone 140.000 growth 5.000000"`);
     });
 
@@ -513,7 +514,8 @@ describe('Format Manager', () => {
                 await hoverAction(200, 200)(chart);
                 await waitForChartStability(chart);
 
-                const element = getDocument('body').getElementsByClassName('ag-charts-tooltip')[0];
+                const { body } = deproxy(chart).ctx.agDocument;
+                const element = body.getElementsByClassName('ag-charts-tooltip')[0];
                 expect(element?.textContent).toContain('No Product');
             });
 

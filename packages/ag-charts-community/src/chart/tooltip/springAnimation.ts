@@ -1,4 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
+import { AgDocument, EventEmitter } from 'ag-charts-core';
 
 interface SpringAnimationUpdateEvent {
     readonly x: number;
@@ -23,12 +23,14 @@ export class SpringAnimation {
     private t0 = Number.NaN;
     private animationFrameHandle: number | undefined = undefined;
 
+    constructor(private readonly agDocument: AgDocument) {}
+
     reset() {
         this.x = Number.NaN;
         this.y = Number.NaN;
 
         if (this.animationFrameHandle != null) {
-            cancelAnimationFrame(this.animationFrameHandle);
+            this.agDocument.cancelAnimationFrame(this.animationFrameHandle);
             this.animationFrameHandle = undefined;
         }
     }
@@ -43,7 +45,7 @@ export class SpringAnimation {
             this.emitUpdate();
 
             if (this.animationFrameHandle != null) {
-                cancelAnimationFrame(this.animationFrameHandle);
+                this.agDocument.cancelAnimationFrame(this.animationFrameHandle);
                 this.animationFrameHandle = undefined;
             }
 
@@ -54,7 +56,7 @@ export class SpringAnimation {
         this.y1 = y;
         this.t0 = Date.now();
 
-        this.animationFrameHandle ??= requestAnimationFrame(this.onFrame.bind(this));
+        this.animationFrameHandle ??= this.agDocument.requestAnimationFrame(this.onFrame.bind(this));
     }
 
     private onFrame() {
@@ -94,7 +96,7 @@ export class SpringAnimation {
             this.y = y;
             this.vx = vx;
             this.vy = vy;
-            this.animationFrameHandle = requestAnimationFrame(this.onFrame.bind(this));
+            this.animationFrameHandle = this.agDocument.requestAnimationFrame(this.onFrame.bind(this));
         }
 
         this.emitUpdate();

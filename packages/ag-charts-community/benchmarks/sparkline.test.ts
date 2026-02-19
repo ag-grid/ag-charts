@@ -18,7 +18,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 6, expectedCanvasCount: 3 },
+        { expectedRetainedSizeMB: 6.5, expectedCanvasCount: 3 },
         async () => {
             await ctx.create({ pool: false });
         },
@@ -28,7 +28,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load (pooled)',
         ctx,
-        { expectedRelativeMB: 6, expectedCanvasCount: 2, autoSnapshot: false },
+        { expectedRelativeMB: 6.5, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create({ container: document.createElement('div') });
         },

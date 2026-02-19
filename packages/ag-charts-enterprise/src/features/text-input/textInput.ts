@@ -55,14 +55,6 @@ export class TextInput {
             'data-preventdefault': false, // AG-13715
         });
 
-        // FireFox does not yet support `contenteditable="plaintext-only", so it defaults to false and has to be
-        // added back on to the element as the normal richtext version. The plaintext version is preferred as
-        // it handles newlines better without requiring any custom text processing.
-        // @see https://bugzilla.mozilla.org/show_bug.cgi?id=1291467
-        if (!textArea.isContentEditable) {
-            textArea.contentEditable = 'true';
-        }
-
         textArea.setAttribute(
             'placeholder',
             this.ctx.localeManager.t(opts.placeholderText ?? 'inputTextareaPlaceholder')

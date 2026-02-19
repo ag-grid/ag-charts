@@ -1,4 +1,4 @@
-import { ChartUpdateType, cachedTextMeasurer, getDocument, getResizeObserver } from 'ag-charts-core';
+import { ChartUpdateType, cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { UpdateService } from '../updateService';
@@ -39,22 +39,21 @@ export class FontManager {
         const ResizeObserverCtor = getResizeObserver();
         if (ResizeObserverCtor === undefined) return;
 
-        const doc = getDocument();
-        if (!doc) return;
-
-        const fontCheckElement = doc.createElement('div');
-        fontCheckElement.style.setProperty('position', 'absolute');
-        fontCheckElement.style.setProperty('top', '0');
-        fontCheckElement.style.setProperty('margin', '0');
-        fontCheckElement.style.setProperty('padding', '0');
-        fontCheckElement.style.setProperty('overflow', 'hidden');
-        fontCheckElement.style.setProperty('visibility', 'hidden');
-        fontCheckElement.style.setProperty('width', 'auto');
-        fontCheckElement.style.setProperty('max-width', 'none');
-        fontCheckElement.style.setProperty('font-synthesis', 'none');
-        fontCheckElement.style.setProperty('font-family', font);
-        fontCheckElement.style.setProperty('font-size', '16px');
-        fontCheckElement.style.setProperty('white-space', 'nowrap');
+        const doc = this.domManager.getDocument();
+        const fontCheckElement = doc.createElement('div', {
+            position: 'absolute',
+            top: '0',
+            margin: '0',
+            padding: '0',
+            overflow: 'hidden',
+            visibility: 'hidden',
+            width: 'auto',
+            maxWidth: 'none',
+            fontSynthesis: 'none',
+            fontFamily: font,
+            fontSize: '16px',
+            whiteSpace: 'nowrap',
+        });
         fontCheckElement.textContent = 'UVWxyz';
 
         this.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);

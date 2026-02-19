@@ -144,6 +144,8 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
+        this.hoverScheduler = this.createHoverScheduler();
+
         this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip, this.focus);
 
         const initialAltText = chart.ctx.localeManager.t('ariaInitSeriesArea');
@@ -175,6 +177,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
+            chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
@@ -849,27 +852,36 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.stashedHoverEvent = undefined;
     }
 
-    private readonly hoverScheduler = debouncedAnimationFrame(() => {
-        if (this.hoverDevice === 'setState') {
-            return this.handleHoverFromState();
-        }
+    private createHoverScheduler() {
+        return debouncedAnimationFrame(this.chart.ctx.domManager.getDocument(), () => {
+            if (this.hoverDevice === 'setState') {
+                return this.handleHoverFromState();
+            }
 
-        if (!this.tooltip.lastHover && !this.highlight.pendingHoverEvent) return;
+            if (!this.tooltip.lastHover && !this.highlight.pendingHoverEvent) return;
 
-        if (this.chart.getUpdateType() <= ChartUpdateType.SERIES_UPDATE) {
-            // Reschedule until the current update processing is complete, if we try to
-            // perform a highlight mid-update then we may not have fresh node data to work with.
-            this.hoverScheduler.schedule();
-            return;
-        }
+            if (this.chart.getUpdateType() <= ChartUpdateType.SERIES_UPDATE) {
+                // Reschedule until the current update processing is complete, if we try to
+                // perform a highlight mid-update then we may not have fresh node data to work with.
+                this.hoverScheduler.schedule();
+                return;
+            }
 
-        if (this.highlight.pendingHoverEvent) {
-            this.handleHoverHighlight(false);
-        }
-        if (this.tooltip.lastHover) {
-            this.handleHoverTooltip(this.tooltip.lastHover, false);
-        }
-    });
+            if (this.highlight.pendingHoverEvent) {
+                this.handleHoverHighlight(false);
+            }
+            if (this.tooltip.lastHover) {
+                this.handleHoverTooltip(this.tooltip.lastHover, false);
+            }
+        });
+    }
+
+    private resetHoverScheduler() {
+        this.hoverScheduler.cancel();
+        this.hoverScheduler = this.createHoverScheduler();
+    }
+
+    private hoverScheduler: ReturnType<typeof debouncedAnimationFrame>;
 
     private handleHoverFromState(): void {
         const { active, paginationState } = this.pickManager.onPickedNodesAPIDebounced();

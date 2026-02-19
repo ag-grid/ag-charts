@@ -164,7 +164,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
     private readonly dataChangeHandler: ZoomOnDataChange;
-    private readonly panner = new ZoomPanner();
+    private readonly panner = new ZoomPanner(this.ctx);
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();

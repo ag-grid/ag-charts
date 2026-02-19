@@ -1,4 +1,4 @@
-import { type BoxBounds, type StrictHTMLElement, createElement, createElementId, toPlainText } from 'ag-charts-core';
+import { type BoxBounds, type StrictHTMLElement, createElementId, toPlainText } from 'ag-charts-core';
 import type { TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -60,7 +60,7 @@ export class LegendDOMProxy {
         return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
     }
 
-    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
+    public constructor(ctx: ModuleContext, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: `${idPrefix}-toolbar`,
@@ -73,7 +73,7 @@ export class LegendDOMProxy {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
         });
-        this.itemDescription = createElement('p');
+        this.itemDescription = ctx.agDocument.createElement('p');
         this.itemDescription.style.display = 'none';
         this.itemDescription.id = createElementId();
         this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
