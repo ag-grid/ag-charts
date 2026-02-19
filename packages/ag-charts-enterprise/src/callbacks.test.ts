@@ -1310,8 +1310,8 @@ describe('AG-15850 activeChange', () => {
         DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
     >;
     function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
-        const { activeItem, datum, frozen, source, type, ...rest } = props;
-        true satisfies AreExact<keyof typeof rest, never>; // ensure the deconstruction is exhaustive
+        const { activeItem, datum, frozen, source, type, ..._rest } = props;
+        true satisfies AreExact<keyof typeof _rest, never>; // ensure the deconstruction is exhaustive
         return expect.objectContaining({
             activeItem,
             datum,
