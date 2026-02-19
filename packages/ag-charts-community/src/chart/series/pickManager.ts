@@ -8,11 +8,7 @@ import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type ActiveSource = 'highlight' | 'tooltip' | 'focus';
 
-export interface PickedNode {
-    series: UnknownSeries;
-    datum: SeriesNodeDatum<DatumIndexType>;
-    datumIndex: unknown;
-}
+export type PickedNode = SeriesNodeDatum<DatumIndexType>;
 
 export type PickedNodes = {
     matches: PickedNode[];
@@ -20,12 +16,12 @@ export type PickedNodes = {
 };
 
 function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
-    if (node.datum.itemId !== undefined) {
-        return node.datum.itemId;
-    } else if (typeof node.datum.datumIndex === 'number') {
-        return node.datum.datumIndex;
+    if (node.itemId !== undefined) {
+        return node.itemId;
+    } else if (typeof node.datumIndex === 'number') {
+        return node.datumIndex;
     } else {
-        return JSON.stringify(node.datum.datumIndex);
+        return JSON.stringify(node.datumIndex);
     }
 }
 
@@ -96,7 +92,7 @@ export class PickManager {
         } else {
             const seriesId: string = resolved.series.id;
             const itemId: string | number = getItemId(resolved);
-            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved.datum);
+            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved);
         }
     }
 

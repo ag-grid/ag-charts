@@ -65,7 +65,7 @@ export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex extends DatumIndexType>(
-        series: UnknownSeries,
+        series: PickedNode['series'],
         datumIndex: DatumIndex,
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
@@ -138,7 +138,7 @@ export class SeriesAreaManager extends BaseManager {
     };
 
     private cachedTooltipContent:
-        | { series: UnknownSeries; datumIndex: unknown; content: TooltipContent[] }
+        | { series: PickedNode['series']; datumIndex: unknown; content: TooltipContent[] }
         | undefined = undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
@@ -328,7 +328,7 @@ export class SeriesAreaManager extends BaseManager {
             const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'context-menu');
             if (pick) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
-                pickedNode = pick.matches[0].datum;
+                pickedNode = pick.matches[0];
             }
         }
 
@@ -585,11 +585,10 @@ export class SeriesAreaManager extends BaseManager {
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return false;
 
-        const { series, datum } = updated.active;
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
         if (event.type === 'click') {
-            const defaultBehavior = series.fireNodeClickEvent(event.sourceEvent, datum);
+            const defaultBehavior = updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active);
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
@@ -613,7 +612,7 @@ export class SeriesAreaManager extends BaseManager {
             // a node.
             event.preventZoomDblClick = distance === 0;
 
-            series.fireNodeDoubleClickEvent(event.sourceEvent, datum);
+            updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
             return true;
         }
 
@@ -760,7 +759,7 @@ export class SeriesAreaManager extends BaseManager {
         // Update the bounds of the focus indicator:
         this.focusIndicator?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
-        const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
+        const tooltipContent = this.getTooltipContent(datum, 'aria-label');
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
@@ -887,8 +886,8 @@ export class SeriesAreaManager extends BaseManager {
         const { active, paginationState } = this.pickManager.onPickedNodesAPIDebounced();
         if (active === undefined) return;
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum);
-        const refPoint = getDatumRefPoint(active.series, active.datum, undefined);
+        this.chart.ctx.highlightManager.updateHighlight(this.id, active);
+        const refPoint = getDatumRefPoint(active.series, active, undefined);
         if (this.chart.tooltip.enabled) {
             if (!active.series.visible) {
                 this.clearTooltip();
@@ -921,7 +920,7 @@ export class SeriesAreaManager extends BaseManager {
         if (active === undefined) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
         } else {
-            this.chart.ctx.highlightManager.updateHighlight(this.id, active.datum, false);
+            this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
         }
     }
 
@@ -956,15 +955,11 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private showTooltip(
-        { series, datum, datumIndex }: PickedNode,
-        canvasX: number,
-        canvasY: number,
-        pagination?: TooltipPaginationState
-    ) {
-        const tooltipContent = this.getTooltipContent(series, datumIndex, datum, 'tooltip');
+    private showTooltip(datum: PickedNode, canvasX: number, canvasY: number, pagination?: TooltipPaginationState) {
+        const tooltipContent = this.getTooltipContent(datum, 'tooltip');
         const shouldUpdateTooltip = tooltipContent != null;
         if (shouldUpdateTooltip) {
+            const { series } = datum;
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
                 series,
@@ -1078,32 +1073,19 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private isTooltipEnabled(series: UnknownSeries): boolean {
+    private isTooltipEnabled(series: PickedNode['series']): boolean {
         return series.tooltipEnabled ?? this.chart.tooltip.enabled;
     }
 
     // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
     // (CRT-869, CRT-901, CRT-871, CRT-909).
+    private getTooltipContent(datum: SeriesNodeDatum<DatumIndexType>, purpose: 'aria-label'): TooltipContent[];
+    private getTooltipContent(datum: SeriesNodeDatum<DatumIndexType>, purpose: 'tooltip'): TooltipContent[] | undefined;
     private getTooltipContent(
-        series: UnknownSeries,
-        datumIndex: unknown,
-        datum: SeriesNodeDatum<DatumIndexType>,
-        purpose: 'aria-label'
-    ): TooltipContent[];
-
-    private getTooltipContent(
-        series: UnknownSeries,
-        datumIndex: unknown,
-        datum: SeriesNodeDatum<DatumIndexType>,
-        purpose: 'tooltip'
-    ): TooltipContent[] | undefined;
-
-    private getTooltipContent(
-        series: UnknownSeries,
-        datumIndex: DatumIndexType,
         datum: SeriesNodeDatum<DatumIndexType>,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] | undefined {
+        const { series, datumIndex } = datum;
         let result: TooltipContent[] | undefined;
 
         if (purpose === 'aria-label' || this.isTooltipEnabled(series)) {
@@ -1179,7 +1161,7 @@ export class SeriesAreaManager extends BaseManager {
             this.onActiveClear();
         } else {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
-            event.setDatum(picked?.datum);
+            event.setDatum(picked);
             this.hoverDevice = 'setState';
             this.activeState.lastActive = { seriesId, itemId };
             if (event.initialState) {
@@ -1201,17 +1183,12 @@ export class SeriesAreaManager extends BaseManager {
             return undefined;
         }
 
-        const desiredDatum: PickedNode['datum'] | undefined = desiredSeries.findNodeDatum(desiredItemId);
+        const desiredDatum: PickedNode | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
             Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
             return undefined;
         }
 
-        const restoredPick: PickedNode = {
-            datum: desiredDatum,
-            datumIndex: desiredDatum.datumIndex,
-            series: desiredSeries,
-        };
-        return { matches: [restoredPick], distance: 0 };
+        return { matches: [desiredDatum], distance: 0 };
     }
 }

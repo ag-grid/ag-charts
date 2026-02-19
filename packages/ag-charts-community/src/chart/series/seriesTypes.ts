@@ -7,6 +7,7 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -96,6 +97,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined;
     isPointInArea?(x: number, y: number): boolean;
+    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
 }
 
 /**
