@@ -40,7 +40,7 @@ function indexOf(candidates: PickedNode[], node: PickedNode | undefined): number
 type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number; length: number } };
 
 /**
- * IPickManager mediates the `active` node state between SeriesAreaManager and ActiveManager.
+ * PickManager mediates the `active` node state between SeriesAreaManager and ActiveManager.
  *
  * It tracks the active node by:
  *
@@ -51,20 +51,7 @@ type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number
  *
  *   3.  Track tooltip candidates (if pagination is enabled).
  */
-export interface IPickManager {
-    onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
-    onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
-    onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void;
-    onPickedNodesAPI(pickedNodes: PickedNodes): PickedNode | undefined;
-    onPickedNodesAPIDebounced(): TooltipCandidate;
-
-    onClearUI(): void;
-    onClearAPI(): void;
-
-    nextCandidate(): TooltipCandidate;
-}
-
-export class PickManager implements IPickManager {
+export class PickManager {
     private candidates: PickedNode[] = [];
 
     private readonly activeState = new StateTracker<PickedNode, ActiveSource>();

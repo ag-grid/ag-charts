@@ -45,7 +45,7 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type IPickManager, PickManager, type PickedNode, type PickedNodes } from './pickManager';
+import { PickManager, type PickedNode, type PickedNodes } from './pickManager';
 import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
@@ -127,7 +127,7 @@ export class SeriesAreaManager extends BaseManager {
      */
     private hoverDevice: HoverDevice = 'pointer';
 
-    private readonly pickManager: IPickManager;
+    private readonly pickManager: PickManager;
 
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
