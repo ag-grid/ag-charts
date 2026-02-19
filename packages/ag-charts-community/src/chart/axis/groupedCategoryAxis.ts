@@ -825,7 +825,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.scale.domain = sortedDomain;
 
         const tickScaleDomain = sortedDomain.map(convertIntegratedCategoryValue);
-        tickScaleDomain.push(['']); // Add empty tick for the last label.
+        tickScaleDomain.push(['']); // Add an empty tick for the last label.
         this.tickScale.domain = tickScaleDomain;
     }
 
