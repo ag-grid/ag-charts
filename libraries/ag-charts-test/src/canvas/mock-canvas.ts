@@ -141,7 +141,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
             mockedElement.toDataURL = (mimeType = 'image/png') => {
-                return nextCanvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
+                return nextCanvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
             };
 
             return mockedElement;

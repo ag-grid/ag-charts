@@ -45,7 +45,7 @@ export function patchDocumentCreateElement(document: Document, options: Document
 
             Object.defineProperty(mockElement, 'toDataURL', {
                 value: (mimeType = 'image/png') => {
-                    return canvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
+                    return canvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
                 },
                 writable: true,
                 configurable: true,
