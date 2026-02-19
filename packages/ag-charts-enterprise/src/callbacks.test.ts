@@ -2618,13 +2618,13 @@ describe('AG-15850 activeChange', () => {
             await chart.updateDelta({ initialState: getDesiredState() });
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
-                    },
+                    }),
                 ],
             ]);
         });
@@ -2634,13 +2634,13 @@ describe('AG-15850 activeChange', () => {
             await chart.setState({ version, ...getDesiredState() });
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
-                    },
+                    }),
                 ],
             ]);
         });
@@ -2682,13 +2682,13 @@ describe('AG-15850 activeChange', () => {
             await noHighlightImageSnapshot();
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-1', itemId: 'apples' },
                         frozen: false,
                         datum: undefined,
-                    },
+                    }),
                 ],
             ]);
 
@@ -2697,13 +2697,13 @@ describe('AG-15850 activeChange', () => {
             await noHighlightImageSnapshot();
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-2', itemId: 'oranges' },
                         frozen: false,
                         datum: undefined,
-                    },
+                    }),
                 ],
             ]);
 
@@ -2712,13 +2712,13 @@ describe('AG-15850 activeChange', () => {
             await noHighlightImageSnapshot();
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: undefined,
                         frozen: false,
                         datum: undefined,
-                    },
+                    }),
                 ],
             ]);
         });
