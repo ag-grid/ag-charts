@@ -79,9 +79,19 @@ export class PickManager {
         }
     }
 
-    maybeActivate(desiredActive: PickedNode | undefined): boolean {
-        const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(desiredActive);
-        return this.activeManager.update(newItemState, nodeDatum);
+    /**
+     * Dispatch a preventable `'activeChange'` event.
+     * If `AgActiveChangeEvent.preventDefault()` was not called, then run `defaultCb(defaultCbArg)`.
+     */
+    maybeActivate(node: PickedNode | undefined, defaultCb: () => void, defaultCbArg?: never): void;
+    maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a: A) => void, defaultCbArg: A): void;
+    maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a?: A) => void, defaultCbArg?: A): void {
+        const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(node);
+        const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
+        if (!defaultPrevented) {
+            this.active = node;
+            defaultCb(defaultCbArg);
+        }
     }
 
     // Some user interactive (e.g. mouseleave, blur) has cleared the active datum.
