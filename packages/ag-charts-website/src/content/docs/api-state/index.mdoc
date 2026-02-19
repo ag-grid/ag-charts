@@ -122,6 +122,22 @@ In this example:
 -   Click the 'Restore' button to restore the saved state to the chart using `chart.setState()`.
 -   This will make the same item active again, showing its tooltip and highlight.
 
+### Frozen Active
+
+The `active.frozen` property can be used to pause user interactions.
+
+{% chartExampleRunner
+    title="Frozen Active State"
+    name="frozen-active-state"
+    options={ "enterprise": true }
+    type="generated"
+/%}
+
+In this example:
+
+-   Clicking the chart freezes the current Active State. The Highlight & Tooltip remain static when the mouse moves.
+-   Clicking the 'Unfreeze' button in the Tooltip restores interactivity.
+
 ## API Reference
 
 {% tabs %}
