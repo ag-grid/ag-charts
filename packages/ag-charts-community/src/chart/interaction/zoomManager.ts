@@ -788,26 +788,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             start,
             end
         );
-        const r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
-        const r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
+        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
+        let r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
         const [dMin, dMax] = [Math.min(d0, d1), Math.max(d0, d1)];
 
-        if (r0 < dMin || r0 > dMax) {
-            Logger.warnOnce(
-                `Invalid range start [${start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
-            );
-            return;
-        }
-
-        if (r1 < dMin || r1 > dMax) {
-            Logger.warnOnce(
-                `Invalid range end [${end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
-            );
-            return;
-        }
+        r0 = clamp(dMin, r0, dMax);
+        r1 = clamp(dMin, r1, dMax);
 
         const diff = d1 - d0;
         if (diff === 0) return;
