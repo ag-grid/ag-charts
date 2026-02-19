@@ -175,7 +175,6 @@
     "eslint/cross-spawn": "7.0.6",
     "jest/**/cross-spawn": "7.0.6",
     "patch-package/cross-spawn": "7.0.6",
-    "skia-canvas/**/cross-spawn": "7.0.6",
     "@angular/cli/**/cross-spawn": "7.0.6",
     "@angular-devkit/build-angular/**/cross-spawn": "7.0.6",
     "@swc/cli/**/bin-version/execa/cross-spawn": "7.0.6",

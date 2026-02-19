@@ -12,7 +12,7 @@ export interface CanvasLike {
     gpu: boolean;
     getContext(type: '2d'): unknown;
     toBuffer(format: string, options?: { quality?: number; msaa?: boolean }): Promise<Uint8Array>;
-    toDataURLSync?(mimeType: string): string;
+    toDataURL(mimeType?: string): string;
 }
 
 /** Default canvas width for test/SSR rendering. */
@@ -69,7 +69,6 @@ let patchesApplied = false;
  * Call once at module initialization in consuming packages.
  *
  * Patches:
- * - createConicGradient: Fixes angle offset (https://github.com/samizdatco/skia-canvas/issues/241)
  * - fillText: Uses path-based text rendering for consistent output
  *
  * Usage:
@@ -84,15 +83,6 @@ let patchesApplied = false;
 export function applySkiaPatches(CanvasRenderingContext2D: any, DOMMatrix: any) {
     if (patchesApplied) return;
     patchesApplied = true;
-
-    const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient;
-    Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
-        value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
-            return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
-        },
-        writable: true,
-        configurable: true,
-    });
 
     Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
         value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
