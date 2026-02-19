@@ -14,7 +14,7 @@ import {
     entries,
     roundTo,
 } from 'ag-charts-core';
-import type { AgZoomAnchorPoint, AgZoomAxisDraggingMode } from 'ag-charts-types';
+import type { AgZoomAnchorPoint } from 'ag-charts-types';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
@@ -117,6 +117,9 @@ export class Zoom extends AbstractModuleInstance {
     public axes: 'x' | 'y' | 'xy' = 'x';
 
     @Property
+    public scrollingMode: 'pan' | 'zoom' = 'zoom';
+
+    @Property
     public scrollingStep = UNIT_SIZE / 10;
 
     @Property
@@ -140,7 +143,7 @@ export class Zoom extends AbstractModuleInstance {
         },
     })
     @Property
-    public axisDraggingMode: AgZoomAxisDraggingMode = 'zoom';
+    public axisDraggingMode: 'pan' | 'zoom' = 'zoom';
 
     @Property
     public buttons = new ZoomToolbar(
@@ -633,14 +636,14 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onWheel(event: _Widget.WheelWidgetEvent) {
-        const { enabled, enablePanning, enableScrolling, paddedRect } = this;
+        const { enabled, enablePanning, enableScrolling, paddedRect, scrollingMode } = this;
 
         if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
         const { deltaX, deltaY } = event;
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
-        if (enablePanning && isHorizontalScrolling) {
+        if (enablePanning && (scrollingMode === 'pan' || isHorizontalScrolling)) {
             this.onWheelPanning(event);
         } else {
             this.onWheelScrolling(event);
@@ -652,6 +655,7 @@ export class Zoom extends AbstractModuleInstance {
             scrollingStep,
             scrollPanner,
             seriesRect,
+            scrollingMode,
             ctx: { zoomManager },
         } = this;
 
@@ -659,7 +663,13 @@ export class Zoom extends AbstractModuleInstance {
 
         event.sourceEvent.preventDefault();
 
-        const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
+        const newZooms = scrollPanner.update(
+            event,
+            scrollingStep,
+            scrollingMode,
+            seriesRect,
+            zoomManager.getAxisZooms()
+        );
         this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
     }
 

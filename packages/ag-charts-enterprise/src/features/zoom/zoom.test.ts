@@ -225,6 +225,14 @@ describe('Zoom', () => {
             // @todo(AG-15504) - we should zoom in as far as possible
             await compare();
         });
+
+        describe('scrollingMode is pan', () => {
+            it('should pan vertically', async () => {
+                await prepareChart({ scrollingMode: 'pan' }, { ratioY: { start: 0.3, end: 0.7 } });
+                await scrollAction(cx, cy, -1)(chart);
+                await compare();
+            });
+        });
     });
 
     describe('pixel scrolling', () => {
