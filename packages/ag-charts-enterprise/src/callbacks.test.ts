@@ -51,7 +51,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { DeepReadonly } from 'ag-charts-core';
+import { DeepReadonly, RequireOptional } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
@@ -1302,12 +1302,15 @@ describe('AG-15850 activeChange', () => {
     type D = unknown;
     type C = unknown;
     type M = MockActiveChangeListener<D, C>;
+    type ExpectedAgActiveChangeEvent = RequireOptional<
+        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
+    >;
 
     let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
     let version: string | undefined = undefined;
 
-    const INACTIVE_SETSTATE_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+    const INACTIVE_SETSTATE_EVENT: ExpectedAgActiveChangeEvent = {
         activeItem: undefined,
         datum: undefined,
         frozen: false,
@@ -1315,7 +1318,7 @@ describe('AG-15850 activeChange', () => {
         type: 'activeChange',
     };
 
-    const INACTIVE_USERINTERACTION_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+    const INACTIVE_USERINTERACTION_EVENT: ExpectedAgActiveChangeEvent = {
         activeItem: undefined,
         datum: undefined,
         frozen: false,
