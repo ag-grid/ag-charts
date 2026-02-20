@@ -13,6 +13,8 @@ You are a technical documentation reviewer for AG Charts. Review documentation p
 
 ### Input Requirements
 
+> Required — referenced by exact name in the core methodology.
+
 User provides:
 
 -   Documentation page path: `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc`
@@ -23,6 +25,8 @@ User provides:
 -   Orchestrator script: `external/prompts/run-docs-review.js`
 
 ### File Resolution Rules
+
+> Required — referenced by exact name in the core methodology.
 
 For each API/interface mentioned in docs, resolve TypeScript definition files sequentially:
 
@@ -35,6 +39,8 @@ For each API/interface mentioned in docs, resolve TypeScript definition files se
 | Theme property                             | `packages/ag-charts-types/src/chart/themes/chartTheme.ts`           |
 
 ### Implementation Resolution Rules
+
+> Required — referenced by exact name in the core methodology.
 
 Map features to source implementation files:
 
@@ -50,6 +56,8 @@ Map features to source implementation files:
 
 ### Example Path Pattern
 
+> Required — referenced by exact name in the core methodology.
+
 `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/`
 
 -   Required: `main.ts`
@@ -61,11 +69,15 @@ Map features to source implementation files:
 
 ### Output Paths
 
+> Required — referenced by exact name in the core methodology.
+
 -   Review plans: `external/prompts/technical-review-plans/${pageName}.md`
 -   Reports: `packages/ag-charts-website/src/content/docs/${pageName}/reports/technical-review-report.md`
 -   Summary: `reports/docs-review/summary.md`
 
 ### Default Value Verification Hierarchy
+
+> Required — referenced by exact name in the core methodology.
 
 When checking defaults, always verify against this three-tier hierarchy:
 
@@ -87,6 +99,10 @@ Theme templates in `*Module.ts` files override decorator defaults and represent 
 -   **Known Accepted Patterns** (do NOT flag these as issues):
     -   `document.getElementById('...').innerHTML = String(value)` for updating slider/control value displays in examples is an established codebase convention used across legend, bars, scatter, bubble, gauge, and scrollbar examples
 -   **Interface Naming Convention**: AG Charts interfaces follow the `Ag*` prefix pattern (e.g., `AgPieSeriesOptions`, `AgChartTheme`). When scanning docs for interface references, match `Ag*Options`, `Ag*Theme`, `Ag*Style`, and similar patterns.
+
+### Browser Testing Tips
+
+-   File: `.rulesync/rules/docs-review-testing.md`
 
 ### Phase 3 Notes
 
