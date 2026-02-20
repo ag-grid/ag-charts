@@ -19,6 +19,7 @@ Optional sections:
 
 -   **Orchestration Indicator** — if the product has a batch orchestration script, name it here so Strict Mode can be detected
 -   **Browser Testing Tips** — file path to product-specific browser testing guidance, read at the start of browser testing
+-   **Example Direct URL Pattern** — URL template with `${pageName}` and `${exampleName}` placeholders for opening examples at standalone direct URLs (no iframe, no docs page chrome). When configured, browser testing of examples is delegated to a sub-agent.
 
 ## Execution Mode Detection
 
@@ -176,6 +177,20 @@ Document all discovered files and create validation tasks in the review plan out
 
 5. **Example Testing — Browser Verification** (when browser available):
 
+    **If the product configuration includes an Example Direct URL Pattern**, delegate browser testing to the `docs-example-browser-tester` sub-agent:
+
+    1. **Construct direct example URLs** by substituting `${pageName}` and `${exampleName}` into the URL pattern for each example identified in the review plan.
+    2. **Prepare testing context** for the sub-agent — for each example, provide:
+        - `name`: the example identifier
+        - `url`: the direct standalone URL
+        - `docClaims`: what the documentation says the example demonstrates
+        - `expectedControls`: interactive controls expected (from static analysis in step 4)
+        - `expectedBehaviours`: behaviours to verify when interacting
+    3. **Spawn `docs-example-browser-tester` sub-agent** via the Task tool (sonnet model), passing the full list of examples with their context. Also pass the **Browser Testing Tips** file path if configured, and the reports directory path.
+    4. **Integrate results** from the sub-agent into the report under each example's section.
+
+    **If Example Direct URL Pattern is NOT configured**, perform inline browser testing (fallback):
+
     For each example identified in the review plan:
 
     1. Scroll to the example on the page (scroll over prose text or margins, NOT over grid iframes — grids capture scroll events)
@@ -184,11 +199,12 @@ Document all discovered files and create validation tasks in the review plan out
     4. Click each documented interactive control and screenshot the result state
     5. Compare the rendered output against documentation claims
     6. Check browser console for errors after interactions (ignore known warnings like licence messages)
-    7. Report format:
+
+    Report format (used by both approaches):
 
     ```
     #### [Example Name] - Browser Verification
-    **URL**: [dev URL with anchor if applicable]
+    **URL**: [direct example URL or dev URL with anchor]
 
     [PASSED] **Renders correctly**: [description of what was verified]
     [PASSED] **Interactive control [name]**: Clicking [control] produced [expected result]
@@ -396,12 +412,12 @@ Documentation must follow these spelling and language conventions:
 
 ## Tool Usage by Phase
 
-| Phase                         | Required Tools | Additional Tools (when browser available)          |
-| ----------------------------- | -------------- | -------------------------------------------------- |
-| Phase 1                       | Read, Write    | -                                                  |
-| Phase 2 — Static Analysis     | Read, Write    | -                                                  |
-| Phase 2 — Browser Testing     | -              | claude-in-chrome (navigate, screenshot, interact)  |
-| Phase 3                       | Read, Write    | -                                                  |
+| Phase                         | Required Tools | Additional Tools (when browser available)                                              |
+| ----------------------------- | -------------- | -------------------------------------------------------------------------------------- |
+| Phase 1                       | Read, Write    | -                                                                                      |
+| Phase 2 — Static Analysis     | Read, Write    | -                                                                                      |
+| Phase 2 — Browser Testing     | -              | Task (docs-example-browser-tester sub-agent), or claude-in-chrome inline as fallback   |
+| Phase 3                       | Read, Write    | -                                                                                      |
 
 ## Usage
 
