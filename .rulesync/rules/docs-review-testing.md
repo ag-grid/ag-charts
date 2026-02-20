@@ -50,3 +50,16 @@ Filter out known noise (e.g., HMR messages, favicon 404s). Report any errors rel
 -   **Screenshot comparison**: When verifying that a property change (e.g., `fontSize`, `color`, `enabled`) has taken effect, take a before/after screenshot and compare visually.
 -   **Animation**: Charts may animate on load. Wait briefly after navigation or interaction before screenshotting to capture the final state.
 -   **Responsive sizing**: Charts resize with their container. If verifying layout, check that the canvas dimensions match expectations in the screenshot.
+
+## Direct URL Testing (Sub-agent Mode)
+
+When the product configuration includes an **Example Direct URL Pattern**, example browser testing is delegated to a `docs-example-browser-tester` sub-agent that opens each example at its standalone URL.
+
+Direct URL characteristics:
+
+-   Examples render full-viewport with no docs page chrome, no iframe wrapper.
+-   Interactive controls (buttons, dropdowns) are directly accessible without scrolling past documentation content.
+-   Console messages come from the example only, not the surrounding docs page.
+-   Screenshots capture the complete example without docs page chrome.
+
+The main agent retains responsibility for page-level visual/interaction testing (Step 6) which requires the full docs page context (theme switchers, framework selectors, cross-references, keyboard navigation).

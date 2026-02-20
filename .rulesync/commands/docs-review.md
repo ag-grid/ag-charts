@@ -63,6 +63,14 @@ Map features to source implementation files:
 -   Required: `main.ts`
 -   Optional: `data.ts`, `styles.css`
 
+### Example Direct URL Pattern
+
+> Optional — referenced by exact name in the core methodology.
+
+`https://localhost:4600/vanilla/${pageName}/examples/${exampleName}/example-runner`
+
+The `vanilla` framework variant is used as it loads slightly faster than `typescript`.
+
 ### Exceptions File Path
 
 `packages/ag-charts-website/src/content/docs/${pageName}/technical-review-exceptions.md`
