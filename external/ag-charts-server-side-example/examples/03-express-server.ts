@@ -5,6 +5,15 @@ import { AgChartsServerSide } from 'ag-charts-server-side';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+function getBaseUrl(port: number): string {
+    if (process.env.CODESPACES === 'true') {
+        const name = process.env.CODESPACE_NAME;
+        const domain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+        return `https://${name}-${port}.${domain}`;
+    }
+    return `http://localhost:${port}`;
+}
+
 const app = express();
 
 app.get('/chart.png', async (req, res) => {
@@ -29,5 +38,5 @@ app.get('/chart.png', async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Chart server running at http://localhost:3000/chart.png');
+    console.log(`Chart server running at ${getBaseUrl(3000)}/chart.png`);
 });
