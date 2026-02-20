@@ -72,13 +72,7 @@ describe('Zoom', () => {
             // Skipping Saturday and Sunday
             { date: new Date('2024-04-29'), value: 60 }, // Monday
         ],
-        series: [
-            {
-                type: 'bar',
-                xKey: 'date',
-                yKey: 'value',
-            },
-        ],
+        series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
         axes: {
             x: {
                 type: 'ordinal-time',
@@ -88,10 +82,26 @@ describe('Zoom', () => {
                     enabled: true,
                 },
             },
-            y: {
-                type: 'number',
-                position: 'left',
-            },
+            y: { type: 'number', position: 'left' },
+        },
+    };
+
+    const TIME_EXAMPLE_OPTIONS: AgChartOptions = {
+        data: [
+            { date: new Date('2024-04-19'), value: 60 }, // Monday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-22'), value: 10 }, // Monday
+            { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+            { date: new Date('2024-04-24'), value: 30 }, // Wednesday
+            { date: new Date('2024-04-25'), value: 40 }, // Thursday
+            { date: new Date('2024-04-26'), value: 50 }, // Friday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-29'), value: 60 }, // Monday
+        ],
+        series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+        axes: {
+            x: { type: 'time', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
         },
     };
 
@@ -660,6 +670,11 @@ describe('Zoom', () => {
                 ORDINAL_EXAMPLE_OPTIONS
             );
             await compare();
+        });
+
+        it('should handle numbers on time axes without crashing', async () => {
+            await prepareChart({}, { rangeX: { start: 0.2, end: 0.8 } }, TIME_EXAMPLE_OPTIONS);
+            await waitForChartStability(chart);
         });
     });
 
