@@ -18,6 +18,7 @@ The product wrapper that references this file MUST define these sections (refere
 Optional sections:
 
 -   **Orchestration Indicator** — if the product has a batch orchestration script, name it here so Strict Mode can be detected
+-   **Browser Testing Tips** — file path to product-specific browser testing guidance, read at the start of browser testing
 
 ## Execution Mode Detection
 
@@ -29,16 +30,33 @@ Check for any of these indicators:
 
 **If found**: **STRICT MODE** - All MCP tools REQUIRED. If ANY tool is missing, STOP immediately with error message: `ERROR: Cannot proceed in orchestrated mode - missing required MCP tool [name]`. Do NOT attempt review or fallbacks.
 
-**If not found**: **ADAPTIVE MODE** - Check available tools. If claude-in-chrome or Task tool unavailable, display degraded mode warning and request explicit user confirmation before proceeding.
+**If not found**: Proceed with the layered review approach described below.
 
-### Degraded Mode Warning Template
+## Review Approach: Static Analysis + Browser Testing
+
+Every review performs **static analysis** — reading files, validating APIs, checking examples against TypeScript definitions. This always happens regardless of tool availability.
+
+When browser tools (claude-in-chrome) are available, **browser testing is additionally performed** on top of static analysis. Browser testing verifies rendering, interactive behaviour, and visual correctness that static analysis cannot check.
+
+### Browser Availability Check
+
+At the **start of Phase 2**, determine browser availability:
+
+1. Call `mcp__claude-in-chrome__tabs_context_mcp` to test browser connectivity.
+2. If the call **succeeds**: browser testing is **MANDATORY** for this review, in addition to static analysis.
+3. If the call **fails** or the tool does not exist: note the limitation and proceed with static analysis only. Display the warning below.
+
+IMPORTANT: When `tabs_context_mcp` succeeds, browser testing is REQUIRED in addition to static analysis. DO NOT skip browser testing. DO NOT report "[SKIPPED] VISUAL TESTING" when browser tools are available. DO NOT assume browser tools are unavailable without first calling `tabs_context_mcp`.
+
+### Browser Unavailable Warning Template
+
+Display this warning only when `tabs_context_mcp` fails or is not available:
 
 ```
-[WARNING] DEGRADED MODE DETECTED
+[WARNING] BROWSER TOOLS UNAVAILABLE
 
 Missing capabilities:
 - Browser automation (claude-in-chrome)
-- Example testing delegation (Task tool)
 
 Limitations:
 - Static code analysis only for examples
@@ -51,22 +69,7 @@ Still included:
 - Configuration consistency checking
 - Static example code analysis
 - Documentation accuracy assessment
-
-Continue in degraded mode? (Please confirm explicitly)
 ```
-
-## Mode Adaptations Reference
-
-| Capability            | STRICT/Full Mode                                | ADAPTIVE/Degraded Mode                       |
-| --------------------- | ----------------------------------------------- | -------------------------------------------- |
-| **Tool Requirements** | claude-in-chrome + Task tool (REQUIRED)         | Read/Write only (optional tools unavailable) |
-| **Example Testing**   | Delegate to example-tester agent via Task tool  | Static code analysis of example files        |
-| **Visual Testing**    | Full screenshot capture + interaction testing   | Skip with warning marker                     |
-| **Report Markers**    | `[PASSED]`, `[WARNING]`, `[CRITICAL]`           | Prefix with "STATIC ANALYSIS ONLY"           |
-| **Visual Evidence**   | Reference screenshots by filename               | Note "[SKIPPED] VISUAL TESTING"              |
-| **Interaction Tests** | Test all interactive features described in docs | Mark "Unable to verify (requires browser)"   |
-
-Apply these adaptations throughout all phases based on detected mode.
 
 ## Three-Phase Review Process
 
@@ -108,8 +111,8 @@ Document all discovered files and create validation tasks in the review plan out
     - What the docs claim it demonstrates
     - Key configurations mentioned in docs
     - Expected behaviours described
-5. **List interactive features** to test (mode-dependent)
-6. **List visual states** to capture (full mode only)
+5. **List interactive features** to test
+6. **List visual states** to capture (when browser available)
 
 **Output**: Write to the review plans path specified in **Output Paths**.
 
@@ -119,11 +122,23 @@ Document all discovered files and create validation tasks in the review plan out
 
 -   The review plan output file must exist and have been updated with the review plan from Step 1.
 
-**Goal**: Validate technical accuracy, example consistency, and content quality.
+**Goal**: Validate technical accuracy, example consistency, and content quality through static analysis and browser testing.
 
-1. **Clean reports directory**: Delete existing files in the reports directory for this page (see **Output Paths** in product configuration).
+1. **Establish Browser Session**:
 
-2. **Technical Accuracy Review** (always performed in all modes):
+    Determine browser availability before any other review work:
+
+    1. Call `mcp__claude-in-chrome__tabs_context_mcp` to test browser connectivity.
+    2. If successful, create a new tab with `mcp__claude-in-chrome__tabs_create_mcp`.
+    3. If the product configuration includes a **Browser Testing Tips** section, read that file for navigation guidance.
+    4. Navigate to the dev URL from **Input Requirements**.
+    5. Take an initial full-page screenshot to confirm the page loaded.
+
+    If `tabs_context_mcp` fails or is not available, display the **Browser Unavailable Warning Template** and proceed with static analysis only for the rest of Phase 2.
+
+2. **Clean reports directory**: Delete existing files in the reports directory for this page (see **Output Paths** in product configuration).
+
+3. **Technical Accuracy Review** (always performed):
 
     > **Default Value Verification**: When checking defaults, always verify against the hierarchy described in the **Default Value Verification Hierarchy** in the product configuration. Theme/module defaults override decorator defaults and represent actual runtime behaviour.
 
@@ -137,18 +152,9 @@ Document all discovered files and create validation tasks in the review plan out
         - Code examples showing incorrect vs correct
         - For defaults: Show all layers of the verification hierarchy
 
-3. **Example Testing** (mode-dependent, see Mode Adaptations table):
+4. **Example Testing — Static Analysis** (always performed):
 
-    **Full Mode**: Delegate to example-tester agent via Task tool with:
-
-    - Example path and expected behaviours from documentation
-    - Specific features that should be visible/testable
-    - Configuration patterns mentioned in docs
-    - Structure agent findings by example as returned
-
-    > **Note**: Full Mode example testing requires a product-specific `example-tester` sub-agent. If the product has not configured one, fall back to Degraded Mode for example testing.
-
-    **Degraded Mode**: For each example, perform static analysis:
+    For each example, perform static analysis:
 
     - Read source files from the **Example Path Pattern**
     - Extract documentation claims about the example
@@ -156,7 +162,7 @@ Document all discovered files and create validation tasks in the review plan out
     - Report format:
 
     ```
-    #### [Example Name] - STATIC ANALYSIS ONLY
+    #### [Example Name] - Static Analysis
     **Location**: `_examples/[example-name]/`
 
     [PASSED] **Configuration Verified**: [list validated configurations]
@@ -166,28 +172,49 @@ Document all discovered files and create validation tasks in the review plan out
     - **Documentation claims**: [What docs say]
     - **Actual code**: [What's in example]
     - **Fix Required**: [Specific action]
-
-    [WARNING] **Unable to Verify (requires browser)**: Runtime behavior, Visual rendering, Interactive features, Tooltip content
     ```
 
-4. **Visual & Interaction Testing** (mode-dependent, see Mode Adaptations table):
+5. **Example Testing — Browser Verification** (when browser available):
 
-    **Full Mode**: Perform screenshot capture and interaction testing. Navigate to dev URL (from **Input Requirements**), test interactive features, save screenshots to designated directories.
+    For each example identified in the review plan:
 
-    **Degraded Mode**: Add section noting:
+    1. Scroll to the example on the page (scroll over prose text or margins, NOT over grid iframes — grids capture scroll events)
+    2. Take a screenshot of the example in its default state
+    3. Identify interactive controls (buttons, dropdowns) rendered above the grid iframe
+    4. Click each documented interactive control and screenshot the result state
+    5. Compare the rendered output against documentation claims
+    6. Check browser console for errors after interactions (ignore known warnings like licence messages)
+    7. Report format:
 
     ```
-    ### Visual & Interaction Testing
-    [SKIPPED] - claude-in-chrome unavailable
+    #### [Example Name] - Browser Verification
+    **URL**: [dev URL with anchor if applicable]
 
-    Could not verify: Screenshot capture, Runtime rendering, Interactive features, Tooltip behavior, Responsive layout
+    [PASSED] **Renders correctly**: [description of what was verified]
+    [PASSED] **Interactive control [name]**: Clicking [control] produced [expected result]
 
-    Manual verification recommended for critical visual features.
+    [CRITICAL] **Rendering Issue**:
+    - **Documentation claims**: [What docs say]
+    - **Actual rendering**: [What was observed]
+    - **Screenshot**: [reference to screenshot file]
+
+    [WARNING] **Console Errors**: [list any unexpected errors]
     ```
 
-5. **Content Quality** (always performed):
+6. **Visual & Interaction Testing** (when browser available):
+
+    Test interactive features described in the documentation beyond individual examples:
+
+    1. Test page-level interactive features (e.g., theme switchers, framework selectors)
+    2. Test any documented keyboard interactions or accessibility features
+    3. Verify cross-references and internal links navigate correctly
+    4. Take screenshots as evidence for each test
+    5. Check browser console for errors throughout testing
+    6. Save screenshots to the reports directory for this page
+
+7. **Content Quality** (always performed):
     - Completeness of feature coverage
-    - Accuracy against code analysis (static or runtime based on mode)
+    - Accuracy against code analysis (static and browser-based if available)
     - Missing documentation for discovered features
 
 **Output**: Write to the reports path specified in **Output Paths** (see Report Structure below).
@@ -213,13 +240,13 @@ All reports must include these sections in order. Use the specified structure an
 Required elements:
 
 -   Brief assessment of page
--   Review mode indicator (Full MCP / Degraded)
+-   Browser testing status: whether browser tools were available and used
 -   Overall status: `[CRITICAL ISSUES]`, `[ISSUES FOUND]`, or `[ALL PASSED]`
--   Issue counts by category: Technical Accuracy, Example Consistency (note if static only), Visual/Interaction (or SKIPPED), Content Quality
+-   Issue counts by category: Technical Accuracy, Example Consistency (static + browser if available), Visual/Interaction (or SKIPPED if browser unavailable), Content Quality
 
-### 2. Review Limitations (if in degraded mode)
+### 2. Review Limitations (if browser unavailable)
 
-List what was skipped (browser testing, screenshots, interactions) and what was completed (static analysis, configuration verification, API validation).
+Include this section only when `tabs_context_mcp` failed or was not available. List what was skipped (browser testing, screenshots, interactions) and what was completed (static analysis, configuration verification, API validation).
 
 ### 3. Known Exceptions
 
@@ -249,14 +276,13 @@ Example:
 
 Structure findings by example with clear headers. Include appropriate status labels (CRITICAL FAILURE, DOCUMENTATION MISMATCH, etc.). Provide specific fix instructions.
 
--   **Full mode**: Include example-tester agent findings verbatim
--   **Degraded mode**: Include static analysis findings with "STATIC ANALYSIS ONLY" labels
+Always include static analysis findings for every example. When browser testing was performed, additionally include browser verification findings (rendering, interaction results, screenshots) for each example.
 
 ### 6. Visual and Interaction Testing Results
 
--   **Full mode**: Reference specific screenshots as evidence (e.g., "See `reports/screenshots/tooltip-hover.png`")
--   **Degraded mode**: Note "[SKIPPED] VISUAL TESTING - claude-in-chrome unavailable"
--   List any console errors found through static analysis
+-   **Browser available**: Reference specific screenshots as evidence (e.g., "See `reports/screenshots/tooltip-hover.png`"). Include interaction test results and console error checks.
+-   **Browser unavailable**: Note "[SKIPPED] VISUAL TESTING — `tabs_context_mcp` was not available or failed". Only use this marker when browser tools were genuinely unavailable.
+-   List any console errors found during testing
 
 ### 7. Content Quality Issues
 
@@ -290,7 +316,7 @@ Overall assessment including:
 
 -   Files requiring updates (with full paths)
 -   Evidence locations (screenshots, test results if available)
--   Any limitations due to degraded mode
+-   Any limitations due to browser unavailability
 -   Next steps
 
 ## Documentation Style Principles
@@ -370,15 +396,15 @@ Documentation must follow these spelling and language conventions:
 
 ## Tool Usage by Phase
 
-| Phase              | Required Tools | Mode-Dependent Tools                                        |
-| ------------------ | -------------- | ----------------------------------------------------------- |
-| Phase 1            | Read, Write    | -                                                           |
-| Phase 2 (Full)     | Read, Write    | Task, claude-in-chrome (navigate, screenshot, interactions) |
-| Phase 2 (Degraded) | Read, Write    | -                                                           |
-| Phase 3            | Read, Write    | -                                                           |
+| Phase                         | Required Tools | Additional Tools (when browser available)          |
+| ----------------------------- | -------------- | -------------------------------------------------- |
+| Phase 1                       | Read, Write    | -                                                  |
+| Phase 2 — Static Analysis     | Read, Write    | -                                                  |
+| Phase 2 — Browser Testing     | -              | claude-in-chrome (navigate, screenshot, interact)  |
+| Phase 3                       | Read, Write    | -                                                  |
 
 ## Usage
 
 1. **Phase 1**: Provide page path → receive review plan
-2. **Phase 2**: Provide page path → receive detailed report (with mode-appropriate validations)
+2. **Phase 2**: Provide page path → receive detailed report (with static analysis always, browser testing when available)
 3. **Phase 3**: Run after all pages reviewed → receive summary report
