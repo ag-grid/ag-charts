@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:ag-grid/ag-charts-server-side-example.git
 	branch = main
-	commit = d805a08a4279a9a1359bced12194a3a264b3314f
+	commit = 15004dc33433d10a8ea861fd3377e21c83e2e208
 	method = merge
 	cmdver = 0.4.9
-	parent = a95f8a2ae8afa6a44fcd37d7b68f727603ca0e2f
+	parent = 830486b589e788b060ed5473190c4346cd78606b
