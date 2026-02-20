@@ -187,6 +187,20 @@ Document all discovered files and create validation tasks in the review plan out
         - `expectedControls`: interactive controls expected (from static analysis in step 4)
         - `expectedBehaviours`: behaviours to verify when interacting
     3. **Spawn one `docs-example-browser-tester` sub-agent per example** via parallel Task tool calls in a single message (haiku model). Each sub-agent receives context for its single example only, plus the **Browser Testing Tips** file path (if configured) and the reports directory path.
+
+        IMPORTANT: Issue ALL Task calls in a SINGLE message to run them in parallel.
+        Do NOT spawn one agent, wait for it to finish, then spawn the next.
+        Example pattern for a page with 3 examples:
+
+        ```
+        Task call 1: { subagent_type: "docs-example-browser-tester", prompt: "Test example 'foo' at https://...foo/vanilla ..." }
+        Task call 2: { subagent_type: "docs-example-browser-tester", prompt: "Test example 'bar' at https://...bar/vanilla ..." }
+        Task call 3: { subagent_type: "docs-example-browser-tester", prompt: "Test example 'baz' at https://...baz/vanilla ..." }
+        ```
+
+        Each Task call must contain the full testing context for exactly ONE example
+        (name, url, docClaims, expectedControls, expectedBehaviours). Do not combine
+        multiple examples into a single Task call.
     4. **Collect results** from all sub-agents and integrate into the report under each example's section.
 
     **If Example Direct URL Pattern is NOT configured**, perform inline browser testing (fallback):
