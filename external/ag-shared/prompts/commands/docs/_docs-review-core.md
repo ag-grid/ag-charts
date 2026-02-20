@@ -177,17 +177,17 @@ Document all discovered files and create validation tasks in the review plan out
 
 5. **Example Testing — Browser Verification** (when browser available):
 
-    **If the product configuration includes an Example Direct URL Pattern**, delegate browser testing to the `docs-example-browser-tester` sub-agent:
+    **If the product configuration includes an Example Direct URL Pattern**, delegate browser testing to parallel `docs-example-browser-tester` sub-agents (one per example):
 
     1. **Construct direct example URLs** by substituting `${pageName}` and `${exampleName}` into the URL pattern for each example identified in the review plan.
-    2. **Prepare testing context** for the sub-agent — for each example, provide:
+    2. **Prepare testing context** — for each example, assemble:
         - `name`: the example identifier
         - `url`: the direct standalone URL
         - `docClaims`: what the documentation says the example demonstrates
         - `expectedControls`: interactive controls expected (from static analysis in step 4)
         - `expectedBehaviours`: behaviours to verify when interacting
-    3. **Spawn `docs-example-browser-tester` sub-agent** via the Task tool (sonnet model), passing the full list of examples with their context. Also pass the **Browser Testing Tips** file path if configured, and the reports directory path.
-    4. **Integrate results** from the sub-agent into the report under each example's section.
+    3. **Spawn one `docs-example-browser-tester` sub-agent per example** via parallel Task tool calls in a single message (haiku model). Each sub-agent receives context for its single example only, plus the **Browser Testing Tips** file path (if configured) and the reports directory path.
+    4. **Collect results** from all sub-agents and integrate into the report under each example's section.
 
     **If Example Direct URL Pattern is NOT configured**, perform inline browser testing (fallback):
 
@@ -416,7 +416,7 @@ Documentation must follow these spelling and language conventions:
 | ----------------------------- | -------------- | -------------------------------------------------------------------------------------- |
 | Phase 1                       | Read, Write    | -                                                                                      |
 | Phase 2 — Static Analysis     | Read, Write    | -                                                                                      |
-| Phase 2 — Browser Testing     | -              | Task (docs-example-browser-tester sub-agent), or claude-in-chrome inline as fallback   |
+| Phase 2 — Browser Testing     | -              | Task (parallel per-example docs-example-browser-tester sub-agents), or claude-in-chrome inline as fallback |
 | Phase 3                       | Read, Write    | -                                                                                      |
 
 ## Usage
