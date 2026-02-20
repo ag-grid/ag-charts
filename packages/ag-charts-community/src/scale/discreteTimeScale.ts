@@ -155,7 +155,11 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return undefined;
     }
 
-    override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
+    override findIndex(
+        value: Date,
+        alignment: ScaleAlignment = ScaleAlignment.Leading,
+        alignmentExclusive = false
+    ): number | undefined {
         if (value == null) return undefined;
 
         const numericBands = this.numericBands;
@@ -165,7 +169,9 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         if (n === 1) return 0;
 
         const target = value.valueOf();
-        if (alignment === ScaleAlignment.Trailing) {
+
+        const isTrailing = alignment === ScaleAlignment.Trailing;
+        if (isTrailing !== alignmentExclusive) {
             return findMinIndex(0, n - 1, (index) => numericBands[index] >= target);
         }
         return findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);

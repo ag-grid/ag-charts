@@ -99,9 +99,9 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         }
     }
 
-    convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+    convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): number {
         this.refresh();
-        const i = this.findIndex(d, options?.alignment);
+        const i = this.findIndex(d, options?.alignment, options?.alignmentExclusive);
         if (i == null || i < 0 || i >= this.getBandCountForUpdate()) {
             return Number.NaN;
         }
@@ -188,5 +188,5 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return clamp(min, inset + step * i, max);
     }
 
-    abstract findIndex(value: D, alignment?: ScaleAlignment): number | undefined;
+    abstract findIndex(value: D, alignment?: ScaleAlignment, alignmentExclusive?: boolean): number | undefined;
 }
