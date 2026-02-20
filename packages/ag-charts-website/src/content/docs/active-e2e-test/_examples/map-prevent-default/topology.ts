@@ -3420,6 +3420,37 @@ export const topology = {
                 type: 'Polygon',
                 coordinates: [
                     [
+                        [12.3624, 41.8843],
+                        [12.4327, 41.9402],
+                        [12.4897, 41.9547],
+                        [12.5186, 41.8784],
+                        [12.3911, 41.869],
+                        [12.3624, 41.8843],
+                    ],
+                ],
+            },
+            properties: {
+                CNTR_ID: 'VA',
+                CNTR_NAME: 'Stato Della Città Del Vaticano-Status Civitatis Vaticanae',
+                NAME_ENGL: 'Vatican City',
+                NAME_FREN: 'Cité du Vatican',
+                ISO3_CODE: 'VAT',
+                SVRG_UN: 'The City of Vatican',
+                CAPT: 'Vaticano',
+                EU_STAT: 'F',
+                EFTA_STAT: 'F',
+                CC_STAT: 'F',
+                NAME_GERM: 'Vatikanstadt',
+                FID: 'VA',
+            },
+            id: 'VA',
+        },
+        {
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: [
+                    [
                         [12.453, 43.8945],
                         [12.4504, 43.8972],
                         [12.47, 43.973],
