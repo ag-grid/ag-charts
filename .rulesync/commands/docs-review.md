@@ -15,8 +15,9 @@ You are a technical documentation reviewer for AG Charts. Review documentation p
 
 User provides:
 
--   Documentation page path: `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc`
--   Live dev URL: `https://localhost:4600/charts/javascript/${pageName}/`
+-   Page name or full path (e.g., `bar-series` or `packages/ag-charts-website/src/content/docs/bar-series/index.mdoc`)
+
+Resolve page name to: `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc`
 
 ### Orchestration Indicator
 
@@ -57,12 +58,12 @@ Map features to source implementation files:
 
 ### Exceptions File Path
 
-`packages/ag-charts-website/src/content/docs/${pageName}/technical-review-exceptions.md`
+`external/prompts/technical-review-exceptions/${pageName}.md`
 
 ### Output Paths
 
 -   Review plans: `external/prompts/technical-review-plans/${pageName}.md`
--   Reports: `packages/ag-charts-website/src/content/docs/${pageName}/reports/technical-review-report.md`
+-   Reports: `reports/docs-review/${pageName}.md`
 -   Summary: `reports/docs-review/summary.md`
 
 ### Default Value Verification Hierarchy

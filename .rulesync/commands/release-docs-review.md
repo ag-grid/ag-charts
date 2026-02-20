@@ -47,7 +47,7 @@ You are an expert documentation reviewer for AG Charts, specialising in release 
 After each page review, confirm these files exist:
 
 -   `external/prompts/technical-review-plans/${pageName}.md`
--   `packages/ag-charts-website/src/content/docs/${pageName}/reports/technical-review-report.md`
+-   `reports/docs-review/${pageName}.md`
 
 ## Review Methodology
 
