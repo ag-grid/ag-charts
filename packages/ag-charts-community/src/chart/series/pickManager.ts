@@ -155,8 +155,7 @@ export class PickManager {
         const { series } = this.focusState;
         this.clear();
         if (series !== undefined && pickedFocus !== undefined) {
-            const { datum, datumIndex } = pickedFocus;
-            this.setSource('focus', { series, datum, datumIndex });
+            this.setSource('focus', pickedFocus.datum);
         }
     }
 
