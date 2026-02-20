@@ -52,6 +52,7 @@ export class PickManager {
     private active: PickedNode | undefined;
     private candidates: PickedNode[] = [];
     private pendingPickedNodes?: PickedNodes;
+    private blockEntrance = false;
 
     constructor(
         private readonly activeManager: ActiveManager,
@@ -82,15 +83,34 @@ export class PickManager {
     /**
      * Dispatch a preventable `'activeChange'` event.
      * If `AgActiveChangeEvent.preventDefault()` was not called, then run `defaultCb(defaultCbArg)`.
+     *
+     * Reentrance is not allowed. Example:
+     *
+     *     pickManager.maybeActivate(myNode, () => {
+     *         if (isValid(myNode)) {
+     *             renderHighlight();
+     *         } else {
+     *             // !!! DO NOT DO THIS !!!
+     *             // It will incorrectly broadcast 2 activeChange API events!
+     *             // Either `myNode` OR `undefined` should be broadcast but not both.
+     *             pickManager.maybeActivate(undefined, () => clearHighlight());
+     *         }
+     *     });
      */
     maybeActivate(node: PickedNode | undefined, defaultCb: () => void, defaultCbArg?: never): void;
     maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a: A) => void, defaultCbArg: A): void;
     maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a?: A) => void, defaultCbArg?: A): void {
-        const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(node);
-        const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
-        if (!defaultPrevented) {
-            this.active = node;
-            defaultCb(defaultCbArg);
+        if (this.blockEntrance) throw new Error('PickManager.maybeActivate is not re-entrant');
+        try {
+            this.blockEntrance = true;
+            const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(node);
+            const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
+            if (!defaultPrevented) {
+                this.active = node;
+                defaultCb(defaultCbArg);
+            }
+        } finally {
+            this.blockEntrance = false;
         }
     }
 
