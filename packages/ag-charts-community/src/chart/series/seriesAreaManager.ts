@@ -1132,8 +1132,10 @@ export class SeriesAreaManager extends BaseManager {
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
         if (activeItem?.type === 'legend') {
             if (this.hoverDevice === 'setState') {
-                this.clearHighlight();
-                this.clearTooltip();
+                // Clear tooltip/highlight state (but without broadcasting an AgActiveChangeEvent)
+                this.clearCachedEvents();
+                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
             }
             this.activeState.lastActive = 'legend';
         }
