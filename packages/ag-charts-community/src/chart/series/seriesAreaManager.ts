@@ -846,6 +846,15 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator?.clear();
     }
 
+    private clearStaleHighlightTooltip(): void {
+        // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
+        if (this.hoverDevice === 'setState') {
+            this.clearCachedEvents();
+            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+        }
+    }
+
     private clearCachedEvents(): void {
         this.tooltip.lastHover = undefined;
         this.highlight.appliedHoverEvent = undefined;
@@ -889,14 +898,13 @@ export class SeriesAreaManager extends BaseManager {
         if (active === undefined) return;
 
         this.pickManager.maybeActivate(active, (): void => {
-            this.chart.ctx.highlightManager.updateHighlight(this.id, active);
             const refPoint = getDatumRefPoint(active.series, active, undefined);
             if (this.chart.tooltip.enabled) {
                 if (!active.series.visible) {
-                    this.clearTooltip();
-                    this.clearHighlight();
+                    this.clearStaleHighlightTooltip();
                 } else if (refPoint) {
                     const { canvasX, canvasY } = refPoint;
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, active);
                     this.showTooltip(active, canvasX, canvasY, paginationState);
                 }
             }
@@ -1131,12 +1139,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
         if (activeItem?.type === 'legend') {
-            if (this.hoverDevice === 'setState') {
-                // Clear tooltip/highlight state (but without broadcasting an AgActiveChangeEvent)
-                this.clearCachedEvents();
-                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
-            }
+            this.clearStaleHighlightTooltip();
             this.activeState.lastActive = 'legend';
         }
     }
