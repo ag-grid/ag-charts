@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import type {
     AgActiveChangeEvent,
     AgBarSeriesTooltipRendererParams,
@@ -49,6 +50,10 @@ const version = chart.getState().version;
 function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
 }
+
+window.addEventListener('mousemove', (ev: MouseEvent) => {
+    document.getElementById('myPointerPos').textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
 
 // For e2e testing:
 (window as any).agE2E = { chart };
