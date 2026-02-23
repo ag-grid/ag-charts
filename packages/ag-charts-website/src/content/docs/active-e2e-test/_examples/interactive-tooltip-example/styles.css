@@ -1,6 +1,5 @@
 #myPointerPos {
     pointer-events: none;
-    position: fixed;
     font-family: Monospace;
     background: white;
     foreground: black;
