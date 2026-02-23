@@ -2,12 +2,12 @@
 import { AgCharts, AgTopologyChartOptions, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import {
+    EEASingleMarketStates,
+    EUCandidateCountries,
     EUEurozoneMembers,
     EUNonEurozoneMembers,
-    FormerEUMembers,
-    EUCandidateCountries,
-    EEASingleMarketStates,
     EuroUsingMicrostates,
+    FormerEUMembers,
     OtherEuropeanStates,
 } from './data';
 import { topology } from './topology';
