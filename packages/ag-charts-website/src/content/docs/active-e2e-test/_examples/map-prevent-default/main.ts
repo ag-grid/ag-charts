@@ -1,5 +1,11 @@
 // @ag-skip-fws
-import { AgCharts, AgTopologyChartOptions, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import {
+    AgActiveChangeEvent,
+    AgCharts,
+    AgTopologyChartOptions,
+    AllEnterpriseModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import {
     EEASingleMarketStates,
@@ -126,11 +132,10 @@ const options: AgTopologyChartOptions = {
             fillOpacity: 0.9,
         },
     ],
-
     zoom: {
         enabled: true,
+        buttons: { enabled: false },
     },
-
     legend: {
         enabled: true,
         position: 'right',
@@ -140,6 +145,19 @@ const options: AgTopologyChartOptions = {
             },
         },
     },
+    listeners: {
+        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+            if (shouldPreventDefault) {
+                ev.preventDefault();
+            }
+        },
+    },
 };
 
 AgCharts.create(options);
+
+let shouldPreventDefault = true;
+
+function onPreventDefaultChange(value: boolean) {
+    shouldPreventDefault = value;
+}
