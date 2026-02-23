@@ -1480,5 +1480,144 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('interactive-tooltip', () => {
+            let canvas: Locator;
+
+            const activeState2ndBar = Object.freeze({
+                frozen: false,
+                activeItem: { itemId: 1, seriesId: 'BarSeries-1', type: 'series-node' },
+            });
+
+            async function mouseMove2ndBar(page: Page): Promise<void> {
+                await page.mouse.move(400, 300);
+            }
+
+            async function mouseLeave(page: Page): Promise<void> {
+                await page.mouse.move(100, 100);
+            }
+
+            async function clickMyButton(page: Page): Promise<void> {
+                await page.locator('#myButton').click();
+            }
+
+            async function growTextArea(page: Page): Promise<void> {
+                await page.evaluate(() => {
+                    const ta = document.querySelector('textarea');
+                    if (ta) ta.style.height = '300px';
+                });
+            }
+            /*
+              async function growTextArea(page: Page): Promise<void> {
+              await page.mouse.move(404, 61);
+              await page.mouse.down({ button: 'left' });
+                await page.mouse.move(404, 280);
+                await page.mouse.up({ button: 'left' });
+            }
+//*/
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'interactive-tooltip-example', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('mouseleave events prevented', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await mouseLeave(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-left.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await mouseLeave(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+
+            test.describe('button clears highlight', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await clickMyButton(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await clickMyButton(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+
+            test.describe('highlight persists on resize', () => {
+                // The highlight doesn't synchronously on resize.
+                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
+                test.skip('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await growTextArea(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-resized.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await growTextArea(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+        });
     });
 });

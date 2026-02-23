@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions<DataType> = {
                             ${params.datum[params.xKey]}: ${params.datum[params.yKey]}
                         </div>
                         <div class="tooltip-body">
-                            <button tabindex="0" onclick="onClear()">Clear</button>
+                            <button id="myButton" tabindex="0" onclick="onClear()">Clear</button>
                         </div>
                     </div>`;
                 },
