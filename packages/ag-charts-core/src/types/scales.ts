@@ -70,7 +70,7 @@ export interface Scale<D, R, I = number> {
     getDomainMinMax(): [D, D] | [undefined, undefined];
     normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
-    convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): R;
+    convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): R;
     invert(value: R, exact?: boolean): D | undefined;
     ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): ScaleTickResult<D> | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];

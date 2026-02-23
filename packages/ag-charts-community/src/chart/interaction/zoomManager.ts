@@ -788,8 +788,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             start,
             end
         );
-        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
-        let r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
+        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment, alignmentExclusive: true });
+        let r1 =
+            end == null
+                ? d1
+                : scale.convert(end, { alignment: endAlignment, alignmentExclusive: true }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
