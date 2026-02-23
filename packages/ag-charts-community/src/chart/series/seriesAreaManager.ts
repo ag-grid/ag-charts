@@ -594,10 +594,15 @@ export class SeriesAreaManager extends BaseManager {
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
+                    const { active } = next;
                     const { canvasX, canvasY } = this.toCanvasCoordinates(event);
                     this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
-                    this.handleHoverHighlight(false);
-                    this.showTooltip(next.active, canvasX, canvasY, next.paginationState);
+                    this.handleHoverHighlight(false, {
+                        active,
+                        defaultCb: () => {
+                            this.showTooltip(active, canvasX, canvasY, next.paginationState);
+                        },
+                    });
                 }
             }
             return true;
@@ -911,7 +916,7 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private handleHoverHighlight(redisplay: boolean) {
+    private handleHoverHighlight(redisplay: boolean, opts?: { active: PickedNode; defaultCb: () => void }) {
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
         this.highlight.pendingHoverEvent = undefined;
 
@@ -926,16 +931,20 @@ export class SeriesAreaManager extends BaseManager {
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
 
-        const active: PickedNode | undefined = this.pickManager.onPickedNodesHighlight(pick);
+        const active: PickedNode | undefined =
+            opts?.active ??
+            this.pickManager.onPickedNodesHighlight(this.pickNodes({ x: event.currentX, y: event.currentY }, intent));
+
         if (active === undefined) {
             this.pickManager.maybeActivate(undefined, () => {
                 this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+                opts?.defaultCb();
             });
         } else {
             this.pickManager.maybeActivate(active, () => {
                 this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                opts?.defaultCb();
             });
         }
     }
