@@ -273,7 +273,7 @@ PR N of M in the series.
 
 ## JIRA
 
-Jira: [AG-12345](https://ag-grid.atlassian.net/browse/AG-12345)
+Jira: [TICKET-12345](https://jira.example.com/browse/TICKET-12345)
 
 ## Test Plan
 

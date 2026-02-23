@@ -186,7 +186,7 @@ These files are not referenced by the review core but provide context that impro
 -   **`playbook-docs.md`** — quick-reference workflow for docs changes
 -   **`example-tester.md`** (sub-agent in `.rulesync/subagents/`) — if you want Full Mode interactive review (build, test, and validate examples). Without this, `/docs-review` operates in Adaptive/Degraded mode (static analysis only), which is still useful.
 
-Use the AG Charts versions as a reference for structure and level of detail.
+Use an existing product's versions as a reference for structure and level of detail.
 
 ## Step 5: Verify File Placement
 
@@ -217,7 +217,7 @@ ls -la .claude/commands/docs-review.md .claude/commands/release-docs-review.md
 ## Step 7: Test
 
 1. Run `/docs-review [path-to-a-docs-page]` and confirm the LLM reads both your wrapper and the core
-2. Check that the report references your product's file paths (not AG Charts paths)
+2. Check that the report references your product's file paths (not another product's paths)
 3. Run `/release-docs-review` with two release branches and confirm page discovery works with your paths
 
 ## Adoption Checklist
@@ -233,6 +233,6 @@ ls -la .claude/commands/docs-review.md .claude/commands/release-docs-review.md
 
 ## Notes
 
--   **Batch orchestration**: The core methodology covers single-page and release-diff reviews. Batch orchestration across all pages (like AG Charts' `run-docs-review.js`) is product-specific. Start with manual page-by-page invocation.
+-   **Batch orchestration**: The core methodology covers single-page and release-diff reviews. Batch orchestration across all pages is product-specific. Start with manual page-by-page invocation.
 -   **Estimated adoption effort**: ~2-3 hours per repo.
 -   **Section names are normative**: The core references wrapper sections by exact name. Renaming sections in either wrapper or core silently breaks cross-referencing.

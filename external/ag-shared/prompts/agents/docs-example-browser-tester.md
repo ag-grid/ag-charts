@@ -46,7 +46,7 @@ You receive context for **one example**:
     - Wait briefly for the result.
     - Take a screenshot of the **result state**.
 7. **Check the browser console** for errors using `read_console_messages`. Ignore known warnings:
-    - AG Grid Enterprise licence messages
+    - Enterprise licence messages
     - Development mode warnings
 8. **Return findings** for this example.
 
