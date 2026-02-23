@@ -3,8 +3,11 @@
 /**
  * Script to sync accepted/false-positive issues from one SonarCloud project to another.
  *
- * This is useful for syncing exceptions from the development project (ag-charts-community-latest)
- * to the release project (ag-charts-community) during the release process.
+ * This is useful for syncing exceptions from the development project (e.g. ag-charts-community-latest)
+ * to the release project (e.g. ag-charts-community) during the release process.
+ *
+ * The script auto-detects the correct SonarCloud project keys from the workspace root package.json
+ * name. Supported products: ag-charts, ag-grid. For other products, use --source and --target.
  *
  * Usage:
  *   SONAR_TOKEN=<your-token> npx tsx external/ag-shared/scripts/sonar/sync-sonar-issues.ts
@@ -12,7 +15,7 @@
  *   # Dry run (preview only):
  *   SONAR_TOKEN=<your-token> npx tsx external/ag-shared/scripts/sonar/sync-sonar-issues.ts --dry-run
  *
- *   # Custom projects:
+ *   # Explicit project overrides:
  *   SONAR_TOKEN=<your-token> npx tsx external/ag-shared/scripts/sonar/sync-sonar-issues.ts \
  *     --source ag-charts-community-latest \
  *     --target ag-charts-community
@@ -22,12 +25,33 @@
  *   2. Ensure you have "Administer Issues" permission on BOTH projects
  */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 const SONAR_TOKEN = process.env.SONAR_TOKEN;
 const SONAR_BASE_URL = 'https://sonarcloud.io/api';
-const DEFAULT_SOURCE_PROJECT = 'ag-charts-community-latest';
-const DEFAULT_TARGET_PROJECT = 'ag-charts-community';
 const PAGE_SIZE = 500;
 const RATE_LIMIT_DELAY_MS = 100;
+
+/** Known product-to-SonarCloud project key mappings. */
+const PRODUCT_SONAR_KEYS: Record<string, { source: string; target: string }> = {
+    'ag-charts': { source: 'ag-charts-community-latest', target: 'ag-charts-community' },
+    'ag-grid': { source: 'ag-grid-community-latest', target: 'ag-grid-community' },
+};
+
+/**
+ * Auto-detect default SonarCloud project keys from the workspace root package.json name.
+ * Returns undefined if the product is not recognised.
+ */
+function detectSonarDefaults(): { source: string; target: string } | undefined {
+    try {
+        const pkgPath = join(process.cwd(), 'package.json');
+        const { name } = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+        return PRODUCT_SONAR_KEYS[name];
+    } catch {
+        return undefined;
+    }
+}
 
 if (!SONAR_TOKEN) {
     console.error('Error: SONAR_TOKEN environment variable is required');
@@ -71,14 +95,15 @@ interface MatchResult {
  */
 function parseArgs(): SyncConfig {
     const args = process.argv.slice(2);
+    const defaults = detectSonarDefaults();
     const config: SyncConfig = {
-        sourceProject: DEFAULT_SOURCE_PROJECT,
-        targetProject: DEFAULT_TARGET_PROJECT,
+        sourceProject: defaults?.source ?? '',
+        targetProject: defaults?.target ?? '',
         dryRun: false,
         verbose: false,
     };
 
-    for (let i = 0; i < args.length; i++) {
+    for (let i = 0; i < args.length; ++i) {
         const arg = args[i];
         if (arg === '--source' && args[i + 1]) {
             config.sourceProject = args[++i];
@@ -89,21 +114,38 @@ function parseArgs(): SyncConfig {
         } else if (arg === '--verbose') {
             config.verbose = true;
         } else if (arg === '--help') {
+            const knownProducts = Object.keys(PRODUCT_SONAR_KEYS).join(', ');
+            const autoDetected = defaults
+                ? `auto-detected: ${defaults.source} / ${defaults.target}`
+                : 'not detected (use --source and --target)';
             console.log(`
 Usage: npx tsx sync-sonar-issues.ts [options]
 
 Options:
-  --source <project>   Source project key (default: ${DEFAULT_SOURCE_PROJECT})
-  --target <project>   Target project key (default: ${DEFAULT_TARGET_PROJECT})
+  --source <project>   Source SonarCloud project key (${autoDetected})
+  --target <project>   Target SonarCloud project key
   --dry-run            Preview matches without applying changes
   --verbose            Show detailed matching information
   --help               Show this help message
+
+Project keys are auto-detected from the workspace root package.json name.
+Known products: ${knownProducts}. For other products, specify --source and --target.
 
 Environment:
   SONAR_TOKEN          Required. SonarCloud API token with "Administer Issues" permission
 `);
             process.exit(0);
         }
+    }
+
+    if (!config.sourceProject || !config.targetProject) {
+        const knownProducts = Object.keys(PRODUCT_SONAR_KEYS).join(', ');
+        console.error(
+            `Error: Could not auto-detect SonarCloud project keys from package.json.\n` +
+                `Known products: ${knownProducts}\n` +
+                `Please specify --source and --target explicitly.`
+        );
+        process.exit(1);
     }
 
     return config;

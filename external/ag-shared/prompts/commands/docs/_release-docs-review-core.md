@@ -127,7 +127,7 @@ git diff --name-only $PREVIOUS_BRANCH $CURRENT_BRANCH -- '${DOCS_PATH}/**/*.mdoc
 echo "Found $(wc -l < modified-docs.txt) directly modified documentation pages"
 ```
 
-> **Note**: Replace `${DOCS_PATH}` with the actual docs root path from the product configuration **Paths** section (e.g., `packages/ag-charts-website/src/content/docs`).
+> **Note**: Replace `${DOCS_PATH}` with the actual docs root path from the product configuration **Paths** section.
 
 ### Step 3: Identify Modified Examples
 
