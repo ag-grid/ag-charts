@@ -161,3 +161,7 @@ let shouldPreventDefault = true;
 function onPreventDefaultChange(value: boolean) {
     shouldPreventDefault = value;
 }
+
+window.addEventListener('mousemove', (ev: MouseEvent) => {
+    document.getElementById('myPointerPos').textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
