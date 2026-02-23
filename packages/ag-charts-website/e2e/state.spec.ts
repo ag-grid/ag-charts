@@ -1507,14 +1507,6 @@ test.describe('state', () => {
                     if (ta) ta.style.height = '300px';
                 });
             }
-            /*
-              async function growTextArea(page: Page): Promise<void> {
-              await page.mouse.move(404, 61);
-              await page.mouse.down({ button: 'left' });
-                await page.mouse.move(404, 280);
-                await page.mouse.up({ button: 'left' });
-            }
-//*/
 
             test.beforeEach(async ({ page }) => {
                 const url = toExamplePageUrl('active-e2e-test', 'interactive-tooltip-example', 'vanilla').url;
