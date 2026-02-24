@@ -62,6 +62,22 @@ async function setChartState(page: Page, state: AgChartState): Promise<void> {
     await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
 }
 
+async function popChartEvents(page: Page): Promise<unknown[]> {
+    const events = await page.evaluate(() => {
+        const popEvents: unknown = (window as any)?.agE2E?.popEvents;
+        if (!popEvents) {
+            throw new Error('window.agE2E.popEvents is not defined');
+        } else if (typeof popEvents !== 'function') {
+            throw new Error('window.agE2E.popEvents is not a function');
+        }
+        return popEvents();
+    });
+
+    expect(events).toBeDefined();
+    expect(typeof events).toBeInstanceOf(Array);
+    return events;
+}
+
 test.describe('state', () => {
     setupIntrinsicAssertions(test);
 

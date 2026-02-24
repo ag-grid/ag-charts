@@ -147,6 +147,7 @@ const options: AgTopologyChartOptions = {
     },
     listeners: {
         activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+            events.push(ev);
             if (shouldPreventDefault) {
                 ev.preventDefault();
             }
@@ -154,9 +155,21 @@ const options: AgTopologyChartOptions = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+let events: unknown[] = [];
 
 let shouldPreventDefault = true;
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
+
+function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
 
 function onPreventDefaultChange(value: boolean) {
     shouldPreventDefault = value;
@@ -165,3 +178,6 @@ function onPreventDefaultChange(value: boolean) {
 window.addEventListener('mousemove', (ev: MouseEvent) => {
     document.getElementById('myPointerPos').textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
 });
+
+// For e2e testing:
+(window as any).agE2E = { chart, popEvents };
