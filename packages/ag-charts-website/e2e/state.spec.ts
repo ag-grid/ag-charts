@@ -17,6 +17,8 @@ import {
 
 type ConsoleLogs = ReturnType<typeof createConsoleLogs>;
 
+const PREVENT_DEFAULT_STUB = () => {};
+
 async function getChartState(page: Page): Promise<AgChartState> {
     const state = await page.evaluate(() => {
         const chart: unknown = (window as any)?.agE2E?.chart;
@@ -60,6 +62,28 @@ async function setChartState(page: Page, state: AgChartState): Promise<void> {
         { newState: state }
     );
     await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
+}
+
+async function popChartEvents(page: Page): Promise<unknown> {
+    const events = await page.evaluate(() => {
+        const popEvents: unknown = (window as any)?.agE2E?.popEvents;
+        if (!popEvents) {
+            throw new Error('window.agE2E.popEvents is not defined');
+        } else if (typeof popEvents !== 'function') {
+            throw new Error('window.agE2E.popEvents is not a function');
+        }
+        return popEvents();
+    });
+
+    expect(events).toBeDefined();
+    expect(typeof events).toBe('object');
+    return events.map((elem: unknown) => {
+        if (typeof elem === 'object') {
+            return { ...elem, preventDefault: PREVENT_DEFAULT_STUB };
+        } else {
+            return elem;
+        }
+    });
 }
 
 test.describe('state', () => {
@@ -1477,6 +1501,343 @@ test.describe('state', () => {
                         frozen: false,
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                     });
+                });
+            });
+        });
+
+        test.describe('interactive-tooltip', () => {
+            let canvas: Locator;
+
+            const activeState2ndBar = Object.freeze({
+                frozen: false,
+                activeItem: { itemId: 1, seriesId: 'BarSeries-1', type: 'series-node' },
+            });
+
+            async function mouseMove2ndBar(page: Page): Promise<void> {
+                await page.mouse.move(400, 300);
+            }
+
+            async function mouseLeave(page: Page): Promise<void> {
+                await page.mouse.move(100, 100);
+            }
+
+            async function clickMyButton(page: Page): Promise<void> {
+                await page.locator('#myButton').click();
+            }
+
+            async function growTextArea(page: Page): Promise<void> {
+                await page.evaluate(() => {
+                    const ta = document.querySelector('textarea');
+                    if (ta) ta.style.height = '300px';
+                });
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'interactive-tooltip-example', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('mouseleave events prevented', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await mouseLeave(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-left.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await mouseLeave(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+
+            test.describe('button clears highlight', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await clickMyButton(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await clickMyButton(page);
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+
+            test.describe('highlight persists on resize', () => {
+                // The highlight doesn't synchronously on resize.
+                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
+                test.skip('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await growTextArea(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-resized.png');
+                });
+
+                test('states', async ({ page }) => {
+                    let state: AgChartState;
+
+                    state = await getChartState(page);
+                    expect(state.active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+
+                    await growTextArea(page);
+                    state = await getChartState(page);
+                    expect(state.active).toEqual(activeState2ndBar);
+                });
+            });
+        });
+
+        test.describe('map-prevent-default', () => {
+            let canvas: Locator;
+
+            const FRANCE_ACTIVE_CHANGE = Object.freeze({
+                activeItem: {
+                    itemId: 0,
+                    seriesId: 'MapShapeSeries-1',
+                    type: 'series-node',
+                },
+                datum: {
+                    gdp_md: 2715518,
+                    iso2: 'FR',
+                    iso3: 'FRA',
+                    name: 'France',
+                    pop_est: 67059887,
+                    pop_rank: 16,
+                },
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const UK_ACTIVE_CHANGE = Object.freeze({
+                activeItem: { itemId: 0, seriesId: 'MapShapeSeries-3', type: 'series-node' },
+                datum: {
+                    gdp_md: 2829108,
+                    iso2: 'GB',
+                    iso3: 'GBR',
+                    name: 'United Kingdom',
+                    pop_est: 66834405,
+                    pop_rank: 16,
+                },
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const ICELAND_ACTIVE_CHANGE = Object.freeze({
+                activeItem: { itemId: 1, seriesId: 'MapShapeSeries-5', type: 'series-node' },
+                datum: {
+                    gdp_md: 24188,
+                    iso2: 'IS',
+                    iso3: 'ISL',
+                    name: 'Iceland',
+                    pop_est: 361313,
+                    pop_rank: 10,
+                },
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const EU_NONEUROZONE_ACTIVE_CHANGE = Object.freeze({
+                activeItem: { itemId: 'MapShapeSeries-2', seriesId: 'MapShapeSeries-2', type: 'legend' },
+                datum: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const OTHERCOUNTRY_ACTIVE_CHANGE = Object.freeze({
+                activeItem: { itemId: 'MapShapeSeries-7', seriesId: 'MapShapeSeries-7', type: 'legend' },
+                datum: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            async function hoverFranceShape(page: Page): Promise<void> {
+                await page.mouse.move(250, 415);
+            }
+
+            async function hoverUKShape(page: Page): Promise<void> {
+                await page.mouse.move(224, 363);
+            }
+
+            async function hoverIcelandShape(page: Page): Promise<void> {
+                await page.mouse.move(124, 214);
+            }
+
+            async function hoverEUNonEurozoneLegendItem(page: Page): Promise<void> {
+                await page.mouse.move(655, 295);
+            }
+
+            async function hoverOtherLegendItem(page: Page): Promise<void> {
+                await page.mouse.move(655, 415);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(500, 200);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'map-prevent-default', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('hovering over country shapes prevents activeChange events', () => {
+                // The series-node tooltip isn't hidden when calling preventDefault
+                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103600
+                test.skip('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverFranceShape(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverUKShape(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverIcelandShape(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverFranceShape(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverMiss(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverUKShape(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverIcelandShape(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverFranceShape(page);
+                    expect(await popChartEvents(page)).toEqual([FRANCE_ACTIVE_CHANGE]);
+
+                    await hoverMiss(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverUKShape(page);
+                    expect(await popChartEvents(page)).toEqual([UK_ACTIVE_CHANGE]);
+
+                    await hoverIcelandShape(page);
+                    expect(await popChartEvents(page)).toEqual([ICELAND_ACTIVE_CHANGE]);
+                });
+            });
+
+            test.describe('hovering over legend items prevents activeChange events', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+
+                    await hoverOtherLegendItem(page);
+                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                });
+
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverMiss(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverOtherLegendItem(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    expect(await popChartEvents(page)).toEqual([EU_NONEUROZONE_ACTIVE_CHANGE]);
+
+                    await hoverMiss(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverEUNonEurozoneLegendItem(page);
+                    expect(await popChartEvents(page)).toEqual([EU_NONEUROZONE_ACTIVE_CHANGE]);
+
+                    await hoverOtherLegendItem(page);
+                    expect(await popChartEvents(page)).toEqual([OTHERCOUNTRY_ACTIVE_CHANGE]);
                 });
             });
         });

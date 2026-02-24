@@ -64,3 +64,26 @@ Initialised to "Legend Item: UK"
     name="zoom-and-active-restoration"
     type="generated"
 /%}
+
+# Interactive Tooltip
+
+{% chartExampleRunner
+    title="Interactive Tooltip and preventDefault"
+    name="interactive-tooltip-example"
+/%}
+
+# preventDefault
+
+When `preventDefault` is ticked:
+
+-   Series Area Mouse/Keyboard interactions **MUST NOT** show Highlight.
+-   Series Area Mouse/Keyboard interactions **MUST NOT** show Tooltip.
+-   Legend Mouse/Keyboard interactions **MUST NOT** update Highlight.
+-   Series Area/Legend Keyboard interactions **MUST** show Focus Indicator.
+-   Legend Mouse/Keyboard click **MUST** update Series Visibility.
+
+{% chartExampleRunner
+    title="Prevent Default Test"
+    name="map-prevent-default"
+    type="generated"
+/%}
