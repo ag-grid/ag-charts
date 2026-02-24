@@ -15,22 +15,15 @@ export class MouseDragger {
         myCallbacks: MouseDragCallbacks,
         downEvent: MouseEvent
     ) {
-        const { mousegeneral, mousemove, mouseup } = this;
+        const { mousemove, mouseup } = this;
         const eventView = downEvent.view!;
         this.cleanup.register(
-            attachListener(eventView, 'mousedown', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseenter', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseleave', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseout', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseover', mousegeneral, { capture: true }),
             attachListener(eventView, 'mousemove', mousemove, { capture: true }),
             attachListener(eventView, 'mouseup', mouseup, { capture: true })
         );
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
         glob.globalMouseDragCallbacks.mousedown(downEvent);
-        downEvent.stopPropagation();
-        downEvent.stopImmediatePropagation();
     }
 
     destroy(): void {
@@ -39,21 +32,12 @@ export class MouseDragger {
         this.self.mouseDragger = undefined;
     }
 
-    private readonly mousegeneral = (generalEvent: MouseEvent) => {
-        generalEvent.stopPropagation();
-        generalEvent.stopImmediatePropagation();
-    };
-
     private readonly mousemove = (moveEvent: MouseEvent) => {
-        moveEvent.stopPropagation();
-        moveEvent.stopImmediatePropagation();
         this.glob.globalMouseDragCallbacks?.mousemove(moveEvent);
     };
 
     private readonly mouseup = (upEvent: MouseEvent) => {
         if (upEvent.button === 0) {
-            upEvent.stopPropagation();
-            upEvent.stopImmediatePropagation();
             this.glob.globalMouseDragCallbacks?.mouseup(upEvent);
             this.destroy();
         }
