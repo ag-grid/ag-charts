@@ -61,7 +61,7 @@ async function main() {
     const argv = await yargs(hideBin(process.argv))
         .option('base-url', {
             type: 'string',
-            default: 'http://localhost:4600/charts',
+            default: 'https://localhost:4600/charts',
             describe: 'Base URL of the dev server',
         })
         .option('output', {
@@ -155,7 +155,7 @@ async function main() {
             }
 
             // Wait for benchmark completion
-            await page.waitForFunction(() => (window as any).__benchmarkComplete === true, {
+            await page.waitForFunction(() => (window as any).__benchmarkComplete === true, undefined, {
                 timeout: argv.timeout,
                 polling: 1_000,
             });
