@@ -574,10 +574,12 @@ class BenchmarkUI {
 
         this.resultsElement.innerHTML = html;
 
-        // Add export functionality
+        // Add export functionality (remove button if no handler provided)
         const exportButton = document.getElementById('exportBenchmarkResults');
         if (exportButton && onExport) {
             exportButton.addEventListener('click', onExport);
+        } else if (exportButton) {
+            exportButton.remove();
         }
 
         // Log to console

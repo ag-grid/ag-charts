@@ -155,7 +155,7 @@ async function main() {
             }
 
             // Wait for benchmark completion
-            await page.waitForFunction(() => (window as any).__benchmarkComplete === true, undefined, {
+            await page.waitForFunction(() => (window as any).__benchmarkComplete === true, {
                 timeout: argv.timeout,
                 polling: 1_000,
             });
