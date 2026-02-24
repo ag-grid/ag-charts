@@ -52,7 +52,7 @@ function onClear() {
 }
 
 window.addEventListener('mousemove', (ev: MouseEvent) => {
-    document.getElementById('myPointerPos').textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+    document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
 });
 
 // For e2e testing:
