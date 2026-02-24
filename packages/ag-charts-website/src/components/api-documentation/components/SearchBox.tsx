@@ -126,6 +126,7 @@ function useSearch(
     const handleKeyDown: KeyboardEventHandler = (event) => {
         if (['ArrowUp', 'ArrowDown', 'Enter'].includes(event.key)) {
             event.preventDefault();
+            // eslint-disable-next-line no-restricted-properties
             event.stopPropagation();
         }
         switch (event.key) {
