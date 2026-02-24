@@ -9,6 +9,17 @@ type ActivationArgs =
     | [NonNullable<Parameters<ActiveManager['update']>[0]>, NonNullable<Parameters<ActiveManager['update']>[1]>]
     | [undefined, undefined];
 
+type ActivationOptsCommon = {
+    rollbackCb?: () => void;
+};
+type ActivationOptsNoArg = ActivationOptsCommon & {
+    defaultCbArg?: never;
+};
+type ActivationOptsWithArg<A> = ActivationOptsCommon & {
+    defaultCbArg: A;
+};
+type ActivationOpts<A> = ActivationOptsNoArg | ActivationOptsWithArg<A>;
+
 export type PickedNode = SeriesNodeDatum<DatumIndexType>;
 
 export type PickedNodes = {
@@ -82,7 +93,7 @@ export class PickManager {
 
     /**
      * Dispatch a preventable `'activeChange'` event.
-     * If `AgActiveChangeEvent.preventDefault()` was not called, then run `defaultCb(defaultCbArg)`.
+     * If `AgActiveChangeEvent.preventDefault()` was not called, then run `defaultCb(opts.defaultCbArg)`.
      *
      * Reentrance is not allowed. Example:
      *
@@ -97,9 +108,9 @@ export class PickManager {
      *         }
      *     });
      */
-    maybeActivate(node: PickedNode | undefined, defaultCb: () => void, defaultCbArg?: never): void;
-    maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a: A) => void, defaultCbArg: A): void;
-    maybeActivate<A extends object>(node: PickedNode | undefined, defaultCb: (a?: A) => void, defaultCbArg?: A): void {
+    maybeActivate(node: PickedNode | undefined, defaultCb: () => void, opts?: ActivationOptsNoArg): void;
+    maybeActivate<A>(node: PickedNode | undefined, defaultCb: (a: A) => void, opts: ActivationOptsWithArg<A>): void;
+    maybeActivate<A>(node: PickedNode | undefined, defaultCb: (a?: A) => void, opts?: ActivationOpts<A>): void {
         if (this.blockEntrance) throw new Error('PickManager.maybeActivate is not re-entrant');
         try {
             this.blockEntrance = true;
@@ -107,7 +118,9 @@ export class PickManager {
             const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
             if (!defaultPrevented) {
                 this.active = node;
-                defaultCb(defaultCbArg);
+                defaultCb(opts?.defaultCbArg);
+            } else if (opts?.rollbackCb) {
+                opts.rollbackCb();
             }
         } finally {
             this.blockEntrance = false;
