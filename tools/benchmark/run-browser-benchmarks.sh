@@ -44,6 +44,8 @@ cleanup() {
         kill "$SERVER_PID" 2>/dev/null || true
         wait "$SERVER_PID" 2>/dev/null || true
     fi
+    # Kill any orphaned Astro child process (Nx wraps the actual server)
+    pkill -f "astro dev --port=${PORT}" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
