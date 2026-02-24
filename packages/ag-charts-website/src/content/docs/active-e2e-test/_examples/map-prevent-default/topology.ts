@@ -2343,6 +2343,36 @@ export const topology = {
                 type: 'Polygon',
                 coordinates: [
                     [
+                        [-2.7205, 49.4438],
+                        [-2.4703, 49.6425],
+                        [-2.3118, 49.638],
+                        [-2.4045, 49.3183],
+                        [-2.7205, 49.4438],
+                    ],
+                ],
+            },
+            properties: {
+                CNTR_ID: 'GG',
+                CNTR_NAME: 'Guernsey-Guernesey',
+                NAME_ENGL: 'Guernsey',
+                NAME_FREN: 'Guernesey',
+                ISO3_CODE: 'GGY',
+                SVRG_UN: 'UK Territory',
+                CAPT: 'St. Peter Port',
+                EU_STAT: 'F',
+                EFTA_STAT: 'F',
+                CC_STAT: 'F',
+                NAME_GERM: 'Guernsey',
+                FID: 'GG',
+            },
+            id: 'GG',
+        },
+        {
+            type: 'Feature',
+            geometry: {
+                type: 'Polygon',
+                coordinates: [
+                    [
                         [-5.3392, 36.152],
                         [-5.3413, 36.1247],
                         [-5.3481, 36.1135],
