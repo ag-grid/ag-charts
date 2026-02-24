@@ -81,10 +81,6 @@ export class TextInput {
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
 
-        textArea.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-
         if (opts.layout) {
             this.layout = opts.layout;
             this.updatePosition();
