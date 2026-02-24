@@ -186,6 +186,14 @@ export default [
                     property: 'entries',
                     message: 'Prefer Object.keys() to Object.entries() for performance reasons.',
                 },
+                {
+                    property: 'stopPropagation',
+                    message: 'AG Charts must all bubble events. See AG-16736.',
+                },
+                {
+                    property: 'stopImmediatePropagation',
+                    message: 'AG Charts must all bubble events. See AG-16736.',
+                },
             ],
         },
     },
