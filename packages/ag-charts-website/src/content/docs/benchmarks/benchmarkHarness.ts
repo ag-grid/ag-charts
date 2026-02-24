@@ -483,7 +483,8 @@ class BenchmarkUI {
         results: BenchmarkResult[],
         formatTestCase: (testCase: string) => string,
         version: string,
-        metadata?: Record<string, unknown>
+        metadata?: Record<string, unknown>,
+        onExport?: () => void
     ): void {
         if (!this.resultsElement) return;
 
@@ -575,58 +576,8 @@ class BenchmarkUI {
 
         // Add export functionality
         const exportButton = document.getElementById('exportBenchmarkResults');
-        if (exportButton) {
-            exportButton.addEventListener('click', () => {
-                // Capture environment details at export time
-                const chartElement = document.getElementById('myChart');
-                const chartRect = chartElement?.getBoundingClientRect();
-
-                // Derive parameter keys from results
-                const parameterKeys: string[] = [];
-                for (const r of results) {
-                    for (const key of Object.keys(r.params)) {
-                        if (!parameterKeys.includes(key)) {
-                            parameterKeys.push(key);
-                        }
-                    }
-                }
-
-                const exportData = {
-                    version,
-                    parameterKeys,
-                    environment: {
-                        viewport: {
-                            width: window.innerWidth,
-                            height: window.innerHeight,
-                        },
-                        chart: chartRect
-                            ? {
-                                  width: Math.round(chartRect.width),
-                                  height: Math.round(chartRect.height),
-                              }
-                            : null,
-                        devicePixelRatio: window.devicePixelRatio,
-                    },
-                    metadata: metadata || {},
-                    results: results.map((r) => ({
-                        testCase: formatTestCase(r.testCase),
-                        params: r.params,
-                        averageTime: r.averageTime,
-                        minTime: r.minTime,
-                        maxTime: r.maxTime,
-                        sampleCount: r.sampleCount,
-                        timings: r.timings,
-                    })),
-                };
-                const json = JSON.stringify(exportData, null, 2);
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `benchmark-results-${new Date().toISOString()}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-            });
+        if (exportButton && onExport) {
+            exportButton.addEventListener('click', onExport);
         }
 
         // Log to console
@@ -746,11 +697,14 @@ class BenchmarkRunner {
             }
 
             this.displayResults();
+            (window as any).__benchmarkResults = this.buildExportData();
         } catch (error) {
             console.error('Benchmark error:', error);
             this.ui.showError(`Benchmark failed: ${error}`);
+            (window as any).__benchmarkError = String(error);
         } finally {
             this.isRunning = false;
+            (window as any).__benchmarkComplete = true;
             this.currentTestCase = null;
             this.currentVariant = null;
             this.ui.setRunButtonEnabled(true);
@@ -865,16 +819,72 @@ class BenchmarkRunner {
         );
     }
 
+    private formatTestCase(testCase: string): string {
+        const tc = this.config.testCases.find((t) => t.id === testCase);
+        return tc?.label || testCase;
+    }
+
+    private buildExportData() {
+        const chartElement = document.getElementById('myChart');
+        const chartRect = chartElement?.getBoundingClientRect();
+
+        // Derive parameter keys from results
+        const parameterKeys: string[] = [];
+        for (const r of this.results) {
+            for (const key of Object.keys(r.params)) {
+                if (!parameterKeys.includes(key)) {
+                    parameterKeys.push(key);
+                }
+            }
+        }
+
+        return {
+            version: this.version,
+            parameterKeys,
+            environment: {
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                },
+                chart: chartRect
+                    ? {
+                          width: Math.round(chartRect.width),
+                          height: Math.round(chartRect.height),
+                      }
+                    : null,
+                devicePixelRatio: window.devicePixelRatio,
+            },
+            metadata: this.config.metadata || {},
+            results: this.results.map((r) => ({
+                testCase: this.formatTestCase(r.testCase),
+                params: r.params,
+                averageTime: r.averageTime,
+                minTime: r.minTime,
+                maxTime: r.maxTime,
+                sampleCount: r.sampleCount,
+                timings: r.timings,
+            })),
+        };
+    }
+
     private displayResults(): void {
         this.updateProgress(true);
         this.ui.displayResults(
             this.results,
-            (testCase) => {
-                const tc = this.config.testCases.find((t) => t.id === testCase);
-                return tc?.label || testCase;
-            },
+            (testCase) => this.formatTestCase(testCase),
             this.version,
-            this.config.metadata
+            this.config.metadata,
+            () => {
+                const exportData = this.buildExportData();
+                const json = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `benchmark-results-${new Date().toISOString()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
         );
     }
 }
