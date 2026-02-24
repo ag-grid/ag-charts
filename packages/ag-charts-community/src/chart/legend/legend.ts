@@ -711,7 +711,7 @@ export class Legend extends BaseProperties {
         );
 
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
-        this.pagination.currentPage = clamp(0, newCurrentPage, pages.length - 1);
+        this.pagination.currentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
 
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
         const paginationComponentPadding = 8;
@@ -878,7 +878,9 @@ export class Legend extends BaseProperties {
         const { itemSelection, group, pagination, pages } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
-        const { startIndex, endIndex } = pages[pageNumber];
+        const page = pages[pageNumber];
+        if (!page) return;
+        const { startIndex, endIndex } = page;
         if (startIndex === 0) {
             // Stay on first page on pagination update.
             this.paginationTrackingIndex = 0;

@@ -194,6 +194,26 @@ describe('AgChartV2', () => {
             chart = AgCharts.create(options);
             await compareImageDataUrl();
         });
+
+        it('should download when legend is hidden due to small chart size (AG-16787)', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y1: 1, y2: 2, y3: 3 },
+                    { x: 'B', y1: 4, y2: 5, y3: 6 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1' },
+                    { type: 'bar', xKey: 'x', yKey: 'y2' },
+                    { type: 'bar', xKey: 'x', yKey: 'y3' },
+                ],
+            };
+            prepareTestOptions(options, container);
+            options.width = 100;
+            options.height = 80;
+
+            chart = AgCharts.create(options);
+            await compareImageDataUrl();
+        });
     });
 
     describe('#getState', () => {
