@@ -146,7 +146,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.hoverScheduler = this.createHoverScheduler();
 
-        this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip, this.focus);
+        this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
 
         const initialAltText = chart.ctx.localeManager.t('ariaInitSeriesArea');
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
@@ -327,8 +327,10 @@ export class SeriesAreaManager extends BaseManager {
         } else if (this.isState(InteractionState.ContextMenuable)) {
             const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'context-menu');
             if (pick) {
-                this.chart.ctx.highlightManager.updateHighlight(this.id);
-                pickedNode = pick.matches[0];
+                this.pickManager.maybeActivate(undefined, (): void => {
+                    this.chart.ctx.highlightManager.updateHighlight(this.id);
+                    pickedNode = pick.matches[0];
+                });
             }
         }
 
@@ -592,10 +594,15 @@ export class SeriesAreaManager extends BaseManager {
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
+                    const { active } = next;
                     const { canvasX, canvasY } = this.toCanvasCoordinates(event);
                     this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
-                    this.handleHoverHighlight(false);
-                    this.showTooltip(next.active, canvasX, canvasY, next.paginationState);
+                    this.handleHoverHighlight(false, {
+                        active,
+                        defaultCb: () => {
+                            this.showTooltip(active, canvasX, canvasY, next.paginationState);
+                        },
+                    });
                 }
             }
             return true;
@@ -683,14 +690,6 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
-    private pickFocus(series: UnknownSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
-        const pick = series.pickFocus(opts);
-        if (this.hoverDevice === 'keyboard') {
-            this.pickManager.onPickedNodesFocus(pick);
-        }
-        return pick;
-    }
-
     private updatePickedFocus(
         datumIndex: number,
         datumIndexDelta: number,
@@ -703,7 +702,7 @@ export class SeriesAreaManager extends BaseManager {
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
-        const pick = this.pickFocus(focus.series, focusInputs);
+        const pick = focus.series.pickFocus(focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
 
         const { datum } = pick;
@@ -769,10 +768,16 @@ export class SeriesAreaManager extends BaseManager {
             this.clearCachedEvents();
 
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
-            this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            if (this.isTooltipEnabled(focus.series)) {
-                this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
-            }
+            this.pickManager.maybeActivate(
+                datum,
+                ({ series }): void => {
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+                    if (this.isTooltipEnabled(series)) {
+                        this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+                    }
+                },
+                { series: focus.series }
+            );
         }
 
         this.maybeAnnouncePickedFocus(
@@ -827,9 +832,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private clearHighlight(delayed: boolean = false) {
-        this.highlight.pendingHoverEvent = undefined;
-        this.highlight.appliedHoverEvent = undefined;
-        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, delayed);
+        this.pickManager.maybeActivate(undefined, (): void => {
+            this.highlight.pendingHoverEvent = undefined;
+            this.highlight.appliedHoverEvent = undefined;
+            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, delayed);
+        });
     }
 
     private clearTooltip(delayed: boolean = false) {
@@ -842,6 +849,15 @@ export class SeriesAreaManager extends BaseManager {
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
+    }
+
+    private clearStaleHighlightTooltip(): void {
+        // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
+        if (this.hoverDevice === 'setState') {
+            this.clearCachedEvents();
+            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+        }
     }
 
     private clearCachedEvents(): void {
@@ -886,20 +902,21 @@ export class SeriesAreaManager extends BaseManager {
         const { active, paginationState } = this.pickManager.onPickedNodesAPIDebounced();
         if (active === undefined) return;
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id, active);
-        const refPoint = getDatumRefPoint(active.series, active, undefined);
-        if (this.chart.tooltip.enabled) {
-            if (!active.series.visible) {
-                this.clearTooltip();
-                this.clearHighlight();
-            } else if (refPoint) {
-                const { canvasX, canvasY } = refPoint;
-                this.showTooltip(active, canvasX, canvasY, paginationState);
+        this.pickManager.maybeActivate(active, (): void => {
+            const refPoint = getDatumRefPoint(active.series, active, undefined);
+            if (this.chart.tooltip.enabled) {
+                if (!active.series.visible) {
+                    this.clearStaleHighlightTooltip();
+                } else if (refPoint) {
+                    const { canvasX, canvasY } = refPoint;
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, active);
+                    this.showTooltip(active, canvasX, canvasY, paginationState);
+                }
             }
-        }
+        });
     }
 
-    private handleHoverHighlight(redisplay: boolean) {
+    private handleHoverHighlight(redisplay: boolean, opts?: { active: PickedNode; defaultCb: () => void }) {
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
         this.highlight.pendingHoverEvent = undefined;
 
@@ -914,13 +931,21 @@ export class SeriesAreaManager extends BaseManager {
 
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
 
-        const active: PickedNode | undefined = this.pickManager.onPickedNodesHighlight(pick);
+        const active: PickedNode | undefined =
+            opts?.active ??
+            this.pickManager.onPickedNodesHighlight(this.pickNodes({ x: event.currentX, y: event.currentY }, intent));
+
         if (active === undefined) {
-            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+            this.pickManager.maybeActivate(undefined, () => {
+                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+                opts?.defaultCb();
+            });
         } else {
-            this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+            this.pickManager.maybeActivate(active, () => {
+                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                opts?.defaultCb();
+            });
         }
     }
 
@@ -974,9 +999,11 @@ export class SeriesAreaManager extends BaseManager {
 
     private maybeEnterInteractiveTooltip(event: FocusEvent | MouseEvent) {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
-            this.tooltip.lastHover = undefined;
-            this.chart.ctx.tooltipManager.removeTooltip(this.id);
-            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+            this.pickManager.maybeActivate(undefined, (): void => {
+                this.tooltip.lastHover = undefined;
+                this.chart.ctx.tooltipManager.removeTooltip(this.id);
+                this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
+            });
         });
     }
 
@@ -1121,10 +1148,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
         if (activeItem?.type === 'legend') {
-            if (this.hoverDevice === 'setState') {
-                this.clearHighlight();
-                this.clearTooltip();
-            }
+            this.clearStaleHighlightTooltip();
             this.activeState.lastActive = 'legend';
         }
     }
