@@ -54,12 +54,12 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         return this.interactionManager.isState(InteractionState.Frozen);
     }
 
-    public clear(): void {
-        this.update(undefined, undefined);
+    public clear(): boolean {
+        return this.update(undefined, undefined);
     }
 
-    public update(newItemState: ActiveItem, nodeDatum: DatumArg): void {
-        this.performUpdate('user-interaction', newItemState, nodeDatum, false);
+    public update(newItemState: ActiveItem, nodeDatum: DatumArg): boolean {
+        return this.performUpdate('user-interaction', newItemState, nodeDatum, false);
     }
 
     private performUpdate(
@@ -67,32 +67,51 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         newItemState: ActiveItem,
         nodeDatum: DatumArg,
         frozenChanged: boolean
-    ): void {
-        if (!this.updateable) return;
+    ): boolean {
+        if (!this.updateable) return false;
         const oldItemState = this.currentItem;
-
-        // Internal dispatch:
-        this.currentItem = newItemState;
-        this.eventsHub.emit('active:update', newItemState);
+        let defaultPrevented = false;
 
         // External (API) dispatch:
         if (frozenChanged || !objectsEqual(oldItemState, newItemState)) {
-            const { frozen, activeItem } = this.createMemento();
+            const { frozen, activeItem } = this.createMementoWithItem(newItemState);
             const { datum } = nodeDatum ?? {};
-            this.fireEvent({ type: 'activeChange', source, frozen, activeItem, datum });
+
+            this.fireEvent({
+                type: 'activeChange',
+                source,
+                frozen,
+                activeItem,
+                datum,
+                preventDefault: () => {
+                    defaultPrevented = true;
+                },
+            });
         }
+
+        // Internal dispatch:
+        if (!defaultPrevented) {
+            this.currentItem = newItemState;
+            this.eventsHub.emit('active:update', newItemState);
+        }
+
+        return defaultPrevented;
     }
 
     public createMemento(): AgActiveState {
+        return this.createMementoWithItem(this.currentItem);
+    }
+
+    private createMementoWithItem(activeItem: ActiveItem | undefined): AgActiveState {
         const frozen = this.isFrozen();
-        switch (this.currentItem?.type) {
+        switch (activeItem?.type) {
             case 'series-node':
             case 'legend': {
-                const { type, seriesId, itemId } = this.currentItem;
+                const { type, seriesId, itemId } = activeItem;
                 return { frozen, activeItem: { type, seriesId, itemId } };
             }
             default:
-                this.currentItem?.type satisfies undefined;
+                activeItem?.type satisfies undefined;
                 return { frozen };
         }
     }

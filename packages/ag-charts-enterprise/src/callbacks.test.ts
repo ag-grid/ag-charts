@@ -22,6 +22,7 @@ import {
     type AgZoomEvent,
 } from 'ag-charts-community';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     type MockAPICallback,
     MockActiveChangeListener,
     type MockAnnotationsListener,
@@ -42,6 +43,7 @@ import {
     deproxy,
     doubleClickAction,
     expectWarningsCalls,
+    extractImageData,
     hoverAction,
     newFreezableMock,
     scrollAction,
@@ -49,7 +51,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { DeepReadonly } from 'ag-charts-core';
+import { AreExact, DeepReadonly, RequireOptional } from 'ag-charts-core';
 import type {
     AgActiveChangeEvent,
     AgActiveItemState,
@@ -1295,31 +1297,46 @@ describe('AG-15850 labels', () => {
 
 describe('AG-15850 activeChange', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     type D = unknown;
     type C = unknown;
     type M = MockActiveChangeListener<D, C>;
-
     let chart: AgChartInstance<AgGaugeOptions | AgChartOptions<D, C>>;
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
     let version: string | undefined = undefined;
 
-    const INACTIVE_SETSTATE_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+    type ExpectedAgActiveChangeEventProperties = RequireOptional<
+        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
+    >;
+    function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
+        const { activeItem, datum, frozen, source, type, ..._rest } = props;
+        true satisfies AreExact<keyof typeof _rest, never>; // ensure the deconstruction is exhaustive
+        return expect.objectContaining({
+            activeItem,
+            datum,
+            frozen,
+            source,
+            type,
+            preventDefault: expect.any(Function),
+        });
+    }
+
+    const INACTIVE_SETSTATE_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
         datum: undefined,
         frozen: false,
         source: 'state-change',
         type: 'activeChange',
-    };
+    });
 
-    const INACTIVE_USERINTERACTION_EVENT: DeepReadonly<AgActiveChangeEvent<unknown, unknown>> = {
+    const INACTIVE_USERINTERACTION_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
         datum: undefined,
         frozen: false,
         source: 'user-interaction',
         type: 'activeChange',
-    };
+    });
 
     beforeEach(() => {
         mockActiveChange = newFreezableMock<D, C, M>();
@@ -2601,13 +2618,13 @@ describe('AG-15850 activeChange', () => {
             await chart.updateDelta({ initialState: getDesiredState() });
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
-                    },
+                    }),
                 ],
             ]);
         });
@@ -2617,15 +2634,83 @@ describe('AG-15850 activeChange', () => {
             await chart.setState({ version, ...getDesiredState() });
             expect(popCalls()).toEqual([
                 [
-                    {
+                    expectAgActiveChangeEvent({
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
-                    },
+                    }),
                 ],
             ]);
+        });
+    });
+
+    describe('AG-16704 preventDefault', () => {
+        const noHighlightImageSnapshot = async () => {
+            await waitForChartStability(chart);
+            expect(extractImageData(ctx)).toMatchImageSnapshot({
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'AG-16704-noHighlightImageSnapshot',
+            });
+        };
+
+        beforeEach(async () => {
+            mockActiveChange.mock.mockImplementation((ev) => {
+                ev.preventDefault();
+            });
+            await createChart({
+                data: [
+                    { x: 'Q1', apples: 16, oranges: 14 },
+                    { x: 'Q2', apples: 12, oranges: 11 },
+                    { x: 'Q3', apples: 12, oranges: 8 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'apples' },
+                    { type: 'bar', xKey: 'x', yKey: 'oranges' },
+                ],
+                listeners: {
+                    activeChange: mockActiveChange.frozen,
+                },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('legend', async () => {
+            // Hover on "apples" legend item
+            await hover(360, 571);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'user-interaction',
+                        activeItem: { type: 'legend', seriesId: 'BarSeries-1', itemId: 'apples' },
+                        frozen: false,
+                        datum: undefined,
+                    }),
+                ],
+            ]);
+
+            // Hover on "oranges" legend item
+            await hover(444, 571);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'user-interaction',
+                        activeItem: { type: 'legend', seriesId: 'BarSeries-2', itemId: 'oranges' },
+                        frozen: false,
+                        datum: undefined,
+                    }),
+                ],
+            ]);
+
+            // Hover miss
+            await hover(20, 555);
+            await noHighlightImageSnapshot();
+            expect(popCalls()).toEqual([]);
         });
     });
 });
