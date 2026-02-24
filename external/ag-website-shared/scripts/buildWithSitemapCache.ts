@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Build helper for AG Charts website.
  *

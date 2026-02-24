@@ -1,4 +1,5 @@
 // @ag-skip-fws
+
 /* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts, AgLineSeriesOptions, VERSION } from 'ag-charts-community';
 

@@ -1,5 +1,6 @@
 // @ag-skip-fws
 // @ag-skip-container-check
+
 /* @ag-options-extract */
 import { AgCharts, type AgSparklineOptions, VERSION } from 'ag-charts-community';
 import { AgChartInstance } from 'ag-charts-community';

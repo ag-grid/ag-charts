@@ -568,7 +568,11 @@ dist/packages/ag-charts-website/public/generated-examples/
 
 ```typescript
 // Check generated file has all necessary imports
-import { AgChartOptions /* other types */, AgCharts } from 'ag-charts-community';
+import {
+    AgChartOptions,
+    /* other types */
+    AgCharts,
+} from 'ag-charts-community';
 ```
 
 **Incorrect refs:**
