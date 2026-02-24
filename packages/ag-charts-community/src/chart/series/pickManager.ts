@@ -8,11 +8,7 @@ import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 
 type ActiveSource = 'highlight' | 'tooltip' | 'focus';
 
-export interface PickedNode {
-    series: UnknownSeries;
-    datum: SeriesNodeDatum<DatumIndexType>;
-    datumIndex: unknown;
-}
+export type PickedNode = SeriesNodeDatum<DatumIndexType>;
 
 export type PickedNodes = {
     matches: PickedNode[];
@@ -20,12 +16,12 @@ export type PickedNodes = {
 };
 
 function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
-    if (node.datum.itemId !== undefined) {
-        return node.datum.itemId;
-    } else if (typeof node.datum.datumIndex === 'number') {
-        return node.datum.datumIndex;
+    if (node.itemId !== undefined) {
+        return node.itemId;
+    } else if (typeof node.datumIndex === 'number') {
+        return node.datumIndex;
     } else {
-        return JSON.stringify(node.datum.datumIndex);
+        return JSON.stringify(node.datumIndex);
     }
 }
 
@@ -40,7 +36,7 @@ function indexOf(candidates: PickedNode[], node: PickedNode | undefined): number
 type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number; length: number } };
 
 /**
- * IPickManager mediates the `active` node state between SeriesAreaManager and ActiveManager.
+ * PickManager mediates the `active` node state between SeriesAreaManager and ActiveManager.
  *
  * It tracks the active node by:
  *
@@ -51,20 +47,7 @@ type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number
  *
  *   3.  Track tooltip candidates (if pagination is enabled).
  */
-export interface IPickManager {
-    onPickedNodesHighlight(pickedNodes: PickedNodes | undefined): PickedNode | undefined;
-    onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate;
-    onPickedNodesFocus(pickedFocus: PickFocusOutputs | undefined): void;
-    onPickedNodesAPI(pickedNodes: PickedNodes): PickedNode | undefined;
-    onPickedNodesAPIDebounced(): TooltipCandidate;
-
-    onClearUI(): void;
-    onClearAPI(): void;
-
-    nextCandidate(): TooltipCandidate;
-}
-
-export class PickManager implements IPickManager {
+export class PickManager {
     private candidates: PickedNode[] = [];
 
     private readonly activeState = new StateTracker<PickedNode, ActiveSource>();
@@ -109,7 +92,7 @@ export class PickManager implements IPickManager {
         } else {
             const seriesId: string = resolved.series.id;
             const itemId: string | number = getItemId(resolved);
-            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved.datum);
+            this.activeManager.update({ type: 'series-node', seriesId, itemId }, resolved);
         }
     }
 
@@ -172,8 +155,7 @@ export class PickManager implements IPickManager {
         const { series } = this.focusState;
         this.clear();
         if (series !== undefined && pickedFocus !== undefined) {
-            const { datum, datumIndex } = pickedFocus;
-            this.setSource('focus', { series, datum, datumIndex });
+            this.setSource('focus', pickedFocus.datum);
         }
     }
 

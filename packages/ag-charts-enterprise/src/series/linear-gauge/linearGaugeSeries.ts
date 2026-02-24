@@ -402,6 +402,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             formatter = (params) => this.formatLabel(params.value),
         } = label;
         return {
+            series: this,
+            datum: undefined,
+            datumIndex: { type: NodeDataType.Node },
             placement,
             avoidCollisions,
             spacing,
