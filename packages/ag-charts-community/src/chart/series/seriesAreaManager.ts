@@ -776,7 +776,7 @@ export class SeriesAreaManager extends BaseManager {
                         this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
                     }
                 },
-                { series: focus.series }
+                { defaultCbArg: { series: focus.series } }
             );
         }
 
@@ -942,10 +942,14 @@ export class SeriesAreaManager extends BaseManager {
                 opts?.defaultCb();
             });
         } else {
-            this.pickManager.maybeActivate(active, () => {
-                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
-                opts?.defaultCb();
-            });
+            this.pickManager.maybeActivate(
+                active,
+                () => {
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                    opts?.defaultCb();
+                },
+                { rollbackCb: () => this.clearTooltip() }
+            );
         }
     }
 
