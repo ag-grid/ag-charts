@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * Analyze git-modified PNG snapshots to identify visually significant changes.
  *

@@ -12,3 +12,6 @@ search-output/
 src/content/docs/**/reports/
 
 src/content/gallery/_examples/*/tsconfig*.json
+
+# Algolia search output
+search-output/
