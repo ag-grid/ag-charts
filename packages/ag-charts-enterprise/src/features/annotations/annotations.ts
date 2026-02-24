@@ -1125,8 +1125,6 @@ export class Annotations extends AbstractModuleInstance {
 
         if (translation.x || translation.y) {
             state.transition('translate', { translation });
-
-            sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
         }
 
