@@ -78,7 +78,6 @@ export class Menu extends AnchoredPopover {
         row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
             options.onPress?.(item);
             sourceEvent.preventDefault();
-            sourceEvent.stopPropagation();
             menu.collapse();
         });
 
