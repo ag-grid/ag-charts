@@ -1740,7 +1740,9 @@ test.describe('state', () => {
             });
 
             test.describe('hovering over country shapes prevents activeChange events', () => {
-                test('screenshots', async ({ page }) => {
+                // The series-node tooltip isn't hidden when calling preventDefault
+                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103600
+                test.skip('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
 
                     await hoverFranceShape(page);
