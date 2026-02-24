@@ -482,8 +482,8 @@ class BenchmarkUI {
     displayResults(
         results: BenchmarkResult[],
         formatTestCase: (testCase: string) => string,
-        version: string,
-        metadata?: Record<string, unknown>,
+        _version: string,
+        _metadata?: Record<string, unknown>,
         onExport?: () => void
     ): void {
         if (!this.resultsElement) return;
