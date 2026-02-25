@@ -570,6 +570,110 @@ describe('FlashOnUpdate', () => {
         }
     });
 
+    describe('large dataset', () => {
+        function generateData(count: number, seed = 1) {
+            return Array.from({ length: count }, (_, i) => ({
+                category: `Cat-${i}`,
+                value: ((seed * (i + 1) * 7) % 100) + 1,
+                value2: ((seed * (i + 1) * 13) % 100) + 1,
+            }));
+        }
+
+        const LARGE_COUNT = 500;
+        const LARGE_DATA = generateData(LARGE_COUNT, 1);
+        const LARGE_DATA_UPDATED = generateData(LARGE_COUNT, 2);
+
+        for (const ratio of PHASE_RATIOS) {
+            it(`should handle large dataset with chart flash mode [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    {
+                        ...VERTICAL_BAR_OPTIONS,
+                        data: LARGE_DATA,
+                    },
+                    { enabled: true, item: 'chart' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: LARGE_DATA_UPDATED });
+                await compareSnapshot();
+            });
+
+            it(`should handle large dataset with category flash mode [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    {
+                        ...VERTICAL_BAR_OPTIONS,
+                        data: LARGE_DATA,
+                    },
+                    { enabled: true, item: 'category' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: LARGE_DATA_UPDATED });
+                await compareSnapshot();
+            });
+
+            it(`should handle multiple rapid updates with large dataset [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    {
+                        ...VERTICAL_BAR_OPTIONS,
+                        data: LARGE_DATA,
+                    },
+                    { enabled: true, item: 'chart' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                void chart.updateDelta({ data: LARGE_DATA_UPDATED });
+                void chart.updateDelta({ data: generateData(LARGE_COUNT, 3) });
+                void chart.updateDelta({ data: generateData(LARGE_COUNT, 4) });
+                await compareSnapshot();
+            });
+
+            it(`should handle large dataset with added and removed categories [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    {
+                        ...VERTICAL_BAR_OPTIONS,
+                        data: LARGE_DATA,
+                    },
+                    { enabled: true, item: 'category' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Remove half, add new ones
+                const mixedData = [
+                    ...generateData(LARGE_COUNT / 2, 1).slice(0, LARGE_COUNT / 4),
+                    ...Array.from({ length: LARGE_COUNT / 4 }, (_, i) => ({
+                        category: `New-${i}`,
+                        value: ((i + 1) * 11) % 100,
+                        value2: ((i + 1) * 17) % 100,
+                    })),
+                ];
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: mixedData });
+                await compareSnapshot();
+            });
+        }
+    });
+
     describe('sequential updates', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should stop previous flash and start new one on rapid update [ratio ${ratio}]`, async () => {
