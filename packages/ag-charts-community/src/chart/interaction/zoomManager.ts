@@ -1,5 +1,6 @@
 import {
     ChartAxisDirection,
+    Debug,
     Logger,
     ScaleAlignment,
     attachDescription,
@@ -155,6 +156,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
+    private readonly debug = Debug.create(true, 'zoom');
 
     // The initial state memento can not be restored until the chart has performed its first layout. Instead save it as
     // pending and restore then delete it on the first layout.
@@ -668,7 +670,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const delta = zoom[axis].max - zoom[axis].min;
         const minDelta = 1 / this.lastRestoredRequiredRange;
-        if (delta <= minDelta) return;
+        if (delta <= minDelta) return; // FAILING HERE!
 
         event.constrainZoom({
             ...zoom,
@@ -687,6 +689,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const state = this.state;
         let constrainedState: typeof state | undefined;
 
+        const debug = this.debug;
         const zoomManager = this;
         const event = {
             source,
@@ -704,6 +707,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
             },
             constrainChanges(restrictions: ZoomChangeState): void {
+                if (debug.check()) {
+                    debug('ZoomManager.constrainChanges()', state, '->', restrictions, new Error().stack);
+                }
                 constrainedState ??= deepClone(state);
                 for (const id of strictObjectKeys(restrictions)) {
                     const src = restrictions[id];
@@ -719,13 +725,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         this.eventsHub.emit('zoom:change-request', event);
 
-        let wasChangeConstrained = false;
         if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
-            wasChangeConstrained = true;
             this.state = constrainedState;
         }
 
-        const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;
+        const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
