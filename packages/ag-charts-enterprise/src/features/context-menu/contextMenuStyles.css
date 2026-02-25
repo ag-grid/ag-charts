@@ -41,7 +41,7 @@
     display: flex;
     font: inherit;
     justify-content: space-between;
-    text-align: left;
+    text-align: start;
     width: 100%;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -67,7 +67,7 @@
     padding: 0.5em 1em;
 }
 .ag-charts-context-menu__icon {
-    padding-right: 0;
+    padding-inline-end: 0;
 }
 
 .ag-charts-context-menu__item[data-focus-override='true'],
@@ -99,6 +99,10 @@
 .ag-charts-context-menu__item[aria-disabled='true']:focus {
     background: inherit;
     cursor: inherit;
+}
+
+.ag-charts-wrapper[dir='rtl'] .ag-charts-context-menu__item .ag-charts-icon-chevron-right {
+    transform: scaleX(-1);
 }
 
 .ag-charts-context-menu__divider {

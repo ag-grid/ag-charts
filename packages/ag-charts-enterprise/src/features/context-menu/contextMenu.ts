@@ -240,6 +240,7 @@ export class ContextMenu extends AbstractModuleInstance {
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
+        const { isRtl } = this.ctx.domManager;
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
         const remainingSpaceOnRight = canvasRect.right - buttonClientRect.right;
@@ -255,19 +256,23 @@ export class ContextMenu extends AbstractModuleInstance {
             }
         }
 
-        if (remainingSpaceOnRight >= menuOffsetWidth) {
-            // Right-side Popout
-            menu.setBounds({ x: bounds.x + bounds.width, y });
+        const preferredSide = isRtl ? 'left' : 'right';
+        const preferredSpace = preferredSide === 'right' ? remainingSpaceOnRight : remainingSpaceOnLeft;
+
+        if (preferredSpace >= menuOffsetWidth) {
+            // Preferred-side popout
+            const x = preferredSide === 'right' ? bounds.x + bounds.width : bounds.x - menuOffsetWidth;
+            menu.setBounds({ x, y });
         } else {
-            // Left-side Popout
-            const x = bounds.x - menuOffsetWidth;
-            const leftDelta = remainingSpaceOnLeft + x;
-            if (leftDelta >= 0) {
-                // Regular Left-side Popout
+            // Fallback-side popout
+            const x = preferredSide === 'right' ? bounds.x - menuOffsetWidth : bounds.x + bounds.width;
+            const delta =
+                preferredSide === 'right' ? remainingSpaceOnLeft + x : remainingSpaceOnRight - x - menuOffsetWidth;
+            if (delta >= 0) {
                 menu.setBounds({ x, y });
             } else {
-                // Left-side Popout (clipped to the left edge of the canvas)
-                menu.setBounds({ x: x - leftDelta, y });
+                // Clipped to the edge of the canvas
+                menu.setBounds({ x: x + (preferredSide === 'right' ? -delta : delta), y });
             }
         }
     }
@@ -424,6 +429,7 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private reposition() {
+        const { isRtl } = this.ctx.domManager;
         let { x, y } = this;
 
         this.element.style.top = 'unset';
@@ -432,7 +438,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const { offsetWidth: width, offsetHeight: height } = this.element;
 
-        x = clamp(0, x, canvasRect.width - width);
+        x = clamp(0, isRtl ? x - width : x, canvasRect.width - width);
         y = clamp(0, y, canvasRect.height - height);
 
         this.element.style.left = `${x}px`;
