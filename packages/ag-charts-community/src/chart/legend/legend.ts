@@ -249,6 +249,7 @@ export class Legend extends BaseProperties {
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
+    private paginationItemsOffsetX = 0;
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
@@ -701,8 +702,10 @@ export class Legend extends BaseProperties {
         const orientation = this.getOrientation();
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
+        const { isRtl } = this.ctx.domManager;
+
         this.pagination.orientation = orientation;
-        // this.pagination.isRtl = this.ctx.domManager.isRtl;
+        this.pagination.isRtl = isRtl;
 
         this.pagination.translationX = 0;
         this.pagination.translationY = 0;
@@ -725,10 +728,18 @@ export class Legend extends BaseProperties {
         let paginationY = -paginationBBox.y - this.item.marker.size / 2;
         if (paginationVertical) {
             paginationY += legendItemsHeight + paginationComponentPadding;
+        } else if (isRtl) {
+            paginationX = -paginationBBox.x;
+            paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         } else {
             paginationX += -paginationBBox.x + legendItemsWidth + paginationComponentPadding;
             paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         }
+
+        this.paginationItemsOffsetX =
+            isRtl && !paginationVertical && this.pagination.visible
+                ? paginationBBox.width + paginationComponentPadding
+                : 0;
 
         this.pagination.translationX = paginationX;
         this.pagination.translationY = paginationY;
@@ -876,7 +887,7 @@ export class Legend extends BaseProperties {
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 
-            markerLabel.translationX = x;
+            markerLabel.translationX = x + this.paginationItemsOffsetX;
             markerLabel.translationY = y;
         });
     }

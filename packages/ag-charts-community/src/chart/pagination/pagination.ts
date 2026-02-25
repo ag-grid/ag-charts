@@ -1,4 +1,13 @@
-import { ActionOnSet, BaseProperties, ChartUpdateType, FONT_SIZE, Property, clamp, createId } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    BaseProperties,
+    ChartUpdateType,
+    FONT_SIZE,
+    ObserveChanges,
+    Property,
+    clamp,
+    createId,
+} from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -99,6 +108,7 @@ export class Pagination extends BaseProperties {
 
         this.labelNode.setProperties({
             textBaseline: 'middle',
+            textAlign: 'left',
             fontSize: FONT_SIZE.SMALL,
             fontFamily: 'Verdana, sans-serif',
             fill: 'black',
@@ -141,14 +151,24 @@ export class Pagination extends BaseProperties {
         this.group.visible = this.enabled && this.visible;
     }
 
-    private _orientation: AgChartLegendOrientation = 'vertical';
-    set orientation(value: AgChartLegendOrientation) {
-        this._orientation = value;
+    private readonly nextButton: RotatableType<Marker> = new Marker();
+    private readonly previousButton: RotatableType<Marker> = new Marker();
 
-        switch (value) {
+    @ObserveChanges<Pagination>((target) => {
+        target.applyRotations();
+        target.updatePositions();
+    })
+    isRtl: boolean = false;
+
+    @ObserveChanges<Pagination>((target) => target.applyRotations())
+    orientation: AgChartLegendOrientation = 'vertical';
+
+    private applyRotations() {
+        const { isRtl } = this;
+        switch (this.orientation) {
             case 'horizontal': {
-                this.previousButton.rotation = -Math.PI / 2;
-                this.nextButton.rotation = Math.PI / 2;
+                this.previousButton.rotation = isRtl ? Math.PI / 2 : -Math.PI / 2;
+                this.nextButton.rotation = isRtl ? -Math.PI / 2 : Math.PI / 2;
                 break;
             }
             case 'vertical':
@@ -158,12 +178,6 @@ export class Pagination extends BaseProperties {
             }
         }
     }
-    get orientation() {
-        return this._orientation;
-    }
-
-    private readonly nextButton: RotatableType<Marker> = new Marker();
-    private readonly previousButton: RotatableType<Marker> = new Marker();
 
     update() {
         this.updateLabel();
@@ -176,7 +190,7 @@ export class Pagination extends BaseProperties {
         this.group.translationY = this.translationY;
 
         this.updateLabelPosition();
-        this.updateNextButtonPosition();
+        this.updateButtonPositions();
     }
 
     private updateLabelPosition() {
@@ -188,9 +202,17 @@ export class Pagination extends BaseProperties {
         this.labelNode.x = markerSize / 2 + markerPadding;
     }
 
-    private updateNextButtonPosition() {
+    private updateButtonPositions() {
         const labelBBox = this.labelNode.getBBox();
-        this.nextButton.translationX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
+        const endX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
+
+        if (this.isRtl && this.orientation === 'horizontal') {
+            this.nextButton.translationX = 0;
+            this.previousButton.translationX = endX;
+        } else {
+            this.previousButton.translationX = 0;
+            this.nextButton.translationX = endX;
+        }
     }
 
     private updateLabel() {
