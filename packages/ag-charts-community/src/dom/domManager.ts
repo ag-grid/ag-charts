@@ -277,11 +277,11 @@ export class DOMManager extends BaseManager {
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.element;
 
-        style.width = `${optionsWidth ?? minWidth}px`;
-        style.height = `${optionsHeight ?? minHeight}px`;
-
         this.minWidth = optionsWidth ?? minWidth;
         this.minHeight = optionsHeight ?? minHeight;
+
+        style.minWidth = `${this.minWidth}px`;
+        style.minHeight = `${this.minHeight}px`;
 
         this.updateContainerClassName();
     }
