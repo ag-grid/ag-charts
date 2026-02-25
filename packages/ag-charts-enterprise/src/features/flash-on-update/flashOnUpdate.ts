@@ -71,8 +71,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private readonly bandGroup: _ModuleSupport.TranslatableGroup;
     private readonly bandSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, BandFlashDatum>;
     private seriesRect?: _ModuleSupport.BBox;
-    private bandBounds?: Map<string, BoxBounds>;
-    private previousBandBounds?: Map<string, BoxBounds>;
+    private axisCtx?: AxisContext;
+    private removedBandBoundsCache?: Map<string, BoxBounds>;
     private readonly pendingDiffs: _ModuleSupport.DataModelDiff[] = [];
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -101,6 +101,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private onLayoutComplete({ chart, series }: _ModuleSupport.LayoutCompleteEvent): void {
+        if (!this.enabled) return;
+
         this.chartFlashRect.x = 0;
         this.chartFlashRect.y = 0;
         this.chartFlashRect.width = chart.width;
@@ -111,12 +113,17 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.bandGroup.translationY = Math.round(this.seriesRect.y);
         this.bandGroup.setClipRect(this.seriesRect);
 
-        const axisCtx = findPrimaryCategoryAxisContext(this.ctx);
-        this.updateBandBounds(axisCtx);
+        this.axisCtx = findPrimaryCategoryAxisContext(this.ctx);
     }
 
     private onDataModelDiff({ diff }: _ModuleSupport.DataModelDiffEvent): void {
+        if (!this.enabled) return;
+
         this.pendingDiffs.push(diff);
+
+        if (this.item === 'category') {
+            this.cacheRemovedBounds(diff);
+        }
     }
 
     private onPreSceneRender({ apiUpdate }: _ModuleSupport.PreSceneRenderEvent): void {
@@ -147,40 +154,31 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animate([this.chartFlashRect], 'update');
     }
 
-    private updateBandBounds(axisCtx: AxisContext | undefined): void {
-        this.previousBandBounds = this.bandBounds;
-
-        if (!axisCtx || !this.seriesRect || !_ModuleSupport.BandScale.is(axisCtx.scale)) {
-            this.bandBounds = undefined;
-            this.previousBandBounds = undefined;
-            return;
+    private cacheRemovedBounds(diff: _ModuleSupport.DataModelDiff): void {
+        for (const seriesDiff of Object.values(diff)) {
+            for (const key of seriesDiff.removed) {
+                const bounds = this.measureBandBounds(key);
+                if (bounds) {
+                    this.removedBandBoundsCache ??= new Map();
+                    this.removedBandBoundsCache.set(key, bounds);
+                }
+            }
         }
-
-        this.bandBounds = this.buildBandBounds(axisCtx, this.seriesRect);
     }
 
-    private buildBandBounds(axisCtx: AxisContext, seriesRect: _ModuleSupport.BBox): Map<string, BoxBounds> {
-        const bounds = new Map<string, BoxBounds>();
-        if (!_ModuleSupport.BandScale.is(axisCtx.scale)) return bounds;
+    private measureBandBounds(key: string): BoxBounds | undefined {
+        if (!this.axisCtx || !this.seriesRect) return;
 
-        const isHorizontal = axisCtx.direction === ChartAxisDirection.X;
-        for (const category of axisCtx.scale.bands) {
-            const key = String(category);
-            const band = axisCtx.measureBand(key)?.band;
-            if (!band) continue;
+        const band = this.axisCtx.measureBand(key)?.band;
+        if (!band) return;
 
-            const [start, end] = band;
-            const span = Math.max(end - start, MIN_BAND_WIDTH);
+        const [start, end] = band;
+        const span = Math.max(end - start, MIN_BAND_WIDTH);
+        const isHorizontal = this.axisCtx.direction === ChartAxisDirection.X;
 
-            bounds.set(
-                key,
-                isHorizontal
-                    ? { x: start, y: 0, width: span, height: seriesRect.height }
-                    : { x: 0, y: start, width: seriesRect.width, height: span }
-            );
-        }
-
-        return bounds;
+        return isHorizontal
+            ? { x: start, y: 0, width: span, height: this.seriesRect.height }
+            : { x: 0, y: start, width: this.seriesRect.width, height: span };
     }
 
     private flashCategoryBands(categoryPhases: Map<string, FlashAnimationPhase>): void {
@@ -192,24 +190,19 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
-        const currentBounds = this.bandBounds;
-        const previousBounds = this.previousBandBounds;
-        if (!currentBounds && !previousBounds) {
+        if (!this.axisCtx) {
             Logger.warnOnce(`flashOnUpdate item 'category' requires a category axis`);
             return;
         }
 
-        const getBounds = (category: string, phase: FlashAnimationPhase) => {
-            if (phase === 'add') return currentBounds?.get(category);
-            if (phase === 'remove') return previousBounds?.get(category);
-            return currentBounds?.get(category) ?? previousBounds?.get(category);
-        };
-
         const data: BandFlashDatum[] = [];
         for (const [category, phase] of categoryPhases) {
-            const bounds = getBounds(category, phase);
+            const bounds =
+                phase === 'remove' ? this.removedBandBoundsCache?.get(category) : this.measureBandBounds(category);
             if (bounds) data.push({ id: category, bounds, phase });
         }
+
+        this.removedBandBoundsCache = undefined;
 
         return data.length > 0 ? data : undefined;
     }
@@ -248,16 +241,14 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private refreshRectBounds(rects: _ModuleSupport.Rect[]): void {
-        if (!this.bandBounds) return;
-
         for (const rect of rects) {
-            const updatedBounds = this.bandBounds.get(rect.datum.id);
-            if (!updatedBounds) continue;
+            const bounds = this.measureBandBounds(rect.datum.id);
+            if (!bounds) continue;
 
-            rect.x = updatedBounds.x;
-            rect.y = updatedBounds.y;
-            rect.width = updatedBounds.width;
-            rect.height = updatedBounds.height;
+            rect.x = bounds.x;
+            rect.y = bounds.y;
+            rect.width = bounds.width;
+            rect.height = bounds.height;
         }
     }
 
