@@ -492,12 +492,14 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const { markerWidth, anyLineEnabled } = this.calculateMarkerWidth();
+        const { isRtl } = this.ctx.domManager;
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
+            markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
@@ -700,6 +702,7 @@ export class Legend extends BaseProperties {
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
         this.pagination.orientation = orientation;
+        // this.pagination.isRtl = this.ctx.domManager.isRtl;
 
         this.pagination.translationX = 0;
         this.pagination.translationY = 0;
@@ -837,7 +840,9 @@ export class Legend extends BaseProperties {
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
 
+        const { isRtl } = this.ctx.domManager;
         const rowSumColumnWidths: number[] = [];
+        const pageWidth = columns.reduce((sum, col) => sum + col.columnWidth, 0);
 
         itemSelection.each((markerLabel, _, i) => {
             if (i < visibleStart || i > visibleEnd) {
@@ -858,14 +863,16 @@ export class Legend extends BaseProperties {
 
             markerLabel.visible = true;
             const column = columns[columnIndex];
-
-            if (!column) {
-                return;
-            }
+            if (!column) return;
 
             // Round off for pixel grid alignment to work properly.
             y = Math.floor(itemHeight * rowIndex);
-            x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+
+            if (isRtl) {
+                x = Math.floor(pageWidth - (rowSumColumnWidths[rowIndex] ?? 0));
+            } else {
+                x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+            }
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 

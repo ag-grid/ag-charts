@@ -357,7 +357,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.tooltipManager.removeDelay = 0;
         }
 
-        this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
+        this.cleanup.register(
+            ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)),
+            ctx.eventsHub.on('rtl:change', () => {
+                ctx.scene.canvas.setDirection(ctx.domManager.isRtl);
+                this.update(ChartUpdateType.PERFORM_LAYOUT);
+            })
+        );
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
@@ -1498,11 +1504,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'styleContainer',
             'formatter',
             'displayNullData',
+            'enableRtl',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if ('listeners' in deltaOptions) {
             this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener> | undefined);
+        }
+
+        if ('enableRtl' in deltaOptions) {
+            this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
         jsonApply<any, any>(this, deltaOptions, { skip });

@@ -282,6 +282,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     zoom?: AgZoomOptions;
     /** Global formatter configuration. */
     formatter?: FormatterConfiguration<TDatum, TContext>;
+    /** Set to `true` to render the chart in right-to-left mode. If not specified, the chart will detect the `dir` attribute on the container or its ancestors. */
+    enableRtl?: boolean;
 }
 
 /** Configuration common to all charts.  */

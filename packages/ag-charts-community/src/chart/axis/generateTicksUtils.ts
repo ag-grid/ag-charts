@@ -553,16 +553,16 @@ export function getTextAlign(
     if (parallel) {
         if (labelRotation || labelAutoRotation) {
             if (sideFlag * alignFlag === -1) {
-                return 'end';
+                return 'right';
             }
         } else {
             return 'center';
         }
     } else if (sideFlag * regularFlipFlag === -1) {
-        return 'end';
+        return 'right';
     }
 
-    return 'start';
+    return 'left';
 }
 
 function labelSpecifier(

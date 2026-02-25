@@ -3,6 +3,26 @@ import type { AgIconName } from 'ag-charts-types';
 import type { BoxBounds } from '../geometry/boxBounds';
 import { getWindow } from './globalsProxy';
 
+type StyledElement = new () => { style: CSSStyleDeclaration };
+
+// getWindow is required to make sure this works on our CI.
+// Using Option instead of createElement because it should be faster.
+let style: CSSStyleDeclaration;
+export function parseColor(color: string): string | null {
+    if (style == null) {
+        const OptionConstructor = getWindow<StyledElement>('Option');
+        style = new OptionConstructor().style;
+    }
+    style.color = color;
+    const result = style.color || null;
+    style.color = '';
+    return result;
+}
+
+export function isDirectionRtl(element?: HTMLElement): boolean {
+    return element?.ownerDocument.defaultView?.getComputedStyle(element).direction === 'rtl';
+}
+
 export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoxBounds>) {
     if (!element) return;
     const { x, y, width, height } = normalizeBounds(bbox);
