@@ -668,7 +668,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const delta = zoom[axis].max - zoom[axis].min;
         const minDelta = 1 / this.lastRestoredRequiredRange;
-        if (delta <= minDelta) return;
+        if (delta <= minDelta) return; // FAILING HERE!
 
         event.constrainZoom({
             ...zoom,
@@ -719,13 +719,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         this.eventsHub.emit('zoom:change-request', event);
 
-        let wasChangeConstrained = false;
         if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
-            wasChangeConstrained = true;
             this.state = constrainedState;
         }
 
-        const changeAccepted: boolean = changedAxes.length > 0 || wasChangeConstrained;
+        const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });

@@ -650,7 +650,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
     private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
     private runningUpdateType: ChartUpdateType = ChartUpdateType.NONE;
-
+    private currentProcessingUpdateType: ChartUpdateType = ChartUpdateType.NONE;
     private updateShortcutCount = 0;
     private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
     private readonly updateMutex = new Mutex();
@@ -703,6 +703,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             let stack = new Error('Stack trace for update tracking').stack ?? '<unknown>';
             stack = stack.replaceAll(/\([^)]*/g, '');
             this.updateRequestors[stack] = type;
+
+            if (this.currentProcessingUpdateType !== ChartUpdateType.NONE && this.currentProcessingUpdateType >= type) {
+                this.debug.group(
+                    `Chart.update() - ⚠️ received update for earlier update stage ${ChartUpdateType[type]} ⚠️`,
+                    () => {
+                        this.debug(
+                            `Current processing update type: ${ChartUpdateType[this.currentProcessingUpdateType]}`
+                        );
+                        this.debug('Update from: ', stack);
+                    }
+                );
+            }
         }
 
         if (type < this.performUpdateType) {
@@ -724,7 +736,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private async tryPerformUpdate(count: number) {
         try {
-            await this.performUpdate(count);
+            const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
+            await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
+                await this.performUpdate(count);
+            });
         } catch (error: any) {
             Logger.error('update error', error, error.stack);
         }
@@ -748,6 +763,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
         this.runningUpdateType = performUpdateType;
+        this.currentProcessingUpdateType = performUpdateType;
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
@@ -872,6 +888,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 // Do nothing.
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
+                this.currentProcessingUpdateType = ChartUpdateType.NONE;
                 this._performUpdateSkipAnimations = false;
                 ctx.animationManager.endBatch();
         }
@@ -946,7 +963,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (this.performUpdateType <= checkUpdateType) {
-            this.debug('Chart.checkUpdateShortcut() - BLOCKED AT: ', ChartUpdateType[checkUpdateType]);
+            this.debug(
+                'Chart.checkUpdateShortcut() - BLOCKED AT: ',
+                ChartUpdateType[checkUpdateType],
+                ' BY REQUEST FOR: ',
+                ChartUpdateType[this.performUpdateType]
+            );
 
             // A previous step modified series state, and we need to re-run this or an earlier step before rendering.
             this.updateShortcutCount++;
@@ -954,6 +976,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         this.debug('Chart.checkUpdateShortcut() - PROCEEDING TO: ', ChartUpdateType[checkUpdateType]);
+        this.currentProcessingUpdateType = checkUpdateType;
 
         return false;
     }

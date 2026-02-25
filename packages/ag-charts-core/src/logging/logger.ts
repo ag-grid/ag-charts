@@ -51,11 +51,25 @@ export function reset() {
     doOnceCache.clear();
 }
 
+function isPromise(value: unknown): value is Promise<unknown> {
+    return typeof value === 'object' && value !== null && 'then' in value;
+}
+
 export function logGroup<T>(name: string, cb: () => T): T {
     console.groupCollapsed(name);
+    let syncCleanup = true;
     try {
-        return cb();
+        const result = cb();
+        if (isPromise(result)) {
+            syncCleanup = false;
+            return result.finally(() => {
+                console.groupEnd();
+            }) as T;
+        }
+        return result;
     } finally {
-        console.groupEnd();
+        if (syncCleanup) {
+            console.groupEnd();
+        }
     }
 }
