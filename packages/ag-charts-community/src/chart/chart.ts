@@ -839,7 +839,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
                 // Allow any additional pre-rendering processing to happen.
-                ctx.updateService.dispatchPreSceneRender();
+                ctx.updateService.dispatchPreSceneRender(this.apiUpdate);
 
                 this.updateSplits('↖');
             // fallthrough
