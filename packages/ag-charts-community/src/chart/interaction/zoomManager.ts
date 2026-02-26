@@ -670,7 +670,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const delta = zoom[axis].max - zoom[axis].min;
         const minDelta = 1 / this.lastRestoredRequiredRange;
-        if (delta <= minDelta) return; // FAILING HERE!
+        if (Math.abs(delta - minDelta) < 1e-12 || delta <= minDelta) return;
 
         event.constrainZoom({
             ...zoom,
