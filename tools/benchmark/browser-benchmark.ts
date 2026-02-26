@@ -16,7 +16,8 @@ import { chromium } from 'playwright';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-const EXAMPLES_DIR = path.resolve(__dirname, '../../packages/ag-charts-website/src/content/docs/benchmarks/_examples');
+const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
+const EXAMPLES_DIR = path.resolve(WORKSPACE_ROOT, 'packages/ag-charts-website/src/content/docs/benchmarks/_examples');
 
 // Examples that don't use the standard benchmark harness
 const EXCLUDED_EXAMPLES = new Set([
@@ -65,7 +66,7 @@ async function main() {
         })
         .option('output', {
             type: 'string',
-            default: 'reports/browser-benchmarks/results.json',
+            default: path.join(WORKSPACE_ROOT, 'reports/browser-benchmarks/results.json'),
             describe: 'Output file path for the combined JSON report',
         })
         .option('examples', {
