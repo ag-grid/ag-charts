@@ -596,6 +596,8 @@ Is this a public documentation example?
 
 When implementing features or updating gallery examples based on external code examples (Plnkr, CodePen, etc.), follow this approach to extract code:
 
+**Note**: When working with Plunker URLs (creating, modifying, or reading plunks), use the `plunker` skill (`/plunker` or Skill tool with skill="plunker") instead of manual browser automation or API calls. The skill provides guided workflows for common Plunker operations.
+
 ### Primary Method: Using Plnkr API
 
 The most efficient way to extract Plnkr code is through their JSON API:
@@ -736,6 +738,58 @@ When updating gallery examples from external references:
 1. Edit the example files (`index.html`, `main.ts`, optional `styles.css`/`data.ts`)
 2. Mirror updates in the sibling `index.mdoc` docs page (see [Documentation Pages Guide](./docs-pages.md) for documentation patterns)
 3. Run the relevant generation/typecheck command plus `yarn nx validate-examples`
+
+## AG Grid Integrated Charts
+
+When creating examples that use AG Grid's integrated charts feature (`enableCharts: true` with `createRangeChart()`):
+
+-   **Load AG Charts before AG Grid**: Always include the AG Charts script tag BEFORE AG Grid Enterprise in the HTML. Without this, `enableCharts` will fail with error #200 "Unable to use enableCharts as either the ag-charts-community or ag-charts-enterprise script needs to be included alongside ag-grid-enterprise."
+
+    ```html
+    <!-- ✅ Correct order -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@11.0.0/dist/umd/ag-charts-enterprise.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@33.1.0/dist/ag-grid-enterprise.js"></script>
+    ```
+
+-   **Use chartDataType: 'time' for timestamps**: When displaying time-series data in integrated charts, set `chartDataType: 'time'` on timestamp columns (not just `'category'`). This ensures proper time-axis rendering.
+
+    ```typescript
+    columnDefs: [
+        {
+            field: 'timestamp',
+            chartDataType: 'time', // ✅ For time-series data
+            valueFormatter: (params) => new Date(params.value).toLocaleString(),
+        },
+        { field: 'value', chartDataType: 'series' },
+    ];
+    ```
+
+## AG Charts API Guidelines
+
+When working with AG Charts API features in examples:
+
+-   **initialState zoom structure**: Use `rangeX`/`rangeY` (not `x`/`y`) with `start`/`end` properties (not `min`/`max`). For date values, use `AgStateSerializableDate` format:
+
+    ```typescript
+    // ✅ Correct structure
+    const initialState = {
+        zoom: {
+            rangeX: {
+                start: { __type: 'date', value: timestamp },
+                end: { __type: 'date', value: timestamp }
+            }
+        }
+    };
+
+    // ❌ Wrong - incorrect property names
+    const initialState = {
+        zoom: {
+            x: { min: timestamp, max: timestamp }  // Wrong
+        }
+    };
+    ```
+
+-   **AgStateSerializableDate format**: When using dates in `initialState`, wrap timestamps in the proper format with `__type: 'date'` and `value` property as required by the `AgStateSerializableDate` type.
 
 ## Related Resources
 
