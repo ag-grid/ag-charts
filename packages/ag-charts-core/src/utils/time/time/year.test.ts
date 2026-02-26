@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { intervalCeil, intervalFloor, intervalRange } from './index';
+import { intervalAgo, intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('year', () => {
     const interval: AgTimeInterval | AgTimeIntervalUnit = 'year';
@@ -20,6 +20,12 @@ test('year', () => {
         new Date(2025, 0, 1, 0, 0, 0, 0),
         new Date(2026, 0, 1, 0, 0, 0, 0),
     ]);
+
+    const ago = intervalAgo(interval, date);
+    expect(ago).toEqual(new Date(2022, 2, 18, 8, 31, 5, 125));
+
+    const agoLeapYear = intervalAgo(interval, new Date(2024, 1, 29));
+    expect(agoLeapYear).toEqual(new Date(2023, 2, 1));
 });
 
 test('year.every', () => {

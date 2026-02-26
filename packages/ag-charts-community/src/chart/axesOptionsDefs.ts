@@ -8,7 +8,6 @@ import {
     attachDescription,
     boolean,
     borderOptionsDef,
-    callback,
     callbackDefs,
     callbackOf,
     color,
@@ -35,6 +34,8 @@ import {
     strokeOptionsDef,
     textOrSegments,
     themeOperator,
+    timeInterval,
+    timeIntervalUnit,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -66,23 +67,8 @@ import type {
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisOptions,
     AgTimeAxisParentLevel,
-    AgTimeInterval,
     AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
-
-export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
-
-const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
-    unit: required(timeIntervalUnit),
-    step: positiveNumberNonZero,
-    epoch: date,
-    utc: boolean,
-};
-
-// @ts-expect-error undocumented option - required for interop
-timeIntervalDefs.every = callback;
-
-export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,

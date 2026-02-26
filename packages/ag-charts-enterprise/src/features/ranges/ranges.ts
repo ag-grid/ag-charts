@@ -1,5 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection, PropertiesArray, Property } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    PropertiesArray,
+    Property,
+    intervalAgo,
+    isTimeInterval,
+    isTimeIntervalUnit,
+    isValidDate,
+} from 'ag-charts-core';
 
 import { RangesButtonProperties } from './rangesButtonProperties';
 
@@ -82,6 +91,13 @@ export class Ranges extends AbstractModuleInstance {
             zoomManager.updateWith(sourcing, ChartAxisDirection.X, () => value);
         } else if (typeof value === 'function') {
             zoomManager.updateWith(sourcing, ChartAxisDirection.X, value);
+        } else if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
+            const [, domainMax] =
+                this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)?.scale.getDomainMinMax() ?? [];
+            if (isValidDate(domainMax)) {
+                const start = intervalAgo(value, domainMax);
+                zoomManager.updateWith(sourcing, ChartAxisDirection.X, (d0, d1) => [start ?? d0, d1]);
+            }
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);

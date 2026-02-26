@@ -5,6 +5,7 @@ import type {
     AgAnnotationsToolbarButtonValue,
     AgIconName,
     AgRangesButtonValue,
+    AgTimeIntervalUnit,
     AgZoomButtonValue,
 } from 'ag-charts-types';
 
@@ -17,7 +18,8 @@ type ButtonValue =
     | AgAnnotationOptionsToolbarButtonValue
     | AgAnnotationOptionsToolbarSwitchValue
     | AgZoomButtonValue
-    | AgRangesButtonValue;
+    | AgRangesButtonValue
+    | AgTimeIntervalUnit;
 
 export interface ToolbarButtonWidgetOptions {
     icon?: AgIconName;
@@ -63,6 +65,13 @@ const ARIA_HASPOPUP = {
     reset: 'false',
     settings: 'dialog',
     text: 'false',
+    millisecond: 'false',
+    second: 'false',
+    minute: 'false',
+    hour: 'false',
+    day: 'false',
+    month: 'false',
+    year: 'false',
 } as const satisfies ButtonValueHasPopupRule;
 
 function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-haspopup'] {

@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { intervalCeil, intervalFloor, intervalRange } from './index';
+import { intervalAgo, intervalCeil, intervalFloor, intervalRange } from './index';
 
 it('should execute with UTC timezone', () => {
     expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(0);
@@ -24,6 +24,9 @@ test('hour', () => {
         new Date(2023, 0, 18, 10, 0, 0, 0),
         new Date(2023, 0, 18, 11, 0, 0, 0),
     ]);
+
+    const ago = intervalAgo(interval, date);
+    expect(ago).toEqual(new Date(2023, 0, 18, 7, 31, 5, 100));
 });
 
 test('hour.every', () => {

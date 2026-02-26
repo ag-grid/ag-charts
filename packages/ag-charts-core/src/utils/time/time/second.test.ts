@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { intervalCeil, intervalFloor, intervalRange } from './index';
+import { intervalAgo, intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('second', () => {
     const interval: AgTimeInterval | AgTimeIntervalUnit = 'second';
@@ -20,6 +20,9 @@ test('second', () => {
         new Date(2023, 0, 18, 8, 31, 7, 0),
         new Date(2023, 0, 18, 8, 31, 8, 0),
     ]);
+
+    const ago = intervalAgo(interval, date);
+    expect(ago).toEqual(new Date(2023, 0, 18, 8, 31, 4, 125));
 });
 
 test('second.every', () => {
