@@ -1,17 +1,81 @@
 ---
 targets: ['*']
-description: 'Review pull requests with structured JSON output for inline commenting'
+name: pr-review
+description: 'Review pull requests with Markdown or JSON output'
+invocable: user-only
 ---
 
-# PR Review Instructions (JSON Output)
+# PR Review Instructions
 
 You are acting as a reviewer for a proposed code change. Your goal is to identify issues that could impact the quality, correctness, or safety of the codebase.
 
-**Read and follow all instructions in `external/ag-shared/prompts/commands/pr/_review-core.md` for the review methodology.**
+**Read and follow all instructions in the co-located `_review-core.md` file (in this skill's directory) for the review methodology.**
+
+## Arguments
+
+Parse the `ARGUMENTS` environment variable (or skill arguments) for flags and the PR number:
+
+- `--json` — output structured JSON instead of Markdown (used for inline commenting in CI)
+- Remaining positional argument — the PR number
+
+Examples: `123`, `--json 123`, `123 --json`
 
 ## Output Format
 
-**CRITICAL**: Output ONLY valid JSON. No markdown code fences, no explanatory text before or after. The output must be parseable by `JSON.parse()`.
+### Default: Markdown
+
+When `--json` is **not** specified, output the review directly to the terminal using this Markdown structure:
+
+```markdown
+# PR Review: #{PR_NUMBER} - {PR_TITLE}
+
+**PR:** {PR_URL}
+**Author:** {AUTHOR} | **Base:** {BASE_BRANCH} ← **Head:** {HEAD_BRANCH}
+
+## Summary
+
+{1-2 sentence summary of what this PR does}
+
+## Findings
+
+### P0 - Critical
+
+{List P0 issues, or "None" if empty}
+
+-   **`{filepath}:{start_line}-{end_line}`** - {Issue title}
+    {Short explanation of the issue and why it's critical}
+
+### P1 - High
+
+{List P1 issues, or "None" if empty}
+
+-   **`{filepath}:{line}`** - {Issue title}
+    {Short explanation}
+
+### P2 - Medium
+
+{List P2 issues, or "None" if empty}
+
+-   **`{filepath}:{line}`** - {Issue title}
+    {Short explanation}
+
+---
+
+_{N} low-priority issues omitted._
+
+## Verdict
+
+**Assessment:** {Patch is correct | Patch is incorrect}
+**Confidence:** {0.0-1.0}
+
+{Concise justification for the verdict - 1-2 sentences}
+
+**Required Actions:** {Bulleted list of required fixes, or "None - ready to merge"}
+```
+
+### JSON Mode (`--json`)
+
+When `--json` is specified, output **ONLY** valid JSON. No markdown code fences, no explanatory text before or after. The output must be parseable by `JSON.parse()`.
 
 ```json
 {
@@ -53,7 +117,7 @@ You are acting as a reviewer for a proposed code change. Your goal is to identif
 }
 ```
 
-### Field Definitions
+#### Field Definitions
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -82,7 +146,7 @@ You are acting as a reviewer for a proposed code change. Your goal is to identif
 | `diff_stats.lines_added` | number | Number of lines added (+) |
 | `diff_stats.lines_removed` | number | Number of lines removed (-) |
 
-## Example Output
+#### Example JSON Output
 
 ```json
 {

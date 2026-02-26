@@ -12,7 +12,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 **Loading behaviour:**
 
 -   **Rules** load automatically based on file-pattern globs (e.g. editing a `.test.ts` file loads the `testing` rule). The root rule (`ag-charts`) loads for all files.
--   **Skills** load on-demand when invoked via `/skill-name`.
+-   **Skills** load on-demand when invoked via `/skill-name`. Skills marked **(user)** are user-invocable only — the LLM should not invoke them autonomously via the Skill tool.
 -   **Sub-agents** are spawned automatically by the AI when a task matches their speciality.
 -   **Commands** are invoked explicitly via `/command-name`.
 
@@ -26,32 +26,31 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Everyday Development
 
-| Type    | Name                  | Invoke                  | What it does                                       |
-| ------- | --------------------- | ----------------------- | -------------------------------------------------- |
-| Command | 🔵 `/code-fixup`      | `/code-fixup <package>` | Fix build and lint errors across a package         |
-| Command | 🔵 `/code-cleanup`    | `/code-cleanup`         | Remove bloat, duplication; improve clarity         |
-| Command | 🔵 `/pr-create`       | `/pr-create`            | Commit, push, and open a PR                        |
-| Command | 🔵 `/pr-review`       | `/pr-review <PR#>`      | Review a PR (Markdown output)                      |
-| Command | 🔵 `/pr-review-json`  | `/pr-review-json <PR#>` | Review a PR (JSON for inline comments)             |
-| Skill   | 🔵 `dev-server`       | `/dev-server`           | Start dev server, check build status               |
-| Skill   | 🔵 `git-conventions`  | `/git-conventions`      | Branch, commit, and PR naming conventions          |
-| Skill   | 🟢 `technology-stack` | `/technology-stack`     | Architecture constraints and zero-dependency rules |
-| Agent   | 🔵 `code-reviewer`    | Auto (after edits)      | Quality, security, and maintainability review      |
+| Type  | Name                  | Invoke                  | What it does                                       |
+| ----- | --------------------- | ----------------------- | -------------------------------------------------- |
+| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user) | Fix build and lint errors across a package         |
+| Skill | 🔵 `code-cleanup`     | `/code-cleanup` (user)  | Remove bloat, duplication; improve clarity         |
+| Skill | 🔵 `pr-create`        | `/pr-create` (user)     | Commit, push, and open a PR                        |
+| Skill | 🔵 `pr-review`        | `/pr-review [--json] <PR#>` (user) | Review a PR (Markdown default, JSON with `--json`) |
+| Skill | 🔵 `dev-server`       | `/dev-server`           | Start dev server, check build status               |
+| Skill | 🔵 `git-conventions`  | `/git-conventions`      | Branch, commit, and PR naming conventions          |
+| Skill | 🟢 `technology-stack` | `/technology-stack`     | Architecture constraints and zero-dependency rules |
+| Agent | 🔵 `code-reviewer`    | Auto (after edits)      | Quality, security, and maintainability review      |
 
 ## Testing and Quality
 
-| Type    | Name                     | Invoke                | What it does                                         |
-| ------- | ------------------------ | --------------------- | ---------------------------------------------------- |
-| Command | 🔵 `/git-bisect`         | `/git-bisect`         | Find the commit that introduced a regression         |
-| Command | 🟠 `/sonar-fix`          | `/sonar-fix`          | Fetch and fix SonarCloud issues                      |
-| Command | 🔵 `/batch-lint-cleanup` | `/batch-lint-cleanup` | Auto-fix ESLint violations by rule                   |
-| Command | 🟠 `/previs`             | `/previs`             | PREVis visual quality evaluation on gallery examples |
-| Skill   | 🟠 `optimize-series`     | `/optimize-series`    | Series rendering performance and GC optimisation     |
-| Agent   | 🟠 `test-writer`         | Auto                  | Create Jest snapshot and Playwright E2E tests        |
-| Agent   | 🔵 `playwright-expert`   | Auto                  | Playwright test architecture and debugging           |
-| Agent   | 🟠 `example-tester`      | Auto                  | Validate AG Charts example correctness               |
-| Agent   | 🟠 `visual-qa`           | Auto                  | Review visual regression image diffs                 |
-| Agent   | 🟠 `previs-evaluator`    | Auto                  | PREVis methodology evaluation of visualisations      |
+| Type    | Name                    | Invoke                | What it does                                         |
+| ------- | ----------------------- | --------------------- | ---------------------------------------------------- |
+| Skill   | 🔵 `git-bisect`         | `/git-bisect` (user)  | Find the commit that introduced a regression         |
+| Command | 🟠 `/sonar-fix`         | `/sonar-fix`          | Fetch and fix SonarCloud issues                      |
+| Skill   | 🔵 `batch-lint-cleanup` | `/batch-lint-cleanup` (user) | Auto-fix ESLint violations by rule                   |
+| Command | 🟠 `/previs`            | `/previs`             | PREVis visual quality evaluation on gallery examples |
+| Skill   | 🟠 `optimize-series`    | `/optimize-series`    | Series rendering performance and GC optimisation     |
+| Agent   | 🟠 `test-writer`        | Auto                  | Create Jest snapshot and Playwright E2E tests        |
+| Agent   | 🔵 `playwright-expert`  | Auto                  | Playwright test architecture and debugging           |
+| Agent   | 🟠 `example-tester`     | Auto                  | Validate AG Charts example correctness               |
+| Agent   | 🟠 `visual-qa`          | Auto                  | Review visual regression image diffs                 |
+| Agent   | 🟠 `previs-evaluator`   | Auto                  | PREVis methodology evaluation of visualisations      |
 
 ## Documentation and Examples
 
@@ -68,8 +67,8 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type    | Name                               | Invoke                          | What it does                                       |
 | ------- | ---------------------------------- | ------------------------------- | -------------------------------------------------- |
-| Command | 🔵 `/plan-review`                  | `/plan-review`                  | Review plans for completeness and correctness      |
-| Command | 🔵 `/plan-implementation-review`   | `/plan-implementation-review`   | Review plan execution, identify delivery gaps      |
+| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)           | Review plans for completeness and correctness      |
+| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps      |
 | Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis` | Analyse requirements with competitor research      |
 | Command | 🟠 `/analyze-jira-issue`           | `/analyze-jira-issue <key>`     | Analyse a JIRA issue and propose solutions         |
 | Skill   | 🟠 `estimate-jira`                 | `/estimate-jira`                | Estimate complexity, effort, and risks for tickets |
@@ -81,17 +80,17 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type    | Name                   | Invoke              | What it does                                       |
 | ------- | ---------------------- | ------------------- | -------------------------------------------------- |
-| Skill   | 🔵 `remember`          | `/remember`         | Save branch context or project learnings as memory |
-| Skill   | 🔵 `recall`            | `/recall`           | Load branch context, browse project memories       |
+| Skill   | 🔵 `remember`          | `/remember` (user)  | Save branch context or project learnings as memory |
+| Skill   | 🔵 `recall`            | `/recall` (user)    | Load branch context, browse project memories       |
 | Command | 🟠 `/optimise-context` | `/optimise-context` | Audit and reduce agentic tooling token usage       |
 
 ## Git and Branch Management
 
-| Type    | Name                     | Invoke                | What it does                             |
-| ------- | ------------------------ | --------------------- | ---------------------------------------- |
-| Command | 🔵 `/git-worktree-clean` | `/git-worktree-clean` | Hard-reset worktree to `origin/latest`   |
-| Command | 🔵 `/git-split`          | `/git-split`          | Split large files preserving git history |
-| Command | 🔵 `/pr-split`           | `/pr-split`           | Split a branch into stacked PRs          |
+| Type  | Name                    | Invoke                | What it does                             |
+| ----- | ----------------------- | --------------------- | ---------------------------------------- |
+| Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`   |
+| Skill | 🔵 `git-split`          | `/git-split` (user)   | Split large files preserving git history |
+| Skill | 🔵 `pr-split`           | `/pr-split` (user)    | Split a branch into stacked PRs          |
 
 ## Release Management
 
@@ -170,20 +169,31 @@ Rules load automatically when you edit files matching their glob patterns.
 
 Skills load on-demand when invoked. All skills are invoked via `/skill-name`. All skills are shared across AI tools via `.rulesync/skills/`.
 
-| Skill                 | Description                                               |
-| --------------------- | --------------------------------------------------------- |
-| 🔵 `dev-server`       | Start dev server, check build status                      |
-| 🟠 `estimate-jira`    | Estimate complexity, effort, and risks for JIRA tickets   |
-| 🔵 `git-conventions`  | Branch, commit, and PR naming conventions                 |
-| 🟠 `jira-create`      | Create JIRA tickets with proper formatting and templates  |
-| 🟠 `optimize-series`  | Series performance optimisation and GC pressure reduction |
-| 🟠 `plunker`          | Create and manage Plunker demos for AG Charts             |
-| 🔵 `recall`           | Load branch context, browse project memories              |
-| 🟢 `releases`         | Release conventions, branch naming, and constraints       |
-| 🔵 `remember`         | Save branch context or project learnings as memory        |
-| 🟠 `spruce-docs`      | Create or improve documentation following patterns        |
-| 🟠 `spruce-example`   | Improve gallery examples to professional quality          |
-| 🟢 `technology-stack` | Architecture constraints and zero-dependency requirements |
+| Skill                           | Description                                               |
+| ------------------------------- | --------------------------------------------------------- |
+| 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                        |
+| 🔵 `code-cleanup`               | Remove bloat, duplication; improve clarity                |
+| 🔵 `code-fixup`                 | Fix build and lint errors across a package                |
+| 🔵 `dev-server`                 | Start dev server, check build status                      |
+| 🟠 `estimate-jira`              | Estimate complexity, effort, and risks for JIRA tickets   |
+| 🔵 `git-bisect`                 | Find the commit that introduced a regression              |
+| 🔵 `git-conventions`            | Branch, commit, and PR naming conventions                 |
+| 🔵 `git-split`                  | Split large files preserving git history                  |
+| 🔵 `git-worktree-clean`         | Hard-reset worktree to `origin/latest`                    |
+| 🟠 `jira-create`                | Create JIRA tickets with proper formatting and templates  |
+| 🟠 `optimize-series`            | Series performance optimisation and GC pressure reduction |
+| 🔵 `plan-implementation-review` | Review plan execution, identify delivery gaps             |
+| 🔵 `plan-review`                | Review plans for completeness and correctness             |
+| 🟠 `plunker`                    | Create and manage Plunker demos for AG Charts             |
+| 🔵 `pr-create`                  | Commit, push, and open a PR                               |
+| 🔵 `pr-review`                  | Review a PR (Markdown default, JSON with `--json`)        |
+| 🔵 `pr-split`                   | Split a branch into stacked PRs                           |
+| 🔵 `recall`                     | Load branch context, browse project memories              |
+| 🟢 `releases`                   | Release conventions, branch naming, and constraints       |
+| 🔵 `remember`                   | Save branch context or project learnings as memory        |
+| 🟠 `spruce-docs`                | Create or improve documentation following patterns        |
+| 🟠 `spruce-example`             | Improve gallery examples to professional quality          |
+| 🟢 `technology-stack`           | Architecture constraints and zero-dependency requirements |
 
 ---
 

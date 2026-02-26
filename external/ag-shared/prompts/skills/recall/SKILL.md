@@ -2,6 +2,7 @@
 targets: ['*']
 name: recall
 description: Load branch context and browse project memory for session resumption
+invocable: user-only
 context: fork
 ---
 

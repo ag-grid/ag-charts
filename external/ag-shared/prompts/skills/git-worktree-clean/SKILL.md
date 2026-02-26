@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: git-worktree-clean
 description: 'Clean worktree by fetching and hard-resetting to origin/latest (or specified branch)'
+invocable: user-only
 ---
 
 # Worktree Clean

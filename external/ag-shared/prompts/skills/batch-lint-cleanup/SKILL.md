@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: batch-lint-cleanup
 description: 'Analyze ESLint violations and auto-fix specific rules in isolation'
+invocable: user-only
 ---
 
 # ESLint Auto-Fix Tool

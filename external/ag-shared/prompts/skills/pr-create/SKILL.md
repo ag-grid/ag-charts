@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: pr-create
 description: 'Create a PR from current commits and/or local changes. Identifies base branch, creates topic branch if needed, commits changes, and opens a PR.'
+invocable: user-only
 ---
 
 # Create Pull Request

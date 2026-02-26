@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: code-fixup
 description: 'Fix build and lint errors by running commands, grouping issues, and orchestrating fixes'
+invocable: user-only
 ---
 
 # Fixup build and lint errors

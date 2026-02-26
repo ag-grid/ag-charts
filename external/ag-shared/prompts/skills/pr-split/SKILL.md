@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: pr-split
 description: 'Split a branch into a logical sequence of stacked PRs for easier review'
+invocable: user-only
 ---
 
 # PR Split Instructions

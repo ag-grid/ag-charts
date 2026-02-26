@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: git-split
 description: 'Split large files into smaller modules while preserving git history (blame, log)'
+invocable: user-only
 ---
 
 # Split Large Files with Git History Preservation

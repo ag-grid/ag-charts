@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: plan-implementation-review
 description: 'Review plan execution completeness and identify delivery gaps'
+invocable: user-only
 ---
 
 # Plan Implementation Review Prompt

@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: git-bisect
 description: 'Find the commit that introduced test failures using git bisect'
+invocable: user-only
 ---
 
 # Git Bisect - Find the Commit That Introduced Test Failures

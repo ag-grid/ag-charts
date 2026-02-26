@@ -2,6 +2,7 @@
 targets: ['*']
 name: remember
 description: Save branch context or project learnings as agentic memory
+invocable: user-only
 context: fork
 ---
 

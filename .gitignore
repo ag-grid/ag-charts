@@ -138,3 +138,4 @@ vitest.config.*.timestamp*
 **/.warp/
 **/WARP.md
 **/modular-mcp.json
+.rulesync/skills/rulesync

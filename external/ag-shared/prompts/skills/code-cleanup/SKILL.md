@@ -1,6 +1,8 @@
 ---
 targets: ['*']
+name: code-cleanup
 description: 'Review and productionize code by removing bloat, duplication, and improving clarity'
+invocable: user-only
 ---
 
 # Distil Code Quality - Reduce Bloat and Productionize
@@ -27,7 +29,7 @@ If the user provides a command option of `help`:
 -   This project is an Nx monorepo with multiple packages.
 -   Release branches are named `bX.Y.Z` and follow semantic versioning.
 -   The main branch is `latest`.
--   Code quality standards are documented in `external/ag-shared/prompts/guides/code-quality.md`.
+-   Code quality standards are documented in `.rulesync/rules/code-quality.md`.
 
 ## 3. Workflow
 
