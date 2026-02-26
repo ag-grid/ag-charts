@@ -190,6 +190,25 @@ export class Tooltip extends BaseProperties {
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
+    private _prevClassState:
+        | {
+              enableInteraction: boolean;
+              arrowPosition: ArrowPosition | undefined;
+              mode: AgTooltipMode;
+              darkTheme: boolean;
+              wrapping: TextWrap;
+          }
+        | undefined;
+    private _prevShowState:
+        | {
+              enableInteraction: boolean;
+              canvasRectTop: number;
+              canvasRectLeft: number;
+          }
+        | undefined;
+    private _prevTranslateLeft: number | undefined;
+    private _prevTranslateTop: number | undefined;
+
     private positionParams:
         | {
               canvasRect: DOMRect;
@@ -299,7 +318,11 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        element.style.translate = `${left}px ${top}px`;
+        if (this._prevTranslateLeft !== left || this._prevTranslateTop !== top) {
+            element.style.translate = `${left}px ${top}px`;
+            this._prevTranslateLeft = left;
+            this._prevTranslateTop = top;
+        }
     }
 
     /**
@@ -355,20 +378,34 @@ export class Tooltip extends BaseProperties {
                 this.springAnimation.reset();
         }
 
-        if (meta.enableInteraction) {
-            this.enableInteraction = true;
-            element.style.pointerEvents = 'auto';
-            element.removeAttribute('aria-hidden');
-            element.tabIndex = -1; // AG-14347 Allow interactive tooltips to receive focus
-        } else {
-            this.enableInteraction = false;
-            element.style.pointerEvents = 'none';
-            element.setAttribute('aria-hidden', 'true');
-            element.removeAttribute('tabindex');
+        this.enableInteraction = meta.enableInteraction ?? false;
+
+        const prevShow = this._prevShowState;
+        if (prevShow == null || prevShow.enableInteraction !== this.enableInteraction) {
+            if (this.enableInteraction) {
+                element.style.pointerEvents = 'auto';
+                element.removeAttribute('aria-hidden');
+                element.tabIndex = -1; // AG-14347 Allow interactive tooltips to receive focus
+            } else {
+                element.style.pointerEvents = 'none';
+                element.setAttribute('aria-hidden', 'true');
+                element.removeAttribute('tabindex');
+            }
         }
 
-        element.style.setProperty('--top', `${canvasRect.top}px`);
-        element.style.setProperty('--left', `${canvasRect.left}px`);
+        if (
+            prevShow == null ||
+            prevShow.canvasRectTop !== canvasRect.top ||
+            prevShow.canvasRectLeft !== canvasRect.left
+        ) {
+            element.style.setProperty('--top', `${canvasRect.top}px`);
+            element.style.setProperty('--left', `${canvasRect.left}px`);
+        }
+        this._prevShowState = {
+            enableInteraction: this.enableInteraction,
+            canvasRectTop: canvasRect.top,
+            canvasRectLeft: canvasRect.left,
+        };
         this.updateClassModifiers();
 
         this.toggle(true, instantly);
@@ -443,40 +480,52 @@ export class Tooltip extends BaseProperties {
         this.element.togglePopover(visible);
 
         if (visible) {
-            // After togglePopover(true) the element is visible and measurable,
-            // but the ResizeObserver may not have fired yet (especially cross-window).
-            if (this._elementSize == null) {
-                const { width, height } = this.element.getBoundingClientRect();
-                if (width > 0 || height > 0) {
-                    this._elementSize = { width, height };
-                }
-            }
+            // Position with cached size if available; otherwise the SizeMonitor
+            // (ResizeObserver) fires after layout but before paint, so no flicker.
             this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();
             this.popInteractiveLeaveCallback();
+            this._prevClassState = undefined;
+            this._prevShowState = undefined;
+            this._prevTranslateLeft = undefined;
+            this._prevTranslateTop = undefined;
         }
     }
 
     private updateClassModifiers() {
         if (!this.element?.isConnected) return;
 
+        const { enableInteraction, arrowPosition, mode, darkTheme, wrapping } = this;
+        const prev = this._prevClassState;
+        if (
+            prev != null &&
+            prev.enableInteraction === enableInteraction &&
+            prev.arrowPosition === arrowPosition &&
+            prev.mode === mode &&
+            prev.darkTheme === darkTheme &&
+            prev.wrapping === wrapping
+        ) {
+            return;
+        }
+        this._prevClassState = { enableInteraction, arrowPosition, mode, darkTheme, wrapping };
+
         const { classList } = this.element;
 
         const toggleClass = (name: string, include: boolean) =>
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
 
-        toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
-        toggleClass('arrow-top', this.arrowPosition === ArrowPosition.Top);
-        toggleClass('arrow-right', this.arrowPosition === ArrowPosition.Right);
-        toggleClass('arrow-bottom', this.arrowPosition === ArrowPosition.Bottom);
-        toggleClass('arrow-left', this.arrowPosition === ArrowPosition.Left);
-        toggleClass('compact', this.mode === 'compact');
+        toggleClass('no-interaction', !enableInteraction);
+        toggleClass('arrow-top', arrowPosition === ArrowPosition.Top);
+        toggleClass('arrow-right', arrowPosition === ArrowPosition.Right);
+        toggleClass('arrow-bottom', arrowPosition === ArrowPosition.Bottom);
+        toggleClass('arrow-left', arrowPosition === ArrowPosition.Left);
+        toggleClass('compact', mode === 'compact');
 
-        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
+        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
 
         for (const wrapType of this.wrapTypes) {
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === this.wrapping);
+            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
         }
     }
 

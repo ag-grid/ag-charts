@@ -118,6 +118,10 @@ export class DOMManager extends BaseManager {
     private minWidth: number = 0;
     private minHeight: number = 0;
 
+    private _cachedCanvasRect: DOMRect | undefined;
+    private _cachedRawOverlayRect: BBox | undefined;
+    private _cachedScrollableContainer: HTMLElement | null | undefined;
+
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly chart: { styleNonce?: string },
@@ -152,6 +156,7 @@ export class DOMManager extends BaseManager {
         this.setContainer(initialContainer);
 
         this.cleanup.register(stopPageScrolling(this.element));
+        this.setupGlobalListeners();
 
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
@@ -358,9 +363,11 @@ export class DOMManager extends BaseManager {
         this.sizeMonitor.observe(pendingContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
+            this.invalidateRectCaches();
             this.eventsHub.emit('dom:resize', null);
         });
 
+        this.invalidateAllCaches();
         this.eventsHub.emit('dom:container-change', null);
     }
 
@@ -417,7 +424,8 @@ export class DOMManager extends BaseManager {
 
     /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
-        return this.rootElements['canvas'].element.getBoundingClientRect();
+        this._cachedCanvasRect ??= this.rootElements['canvas'].element.getBoundingClientRect();
+        return this._cachedCanvasRect;
     }
 
     /**
@@ -431,7 +439,11 @@ export class DOMManager extends BaseManager {
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
-    private getRawOverlayClientRect(): BBox {
+    private findScrollableContainer(): HTMLElement | null {
+        if (this._cachedScrollableContainer !== undefined) {
+            return this._cachedScrollableContainer;
+        }
+
         let element: HTMLElement | null = this.element;
         const fullScreenElement = (this.element.getRootNode() as any as DocumentOrShadowRoot | undefined)
             ?.fullscreenElement;
@@ -450,18 +462,40 @@ export class DOMManager extends BaseManager {
             }
 
             if (isContainer) {
-                return BBox.fromObject(element.getBoundingClientRect());
+                this._cachedScrollableContainer = element;
+                return element;
             }
 
             element = element.parentElement;
         }
 
+        this._cachedScrollableContainer = null;
+        return null;
+    }
+
+    private getRawOverlayClientRect(): BBox {
+        if (this._cachedRawOverlayRect != null) {
+            return this._cachedRawOverlayRect;
+        }
+
+        const scrollableContainer = this.findScrollableContainer();
+
+        if (scrollableContainer != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(scrollableContainer.getBoundingClientRect());
+            return this._cachedRawOverlayRect;
+        }
+
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        if (this.documentRoot != null) return BBox.fromObject(this.documentRoot.getBoundingClientRect());
+        if (this.documentRoot != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(this.documentRoot.getBoundingClientRect());
+            return this._cachedRawOverlayRect;
+        }
 
+        // No scrollable container — cache window dimensions; invalidated on resize.
         const { innerWidth, innerHeight } = this.agDocument;
-        return new BBox(0, 0, innerWidth, innerHeight);
+        this._cachedRawOverlayRect = new BBox(0, 0, innerWidth, innerHeight);
+        return this._cachedRawOverlayRect;
     }
 
     private getShadowDocumentRoot(current = this.container) {
@@ -652,6 +686,34 @@ export class DOMManager extends BaseManager {
 
     getDocument() {
         return this.agDocument;
+    }
+
+    private invalidateRectCaches() {
+        this._cachedCanvasRect = undefined;
+        this._cachedRawOverlayRect = undefined;
+    }
+
+    private invalidateAllCaches() {
+        this.invalidateRectCaches();
+        this._cachedScrollableContainer = undefined;
+    }
+
+    private setupGlobalListeners() {
+        const win = this.element.ownerDocument.defaultView;
+        if (win == null) return;
+
+        const invalidateRects = () => this.invalidateRectCaches();
+        const invalidateAll = () => this.invalidateAllCaches();
+
+        win.addEventListener('scroll', invalidateRects, { capture: true, passive: true });
+        win.addEventListener('resize', invalidateRects, { passive: true });
+        this.element.ownerDocument.addEventListener('fullscreenchange', invalidateAll);
+
+        this.cleanup.register(() => {
+            win.removeEventListener('scroll', invalidateRects, { capture: true });
+            win.removeEventListener('resize', invalidateRects);
+            this.element.ownerDocument.removeEventListener('fullscreenchange', invalidateAll);
+        });
     }
 
     private updateContainerClassName() {

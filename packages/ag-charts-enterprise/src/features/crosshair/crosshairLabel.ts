@@ -86,6 +86,14 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     private readonly id = createId(this);
     private readonly element: HTMLElement;
 
+    // DOM write deduplication caches (mirrors tooltip _prev* pattern)
+    private _prevHtml: string | undefined;
+    private _prevStylesKey: string | undefined;
+    private _prevLeft: number | undefined;
+    private _prevTop: number | undefined;
+    private _prevTranslate: string | undefined;
+    private _prevVisible: boolean | undefined;
+
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
         key: string,
@@ -100,40 +108,48 @@ export class CrosshairLabel extends CrosshairLabelProperties {
         this.element.dataset.axisId = axisId;
     }
 
-    show(meta: Point) {
-        const { element } = this;
+    show(meta: Point & { translateX?: string; translateY?: string }) {
+        const left = Math.round(meta.x + this.xOffset);
+        const top = Math.round(meta.y + this.yOffset);
 
-        const left = meta.x + this.xOffset;
-        const top = meta.y + this.yOffset;
+        if (this._prevLeft !== left || this._prevTop !== top) {
+            this.element.style.left = `${left}px`;
+            this.element.style.top = `${top}px`;
+            this._prevLeft = left;
+            this._prevTop = top;
+        }
 
-        element.style.top = `${Math.round(top)}px`;
-        element.style.left = `${Math.round(left)}px`;
+        const translate =
+            meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
+        if (this._prevTranslate !== translate) {
+            this.element.style.translate = translate;
+            this._prevTranslate = translate;
+        }
 
         this.toggle(true);
     }
 
     setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
-        if (html !== undefined) {
+        if (html !== undefined && html !== this._prevHtml) {
             this.element.innerHTML = html;
+            this._prevHtml = html;
+            this._prevStylesKey = undefined;
         }
         if (styles !== undefined) {
-            const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
-            Object.assign(styleElement.style, styles);
+            const stylesKey = JSON.stringify(styles);
+            if (stylesKey !== this._prevStylesKey) {
+                const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
+                Object.assign(styleElement.style, styles);
+                this._prevStylesKey = stylesKey;
+            }
         }
-    }
-
-    getBBox(): _ModuleSupport.BBox {
-        const { element } = this;
-        return new _ModuleSupport.BBox(
-            element.clientLeft,
-            element.clientTop,
-            element.clientWidth,
-            element.clientHeight
-        );
     }
 
     toggle(visible?: boolean) {
-        this.element.classList.toggle(`ag-charts-crosshair-label--hidden`, !visible);
+        if (this._prevVisible !== visible) {
+            this.element.classList.toggle(`ag-charts-crosshair-label--hidden`, !visible);
+            this._prevVisible = visible;
+        }
     }
 
     destroy() {
