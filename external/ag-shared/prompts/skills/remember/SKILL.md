@@ -1,6 +1,8 @@
 ---
 targets: ['*']
-description: 'Save branch context or project learnings as agentic memory'
+name: remember
+description: Save branch context or project learnings as agentic memory
+context: fork
 ---
 
 # Remember
@@ -29,28 +31,22 @@ Save or update context for the current branch. Keep it concise — only preserve
 
 ### STEP B1: Determine Context File Path
 
+Run the co-located script to resolve paths and load any existing context. Use the skill base directory from the header above:
+
 ```bash
-# Get current branch name
-BRANCH=$(git branch --show-current)
-
-# Get main repo root (works from worktrees)
-MAIN_REPO=$(git rev-parse --path-format=absolute --git-common-dir | sed 's/\.git$//')
-
-# Derive slug with hash suffix to avoid collisions (e.g. feature/foo vs feature-foo)
-SLUG_BASE=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
-HASH=$(echo -n "$BRANCH" | shasum | cut -c1-6)
-SLUG="${SLUG_BASE}-${HASH}"
-
-# Context file path
-CONTEXT_FILE="${MAIN_REPO}.context/${SLUG}.md"
-
-# Ensure directory exists
-mkdir -p "${MAIN_REPO}.context"
+bash "<skill-base-directory>/context-path.sh" --ensure-dir
 ```
+
+Parse the structured output:
+- `BRANCH=` — current branch name
+- `SLUG=` — filename slug
+- `CONTEXT_FILE=` — full path to context file
+- `STATUS=found|not_found` — whether context exists
+- Content after `---CONTENT---` — existing context file contents (if found)
 
 ### STEP B2: Check for Existing Context
 
-If the context file already exists, read its current contents. When updating, **prune resolved items and transient issues**.
+If the context file already exists, read its current contents from the script output. When updating, **prune resolved items and transient issues**.
 
 ### STEP B3: Gather Context Information
 

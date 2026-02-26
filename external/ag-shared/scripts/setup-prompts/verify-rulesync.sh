@@ -330,6 +330,14 @@ build_expected_inventory() {
                         EXPECTED_FILES+=("skills/$dirname/$helper_basename")
                     fi
                 done
+                # Include co-located shell scripts (e.g., context-path.sh)
+                for helper_file in "$skill_dir"*.sh; do
+                    if [[ -f "$helper_file" ]]; then
+                        local helper_basename
+                        helper_basename=$(basename "$helper_file")
+                        EXPECTED_FILES+=("skills/$dirname/$helper_basename")
+                    fi
+                done
             fi
         done
     fi

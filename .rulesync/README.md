@@ -81,8 +81,8 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type    | Name                   | Invoke              | What it does                                       |
 | ------- | ---------------------- | ------------------- | -------------------------------------------------- |
-| Command | 🔵 `/remember`         | `/remember`         | Save branch context or project learnings as memory |
-| Command | 🔵 `/recall`           | `/recall`           | Load branch context, browse project memories       |
+| Skill   | 🔵 `remember`          | `/remember`         | Save branch context or project learnings as memory |
+| Skill   | 🔵 `recall`            | `/recall`           | Load branch context, browse project memories       |
 | Command | 🟠 `/optimise-context` | `/optimise-context` | Audit and reduce agentic tooling token usage       |
 
 ## Git and Branch Management
@@ -178,7 +178,9 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🟠 `jira-create`      | Create JIRA tickets with proper formatting and templates  |
 | 🟠 `optimize-series`  | Series performance optimisation and GC pressure reduction |
 | 🟠 `plunker`          | Create and manage Plunker demos for AG Charts             |
+| 🔵 `recall`           | Load branch context, browse project memories              |
 | 🟢 `releases`         | Release conventions, branch naming, and constraints       |
+| 🔵 `remember`         | Save branch context or project learnings as memory        |
 | 🟠 `spruce-docs`      | Create or improve documentation following patterns        |
 | 🟠 `spruce-example`   | Improve gallery examples to professional quality          |
 | 🟢 `technology-stack` | Architecture constraints and zero-dependency requirements |

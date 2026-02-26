@@ -1,6 +1,8 @@
 ---
 targets: ['*']
-description: 'Load branch context and browse project memory for session resumption'
+name: recall
+description: Load branch context and browse project memory for session resumption
+context: fork
 ---
 
 # Recall
@@ -11,37 +13,25 @@ Load branch-scoped context from `.context/` and optionally browse project-scoped
 
 ## STEP 1: Load Branch Memory
 
-### Determine Context File Path
+### Determine Context File Path and Load Content
+
+Run the co-located script to resolve paths and load any existing context. Use the skill base directory from the header above:
 
 ```bash
-# Get current branch name
-BRANCH=$(git branch --show-current)
-
-# Get main repo root (works from worktrees)
-MAIN_REPO=$(git rev-parse --path-format=absolute --git-common-dir | sed 's/\.git$//')
-
-# Derive slug with hash suffix to avoid collisions (e.g. feature/foo vs feature-foo)
-SLUG_BASE=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
-HASH=$(echo -n "$BRANCH" | shasum | cut -c1-6)
-SLUG="${SLUG_BASE}-${HASH}"
-
-# Context file path
-CONTEXT_FILE="${MAIN_REPO}.context/${SLUG}.md"
+bash "<skill-base-directory>/context-path.sh" --list-rules
 ```
 
-### Load and Present
+Parse the structured output:
+- `BRANCH=` — current branch name
+- `SLUG=` — filename slug
+- `CONTEXT_FILE=` — full path to context file
+- `STATUS=found|not_found` — whether context exists
+- Content after `---CONTENT---` — existing context file contents (if found)
+- Content after `---RULES---` — list of project rule files (if present)
 
-Check if the context file exists:
+### Present Branch Context
 
-```bash
-if [ -f "$CONTEXT_FILE" ]; then
-    echo "Found context file: $CONTEXT_FILE"
-else
-    echo "No context file found for branch: $BRANCH"
-fi
-```
-
-**If found**, read and present its contents:
+**If found**, present its contents:
 
 ```markdown
 ## Branch Context Loaded: {branch}
@@ -74,7 +64,7 @@ After presenting branch context, offer to show project memory:
 
 If the user says yes:
 
-1. List `.rulesync/rules/` files with a one-line description of each
+1. Present the rules listing from the `---RULES---` section of the script output
 2. User can request to read specific memory files for details
 3. This is informational — project rules auto-load during normal work via globs
 
