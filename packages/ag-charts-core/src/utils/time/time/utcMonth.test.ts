@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { intervalCeil, intervalFloor, intervalRange } from './index';
+import { intervalAgo, intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('UTC month', () => {
     const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'month', utc: true };
@@ -24,6 +24,9 @@ test('UTC month', () => {
         new Date(Date.UTC(2023, 2, 1, 0, 0, 0, 0)),
         new Date(Date.UTC(2023, 3, 1, 0, 0, 0, 0)),
     ]);
+
+    const ago = intervalAgo(interval, date);
+    expect(ago).toEqual(new Date(Date.UTC(2022, 11, 18, 8, 31, 5, 125)));
 });
 
 test('UTC month.every', () => {

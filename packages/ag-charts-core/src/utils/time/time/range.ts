@@ -307,3 +307,89 @@ export function intervalRangeStartIndex(
     } = rangeData(interval, start, stop, { extend, limit, defaultAlignment });
     return s - s0;
 }
+
+interface IntervalRanger {
+    adjust(this: void, date: Date, step: number, utc: boolean): Date;
+}
+
+const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
+    millisecond: {
+        adjust(date: Date, step: number, _utc: boolean) {
+            const adjusted = new Date();
+            adjusted.setTime(date.getTime() + step);
+            return adjusted;
+        },
+    },
+    second: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCSeconds(date.getUTCSeconds() + step);
+            } else {
+                adjusted.setSeconds(date.getSeconds() + step);
+            }
+            return adjusted;
+        },
+    },
+    minute: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCMinutes(date.getUTCMinutes() + step);
+            } else {
+                adjusted.setMinutes(date.getMinutes() + step);
+            }
+            return adjusted;
+        },
+    },
+    hour: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCHours(date.getUTCHours() + step);
+            } else {
+                adjusted.setHours(date.getHours() + step);
+            }
+            return adjusted;
+        },
+    },
+    day: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCDate(date.getUTCDate() + step);
+            } else {
+                adjusted.setDate(date.getDate() + step);
+            }
+            return adjusted;
+        },
+    },
+    month: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCMonth(date.getUTCMonth() + step);
+            } else {
+                adjusted.setMonth(date.getMonth() + step);
+            }
+            return adjusted;
+        },
+    },
+    year: {
+        adjust(date: Date, step: number, utc: boolean) {
+            const adjusted = new Date(date.getTime());
+            if (utc) {
+                adjusted.setUTCFullYear(date.getUTCFullYear() + step);
+            } else {
+                adjusted.setFullYear(date.getFullYear() + step);
+            }
+            return adjusted;
+        },
+    },
+};
+
+export function intervalAgo(interval: AgTimeInterval | AgTimeIntervalUnit, date: Date) {
+    const { unit, step, utc } = timeInterval(interval);
+    const ranger = unitRanger[unit];
+    return ranger.adjust(date, -step, utc);
+}

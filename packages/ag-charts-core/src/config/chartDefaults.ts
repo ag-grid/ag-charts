@@ -19,6 +19,7 @@ import {
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
     type AgSeriesTooltip,
+    type AgTimeInterval,
     type AgTooltipRendererDataRow,
     type AgTooltipRendererResult,
     type FormatterPropertyType,
@@ -54,6 +55,7 @@ import {
     optionsDefs,
     or,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
     required,
     string,
@@ -303,6 +305,20 @@ export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, (
 
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
+export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
+
+const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
+    unit: required(timeIntervalUnit),
+    step: positiveNumberNonZero,
+    epoch: date,
+    utc: boolean,
+};
+
+// @ts-expect-error undocumented option - required for interop
+timeIntervalDefs.every = callback;
+
+export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
+
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,
     height: positiveNumber,
@@ -469,7 +485,13 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
-                value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
+                value: or(
+                    number,
+                    and(arrayOf(or(number, date)), arrayLength(2, 2)),
+                    timeInterval,
+                    timeIntervalUnit,
+                    callback
+                ),
             },
             'range button options array'
         ),

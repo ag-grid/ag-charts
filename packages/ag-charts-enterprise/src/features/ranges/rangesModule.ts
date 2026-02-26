@@ -10,6 +10,8 @@ import {
     date,
     number,
     or,
+    timeInterval,
+    timeIntervalUnit,
     toolbarButtonOptionsDefs,
 } from 'ag-charts-core';
 
@@ -31,7 +33,13 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
-                value: or(number, and(arrayOf(or(number, date)), arrayLength(2, 2)), callback),
+                value: or(
+                    number,
+                    and(arrayOf(or(number, date)), arrayLength(2, 2)),
+                    timeInterval,
+                    timeIntervalUnit,
+                    callback
+                ),
             },
             'range button options array'
         ),

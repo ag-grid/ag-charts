@@ -1,4 +1,5 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
+import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
 
 export interface AgRangesOptions extends Toggleable {
@@ -10,6 +11,13 @@ export interface AgRangesButton extends ToolbarButton {
     value: AgRangesButtonValue;
 }
 
-export type AgRangesButtonValue = number | AgRangesButtonValuePair | AgRangesButtonValueFunction | undefined;
+export type AgRangesButtonValue =
+    | number
+    | AgRangesButtonValuePair
+    | AgRangesButtonValueFunction
+    | AgTimeInterval
+    | AgTimeIntervalUnit
+    | undefined;
+
 export type AgRangesButtonValuePair = [Date | number, Date | number];
 export type AgRangesButtonValueFunction = (start: Date | number, end: Date | number) => [Date | number, Date | number];

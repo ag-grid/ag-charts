@@ -1,5 +1,6 @@
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
+import { isPlainObject, isString } from '../../types/typeGuards';
 import { unitEncoding } from './encoding';
 
 export {
@@ -12,6 +13,7 @@ export {
     durationYear,
 } from './duration';
 export {
+    intervalAgo,
     intervalFloor,
     intervalCeil,
     intervalPrevious,
@@ -45,4 +47,14 @@ export function intervalHierarchy(interval: AgTimeInterval | AgTimeIntervalUnit)
 export function intervalMilliseconds(interval: AgTimeInterval | AgTimeIntervalUnit): number {
     const step = intervalStep(interval);
     return step * unitEncoding[intervalUnit(interval)].milliseconds;
+}
+
+const intervals = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
+export function isTimeInterval(value: unknown): value is AgTimeInterval {
+    if (!isPlainObject(value)) return false;
+    return 'unit' in value && intervals.includes(value.unit);
+}
+
+export function isTimeIntervalUnit(value: unknown): value is AgTimeIntervalUnit {
+    return isString(value) && intervals.includes(value);
 }
