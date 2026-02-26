@@ -7,15 +7,15 @@ type StyledElement = new () => { style: CSSStyleDeclaration };
 
 // getWindow is required to make sure this works on our CI.
 // Using Option instead of createElement because it should be faster.
-let style: CSSStyleDeclaration;
+let styleDeclaration: CSSStyleDeclaration;
 export function parseColor(color: string): string | null {
-    if (style == null) {
+    if (styleDeclaration == null) {
         const OptionConstructor = getWindow<StyledElement>('Option');
-        style = new OptionConstructor().style;
+        styleDeclaration = new OptionConstructor().style;
     }
-    style.color = color;
-    const result = style.color || null;
-    style.color = '';
+    styleDeclaration.color = color;
+    const result = styleDeclaration.color || null;
+    styleDeclaration.color = '';
     return result;
 }
 
