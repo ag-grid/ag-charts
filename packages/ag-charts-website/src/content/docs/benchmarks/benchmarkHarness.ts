@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-
 /**
  * Full benchmark harness implementation that gets compiled to benchmarkHarness.js
  * and included in generated examples that define getBenchmarkConfig().

@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-
 /**
  * Browser-based benchmark runner using Playwright.
  *

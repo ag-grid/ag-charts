@@ -1,5 +1,4 @@
 // -*- Mode: js2; -*-
-
 /**
  * @fileoverview Enforce explicit generic arguments for all generic types in the project
  */

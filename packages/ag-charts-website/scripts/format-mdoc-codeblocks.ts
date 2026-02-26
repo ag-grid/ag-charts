@@ -1,5 +1,4 @@
 #!/usr/bin/env tsx
-
 /* eslint-disable no-console */
 import { glob } from 'glob';
 import * as path from 'path';
