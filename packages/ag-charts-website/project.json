@@ -247,6 +247,16 @@
           "args": ["--verbose"]
         }
       }
+    },
+    "browser-benchmark": {
+      "command": "tsx ../../tools/benchmark/browser-benchmark.ts",
+      "dependsOn": ["^build", "generate-examples"],
+      "outputs": ["{workspaceRoot}/reports/browser-benchmarks/results.json"],
+      "cache": false,
+      "parallelism": false,
+      "options": {
+        "cwd": "{projectRoot}"
+      }
     }
   },
   "implicitDependencies": [

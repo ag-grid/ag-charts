@@ -11,6 +11,9 @@ search-output/
 # Generated technical review reports
 src/content/docs/**/reports/
 
+# Generated benchmark reports
+reports/
+
 src/content/gallery/_examples/*/tsconfig*.json
 
 # Algolia search output

@@ -105,6 +105,7 @@
     "octokit": "^4.0.2",
     "patch-package": "^8.0.0",
     "pixelmatch": "^5.2.1",
+    "playwright": "1.57.0",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "prettier-plugin-astro": "^0.12.1",
