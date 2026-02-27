@@ -364,6 +364,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.update(ChartUpdateType.PERFORM_LAYOUT);
             })
         );
+        ctx.scene.canvas.setDirection(ctx.domManager.isRtl);
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>

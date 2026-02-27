@@ -266,8 +266,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else {
             // Fallback-side popout
             const x = preferredSide === 'right' ? bounds.x - menuOffsetWidth : bounds.x + bounds.width;
-            const delta =
-                preferredSide === 'right' ? remainingSpaceOnLeft + x : remainingSpaceOnRight - x - menuOffsetWidth;
+            const delta = (preferredSide === 'right' ? remainingSpaceOnLeft : remainingSpaceOnRight) - menuOffsetWidth;
             if (delta >= 0) {
                 menu.setBounds({ x, y });
             } else {
