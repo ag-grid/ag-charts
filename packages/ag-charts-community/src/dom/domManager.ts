@@ -142,6 +142,8 @@ export class DOMManager extends BaseManager {
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
+        this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches());
+
         let hidden = false;
         this.observer = setupObserver(agDocument, this.element, (intersectionRatio) => {
             if (intersectionRatio === 0 && !hidden) {
@@ -226,6 +228,7 @@ export class DOMManager extends BaseManager {
         super.destroy();
 
         this.observer?.unobserve(this.element);
+        this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
