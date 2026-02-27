@@ -8,7 +8,7 @@ import type {
     TextValue,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, type Point, Property, createId, setAttribute } from 'ag-charts-core';
+import { BaseProperties, type Point, Property, createId } from 'ag-charts-core';
 
 const { FormatManager } = _ModuleSupport;
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
@@ -84,8 +84,7 @@ export class CrosshairLabelProperties
 export class CrosshairLabel extends CrosshairLabelProperties {
     static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
-    private readonly element: HTMLElement;
-    private readonly domCache = new _ModuleSupport.DOMWriteCache();
+    private readonly dom: _ModuleSupport.DOMWriteCache;
 
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
@@ -94,43 +93,39 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     ) {
         super();
 
-        this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
-        this.element.classList.add(DEFAULT_LABEL_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
-        this.element.dataset.key = key;
-        this.element.dataset.axisId = axisId;
+        const element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
+        this.dom = new _ModuleSupport.DOMWriteCache(element);
+        this.dom.toggleClass(DEFAULT_LABEL_CLASS, true);
+        this.dom.setAttr('aria-hidden', 'true');
+        this.dom.setAttr('data-key', key);
+        this.dom.setAttr('data-axis-id', axisId);
     }
 
     show(meta: Point & { translateX?: string; translateY?: string }) {
         const left = Math.round(meta.x + this.xOffset);
         const top = Math.round(meta.y + this.yOffset);
 
-        const { style } = this.element;
-        this.domCache.setProperty(style, 'left', `${left}px`);
-        this.domCache.setProperty(style, 'top', `${top}px`);
+        this.dom.setProperty('left', `${left}px`);
+        this.dom.setProperty('top', `${top}px`);
 
         const translate =
             meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
-        this.domCache.setProperty(style, 'translate', translate);
+        this.dom.setProperty('translate', translate);
 
         this.toggle(true);
     }
 
     setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
-        if (html !== undefined && this.domCache.changed('html', html)) {
-            this.element.innerHTML = html;
-            this.domCache.invalidate('styles');
+        if (html !== undefined) {
+            this.dom.setInnerHTML(html);
         }
         if (styles !== undefined) {
-            if (this.domCache.changed('styles', JSON.stringify(styles))) {
-                const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
-                Object.assign(styleElement.style, styles);
-            }
+            this.dom.setContentStyles(styles);
         }
     }
 
     toggle(visible?: boolean) {
-        this.domCache.toggleClass(this.element.classList, 'ag-charts-crosshair-label--hidden', !visible);
+        this.dom.toggleClass('ag-charts-crosshair-label--hidden', !visible);
     }
 
     destroy() {

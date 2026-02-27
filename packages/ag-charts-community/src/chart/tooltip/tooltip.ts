@@ -177,7 +177,6 @@ export class Tooltip extends BaseProperties {
     private enableInteraction: boolean = false;
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
-    private element?: HTMLElement;
     private readonly sizeMonitor: SizeMonitor;
 
     private interactiveLeave?: {
@@ -191,7 +190,7 @@ export class Tooltip extends BaseProperties {
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
-    private readonly domCache = new DOMWriteCache();
+    private dom?: DOMWriteCache;
 
     private positionParams:
         | {
@@ -214,13 +213,14 @@ export class Tooltip extends BaseProperties {
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
-        this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-        this.element.setAttribute('popover', 'manual');
-        this.element.className = DEFAULT_TOOLTIP_CLASS;
+        const element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
+        this.dom = new DOMWriteCache(element);
+        element.className = DEFAULT_TOOLTIP_CLASS;
         // @ts-expect-error Typings need updating
-        this.element.style.positionAnchor = domManager.anchorName;
+        element.style.positionAnchor = domManager.anchorName;
+        this.dom.setAttr('popover', 'manual');
 
-        this.sizeMonitor.observe(this.element, (size) => {
+        this.sizeMonitor.observe(element, (size) => {
             this._elementSize = size;
             this.updateTooltipPosition();
         });
@@ -229,10 +229,7 @@ export class Tooltip extends BaseProperties {
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.cleanup.flush();
-
-            if (this.element) {
-                this.sizeMonitor.unobserve(this.element);
-            }
+            this.sizeMonitor.unobserve(element);
         };
     }
 
@@ -241,12 +238,12 @@ export class Tooltip extends BaseProperties {
     }
 
     contains(node: Node | null): boolean {
-        return this.element?.contains(node) ?? false;
+        return this.dom?.contains(node) ?? false;
     }
 
     private updateTooltipPosition() {
-        const { element, _elementSize: elementSize, positionParams } = this;
-        if (element == null || elementSize == null || positionParams == null) return;
+        const { dom, _elementSize: elementSize, positionParams } = this;
+        if (dom == null || elementSize == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
@@ -302,12 +299,7 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        // Evaluate both to ensure both cache entries are updated.
-        const txChanged = this.domCache.changed('tx', left);
-        const tyChanged = this.domCache.changed('ty', top);
-        if (txChanged || tyChanged) {
-            element.style.translate = `${left}px ${top}px`;
-        }
+        dom.setProperty('translate', `${left}px ${top}px`);
     }
 
     /**
@@ -322,18 +314,18 @@ export class Tooltip extends BaseProperties {
         pagination?: TooltipPaginationState,
         instantly = false
     ) {
-        const { element } = this;
+        const { dom } = this;
 
-        if (element != null && content != null && content.length !== 0) {
+        if (dom != null && content != null && content.length !== 0) {
             const html = tooltipHtml(this.localeManager, content, this.mode, this.pagination ? pagination : undefined);
             if (html == null) {
-                element.innerHTML = '';
+                dom.setInnerHTML('');
                 this.toggle(false);
                 return;
             }
 
-            element.innerHTML = html;
-        } else if (element == null || element.innerHTML === '') {
+            dom.setInnerHTML(html);
+        } else if (dom == null || dom.innerHTML === '') {
             this.toggle(false);
             return;
         }
@@ -365,20 +357,12 @@ export class Tooltip extends BaseProperties {
 
         this.enableInteraction = meta.enableInteraction ?? false;
 
-        if (this.domCache.changed('interaction', this.enableInteraction)) {
-            if (this.enableInteraction) {
-                element.style.pointerEvents = 'auto';
-                element.removeAttribute('aria-hidden');
-                element.tabIndex = -1; // AG-14347 Allow interactive tooltips to receive focus
-            } else {
-                element.style.pointerEvents = 'none';
-                element.setAttribute('aria-hidden', 'true');
-                element.removeAttribute('tabindex');
-            }
-        }
+        dom.setProperty('pointer-events', this.enableInteraction ? 'auto' : 'none');
+        dom.setAttr('aria-hidden', this.enableInteraction ? null : 'true');
+        dom.setAttr('tabindex', this.enableInteraction ? '-1' : null); // AG-14347
 
-        this.domCache.setProperty(element.style, '--top', `${canvasRect.top}px`);
-        this.domCache.setProperty(element.style, '--left', `${canvasRect.left}px`);
+        dom.setProperty('--top', `${canvasRect.top}px`);
+        dom.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
         this.toggle(true, instantly);
@@ -389,8 +373,8 @@ export class Tooltip extends BaseProperties {
     }
 
     maybeEnterInteractiveTooltip({ relatedTarget }: FocusEvent | MouseEvent, callback: () => void): boolean {
-        const { interactive, interactiveLeave, enabled, element } = this;
-        if (element == null) return false;
+        const { interactive, interactiveLeave, enabled, dom } = this;
+        if (dom == null) return false;
         if (interactiveLeave) return true;
 
         const isEntering =
@@ -409,20 +393,20 @@ export class Tooltip extends BaseProperties {
                     }
                 },
             };
-            element.addEventListener('focusout', this.interactiveLeave.listener);
-            element.addEventListener('mouseout', this.interactiveLeave.listener);
+            dom.addEventListener('focusout', this.interactiveLeave.listener);
+            dom.addEventListener('mouseout', this.interactiveLeave.listener);
         }
 
         return isEntering;
     }
 
     private popInteractiveLeaveCallback() {
-        const { interactiveLeave, element } = this;
+        const { interactiveLeave, dom } = this;
         this.interactiveLeave = undefined; // prevent re-entrancy.
         if (interactiveLeave) {
-            if (element) {
-                element.removeEventListener('focusout', interactiveLeave.listener);
-                element.removeEventListener('mouseout', interactiveLeave.listener);
+            if (dom) {
+                dom.removeEventListener('focusout', interactiveLeave.listener);
+                dom.removeEventListener('mouseout', interactiveLeave.listener);
             }
             interactiveLeave.callback();
         }
@@ -444,13 +428,13 @@ export class Tooltip extends BaseProperties {
     }
 
     private toggleCallback(visible: boolean) {
-        if (!this.element?.isConnected) return;
+        if (!this.dom?.isConnected) return;
 
         // Avoid touching the DOM if invisible and visibility status hasn't changed.
         if (this._visible === visible) return;
         this._visible = visible;
 
-        this.element.togglePopover(visible);
+        this.dom.togglePopover(visible);
 
         if (visible) {
             // Position with cached size if available; otherwise the SizeMonitor
@@ -459,19 +443,17 @@ export class Tooltip extends BaseProperties {
         } else {
             this.springAnimation.reset();
             this.popInteractiveLeaveCallback();
-            this.domCache.reset();
+            this.dom.reset();
         }
     }
 
     private updateClassModifiers() {
-        if (!this.element?.isConnected) return;
+        if (!this.dom?.isConnected) return;
 
-        const { domCache } = this;
+        const { dom } = this;
         const { enableInteraction, arrowPosition, mode, darkTheme, wrapping } = this;
-        const { classList } = this.element;
 
-        const toggle = (name: string, force: boolean) =>
-            domCache.toggleClass(classList, `${DEFAULT_TOOLTIP_CLASS}--${name}`, force);
+        const toggle = (name: string, force: boolean) => dom.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--${name}`, force);
 
         toggle('no-interaction', !enableInteraction);
         toggle('arrow-top', arrowPosition === ArrowPosition.Top);
@@ -480,10 +462,10 @@ export class Tooltip extends BaseProperties {
         toggle('arrow-left', arrowPosition === ArrowPosition.Left);
         toggle('compact', mode === 'compact');
 
-        domCache.toggleClass(classList, DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
+        dom.toggleClass(DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
 
         for (const wrapType of this.wrapTypes) {
-            domCache.toggleClass(classList, `${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
+            dom.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
         }
     }
 
