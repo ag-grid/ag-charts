@@ -14,6 +14,8 @@ This section covers the specific file structure and content needed for AG Charts
 
 ### index.html
 
+**WITHOUT controls:**
+
 ```html
 <html lang="en">
     <head>
@@ -37,7 +39,41 @@ This section covers the specific file structure and content needed for AG Charts
     <body>
         <div id="myChart"></div>
         <script src="https://cdn.jsdelivr.net/npm/ag-charts-community@13.0.0/dist/umd/ag-charts-community.js"></script>
-        <script src="data.js"></script>
+        <script src="main.js"></script>
+    </body>
+</html>
+```
+
+**WITH controls:**
+
+```html
+<html lang="en">
+    <head>
+        <title>AG Charts Example - Demo Name</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex" />
+        <link rel="stylesheet" href="ag-example-styles.css" />
+        <style>
+            body {
+                padding: 1rem;
+            }
+            div:has(> .ag-charts-wrapper),
+            ag-charts,
+            ag-financial-charts {
+                padding: 0 !important;
+                border: none !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="example-controls">
+            <div class="controls-row">
+                <!-- Your controls here -->
+            </div>
+        </div>
+        <div id="myChart"></div>
+        <script src="https://cdn.jsdelivr.net/npm/ag-charts-community@13.0.0/dist/umd/ag-charts-community.js"></script>
         <script src="main.js"></script>
     </body>
 </html>
@@ -273,15 +309,49 @@ Generate timestamp with: `date +%s%3N`
 
 -   `https://cdn.jsdelivr.net/npm/ag-charts-community/dist/umd/ag-charts-community.js`
 
+### data.js (Optional Separate Data File)
+
+Create a `data.js` when data is large enough to warrant separation (roughly >20 rows or >30 lines). Define a `getData()` function:
+
+```javascript
+function getData() {
+    return [
+        { month: 'Jan', value: 10 },
+        { month: 'Feb', value: 20 },
+        // ...
+    ];
+}
+```
+
+In `index.html`, add `<script src="data.js"></script>` **before** `<script src="main.js"></script>`:
+
+```html
+<script src="{CDN_URL}"></script>
+<script src="data.js"></script>
+<script src="main.js"></script>
+```
+
+In `main.js`, call `getData()`:
+
+```javascript
+data: getData(),
+```
+
+For small datasets (a few rows), inline the data directly in `main.js` instead.
+
 ### Common Issues
 
-| Issue                | Cause                               | Fix                                                          |
-| -------------------- | ----------------------------------- | ------------------------------------------------------------ |
-| Chart appears small  | Missing vanilla framework styles    | Add the body flex and `div:has(> .ag-charts-wrapper)` styles |
-| Chart doesn't render | Wrong CDN URL or missing global     | Check script src and use `agCharts.AgCharts`                 |
-| Styling issues       | Missing inline styles in index.html | Add the `<style>` block in `<head>`                          |
-| Broken after time    | Using unversioned CDN URLs          | Pin to specific version like `@13.0.0`                       |
-| Layout breaks        | Extra HTML elements in body         | Remove all elements except `<div id="myChart">`              |
+| Issue                         | Cause                                    | Fix                                                          |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| Chart appears small           | Missing vanilla framework styles         | Add the body flex and `div:has(> .ag-charts-wrapper)` styles |
+| Chart doesn't render          | Wrong CDN URL or missing global          | Check script src and use `agCharts.AgCharts`                 |
+| Styling issues                | Missing inline styles in index.html      | Add the `<style>` block in `<head>`                          |
+| Broken after time             | Using unversioned CDN URLs               | Pin to specific version like `@13.0.0`                       |
+| Layout breaks                 | Extra HTML elements in body              | Remove all elements except controls + `<div id="myChart">`   |
+| Wrong UMD global              | Using `agChartsEnterprise`/`agChartsCommunity` | Always use `agCharts` — `const { AgCharts } = agCharts;` |
+| Update API error              | Using `AgCharts.update(chart, opts)`     | Use instance method: `chart.update(options)` (v13+)          |
+| Container not found           | Using string selector `'#myChart'`       | Use `document.getElementById('myChart')`                     |
+| Controls break chart layout   | Chart div nested inside controls div     | `<div id="myChart">` must be a **sibling** outside `<div class="example-controls">` |
 
 ### Tips
 
