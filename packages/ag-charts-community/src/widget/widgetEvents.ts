@@ -1,15 +1,38 @@
+import type { AreExact, DeepReadonly } from 'ag-charts-core';
+
 import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
+// These types cannot be derived from `WIDGET_META`, because that would cause cyclical-referencing:
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
-type KeyboardSyntheticMouseWidgetEventType = 'click';
 type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
 type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
-type TouchSyntheticMouseWidgetEventType = 'click' | 'dblclick';
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
+type WidgetEventType =
+    /* Union of all allowed `type` values for widget events: */
+    | 'change'
+    | 'wheel'
+    | FocusWidgetEventType
+    | KeyboardWidgetEventType
+    | MouseWidgetEventType
+    | TouchWidgetEventType
+    | DragWidgetEventType
+    | (CollapseWidgetEvent | ExpandControlledWidgetEvent | ExpandWidgetEvent)['type'];
 
-export type WidgetEvent = {
-    readonly type: keyof WidgetEventMap;
+// Verify that `WIDGET_META` has no missing event-type and no spurious entries:
+true satisfies AreExact<WidgetEventType, WidgetMetaKeys>;
+true satisfies AreExact<FocusWidgetEventType, DerivedKeysForWidgetEvent<FocusWidgetEvent>>;
+true satisfies AreExact<KeyboardWidgetEventType, DerivedKeysForWidgetEvent<KeyboardWidgetEvent>>;
+true satisfies AreExact<MouseWidgetEventType, DerivedKeysForWidgetEvent<MouseWidgetEvent>>;
+true satisfies AreExact<TouchWidgetEventType, DerivedKeysForWidgetEvent<TouchWidgetEvent>>;
+true satisfies AreExact<DragWidgetEventType, DerivedKeysForWidgetEvent<DragWidgetEvent>>;
+
+// Synthetic types
+type KeyboardSyntheticMouseWidgetEventType = 'click';
+type TouchSyntheticMouseWidgetEventType = 'click' | 'dblclick';
+
+export type WidgetEvent<T extends WidgetEventType = WidgetEventType> = {
+    readonly type: T;
     readonly sourceEvent: Event;
 };
 
@@ -111,56 +134,6 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
           readonly sourceEvent: TouchEvent;
       };
 
-export type WidgetEventMap = {
-    'drag-start': DragWidgetEvent<'drag-start'>;
-    'drag-move': DragWidgetEvent<'drag-move'>;
-    'drag-end': DragWidgetEvent<'drag-end'>;
-    'collapse-widget': CollapseWidgetEvent;
-    'expand-widget': ExpandWidgetEvent;
-    'expand-controlled-widget': ExpandControlledWidgetEvent;
-
-    blur: FocusWidgetEvent<'blur'>;
-    change: WidgetEvent;
-    contextmenu: MouseWidgetEvent<'contextmenu'>;
-    focus: FocusWidgetEvent<'focus'>;
-    keydown: KeyboardWidgetEvent<'keydown'>;
-    keyup: KeyboardWidgetEvent<'keyup'>;
-    click: MouseWidgetEvent<'click'>;
-    dblclick: MouseWidgetEvent<'dblclick'>;
-    mouseenter: MouseWidgetEvent<'mouseenter'>;
-    mousemove: MouseWidgetEvent<'mousemove'>;
-    mouseleave: MouseWidgetEvent<'mouseleave'>;
-    wheel: WheelWidgetEvent;
-    touchstart: TouchWidgetEvent<'touchstart'>;
-    touchmove: TouchWidgetEvent<'touchmove'>;
-    touchend: TouchWidgetEvent<'touchend'>;
-    touchcancel: TouchWidgetEvent<'touchcancel'>;
-};
-
-export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElementEventMap)[] = [
-    'blur',
-    'change',
-    'contextmenu',
-    'focus',
-    'keydown',
-    'keyup',
-    'click',
-    'dblclick',
-    'mouseenter',
-    'mousemove',
-    'mouseleave',
-    'wheel',
-    'touchstart',
-    'touchmove',
-    'touchend',
-    'touchcancel',
-];
-
-export type WidgetSourceEventMap = { [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'] } & {
-    click: MouseEvent; // exclude synthetic click sourceEvent types
-    dblclick: MouseEvent; // exclude synthetic double-click sourceEvent types
-};
-
 function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
     const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
@@ -171,92 +144,242 @@ function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: T
     return { type, sourceEvent };
 }
 
-export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetEventMap_Internal = Omit<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetSourceEventMap_HTML = Pick<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
+export type WidgetEventMap = DerivedWidgetEvents;
+export type WidgetEventMap_HTML = DerivedWidgetEventsWhereIsNative;
+export type WidgetEventMap_Internal = DerivedWidgetEventsWhereIsInternal;
+export type WidgetSourceEventMap_HTML = DerivedSourceEventsWhereIsNative;
 
-type Allocator<K extends keyof WidgetEventMap_HTML> = (
-    sourceEvent: WidgetSourceEventMap_HTML[K],
-    current: HTMLElement
-) => WidgetEventMap_HTML[K];
-const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
-    blur: (sourceEvent: FocusEvent): FocusWidgetEvent<'blur'> => {
-        return { type: 'blur', sourceEvent };
+const WIDGET_META = {
+    // Event
+    change: {
+        isNative: true,
+        allocator(sourceEvent: Event, _current: HTMLElement): WidgetEvent<'change'> {
+            return { type: 'change', sourceEvent };
+        },
     },
-    change: (sourceEvent: Event): WidgetEvent => {
-        return { type: 'change', sourceEvent };
-    },
-    contextmenu: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> => {
-        return allocMouseEvent('contextmenu', sourceEvent, current);
-    },
-    focus: (sourceEvent: FocusEvent): FocusWidgetEvent<'focus'> => {
-        return { type: 'focus', sourceEvent };
-    },
-    keydown: (sourceEvent: KeyboardEvent): KeyboardWidgetEvent<'keydown'> => {
-        return { type: 'keydown', sourceEvent };
-    },
-    keyup: (sourceEvent: KeyboardEvent): KeyboardWidgetEvent<'keyup'> => {
-        return { type: 'keyup', sourceEvent };
-    },
-    click: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> => {
-        return allocMouseEvent('click', sourceEvent, current);
-    },
-    dblclick: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> => {
-        return allocMouseEvent('dblclick', sourceEvent, current);
-    },
-    mouseenter: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseenter'> => {
-        return allocMouseEvent('mouseenter', sourceEvent, current);
-    },
-    mousemove: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mousemove'> => {
-        return allocMouseEvent('mousemove', sourceEvent, current);
-    },
-    mouseleave: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseleave'> => {
-        return allocMouseEvent('mouseleave', sourceEvent, current);
-    },
-    wheel: (sourceEvent: WheelEvent): WheelWidgetEvent => {
-        const { offsetX, offsetY, clientX, clientY } = sourceEvent;
 
-        // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
-        // So we divide this by 100 to give us the desired step.
-        const factor = sourceEvent.deltaMode === 0 ? 0.01 : 1;
-        let deltaX = sourceEvent.deltaX * factor;
-        let deltaY = sourceEvent.deltaY * factor;
+    // FocusEvent
+    blur: {
+        isNative: true,
+        allocator(sourceEvent: FocusEvent, _current: HTMLElement): FocusWidgetEvent<'blur'> {
+            return { type: 'blur', sourceEvent };
+        },
+    },
+    focus: {
+        isNative: true,
+        allocator(sourceEvent: FocusEvent, _current: HTMLElement): FocusWidgetEvent<'focus'> {
+            return { type: 'focus', sourceEvent };
+        },
+    },
 
-        // AG-11225 On Windows, unlike MacOS, wheel scrolls with shift do not automatically apply the vertical
-        // scrolling to the deltaX component of the event. So we normalise that here.
-        const swapXY = Math.abs(sourceEvent.deltaX) === 0 && sourceEvent.shiftKey;
-        if (swapXY) {
-            [deltaX, deltaY] = [deltaY, deltaX];
-        }
+    // KeyboardEvent
+    keydown: {
+        isNative: true,
+        allocator(sourceEvent: KeyboardEvent): KeyboardWidgetEvent<'keydown'> {
+            return { type: 'keydown', sourceEvent };
+        },
+    },
+    keyup: {
+        isNative: true,
+        allocator(sourceEvent: KeyboardEvent): KeyboardWidgetEvent<'keyup'> {
+            return { type: 'keyup', sourceEvent };
+        },
+    },
 
-        return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
+    // MouseEvent
+    contextmenu: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> {
+            return allocMouseEvent('contextmenu', sourceEvent, current);
+        },
     },
-    touchstart: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchstart'> => {
-        return allocTouchEvent('touchstart', sourceEvent, current);
+    click: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> {
+            return allocMouseEvent('click', sourceEvent, current);
+        },
     },
-    touchmove: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchmove'> => {
-        return allocTouchEvent('touchmove', sourceEvent, current);
+    dblclick: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> {
+            return allocMouseEvent('dblclick', sourceEvent, current);
+        },
     },
-    touchend: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchend'> => {
-        return allocTouchEvent('touchend', sourceEvent, current);
+    mouseenter: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseenter'> {
+            return allocMouseEvent('mouseenter', sourceEvent, current);
+        },
     },
-    touchcancel: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchcancel'> => {
-        return allocTouchEvent('touchcancel', sourceEvent, current);
+    mousemove: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mousemove'> {
+            return allocMouseEvent('mousemove', sourceEvent, current);
+        },
     },
+    mouseleave: {
+        isNative: true,
+        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseleave'> {
+            return allocMouseEvent('mouseleave', sourceEvent, current);
+        },
+    },
+
+    // WheelEvent
+    wheel: {
+        isNative: true,
+        allocator(sourceEvent: WheelEvent, _current: HTMLElement): WheelWidgetEvent {
+            const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+
+            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+            // So we divide this by 100 to give us the desired step.
+            const factor = sourceEvent.deltaMode === 0 ? 0.01 : 1;
+            let deltaX = sourceEvent.deltaX * factor;
+            let deltaY = sourceEvent.deltaY * factor;
+
+            // AG-11225 On Windows, unlike MacOS, wheel scrolls with shift do not automatically apply the vertical
+            // scrolling to the deltaX component of the event. So we normalise that here.
+            const swapXY = Math.abs(sourceEvent.deltaX) === 0 && sourceEvent.shiftKey;
+            if (swapXY) {
+                [deltaX, deltaY] = [deltaY, deltaX];
+            }
+
+            return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
+        },
+    },
+
+    // TouchEvent
+    touchstart: {
+        isNative: true,
+        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchstart'> {
+            return allocTouchEvent('touchstart', sourceEvent, current);
+        },
+    },
+    touchmove: {
+        isNative: true,
+        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchmove'> {
+            return allocTouchEvent('touchmove', sourceEvent, current);
+        },
+    },
+    touchend: {
+        isNative: true,
+        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchend'> {
+            return allocTouchEvent('touchend', sourceEvent, current);
+        },
+    },
+    touchcancel: {
+        isNative: true,
+        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchcancel'> {
+            return allocTouchEvent('touchcancel', sourceEvent, current);
+        },
+    },
+
+    // DragWidgetEvent
+    'drag-start': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-start'>,
+    },
+    'drag-move': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-move'>,
+    },
+    'drag-end': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-end'>,
+    },
+
+    // CollapseWidgetEvent, ExpandWidgetEvent, ExpandControlledWidgetEvent
+    'collapse-widget': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as CollapseWidgetEvent,
+    },
+    'expand-widget': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as ExpandWidgetEvent,
+    },
+    'expand-controlled-widget': {
+        isInternal: true,
+        typeDerivation: undefined as unknown as ExpandControlledWidgetEvent,
+    },
+} as const satisfies {
+    readonly [K in string]:
+        | {
+              readonly isNative: true;
+              readonly isInternal?: never;
+              readonly allocator:
+                  | ((sourceEvent: Event, current: HTMLElement) => WidgetEvent)
+                  | ((sourceEvent: FocusEvent, current: HTMLElement) => FocusWidgetEvent)
+                  | ((sourceEvent: KeyboardEvent, current: HTMLElement) => KeyboardWidgetEvent)
+                  | ((sourceEvent: MouseEvent, current: HTMLElement) => MouseWidgetEvent)
+                  | ((sourceEvent: WheelEvent, current: HTMLElement) => WheelWidgetEvent)
+                  | ((sourceEvent: TouchEvent, current: HTMLElement) => TouchWidgetEvent);
+          }
+        | {
+              readonly isNative?: never;
+              readonly isInternal: true;
+              readonly typeDerivation: object;
+          };
 };
 
+// Verify that `WIDGET_META[K][allocator]` returns on object that satisfies `{type: K}`
+type ExpectedHTMLTypeBranding = { [K in DerivedKeysWhereIsNative]: K };
+type ActualHTMLTypeBranding = { [K in DerivedKeysWhereIsNative]: ReturnType<WidgetMeta[K]['allocator']>['type'] };
+undefined as unknown as ActualHTMLTypeBranding satisfies ExpectedHTMLTypeBranding;
+
+// Verify that `WIDGET_META[K][typeDerivation]` is an object that satisfies `{type: K}`
+type ExpectedInternalTypeBranding = { [K in DerivedKeysWhereIsInternal]: K };
+type ActualInternalTypeBranding = { [K in DerivedKeysWhereIsInternal]: WidgetMeta[K]['typeDerivation']['type'] };
+undefined as unknown as ActualInternalTypeBranding satisfies ExpectedInternalTypeBranding;
+
+type WidgetMeta = typeof WIDGET_META;
+type WidgetMetaKeys = keyof WidgetMeta;
+
+type DerivedKeysWhereIsNative = {
+    [K in WidgetMetaKeys]: WidgetMeta[K] extends { readonly isNative: true } ? K : never;
+}[WidgetMetaKeys];
+
+type DerivedKeysWhereIsInternal = {
+    [K in WidgetMetaKeys]: WidgetMeta[K] extends { readonly isInternal: true } ? K : never;
+}[WidgetMetaKeys];
+
+type DerivedSourceEventsWhereIsNative = {
+    [K in DerivedKeysWhereIsNative]: Parameters<WidgetMeta[K]['allocator']>[0];
+};
+type DerivedWidgetEventsWhereIsNative = {
+    [K in DerivedKeysWhereIsNative]: ReturnType<WidgetMeta[K]['allocator']>;
+};
+type DerivedWidgetEventsWhereIsInternal = {
+    [K in DerivedKeysWhereIsInternal]: WidgetMeta[K]['typeDerivation'];
+};
+type DerivedWidgetEvents = DerivedWidgetEventsWhereIsNative & DerivedWidgetEventsWhereIsInternal;
+
+type _DerivedKeysForWidgetEvent_HTML_branch<TWidgetEvent> = {
+    [K in DerivedKeysWhereIsNative]: ReturnType<WidgetMeta[K]['allocator']> extends TWidgetEvent
+        ? ReturnType<WidgetMeta[K]['allocator']>
+        : never;
+}[DerivedKeysWhereIsNative]['type'];
+type _DerivedKeysForWidgetEvent_Internal_branch<TWidgetEvent> = {
+    [K in DerivedKeysWhereIsInternal]: WidgetMeta[K]['typeDerivation'] extends TWidgetEvent
+        ? WidgetMeta[K]['typeDerivation']
+        : never;
+}[DerivedKeysWhereIsInternal]['type'];
+type DerivedKeysForWidgetEvent<TWidgetEvent> =
+    _DerivedKeysForWidgetEvent_HTML_branch<TWidgetEvent> extends never
+        ? _DerivedKeysForWidgetEvent_Internal_branch<TWidgetEvent>
+        : _DerivedKeysForWidgetEvent_HTML_branch<TWidgetEvent>;
+
 export class WidgetEventUtil {
-    static alloc<K extends keyof WidgetEventMap_HTML>(
+    static alloc<K extends DerivedKeysWhereIsNative>(
         type: K,
-        sourceEvent: WidgetSourceEventMap_HTML[K],
+        sourceEvent: DerivedSourceEventsWhereIsNative[K],
         current: HTMLElement
-    ): WidgetEventMap_HTML[K] {
-        return WidgetAllocators[type](sourceEvent, current);
+    ): DerivedWidgetEventsWhereIsNative[K] {
+        const unsafeAllocator: (sourceEvent: any, current: HTMLElement) => any = WIDGET_META[type].allocator;
+        return unsafeAllocator(sourceEvent, current);
     }
 
-    static isHTMLEvent(type: keyof WidgetEventMap): type is keyof WidgetEventMap & keyof HTMLElementEventMap {
-        const htmlTypes: readonly string[] = WIDGET_HTML_EVENTS;
-        return htmlTypes.includes(type);
+    static isHTMLEvent(type: WidgetMetaKeys): type is WidgetMetaKeys & keyof HTMLElementEventMap {
+        const meta: DeepReadonly<{ [K in typeof type]?: { isNative?: boolean; isInternal?: boolean } }> = WIDGET_META;
+        return meta[type]?.isNative === true;
     }
 
     static calcCurrentXY(
