@@ -1,1 +1,1 @@
-../../external/prompts/guides/jira.md
+../../external/prompts/rules/jira.md

@@ -1,1 +1,1 @@
-../../external/prompts/agents/test-writer.md
+../../external/prompts/subagents/test-writer.md

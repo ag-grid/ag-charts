@@ -1,1 +1,1 @@
-../../external/prompts/agents/technical-research-analyst.md
+../../external/prompts/subagents/technical-research-analyst.md

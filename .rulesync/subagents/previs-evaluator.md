@@ -1,1 +1,1 @@
-../../external/prompts/agents/previs-evaluator.md
+../../external/prompts/subagents/previs-evaluator.md

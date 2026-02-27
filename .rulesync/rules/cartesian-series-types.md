@@ -1,1 +1,1 @@
-../../external/prompts/guides/cartesian-series-types.md
+../../external/prompts/rules/cartesian-series-types.md

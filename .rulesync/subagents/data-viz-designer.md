@@ -1,1 +1,1 @@
-../../external/prompts/agents/data-viz-designer.md
+../../external/prompts/subagents/data-viz-designer.md

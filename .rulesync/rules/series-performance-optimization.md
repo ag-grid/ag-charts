@@ -1,1 +1,1 @@
-../../external/prompts/guides/series-performance-optimization.md
+../../external/prompts/rules/series-performance-optimization.md

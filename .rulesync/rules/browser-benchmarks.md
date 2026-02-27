@@ -1,1 +1,1 @@
-../../external/prompts/guides/browser-benchmarks.md
+../../external/prompts/rules/browser-benchmarks.md

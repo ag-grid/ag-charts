@@ -1,1 +1,1 @@
-../../external/prompts/agents/visual-qa.md
+../../external/prompts/subagents/visual-qa.md

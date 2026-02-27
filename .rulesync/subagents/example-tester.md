@@ -1,1 +1,1 @@
-../../external/prompts/agents/example-tester.md
+../../external/prompts/subagents/example-tester.md

@@ -26,31 +26,31 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Everyday Development
 
-| Type  | Name                  | Invoke                  | What it does                                       |
-| ----- | --------------------- | ----------------------- | -------------------------------------------------- |
-| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user) | Fix build and lint errors across a package         |
-| Skill | 🔵 `code-cleanup`     | `/code-cleanup` (user)  | Remove bloat, duplication; improve clarity         |
-| Skill | 🔵 `pr-create`        | `/pr-create` (user)     | Commit, push, and open a PR                        |
+| Type  | Name                  | Invoke                             | What it does                                       |
+| ----- | --------------------- | ---------------------------------- | -------------------------------------------------- |
+| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)     | Fix build and lint errors across a package         |
+| Skill | 🔵 `code-cleanup`     | `/code-cleanup` (user)             | Remove bloat, duplication; improve clarity         |
+| Skill | 🔵 `pr-create`        | `/pr-create` (user)                | Commit, push, and open a PR                        |
 | Skill | 🔵 `pr-review`        | `/pr-review [--json] <PR#>` (user) | Review a PR (Markdown default, JSON with `--json`) |
-| Skill | 🔵 `dev-server`       | `/dev-server`           | Start dev server, check build status               |
-| Skill | 🔵 `git-conventions`  | `/git-conventions`      | Branch, commit, and PR naming conventions          |
-| Skill | 🟢 `technology-stack` | `/technology-stack`     | Architecture constraints and zero-dependency rules |
-| Agent | 🔵 `code-reviewer`    | Auto (after edits)      | Quality, security, and maintainability review      |
+| Skill | 🔵 `dev-server`       | `/dev-server`                      | Start dev server, check build status               |
+| Skill | 🔵 `git-conventions`  | `/git-conventions`                 | Branch, commit, and PR naming conventions          |
+| Skill | 🟢 `technology-stack` | `/technology-stack`                | Architecture constraints and zero-dependency rules |
+| Agent | 🔵 `code-reviewer`    | Auto (after edits)                 | Quality, security, and maintainability review      |
 
 ## Testing and Quality
 
-| Type    | Name                    | Invoke                | What it does                                         |
-| ------- | ----------------------- | --------------------- | ---------------------------------------------------- |
-| Skill   | 🔵 `git-bisect`         | `/git-bisect` (user)  | Find the commit that introduced a regression         |
-| Command | 🟠 `/sonar-fix`         | `/sonar-fix`          | Fetch and fix SonarCloud issues                      |
+| Type    | Name                    | Invoke                       | What it does                                         |
+| ------- | ----------------------- | ---------------------------- | ---------------------------------------------------- |
+| Skill   | 🔵 `git-bisect`         | `/git-bisect` (user)         | Find the commit that introduced a regression         |
+| Command | 🟠 `/sonar-fix`         | `/sonar-fix`                 | Fetch and fix SonarCloud issues                      |
 | Skill   | 🔵 `batch-lint-cleanup` | `/batch-lint-cleanup` (user) | Auto-fix ESLint violations by rule                   |
-| Command | 🟠 `/previs`            | `/previs`             | PREVis visual quality evaluation on gallery examples |
-| Skill   | 🟠 `optimize-series`    | `/optimize-series`    | Series rendering performance and GC optimisation     |
-| Agent   | 🟠 `test-writer`        | Auto                  | Create Jest snapshot and Playwright E2E tests        |
-| Agent   | 🔵 `playwright-expert`  | Auto                  | Playwright test architecture and debugging           |
-| Agent   | 🟠 `example-tester`     | Auto                  | Validate AG Charts example correctness               |
-| Agent   | 🟠 `visual-qa`          | Auto                  | Review visual regression image diffs                 |
-| Agent   | 🟠 `previs-evaluator`   | Auto                  | PREVis methodology evaluation of visualisations      |
+| Command | 🟠 `/previs`            | `/previs`                    | PREVis visual quality evaluation on gallery examples |
+| Skill   | 🟠 `optimize-series`    | `/optimize-series`           | Series rendering performance and GC optimisation     |
+| Agent   | 🟠 `test-writer`        | Auto                         | Create Jest snapshot and Playwright E2E tests        |
+| Agent   | 🔵 `playwright-expert`  | Auto                         | Playwright test architecture and debugging           |
+| Agent   | 🟠 `example-tester`     | Auto                         | Validate AG Charts example correctness               |
+| Agent   | 🟠 `visual-qa`          | Auto                         | Review visual regression image diffs                 |
+| Agent   | 🟠 `previs-evaluator`   | Auto                         | PREVis methodology evaluation of visualisations      |
 
 ## Documentation and Examples
 
@@ -65,16 +65,16 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Planning and Analysis
 
-| Type    | Name                               | Invoke                          | What it does                                       |
-| ------- | ---------------------------------- | ------------------------------- | -------------------------------------------------- |
-| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)           | Review plans for completeness and correctness      |
+| Type    | Name                               | Invoke                               | What it does                                       |
+| ------- | ---------------------------------- | ------------------------------------ | -------------------------------------------------- |
+| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness      |
 | Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps      |
-| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis` | Analyse requirements with competitor research      |
-| Command | 🟠 `/analyze-jira-issue`           | `/analyze-jira-issue <key>`     | Analyse a JIRA issue and propose solutions         |
-| Skill   | 🟠 `estimate-jira`                 | `/estimate-jira`                | Estimate complexity, effort, and risks for tickets |
-| Skill   | 🟠 `jira-create`                   | `/jira-create`                  | Create JIRA tickets with proper formatting         |
-| Agent   | 🟠 `technical-research-analyst`    | Auto                            | In-depth technical research with citations         |
-| Agent   | 🔵 `nx-expert`                     | Auto                            | Nx monorepo configuration and build optimisation   |
+| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research      |
+| Command | 🟠 `/analyze-jira-issue`           | `/analyze-jira-issue <key>`          | Analyse a JIRA issue and propose solutions         |
+| Skill   | 🟠 `estimate-jira`                 | `/estimate-jira`                     | Estimate complexity, effort, and risks for tickets |
+| Skill   | 🟠 `jira-create`                   | `/jira-create`                       | Create JIRA tickets with proper formatting         |
+| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations         |
+| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation   |
 
 ## Memory
 
@@ -86,11 +86,11 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Git and Branch Management
 
-| Type  | Name                    | Invoke                | What it does                             |
-| ----- | ----------------------- | --------------------- | ---------------------------------------- |
+| Type  | Name                    | Invoke                       | What it does                             |
+| ----- | ----------------------- | ---------------------------- | ---------------------------------------- |
 | Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`   |
-| Skill | 🔵 `git-split`          | `/git-split` (user)   | Split large files preserving git history |
-| Skill | 🔵 `pr-split`           | `/pr-split` (user)    | Split a branch into stacked PRs          |
+| Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history |
+| Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs          |
 
 ## Release Management
 
