@@ -88,6 +88,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                    | Invoke                       | What it does                             |
 | ----- | ----------------------- | ---------------------------- | ---------------------------------------- |
+| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos   |
 | Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`   |
 | Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history |
 | Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs          |
@@ -193,6 +194,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `remember`                   | Save branch context or project learnings as memory        |
 | 🟠 `spruce-docs`                | Create or improve documentation following patterns        |
 | 🟠 `spruce-example`             | Improve gallery examples to professional quality          |
+| 🔵 `sync-ag-shared`             | Sync ag-shared subrepo changes across AG repos            |
 | 🟢 `technology-stack`           | Architecture constraints and zero-dependency requirements |
 
 ---
