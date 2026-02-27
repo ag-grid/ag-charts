@@ -1,11 +1,15 @@
 /**
- * Centralises the compare-before-write pattern for DOM mutations on hot paths.
+ * Proxies all DOM access to a single HTMLElement.
  *
- * Each instance wraps a single HTMLElement and maintains a flat key→value cache.
- * Helper methods skip the corresponding DOM write when the value has not changed
- * since the last call.
+ * - Compare-before-write optimisation for hot paths (style properties, classes,
+ *   attributes, innerHTML): a flat key→value cache with `===` comparison skips
+ *   redundant writes. Callers must serialise objects before comparison.
+ * - Cache lifecycle: `invalidate()` clears a single key; `reset()` clears all
+ *   cached values on hide/destroy transitions.
+ * - Delegated operations (events, structural mutations) pass through to the
+ *   underlying element without caching.
  */
-export class DOMWriteCache {
+export class DOMElementProxy {
     private cache: Record<string, unknown> = {};
 
     constructor(private readonly element: HTMLElement) {}

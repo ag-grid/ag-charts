@@ -11,8 +11,8 @@ import {
 } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
+import { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
-import { DOMWriteCache } from '../../dom/domWriteCache';
 import type { LocaleManager } from '../../locale/localeManager';
 import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
@@ -190,7 +190,7 @@ export class Tooltip extends BaseProperties {
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
-    private dom?: DOMWriteCache;
+    private dom?: DOMElementProxy;
 
     private positionParams:
         | {
@@ -214,7 +214,7 @@ export class Tooltip extends BaseProperties {
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
         const element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-        this.dom = new DOMWriteCache(element);
+        this.dom = new DOMElementProxy(element);
         this.dom.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
         this.dom.setProperty('position-anchor', domManager.anchorName);
         this.dom.setAttr('popover', 'manual');

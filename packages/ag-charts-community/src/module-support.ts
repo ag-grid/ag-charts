@@ -298,7 +298,7 @@ export { fromToMotion, NODE_UPDATE_STATE_TO_PHASE_MAPPING } from './motion/fromT
 export type { ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
-export { DOMWriteCache } from './dom/domWriteCache';
+export { DOMElementProxy } from './dom/domElementProxy';
 export { QuadtreeNearest } from './scene/util/quadtree';
 export { UnitTimeScale } from './scale/unitTimeScale';
 export { LogScale } from './scale/logScale';

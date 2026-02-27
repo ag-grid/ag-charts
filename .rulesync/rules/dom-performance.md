@@ -17,9 +17,9 @@ This guide covers patterns for avoiding expensive DOM operations on hot paths (e
 -   Always read window dimensions (`innerWidth`/`innerHeight`) live rather than caching them, since they are cheap to read and change on resize.
 -   Clean up global listeners in `destroy()` to prevent memory leaks.
 
-## Skip Redundant DOM Writes with `DOMWriteCache`
+## Skip Redundant DOM Writes with `DOMElementProxy`
 
-Use `DOMWriteCache` (from `ag-charts-community/src/dom/domWriteCache.ts`) as the **single handle** for all DOM interaction on an element. The underlying `element` is **private** — consumers interact exclusively through the cache's API surface.
+Use `DOMElementProxy` (from `ag-charts-community/src/dom/domElementProxy.ts`) as the **single handle** for all DOM interaction on an element. The underlying `element` is **private** — consumers interact exclusively through the cache's API surface.
 
 -   **`constructor(element: HTMLElement)`** — binds the cache to a single element.
 -   **`isConnected`** — getter delegating to `element.isConnected`.
@@ -38,4 +38,4 @@ Use `DOMWriteCache` (from `ag-charts-community/src/dom/domWriteCache.ts`) as the
 -   **`invalidate(key)`** — force next `changed()` for a key to return true.
 -   Call **`reset()`** on visibility transitions (e.g., tooltip hide) to ensure a clean slate for the next show cycle. Do NOT reset when position caches should survive hide/show (e.g., crosshair labels).
 -   On animation-frame-frequency paths, prefer numeric comparisons via `changed()` over string template literals to avoid GC pressure from short-lived string allocations.
--   **Full wrapping constraint**: When introducing DOMWriteCache for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with external code like `GuardedElement`), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMWriteCache.
+-   **Full wrapping constraint**: When introducing DOMElementProxy for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with external code like `GuardedElement`), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMElementProxy.

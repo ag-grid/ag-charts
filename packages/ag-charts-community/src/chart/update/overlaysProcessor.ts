@@ -1,8 +1,8 @@
 import { CleanupRegistry } from 'ag-charts-core';
 
 import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
+import { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
-import { DOMWriteCache } from '../../dom/domWriteCache';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { isUnsupportedBrowser } from '../../util/browser';
@@ -16,7 +16,7 @@ const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-backgrou
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly cleanup = new CleanupRegistry();
-    private readonly overlayElem: DOMWriteCache;
+    private readonly overlayElem: DOMElementProxy;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -27,7 +27,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
     ) {
-        this.overlayElem = new DOMWriteCache(this.domManager.addChild('canvas-overlay', 'overlay'));
+        this.overlayElem = new DOMElementProxy(this.domManager.addChild('canvas-overlay', 'overlay'));
         this.overlayElem.setAttr('role', 'status');
         this.overlayElem.setAttr('aria-atomic', 'false');
         this.overlayElem.setAttr('aria-live', 'polite');
