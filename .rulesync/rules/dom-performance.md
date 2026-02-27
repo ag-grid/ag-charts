@@ -31,8 +31,11 @@ Use `DOMWriteCache` (from `ag-charts-community/src/dom/domWriteCache.ts`) as the
 -   **`setInnerHTML(html): boolean`** — cached `innerHTML` write. Returns `true` if the write happened. Auto-invalidates `contentStyles` so that the next `setContentStyles` call re-applies styles to the new child elements.
 -   **`setContentStyles(styles)`** — cached style assignment to the first child element (or the container itself if no children). Compared via `JSON.stringify`; skipped if unchanged. Auto-invalidated by `setInnerHTML` — callers no longer need manual `invalidate()` calls.
 -   **`innerHTML`** — getter reading from DOM. Use for read-side checks (e.g., `dom.innerHTML === ''`).
+-   **`appendChild(child)`** — delegates to `element.appendChild()`. No caching — structural mutation.
+-   **`set innerText(text)`** — delegates to setting `element.innerText`. Invalidates the `innerHTML` cache key since setting innerText changes DOM content.
 -   **`togglePopover(force)`** — delegates to `element.togglePopover()`. Not cached (side effects beyond attribute state).
 -   **`changed(key, value)`** — escape hatch for writes not covered above. Uses `===`; callers must serialise objects first.
 -   **`invalidate(key)`** — force next `changed()` for a key to return true.
 -   Call **`reset()`** on visibility transitions (e.g., tooltip hide) to ensure a clean slate for the next show cycle. Do NOT reset when position caches should survive hide/show (e.g., crosshair labels).
 -   On animation-frame-frequency paths, prefer numeric comparisons via `changed()` over string template literals to avoid GC pressure from short-lived string allocations.
+-   **Full wrapping constraint**: When introducing DOMWriteCache for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with external code like `GuardedElement`), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMWriteCache.

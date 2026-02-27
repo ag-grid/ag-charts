@@ -215,9 +215,8 @@ export class Tooltip extends BaseProperties {
     setup(localeManager: LocaleManager, domManager: DOMManager) {
         const element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
         this.dom = new DOMWriteCache(element);
-        element.className = DEFAULT_TOOLTIP_CLASS;
-        // @ts-expect-error Typings need updating
-        element.style.positionAnchor = domManager.anchorName;
+        this.dom.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
+        this.dom.setProperty('position-anchor', domManager.anchorName);
         this.dom.setAttr('popover', 'manual');
 
         this.sizeMonitor.observe(element, (size) => {

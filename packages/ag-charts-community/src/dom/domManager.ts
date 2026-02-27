@@ -114,6 +114,8 @@ export class DOMManager extends BaseManager {
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
+    private _lastCursor: string | undefined = undefined;
+    private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -289,15 +291,17 @@ export class DOMManager extends BaseManager {
     }
 
     private updateContainerSize() {
-        const { style: centerStyle } = this.rootElements['canvas-center'].element;
+        const visibility = this.containerSize == null ? 'hidden' : '';
+        const width = this.containerSize ? `${this.containerSize.width ?? 0}px` : '';
+        const height = this.containerSize ? `${this.containerSize.height ?? 0}px` : '';
 
-        centerStyle.visibility = this.containerSize == null ? 'hidden' : '';
-        if (this.containerSize) {
-            centerStyle.width = `${this.containerSize.width ?? 0}px`;
-            centerStyle.height = `${this.containerSize.height ?? 0}px`;
-        } else {
-            centerStyle.width = '';
-            centerStyle.height = '';
+        const last = this._lastCenterSize;
+        if (last == null || last.visibility !== visibility || last.width !== width || last.height !== height) {
+            this._lastCenterSize = { visibility, width, height };
+            const { style: centerStyle } = this.rootElements['canvas-center'].element;
+            centerStyle.visibility = visibility;
+            centerStyle.width = width;
+            centerStyle.height = height;
         }
 
         this.updateContainerClassName();
@@ -619,7 +623,11 @@ export class DOMManager extends BaseManager {
 
     updateCursor(callerId: string, style?: string) {
         this.cursorState.set(callerId, style);
-        this.element.style.cursor = this.cursorState.stateValue()!;
+        const cursor = this.cursorState.stateValue()!;
+        if (cursor !== this._lastCursor) {
+            this._lastCursor = cursor;
+            this.element.style.cursor = cursor;
+        }
     }
 
     getCursor() {

@@ -106,6 +106,17 @@ export class DOMWriteCache {
         this.element.togglePopover(force);
     }
 
+    /** Delegates to element.appendChild(). No caching — structural mutation. */
+    appendChild(child: Node): void {
+        this.element.appendChild(child);
+    }
+
+    /** Delegates to setting element.innerText. Invalidates innerHTML cache. */
+    set innerText(text: string) {
+        this.element.innerText = text;
+        this.invalidate('innerHTML');
+    }
+
     /** Clear all cached values. Call on hide/destroy transitions. */
     reset(): void {
         this.cache = {};
