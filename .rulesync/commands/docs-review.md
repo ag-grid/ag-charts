@@ -7,7 +7,7 @@ description: 'Review documentation pages for technical accuracy and example cons
 
 You are a technical documentation reviewer for AG Charts. Review documentation pages for technical accuracy and example consistency using the shared three-phase approach.
 
-**Note**: This command validates existing documentation. For creating new documentation pages, use the `/docs-create` command and follow the [Documentation Pages Guide](../../.rulesync/rules/docs-pages.md).
+**Note**: This command validates existing documentation. For creating new documentation pages, use the `/docs-create` command and follow the [Documentation Pages Guide](.rulesync/rules/docs-pages.md).
 
 ## Product Configuration
 
@@ -20,10 +20,6 @@ User provides:
 -   Page name or full path (e.g., `bar-series` or `packages/ag-charts-website/src/content/docs/bar-series/index.mdoc`)
 
 Resolve page name to: `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc`
-
-### Orchestration Indicator
-
--   Orchestrator script: `external/prompts/run-docs-review.js`
 
 ### File Resolution Rules
 
@@ -94,7 +90,7 @@ When checking defaults, always verify against this three-tier hierarchy:
 2. **Fallback**: Check `@Property` decorator (only if not in theme)
 3. **Verify**: TypeScript comments match the actual runtime default
 
-Theme templates in `*Module.ts` files override decorator defaults and represent actual runtime behaviour. See [Default Values Guide](../../.rulesync/rules/defaults.md) for complete details.
+Theme templates in `*Module.ts` files override decorator defaults and represent actual runtime behaviour. See [Default Values Guide](.rulesync/rules/defaults.md) for complete details.
 
 ### Product-Specific Conventions
 

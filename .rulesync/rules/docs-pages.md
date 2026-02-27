@@ -1228,6 +1228,6 @@ Before submitting documentation:
 
 -   Review existing documentation pages for patterns
 -   Consult [Examples Guide](./examples.md) for example creation
--   Use [Documentation Page Templates](../templates/) for new pages (see individual template files)
--   Run [Documentation Review](../commands/docs-review.md) to validate pages
--   Check [Documentation Checklist](../checklists/docs-page.md) before submission
+-   Use [Documentation Page Templates](.rulesync/skills/spruce-docs/) for new pages (see individual template files)
+-   Run [Documentation Review](.rulesync/commands/docs-review.md) to validate pages
+-   Check [Documentation Checklist](.rulesync/rules/docs-checklist.md) before submission

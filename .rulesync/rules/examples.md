@@ -85,7 +85,7 @@ The framework generator handles function exposure automatically. Using `window` 
 
 _New Nov 2024 • Required for all examples_
 
-Examples must explicitly register the modules they use with `ModuleRegistry` **before** creating any charts. This ensures proper tree-shaking and module loading. See the [Module Registry documentation](../docs/module-registry/) for full details.
+Examples must explicitly register the modules they use with `ModuleRegistry` **before** creating any charts. This ensures proper tree-shaking and module loading. See the [Module Registry documentation](packages/ag-charts-website/src/content/docs/module-registry/) for full details.
 
 ### Enterprise Examples - Single Package Import
 
@@ -239,7 +239,7 @@ axes: {
 }
 ```
 
-See [Upgrade to AG Charts 13](../docs/upgrade-to-ag-charts-13/) for migration details.
+See [Upgrade to AG Charts 13](packages/ag-charts-website/src/content/docs/upgrade-to-ag-charts-13/) for migration details.
 
 ### Why This Matters
 
@@ -794,5 +794,5 @@ When working with AG Charts API features in examples:
 ## Related Resources
 
 -   [Documentation Pages Guide](./docs-pages.md) - How to write documentation pages that reference examples
--   [Documentation Checklist](../checklists/docs-page.md) - Validation checklist for documentation pages
+-   [Documentation Checklist](.rulesync/rules/docs-checklist.md) - Validation checklist for documentation pages
 -   [Code Quality Guide](./code-quality.md) - Code quality standards that apply to examples
