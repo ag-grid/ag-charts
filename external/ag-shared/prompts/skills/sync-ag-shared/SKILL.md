@@ -32,9 +32,14 @@ Collect all context needed to plan the sync.
 ### 1a. Identify Source Repo
 
 ```bash
-# Resolve the real repo root (worktrees resolve to actual repo location)
+# The working directory where the skill was invoked — use this for ALL
+# git/subrepo commands in the source repo (critical for worktrees).
+SOURCE_WD=$(pwd)
+
+# Resolve the real repo root (worktrees resolve to actual repo location).
+# Only used for discovering sibling destination repos, NOT for running commands.
 REPO_GIT_DIR=$(git rev-parse --git-common-dir)
-SOURCE_ROOT=$(dirname "$REPO_GIT_DIR")
+SOURCE_ROOT=$(cd "$(dirname "$REPO_GIT_DIR")" && pwd)
 
 # Current branch
 SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -42,6 +47,8 @@ SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 # Repo name (for display)
 SOURCE_REPO=$(basename "$SOURCE_ROOT")
 ```
+
+**Important — worktree awareness:** When invoked from a git worktree, the feature branch is checked out in the worktree, and the main repo checkout is typically on `latest` (or another branch). You **cannot** `git checkout` the feature branch in the main repo because git prevents a branch from being checked out in two places simultaneously. Always run subrepo and git commands from `SOURCE_WD` (the worktree), never from `SOURCE_ROOT`.
 
 Validate:
 
@@ -125,21 +132,44 @@ Display to the user:
 3. Pull ag-shared in each destination
 4. Apply companion changes in each destination
 5. Verify all repos
-6. Push branches and create cross-linked PRs
+6. Push branches and create cross-linked PRs (reuse existing source PR if one exists)
 ```
 
 Use `AskUserQuestion` to confirm before proceeding. The user may want to adjust the plan or skip certain destinations.
 
 ## STEP 4: Push Source ag-shared
 
-From the source repo working directory:
+From the source working directory (the worktree or repo where the skill was invoked):
 
 ```bash
-cd "$SOURCE_ROOT"
+cd "$SOURCE_WD"
 yarn subrepo push ag-shared
 ```
 
-This pushes the `external/ag-shared/` content to the shared remote. If this fails, report the error and **STOP**.
+### Handling "need to pull first"
+
+If the push fails with _"There are new changes upstream, you need to pull first"_, this means the ag-shared remote has commits not yet in this branch. Handle it:
+
+```bash
+cd "$SOURCE_WD"
+yarn subrepo pull ag-shared   # Integrates upstream changes
+yarn subrepo push ag-shared   # Retry the push
+```
+
+### Stale lock files
+
+If a subrepo command fails mid-operation, it may leave a stale git lock file. Check for and remove it before retrying:
+
+```bash
+# For worktrees:
+LOCK_FILE=$(git rev-parse --git-dir)/index.lock
+[ -f "$LOCK_FILE" ] && rm "$LOCK_FILE"
+
+# Also restore any partially-modified .gitrepo:
+git checkout -- external/ag-shared/.gitrepo
+```
+
+If the push still fails after pulling, report the error and **STOP**.
 
 ## STEP 5: Create Sync Branches and Pull
 
@@ -178,6 +208,7 @@ Common companion tasks:
 -   Update `.rulesync/` symlinks if skills/rules were added, renamed, or removed.
 -   Update product-specific configurations if ag-shared scripts changed.
 -   Run verification: `./external/ag-shared/scripts/setup-prompts/verify-rulesync.sh`.
+-   **Run `npx nx format` (or equivalent formatter) before committing** to avoid CI formatting check failures.
 
 ### Iterative Push/Pull (if needed)
 
@@ -216,7 +247,7 @@ Report any issues. All repos must have clean working trees and passing verificat
 For the source repo (if not already pushed):
 
 ```bash
-cd "$SOURCE_ROOT"
+cd "$SOURCE_WD"
 git push -u origin "$SOURCE_BRANCH"
 ```
 
@@ -227,29 +258,44 @@ cd "<DEST_ROOT>"
 git push -u origin "sync/${SOURCE_BRANCH}"
 ```
 
-### 8b. Create Cross-Linked PRs
+### 8b. Audit PR Diffs for Unrelated Changes
+
+Before creating PRs, check each destination branch for unrelated changes that may have crept in (e.g. files modified on `origin/latest` after the branch point):
+
+```bash
+cd "<DEST_ROOT>"
+git diff origin/latest...HEAD --stat
+```
+
+Review the diff stat. If any files outside `external/ag-shared/` and `.rulesync/` appear that are not companion changes, revert them:
+
+```bash
+git checkout origin/latest -- <unrelated-file>
+git commit -m "Revert unrelated changes to <file>"
+```
+
+### 8c. Create Cross-Linked PRs
 
 Create a PR in each repo. All PRs should reference each other.
 
-First, create all PRs:
+**Check for existing PRs first.** The source branch may already have an open PR. Always check before creating:
 
 ```bash
-# Source repo PR (if not already created)
-cd "$SOURCE_ROOT"
-SOURCE_PR_URL=$(gh pr create --base latest --title "<title>" --body "$(cat <<'EOF'
-## Summary
-<change summary>
+cd "$SOURCE_WD"
+SOURCE_PR_URL=$(gh pr view "$SOURCE_BRANCH" --json url -q '.url' 2>/dev/null)
+```
 
-## Cross-repo PRs
-- Destination PRs will be linked after creation
+If an existing PR is found, **reuse it** — update its description to add cross-repo links rather than creating a new PR. Only create a new PR if none exists:
 
-## Test plan
-- [ ] Verify ag-shared sync completed in all repos
-- [ ] Run setup-prompts verification in all repos
-EOF
-)" 2>/dev/null || gh pr view --json url -q '.url')
+```bash
+if [ -z "$SOURCE_PR_URL" ]; then
+    SOURCE_PR_URL=$(gh pr create --base latest --title "<title>" --body "...")
+fi
+```
 
-# Destination repo PRs
+For destination repos, create new PRs (these are always new sync branches):
+
+```bash
 cd "<DEST_ROOT>"
 DEST_PR_URL=$(gh pr create --base latest --title "Sync ag-shared from <SOURCE_BRANCH>" --body "$(cat <<'EOF'
 ## Summary
@@ -267,9 +313,9 @@ EOF
 )")
 ```
 
-Then update all PR descriptions to cross-link.
+Then update all PR descriptions (source and destinations) to cross-link with each other. For existing source PRs, **append** the cross-repo links section rather than replacing the entire body.
 
-### 8c. Report Results
+### 8d. Report Results
 
 Output a summary:
 
@@ -290,7 +336,9 @@ All repos verified. Working trees clean.
 -   **Merge conflicts during subrepo pull:** Stop and ask the user to resolve manually. Provide the conflicting files and repo path.
 -   **Auth failures:** Check `gh auth status` and `git remote -v`. Ask the user to authenticate.
 -   **Dirty working tree:** Always stop and report. Never force-clean a destination repo.
--   **Subrepo push/pull failures:** Report the full error output. Common causes: diverged history, missing remote access.
+-   **Subrepo push/pull failures:** Report the full error output. Common causes: diverged history (pull first, then push), missing remote access.
+-   **Stale git lock files:** A failed subrepo operation may leave `index.lock` in the git dir. Remove it and restore `.gitrepo` before retrying (see Step 4).
+-   **Worktree branch conflicts:** Never try to `git checkout` the source branch in the main repo — it's already checked out in the worktree. Always `cd` to the worktree working directory for source repo commands.
 
 ## Arguments
 
