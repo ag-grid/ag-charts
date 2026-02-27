@@ -3,7 +3,11 @@ import { isButtonClickEvent, setAttribute } from 'ag-charts-core';
 import type { ExpandOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
 import { ExpansionControllerImpl } from './expansionControllerImpl';
 import { Widget } from './widget';
-import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEvents';
+import type {
+    WidgetEventMap as EventMap,
+    KeyboardSyntheticMouseWidgetEvent,
+    KeyboardWidgetEvent,
+} from './widgetEvents';
 
 type R = ReturnType<Widget['addListener']>;
 
@@ -24,7 +28,13 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
         this.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
             if (isButtonClickEvent(sourceEvent)) {
                 sourceEvent.preventDefault();
-                this.htmlListener?.dispatch('click', this, { type: 'click', device: 'keyboard', sourceEvent });
+                const widgetEvent: KeyboardSyntheticMouseWidgetEvent<'click'> = this.allocEvent({
+                    type: 'click',
+                    device: 'keyboard',
+                    sourceEvent,
+                });
+
+                this.htmlListener?.dispatch('click', this, widgetEvent);
             }
         });
     }

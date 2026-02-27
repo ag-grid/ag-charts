@@ -52,6 +52,7 @@ export type KeyboardSyntheticMouseWidgetEvent<
     readonly type: T;
     readonly device: 'keyboard';
     readonly sourceEvent: KeyboardEvent;
+    stopInternalPropagation(): void;
 };
 
 export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventType> = {
@@ -71,6 +72,7 @@ export type TouchSyntheticMouseWidgetEvent<
     readonly currentX: number;
     readonly currentY: number;
     readonly sourceEvent: TouchEvent;
+    stopInternalPropagation(): void;
 };
 
 export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
@@ -83,6 +85,7 @@ export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetE
     readonly currentX: number;
     readonly currentY: number;
     readonly sourceEvent: MouseEvent;
+    stopInternalPropagation(): void;
 };
 
 export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> =
@@ -119,6 +122,7 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
           readonly originDeltaX: number;
           readonly originDeltaY: number;
           readonly sourceEvent: MouseEvent;
+          stopInternalPropagation(): void;
       }
     | {
           readonly type: T;
@@ -132,12 +136,29 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
           readonly originDeltaX: number;
           readonly originDeltaY: number;
           readonly sourceEvent: TouchEvent;
+          stopInternalPropagation(): void;
       };
 
-function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
+function allocMouseEvent<T extends MouseWidgetEventType>(
+    type: T,
+    sourceEvent: MouseEvent,
+    current: HTMLElement,
+    stopInternalPropagation: () => void
+) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
     const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
-    return { type, device: 'mouse' as const, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+    return {
+        type,
+        device: 'mouse' as const,
+        offsetX,
+        offsetY,
+        clientX,
+        clientY,
+        currentX,
+        currentY,
+        sourceEvent,
+        stopInternalPropagation,
+    };
 }
 
 function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: TouchEvent, _current: HTMLElement) {
@@ -195,38 +216,62 @@ const WIDGET_META = {
     // MouseEvent
     contextmenu: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> {
-            return allocMouseEvent('contextmenu', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'contextmenu'> {
+            return allocMouseEvent('contextmenu', sourceEvent, current, stopInternalPropagation);
         },
     },
     click: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> {
-            return allocMouseEvent('click', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'click'> {
+            return allocMouseEvent('click', sourceEvent, current, stopInternalPropagation);
         },
     },
     dblclick: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> {
-            return allocMouseEvent('dblclick', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'dblclick'> {
+            return allocMouseEvent('dblclick', sourceEvent, current, stopInternalPropagation);
         },
     },
     mouseenter: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseenter'> {
-            return allocMouseEvent('mouseenter', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'mouseenter'> {
+            return allocMouseEvent('mouseenter', sourceEvent, current, stopInternalPropagation);
         },
     },
     mousemove: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mousemove'> {
-            return allocMouseEvent('mousemove', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'mousemove'> {
+            return allocMouseEvent('mousemove', sourceEvent, current, stopInternalPropagation);
         },
     },
     mouseleave: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseleave'> {
-            return allocMouseEvent('mouseleave', sourceEvent, current);
+        allocator(
+            sourceEvent: MouseEvent,
+            current: HTMLElement,
+            stopInternalPropagation: () => void
+        ): MouseWidgetEvent<'mouseleave'> {
+            return allocMouseEvent('mouseleave', sourceEvent, current, stopInternalPropagation);
         },
     },
 
@@ -295,7 +340,11 @@ const WIDGET_META = {
                   | ((sourceEvent: Event, current: HTMLElement) => WidgetEvent)
                   | ((sourceEvent: FocusEvent, current: HTMLElement) => FocusWidgetEvent)
                   | ((sourceEvent: KeyboardEvent, current: HTMLElement) => KeyboardWidgetEvent)
-                  | ((sourceEvent: MouseEvent, current: HTMLElement) => MouseWidgetEvent)
+                  | ((
+                        sourceEvent: MouseEvent,
+                        current: HTMLElement,
+                        stopInternalPropagation: () => void
+                    ) => MouseWidgetEvent)
                   | ((sourceEvent: WheelEvent, current: HTMLElement) => WheelWidgetEvent)
                   | ((sourceEvent: TouchEvent, current: HTMLElement) => TouchWidgetEvent);
           }
@@ -357,10 +406,12 @@ export class WidgetEventUtil {
     static alloc<K extends DerivedKeysWhereIsNative>(
         type: K,
         sourceEvent: DerivedSourceEventsWhereIsNative[K],
-        current: HTMLElement
+        current: HTMLElement,
+        stopInternalPropagation: () => void
     ): DerivedWidgetEventsWhereIsNative[K] {
-        const unsafeAllocator: (sourceEvent: any, current: HTMLElement) => any = WIDGET_META[type].allocator;
-        return unsafeAllocator(sourceEvent, current);
+        const unsafeAllocator: (sourceEvent: any, current: HTMLElement, stopInternalPropagation: () => void) => any =
+            WIDGET_META[type].allocator;
+        return unsafeAllocator(sourceEvent, current, stopInternalPropagation);
     }
 
     static isHTMLEvent(type: WidgetMetaKeys): type is WidgetMetaKeys & keyof HTMLElementEventMap {

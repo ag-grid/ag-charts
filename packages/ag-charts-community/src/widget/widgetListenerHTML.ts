@@ -1,7 +1,6 @@
 import { entries } from 'ag-charts-core';
 
 import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML } from './widgetEvents';
-import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;
@@ -12,9 +11,15 @@ type Handler<T, K extends EventType> = (event: EventMap[K], current: T) => unkno
 type WidgetListener<K extends EventType> = (widgetEvent: EventMap[K], current: Targetable) => unknown;
 type SourceListener<K extends EventType> = (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void;
 
+type WidgetEventAllocator = {
+    alloc<K extends EventType>(type: K, sourceEvent: SourceEventMap[K], current: HTMLElement): EventMap[K];
+};
+
 export class WidgetListenerHTML {
     private widgetListeners?: { [K in EventType]?: WidgetListener<EventType>[] } = {};
     private sourceListeners?: { [K in EventType]?: SourceListener<K> } = {};
+
+    constructor(private readonly eventAllocator: WidgetEventAllocator) {}
 
     private initSourceHandler<K extends EventType>(type: K, handler: SourceListener<K>): void;
     private initSourceHandler<K extends EventType>(type: K, handler: (this: HTMLElement, event: unknown) => void) {
@@ -25,7 +30,7 @@ export class WidgetListenerHTML {
     private lazyGetWidgetListeners<T extends Targetable, K extends EventType>(type: K, target: T): WidgetListener<K>[] {
         if (!(type in (this.sourceListeners ?? {}))) {
             const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
-                const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
+                const widgetEvent = this.eventAllocator.alloc(type, sourceEvent, target.getElement());
                 this.dispatch(type, target, widgetEvent);
             };
             const opts: AddEventListenerOptions = {};

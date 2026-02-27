@@ -8,7 +8,17 @@ import {
     setElementStyles,
 } from 'ag-charts-core';
 
-import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+import type { WidgetEventAllocator } from './widgetEventAllocators';
+import type {
+    DragWidgetEvent,
+    KeyboardSyntheticMouseWidgetEvent,
+    WidgetEvent,
+    WidgetEventMap,
+    WidgetEventMap_HTML,
+    WidgetEventMap_Internal,
+    WidgetSourceEventMap_HTML,
+} from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
 
@@ -63,6 +73,7 @@ export abstract class Widget<
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
     protected internalListener?: WidgetListenerInternal;
+    private eventAllocator?: WidgetEventAllocator;
     public destroyListener?: () => void; // Temporary fix for RTI-2977
 
     protected abstract destructor(): void;
@@ -271,10 +282,12 @@ export abstract class Widget<
     addListener<K extends EventType>(type: K, listener: (ev: EventMap[K], current: typeof this) => unknown): () => void;
     addListener<K extends EventType>(type: K, listener: (ev: unknown, current: typeof this) => unknown): () => void {
         if (WidgetEventUtil.isHTMLEvent(type)) {
-            this.htmlListener ??= new WidgetListenerHTML();
-            this.htmlListener.add(type, this, listener);
+            if (this.htmlListener !== undefined) {
+                this.htmlListener = new WidgetListenerHTML(this.getEventAllocator());
+                this.htmlListener.add(type, this, listener);
+            }
         } else {
-            this.internalListener ??= new WidgetListenerInternal(this.onDispatch.bind(this));
+            this.internalListener ??= new WidgetListenerInternal(this.getEventAllocator(), this.onDispatch.bind(this));
             this.internalListener.add(type, this, listener);
         }
         return () => this.removeListener(type, listener);
@@ -307,4 +320,71 @@ export abstract class Widget<
             parent = parent.parent;
         }
     }
+
+    private stop(_widgetEvent: WidgetEvent): void {
+        throw new Error('Not Yet Implemented');
+    }
+
+    private performStopInternalPropagation(widgetEvent: WidgetEvent): void {
+        let parent = this.parent;
+        while (parent !== undefined) {
+            parent.stop(widgetEvent);
+            parent = parent.parent;
+        }
+    }
+
+    private initEventAllocator(): WidgetEventAllocator {
+        const thisWidget = this;
+        const allocator: WidgetEventAllocator = {
+            allocNativeEvent<K extends keyof WidgetEventMap_HTML>(
+                type: K,
+                sourceEvent: WidgetSourceEventMap_HTML[K],
+                current: HTMLElement
+            ): WidgetEventMap_HTML[K] {
+                const stopInternalPropagation: () => void = () =>
+                    thisWidget.performStopInternalPropagation(widgetEvent);
+                const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, current, stopInternalPropagation);
+                return widgetEvent;
+            },
+
+            allocInternalEvent(
+                partialEvent: (KeyboardSyntheticMouseWidgetEvent | DragWidgetEvent) & { stopInternalPropagation?: ()=>void }
+                // partialEvent: Omit<KeyboardSyntheticMouseWidgetEvent, 'stopInternalPropagation'> |
+                //      Omit<DragWidgetEvent, 'stopInternalPropagation'>
+            ): KeyboardSyntheticMouseWidgetEvent | DragWidgetEvent {
+                if (partialEvent.type === 'click') {
+                    const clickEvent: KeyboardSyntheticMouseWidgetEvent = {
+                        ...partialEvent,
+                        stopInternalPropagation: () => {
+                            thisWidget.performStopInternalPropagation(clickEvent);
+                        },
+                    };
+                    return clickEvent;
+                } else {
+                    const dragEvent: DragWidgetEvent = {
+                        ...partialEvent,
+                        stopInternalPropagation: () => {
+                            thisWidget.performStopInternalPropagation(dragEvent);
+                        },
+
+                    };
+                    return dragEvent;
+                }
+            },
+        };
+        return allocator;
+    }
+
+    private getEventAllocator(): WidgetEventAllocator {
+        return (this.eventAllocator ??= this.initEventAllocator());
+    }
+
+    // private withInternalPropagationStopper<E>(event: E & WidgetEvent): E & { stopInternalPropagation: () => void } {
+    //     return {
+    //         ...event,
+    //         stopInternalPropagation: () => {
+    //             this.performStopInternalPropagation(event);
+    //         },
+    //     };
+    // }
 }
