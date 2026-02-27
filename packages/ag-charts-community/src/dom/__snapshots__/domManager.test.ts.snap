@@ -6,7 +6,7 @@ exports[`DOMManager for disconnected container cases should initialize the expec
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
     role="presentation"
-    style="width: 300px; height: 300px;"
+    style="min-width: 300px; min-height: 300px;"
   >
     
     
@@ -100,7 +100,7 @@ exports[`DOMManager for normal container cases should initialize the expected DO
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
     role="presentation"
-    style="width: 300px; height: 300px;"
+    style="min-width: 300px; min-height: 300px;"
   >
     
     
@@ -199,7 +199,7 @@ exports[`DOMManager for shadow-DOM container cases should initialize the expecte
     class="ag-charts-wrapper ag-charts-styles"
     data-ag-charts=""
     role="presentation"
-    style="width: 300px; height: 300px;"
+    style="min-width: 300px; min-height: 300px;"
   >
     
     
