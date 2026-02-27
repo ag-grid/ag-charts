@@ -40,13 +40,16 @@ cmd_download() {
     # Write files to disk + metadata
     node -e "
 const fs = require('fs');
+const path = require('path');
 const data = JSON.parse(fs.readFileSync('$tmpjson', 'utf8'));
 const dir = '$outdir';
 
 // Write each file
 const filenames = [];
 for (const [name, entry] of Object.entries(data.files || {})) {
-    fs.writeFileSync(dir + '/' + name, entry.content || '');
+    const filePath = path.join(dir, name);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, entry.content || '');
     filenames.push(name);
 }
 
@@ -111,12 +114,19 @@ const title = process.env.PLNKR_TITLE;
 const tagsStr = process.env.PLNKR_TAGS;
 
 const entries = [];
-for (const name of fs.readdirSync(dir)) {
-    if (name.startsWith('.')) continue;
-    const full = path.join(dir, name);
-    if (!fs.statSync(full).isFile()) continue;
-    entries.push({ type: 'file', pathname: name, content: fs.readFileSync(full, 'utf8') });
+function walk(base, rel) {
+    for (const name of fs.readdirSync(path.join(base, rel))) {
+        if (name.startsWith('.')) continue;
+        const relPath = rel ? rel + '/' + name : name;
+        const full = path.join(base, relPath);
+        if (fs.statSync(full).isDirectory()) {
+            walk(base, relPath);
+        } else {
+            entries.push({ type: 'file', pathname: relPath, content: fs.readFileSync(full, 'utf8') });
+        }
+    }
 }
+walk(dir, '');
 
 const payload = { title, entries };
 if (tagsStr) payload.tags = tagsStr.split(',').map(t => t.trim());

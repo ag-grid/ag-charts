@@ -61,7 +61,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Command | 🟠 `/spruce-example`   | `/spruce-example` | Improve gallery examples to professional quality      |
 | Skill   | 🟠 `spruce-docs`       | `/spruce-docs`    | Create or improve docs following established patterns |
 | Skill   | 🟠 `plunker`           | `/plunker`        | Create and manage Plunker demos for AG Charts         |
-| Skill   | 🔵 `batch-plunkers`   | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents   |
+| Skill   | 🔵 `batch-plunkers`    | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents   |
 | Agent   | 🟠 `data-viz-designer` | Auto              | Dataset selection, chart type guidance                |
 
 ## Planning and Analysis
