@@ -96,6 +96,10 @@ npx patch-package rulesync
 
 This updates `patches/rulesync+*.patch` (which symlinks to `external/ag-shared/prompts/patches/`).
 
+## Verify-rulesync Skill File Patterns
+
+`verify-rulesync.sh` builds an expected file inventory and content-verifies each file. Skill directories can contain arbitrary `.md` resource files (templates, page guides) beyond `SKILL.md`, `_*.md` helpers, and `*.sh` scripts. Both `build_expected_inventory()` and `verify_content()` must glob `*.md` (excluding `SKILL.md`) rather than `_*.md` to capture all of them.
+
 ## Shared Prompt Conventions
 
 When using the inverted reference pattern (shared core + thin wrapper), follow these rules to avoid silent breakage.
