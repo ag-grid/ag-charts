@@ -149,6 +149,12 @@ export type WidgetEventMap_HTML = DerivedWidgetEventsWhereIsNative;
 export type WidgetEventMap_Internal = DerivedWidgetEventsWhereIsInternal;
 export type WidgetSourceEventMap_HTML = DerivedSourceEventsWhereIsNative;
 
+function declareInternalEntry<T extends { type: WidgetEventType }>(): { isInternal: true; typeDerivation: T } {
+    // We don't actually need the `isInternal` and `typeDerivation` properties at runtime; these are only used for
+    // compile-time meta-programming.
+    return undefined as unknown as { isInternal: true; typeDerivation: T };
+}
+
 const WIDGET_META = {
     // Event
     change: {
@@ -273,33 +279,13 @@ const WIDGET_META = {
         },
     },
 
-    // DragWidgetEvent
-    'drag-start': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-start'>,
-    },
-    'drag-move': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-move'>,
-    },
-    'drag-end': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as DragWidgetEvent<'drag-end'>,
-    },
-
-    // CollapseWidgetEvent, ExpandWidgetEvent, ExpandControlledWidgetEvent
-    'collapse-widget': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as CollapseWidgetEvent,
-    },
-    'expand-widget': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as ExpandWidgetEvent,
-    },
-    'expand-controlled-widget': {
-        isInternal: true,
-        typeDerivation: undefined as unknown as ExpandControlledWidgetEvent,
-    },
+    // Internal events (DragWidgetEvent, CollapseWidgetEvent, ExpandWidgetEvent, ExpandControlledWidgetEvent)
+    'drag-start': declareInternalEntry<DragWidgetEvent<'drag-start'>>(),
+    'drag-move': declareInternalEntry<DragWidgetEvent<'drag-move'>>(),
+    'drag-end': declareInternalEntry<DragWidgetEvent<'drag-end'>>(),
+    'collapse-widget': declareInternalEntry<CollapseWidgetEvent>(),
+    'expand-widget': declareInternalEntry<ExpandWidgetEvent>(),
+    'expand-controlled-widget': declareInternalEntry<ExpandControlledWidgetEvent>(),
 } as const satisfies {
     readonly [K in string]:
         | {
