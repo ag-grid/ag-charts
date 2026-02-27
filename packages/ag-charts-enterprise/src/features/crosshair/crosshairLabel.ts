@@ -85,14 +85,7 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
     private readonly element: HTMLElement;
-
-    // DOM write deduplication caches (mirrors tooltip _prev* pattern)
-    private _prevHtml: string | undefined;
-    private _prevStylesKey: string | undefined;
-    private _prevLeft: number | undefined;
-    private _prevTop: number | undefined;
-    private _prevTranslate: string | undefined;
-    private _prevVisible: boolean | undefined;
+    private readonly domCache = new _ModuleSupport.DOMWriteCache();
 
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
@@ -112,44 +105,32 @@ export class CrosshairLabel extends CrosshairLabelProperties {
         const left = Math.round(meta.x + this.xOffset);
         const top = Math.round(meta.y + this.yOffset);
 
-        if (this._prevLeft !== left || this._prevTop !== top) {
-            this.element.style.left = `${left}px`;
-            this.element.style.top = `${top}px`;
-            this._prevLeft = left;
-            this._prevTop = top;
-        }
+        const { style } = this.element;
+        this.domCache.setProperty(style, 'left', `${left}px`);
+        this.domCache.setProperty(style, 'top', `${top}px`);
 
         const translate =
             meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
-        if (this._prevTranslate !== translate) {
-            this.element.style.translate = translate;
-            this._prevTranslate = translate;
-        }
+        this.domCache.setProperty(style, 'translate', translate);
 
         this.toggle(true);
     }
 
     setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
-        if (html !== undefined && html !== this._prevHtml) {
+        if (html !== undefined && this.domCache.changed('html', html)) {
             this.element.innerHTML = html;
-            this._prevHtml = html;
-            this._prevStylesKey = undefined;
+            this.domCache.invalidate('styles');
         }
         if (styles !== undefined) {
-            const stylesKey = JSON.stringify(styles);
-            if (stylesKey !== this._prevStylesKey) {
+            if (this.domCache.changed('styles', JSON.stringify(styles))) {
                 const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
                 Object.assign(styleElement.style, styles);
-                this._prevStylesKey = stylesKey;
             }
         }
     }
 
     toggle(visible?: boolean) {
-        if (this._prevVisible !== visible) {
-            this.element.classList.toggle(`ag-charts-crosshair-label--hidden`, !visible);
-            this._prevVisible = visible;
-        }
+        this.domCache.toggleClass(this.element.classList, 'ag-charts-crosshair-label--hidden', !visible);
     }
 
     destroy() {

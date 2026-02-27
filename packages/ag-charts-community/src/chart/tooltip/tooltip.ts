@@ -12,6 +12,7 @@ import {
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
+import { DOMWriteCache } from '../../dom/domWriteCache';
 import type { LocaleManager } from '../../locale/localeManager';
 import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
@@ -190,24 +191,7 @@ export class Tooltip extends BaseProperties {
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
 
-    private _prevClassState:
-        | {
-              enableInteraction: boolean;
-              arrowPosition: ArrowPosition | undefined;
-              mode: AgTooltipMode;
-              darkTheme: boolean;
-              wrapping: TextWrap;
-          }
-        | undefined;
-    private _prevShowState:
-        | {
-              enableInteraction: boolean;
-              canvasRectTop: number;
-              canvasRectLeft: number;
-          }
-        | undefined;
-    private _prevTranslateLeft: number | undefined;
-    private _prevTranslateTop: number | undefined;
+    private readonly domCache = new DOMWriteCache();
 
     private positionParams:
         | {
@@ -318,10 +302,11 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        if (this._prevTranslateLeft !== left || this._prevTranslateTop !== top) {
+        // Evaluate both to ensure both cache entries are updated.
+        const txChanged = this.domCache.changed('tx', left);
+        const tyChanged = this.domCache.changed('ty', top);
+        if (txChanged || tyChanged) {
             element.style.translate = `${left}px ${top}px`;
-            this._prevTranslateLeft = left;
-            this._prevTranslateTop = top;
         }
     }
 
@@ -380,8 +365,7 @@ export class Tooltip extends BaseProperties {
 
         this.enableInteraction = meta.enableInteraction ?? false;
 
-        const prevShow = this._prevShowState;
-        if (prevShow == null || prevShow.enableInteraction !== this.enableInteraction) {
+        if (this.domCache.changed('interaction', this.enableInteraction)) {
             if (this.enableInteraction) {
                 element.style.pointerEvents = 'auto';
                 element.removeAttribute('aria-hidden');
@@ -393,19 +377,8 @@ export class Tooltip extends BaseProperties {
             }
         }
 
-        if (
-            prevShow == null ||
-            prevShow.canvasRectTop !== canvasRect.top ||
-            prevShow.canvasRectLeft !== canvasRect.left
-        ) {
-            element.style.setProperty('--top', `${canvasRect.top}px`);
-            element.style.setProperty('--left', `${canvasRect.left}px`);
-        }
-        this._prevShowState = {
-            enableInteraction: this.enableInteraction,
-            canvasRectTop: canvasRect.top,
-            canvasRectLeft: canvasRect.left,
-        };
+        this.domCache.setProperty(element.style, '--top', `${canvasRect.top}px`);
+        this.domCache.setProperty(element.style, '--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
         this.toggle(true, instantly);
@@ -486,46 +459,31 @@ export class Tooltip extends BaseProperties {
         } else {
             this.springAnimation.reset();
             this.popInteractiveLeaveCallback();
-            this._prevClassState = undefined;
-            this._prevShowState = undefined;
-            this._prevTranslateLeft = undefined;
-            this._prevTranslateTop = undefined;
+            this.domCache.reset();
         }
     }
 
     private updateClassModifiers() {
         if (!this.element?.isConnected) return;
 
+        const { domCache } = this;
         const { enableInteraction, arrowPosition, mode, darkTheme, wrapping } = this;
-        const prev = this._prevClassState;
-        if (
-            prev != null &&
-            prev.enableInteraction === enableInteraction &&
-            prev.arrowPosition === arrowPosition &&
-            prev.mode === mode &&
-            prev.darkTheme === darkTheme &&
-            prev.wrapping === wrapping
-        ) {
-            return;
-        }
-        this._prevClassState = { enableInteraction, arrowPosition, mode, darkTheme, wrapping };
-
         const { classList } = this.element;
 
-        const toggleClass = (name: string, include: boolean) =>
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
+        const toggle = (name: string, force: boolean) =>
+            domCache.toggleClass(classList, `${DEFAULT_TOOLTIP_CLASS}--${name}`, force);
 
-        toggleClass('no-interaction', !enableInteraction);
-        toggleClass('arrow-top', arrowPosition === ArrowPosition.Top);
-        toggleClass('arrow-right', arrowPosition === ArrowPosition.Right);
-        toggleClass('arrow-bottom', arrowPosition === ArrowPosition.Bottom);
-        toggleClass('arrow-left', arrowPosition === ArrowPosition.Left);
-        toggleClass('compact', mode === 'compact');
+        toggle('no-interaction', !enableInteraction);
+        toggle('arrow-top', arrowPosition === ArrowPosition.Top);
+        toggle('arrow-right', arrowPosition === ArrowPosition.Right);
+        toggle('arrow-bottom', arrowPosition === ArrowPosition.Bottom);
+        toggle('arrow-left', arrowPosition === ArrowPosition.Left);
+        toggle('compact', mode === 'compact');
 
-        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
+        domCache.toggleClass(classList, DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
 
         for (const wrapType of this.wrapTypes) {
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
+            domCache.toggleClass(classList, `${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
         }
     }
 
