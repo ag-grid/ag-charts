@@ -11,10 +11,9 @@ import {
 } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
-import { DOMElementProxy } from '../../dom/domElementProxy';
+import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -177,8 +176,6 @@ export class Tooltip extends BaseProperties {
     private enableInteraction: boolean = false;
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
-    private readonly sizeMonitor: SizeMonitor;
-
     private interactiveLeave?: {
         callback: () => void;
         listener: (e: MouseEvent | FocusEvent) => void;
@@ -207,19 +204,17 @@ export class Tooltip extends BaseProperties {
     constructor(private readonly agDocument: AgDocument) {
         super();
 
-        this.sizeMonitor = new SizeMonitor(agDocument);
         this.cleanup.register(this.springAnimation.events.on('update', this.updateTooltipPosition.bind(this)));
     }
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
-        const element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-        this.dom = new DOMElementProxy(element);
+        this.dom = domManager.addDeferredProxyChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
         this.dom.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
         this.dom.setProperty('position-anchor', domManager.anchorName);
         this.dom.setAttr('popover', 'manual');
 
-        this.sizeMonitor.observe(element, (size) => {
+        const removeResizeListener = this.dom.addResizeListener((size) => {
             this._elementSize = size;
             this.updateTooltipPosition();
         });
@@ -228,7 +223,7 @@ export class Tooltip extends BaseProperties {
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.cleanup.flush();
-            this.sizeMonitor.unobserve(element);
+            removeResizeListener();
         };
     }
 

@@ -1,7 +1,7 @@
 import { CleanupRegistry } from 'ag-charts-core';
 
 import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
-import { DOMElementProxy } from '../../dom/domElementProxy';
+import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -27,7 +27,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
     ) {
-        this.overlayElem = new DOMElementProxy(this.domManager.addChild('canvas-overlay', 'overlay'));
+        this.overlayElem = this.domManager.addProxyChild('canvas-overlay', 'overlay');
         this.overlayElem.setAttr('role', 'status');
         this.overlayElem.setAttr('aria-atomic', 'false');
         this.overlayElem.setAttr('aria-live', 'polite');

@@ -19,6 +19,7 @@ import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
+import { DOMElementProxy } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
 const DOM_ELEMENT_CLASSES = [
@@ -116,6 +117,8 @@ export class DOMManager extends BaseManager {
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string | undefined = undefined;
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
+
+    private readonly deferredProxies = new Map<string, DOMElementProxy>();
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -245,6 +248,10 @@ export class DOMManager extends BaseManager {
     }
 
     public postRenderUpdate() {
+        for (const proxy of this.deferredProxies.values()) {
+            proxy.flush();
+        }
+
         this.updateStylesLocation();
 
         if (this.mode === 'minimal') return;
@@ -673,12 +680,25 @@ export class DOMManager extends BaseManager {
         return newChild;
     }
 
+    addProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
+        const element = this.addChild(domElementClass, id);
+        return new DOMElementProxy(element, { sizeMonitor: this.sizeMonitor });
+    }
+
+    addDeferredProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
+        const element = this.addChild(domElementClass, id);
+        const proxy = new DOMElementProxy(element, { deferred: true, sizeMonitor: this.sizeMonitor });
+        this.deferredProxies.set(`${domElementClass}:${id}`, proxy);
+        return proxy;
+    }
+
     removeChild(domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
         if (!children) return;
 
         children.get(id)?.remove();
         children.delete(id);
+        this.deferredProxies.delete(`${domElementClass}:${id}`);
     }
 
     incrementDataCounter(name: string) {

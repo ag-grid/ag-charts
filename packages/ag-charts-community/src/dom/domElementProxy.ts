@@ -1,3 +1,5 @@
+import type { Size, SizeMonitor } from '../util/sizeMonitor';
+
 /**
  * Proxies all DOM access to a single HTMLElement.
  *
@@ -11,8 +13,18 @@
  */
 export class DOMElementProxy {
     private cache: Record<string, unknown> = {};
+    private readonly pendingWrites: Array<() => void> | undefined;
+    private readonly sizeMonitor: SizeMonitor | undefined;
 
-    constructor(private readonly element: HTMLElement) {}
+    constructor(
+        private readonly element: HTMLElement,
+        opts?: { deferred?: boolean; sizeMonitor?: SizeMonitor }
+    ) {
+        if (opts?.deferred) {
+            this.pendingWrites = [];
+        }
+        this.sizeMonitor = opts?.sizeMonitor;
+    }
 
     /** Delegates to `element.isConnected`. */
     get isConnected(): boolean {
@@ -42,8 +54,11 @@ export class DOMElementProxy {
         this.element.removeEventListener(type, listener, options);
     }
 
-    /** Reads innerHTML from DOM. */
+    /** Reads innerHTML — returns cached value in deferred mode since DOM may not have flushed yet. */
     get innerHTML(): string {
+        if (this.pendingWrites) {
+            return (this.cache['innerHTML'] as string) ?? '';
+        }
         return this.element.innerHTML;
     }
 
@@ -64,21 +79,41 @@ export class DOMElementProxy {
      *  Works for both standard properties and CSS custom properties. */
     setProperty(name: string, value: string): void {
         if (this.changed(`p:${name}`, value)) {
-            this.element.style.setProperty(name, value);
+            if (this.pendingWrites) {
+                this.pendingWrites.push(() => {
+                    this.element.style.setProperty(name, value);
+                });
+            } else {
+                this.element.style.setProperty(name, value);
+            }
         }
     }
 
     /** classList.toggle(name, force), skipped if unchanged. */
     toggleClass(name: string, force: boolean): void {
         if (this.changed(`c:${name}`, force)) {
-            this.element.classList.toggle(name, force);
+            if (this.pendingWrites) {
+                this.pendingWrites.push(() => {
+                    this.element.classList.toggle(name, force);
+                });
+            } else {
+                this.element.classList.toggle(name, force);
+            }
         }
     }
 
     /** setAttribute (value != null) or removeAttribute (value == null). */
     setAttr(name: string, value: string | null): void {
         if (this.changed(`a:${name}`, value)) {
-            if (value == null) {
+            if (this.pendingWrites) {
+                this.pendingWrites.push(() => {
+                    if (value == null) {
+                        this.element.removeAttribute(name);
+                    } else {
+                        this.element.setAttribute(name, value);
+                    }
+                });
+            } else if (value == null) {
                 this.element.removeAttribute(name);
             } else {
                 this.element.setAttribute(name, value);
@@ -89,7 +124,13 @@ export class DOMElementProxy {
     /** Cached innerHTML write. Returns true if the write happened. */
     setInnerHTML(html: string): boolean {
         if (this.changed('innerHTML', html)) {
-            this.element.innerHTML = html;
+            if (this.pendingWrites) {
+                this.pendingWrites.push(() => {
+                    this.element.innerHTML = html;
+                });
+            } else {
+                this.element.innerHTML = html;
+            }
             this.invalidate('contentStyles');
             return true;
         }
@@ -100,8 +141,23 @@ export class DOMElementProxy {
      *  Skipped if styles haven't changed (compared via JSON.stringify). */
     setContentStyles(styles: Record<string, string | number | undefined>): void {
         if (this.changed('contentStyles', JSON.stringify(styles))) {
-            const target = (this.element.firstElementChild ?? this.element) as HTMLElement;
-            Object.assign(target.style, styles);
+            const apply = () => {
+                const target = (this.element.firstElementChild ?? this.element) as HTMLElement;
+                Object.assign(target.style, styles);
+            };
+            if (this.pendingWrites) {
+                this.pendingWrites.push(apply);
+            } else {
+                apply();
+            }
+        }
+    }
+
+    /** Flush all pending deferred writes. No-op if not in deferred mode. */
+    flush(): void {
+        if (this.pendingWrites) {
+            for (const fn of this.pendingWrites) fn();
+            this.pendingWrites.length = 0;
         }
     }
 
@@ -119,6 +175,16 @@ export class DOMElementProxy {
     set innerText(text: string) {
         this.element.innerText = text;
         this.invalidate('innerHTML');
+    }
+
+    /** Observe the element for resize events via the shared SizeMonitor. Returns an unsubscribe function. */
+    addResizeListener(cb: (size: Size) => void): () => void {
+        const { sizeMonitor, element } = this;
+        if (sizeMonitor == null) {
+            throw new Error('AG Charts - addResizeListener requires a SizeMonitor');
+        }
+        sizeMonitor.observe(element, (size) => cb(size));
+        return () => sizeMonitor.unobserve(element);
     }
 
     /** Clear all cached values. Call on hide/destroy transitions. */

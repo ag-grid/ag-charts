@@ -93,8 +93,7 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     ) {
         super();
 
-        const element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
-        this.dom = new _ModuleSupport.DOMElementProxy(element);
+        this.dom = domManager.addDeferredProxyChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.dom.toggleClass(DEFAULT_LABEL_CLASS, true);
         this.dom.setAttr('aria-hidden', 'true');
         this.dom.setAttr('data-key', key);
