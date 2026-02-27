@@ -39,3 +39,13 @@ Use `DOMElementProxy` (from `ag-charts-community/src/dom/domElementProxy.ts`) as
 -   Call **`reset()`** on visibility transitions (e.g., tooltip hide) to ensure a clean slate for the next show cycle. Do NOT reset when position caches should survive hide/show (e.g., crosshair labels).
 -   On animation-frame-frequency paths, prefer numeric comparisons via `changed()` over string template literals to avoid GC pressure from short-lived string allocations.
 -   **Full wrapping constraint**: When introducing DOMElementProxy for an element, ALL accesses must go through the cache. Mixed access patterns (some through cache, some direct) risk cache/DOM desync and are confusing for maintainers. When full wrapping is impractical (e.g. the element reference is shared with external code like `GuardedElement`), use a simple field-level compare-before-write pattern (e.g. `_lastCursor`, `_lastCenterSize`) instead of DOMElementProxy.
+
+## Create Proxies via DOMManager Factory Methods
+
+Never construct `DOMElementProxy` directly outside of `DOMManager`. Use the factory methods instead:
+
+-   **`addProxyChild(domElementClass, id)`** — creates an immediate-mode proxy with the shared `SizeMonitor` injected.
+-   **`addDeferredProxyChild(domElementClass, id)`** — creates a deferred proxy that buffers DOM writes until `postRenderUpdate()`. Also injects the shared `SizeMonitor`.
+-   These factories ensure proxies share the `DOMManager`'s `SizeMonitor` instance, avoiding redundant `ResizeObserver` registrations.
+-   When a proxy consumer needs resize observation, call **`proxy.addResizeListener(cb)`** which returns an unsubscribe function. Never bypass the proxy to obtain the raw element for a separate `SizeMonitor`.
+-   Use deferred mode for elements whose writes happen during the render cycle (tooltip, crosshair labels) to batch DOM mutations and avoid interleaving reads/writes.
