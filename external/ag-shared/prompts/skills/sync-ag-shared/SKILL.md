@@ -153,6 +153,7 @@ If the push fails with _"There are new changes upstream, you need to pull first"
 ```bash
 cd "$SOURCE_WD"
 yarn subrepo pull ag-shared   # Integrates upstream changes
+git diff HEAD~1 --stat        # Show what the pull changed — verify before continuing
 yarn subrepo push ag-shared   # Retry the push
 ```
 
@@ -186,6 +187,9 @@ git checkout -b "sync/${SOURCE_BRANCH}" origin/latest
 
 # Pull ag-shared updates
 yarn subrepo pull ag-shared
+
+# Show what the pull changed — verify files match expected changes from Step 2
+git diff HEAD~1 --stat
 
 # Verify the pull succeeded
 git subrepo status ag-shared
