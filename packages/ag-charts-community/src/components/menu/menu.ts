@@ -75,10 +75,11 @@ export class Menu extends AnchoredPopover {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
 
-        row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
+        row.addListener('click', (ev: MouseWidgetEvent<'click'>) => {
+            const { sourceEvent } = ev;
             options.onPress?.(item);
             sourceEvent.preventDefault();
-            sourceEvent.stopPropagation();
+            ev.stopInternalPropagation();
             menu.collapse();
         });
 

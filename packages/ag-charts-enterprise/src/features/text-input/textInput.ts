@@ -82,7 +82,7 @@ export class TextInput {
         });
 
         textArea.addEventListener('click', (event) => {
-            event.stopPropagation();
+            event.stopPropagation(); // TODO: switch to WidgetEvent.stopInternalPropagation
         });
 
         if (opts.layout) {

@@ -128,7 +128,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         update(false);
 
         const preventDefault = (event: Event) => event.preventDefault();
-        const stopPropagation = (event: Event) => event.stopPropagation();
+        const stopPropagation = (event: Event) => event.stopPropagation(); // TODO: switch to WidgetEvent.stopInternalPropagation
         const beginPaletteInteraction = (e: PointerEvent) => {
             e.preventDefault();
             const currentTarget = e.currentTarget as HTMLDivElement;
@@ -152,7 +152,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorPicker.addEventListener('touchstart', stopPropagation);
         colorPicker.addEventListener('touchmove', stopPropagation);
         colorPicker.addEventListener('keydown', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // TODO: switch to WidgetEvent.stopInternalPropagation
             switch (e.key) {
                 case 'Enter':
                 case 'Escape':

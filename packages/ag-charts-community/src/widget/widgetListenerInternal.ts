@@ -157,14 +157,17 @@ export class WidgetListenerInternal {
         const dragCallbacks: MouseDragCallbacks = {
             mousedown: (downEvent: MouseEvent) => {
                 const dragStartEvent = makeMouseDrag(current, 'drag-start', origin, downEvent);
+                dragStartEvent.stopInternalPropagation();
                 this.dispatch('drag-start', current, dragStartEvent);
             },
             mousemove: (moveEvent: MouseEvent) => {
                 const dragMoveEvent = makeMouseDrag(current, 'drag-move', origin, moveEvent);
+                dragMoveEvent.stopInternalPropagation();
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             mouseup: (upEvent: MouseEvent) => {
                 const dragEndEvent = makeMouseDrag(current, 'drag-end', origin, upEvent);
+                dragEndEvent.stopInternalPropagation();
                 this.dispatch('drag-end', current, dragEndEvent);
                 this.endDrag(current, dragEndEvent);
             },
@@ -196,11 +199,13 @@ export class WidgetListenerInternal {
         const dragCallbacks: TouchDragCallbacks = {
             touchmove: (moveEvent: TouchEvent, touch: Touch) => {
                 const dragMoveEvent = makeTouchDrag(current, 'drag-move', origin, moveEvent, touch);
+                dragMoveEvent.stopInternalPropagation();
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             touchend: (cancelEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag(current, 'drag-end', origin, cancelEvent, touch);
-                this.dispatch('drag-end', current, dragMoveEvent);
+                const dragEndEvent = makeTouchDrag(current, 'drag-end', origin, cancelEvent, touch);
+                dragEndEvent.stopInternalPropagation();
+                this.dispatch('drag-end', current, dragEndEvent);
             },
         };
 
@@ -208,6 +213,7 @@ export class WidgetListenerInternal {
         this.touchDragger = startOneFingerTouch(GlobalCallbacks, this, dragCallbacks, initialTouch, target);
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
+        dragStartEvent.stopInternalPropagation();
         this.dispatch('drag-start', current, dragStartEvent);
     }
 
