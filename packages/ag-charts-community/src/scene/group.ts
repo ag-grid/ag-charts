@@ -43,6 +43,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
+    private _childFontDirty = true;
+    private _cachedChildFont: string | undefined;
+
     renderToOffscreenCanvas: boolean;
     optimizeForInfrequentRedraws: boolean;
 
@@ -123,8 +126,34 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    override resolveFont(): string | undefined {
+        // Offscreen layer groups render to a separate canvas context, so their
+        // children's fonts don't affect the parent canvas. Return undefined so
+        // the parent's resolveChildFont() skips past this group. The group's own
+        // renderInContext() still calls resolveChildFont() to pre-set the font
+        // on its offscreen context.
+        if (this.renderToOffscreenCanvas) return undefined;
+        return this.resolveChildFont();
+    }
+
+    private resolveChildFont(): string | undefined {
+        if (this._childFontDirty) {
+            this._cachedChildFont = undefined;
+            for (const child of this.children()) {
+                const font = child.resolveFont();
+                if (font != null) {
+                    this._cachedChildFont = font;
+                    break;
+                }
+            }
+            this._childFontDirty = false;
+        }
+        return this._cachedChildFont;
+    }
+
     override markDirty(property?: string): void {
         this.dirty = true;
+        this._childFontDirty = true;
         super.markDirty(property);
     }
 
@@ -379,6 +408,17 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         try {
             ctx.globalAlpha *= this.opacity;
+
+            // Pre-set ctx.font for this group's children. Each child Text node is wrapped in
+            // save/restore (via isolatedRender), so restore() reverts the font — causing Chrome
+            // to re-resolve the CSS font string on every subsequent ctx.font assignment. By setting
+            // the font once here, child Text nodes see ctx.font already matches and skip the
+            // assignment entirely. The !== guard avoids redundant assignments when a parent Group
+            // already set the same font.
+            const childFont = this.resolveChildFont();
+            if (childFont != null && ctx.font !== childFont) {
+                ctx.font = childFont;
+            }
 
             if (this.clipRect != null) {
                 // clipRect is in the group's coordinate space

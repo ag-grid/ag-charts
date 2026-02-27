@@ -131,9 +131,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
+    // Titles change infrequently, so cache them as an offscreen bitmap to avoid
+    // ctx.font assignments on the main canvas (each assignment triggers a browser
+    // "recalculate style" for CSS font resolution).
     private readonly titleGroup = new Group({
         name: 'titles',
         zIndex: ZIndexMap.SERIES_LABEL,
+        renderToOffscreenCanvas: true,
+        optimizeForInfrequentRedraws: true,
     });
 
     readonly tooltip: Tooltip;
@@ -856,6 +861,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 // Allow any additional pre-rendering processing to happen.
                 ctx.updateService.dispatchPreSceneRender();
+
+                ctx.scene.updateBaseFont();
 
                 this.updateSplits('↖');
             // fallthrough

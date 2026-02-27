@@ -421,6 +421,11 @@ export abstract class Node<TDatum = unknown> {
         this.parentNode?.markDirtyChildrenOrder();
     }
 
+    /** Override in subclasses that carry a font (Text) or contain font-bearing children (Group). */
+    resolveFont(): string | undefined {
+        return undefined;
+    }
+
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         return;
     }
