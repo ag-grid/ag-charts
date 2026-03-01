@@ -55,7 +55,7 @@
     "react-query": "^3.39.3",
     "remark-breaks": "^4.0.0",
     "sass": "1.93.2",
-    "vite": "5.4.20",
+    "vite": "5.4.21",
     "vite-plugin-mkcert": "^1.17.8",
     "vite-plugin-svgr": "^4.5.0",
     "vitest": "2.1.9"
