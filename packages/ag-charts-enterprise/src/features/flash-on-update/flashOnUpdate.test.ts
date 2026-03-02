@@ -753,6 +753,150 @@ describe('FlashOnUpdate', () => {
         }
     });
 
+    describe('above animation threshold (>1000 items)', () => {
+        const THRESHOLD_COUNT = 1001;
+        const THRESHOLD_DATA = generateData(THRESHOLD_COUNT, 1);
+        const THRESHOLD_DATA_UPDATED = generateData(THRESHOLD_COUNT, 2);
+
+        for (const ratio of PHASE_RATIOS) {
+            it(`should chart flash on value update [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
+                    { enabled: true, item: 'chart' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: THRESHOLD_DATA_UPDATED });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+
+            it(`should chart flash with category mode when diff has no category detail [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
+                    { enabled: true, item: 'category' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // With >1000 items the diff has empty category sets, so category mode
+                // falls back to chart flash.
+                animate(1200, ratio);
+                await chart.updateDelta({ data: THRESHOLD_DATA_UPDATED });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+
+            it(`should chart flash on rapid updates [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
+                    { enabled: true, item: 'chart' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                void chart.updateDelta({ data: THRESHOLD_DATA_UPDATED });
+                void chart.updateDelta({ data: generateData(THRESHOLD_COUNT, 3) });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+        }
+    });
+
+    describe('applyTransaction', () => {
+        // Keep object references so applyTransaction can match by referential equality.
+        const txData = [
+            { category: 'A', value: 10, value2: 20 },
+            { category: 'B', value: 20, value2: 30 },
+            { category: 'C', value: 30, value2: 40 },
+            { category: 'D', value: 40, value2: 50 },
+        ];
+
+        for (const ratio of PHASE_RATIOS) {
+            it(`should chart flash on transaction add [ratio ${ratio}]`, async () => {
+                const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.applyTransaction({
+                    add: [{ category: 'E', value: 50, value2: 60 }],
+                });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+
+            it(`should chart flash on transaction remove [ratio ${ratio}]`, async () => {
+                const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.applyTransaction({
+                    remove: [txData[3]],
+                });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+
+            it(`should band flash on transaction with category changes [ratio ${ratio}]`, async () => {
+                const options = withFlash(
+                    { ...VERTICAL_BAR_OPTIONS, data: txData },
+                    { enabled: true, item: 'category' }
+                );
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.applyTransaction({
+                    add: [{ category: 'E', value: 50, value2: 60 }],
+                });
+                await compareSnapshot();
+                assertBandFlashActive(chart);
+            });
+
+            it(`should chart flash on rapid transactions [ratio ${ratio}]`, async () => {
+                const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
+                prepareEnterpriseTestOptions(options);
+
+                animate(1200, 1);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                void chart.applyTransaction({
+                    add: [{ category: 'E', value: 50, value2: 60 }],
+                });
+                await chart.applyTransaction({
+                    add: [{ category: 'F', value: 60, value2: 70 }],
+                });
+                await compareSnapshot();
+                assertChartFlashActive(chart);
+            });
+        }
+    });
+
     describe('band merging', () => {
         function band(key: string, phase: 'update' | 'add' | 'remove', x: number, width: number): BandFlashDatum {
             return { firstKey: key, lastKey: key, bounds: { x, y: 0, width, height: 100 }, phase };
