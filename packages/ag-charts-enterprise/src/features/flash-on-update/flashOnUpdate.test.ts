@@ -16,6 +16,8 @@ import {
 import { expectWarningsCalls } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import type { BandFlashDatum } from './flashOnUpdate';
+import { mergeBands, shouldMergeBands } from './flashOnUpdate';
 
 // --- Test Data ---
 
@@ -111,6 +113,14 @@ const LINE_CHART_NO_CATEGORY_AXIS: AgCartesianChartOptions = {
 const PHASE_RATIOS = [0.05, 0.31, 0.68];
 
 // --- Helpers ---
+
+function generateData(count: number, seed = 1) {
+    return Array.from({ length: count }, (_, i) => ({
+        category: `Cat-${i}`,
+        value: ((seed * (i + 1) * 7) % 100) + 1,
+        value2: ((seed * (i + 1) * 13) % 100) + 1,
+    }));
+}
 
 function withFlash(
     options: AgCartesianChartOptions,
@@ -571,14 +581,6 @@ describe('FlashOnUpdate', () => {
     });
 
     describe('large dataset', () => {
-        function generateData(count: number, seed = 1) {
-            return Array.from({ length: count }, (_, i) => ({
-                category: `Cat-${i}`,
-                value: ((seed * (i + 1) * 7) % 100) + 1,
-                value2: ((seed * (i + 1) * 13) % 100) + 1,
-            }));
-        }
-
         const LARGE_COUNT = 500;
         const LARGE_DATA = generateData(LARGE_COUNT, 1);
         const LARGE_DATA_UPDATED = generateData(LARGE_COUNT, 2);
@@ -672,6 +674,146 @@ describe('FlashOnUpdate', () => {
                 await compareSnapshot();
             });
         }
+    });
+
+    describe('band merging', () => {
+        function band(key: string, phase: 'update' | 'add' | 'remove', x: number, width: number): BandFlashDatum {
+            return { firstKey: key, lastKey: key, bounds: { x, y: 0, width, height: 100 }, phase };
+        }
+
+        describe('shouldMergeBands', () => {
+            it('should return true when bands are below threshold', () => {
+                // 800px / 600 bands = 1.33px per band (< 2px threshold)
+                expect(shouldMergeBands(600, 800)).toBe(true);
+            });
+
+            it('should return false when bands are above threshold', () => {
+                // 800px / 4 bands = 200px per band (>> 2px threshold)
+                expect(shouldMergeBands(4, 800)).toBe(false);
+            });
+
+            it('should return false for zero-length data', () => {
+                expect(shouldMergeBands(0, 800)).toBe(false);
+            });
+
+            it('should return false for zero axis span', () => {
+                expect(shouldMergeBands(600, 0)).toBe(false);
+            });
+
+            it('should return true at exactly the threshold boundary', () => {
+                // 800px / 401 bands = 1.995px per band (< 2px threshold)
+                expect(shouldMergeBands(401, 800)).toBe(true);
+            });
+
+            it('should return false just above the threshold', () => {
+                // 800px / 400 bands = 2px per band (not < 2px)
+                expect(shouldMergeBands(400, 800)).toBe(false);
+            });
+        });
+
+        describe('mergeBands', () => {
+            it('should skip merging when below threshold', () => {
+                const data = [band('A', 'update', 0, 200), band('B', 'update', 200, 200)];
+                const result = mergeBands(data, true, 800);
+                expect(result).toBe(data); // same reference, untouched
+            });
+
+            it('should merge contiguous same-phase bands', () => {
+                const data = [band('A', 'update', 0, 1), band('B', 'update', 1, 1), band('C', 'update', 2, 1)];
+                const result = mergeBands(data, true, 3);
+                expect(result).toHaveLength(1);
+                expect(result[0].firstKey).toBe('A');
+                expect(result[0].lastKey).toBe('C');
+                expect(result[0].bounds.x).toBe(0);
+                expect(result[0].bounds.width).toBe(3);
+            });
+
+            it('should not merge bands of different phases', () => {
+                const data = [band('A', 'remove', 0, 1), band('B', 'update', 1, 1), band('C', 'add', 2, 1)];
+                const result = mergeBands(data, true, 3);
+                expect(result).toHaveLength(3);
+                expect(result[0].phase).toBe('remove');
+                expect(result[1].phase).toBe('update');
+                expect(result[2].phase).toBe('add');
+            });
+
+            it('should sort by phase then position before merging', () => {
+                // Unsorted input: add at 0, remove at 2, update at 1
+                const data = [band('B', 'add', 2, 1), band('A', 'remove', 0, 1), band('C', 'update', 1, 1)];
+                const result = mergeBands(data, true, 3);
+                expect(result).toHaveLength(3);
+                expect(result[0].phase).toBe('remove');
+                expect(result[1].phase).toBe('update');
+                expect(result[2].phase).toBe('add');
+            });
+
+            it('should merge non-contiguous bands within epsilon', () => {
+                const data = [
+                    band('A', 'update', 0, 1),
+                    band('B', 'update', 1 + 1e-8, 1), // within epsilon of 1e-6
+                ];
+                const result = mergeBands(data, true, 2);
+                expect(result).toHaveLength(1);
+                expect(result[0].firstKey).toBe('A');
+                expect(result[0].lastKey).toBe('B');
+            });
+
+            it('should not merge bands separated by a gap', () => {
+                const data = [
+                    band('A', 'update', 0, 1),
+                    band('B', 'update', 5, 1), // gap of 4px
+                ];
+                const result = mergeBands(data, true, 6);
+                expect(result).toHaveLength(2);
+            });
+
+            it('should merge overlapping same-phase bands', () => {
+                const data = [
+                    band('A', 'update', 0, 2),
+                    band('B', 'update', 1, 2), // overlaps A
+                ];
+                const result = mergeBands(data, true, 3);
+                expect(result).toHaveLength(1);
+                expect(result[0].bounds.width).toBe(3);
+            });
+
+            it('should produce separate groups per phase with contiguous input', () => {
+                // 6 contiguous bands: 3 remove, 3 update
+                const data = [
+                    band('A', 'remove', 0, 1),
+                    band('B', 'remove', 1, 1),
+                    band('C', 'remove', 2, 1),
+                    band('D', 'update', 3, 1),
+                    band('E', 'update', 4, 1),
+                    band('F', 'update', 5, 1),
+                ];
+                const result = mergeBands(data, true, 6);
+                expect(result).toHaveLength(2);
+                expect(result[0]).toEqual(expect.objectContaining({ firstKey: 'A', lastKey: 'C', phase: 'remove' }));
+                expect(result[1]).toEqual(expect.objectContaining({ firstKey: 'D', lastKey: 'F', phase: 'update' }));
+            });
+
+            it('should use y/height for vertical direction', () => {
+                const data = [
+                    {
+                        firstKey: 'A',
+                        lastKey: 'A',
+                        bounds: { x: 0, y: 0, width: 100, height: 1 },
+                        phase: 'update' as const,
+                    },
+                    {
+                        firstKey: 'B',
+                        lastKey: 'B',
+                        bounds: { x: 0, y: 1, width: 100, height: 1 },
+                        phase: 'update' as const,
+                    },
+                ];
+                const result = mergeBands(data, false, 2);
+                expect(result).toHaveLength(1);
+                expect(result[0].bounds.y).toBe(0);
+                expect(result[0].bounds.height).toBe(2);
+            });
+        });
     });
 
     describe('sequential updates', () => {

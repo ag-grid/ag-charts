@@ -16,10 +16,18 @@ import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdat
 const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 
 type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
-type BandFlashDatum = { id: string; bounds: BoxBounds; phase: FlashAnimationPhase };
-type FlashAnimationPhase = Extract<_ModuleSupport.AnimationPhase, 'remove' | 'update' | 'add'>;
+export type BandFlashDatum = {
+    firstKey: string;
+    lastKey: string;
+    bounds: BoxBounds;
+    phase: FlashAnimationPhase;
+};
+export type FlashAnimationPhase = Extract<_ModuleSupport.AnimationPhase, 'remove' | 'update' | 'add'>;
 const MAX_ANIMATION_DURATION_RATIO = 2;
-const MIN_BAND_WIDTH = 1;
+const MIN_BAND_RENDER_PX = 1;
+const MERGE_BAND_THRESHOLD_PX = 2;
+const MERGE_BAND_EPSILON = 1e-6;
+const PHASE_ORDER: Record<FlashAnimationPhase, number> = { remove: 0, update: 1, add: 2 };
 
 function classifyDiffCategories(diffs: _ModuleSupport.DataModelDiff[]): Map<string, FlashAnimationPhase> {
     const phases = new Map<string, FlashAnimationPhase>();
@@ -40,6 +48,47 @@ function findPrimaryCategoryAxisContext(ctx: _ModuleSupport.ModuleContext): Axis
             }
         }
     }
+}
+
+export function shouldMergeBands(dataLength: number, axisSpan: number): boolean {
+    return axisSpan > 0 && dataLength > 0 && axisSpan / dataLength < MERGE_BAND_THRESHOLD_PX;
+}
+
+export function mergeBands(data: BandFlashDatum[], isHorizontal: boolean, axisSpan: number): BandFlashDatum[] {
+    if (data.length === 0) return data;
+
+    if (!shouldMergeBands(data.length, axisSpan)) return data;
+
+    const startKey = isHorizontal ? 'x' : 'y';
+    const sizeKey = isHorizontal ? 'width' : 'height';
+
+    const sorted = [...data].sort((a, b) => {
+        const phaseOrder = PHASE_ORDER[a.phase] - PHASE_ORDER[b.phase];
+        return phaseOrder == 0 ? a.bounds[startKey] - b.bounds[startKey] : phaseOrder;
+    });
+
+    const result: BandFlashDatum[] = [sorted[0]];
+    let merged = result[0];
+    let mergedEnd = merged.bounds[startKey] + merged.bounds[sizeKey];
+
+    for (let i = 1; i < sorted.length; i++) {
+        const next = sorted[i];
+        const nextStart = next.bounds[startKey];
+        const nextEnd = nextStart + next.bounds[sizeKey];
+        const canMerge = next.phase === merged.phase && nextStart <= mergedEnd + MERGE_BAND_EPSILON;
+
+        if (canMerge) {
+            mergedEnd = Math.max(mergedEnd, nextEnd);
+            merged.bounds[sizeKey] = mergedEnd - merged.bounds[startKey];
+            merged.lastKey = next.lastKey;
+        } else {
+            result.push(next);
+            merged = next;
+            mergedEnd = nextEnd;
+        }
+    }
+
+    return result;
 }
 
 export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgFlashOnUpdateOptions {
@@ -173,7 +222,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         if (!band) return;
 
         const [start, end] = band;
-        const span = Math.max(end - start, MIN_BAND_WIDTH);
+        const span = Math.max(end - start, MIN_BAND_RENDER_PX);
         const isHorizontal = this.axisCtx.direction === ChartAxisDirection.X;
 
         return isHorizontal
@@ -190,25 +239,60 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
-        if (!this.axisCtx) {
+        if (!this.axisCtx || !this.seriesRect) {
             Logger.warnOnce(`flashOnUpdate item 'category' requires a category axis`);
             return;
         }
 
-        const data: BandFlashDatum[] = [];
-        for (const [category, phase] of categoryPhases) {
-            const bounds =
-                phase === 'remove' ? this.removedBandBoundsCache?.get(category) : this.measureBandBounds(category);
-            if (bounds) data.push({ id: category, bounds, phase });
-        }
+        const { direction } = this.axisCtx;
+        const scale = this.axisCtx.scale as _ModuleSupport.BandScale<string>;
+        const isHorizontal = direction === ChartAxisDirection.X;
+        const axisSpan = isHorizontal ? this.seriesRect.width : this.seriesRect.height;
+        const data = this.measureBandsBatch(scale, categoryPhases, isHorizontal, axisSpan);
 
         this.removedBandBoundsCache = undefined;
 
-        return data.length > 0 ? data : undefined;
+        if (data.length === 0) return undefined;
+
+        return mergeBands(data, isHorizontal, axisSpan);
+    }
+
+    private measureBandsBatch(
+        scale: _ModuleSupport.BandScale<string>,
+        categoryPhases: Map<string, FlashAnimationPhase>,
+        isHorizontal: boolean,
+        axisSpan: number
+    ): BandFlashDatum[] {
+        const bandwidth = scale.bandwidth ?? 0;
+        const step = scale.step ?? 0;
+        const offset = (step - bandwidth) / 2;
+        const [r0, r1] = scale.range;
+        const rMin = Math.min(r0, r1);
+        const rMax = Math.max(r0, r1);
+
+        const data: BandFlashDatum[] = [];
+        for (const [category, phase] of categoryPhases) {
+            if (phase === 'remove') {
+                const bounds = this.removedBandBoundsCache?.get(category);
+                if (bounds) data.push({ firstKey: category, lastKey: category, bounds, phase });
+                continue;
+            }
+
+            const position = scale.convert(category);
+            const start = Math.max(position - offset, rMin);
+            const end = Math.min(position + bandwidth + offset, rMax);
+            const span = Math.max(end - start, MIN_BAND_RENDER_PX);
+            const bounds: BoxBounds = isHorizontal
+                ? { x: start, y: 0, width: span, height: axisSpan }
+                : { x: 0, y: start, width: axisSpan, height: span };
+            data.push({ firstKey: category, lastKey: category, bounds, phase });
+        }
+
+        return data;
     }
 
     private updateSelection(data: BandFlashDatum[]): void {
-        this.bandSelection.update(data, undefined, (datum) => datum.id);
+        this.bandSelection.update(data);
 
         this.bandSelection.each((rect, datum) => {
             rect.fill = this.color;
@@ -242,7 +326,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private refreshRectBounds(rects: _ModuleSupport.Rect[]): void {
         for (const rect of rects) {
-            const bounds = this.measureBandBounds(rect.datum.id);
+            const bounds = this.measureMergedBounds(rect.datum.firstKey, rect.datum.lastKey);
             if (!bounds) continue;
 
             rect.x = bounds.x;
@@ -250,6 +334,21 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             rect.width = bounds.width;
             rect.height = bounds.height;
         }
+    }
+
+    private measureMergedBounds(firstKey: string, lastKey: string): BoxBounds | undefined {
+        if (firstKey === lastKey) return this.measureBandBounds(firstKey);
+
+        const first = this.measureBandBounds(firstKey);
+        const last = this.measureBandBounds(lastKey);
+        if (!first || !last) return undefined;
+
+        return {
+            x: Math.min(first.x, last.x),
+            y: Math.min(first.y, last.y),
+            width: Math.max(first.x + first.width, last.x + last.width) - Math.min(first.x, last.x),
+            height: Math.max(first.y + first.height, last.y + last.height) - Math.min(first.y, last.y),
+        };
     }
 
     private stopFlash(): void {
