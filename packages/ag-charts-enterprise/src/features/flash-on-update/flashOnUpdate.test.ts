@@ -112,6 +112,54 @@ const LINE_CHART_NO_CATEGORY_AXIS: AgCartesianChartOptions = {
 
 const PHASE_RATIOS = [0.05, 0.31, 0.68];
 
+// --- Scene-graph assertion helpers ---
+//
+// The mock animation system (spyOnAnimationManager + forceTimeJump) advances flash animations
+// inline during animationManager.animate(). Because flash uses the 'update' phase
+// (animationDelay=0.25, animationDuration=0.5), fillOpacity is only non-zero between ~25%-75%
+// of the total animation timeline. At other ratios the animation hasn't started or has completed.
+//
+// These helpers therefore assert structural properties (fill, area, band count) that persist
+// regardless of animation timing. fillOpacity is only checked for suppression tests (always 0)
+// and at a known mid-animation ratio where we can guarantee the flash is visible.
+
+function getFlashModule(chartInstance: AgChartInstance) {
+    return deproxy(chartInstance).modulesManager.getModule('flashOnUpdate') as any;
+}
+
+/** Assert the chart flash rect was configured: correct fill colour and non-zero area. */
+function assertChartFlashActive(chartInstance: AgChartInstance, opts?: { color?: string }) {
+    const mod = getFlashModule(chartInstance);
+    const rect = mod.chartFlashRect;
+    expect(rect.fill).toBe(opts?.color ?? '#cfeeff');
+    expect(rect.width).toBeGreaterThan(0);
+    expect(rect.height).toBeGreaterThan(0);
+}
+
+/** Assert band flash rects were created with correct fill and non-zero area. */
+function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { color?: string; minBands?: number }) {
+    const mod = getFlashModule(chartInstance);
+    const rects: any[] = mod.bandSelection.nodes();
+    expect(rects.length).toBeGreaterThan(0);
+    if (opts?.minBands != null) {
+        expect(rects.length).toBeGreaterThanOrEqual(opts.minBands);
+    }
+    for (const rect of rects) {
+        expect(rect.fill).toBe(opts?.color ?? '#cfeeff');
+        expect(rect.width * rect.height).toBeGreaterThan(0);
+    }
+}
+
+/** Assert no flash is visible — fillOpacity must be 0 on all flash rects. */
+function assertFlashInactive(chartInstance: AgChartInstance) {
+    const mod = getFlashModule(chartInstance);
+    expect(mod.chartFlashRect.fillOpacity).toBe(0);
+    const bandRects: any[] = mod.bandSelection.nodes();
+    for (const rect of bandRects) {
+        expect(rect.fillOpacity).toBe(0);
+    }
+}
+
 // --- Helpers ---
 
 function generateData(count: number, seed = 1) {
@@ -169,6 +217,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should flash on category add [ratio ${ratio}]`, async () => {
@@ -182,6 +231,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: ADDED_CATEGORY_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should flash on category remove [ratio ${ratio}]`, async () => {
@@ -195,6 +245,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should flash on mixed changes [ratio ${ratio}]`, async () => {
@@ -208,6 +259,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: MIXED_CHANGES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should apply custom color [ratio ${ratio}]`, async () => {
@@ -224,6 +276,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart, { color: '#ff0000' });
             });
 
             it(`should apply custom opacity [ratio ${ratio}]`, async () => {
@@ -237,6 +290,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should apply custom flash and fade duration [ratio ${ratio}]`, async () => {
@@ -253,6 +307,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
         }
     });
@@ -271,6 +326,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
 
                 it(`should flash added category band [ratio ${ratio}]`, async () => {
@@ -284,6 +340,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: ADDED_CATEGORY_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
 
                 it(`should flash removed category band [ratio ${ratio}]`, async () => {
@@ -297,6 +354,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
 
                 it(`should flash mixed add, update, and remove bands [ratio ${ratio}]`, async () => {
@@ -310,6 +368,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: MIXED_CHANGES_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
             }
         });
@@ -327,6 +386,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
 
                 it(`should flash horizontal removed band [ratio ${ratio}]`, async () => {
@@ -340,6 +400,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
             }
         });
@@ -362,6 +423,7 @@ describe('FlashOnUpdate', () => {
                     animate(1200, ratio);
                     await chart.updateDelta({ data: INITIAL_DATA });
                     await compareSnapshot();
+                    assertBandFlashActive(chart);
                 });
             }
         });
@@ -404,6 +466,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.update({ ...options, data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
         }
     });
@@ -421,6 +484,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertFlashInactive(chart);
             });
 
             it(`should not flash when data has not changed [ratio ${ratio}]`, async () => {
@@ -434,6 +498,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: [...INITIAL_DATA] });
                 await compareSnapshot();
+                assertFlashInactive(chart);
             });
 
             it(`should not flash on legend click [ratio ${ratio}]`, async () => {
@@ -450,6 +515,7 @@ describe('FlashOnUpdate', () => {
                 const { x, y } = computeLegendBBox(deproxy(chart));
                 await clickAction(x, y)(chart);
                 await compareSnapshot();
+                assertFlashInactive(chart);
             });
 
             it(`should flash on API update after a legend click [ratio ${ratio}]`, async () => {
@@ -469,6 +535,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
         }
     });
@@ -489,6 +556,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertBandFlashActive(chart, { color: '#ff6600' });
             });
 
             it(`should render category bands with custom opacity [ratio ${ratio}]`, async () => {
@@ -505,6 +573,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
 
             it(`should render category bands with custom timing [ratio ${ratio}]`, async () => {
@@ -521,6 +590,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
         }
     });
@@ -542,6 +612,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should fade linearly with fadeDuration only [ratio ${ratio}]`, async () => {
@@ -559,6 +630,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should cap duration at MAX_ANIMATION_DURATION_RATIO [ratio ${ratio}]`, async () => {
@@ -576,6 +648,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
         }
     });
@@ -603,6 +676,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: LARGE_DATA_UPDATED });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should handle large dataset with category flash mode [ratio ${ratio}]`, async () => {
@@ -622,6 +696,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: LARGE_DATA_UPDATED });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
 
             it(`should handle multiple rapid updates with large dataset [ratio ${ratio}]`, async () => {
@@ -643,6 +718,7 @@ describe('FlashOnUpdate', () => {
                 void chart.updateDelta({ data: generateData(LARGE_COUNT, 3) });
                 void chart.updateDelta({ data: generateData(LARGE_COUNT, 4) });
                 await compareSnapshot();
+                assertChartFlashActive(chart);
             });
 
             it(`should handle large dataset with added and removed categories [ratio ${ratio}]`, async () => {
@@ -672,6 +748,7 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: mixedData });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
         }
     });
@@ -816,6 +893,69 @@ describe('FlashOnUpdate', () => {
         });
     });
 
+    describe('scene-graph state', () => {
+        // These tests assert against the scene-graph node properties at a known mid-animation ratio
+        // (0.31) where the 'update' phase is active, guaranteeing fillOpacity > 0.
+
+        it('should have non-zero fillOpacity on chart flash rect mid-animation', async () => {
+            const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
+            prepareEnterpriseTestOptions(options);
+
+            animate(1200, 1);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            animate(1200, 0.31);
+            await chart.updateDelta({ data: UPDATED_VALUES_DATA });
+            await waitForChartStability(chart);
+
+            const mod = getFlashModule(chart);
+            const rect = mod.chartFlashRect;
+            expect(rect.fillOpacity).toBeGreaterThan(0);
+            expect(rect.fill).toBe('#cfeeff');
+            expect(rect.width).toBeGreaterThan(0);
+            expect(rect.height).toBeGreaterThan(0);
+        });
+
+        it('should have non-zero fillOpacity on category band rects mid-animation', async () => {
+            const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
+            prepareEnterpriseTestOptions(options);
+
+            animate(1200, 1);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            animate(1200, 0.31);
+            await chart.updateDelta({ data: UPDATED_VALUES_DATA });
+            await waitForChartStability(chart);
+
+            const mod = getFlashModule(chart);
+            const rects: any[] = mod.bandSelection.nodes();
+            const activeRects = rects.filter((r: any) => r.fillOpacity > 0);
+            expect(activeRects.length).toBeGreaterThan(0);
+            for (const rect of activeRects) {
+                expect(rect.fill).toBe('#cfeeff');
+                expect(rect.width * rect.height).toBeGreaterThan(0);
+            }
+        });
+
+        it('should have zero fillOpacity when flash is suppressed', async () => {
+            const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: false, item: 'chart' });
+            prepareEnterpriseTestOptions(options);
+
+            animate(1200, 1);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            animate(1200, 0.31);
+            await chart.updateDelta({ data: UPDATED_VALUES_DATA });
+            await waitForChartStability(chart);
+
+            const mod = getFlashModule(chart);
+            expect(mod.chartFlashRect.fillOpacity).toBe(0);
+        });
+    });
+
     describe('sequential updates', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should stop previous flash and start new one on rapid update [ratio ${ratio}]`, async () => {
@@ -839,6 +979,7 @@ describe('FlashOnUpdate', () => {
                     ],
                 });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
 
             it(`should handle multiple rapid updates with interleaved diff types [ratio ${ratio}]`, async () => {
@@ -860,6 +1001,7 @@ describe('FlashOnUpdate', () => {
                     ],
                 });
                 await compareSnapshot();
+                assertBandFlashActive(chart);
             });
         }
     });
