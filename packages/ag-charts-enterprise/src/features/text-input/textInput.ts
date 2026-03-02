@@ -82,6 +82,7 @@ export class TextInput {
         });
 
         textArea.addEventListener('click', (event) => {
+            // eslint-disable-next-line no-restricted-properties
             event.stopPropagation();
         });
 

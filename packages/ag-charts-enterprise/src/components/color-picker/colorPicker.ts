@@ -128,6 +128,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         update(false);
 
         const preventDefault = (event: Event) => event.preventDefault();
+        // eslint-disable-next-line no-restricted-properties
         const stopPropagation = (event: Event) => event.stopPropagation();
         const beginPaletteInteraction = (e: PointerEvent) => {
             e.preventDefault();
@@ -152,6 +153,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorPicker.addEventListener('touchstart', stopPropagation);
         colorPicker.addEventListener('touchmove', stopPropagation);
         colorPicker.addEventListener('keydown', (e) => {
+            // eslint-disable-next-line no-restricted-properties
             e.stopPropagation();
             switch (e.key) {
                 case 'Enter':
