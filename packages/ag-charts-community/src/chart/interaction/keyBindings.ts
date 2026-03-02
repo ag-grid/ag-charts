@@ -9,6 +9,8 @@ type KeyActionName =
     | 'arrowleft'
     | 'arrowright'
     | 'arrowup'
+    | 'home'
+    | 'end'
     | 'delete'
     | 'undo'
     | 'redo'
@@ -21,6 +23,8 @@ const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
     arrowleft: { bindings: [{ code: 'ArrowLeft' }] },
     arrowright: { bindings: [{ code: 'ArrowRight' }] },
     arrowup: { bindings: [{ code: 'ArrowUp' }] },
+    home: { bindings: [{ code: 'Home' }] },
+    end: { bindings: [{ code: 'End' }] },
     delete: { bindings: [{ key: 'Backspace' }, { key: 'Delete' }], activatesFocusIndicator: false },
     redo: {
         bindings: [
