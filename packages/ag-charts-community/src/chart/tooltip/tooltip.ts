@@ -204,7 +204,12 @@ export class Tooltip extends BaseProperties {
     constructor(private readonly agDocument: AgDocument) {
         super();
 
-        this.cleanup.register(this.springAnimation.events.on('update', this.updateTooltipPosition.bind(this)));
+        this.cleanup.register(
+            this.springAnimation.events.on('update', () => {
+                this.updateTooltipPosition();
+                this.dom?.flush();
+            })
+        );
     }
 
     private localeManager: LocaleManager | undefined = undefined;
@@ -217,6 +222,7 @@ export class Tooltip extends BaseProperties {
         const removeResizeListener = this.dom.addResizeListener((size) => {
             this._elementSize = size;
             this.updateTooltipPosition();
+            this.dom?.flush();
         });
         this.localeManager = localeManager;
 
@@ -431,8 +437,6 @@ export class Tooltip extends BaseProperties {
         this.dom.togglePopover(visible);
 
         if (visible) {
-            // Position with cached size if available; otherwise the SizeMonitor
-            // (ResizeObserver) fires after layout but before paint, so no flicker.
             this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();
