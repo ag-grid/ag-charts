@@ -61,14 +61,20 @@ enum PickedFocusStatus {
     PAN_REQUIRED,
 }
 
-type UpatePickedFocusInputs = {
+type FocusIndices = {
     datumIndex: number;
-    datumIndexDelta: number;
-    oldDatumIndex: number;
     otherIndex: number;
+};
+type FocusDeltas = {
+    datumIndexDelta: number;
     otherIndexDelta: number;
+};
+type FocusOldIndices = {
+    oldDatumIndex: number;
     oldOtherIndex: number;
 };
+type HandleFocusInputs = FocusDeltas; // TODO: desired definition `FocusIndices | FocusDeltas`
+type UpatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -265,7 +271,7 @@ export class SeriesAreaManager extends BaseManager {
             if (this.announceMode !== 'always') {
                 this.announceMode = 'never';
             }
-            this.handleFocus(0, 0);
+            this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
         }
     }
 
@@ -523,7 +529,7 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
-        this.handleFocus(0, 0);
+        this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
     private onBlur(event: FocusEvent) {
@@ -565,13 +571,13 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onArrow(seriesIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
+    private onArrow(otherIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'keyboard';
         this.focusIndicator?.overrideFocusVisible(true);
-        this.focus.seriesIndex += seriesIndexDelta;
+        this.focus.seriesIndex += otherIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
-        this.handleFocus(seriesIndexDelta, datumIndexDelta);
+        this.handleFocus({ datumIndexDelta, otherIndexDelta });
         event.sourceEvent.preventDefault();
         this.chart.ctx.eventsHub.emit('series:focus-change', null);
     }
@@ -635,10 +641,10 @@ export class SeriesAreaManager extends BaseManager {
         return false;
     }
 
-    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
+    private handleFocus(inputs: HandleFocusInputs) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
-            if (this.handleSeriesFocusDeltas(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
+            if (this.handleSeriesFocusDeltas(inputs) === PickedFocusStatus.SUCCESS) {
                 this.announceMode = 'when-changed';
             } else {
                 // As a safe-guard, always announce the next focus-change if this current focus-change failed.
@@ -651,7 +657,8 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private handleSeriesFocusDeltas(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
+    private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
+        const { otherIndexDelta, datumIndexDelta } = inputs;
         if (this.chart.chartType === 'standalone') {
             return this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta);
         }
