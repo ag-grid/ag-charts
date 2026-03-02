@@ -110,22 +110,20 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
 
     /**
      * Mark filters as stale or discard them based on data size change.
-     * When data size changes significantly (>10x), filters are discarded to prevent
+     * When data size changes significantly (>=2x), filters are discarded to prevent
      * incorrect array reuse.
      */
     markStale(dataLength: number): void {
         const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
-        if (ratio > 10 || ratio < 0.1 || this._dataLength === 0) {
+        if (ratio >= 2 || ratio <= 0.5 || this._dataLength === 0) {
             this._filters = undefined;
-            this._dataLength = dataLength;
         } else if (this._filters) {
             for (const f of this._filters) {
                 (f as TFilter & { stale?: boolean }).stale = true;
             }
-        } else {
-            this._dataLength = dataLength;
         }
 
+        this._dataLength = dataLength;
         this.executor.cancel();
     }
 
