@@ -596,7 +596,6 @@ export class SeriesAreaManager extends BaseManager {
 
     private onHome(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(event)) return;
-        this.focus.datumIndex = 0;
         this.handleFocus({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
     }
 
@@ -604,9 +603,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.onNav(event)) return;
         const n = this.focus.series?.data?.data.length;
         if (n !== undefined) {
-            const datumIndex = n - 1;
-            this.focus.datumIndex = datumIndex;
-            this.handleFocus({ otherIndex: this.focus.seriesIndex, datumIndex: datumIndex });
+            this.handleFocus({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
         }
     }
 
@@ -749,8 +746,17 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleSeriesFocusIndices(inputs: FocusIndices): PickedFocusStatus {
-        inputs satisfies any; // unused (placeholder)
-        throw new Error('Not Yet Implemented - placeholder');
+        const { datumIndex, otherIndex } = inputs;
+        const oldDatumIndex = this.focus.datumIndex;
+        const oldOtherIndex = this.focus.seriesIndex;
+        return this.updatePickedFocus({
+            datumIndex,
+            datumIndexDelta: oldDatumIndex - datumIndex,
+            oldDatumIndex: oldDatumIndex,
+            otherIndex,
+            otherIndexDelta: oldOtherIndex - otherIndex,
+            oldOtherIndex: oldOtherIndex,
+        })
     }
 
     private updatePickedFocus(inputs: UpatePickedFocusInputs): PickedFocusStatus {
