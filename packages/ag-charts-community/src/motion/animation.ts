@@ -88,6 +88,8 @@ export interface AnimationOptions<T extends AnimationValue> {
 
 export interface AdditionalAnimationOptions {
     id?: string;
+    /** When true, the animation plays even when the current batch is skipped. */
+    forceAnimation?: boolean;
 }
 
 export interface IAnimation {

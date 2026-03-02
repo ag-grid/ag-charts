@@ -176,22 +176,31 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private onPreSceneRender({ apiUpdate }: _ModuleSupport.PreSceneRenderEvent): void {
-        if (this.pendingDiffs.length === 0 || !this.enabled || !apiUpdate) {
+        const hasDiffs = this.pendingDiffs.length > 0;
+
+        if (!this.enabled || !apiUpdate) {
             this.pendingDiffs.length = 0;
             return;
         }
 
-        const categoryPhases = classifyDiffCategories(this.pendingDiffs);
+        if (!hasDiffs) return;
+
+        const hasChanged = this.pendingDiffs.some((diff) =>
+            Object.values(diff).some((seriesDiff) => seriesDiff.changed)
+        );
+
+        const categoryPhases = hasChanged ? classifyDiffCategories(this.pendingDiffs) : undefined;
         this.pendingDiffs.length = 0;
 
-        if (categoryPhases.size === 0) return;
+        if (!hasChanged) return;
 
         this.stopFlash();
 
-        if (this.item === 'chart') {
-            this.flashChart();
-        } else {
+        const hasCategoryChanges = categoryPhases != null && categoryPhases.size > 0;
+        if (this.item === 'category' && hasCategoryChanges) {
             this.flashCategoryBands(categoryPhases);
+        } else {
+            this.flashChart();
         }
     }
 
@@ -372,6 +381,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         animationManager.animate({
             id: `${this.id}_${phase}`,
             groupId: this.id,
+            forceAnimation: true,
             phase,
             duration,
             ease,
