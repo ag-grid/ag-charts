@@ -31,6 +31,7 @@ const Collapsible: FunctionComponent<Props> = ({
     };
 
     const handleVersionLabelClick = (event: React.MouseEvent<HTMLLabelElement>) => {
+        // eslint-disable-next-line no-restricted-properties
         event.stopPropagation();
     };
 
@@ -63,6 +64,7 @@ const Collapsible: FunctionComponent<Props> = ({
                         value={fixVersion || versions[0]}
                         aria-label={'Select Release Version'}
                         onChange={(event) => onChange(event.target.value)}
+                        // eslint-disable-next-line no-restricted-properties
                         onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     >
                         {versions
