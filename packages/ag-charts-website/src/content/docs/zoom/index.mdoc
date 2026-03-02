@@ -90,6 +90,20 @@ In the example below, we enable zoom on both the `x` and `y` axes.
 }
 ```
 
+### Scrolling Mode
+
+By default, vertical mouse wheel or trackpad scrolling zooms the chart. Set `scrollingMode: 'pan'` to pan instead.
+
+{% chartExampleRunner title="Zoom Scrolling Mode" name="zoom-scrolling-mode" type="generated" /%}
+
+```js format="snippet"
+{
+    zoom: {
+        scrollingMode: 'pan',
+    },
+}
+```
+
 ## Panning
 
 This is enabled by default and allows users to click and drag to move around a zoomed chart. To disable, use `enablePanning: false`.
