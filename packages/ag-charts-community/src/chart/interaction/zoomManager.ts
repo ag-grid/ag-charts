@@ -153,6 +153,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private lastRestoredRequiredRange?: number;
     private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
+    private restoreRequiredRangeIterations = 0;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
@@ -607,6 +608,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
         const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
 
+        // Prevent infinite loops where an x-axis label with a different height becomes visible, causing a change in
+        // the chart height. This triggers the nice algorithm to change the y-axis label widths which changes the
+        // width of the chart. This width change then triggers this function again with a different zoom ratio
+        // as a proportion of that new chart width. This changes the chart's zoom, making the taller x-axis
+        // label hidden again, creating an infinite loop.
+        // @see AG-16803
+        this.restoreRequiredRangeIterations += 1;
+
         const directionInvalid =
             requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y;
         const requiredRangeUnchanged =
@@ -615,7 +624,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const requiredRangeUnset =
             requiredRangeRatio === 0 && (lastRestoredRequiredRange == null || lastRestoredRequiredRange === 0);
 
-        if (directionInvalid || requiredRangeUnchanged || requiredRangeUnset) return;
+        if (
+            directionInvalid ||
+            requiredRangeUnchanged ||
+            requiredRangeUnset ||
+            this.restoreRequiredRangeIterations > 1
+        ) {
+            this.restoreRequiredRangeIterations = 0;
+            return;
+        }
 
         const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
