@@ -638,7 +638,7 @@ export class SeriesAreaManager extends BaseManager {
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
-            if (this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
+            if (this.handleSeriesFocusDeltas(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
                 this.announceMode = 'when-changed';
             } else {
                 // As a safe-guard, always announce the next focus-change if this current focus-change failed.
@@ -651,7 +651,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
+    private handleSeriesFocusDeltas(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
         if (this.chart.chartType === 'standalone') {
             return this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta);
         }
