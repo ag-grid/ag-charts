@@ -657,11 +657,28 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
+    private makeUpdateFocusParamsFromDeltas(inputs: FocusDeltas): UpatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
         const { otherIndexDelta, datumIndexDelta } = inputs;
         if (this.chart.chartType === 'standalone') {
-            return this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta);
+            // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
+            // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
+            // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
+            // implementation.
+            this.focus.series = this.focus.sortedSeries[0];
+            const datumIndex = this.focus.datumIndex;
+            const otherIndex = this.focus.seriesIndex;
+            const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
+            const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+            return {
+                datumIndex,
+                datumIndexDelta,
+                oldDatumIndex,
+                otherIndex,
+                otherIndexDelta,
+                oldOtherIndex,
+            };
         }
+
         const { focus } = this;
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return PickedFocusStatus.SERIES_NOT_FOUND;
@@ -676,34 +693,20 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const datumIndex = this.focus.datumIndex;
         const otherIndex = this.focus.seriesIndex;
-        return this.updatePickedFocus({
+        return {
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
             oldOtherIndex,
-        });
+        };
     }
 
-    private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
-        // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
-        // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
-        // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
-        // implementation.
-        this.focus.series = this.focus.sortedSeries[0];
-        const datumIndex = this.focus.datumIndex;
-        const otherIndex = this.focus.seriesIndex;
-        const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
-        const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
-        return this.updatePickedFocus({
-            datumIndex,
-            datumIndexDelta,
-            oldDatumIndex,
-            otherIndex,
-            otherIndexDelta,
-            oldOtherIndex,
-        });
+    private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
+        const updateInputs = this.makeUpdateFocusParamsFromDeltas(inputs);
+        if (updateInputs === PickedFocusStatus.SERIES_NOT_FOUND) return PickedFocusStatus.SERIES_NOT_FOUND;
+        return this.updatePickedFocus(updateInputs);
     }
 
     private updatePickedFocus(inputs: UpatePickedFocusInputs): PickedFocusStatus {
