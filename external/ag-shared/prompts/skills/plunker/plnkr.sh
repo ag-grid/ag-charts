@@ -129,7 +129,7 @@ function walk(base, rel) {
 walk(dir, '');
 
 const payload = { title, entries };
-if (tagsStr) payload.tags = tagsStr.split(',').map(t => t.trim());
+payload.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()) : [];
 
 fs.writeFileSync('$payloadfile', JSON.stringify(payload));
 "
