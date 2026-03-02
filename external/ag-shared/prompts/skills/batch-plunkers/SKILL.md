@@ -53,23 +53,28 @@ Wait for user confirmation. Do NOT launch sub-agents until confirmed.
 
 Read all `*-guide.md` files in the sibling plunker skill directory (`../plunker/`). These contain the product-specific file templates, CDN URLs, styling requirements, and common issues. The guide content will be included in each sub-agent prompt.
 
-### 2b. Determine CDN and Package
+### 2b. Determine CDN and Resolve Enterprise/Community Per-Assignment
 
-Ask the user which CDN to use (staging vs versioned) and whether community or enterprise is needed. Pass these as context to each sub-agent.
+Ask the user which CDN to use (staging vs versioned). Then resolve enterprise vs community **for each individual assignment** — not as a blanket setting. Use the "Enterprise-Only Features" table in the product guide to determine this:
+
+-   If the assignment uses any enterprise-only series type (e.g. heatmap, candlestick, sankey), axis (e.g. ordinal-time), or plugin (e.g. annotations, zoom, navigator) → **enterprise**
+-   Otherwise → **community**
+
+Record the resolved CDN URL for each assignment so sub-agents don't waste time discovering this themselves.
 
 ### 2c. Launch Sub-Agents
 
 Launch one `general-purpose` Task sub-agent per assignment, **all in a single message** so they run concurrently. Use `run_in_background: true` on each.
 
-Each sub-agent prompt must include:
+Each sub-agent prompt **MUST** include:
 
 1. The assignment text and plunker number
-2. The full product guide content (from Step 2a)
-3. The resolved CDN preference and package name (from Step 2b)
+2. **The full product guide content inline** (from Step 2a) — paste the entire guide text into the prompt so the sub-agent has it immediately without needing to read files
+3. The **resolved CDN URL** for this specific assignment (enterprise or community, from Step 2b)
 4. Any feature context from the JIRA ticket
-5. Instruction to follow the `/plunker` skill's "Create a New Plunker" workflow
-6. Instruction to upload via: `bash "<skill-base-directory>/../plunker/plnkr.sh" upload "$PLNKR_DIR" --title "Title"`
-7. Instruction to output the resulting `URL=` line
+5. The exact upload command with the absolute path to `plnkr.sh`
+6. Instruction to output the resulting `URL=` line
+7. **Explicit instruction not to re-read guide files or the plnkr.sh script** — all necessary context is already in the prompt
 
 **Sub-agent prompt template:**
 
@@ -78,15 +83,19 @@ Create a Plunker for the following assignment:
 
 **Assignment #{PLUNKER_NUMBER}:** {ASSIGNMENT}
 
-**CDN:** {CDN_PREFERENCE}
+**CDN URL:** {RESOLVED_CDN_URL}
 **Package:** {PACKAGE_NAME}
 {FEATURE_CONTEXT}
 
-Follow the "Create a New Plunker" workflow from the plunker skill:
+## Instructions
+
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-batch-{PLUNKER_NUMBER}-XXXXXX)`
-2. Write all files per the product guide below (index.html, main.js, ag-example-styles.css, package.json, and optionally data.js)
-3. Upload: `bash "<skill-base-directory>/../plunker/plnkr.sh" upload "$PLNKR_DIR" --title "{TITLE}"`
-4. Report the URL= line from the upload output
+2. If the assignment involves non-trivial APIs, verify them against `packages/ag-charts-types/src` before writing files
+3. Write all files per the product guide below (index.html, main.js, ag-example-styles.css, package.json, and optionally data.js)
+4. Upload: `bash "{ABSOLUTE_PATH_TO_PLNKR_SH}" upload "$PLNKR_DIR" --title "{TITLE}" --tags "ag-charts,qa"`
+5. Report the URL= line from the upload output
+
+**IMPORTANT:** The product guide and upload command are provided below — do NOT spend tool calls re-reading the guide files, SKILL.md, or plnkr.sh.
 
 ## Product Guide
 
