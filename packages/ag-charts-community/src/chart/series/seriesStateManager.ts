@@ -177,7 +177,12 @@ export class SeriesStateManager {
         return maxStackWidth / 2 - barWidth / 2;
     }
 
-    public getDatumOffset(series: SeriesLike, invalidData: Map<string, boolean[]>, datumIndex: number) {
+    public getDatumOffset(
+        series: SeriesLike,
+        invalidData: Map<string, boolean[]>,
+        missingData: Map<string, boolean[]>,
+        datumIndex: number
+    ) {
         const group = this.groups.get(series.type);
 
         if (!series.visible || !series.seriesGrouping || !group) {
@@ -185,7 +190,7 @@ export class SeriesStateManager {
         }
 
         // If this series has an invalid datum it will not be visible, so skip any further processing.
-        if (invalidData.get(series.internalId)?.[datumIndex]) {
+        if (invalidData.get(series.internalId)?.[datumIndex] || missingData.get(series.internalId)?.[datumIndex]) {
             return 0;
         }
 
@@ -193,12 +198,12 @@ export class SeriesStateManager {
         const partialValidGroups = new Set<number>();
         for (const [seriesId, compareSeries] of group) {
             if (!compareSeries.visible) continue;
-            const seriesInvalidData = invalidData.get(seriesId);
-            if (!seriesInvalidData?.[datumIndex]) {
+            if (!invalidData.get(seriesId)?.[datumIndex] && !missingData.get(seriesId)?.[datumIndex]) {
                 partialValidGroups.add(compareSeries.grouping.groupIndex);
             }
         }
 
+        // If every datum in the group is valid, there is no offset.
         if (partialValidGroups.size === series.seriesGrouping?.groupCount) {
             return 0;
         }

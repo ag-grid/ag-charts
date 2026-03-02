@@ -283,11 +283,20 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
      * left or right to reduce the space occupied by nullish bars before or after it, respectively.
      */
     protected getDatumOffset(datumIndex: number) {
-        if (!this.processedData?.invalidData || !this.getCategoryAxis()?.skipNullBars) {
+        if (
+            !this.processedData?.invalidData ||
+            !this.processedData?.missingData ||
+            !this.getCategoryAxis()?.skipNullBars
+        ) {
             return 0;
         }
 
-        return this.ctx.seriesStateManager.getDatumOffset(this, this.processedData.invalidData, datumIndex);
+        return this.ctx.seriesStateManager.getDatumOffset(
+            this,
+            this.processedData.invalidData,
+            this.processedData.missingData,
+            datumIndex
+        );
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {
