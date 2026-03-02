@@ -61,6 +61,15 @@ enum PickedFocusStatus {
     PAN_REQUIRED,
 }
 
+type UpatePickedFocusInputs = {
+    datumIndex: number;
+    datumIndexDelta: number;
+    oldDatumIndex: number;
+    otherIndex: number;
+    otherIndexDelta: number;
+    oldOtherIndex: number;
+};
+
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
@@ -660,14 +669,14 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const datumIndex = this.focus.datumIndex;
         const otherIndex = this.focus.seriesIndex;
-        return this.updatePickedFocus(
+        return this.updatePickedFocus({
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
-            oldOtherIndex
-        );
+            oldOtherIndex,
+        });
     }
 
     private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
@@ -680,24 +689,18 @@ export class SeriesAreaManager extends BaseManager {
         const otherIndex = this.focus.seriesIndex;
         const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
-        return this.updatePickedFocus(
+        return this.updatePickedFocus({
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
-            oldOtherIndex
-        );
+            oldOtherIndex,
+        });
     }
 
-    private updatePickedFocus(
-        datumIndex: number,
-        datumIndexDelta: number,
-        oldDatumIndex: number,
-        otherIndex: number,
-        otherIndexDelta: number,
-        oldOtherIndex: number
-    ): PickedFocusStatus {
+    private updatePickedFocus(inputs: UpatePickedFocusInputs): PickedFocusStatus {
+        const { datumIndex, datumIndexDelta, oldDatumIndex, otherIndex, otherIndexDelta, oldOtherIndex } = inputs;
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
