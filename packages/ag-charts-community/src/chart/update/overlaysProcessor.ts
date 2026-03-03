@@ -1,6 +1,7 @@
-import { CleanupRegistry, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry } from 'ag-charts-core';
 
 import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
+import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -15,7 +16,7 @@ const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-backgrou
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly cleanup = new CleanupRegistry();
-    private readonly overlayElem: HTMLElement;
+    private readonly overlayElem: DOMElementProxy;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -26,11 +27,11 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
     ) {
-        this.overlayElem = this.domManager.addChild('canvas-overlay', 'overlay');
-        this.overlayElem.role = 'status';
-        this.overlayElem.ariaAtomic = 'false';
-        this.overlayElem.ariaLive = 'polite';
-        this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
+        this.overlayElem = this.domManager.addProxyChild('canvas-overlay', 'overlay');
+        this.overlayElem.setAttr('role', 'status');
+        this.overlayElem.setAttr('aria-atomic', 'false');
+        this.overlayElem.setAttr('aria-live', 'polite');
+        this.overlayElem.toggleClass(DEFAULT_OVERLAY_CLASS, true);
         this.cleanup.register(this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)));
     }
 
@@ -44,15 +45,11 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const hasData = this.chartLike.series.some((s) => s.hasData);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible && !visibleIgnoredSeries.has(s.type));
 
-        if (this.overlays.darkTheme) {
-            this.overlayElem.classList.add(DEFAULT_OVERLAY_DARK_CLASS);
-        } else {
-            this.overlayElem.classList.remove(DEFAULT_OVERLAY_DARK_CLASS);
-        }
-        this.overlayElem.style.left = `${rect.x}px`;
-        this.overlayElem.style.top = `${rect.y}px`;
-        this.overlayElem.style.width = `${rect.width}px`;
-        this.overlayElem.style.height = `${rect.height}px`;
+        this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
+        this.overlayElem.setProperty('left', `${rect.x}px`);
+        this.overlayElem.setProperty('top', `${rect.y}px`);
+        this.overlayElem.setProperty('width', `${rect.width}px`);
+        this.overlayElem.setProperty('height', `${rect.height}px`);
 
         const loadingShown = isLoading;
         const noDataShown = !isLoading && !hasData;
@@ -84,7 +81,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         }
 
         const shown = loadingShown || noDataShown || noVisibleSeriesShown || unsupportedBrowser;
-        setAttribute(this.overlayElem, 'aria-hidden', !shown);
+        this.overlayElem.setAttr('aria-hidden', String(!shown));
     }
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {

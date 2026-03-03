@@ -9,7 +9,7 @@ export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: Fo
         fontString += `${fontStyle} `;
     }
     if (fontWeight && fontWeight !== 'normal' && fontWeight !== 400) {
-        fontString += `${fontWeight} `;
+        fontString += `${fontWeight === 700 ? 'bold' : fontWeight} `;
     }
     fontString += `${fontSize}px`;
     fontString += ` ${fontFamily}`;

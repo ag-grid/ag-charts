@@ -45,7 +45,94 @@ class MockLayersManager {
     }
 }
 
+class FontTestNode extends Node {
+    private readonly fontString: string;
+
+    constructor(font: string) {
+        super();
+        this.fontString = font;
+    }
+
+    override resolveFont(): string | undefined {
+        return this.fontString;
+    }
+
+    protected override computeBBox(): BBox | undefined {
+        return new BBox(0, 0, 10, 10);
+    }
+}
+
 describe('Group', () => {
+    describe('dirty propagation for offscreen bitmap groups', () => {
+        it('should mark offscreen-cached group dirty when a child calls markDirty()', () => {
+            const group = new Group({
+                name: 'titles',
+                renderToOffscreenCanvas: true,
+                optimizeForInfrequentRedraws: true,
+            });
+            const child = new TestNode();
+            group.appendChild(child);
+
+            // Simulate a completed render cycle by clearing the dirty flag
+            group.dirty = false;
+
+            // A child calling markDirty() should propagate up to the group,
+            // invalidating the cached offscreen ImageBitmap
+            child.markDirty();
+
+            expect(group.dirty).toBe(true);
+        });
+    });
+
+    describe('resolveFont() caching', () => {
+        it('should cache resolved child font', () => {
+            const group = new Group({ name: 'font-group' });
+            const child = new FontTestNode('16px Arial');
+            group.appendChild(child);
+
+            const font1 = group.resolveFont();
+            const font2 = group.resolveFont();
+            expect(font1).toBe('16px Arial');
+            expect(font2).toBe('16px Arial');
+        });
+
+        it('should invalidate cache when markDirty is called', () => {
+            const group = new Group({ name: 'font-group' });
+            const child = new FontTestNode('16px Arial');
+            group.appendChild(child);
+
+            // Initial resolve
+            group.resolveFont();
+
+            // Replace child with different font
+            child.remove();
+            const child2 = new FontTestNode('20px Helvetica');
+            group.appendChild(child2);
+
+            // markDirty is called by appendChild; cache should be invalidated
+            expect(group.resolveFont()).toBe('20px Helvetica');
+        });
+
+        it('should return undefined for offscreen canvas group', () => {
+            const group = new Group({ name: 'offscreen-group', renderToOffscreenCanvas: true });
+            const child = new FontTestNode('16px Arial');
+            group.appendChild(child);
+
+            // Offscreen groups return undefined from resolveFont() so parent
+            // canvas context is not affected
+            expect(group.resolveFont()).toBeUndefined();
+        });
+
+        it('should return first child font found in mixed children', () => {
+            const group = new Group({ name: 'mixed-group' });
+            const noFont = new TestNode(); // resolveFont() returns undefined
+            const withFont = new FontTestNode('14px sans-serif');
+            group.append([noFont, withFont]);
+
+            expect(group.resolveFont()).toBe('14px sans-serif');
+        });
+    });
+
     describe('setScene()', () => {
         describe('layer cleanup', () => {
             it('should remove layer from previous scene when detaching', () => {

@@ -34,6 +34,7 @@ export class Scene extends EventEmitter<EventMap> {
     private root: Group | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
+    private _baseFont: string | undefined;
 
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
@@ -148,10 +149,22 @@ export class Scene extends EventEmitter<EventMap> {
         return false;
     }
 
+    updateBaseFont() {
+        const baseFont = this.root?.resolveFont();
+        if (baseFont != null && baseFont !== this._baseFont) {
+            this._baseFont = baseFont;
+            this.canvas.context.font = baseFont;
+        }
+    }
+
     applyPendingResize(): boolean {
         if (this.pendingSize) {
             this.layersManager.resize(...this.pendingSize);
             this.pendingSize = null;
+            // Resize resets canvas context state — re-apply the cached base font.
+            if (this._baseFont != null) {
+                this.canvas.context.font = this._baseFont;
+            }
             return true;
         }
         return false;

@@ -94,6 +94,11 @@ export class Text<D = any> extends Shape<D> {
         return this.fontCache;
     }
 
+    override resolveFont(): string | undefined {
+        if (!this.hasRenderableText()) return undefined;
+        return this.font;
+    }
+
     @SceneChangeDetection({
         changeCb: (o: Text) => {
             o.fontCache = undefined;
@@ -255,6 +260,9 @@ export class Text<D = any> extends Shape<D> {
     }
 
     protected override computeBBox(): BBox {
+        if (!this.hasRenderableText()) {
+            return new BBox(this.x, this.y, 0, 0);
+        }
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
@@ -312,7 +320,7 @@ export class Text<D = any> extends Shape<D> {
 
         if (!this.layerManager || !this.hasRenderableText()) {
             if (stats) stats.nodesSkipped += 1;
-            return super.render(renderCtx);
+            return;
         }
 
         if (isArray(this.text) && this.richText) {

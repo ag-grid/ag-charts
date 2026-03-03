@@ -77,6 +77,7 @@ export interface EventsHubMap {
     'dom:container-change': null;
     'dom:hidden': null;
     'dom:resize': null;
+    'font:load': null;
     'highlight:change': HighlightChangeEvent;
     'layout:complete': LayoutCompleteEvent;
     'legend:change': LegendChangeEvent;

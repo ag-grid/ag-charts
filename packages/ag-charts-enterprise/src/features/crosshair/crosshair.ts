@@ -376,21 +376,29 @@ export class Crosshair extends AbstractModuleInstance {
 
         label.setLabelHtml(html);
 
-        const { width, height } = label.getBBox();
         const axisPosition = this.axisCtx.position;
         let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
+        // Use CSS translate percentages to avoid synchronous dimension reads.
+        // translate(-50%, 0) centres horizontally; translate(0, -50%) centres vertically;
+        // translate(-100%, ...) offsets by the element's full width/height.
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             padding -= 4;
+            const isBottom = axisPosition === 'bottom';
             label.show({
-                x: x - width / 2,
-                y: axisPosition === 'bottom' ? bounds.y + bounds.height + padding : bounds.y - height - padding,
+                x,
+                y: isBottom ? bounds.y + bounds.height + padding : bounds.y - padding,
+                translateX: '-50%',
+                translateY: isBottom ? '0' : '-100%',
             });
         } else {
             padding -= 8;
+            const isRight = axisPosition === 'right';
             label.show({
-                x: axisPosition === 'right' ? bounds.x + bounds.width + padding : bounds.x - width - padding,
-                y: y - height / 2,
+                x: isRight ? bounds.x + bounds.width + padding : bounds.x - padding,
+                y,
+                translateX: isRight ? '0' : '-100%',
+                translateY: '-50%',
             });
         }
     }
