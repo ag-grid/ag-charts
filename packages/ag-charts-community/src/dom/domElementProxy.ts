@@ -1,6 +1,27 @@
 import type { Size, SizeMonitor } from '../util/sizeMonitor';
 
-type CacheKey = 'innerHTML' | 'contentStyles' | `p:${string}` | `c:${string}` | `a:${string}`;
+type StyleProperty =
+    | '--left'
+    | '--top'
+    | 'height'
+    | 'left'
+    | 'pointer-events'
+    | 'position-anchor'
+    | 'top'
+    | 'translate'
+    | 'width';
+
+type HtmlAttribute =
+    | 'aria-atomic'
+    | 'aria-hidden'
+    | 'aria-live'
+    | 'data-axis-id'
+    | 'data-key'
+    | 'popover'
+    | 'role'
+    | 'tabindex';
+
+type CacheKey = 'innerHTML' | 'contentStyles' | `p:${StyleProperty}` | `c:${string}` | `a:${HtmlAttribute}`;
 
 /**
  * Proxies all DOM access to a single HTMLElement.
@@ -93,7 +114,7 @@ export class DOMElementProxy {
 
     /** style.setProperty(name, value), skipped if unchanged.
      *  Works for both standard properties and CSS custom properties. */
-    setProperty(name: string, value: string): void {
+    setProperty(name: StyleProperty, value: string): void {
         const cacheKey: CacheKey = `p:${name}`;
         if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {
@@ -121,7 +142,7 @@ export class DOMElementProxy {
     }
 
     /** setAttribute (value != null) or removeAttribute (value == null). */
-    setAttr(name: string, value: string | null): void {
+    setAttr(name: HtmlAttribute, value: string | null): void {
         const cacheKey: CacheKey = `a:${name}`;
         if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {

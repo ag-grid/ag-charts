@@ -736,13 +736,16 @@ export class DOMManager extends BaseManager {
         const invalidateRects = () => this.invalidateRectCaches();
         const invalidateAll = () => this.invalidateAllCaches();
 
+        // capture: true — the scroll event doesn't bubble, but capture-phase listeners
+        // fire for scroll events on any descendant, including nested scrollable containers.
         win.addEventListener('scroll', invalidateRects, { capture: true, passive: true });
-        win.addEventListener('resize', invalidateRects, { passive: true });
+        // resize only fires on window itself; capture: true kept for consistency with scroll.
+        win.addEventListener('resize', invalidateRects, { capture: true, passive: true });
         this.element.ownerDocument.addEventListener('fullscreenchange', invalidateAll);
 
         this.cleanup.register(() => {
             win.removeEventListener('scroll', invalidateRects, { capture: true });
-            win.removeEventListener('resize', invalidateRects);
+            win.removeEventListener('resize', invalidateRects, { capture: true });
             this.element.ownerDocument.removeEventListener('fullscreenchange', invalidateAll);
         });
     }

@@ -17,29 +17,29 @@ describe('DOMElementProxy', () => {
     describe('changed()', () => {
         it('should return true on first call', () => {
             const proxy = new DOMElementProxy(createElement());
-            expect(proxy.changed('p:key', 'value')).toBe(true);
+            expect(proxy.changed('p:left', 'value')).toBe(true);
         });
 
         it('should return false on same value', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('p:key', 'value');
-            expect(proxy.changed('p:key', 'value')).toBe(false);
+            proxy.changed('p:left', 'value');
+            expect(proxy.changed('p:left', 'value')).toBe(false);
         });
 
         it('should return true when value differs', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('p:key', 'a');
-            expect(proxy.changed('p:key', 'b')).toBe(true);
+            proxy.changed('p:left', 'a');
+            expect(proxy.changed('p:left', 'b')).toBe(true);
         });
 
         it('should use reference equality for objects', () => {
             const proxy = new DOMElementProxy(createElement());
             const obj = { x: 1 };
-            proxy.changed('p:key', obj);
+            proxy.changed('p:left', obj);
             // Same reference => no change
-            expect(proxy.changed('p:key', obj)).toBe(false);
+            expect(proxy.changed('p:left', obj)).toBe(false);
             // Different reference with same content => changed
-            expect(proxy.changed('p:key', { x: 1 })).toBe(true);
+            expect(proxy.changed('p:left', { x: 1 })).toBe(true);
         });
     });
 
@@ -49,8 +49,8 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
-            proxy.setProperty('color', 'red');
-            expect(spy).toHaveBeenCalledWith('color', 'red');
+            proxy.setProperty('left', '10px');
+            expect(spy).toHaveBeenCalledWith('left', '10px');
         });
 
         it('should skip write when value is unchanged', () => {
@@ -58,10 +58,10 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
             spy.mockClear();
 
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
             expect(spy).not.toHaveBeenCalled();
         });
 
@@ -70,11 +70,11 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
             spy.mockClear();
 
-            proxy.setProperty('color', 'blue');
-            expect(spy).toHaveBeenCalledWith('color', 'blue');
+            proxy.setProperty('left', '20px');
+            expect(spy).toHaveBeenCalledWith('left', '20px');
         });
     });
 
@@ -209,17 +209,17 @@ describe('DOMElementProxy', () => {
             const el = createElement();
             const proxy = new DOMElementProxy(el, { deferred: true });
 
-            proxy.setProperty('color', 'red');
-            expect(el.style.getPropertyValue('color')).toBe('');
+            proxy.setProperty('left', '10px');
+            expect(el.style.getPropertyValue('left')).toBe('');
         });
 
         it('should apply setProperty after flush', () => {
             const el = createElement();
             const proxy = new DOMElementProxy(el, { deferred: true });
 
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
             proxy.flush();
-            expect(el.style.getPropertyValue('color')).toBe('red');
+            expect(el.style.getPropertyValue('left')).toBe('10px');
         });
 
         it('should not apply toggleClass before flush', () => {
@@ -289,8 +289,8 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferred: true });
 
-            proxy.setProperty('color', 'red');
-            proxy.setProperty('color', 'red'); // duplicate — should not buffer again
+            proxy.setProperty('left', '10px');
+            proxy.setProperty('left', '10px'); // duplicate — should not buffer again
             proxy.flush();
 
             // Only one setProperty call after flush
@@ -302,16 +302,16 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferred: true });
 
-            proxy.setProperty('color', 'red');
-            proxy.invalidate('p:color'); // force cache miss so next write is accepted
-            proxy.setProperty('color', 'green');
-            proxy.invalidate('p:color');
-            proxy.setProperty('color', 'blue');
+            proxy.setProperty('left', '10px');
+            proxy.invalidate('p:left'); // force cache miss so next write is accepted
+            proxy.setProperty('left', '20px');
+            proxy.invalidate('p:left');
+            proxy.setProperty('left', '30px');
             proxy.flush();
 
             // Only one DOM write should happen — the last value wins
             expect(spy).toHaveBeenCalledTimes(1);
-            expect(spy).toHaveBeenCalledWith('color', 'blue');
+            expect(spy).toHaveBeenCalledWith('left', '30px');
         });
 
         it('should clear pending writes after flush', () => {
@@ -319,7 +319,7 @@ describe('DOMElementProxy', () => {
             const spy = jest.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferred: true });
 
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
             proxy.flush();
             spy.mockClear();
 
@@ -332,31 +332,31 @@ describe('DOMElementProxy', () => {
     describe('cache lifecycle', () => {
         it('should force next changed() to return true after invalidate()', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('p:key', 'value');
-            expect(proxy.changed('p:key', 'value')).toBe(false);
+            proxy.changed('p:left', 'value');
+            expect(proxy.changed('p:left', 'value')).toBe(false);
 
-            proxy.invalidate('p:key');
-            expect(proxy.changed('p:key', 'value')).toBe(true);
+            proxy.invalidate('p:left');
+            expect(proxy.changed('p:left', 'value')).toBe(true);
         });
 
         it('should only invalidate the specified key', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('p:a', 1);
-            proxy.changed('p:b', 2);
+            proxy.changed('p:top', 1);
+            proxy.changed('p:width', 2);
 
-            proxy.invalidate('p:a');
-            expect(proxy.changed('p:a', 1)).toBe(true);
-            expect(proxy.changed('p:b', 2)).toBe(false);
+            proxy.invalidate('p:top');
+            expect(proxy.changed('p:top', 1)).toBe(true);
+            expect(proxy.changed('p:width', 2)).toBe(false);
         });
 
         it('should clear all cached values on reset()', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('p:a', 1);
-            proxy.changed('p:b', 2);
+            proxy.changed('p:top', 1);
+            proxy.changed('p:width', 2);
 
             proxy.reset();
-            expect(proxy.changed('p:a', 1)).toBe(true);
-            expect(proxy.changed('p:b', 2)).toBe(true);
+            expect(proxy.changed('p:top', 1)).toBe(true);
+            expect(proxy.changed('p:width', 2)).toBe(true);
         });
     });
 

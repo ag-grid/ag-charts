@@ -183,10 +183,10 @@ describe('DOMManager', () => {
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
-            expect(childEl!.style.getPropertyValue('color')).toBe('');
+            expect(childEl!.style.getPropertyValue('left')).toBe('');
         });
 
         it('should apply buffered writes after postRenderUpdate', () => {
@@ -195,12 +195,12 @@ describe('DOMManager', () => {
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
-            proxy.setProperty('color', 'red');
+            proxy.setProperty('left', '10px');
 
             dm.postRenderUpdate();
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
-            expect(childEl!.style.getPropertyValue('color')).toBe('red');
+            expect(childEl!.style.getPropertyValue('left')).toBe('10px');
         });
 
         it('should remove proxy from deferredProxies map on removeChild', () => {
