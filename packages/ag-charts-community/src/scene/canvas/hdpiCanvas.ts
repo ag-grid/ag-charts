@@ -23,6 +23,8 @@ export class HdpiCanvas {
     height: number = 300;
     pixelRatio: number;
 
+    private direction: CanvasDirection = 'ltr';
+
     constructor(options: CanvasOptions) {
         const { width, height, willReadFrequently = false } = options;
 
@@ -39,6 +41,7 @@ export class HdpiCanvas {
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
 
         this.context = this.element.getContext('2d', { willReadFrequently })!;
+        this.context.direction = this.direction;
 
         this.resize(width ?? 0, height ?? 0, this.pixelRatio);
 
@@ -70,6 +73,12 @@ export class HdpiCanvas {
         this.pixelRatio = pixelRatio;
     }
 
+    setDirection(isRtl: boolean) {
+        this.direction = isRtl ? 'rtl' : 'ltr';
+        this.element.dir = this.direction;
+        this.context.direction = this.direction;
+    }
+
     clear() {
         clearContext(this);
     }
@@ -89,5 +98,6 @@ export class HdpiCanvas {
     reset() {
         this.context.reset();
         this.context.verifyDepthZero?.();
+        this.context.direction = this.direction;
     }
 }

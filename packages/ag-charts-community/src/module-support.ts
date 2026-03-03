@@ -123,7 +123,7 @@ export {
     trailingAccumulatedValueProperty,
     valueProperty,
 } from './chart/data/processors';
-export type { ProcessDataEvent } from './chart/updateService';
+export type { PreSceneRenderEvent, ProcessDataEvent } from './chart/updateService';
 export { adjustLabelPlacement, getLabelStyles, updateLabelNode } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
@@ -292,6 +292,7 @@ export type {
 export type { LegendSymbolOptions } from './chart/legend/legendSymbol';
 export { isTooltipValueMissing } from './chart/tooltip/tooltip';
 export type { TooltipContent, TooltipContentDataRow } from './chart/tooltip/tooltip';
+export { PHASE_METADATA } from './motion/animation';
 export type { AnimationPhase, AnimationValue } from './motion/animation';
 export { resetMotion } from './motion/resetMotion';
 export { fromToMotion, NODE_UPDATE_STATE_TO_PHASE_MAPPING } from './motion/fromToMotion';

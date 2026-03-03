@@ -78,6 +78,7 @@ export class Menu extends AnchoredPopover {
         row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
             options.onPress?.(item);
             sourceEvent.preventDefault();
+            // eslint-disable-next-line no-restricted-properties
             sourceEvent.stopPropagation();
             menu.collapse();
         });

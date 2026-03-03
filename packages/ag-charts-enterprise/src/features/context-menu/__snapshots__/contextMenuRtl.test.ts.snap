@@ -1,0 +1,910 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Context Menu RTL keyboard navigation ArrowDown/ArrowUp navigate items 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL keyboard navigation ArrowDown/ArrowUp navigate items 2`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL keyboard navigation ArrowLeft opens submenu in RTL 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL keyboard navigation ArrowRight closes submenu in RTL 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="true"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        data-focus-override="true"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+      <div
+        aria-orientation="vertical"
+        class="ag-charts-context-menu__menu"
+        id="ag-charts-4"
+        role="menu"
+        style="position: absolute; left: 0px; top: 0px;"
+      >
+        <div
+          aria-disabled="false"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            תרשים עמודות
+          </div>
+          <div
+            class="ag-charts-context-menu__cell"
+          />
+        </div>
+        <div
+          aria-controls="ag-charts-5"
+          aria-disabled="false"
+          aria-expanded="false"
+          aria-haspopup="menu"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            מכירות Q1 2024
+          </div>
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            <span
+              class="ag-charts-icon ag-charts-icon-chevron-right"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL keyboard navigation Escape closes submenu 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="true"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        data-focus-override="true"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+      <div
+        aria-orientation="vertical"
+        class="ag-charts-context-menu__menu"
+        id="ag-charts-4"
+        role="menu"
+        style="position: absolute; left: 0px; top: 0px;"
+      >
+        <div
+          aria-disabled="false"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            תרשים עמודות
+          </div>
+          <div
+            class="ag-charts-context-menu__cell"
+          />
+        </div>
+        <div
+          aria-controls="ag-charts-5"
+          aria-disabled="false"
+          aria-expanded="false"
+          aria-haspopup="menu"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            מכירות Q1 2024
+          </div>
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            <span
+              class="ag-charts-icon ag-charts-icon-chevron-right"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL should render menu with RTL direction and Hebrew text 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL submenu expansion hover submenu parent shows submenu 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="true"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        data-focus-override="true"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+      <div
+        aria-orientation="vertical"
+        class="ag-charts-context-menu__menu"
+        id="ag-charts-4"
+        role="menu"
+        style="position: absolute; left: 0px; top: 0px;"
+      >
+        <div
+          aria-disabled="false"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            תרשים עמודות
+          </div>
+          <div
+            class="ag-charts-context-menu__cell"
+          />
+        </div>
+        <div
+          aria-controls="ag-charts-5"
+          aria-disabled="false"
+          aria-expanded="false"
+          aria-haspopup="menu"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            מכירות Q1 2024
+          </div>
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            <span
+              class="ag-charts-icon ag-charts-icon-chevron-right"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Context Menu RTL submenu expansion nested submenu (3 levels) 1`] = `
+HTMLCollection [
+  <div
+    class="ag-charts-context-menu"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
+  >
+    <div
+      aria-orientation="vertical"
+      class="ag-charts-context-menu__menu"
+      role="menu"
+      tabindex="-1"
+    >
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="0"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Download
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        class="ag-charts-context-menu__divider"
+        role="separator"
+      />
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          Sales in שקלים for 2024
+        </div>
+        <div
+          class="ag-charts-context-menu__cell"
+        />
+      </div>
+      <div
+        aria-controls="ag-charts-4"
+        aria-disabled="false"
+        aria-expanded="true"
+        aria-haspopup="menu"
+        class="ag-charts-context-menu__item"
+        data-focus-override="true"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          מכירות Sales מוצרים
+        </div>
+        <div
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+        >
+          <span
+            class="ag-charts-icon ag-charts-icon-chevron-right"
+          />
+        </div>
+      </div>
+      <div
+        aria-orientation="vertical"
+        class="ag-charts-context-menu__menu"
+        id="ag-charts-4"
+        role="menu"
+        style="position: absolute; left: 0px; top: 0px;"
+      >
+        <div
+          aria-disabled="false"
+          class="ag-charts-context-menu__item"
+          role="menuitem"
+          tabindex="0"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            תרשים עמודות
+          </div>
+          <div
+            class="ag-charts-context-menu__cell"
+          />
+        </div>
+        <div
+          aria-controls="ag-charts-5"
+          aria-disabled="false"
+          aria-expanded="true"
+          aria-haspopup="menu"
+          class="ag-charts-context-menu__item"
+          data-focus-override="true"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="ag-charts-context-menu__icon"
+          />
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            מכירות Q1 2024
+          </div>
+          <div
+            class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+          >
+            <span
+              class="ag-charts-icon ag-charts-icon-chevron-right"
+            />
+          </div>
+        </div>
+        <div
+          aria-orientation="vertical"
+          class="ag-charts-context-menu__menu"
+          id="ag-charts-5"
+          role="menu"
+          style="position: absolute; left: 0px; top: 0px;"
+        >
+          <div
+            aria-disabled="false"
+            class="ag-charts-context-menu__item"
+            role="menuitem"
+            tabindex="0"
+          >
+            <div
+              class="ag-charts-context-menu__icon"
+            />
+            <div
+              class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            >
+              Revenue מכירות
+            </div>
+            <div
+              class="ag-charts-context-menu__cell"
+            />
+          </div>
+          <div
+            aria-disabled="false"
+            class="ag-charts-context-menu__item"
+            role="menuitem"
+            tabindex="-1"
+          >
+            <div
+              class="ag-charts-context-menu__icon"
+            />
+            <div
+              class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
+            >
+              מכירות Sales מוצרים
+            </div>
+            <div
+              class="ag-charts-context-menu__cell"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;

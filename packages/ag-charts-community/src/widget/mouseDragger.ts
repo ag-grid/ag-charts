@@ -29,7 +29,9 @@ export class MouseDragger {
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
         glob.globalMouseDragCallbacks.mousedown(downEvent);
+        // eslint-disable-next-line no-restricted-properties
         downEvent.stopPropagation();
+        // eslint-disable-next-line no-restricted-properties
         downEvent.stopImmediatePropagation();
     }
 
@@ -40,19 +42,25 @@ export class MouseDragger {
     }
 
     private readonly mousegeneral = (generalEvent: MouseEvent) => {
+        // eslint-disable-next-line no-restricted-properties
         generalEvent.stopPropagation();
+        // eslint-disable-next-line no-restricted-properties
         generalEvent.stopImmediatePropagation();
     };
 
     private readonly mousemove = (moveEvent: MouseEvent) => {
+        // eslint-disable-next-line no-restricted-properties
         moveEvent.stopPropagation();
+        // eslint-disable-next-line no-restricted-properties
         moveEvent.stopImmediatePropagation();
         this.glob.globalMouseDragCallbacks?.mousemove(moveEvent);
     };
 
     private readonly mouseup = (upEvent: MouseEvent) => {
         if (upEvent.button === 0) {
+            // eslint-disable-next-line no-restricted-properties
             upEvent.stopPropagation();
+            // eslint-disable-next-line no-restricted-properties
             upEvent.stopImmediatePropagation();
             this.glob.globalMouseDragCallbacks?.mouseup(upEvent);
             this.destroy();

@@ -67,6 +67,9 @@ export class LegendMarkerLabel extends TranslatableGroup {
     @SceneChangeDetection()
     isCustomMarker: boolean = false;
 
+    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
+    isRtl: boolean = false;
+
     public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
     public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
 
@@ -126,9 +129,9 @@ export class LegendMarkerLabel extends TranslatableGroup {
     }
 
     private layoutLabel() {
-        const { length, spacing } = this;
-
-        this.label.x = length + spacing;
+        const { length, spacing, isRtl } = this;
+        this.label.x = isRtl ? -spacing : length + spacing;
+        this.label.textAlign = isRtl ? 'right' : 'left';
     }
 
     protected override computeBBox(): BBox | undefined {

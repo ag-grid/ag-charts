@@ -78,7 +78,7 @@ export class AnimationManager {
             this.currentAnonymousAnimationId += 1;
         }
 
-        const skip = this.isSkipped() || opts.phase === 'none';
+        const skip = (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }

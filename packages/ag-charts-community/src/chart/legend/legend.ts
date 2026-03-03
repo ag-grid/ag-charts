@@ -249,6 +249,7 @@ export class Legend extends BaseProperties {
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
+    private paginationItemsOffsetX = 0;
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
@@ -492,12 +493,14 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const { markerWidth, anyLineEnabled } = this.calculateMarkerWidth();
+        const { isRtl } = this.ctx.domManager;
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
+            markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
@@ -699,7 +702,10 @@ export class Legend extends BaseProperties {
         const orientation = this.getOrientation();
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
+        const { isRtl } = this.ctx.domManager;
+
         this.pagination.orientation = orientation;
+        this.pagination.isRtl = isRtl;
 
         this.pagination.translationX = 0;
         this.pagination.translationY = 0;
@@ -722,10 +728,18 @@ export class Legend extends BaseProperties {
         let paginationY = -paginationBBox.y - this.item.marker.size / 2;
         if (paginationVertical) {
             paginationY += legendItemsHeight + paginationComponentPadding;
+        } else if (isRtl) {
+            paginationX = -paginationBBox.x;
+            paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         } else {
             paginationX += -paginationBBox.x + legendItemsWidth + paginationComponentPadding;
             paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         }
+
+        this.paginationItemsOffsetX =
+            isRtl && !paginationVertical && this.pagination.visible
+                ? paginationBBox.width + paginationComponentPadding
+                : 0;
 
         this.pagination.translationX = paginationX;
         this.pagination.translationY = paginationY;
@@ -837,7 +851,9 @@ export class Legend extends BaseProperties {
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
 
+        const { isRtl } = this.ctx.domManager;
         const rowSumColumnWidths: number[] = [];
+        const pageWidth = columns.reduce((sum, col) => sum + col.columnWidth, 0);
 
         itemSelection.each((markerLabel, _, i) => {
             if (i < visibleStart || i > visibleEnd) {
@@ -858,18 +874,20 @@ export class Legend extends BaseProperties {
 
             markerLabel.visible = true;
             const column = columns[columnIndex];
-
-            if (!column) {
-                return;
-            }
+            if (!column) return;
 
             // Round off for pixel grid alignment to work properly.
             y = Math.floor(itemHeight * rowIndex);
-            x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+
+            if (isRtl) {
+                x = Math.floor(pageWidth - (rowSumColumnWidths[rowIndex] ?? 0));
+            } else {
+                x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+            }
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 
-            markerLabel.translationX = x;
+            markerLabel.translationX = x + this.paginationItemsOffsetX;
             markerLabel.translationY = y;
         });
     }

@@ -467,7 +467,7 @@ export class DataModel<
         }
 
         const { getProcessValue } = this.initDataDomainProcessor('skip');
-        return this.incrementalProcessor.reprocessData(
+        const result = this.incrementalProcessor.reprocessData(
             processedData,
             dataSets,
             getProcessValue,
@@ -475,6 +475,13 @@ export class DataModel<
             this.recomputeDomains.bind(this),
             this.collectOptimizationMetadata.bind(this)
         );
+
+        const { diff } = result.reduced ?? {};
+        if (diff) {
+            this.eventsHub?.emit('datamodel:diff', { diff });
+        }
+
+        return result;
     }
 
     /**

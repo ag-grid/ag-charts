@@ -31,6 +31,7 @@ test.describe('localisation', () => {
             return elems.nth(0);
         }
 
+        // TODO: Switch to util.ts: readSwapchainText
         async function readAriaText() {
             const labelledBy1 = await announcer1.getAttribute('aria-labelledby');
             const labelledBy2 = await announcer2.getAttribute('aria-labelledby');

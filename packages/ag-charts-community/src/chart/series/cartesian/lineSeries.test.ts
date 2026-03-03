@@ -1823,6 +1823,12 @@ describe('LineSeries', () => {
     });
 
     describe('aggregation data size transitions', () => {
+        const getNodeDataCount = () => {
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+            return series.contextNodeData?.nodeData?.length ?? 0;
+        };
+
         it('should render consistent node count after data size transitions (small -> large -> small)', async () => {
             const smallData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
             const largeData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
@@ -1835,12 +1841,6 @@ describe('LineSeries', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-
-            const getNodeDataCount = () => {
-                const chartInstance = deproxy(chart);
-                const series = chartInstance.series[0] as any;
-                return series.contextNodeData?.nodeData?.length ?? 0;
-            };
 
             const initialNodeCount = getNodeDataCount();
             expect(initialNodeCount).toBeGreaterThan(0);
@@ -1857,6 +1857,42 @@ describe('LineSeries', () => {
             const finalNodeCount = getNodeDataCount();
 
             expect(finalNodeCount).toBe(initialNodeCount);
+        });
+
+        it('should render correct node count after multi-step data size transitions', async () => {
+            const data1K = Array.from({ length: 1000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+            const data10K = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+            const data100K = Array.from({ length: 100000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+
+            const options: AgCartesianChartOptions = {
+                data: data1K,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const baseline1K = getNodeDataCount();
+            expect(baseline1K).toBeGreaterThan(0);
+
+            // 1K -> 10K
+            await chart.update({ ...options, data: data10K });
+            await waitForChartStability(chart);
+
+            // 10K -> 1K (should match baseline)
+            await chart.update({ ...options, data: data1K });
+            await waitForChartStability(chart);
+            expect(getNodeDataCount()).toBe(baseline1K);
+
+            // 1K -> 100K
+            await chart.update({ ...options, data: data100K });
+            await waitForChartStability(chart);
+
+            // 100K -> 1K (should match baseline)
+            await chart.update({ ...options, data: data1K });
+            await waitForChartStability(chart);
+            expect(getNodeDataCount()).toBe(baseline1K);
         });
     });
 

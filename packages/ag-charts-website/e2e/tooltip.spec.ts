@@ -1,7 +1,14 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { SELECTORS, canvasToPageTransformer, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    canvasToPageTransformer,
+    gotoExample,
+    readSwapchainText,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+} from './util';
 
 async function getScatterCanvasPoint(page: Page, datumIndex = 0): Promise<{ x: number; y: number }> {
     return await page.evaluate((index) => {
@@ -68,5 +75,68 @@ test.describe('tooltip', () => {
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
         await expect(tooltip).toContainText('Scatter B');
+    });
+
+    test.describe('renderer', () => {
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-renderer', 'vanilla').url);
+        });
+
+        test.describe('initial focus', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.keyboard.press('Tab');
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('tooltip-renderer-initial-focus.png');
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('Jan: 50 units sold; Jan; Purchases; 60');
+            });
+        });
+
+        test.describe('basic keynav', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowRight');
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('tooltip-renderer-basic-keynav.png');
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('Feb: 75 units sold; Feb; Purchases; 70');
+            });
+        });
+
+        test.describe('partial missing datum', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('tooltip-renderer-partial-missing-datum.png');
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('Mar; Purchases; 90');
+            });
+        });
+
+        test.describe('completely missing datum', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('tooltip-renderer-completely-missing-datum.png');
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('May: 45 units sold; May; Purchases; 100');
+            });
+        });
     });
 });

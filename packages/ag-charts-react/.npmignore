@@ -16,3 +16,5 @@ eslint.*
 
 dist/**/package.json
 dist/**/*.map
+
+.snyk

@@ -248,7 +248,10 @@ export class LicenseManager {
 
     private isWebsiteUrl(): boolean {
         const hostname = this.getHostname();
-        return /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null;
+        return (
+            /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null ||
+            /^((?:[\w-]+\.)?bryntum\.com)$/.exec(hostname) !== null
+        );
     }
 
     private isLocalhost(): boolean {

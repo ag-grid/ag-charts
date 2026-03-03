@@ -1,0 +1,67 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+
+ignore:
+    SNYK-JS-MINIMATCH-15353389:
+        - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.771Z
+        - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.769Z
+        - '@nx/devkit@18.3.4 > ejs@3.1.9 > jake@10.8.7 > minimatch@3.1.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.767Z
+        - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.766Z
+        - '@nx/devkit@18.3.4 > ejs@3.1.9 > jake@10.8.7 > filelist@1.0.4 > minimatch@5.1.6':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.764Z
+        - glob@8.0.3 > minimatch@5.1.6:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:27:24.758Z
+    SNYK-JS-MINIMATCH-15309438:
+        - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.988Z
+        - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.984Z
+        - '@nx/devkit@18.3.4 > ejs@3.1.9 > jake@10.8.7 > minimatch@3.1.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.981Z
+        - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.975Z
+        - '@nx/devkit@18.3.4 > ejs@3.1.9 > jake@10.8.7 > filelist@1.0.4 > minimatch@5.1.6':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.973Z
+        - glob@8.0.3 > minimatch@5.1.6:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:59:15.968Z
+patch: {}

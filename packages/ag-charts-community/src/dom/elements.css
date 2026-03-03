@@ -70,7 +70,7 @@
 }
 
 .ag-charts-checkbox:checked::before {
-    margin-left: 13px;
+    margin-inline-start: 13px;
 }
 
 /* Select */
