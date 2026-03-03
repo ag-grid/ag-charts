@@ -1,8 +1,9 @@
-import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
+import type { BoxBounds, ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
     DebugMetrics,
+    Logger,
     type Point,
     Property,
     type Scale,
@@ -35,8 +36,14 @@ import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { processedDataIsAnimatable } from '../../data/processors';
+import { getPickedFocusBBox } from '../../keyboardUtil';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
-import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
+import type {
+    PickFocusOutputs,
+    PickViewportFocusInputs,
+    SeriesDirectionKeysMapping,
+    SeriesNodePickMatch,
+} from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
@@ -835,6 +842,67 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected initQuadTree(_quadtree: QuadtreeNearest<DatumOf<TTypes>>) {
         // Override point for subclasses
+    }
+
+    public override pickViewportFocus(opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
+        if (this.contextNodeData?.nodeData === undefined) return;
+
+        const { otherIndex, where, hoverRect } = opts;
+
+        let resultIndex: number | undefined = undefined;
+
+        let left: number = 0;
+        let mid: number;
+        let right: number = this.contextNodeData.nodeData.length - 1;
+
+        const shrinkBounds: (focusBBox: Readonly<BoxBounds>) => void = (function initShrinkBounds() {
+            if (where === 'viewport-start') {
+                return function shrinkViewportStart(focusBBox: Readonly<BoxBounds>): void {
+                    // Looking for smallest index whose left edge is inside viewport
+                    if (focusBBox.x >= hoverRect.x) {
+                        resultIndex = mid;
+                        right = mid - 1;
+                    } else {
+                        left = mid + 1;
+                    }
+                };
+            } else if (where === 'viewport-end') {
+                return function shrinkViewportEnd(focusBBox: Readonly<BoxBounds>): void {
+                    // Looking for largest index whose right edge is inside viewport
+                    const viewportRight = hoverRect.x + hoverRect.width;
+                    const nodeRight = focusBBox.x + focusBBox.width;
+                    if (nodeRight <= viewportRight) {
+                        resultIndex = mid;
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                };
+            } else {
+                return where satisfies never;
+            }
+        })();
+
+        while (left <= right) {
+            mid = Math.floor((left + right) / 2);
+
+            const pickedFocus = this.pickFocus({ datumIndex: mid, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
+            if (pickedFocus === undefined) {
+                Logger.error(`pickFocus (datumIndex: ${mid}) failed`);
+                return undefined;
+            }
+
+            shrinkBounds(getPickedFocusBBox(pickedFocus));
+        }
+
+        if (resultIndex === undefined) return undefined;
+
+        return this.pickFocus({
+            datumIndex: resultIndex,
+            datumIndexDelta: 0,
+            otherIndex,
+            otherIndexDelta: 0,
+        });
     }
 
     protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {

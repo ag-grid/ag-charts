@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { BoxBounds, ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
@@ -110,6 +110,12 @@ export type PickFocusInputs = {
     readonly otherIndex: number;
     readonly otherIndexDelta: number;
     readonly seriesRect?: BBox;
+};
+
+export type PickViewportFocusInputs = {
+    readonly otherIndex: number;
+    readonly where: 'viewport-start' | 'viewport-end';
+    readonly hoverRect: Readonly<BoxBounds>;
 };
 
 export type PickFocusOutputs = {
@@ -1295,6 +1301,10 @@ export abstract class Series<
     }
 
     public pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
+        return undefined;
+    }
+
+    public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
     }
 

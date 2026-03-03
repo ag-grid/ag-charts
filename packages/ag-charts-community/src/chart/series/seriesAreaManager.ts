@@ -10,6 +10,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
+    ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -198,7 +199,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
-            chart.ctx.eventsHub.on('zoom:change-complete', () => this.clearAll()),
+            chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
         if (seriesDragInterpreter) {
@@ -314,6 +315,15 @@ export class SeriesAreaManager extends BaseManager {
     private onAnimationStart(): void {
         if (this.hoverDevice !== 'setState') {
             this.clearAll();
+        }
+    }
+
+    private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
+        this.clearAll();
+        const { hoverRect} = this;
+        if (hoverRect && (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)')){
+            const pickedFocus = this.focus.series?.pickViewportFocus({ where: 'viewport-start', hoverRect, otherIndex: this.focus.seriesIndex });
+            console.log(pickedFocus?.datum.datum);
         }
     }
 
