@@ -48,7 +48,7 @@ import {
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { PickManager, type PickedNode, type PickedNodes } from './pickManager';
-import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
+import { type PickFocusInputs, type PickFocusOutputs, type PickViewportFocusInputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
@@ -152,6 +152,7 @@ export class SeriesAreaManager extends BaseManager {
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<DatumIndexType> | undefined,
+        pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
     };
 
     private cachedTooltipContent:
@@ -274,10 +275,24 @@ export class SeriesAreaManager extends BaseManager {
                 this.announceMode = 'never';
             }
 
-            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
-            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
-            // trigger and infinite redraw loop).
-            this.refreshFocus();
+            if (this.focus.pendingViewportFocus && this.hoverRect) {
+                try {
+                    const pickedFocus = this.focus.series?.pickViewportFocus({ where: 'viewport-start', hoverRect: this.hoverRect, otherIndex: this.focus.seriesIndex });
+                    if (pickedFocus) {
+                        const oldDatumIndex = this.focus.datumIndex;
+                        const oldOtherIndex = this.focus.seriesIndex;
+                        const { datumIndex, otherIndex = oldOtherIndex } = pickedFocus;
+                        this.updatePickedFocus({datumIndex, datumIndexDelta: 0, oldDatumIndex, otherIndex, otherIndexDelta: 0, oldOtherIndex });
+                    }
+                } finally {
+                    this.focus.pendingViewportFocus = undefined;
+                }
+            } else {
+                // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
+                // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so
+                // would trigger and infinite redraw loop).
+                this.refreshFocus();
+            }
         }
     }
 
@@ -320,10 +335,8 @@ export class SeriesAreaManager extends BaseManager {
 
     private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
         this.clearAll();
-        const { hoverRect} = this;
-        if (hoverRect && (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)')){
-            const pickedFocus = this.focus.series?.pickViewportFocus({ where: 'viewport-start', hoverRect, otherIndex: this.focus.seriesIndex });
-            console.log(pickedFocus?.datum.datum);
+        if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
+            this.focus.pendingViewportFocus = 'viewport-start';
         }
     }
 
