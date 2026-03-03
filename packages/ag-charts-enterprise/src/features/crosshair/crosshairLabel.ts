@@ -84,7 +84,7 @@ export class CrosshairLabelProperties
 export class CrosshairLabel extends CrosshairLabelProperties {
     static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
-    private readonly dom: _ModuleSupport.DOMElementProxy;
+    private readonly elementProxy: _ModuleSupport.DOMElementProxy;
 
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
@@ -93,38 +93,38 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     ) {
         super();
 
-        this.dom = domManager.addDeferredProxyChild('canvas-overlay', `crosshair-label-${this.id}`);
-        this.dom.toggleClass(DEFAULT_LABEL_CLASS, true);
-        this.dom.setAttr('aria-hidden', 'true');
-        this.dom.setAttr('data-key', key);
-        this.dom.setAttr('data-axis-id', axisId);
+        this.elementProxy = domManager.addDeferredProxyChild('canvas-overlay', `crosshair-label-${this.id}`);
+        this.elementProxy.toggleClass(DEFAULT_LABEL_CLASS, true);
+        this.elementProxy.setAttr('aria-hidden', 'true');
+        this.elementProxy.setAttr('data-key', key);
+        this.elementProxy.setAttr('data-axis-id', axisId);
     }
 
     show(meta: Point & { translateX?: string; translateY?: string }) {
         const left = Math.round(meta.x + this.xOffset);
         const top = Math.round(meta.y + this.yOffset);
 
-        this.dom.setProperty('left', `${left}px`);
-        this.dom.setProperty('top', `${top}px`);
+        this.elementProxy.setProperty('left', `${left}px`);
+        this.elementProxy.setProperty('top', `${top}px`);
 
         const translate =
             meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
-        this.dom.setProperty('translate', translate);
+        this.elementProxy.setProperty('translate', translate);
 
         this.toggle(true);
     }
 
     setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
         if (html !== undefined) {
-            this.dom.setInnerHTML(html);
+            this.elementProxy.setInnerHTML(html);
         }
         if (styles !== undefined) {
-            this.dom.setContentStyles(styles);
+            this.elementProxy.setContentStyles(styles);
         }
     }
 
     toggle(visible?: boolean) {
-        this.dom.toggleClass('ag-charts-crosshair-label--hidden', !visible);
+        this.elementProxy.toggleClass('ag-charts-crosshair-label--hidden', !visible);
     }
 
     destroy() {

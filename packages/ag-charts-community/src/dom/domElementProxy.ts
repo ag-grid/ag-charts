@@ -10,6 +10,20 @@ import type { Size, SizeMonitor } from '../util/sizeMonitor';
  *   cached values on hide/destroy transitions.
  * - Delegated operations (events, structural mutations) pass through to the
  *   underlying element without caching.
+ *
+ * ## Flush behaviour (deferred mode)
+ *
+ * When created with `{ deferred: true }`, all write operations (`setProperty`,
+ * `toggleClass`, `setAttr`, `setInnerHTML`, `setContentStyles`) are buffered in
+ * a `pendingWrites` Map rather than applied immediately. The Map deduplicates
+ * by key, so only the last write per property survives.
+ *
+ * - **Automatic flush**: `DOMManager.postRenderUpdate()` calls `flush()` on all
+ *   deferred proxies at the end of each render cycle — callers within the
+ *   normal render pipeline don't need to do anything.
+ * - **Manual flush**: Code paths that update the DOM *outside* a render cycle
+ *   (e.g. tooltip spring animation, resize listeners) must call `flush()`
+ *   explicitly to apply pending writes.
  */
 export class DOMElementProxy {
     private cache: Record<string, unknown> = {};
