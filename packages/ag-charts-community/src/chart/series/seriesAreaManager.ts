@@ -756,7 +756,7 @@ export class SeriesAreaManager extends BaseManager {
             otherIndex,
             otherIndexDelta: oldOtherIndex - otherIndex,
             oldOtherIndex: oldOtherIndex,
-        })
+        });
     }
 
     private updatePickedFocus(inputs: UpatePickedFocusInputs): PickedFocusStatus {
