@@ -1,0 +1,27 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+
+ignore:
+    SNYK-JS-MINIMATCH-15353389:
+        - '@jest/globals@29.6.1 > @jest/expect@29.7.0 > jest-snapshot@29.7.0 > @jest/transform@29.7.0 > babel-plugin-istanbul@6.1.1 > test-exclude@6.0.0 > glob@7.2.3 > minimatch@3.1.2':
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:25:43.002Z
+        - '@jest/globals@29.6.1 > @jest/expect@29.7.0 > jest-snapshot@29.7.0 > @jest/transform@29.7.0 > babel-plugin-istanbul@6.1.1 > test-exclude@6.0.0 > minimatch@3.1.2':
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T17:25:42.998Z
+    SNYK-JS-MINIMATCH-15309438:
+        - '@jest/globals@29.6.1 > @jest/expect@29.7.0 > jest-snapshot@29.7.0 > @jest/transform@29.7.0 > babel-plugin-istanbul@6.1.1 > test-exclude@6.0.0 > glob@7.2.3 > minimatch@3.1.2':
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:55:51.254Z
+        - '@jest/globals@29.6.1 > @jest/expect@29.7.0 > jest-snapshot@29.7.0 > @jest/transform@29.7.0 > babel-plugin-istanbul@6.1.1 > test-exclude@6.0.0 > minimatch@3.1.2':
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-02T16:55:51.251Z
+patch: {}
