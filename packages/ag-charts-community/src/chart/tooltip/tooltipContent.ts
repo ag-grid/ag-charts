@@ -97,7 +97,7 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
 function readTextContent(html: string): string {
     const tempDiv = getDocument().createElement('div');
     tempDiv.innerHTML = html;
-    const result = tempDiv.textContent;
+    const result: string | undefined = tempDiv.textContent?.trim();
 
     if (result == null) {
         Logger.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
