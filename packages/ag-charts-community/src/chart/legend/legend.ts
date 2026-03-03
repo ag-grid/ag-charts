@@ -357,7 +357,7 @@ export class Legend extends BaseProperties {
         super();
 
         this.pagination = new Pagination(
-            (type: ChartUpdateType) => ctx.updateService.update(type),
+            () => ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER }),
             (page) => this.updatePageNumber(page)
         );
         this.pagination.attachPagination(this.group);
@@ -916,7 +916,7 @@ export class Legend extends BaseProperties {
         this.updatePositions(pageNumber);
         this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
 
-        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     update() {
@@ -1130,9 +1130,9 @@ export class Legend extends BaseProperties {
         this.updateHighlight(newEnabled, datum, series);
 
         this.ctx.legendManager.update();
-        this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, {
-            forceNodeDataRefresh: true,
-            skipAnimations: datum.skipAnimations ?? false,
+        this.ctx.eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PROCESS_DATA,
+            opts: { forceNodeDataRefresh: true, skipAnimations: datum.skipAnimations ?? false },
         });
 
         return true;
@@ -1202,7 +1202,10 @@ export class Legend extends BaseProperties {
         }
 
         this.ctx.legendManager.update();
-        this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
+        this.ctx.eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PROCESS_DATA,
+            opts: { forceNodeDataRefresh: true },
+        });
 
         return true;
     }
