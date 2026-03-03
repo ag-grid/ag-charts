@@ -100,6 +100,15 @@ interface NormalizedConfig {
     onComplete?: () => Promise<void>;
 }
 
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * Format params for display (e.g., in progress indicator)
  */
@@ -653,7 +662,7 @@ class BenchmarkUI {
             const baselineLabel = showHostnames && baselineHostname ? ` (${baselineHostname})` : '';
             infoSlotHtml = `<button class="benchmark-action-btn" title="Comparison details" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='none'?'block':'none'">ⓘ</button>
                 <div class="benchmark-info-popup" style="display: none;">
-                    Comparing <strong>v${version}${currentLabel}</strong> vs <strong>v${baselineData.version}${baselineLabel}</strong><br>${vp.width}×${vp.height}px, ${dpr}× DPR
+                    Comparing <strong>v${escapeHtml(version)}${escapeHtml(currentLabel)}</strong> vs <strong>v${escapeHtml(baselineData.version)}${escapeHtml(baselineLabel)}</strong><br>${vp.width}×${vp.height}px, ${dpr}× DPR
                 </div>`;
         } else {
             // Always reserve space for the info button so the other buttons don't shift when it appears
@@ -1179,7 +1188,7 @@ class BenchmarkRunner {
                 'click',
                 () => {
                     const json = JSON.stringify(this.buildCompactExportData(), null, 2);
-                    navigator.clipboard.writeText(json).then(
+                    navigator.clipboard?.writeText(json).then(
                         () => {
                             copyBtn.classList.add('bm-flash-success');
                             setTimeout(() => copyBtn.classList.remove('bm-flash-success'), 600);
@@ -1188,7 +1197,9 @@ class BenchmarkRunner {
                             copyBtn.classList.add('bm-flash-error');
                             setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600);
                         }
-                    );
+                    ) ??
+                        (copyBtn.classList.add('bm-flash-error'),
+                        setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600));
                 },
                 { once: true }
             );
@@ -1209,7 +1220,7 @@ class BenchmarkRunner {
                     // Exit comparison mode
                     this.baselineData = null;
                     this.displayResults();
-                } else {
+                } else if (navigator.clipboard) {
                     void navigator.clipboard.readText().then(
                         (text) => {
                             let parsed: unknown;
@@ -1230,6 +1241,8 @@ class BenchmarkRunner {
                             this.ui.showError('Clipboard read failed. Copy benchmark results first.');
                         }
                     );
+                } else {
+                    this.ui.showError('Clipboard read failed. Copy benchmark results first.');
                 }
             });
         }
@@ -1247,6 +1260,7 @@ class BenchmarkRunner {
             }
             // Don't overwrite the "active comparison" styling
             if (this.baselineData) return;
+            if (!navigator.clipboard) return;
             void navigator.clipboard.readText().then(
                 (text) => {
                     try {
