@@ -1097,8 +1097,10 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                axisMin = Math.min(axisMin, axisValue);
-                axisMax = Math.max(axisMax, axisValue);
+                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
+                    axisMin = Math.min(axisMin, axisValue);
+                    axisMax = Math.max(axisMax, axisValue);
+                }
             }
         }
 
@@ -1137,8 +1139,10 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             if (c < range0 || c > range1) continue;
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                axisMin = Math.min(axisMin, axisValue);
-                axisMax = Math.max(axisMax, axisValue);
+                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
+                    axisMin = Math.min(axisMin, axisValue);
+                    axisMax = Math.max(axisMax, axisValue);
+                }
             }
         }
 
