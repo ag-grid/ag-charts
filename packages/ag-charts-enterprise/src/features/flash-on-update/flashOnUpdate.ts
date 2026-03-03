@@ -87,8 +87,8 @@ export function mergeBands(data: BandFlashDatum[], isHorizontal: boolean, axisSp
         if (canMerge) {
             mergeBounds(merged.bounds, next.bounds, startKey, sizeKey);
             merged.lastKey = next.lastKey;
-            if (merged.prevBounds) {
-                mergeBounds(merged.prevBounds, next.prevBounds!, startKey, sizeKey);
+            if (merged.prevBounds && next.prevBounds) {
+                mergeBounds(merged.prevBounds, next.prevBounds, startKey, sizeKey);
             }
         } else {
             result.push(next);
