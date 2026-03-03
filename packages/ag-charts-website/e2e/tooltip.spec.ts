@@ -90,9 +90,7 @@ test.describe('tooltip', () => {
                 await expect(page).toHaveScreenshot('tooltip-renderer-initial-focus.png');
             });
             test('aria-label', async ({ page }) => {
-                expect(await readSwapchainText(page)).toBe(
-                    '\n                        Jan: 50 units sold\n                    ; Jan; Purchases; 60'
-                );
+                expect(await readSwapchainText(page)).toBe('Jan: 50 units sold; Jan; Purchases; 60');
             });
         });
 
@@ -106,9 +104,7 @@ test.describe('tooltip', () => {
                 await expect(page).toHaveScreenshot('tooltip-renderer-basic-keynav.png');
             });
             test('aria-label', async ({ page }) => {
-                expect(await readSwapchainText(page)).toBe(
-                    '\n                        Feb: 75 units sold\n                    ; Feb; Purchases; 70'
-                );
+                expect(await readSwapchainText(page)).toBe('Feb: 75 units sold; Feb; Purchases; 70');
             });
         });
 
@@ -139,9 +135,7 @@ test.describe('tooltip', () => {
                 await expect(page).toHaveScreenshot('tooltip-renderer-completely-missing-datum.png');
             });
             test('aria-label', async ({ page }) => {
-                expect(await readSwapchainText(page)).toBe(
-                    '\n                        May: 45 units sold\n                    ; May; Purchases; 100'
-                );
+                expect(await readSwapchainText(page)).toBe('May: 45 units sold; May; Purchases; 100');
             });
         });
     });
