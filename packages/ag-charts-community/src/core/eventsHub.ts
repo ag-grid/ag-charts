@@ -90,6 +90,7 @@ export interface EventsHubMap {
     'rtl:change': null;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
+    'series:keynav-panx': SeriesKeyNavPanXEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
@@ -180,6 +181,11 @@ export interface SeriesKeyNavZoomEvent {
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
+export interface SeriesKeyNavPanXEvent {
+    readonly delta: -1 | 1;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
 export type ZoomMemento = {
     rangeX?: AgZoomRange;
     rangeY?: AgZoomRange;
@@ -222,6 +228,7 @@ export type ZoomEventSourceDetail =
     | `internal-setAxes`
     | `internal-updateSyncZoom`
     | `keyboard(${-1 | 0 | 1})`
+    | `keyboard-page(${-1 | 1})`
     | `navigatorDOM`
     | `navigator`
     | `onDataChange-reset`

@@ -9,6 +9,7 @@ import type {
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
+    SeriesKeyNavPanXEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -562,6 +563,10 @@ export class SeriesAreaManager extends BaseManager {
                 return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: 1, widgetEvent });
             case 'zoomout':
                 return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: -1, widgetEvent });
+            case 'panxleft':
+                return this.onPage(-1, widgetEvent);
+            case 'panxright':
+                return this.onPage(1, widgetEvent);
             case 'arrowup':
                 return this.onArrow(-1, 0, widgetEvent);
             case 'arrowdown':
@@ -581,6 +586,11 @@ export class SeriesAreaManager extends BaseManager {
             default:
                 action?.name satisfies undefined; // check for switch-exhaustion
         }
+    }
+
+    private onPage(delta: -1 | 1, widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, widgetEvent });
+        this.handleFocusFromUserInput({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
