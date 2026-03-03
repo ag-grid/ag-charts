@@ -346,6 +346,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
+            updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
 
@@ -361,9 +362,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('rtl:change', () => {
                 ctx.scene.canvas.setDirection(ctx.domManager.isRtl);
                 this.update(ChartUpdateType.PERFORM_LAYOUT);
-            }),
-            ctx.eventsHub.on('chart:request-update', (e) => this.update(e.type, e.opts)),
-            ctx.scene.on('scene-changed', () => this.update(ChartUpdateType.SCENE_RENDER))
+            })
         );
         ctx.scene.canvas.setDirection(ctx.domManager.isRtl);
 

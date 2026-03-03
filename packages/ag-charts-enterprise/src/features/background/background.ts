@@ -26,6 +26,6 @@ export class Background extends _ModuleSupport.Background<Image> {
     }
 
     protected onImageLoad() {
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 }

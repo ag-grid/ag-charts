@@ -1,7 +1,6 @@
 import type {
     AxisID,
     ChartAxisDirection,
-    ChartUpdateType,
     DeepReadonly,
     DefinedZoomState,
     Scale,
@@ -28,7 +27,6 @@ import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { UpdateOpts } from '../chart/updateService';
 import type { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 
@@ -107,7 +105,6 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
-    'chart:request-update': UpdateRequestEvent;
 }
 
 export interface ActiveLoadMementoEvent {
@@ -265,11 +262,6 @@ export interface ZoomChangeCompleteEvent {
 
 export interface ZoomPanStartEvent {
     readonly callerId: string;
-}
-
-export interface UpdateRequestEvent {
-    readonly type?: ChartUpdateType;
-    readonly opts?: UpdateOpts;
 }
 
 export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> extends SeriesNodeDatum<I> {

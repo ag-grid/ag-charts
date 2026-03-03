@@ -1,4 +1,13 @@
-import { ActionOnSet, BaseProperties, FONT_SIZE, ObserveChanges, Property, clamp, createId } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    BaseProperties,
+    ChartUpdateType,
+    FONT_SIZE,
+    ObserveChanges,
+    Property,
+    clamp,
+    createId,
+} from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -92,7 +101,7 @@ export class Pagination extends BaseProperties {
     private highlightActive?: 'previous' | 'next';
 
     constructor(
-        private readonly chartUpdateCallback: () => void,
+        private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
         private readonly pageUpdateCallback: (newPage: number) => void
     ) {
         super();
@@ -295,7 +304,7 @@ export class Pagination extends BaseProperties {
     public onMouseHover(node: 'previous' | 'next' | undefined) {
         this.highlightActive = node;
         this.updateMarkers();
-        this.chartUpdateCallback();
+        this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);
     }
 
     private onPaginationChanged() {
@@ -313,7 +322,7 @@ export class Pagination extends BaseProperties {
     onMarkerShapeChange() {
         this.updatePositions();
         this.updateMarkers();
-        this.chartUpdateCallback();
+        this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);
     }
 
     attachPagination(node: Group) {

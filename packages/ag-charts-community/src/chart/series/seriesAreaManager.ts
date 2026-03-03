@@ -261,7 +261,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private update(type?: ChartUpdateType, opts?: UpdateOpts) {
-        this.chart.ctx.eventsHub.emit('chart:request-update', { type, opts });
+        this.chart.ctx.updateService.update(type, opts);
     }
 
     public seriesChanged(series: UnknownSeries[]) {

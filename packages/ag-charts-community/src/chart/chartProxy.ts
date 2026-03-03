@@ -378,10 +378,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     private async setStateOriginators(state: AgChartState, originators: MementoOriginator[]) {
         this.factoryApi.caretaker.restore(state, ...originators);
-        this.chart?.ctx.eventsHub.emit('chart:request-update', {
-            type: ChartUpdateType.PROCESS_DATA,
-            opts: { forceNodeDataRefresh: true },
-        });
+        this.chart?.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
         await this.chart?.waitForUpdate();
     }
 }

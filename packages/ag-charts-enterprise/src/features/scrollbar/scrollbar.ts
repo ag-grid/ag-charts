@@ -378,7 +378,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
         state.hovered = nextHovered;
         this.updateStyles(state);
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     override destroy() {

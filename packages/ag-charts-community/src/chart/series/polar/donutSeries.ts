@@ -1823,13 +1823,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     setLegendState(enabledItems: boolean[]) {
         const {
             id: seriesId,
-            ctx: { legendManager, eventsHub },
+            ctx: { legendManager, updateService },
         } = this;
         for (const [itemId, enabled] of enabledItems.entries()) {
             legendManager.toggleItem(enabled, seriesId, itemId);
         }
         legendManager.update();
-        eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
+        updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {

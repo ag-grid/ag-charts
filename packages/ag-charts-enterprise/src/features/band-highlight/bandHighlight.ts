@@ -78,7 +78,7 @@ export class BandHighlight extends AbstractModuleInstance {
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
                 this.hideBand();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+                this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
             }
         });
 
@@ -216,7 +216,7 @@ export class BandHighlight extends AbstractModuleInstance {
             this.hideBand();
         }
 
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private updateBandPosition() {

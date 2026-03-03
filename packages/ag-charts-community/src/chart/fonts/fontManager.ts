@@ -1,14 +1,14 @@
 import { ChartUpdateType, cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
 
-import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
+import type { UpdateService } from '../updateService';
 
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
 
     constructor(
         private readonly domManager: DOMManager,
-        private readonly eventsHub: EventsHub
+        private readonly updateService: UpdateService
     ) {}
 
     public updateFonts(fonts?: Set<string>) {
@@ -64,7 +64,7 @@ export class FontManager {
             if (width != null && width > 0) {
                 // Clear the text measurer pool to ensure the font metrics are recalculated on update
                 cachedTextMeasurer.clear();
-                this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+                this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
             }
         });
         fontCheckObserver.observe(fontCheckElement);

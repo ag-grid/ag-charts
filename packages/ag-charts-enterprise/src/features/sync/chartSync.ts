@@ -105,9 +105,9 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
         debug('ChartSync.updateChart()', chart.id, ChartUpdateType[updateType], chart);
         if (updateType === ChartUpdateType.PROCESS_DOMAIN) {
-            chart.ctx.eventsHub.emit('chart:request-update', { type: updateType, opts: { forceNodeDataRefresh: true } });
+            chart.ctx.updateService.update(updateType, { forceNodeDataRefresh: true });
         } else {
-            chart.ctx.eventsHub.emit('chart:request-update', { type: updateType });
+            chart.ctx.updateService.update(updateType);
         }
     }
 

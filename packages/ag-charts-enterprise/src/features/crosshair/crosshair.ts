@@ -79,7 +79,7 @@ export class Crosshair extends AbstractModuleInstance {
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.crosshairGroup.visible && !isSeriesAreaChild) {
                 this.hideCrosshairs();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+                this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
             }
         });
 
@@ -216,13 +216,13 @@ export class Crosshair extends AbstractModuleInstance {
         this.updatePositions(this.getData(event));
         this.crosshairGroup.visible = true;
 
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private onMouseOut() {
         if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
         this.hideCrosshairs();
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private onKeyPress() {

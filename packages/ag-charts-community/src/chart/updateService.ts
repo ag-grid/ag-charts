@@ -1,6 +1,8 @@
-import { ChartAxisDirection, EventEmitter, type EventListener } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, EventEmitter, type EventListener } from 'ag-charts-core';
 
 import type { ISeries } from './series/seriesTypes';
+
+export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
     readonly type: 'update-complete';
@@ -49,12 +51,18 @@ interface EventMap {
 export class UpdateService {
     private readonly events = new EventEmitter<EventMap>();
 
+    constructor(private readonly updateCallback: UpdateCallback) {}
+
     public addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
         return this.events.on(eventName, listener);
     }
 
     public destroy() {
         this.events.clear();
+    }
+
+    public update(type = ChartUpdateType.FULL, options?: UpdateOpts) {
+        this.updateCallback(type, options);
     }
 
     public dispatchUpdateComplete(apiUpdate: boolean, wasShortcut: boolean) {
