@@ -56,6 +56,27 @@ interface BenchmarkResult {
     timings: number[];
 }
 
+interface CompactResult {
+    testCase: string;
+    params: Record<string, string>;
+    averageTime: number;
+    minTime: number;
+    maxTime: number;
+    sampleCount: number;
+}
+
+interface CompactExportData {
+    version: string;
+    environment: {
+        viewport: { width: number; height: number };
+        chart?: { width: number; height: number } | null;
+        devicePixelRatio: number;
+        hostname?: string;
+    };
+    metadata?: Record<string, unknown>;
+    results: CompactResult[];
+}
+
 // Internal normalized variant (always has params)
 interface NormalizedVariant {
     params: Record<string, string>;
@@ -86,6 +107,21 @@ function formatParams(params: Record<string, string>): string {
     const keys = Object.keys(params);
     if (keys.length === 0) return '';
     return keys.map((k) => `${k}: ${params[k]}`).join(', ');
+}
+
+function resultKey(result: { testCase: string; params: Record<string, string> }): string {
+    const sortedParams = Object.entries(result.params)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${v}`);
+    return [result.testCase, ...sortedParams].join('|');
+}
+
+function isValidCompactExportData(data: unknown): data is CompactExportData {
+    if (!data || typeof data !== 'object') return false;
+    const d = data as Record<string, unknown>;
+    if (!Array.isArray(d.results) || d.results.length === 0) return false;
+    const first = d.results[0] as Record<string, unknown>;
+    return typeof first.testCase === 'string' && first.params != null && typeof first.averageTime === 'number';
 }
 
 /**
@@ -192,6 +228,8 @@ const BENCHMARK_THEME_CSS = `
         --bm-table-row-hover: #e5effd;  /* brand-100 */
         --bm-run-button-bg: #28a745;  /* success/positive */
         --bm-overlay-bg: rgba(255, 255, 255, 0.8);  /* semi-transparent white */
+        --bm-change-faster: #28a745;  /* green - current is faster than baseline */
+        --bm-change-slower: #dc3545;  /* red - current is slower than baseline */
     }
 
     [data-dark-mode="true"] {
@@ -224,6 +262,8 @@ const BENCHMARK_THEME_CSS = `
         --bm-table-row-hover: #002e7e;  /* brand-800 */
         --bm-run-button-bg: #28a745;  /* standard success - not too bright */
         --bm-overlay-bg: rgba(20, 29, 44, 0.8);  /* semi-transparent dark */
+        --bm-change-faster: #4ade80;  /* lighter green for dark mode */
+        --bm-change-slower: #f87171;  /* lighter red for dark mode */
     }
 `;
 
@@ -426,8 +466,7 @@ class BenchmarkUI {
         updateIndex: number,
         totalUpdates: number,
         version: string,
-        warnings: string[],
-        showExportButton = false
+        warnings: string[]
     ): void {
         if (!this.progressElement) return;
 
@@ -446,10 +485,6 @@ class BenchmarkUI {
                 .join('');
         }
 
-        const exportButton = showExportButton
-            ? `<button id="exportBenchmarkResults" style="background: linear-gradient(to bottom, var(--bm-primary-bg) 0%, var(--bm-primary-bg-end) 100%); color: white; border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;">Export JSON</button>`
-            : '';
-
         this.progressElement.style.cssText =
             'padding: 12px 16px; background-color: transparent; border: none; border-radius: 0; font-family: system-ui, -apple-system, sans-serif;';
         this.progressElement.innerHTML = `
@@ -458,9 +493,13 @@ class BenchmarkUI {
                     <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${statusText}
                     </span>
-                    <span style="background: var(--bm-primary-bg); color: white; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; white-space: nowrap;">
+                    ${
+                        status === 'running'
+                            ? `<span style="background: var(--bm-primary-bg); color: white; padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; white-space: nowrap;">
                         ${currentTest}
-                    </span>
+                    </span>`
+                            : ''
+                    }
                     <span style="background: var(--bm-badge-bg); color: var(--bm-badge-text); padding: 5px 12px; border-radius: 12px; font-weight: 500; font-size: 12px; border: 1px solid var(--bm-badge-border); white-space: nowrap;">
                         Tests: ${completedTests}/${totalTests} <strong style="color: var(--bm-badge-accent);">${testProgress}%</strong>
                     </span>
@@ -469,11 +508,12 @@ class BenchmarkUI {
                     </span>
                     ${warningsBadges}
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                    <span id="benchmark-info-btn-slot" style="position: relative; display: flex; align-items: center;"></span>
                     <span style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;">
                         v${version}
                     </span>
-                    ${exportButton}
+                    <span id="benchmark-action-btns-slot" style="position: relative; display: flex; gap: 6px; align-items: center;"></span>
                 </div>
             </div>
         `;
@@ -482,20 +522,19 @@ class BenchmarkUI {
     displayResults(
         results: BenchmarkResult[],
         formatTestCase: (testCase: string) => string,
-        _version: string,
+        version: string,
         _metadata?: Record<string, unknown>,
-        onExport?: () => void
+        onExport?: () => void,
+        baselineData?: CompactExportData | null
     ): void {
         if (!this.resultsElement) return;
 
-        // Calculate which columns need right-alignment (numeric columns start after Parameters)
-        const firstNumericCol = 3; // Test Case + Parameters + first numeric (Avg Time)
+        // Numeric columns start at col 3 (Test Case + Parameters + first numeric)
+        const firstNumericCol = 3;
 
         let html = `
             <style>
                 .benchmark-table-container {
-                    max-height: 300px;
-                    overflow-y: auto;
                     border: 1px solid var(--bm-table-border);
                     border-radius: 4px;
                     margin: 0 16px 16px 16px;
@@ -545,24 +584,120 @@ class BenchmarkUI {
                 .benchmark-param {
                     font-weight: 500;
                 }
+                .benchmark-change {
+                    font-size: 11px;
+                    margin-top: 2px;
+                    cursor: default;
+                }
+                .benchmark-action-btn {
+                    height: 28px;
+                    min-width: 28px;
+                    border-radius: 6px;
+                    border: 1px solid var(--bm-table-border);
+                    background: var(--bm-table-header-start);
+                    color: var(--bm-table-header-text);
+                    font-size: 16px;
+                    line-height: 1;
+                    cursor: pointer;
+                    padding: 0 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .benchmark-action-btn:hover {
+                    background: var(--bm-table-header-end);
+                    border-color: var(--bm-table-header-text);
+                }
+                .benchmark-action-btn.bm-flash-success {
+                    background: var(--bm-change-faster);
+                    border-color: var(--bm-change-faster);
+                    color: white;
+                }
+                .benchmark-action-btn.bm-flash-error {
+                    background: var(--bm-change-slower);
+                    border-color: var(--bm-change-slower);
+                    color: white;
+                }
+                .benchmark-info-popup {
+                    position: absolute;
+                    top: calc(100% + 4px);
+                    right: 0;
+                    background: var(--bm-container-bg);
+                    border: 1px solid var(--bm-table-border);
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    color: var(--bm-table-text);
+                    font-family: system-ui, -apple-system, sans-serif;
+                    white-space: nowrap;
+                    z-index: 10;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                }
             </style>
         `;
 
+        let baselineMap: Map<string, CompactResult> | null = null;
+        let infoSlotHtml: string;
+        if (baselineData) {
+            baselineMap = new Map<string, CompactResult>();
+            for (const r of baselineData.results) {
+                baselineMap.set(resultKey(r), r);
+            }
+
+            const vp = baselineData.environment.viewport;
+            const dpr = baselineData.environment.devicePixelRatio;
+            const currentHostname = window.location.hostname || undefined;
+            const baselineHostname = baselineData.environment.hostname;
+            const showHostnames = currentHostname || baselineHostname;
+            const currentLabel = showHostnames && currentHostname ? ` (${currentHostname})` : '';
+            const baselineLabel = showHostnames && baselineHostname ? ` (${baselineHostname})` : '';
+            infoSlotHtml = `<button class="benchmark-action-btn" title="Comparison details" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='none'?'block':'none'">ⓘ</button>
+                <div class="benchmark-info-popup" style="display: none;">
+                    Comparing <strong>v${version}${currentLabel}</strong> vs <strong>v${baselineData.version}${baselineLabel}</strong><br>${vp.width}×${vp.height}px, ${dpr}× DPR
+                </div>`;
+        } else {
+            // Always reserve space for the info button so the other buttons don't shift when it appears
+            infoSlotHtml = `<button class="benchmark-action-btn" style="visibility: hidden;" tabindex="-1" aria-hidden="true">ⓘ</button>`;
+        }
+
+        html += '<div class="benchmark-table-wrapper">';
         html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
         html += '<th>Test Case</th>';
         html += '<th>Parameters</th>';
-        html += '<th>Avg Time (ms)</th>';
-        html += '<th>Min Time (ms)</th>';
-        html += '<th>Max Time (ms)</th>';
+        html += '<th>Avg (ms)</th>';
+        html += '<th>Min (ms)</th>';
+        html += '<th>Max (ms)</th>';
         html += '<th>Samples</th>';
         html += '</tr></thead><tbody>';
 
         results.forEach((result) => {
+            let avgCell = result.averageTime.toFixed(3);
+            if (baselineMap) {
+                const baseline = baselineMap.get(
+                    resultKey({ testCase: formatTestCase(result.testCase), params: result.params })
+                );
+                if (baseline) {
+                    const changePct = ((result.averageTime - baseline.averageTime) / baseline.averageTime) * 100;
+                    let changeText: string;
+                    let changeStyle = '';
+                    if (Math.abs(changePct) <= 1) {
+                        changeText = `${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%`;
+                    } else if (changePct < 0) {
+                        changeText = `${changePct.toFixed(1)}%`;
+                        changeStyle = 'color: var(--bm-change-faster); font-weight: 600;';
+                    } else {
+                        changeText = `+${changePct.toFixed(1)}%`;
+                        changeStyle = 'color: var(--bm-change-slower); font-weight: 600;';
+                    }
+                    avgCell = `${result.averageTime.toFixed(3)}<div class="benchmark-change" style="${changeStyle}" title="Baseline: ${baseline.averageTime.toFixed(3)}ms">${changeText}</div>`;
+                }
+            }
+
             html += '<tr>';
             html += `<td>${formatTestCase(result.testCase)}</td>`;
             html += `<td><span class="benchmark-param">${formatParams(result.params)}</span></td>`;
-            html += `<td>${result.averageTime.toFixed(3)}</td>`;
+            html += `<td>${avgCell}</td>`;
             html += `<td>${result.minTime.toFixed(3)}</td>`;
             html += `<td>${result.maxTime.toFixed(3)}</td>`;
             html += `<td>${result.sampleCount}</td>`;
@@ -570,11 +705,27 @@ class BenchmarkUI {
         });
 
         html += '</tbody></table>';
-        html += '</div>';
+        html += '</div>'; // close benchmark-table-container
+        html += '</div>'; // close benchmark-table-wrapper
 
         this.resultsElement.innerHTML = html;
 
-        // Add export functionality (remove button if no handler provided)
+        // Inject main action buttons into the slot to the right of the version badge
+        const slot = document.getElementById('benchmark-action-btns-slot');
+        if (slot) {
+            slot.innerHTML = `
+                <button class="benchmark-action-btn" id="copyBenchmarkResults" title="Copy results to clipboard">⎘</button>
+                <button class="benchmark-action-btn" id="exportBenchmarkResults" title="Export as JSON">⤓</button>
+                <button class="benchmark-action-btn" id="compareBenchmarkResults" title="Compare with clipboard">⇄</button>`;
+        }
+
+        // Inject info button into its dedicated slot to the left of the version badge
+        const infoSlot = document.getElementById('benchmark-info-btn-slot');
+        if (infoSlot) {
+            infoSlot.innerHTML = infoSlotHtml;
+        }
+
+        // Wire up export button
         const exportButton = document.getElementById('exportBenchmarkResults');
         if (exportButton && onExport) {
             exportButton.addEventListener('click', onExport);
@@ -592,6 +743,12 @@ class BenchmarkUI {
             samples: r.sampleCount,
         }));
         console.table(consoleData);
+    }
+
+    clearResults(): void {
+        if (this.resultsElement) {
+            this.resultsElement.innerHTML = '';
+        }
     }
 
     setRunButtonHandler(handler: () => void): void {
@@ -622,6 +779,29 @@ class BenchmarkUI {
             this.panelToggleButton.textContent = '▼ Hide Panel';
         }
     }
+
+    showEventBlockingIndicator(): void {
+        const chartElement = document.getElementById('myChart') as HTMLElement | null;
+        if (chartElement) {
+            chartElement.style.cursor = 'not-allowed';
+        }
+        const chartParent = this.getChartParentWithPositioning();
+        if (!chartParent || document.getElementById('benchmarkEventBlockBadge')) return;
+        const badge = document.createElement('div');
+        badge.id = 'benchmarkEventBlockBadge';
+        badge.textContent = 'Events Blocked';
+        badge.style.cssText =
+            'position: absolute; top: 10px; left: 10px; z-index: 101; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; pointer-events: none;';
+        chartParent.appendChild(badge);
+    }
+
+    hideEventBlockingIndicator(): void {
+        const chartElement = document.getElementById('myChart') as HTMLElement | null;
+        if (chartElement) {
+            chartElement.style.cursor = '';
+        }
+        document.getElementById('benchmarkEventBlockBadge')?.remove();
+    }
 }
 
 /**
@@ -637,6 +817,9 @@ class BenchmarkRunner {
     private currentTestCase: NormalizedTestCase | null = null;
     private currentVariant: NormalizedVariant | null = null;
     private readonly version: string;
+    private eventBlockers: Array<{ el: Element; type: string; handler: (e: Event) => void }> = [];
+    private baselineData: CompactExportData | null = null;
+    private clipboardPollInterval: ReturnType<typeof setInterval> | null = null;
 
     constructor(config: NormalizedConfig, ui: BenchmarkUI) {
         this.config = config;
@@ -665,13 +848,20 @@ class BenchmarkRunner {
     async run(): Promise<void> {
         if (this.isRunning) return;
 
+        if (this.clipboardPollInterval !== null) {
+            clearInterval(this.clipboardPollInterval);
+            this.clipboardPollInterval = null;
+        }
         this.isRunning = true;
         this.results = [];
         this.updateIndex = 0;
         this.totalUpdates = this.calculateTotalUpdates();
 
+        this.ui.clearResults();
         this.ui.hideControls();
         this.ui.show();
+        this.installEventBlockers();
+        this.ui.showEventBlockingIndicator();
         this.ui.setRunButtonEnabled(false);
         this.updateProgress();
 
@@ -696,8 +886,22 @@ class BenchmarkRunner {
                 if (testCase.teardown) {
                     await testCase.teardown();
                 }
+
+                // Reset any tooltips/highlights left by hover-based test cases.
+                // Must target the inner element the chart listens on (same as hover()).
+                const chartEl = document.getElementById('myChart');
+                if (chartEl) {
+                    const leaveTarget =
+                        (chartEl.querySelector('.ag-charts-series-area') as HTMLElement) ??
+                        (chartEl.querySelector('canvas') as HTMLElement) ??
+                        chartEl;
+                    leaveTarget.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+                }
             }
 
+            this.isRunning = false;
+            this.currentTestCase = null;
+            this.currentVariant = null;
             this.displayResults();
             (window as any).__benchmarkResults = this.buildExportData();
         } catch (error) {
@@ -709,6 +913,8 @@ class BenchmarkRunner {
             (window as any).__benchmarkComplete = true;
             this.currentTestCase = null;
             this.currentVariant = null;
+            this.removeEventBlockers();
+            this.ui.hideEventBlockingIndicator();
             this.ui.setRunButtonEnabled(true);
 
             // Call onComplete callback
@@ -797,7 +1003,7 @@ class BenchmarkRunner {
         });
     }
 
-    private updateProgress(showExportButton = false): void {
+    private updateProgress(): void {
         const variantDisplay = this.currentVariant ? formatParams(this.currentVariant.params) : '';
         const currentTest = this.currentTestCase
             ? `${this.currentTestCase.label || this.currentTestCase.id}${variantDisplay ? ` (${variantDisplay})` : ''}`
@@ -816,14 +1022,85 @@ class BenchmarkRunner {
             this.updateIndex,
             this.totalUpdates,
             this.version,
-            this.config.warnings,
-            showExportButton
+            this.config.warnings
         );
+    }
+
+    private installEventBlockers(): void {
+        const chartElement = document.getElementById('myChart');
+        if (!chartElement) return;
+
+        const eventTypes = [
+            'mousemove',
+            'mousedown',
+            'mouseup',
+            'mouseenter',
+            'mouseleave',
+            'click',
+            'dblclick',
+            'pointerdown',
+            'pointermove',
+            'pointerup',
+            'pointerover',
+            'pointerout',
+            'wheel',
+            'contextmenu',
+        ];
+
+        for (const type of eventTypes) {
+            const handler = (e: Event) => {
+                if (e.isTrusted) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                }
+            };
+            chartElement.addEventListener(type, handler, { capture: true });
+            this.eventBlockers.push({ el: chartElement, type, handler });
+        }
+    }
+
+    private removeEventBlockers(): void {
+        for (const { el, type, handler } of this.eventBlockers) {
+            el.removeEventListener(type, handler, { capture: true });
+        }
+        this.eventBlockers = [];
     }
 
     private formatTestCase(testCase: string): string {
         const tc = this.config.testCases.find((t) => t.id === testCase);
         return tc?.label || testCase;
+    }
+
+    private buildCompactExportData(): CompactExportData {
+        const chartElement = document.getElementById('myChart');
+        const chartRect = chartElement?.getBoundingClientRect();
+
+        return {
+            version: this.version,
+            environment: {
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                },
+                chart: chartRect
+                    ? {
+                          width: Math.round(chartRect.width),
+                          height: Math.round(chartRect.height),
+                      }
+                    : null,
+                devicePixelRatio: window.devicePixelRatio,
+                hostname: window.location.hostname || undefined,
+            },
+            metadata: this.config.metadata || {},
+            results: this.results.map((r) => ({
+                testCase: this.formatTestCase(r.testCase),
+                params: r.params,
+                averageTime: r.averageTime,
+                minTime: r.minTime,
+                maxTime: r.maxTime,
+                sampleCount: r.sampleCount,
+            })),
+        };
     }
 
     private buildExportData() {
@@ -855,6 +1132,7 @@ class BenchmarkRunner {
                       }
                     : null,
                 devicePixelRatio: window.devicePixelRatio,
+                hostname: window.location.hostname || undefined,
             },
             metadata: this.config.metadata || {},
             results: this.results.map((r) => ({
@@ -870,7 +1148,11 @@ class BenchmarkRunner {
     }
 
     private displayResults(): void {
-        this.updateProgress(true);
+        if (this.clipboardPollInterval !== null) {
+            clearInterval(this.clipboardPollInterval);
+            this.clipboardPollInterval = null;
+        }
+        this.updateProgress();
         this.ui.displayResults(
             this.results,
             (testCase) => this.formatTestCase(testCase),
@@ -886,8 +1168,106 @@ class BenchmarkRunner {
                 a.download = `benchmark-results-${new Date().toISOString()}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
-            }
+            },
+            this.baselineData
         );
+
+        // Wire up Copy button
+        const copyBtn = document.getElementById('copyBenchmarkResults') as HTMLButtonElement | null;
+        if (copyBtn) {
+            copyBtn.addEventListener(
+                'click',
+                () => {
+                    const json = JSON.stringify(this.buildCompactExportData(), null, 2);
+                    navigator.clipboard.writeText(json).then(
+                        () => {
+                            copyBtn.classList.add('bm-flash-success');
+                            setTimeout(() => copyBtn.classList.remove('bm-flash-success'), 600);
+                        },
+                        () => {
+                            copyBtn.classList.add('bm-flash-error');
+                            setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600);
+                        }
+                    );
+                },
+                { once: true }
+            );
+        }
+
+        // Wire up Compare button — toggles comparison on/off
+        const compareBtn = document.getElementById('compareBenchmarkResults') as HTMLButtonElement | null;
+        if (compareBtn) {
+            // If already in compare mode, show button as active
+            if (this.baselineData) {
+                compareBtn.style.background = 'var(--bm-status-complete)';
+                compareBtn.style.color = 'white';
+                compareBtn.title = 'Comparing — click to exit comparison';
+            }
+
+            compareBtn.addEventListener('click', () => {
+                if (this.baselineData) {
+                    // Exit comparison mode
+                    this.baselineData = null;
+                    this.displayResults();
+                } else {
+                    void navigator.clipboard.readText().then(
+                        (text) => {
+                            let parsed: unknown;
+                            try {
+                                parsed = JSON.parse(text);
+                            } catch {
+                                this.ui.showError('Invalid benchmark data in clipboard.');
+                                return;
+                            }
+                            if (!isValidCompactExportData(parsed)) {
+                                this.ui.showError('Invalid benchmark data in clipboard.');
+                                return;
+                            }
+                            this.baselineData = parsed;
+                            this.displayResults();
+                        },
+                        () => {
+                            this.ui.showError('Clipboard read failed. Copy benchmark results first.');
+                        }
+                    );
+                }
+            });
+        }
+
+        // Poll clipboard every 1s to keep the Compare button highlight in sync
+        const pollClipboard = () => {
+            const btn = document.getElementById('compareBenchmarkResults') as HTMLButtonElement | null;
+            if (!btn) {
+                // Button gone (e.g. results cleared) — stop polling
+                if (this.clipboardPollInterval !== null) {
+                    clearInterval(this.clipboardPollInterval);
+                    this.clipboardPollInterval = null;
+                }
+                return;
+            }
+            // Don't overwrite the "active comparison" styling
+            if (this.baselineData) return;
+            void navigator.clipboard.readText().then(
+                (text) => {
+                    try {
+                        const hasData = isValidCompactExportData(JSON.parse(text));
+                        btn.style.background = hasData ? 'var(--bm-status-complete)' : '';
+                        btn.style.color = hasData ? 'white' : '';
+                        btn.title = hasData
+                            ? 'Clipboard contains benchmark data — click to compare'
+                            : 'Compare with clipboard';
+                    } catch {
+                        btn.style.background = '';
+                        btn.style.color = '';
+                    }
+                },
+                () => {
+                    /* clipboard access denied — ignore silently */
+                }
+            );
+        };
+        pollClipboard();
+        this.clipboardPollInterval = setInterval(pollClipboard, 1000);
     }
 }
 
