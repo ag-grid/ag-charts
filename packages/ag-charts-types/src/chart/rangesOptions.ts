@@ -20,4 +20,9 @@ export type AgRangesButtonValue =
     | undefined;
 
 export type AgRangesButtonValuePair = [Date | number, Date | number];
-export type AgRangesButtonValueFunction = (start: Date | number, end: Date | number) => [Date | number, Date | number];
+export type AgRangesButtonValueFunction = (
+    start: Date | number,
+    end: Date | number,
+    windowStart: Date | number,
+    windowEnd: Date | number
+) => [Date | number, Date | number];

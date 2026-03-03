@@ -479,7 +479,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     public updateWith(
         { source, sourceDetail }: UpdateZoomSourcing,
         direction: CartesianAxisDirection,
-        fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]
+        fn: (
+            start: Date | number,
+            end: Date | number,
+            windowStart: Date | number,
+            windowEnd: Date | number
+        ) => [Date | number, Date | number]
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
@@ -487,8 +492,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const extents = this.getDomainExtents(axis);
         if (!extents) return;
 
-        let [start, end] = extents;
-        [start, end] = fn(start, end);
+        const [min, max] = axis.visibleRange;
+        const range = this.getRange(axis.id, { min, max });
+        if (!range) return;
+
+        const [domainStart, domainEnd] = extents;
+        const { start: windowStart, end: windowEnd } = range;
+
+        const [start, end] = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
 
         const ratio = this.rangeToRatioAxis(axis, { start, end });
         if (!ratio) return;
@@ -775,11 +786,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         let end;
 
         if (d0 <= d1) {
-            start = axis.scale.invert(0); // 0 is the start of the visible axis
-            end = axis.scale.invert(d0 + (d1 - d0) * ratio.max);
+            start = axis.scale.invert(0, true); // 0 is the start of the visible axis
+            end = axis.scale.invert(d0 + (d1 - d0) * ratio.max, true);
         } else {
-            start = axis.scale.invert(d0 - (d0 - d1) * ratio.min);
-            end = axis.scale.invert(0);
+            start = axis.scale.invert(d0 - (d0 - d1) * ratio.min, true);
+            end = axis.scale.invert(0, true);
         }
 
         return { start, end };
