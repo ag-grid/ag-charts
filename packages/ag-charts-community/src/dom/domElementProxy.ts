@@ -1,5 +1,7 @@
 import type { Size, SizeMonitor } from '../util/sizeMonitor';
 
+type CacheKey = 'innerHTML' | 'contentStyles' | `p:${string}` | `c:${string}` | `a:${string}`;
+
 /**
  * Proxies all DOM access to a single HTMLElement.
  *
@@ -26,8 +28,8 @@ import type { Size, SizeMonitor } from '../util/sizeMonitor';
  *   explicitly to apply pending writes.
  */
 export class DOMElementProxy {
-    private cache: Record<string, unknown> = {};
-    private readonly pendingWrites: Map<string, () => void> | undefined;
+    private cache: Partial<Record<CacheKey, unknown>> = {};
+    private readonly pendingWrites: Map<CacheKey, () => void> | undefined;
     private readonly sizeMonitor: SizeMonitor | undefined;
 
     constructor(
@@ -78,21 +80,21 @@ export class DOMElementProxy {
 
     /** Returns true if value differs from cached (uses ===). Updates cache.
      *  Callers comparing objects must serialise first (e.g. JSON.stringify). */
-    changed(key: string, value: unknown): boolean {
+    changed(key: CacheKey, value: unknown): boolean {
         if (this.cache[key] === value) return false;
         this.cache[key] = value;
         return true;
     }
 
     /** Remove a key, forcing next changed() to return true. */
-    invalidate(key: string): void {
+    invalidate(key: CacheKey): void {
         delete this.cache[key];
     }
 
     /** style.setProperty(name, value), skipped if unchanged.
      *  Works for both standard properties and CSS custom properties. */
     setProperty(name: string, value: string): void {
-        const cacheKey = `p:${name}`;
+        const cacheKey: CacheKey = `p:${name}`;
         if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {
                 this.pendingWrites.set(cacheKey, () => {
@@ -106,7 +108,7 @@ export class DOMElementProxy {
 
     /** classList.toggle(name, force), skipped if unchanged. */
     toggleClass(name: string, force: boolean): void {
-        const cacheKey = `c:${name}`;
+        const cacheKey: CacheKey = `c:${name}`;
         if (this.changed(cacheKey, force)) {
             if (this.pendingWrites) {
                 this.pendingWrites.set(cacheKey, () => {
@@ -120,7 +122,7 @@ export class DOMElementProxy {
 
     /** setAttribute (value != null) or removeAttribute (value == null). */
     setAttr(name: string, value: string | null): void {
-        const cacheKey = `a:${name}`;
+        const cacheKey: CacheKey = `a:${name}`;
         if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {
                 this.pendingWrites.set(cacheKey, () => {

@@ -17,29 +17,29 @@ describe('DOMElementProxy', () => {
     describe('changed()', () => {
         it('should return true on first call', () => {
             const proxy = new DOMElementProxy(createElement());
-            expect(proxy.changed('key', 'value')).toBe(true);
+            expect(proxy.changed('p:key', 'value')).toBe(true);
         });
 
         it('should return false on same value', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('key', 'value');
-            expect(proxy.changed('key', 'value')).toBe(false);
+            proxy.changed('p:key', 'value');
+            expect(proxy.changed('p:key', 'value')).toBe(false);
         });
 
         it('should return true when value differs', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('key', 'a');
-            expect(proxy.changed('key', 'b')).toBe(true);
+            proxy.changed('p:key', 'a');
+            expect(proxy.changed('p:key', 'b')).toBe(true);
         });
 
         it('should use reference equality for objects', () => {
             const proxy = new DOMElementProxy(createElement());
             const obj = { x: 1 };
-            proxy.changed('key', obj);
+            proxy.changed('p:key', obj);
             // Same reference => no change
-            expect(proxy.changed('key', obj)).toBe(false);
+            expect(proxy.changed('p:key', obj)).toBe(false);
             // Different reference with same content => changed
-            expect(proxy.changed('key', { x: 1 })).toBe(true);
+            expect(proxy.changed('p:key', { x: 1 })).toBe(true);
         });
     });
 
@@ -332,31 +332,31 @@ describe('DOMElementProxy', () => {
     describe('cache lifecycle', () => {
         it('should force next changed() to return true after invalidate()', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('key', 'value');
-            expect(proxy.changed('key', 'value')).toBe(false);
+            proxy.changed('p:key', 'value');
+            expect(proxy.changed('p:key', 'value')).toBe(false);
 
-            proxy.invalidate('key');
-            expect(proxy.changed('key', 'value')).toBe(true);
+            proxy.invalidate('p:key');
+            expect(proxy.changed('p:key', 'value')).toBe(true);
         });
 
         it('should only invalidate the specified key', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('a', 1);
-            proxy.changed('b', 2);
+            proxy.changed('p:a', 1);
+            proxy.changed('p:b', 2);
 
-            proxy.invalidate('a');
-            expect(proxy.changed('a', 1)).toBe(true);
-            expect(proxy.changed('b', 2)).toBe(false);
+            proxy.invalidate('p:a');
+            expect(proxy.changed('p:a', 1)).toBe(true);
+            expect(proxy.changed('p:b', 2)).toBe(false);
         });
 
         it('should clear all cached values on reset()', () => {
             const proxy = new DOMElementProxy(createElement());
-            proxy.changed('a', 1);
-            proxy.changed('b', 2);
+            proxy.changed('p:a', 1);
+            proxy.changed('p:b', 2);
 
             proxy.reset();
-            expect(proxy.changed('a', 1)).toBe(true);
-            expect(proxy.changed('b', 2)).toBe(true);
+            expect(proxy.changed('p:a', 1)).toBe(true);
+            expect(proxy.changed('p:b', 2)).toBe(true);
         });
     });
 
