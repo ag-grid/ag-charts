@@ -181,6 +181,8 @@
     "@swc/cli/**/bin-version/execa/cross-spawn": "7.0.6",
     "ng-packagr/**/cross-spawn": "7.0.6",
     "vitest/**/vite": "6.3.5",
-    "@modelcontextprotocol/sdk": "1.26.0"
+    "@modelcontextprotocol/sdk": "1.26.0",
+    "@nx/devkit/**/ejs": "3.1.10",
+    "@nx/devkit/**/ejs/jake": "10.9.4"
   }
 }
