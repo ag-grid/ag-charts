@@ -301,3 +301,10 @@ export async function canvasToPageTransformer(page: Page): Promise<PointTransfor
 export async function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export async function readSwapchainText(page: Page): Promise<string | null> {
+    const activeAnnouncer = page.locator('.ag-charts-series-area [aria-hidden="false"]');
+    const activeLabelId = await activeAnnouncer.getAttribute('aria-labelledby');
+    const activeLabel = page.locator(`#${activeLabelId}`);
+    return await activeLabel.textContent();
+}

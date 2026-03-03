@@ -1,4 +1,4 @@
-import { toPlainText, toTextString } from 'ag-charts-core';
+import { Logger, getDocument, toPlainText, toTextString } from 'ag-charts-core';
 import type { AgTooltipMode, TextOrSegments, TextValue } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
@@ -94,12 +94,26 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     return out;
 }
 
-export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
+function readTextContent(html: string): string {
+    const tempDiv = getDocument().createElement('div');
+    tempDiv.innerHTML = html;
+    const result: string | undefined = tempDiv.textContent?.trim();
+
+    if (result == null) {
+        Logger.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
+        return '';
+    } else {
+        return result;
+    }
+}
+
+export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]): string {
     const content = aggregateTooltipContent(ungroupedContent);
     const ariaLabel: string[] = [];
 
     for (const c of content) {
         if (c.type === 'raw') {
+            ariaLabel.push(readTextContent(c.rawHtmlString));
             continue;
         }
         if (textOrSegmentsIsDefined(c.heading)) {
