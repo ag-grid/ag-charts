@@ -38,11 +38,11 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onDataLoad() {
         this.animationManager.skip();
-        this.updateService.update(ChartUpdateType.UPDATE_DATA);
+        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
     private onDataError() {
-        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
     private onDataSourceChange() {

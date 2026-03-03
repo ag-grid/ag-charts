@@ -1224,6 +1224,6 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private update(status = ChartUpdateType.PRE_SCENE_RENDER) {
-        this.ctx.updateService.update(status);
+        this.ctx.eventsHub.emit('chart:request-update', { type: status });
     }
 }

@@ -428,7 +428,7 @@ export class Zoom extends AbstractModuleInstance {
             paddedRect,
             panner,
             selector,
-            ctx: { interactionManager, tooltipManager, updateService },
+            ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
 
         if (this.activeAxis) {
@@ -459,7 +459,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT, opts: { skipAnimations: true } });
     }
 
     private onSeriesAreaDragEnd() {
@@ -501,7 +501,7 @@ export class Zoom extends AbstractModuleInstance {
                         this.updateZoom(userInteraction('zoom-seriesarea-selector'), newZoom);
                     } else {
                         // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
-                        this.ctx.updateService.update();
+                        this.ctx.eventsHub.emit('chart:request-update', {});
                     }
                 }
                 break;
@@ -561,7 +561,7 @@ export class Zoom extends AbstractModuleInstance {
             enableAxisDragging,
             seriesRect,
             shouldFlipXY,
-            ctx: { interactionManager, tooltipManager, updateService, zoomManager },
+            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
         } = this;
 
         if (!enabled || !enableAxisDragging || !seriesRect) return;
@@ -591,7 +591,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT, opts: { skipAnimations: true } });
     }
 
     private onAxisDragEnd() {
@@ -969,7 +969,10 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!this.isZoomValid(zoom, validOptions)) {
             // Ensure any lingering zoom interaction elements (e.g. selection rect) are cleared
-            this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });
+            this.ctx.eventsHub.emit('chart:request-update', {
+                type: ChartUpdateType.SCENE_RENDER,
+                opts: { skipAnimations: true },
+            });
             return false;
         }
 
