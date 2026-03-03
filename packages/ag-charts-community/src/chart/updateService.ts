@@ -22,6 +22,7 @@ export interface PreSeriesUpdateEvent {
 
 export interface PreSceneRenderEvent {
     readonly type: 'pre-scene-render';
+    readonly apiUpdate: boolean;
 }
 
 export interface ProcessDataEvent {
@@ -80,8 +81,8 @@ export class UpdateService {
         });
     }
 
-    public dispatchPreSceneRender() {
-        this.events.emit('pre-scene-render', { type: 'pre-scene-render' });
+    public dispatchPreSceneRender(apiUpdate: boolean) {
+        this.events.emit('pre-scene-render', { type: 'pre-scene-render', apiUpdate });
     }
 
     public dispatchProcessData({ series }: { series: { shouldFlipXY?: boolean } }) {

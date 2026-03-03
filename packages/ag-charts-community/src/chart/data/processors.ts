@@ -625,7 +625,19 @@ export function diff(
         type: 'processor',
         property: 'diff',
         calculate(processedData, previousValue): Record<string, ProcessedOutputDiff> | undefined {
-            if (!processedDataIsAnimatable(processedData)) return;
+            if (!processedDataIsAnimatable(processedData)) {
+                // Skip expensive O(n) comparison but still signal that data may have changed.
+                return {
+                    ...previousValue,
+                    [id]: {
+                        changed: true,
+                        added: new Set<string>(),
+                        updated: new Set<string>(),
+                        removed: new Set<string>(),
+                        moved: new Set<string>(),
+                    },
+                };
+            }
 
             const moved = new Map<string, number>();
             const added = new Map<string, number>();

@@ -28,10 +28,6 @@ ModuleRegistry.registerModules([
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    animation: {
-        enabled: false,
-    },
-    background: { fill: 'transparent' },
     data: getRandomizedData(),
     series: [
         {
