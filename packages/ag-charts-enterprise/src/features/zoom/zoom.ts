@@ -459,7 +459,10 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PERFORM_LAYOUT,
+            opts: { skipAnimations: true },
+        });
     }
 
     private onSeriesAreaDragEnd() {
@@ -501,7 +504,7 @@ export class Zoom extends AbstractModuleInstance {
                         this.updateZoom(userInteraction('zoom-seriesarea-selector'), newZoom);
                     } else {
                         // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
-                        this.ctx.updateService.update();
+                        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
                     }
                 }
                 break;
@@ -591,7 +594,10 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PERFORM_LAYOUT,
+            opts: { skipAnimations: true },
+        });
     }
 
     private onAxisDragEnd() {
