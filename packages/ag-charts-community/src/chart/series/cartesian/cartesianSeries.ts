@@ -1116,7 +1116,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);
-        const sortOrder = dataModel!.getColumnSortOrder(this, crossAxisKey, processedData!);
+        const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
             const crossRange = clippedRangeIndices(
                 sortOrder,
@@ -1130,21 +1130,19 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
         const range0 = crossAxisRange[0].valueOf();
         const range1 = crossAxisRange[1].valueOf();
-        const axisValues: any[] = [];
+        let axisMin = Infinity;
+        let axisMax = -Infinity;
         for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const c = crossAxisValue.valueOf();
             if (c < range0 || c > range1) continue;
-
-            const values = allAxisValues.map((v) => v[i]);
-            if (c >= range0) {
-                axisValues.push(...values);
-            }
-            if (c <= range1) {
-                axisValues.push(...values);
+            for (let j = 0; j < axisKeys.length; j++) {
+                const axisValue = allAxisValues[j][i];
+                axisMin = Math.min(axisMin, axisValue);
+                axisMax = Math.max(axisMax, axisValue);
             }
         }
 
-        return axisValues;
+        return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
     }
 
     protected zoomFittingVisibleItems(

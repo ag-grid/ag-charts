@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { deepClone } from 'ag-charts-core';
+import { ChartAxisDirection, deepClone } from 'ag-charts-core';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
@@ -2246,6 +2246,57 @@ describe('AreaSeries', () => {
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('axis min/max clipping', () => {
+        it('should clip area series when x-axis min/max is set', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 5 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 10 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 15 },
+                    { x: 5, y: 35 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 1, max: 4 },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+
+            // Verify Y-domain is computed from all visible data within X range [1..4]
+            // (visible y values: 30, 10, 25, 15; area baseline at 0),
+            // not from a single point (the pre-fix bug).
+            const { axes } = deproxy(chart);
+            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            expect(yAxis!.dataDomain.domain).toEqual([0, 30]);
+        });
+
+        it('should clip area series when y-axis min/max is set', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 5 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 10 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 15 },
+                    { x: 5, y: 35 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', nice: false, min: 10, max: 25 },
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
             await compare();
         });
     });

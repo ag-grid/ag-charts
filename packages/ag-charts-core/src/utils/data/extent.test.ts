@@ -77,30 +77,49 @@ describe('extent module', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80, 75);
             expect(result.extent[0]).toBe(-80);
             expect(result.extent[1]).toBe(75);
+            expect(result.clipped).toBe(true);
         });
 
         test('expands extents to include preferredMin/preferredMax', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -65, 60);
             expect(result.extent[0]).toBe(-65);
             expect(result.extent[1]).toBe(60);
+            expect(result.clipped).toBe(false);
         });
 
         test('contracts extents when min/max within domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 45);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(45);
+            expect(result.clipped).toBe(true);
         });
 
         test('does not contract extents when preferredMin/preferredMax within domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -30, 45);
             expect(result.extent[0]).toBe(-50);
             expect(result.extent[1]).toBe(50);
+            expect(result.clipped).toBe(false);
         });
 
         test('prioritises min/max over preferredMin/preferredMax', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 70, -65, 60);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(70);
+            expect(result.clipped).toBe(true);
+        });
+
+        test('clipped when only min is set', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, undefined);
+            expect(result.extent[0]).toBe(-30);
+            expect(result.extent[1]).toBe(50);
+            expect(result.clipped).toBe(true);
+        });
+
+        test('clipped when only max is set', () => {
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, 45);
+            expect(result.extent[0]).toBe(-50);
+            expect(result.extent[1]).toBe(45);
+            expect(result.clipped).toBe(true);
         });
     });
 
@@ -121,6 +140,7 @@ describe('extent module', () => {
             );
             expect(result.extent[0]).toStrictEqual(new Date(2018, 0, 1));
             expect(result.extent[1]).toStrictEqual(new Date(2024, 0, 1));
+            expect(result.clipped).toBe(true);
         });
 
         test('expands extents to include preferredMin/preferredMax', () => {
@@ -141,6 +161,7 @@ describe('extent module', () => {
             );
             expect(result.extent[0]).toStrictEqual(new Date(2018, 0, 1));
             expect(result.extent[1]).toStrictEqual(new Date(2024, 0, 1));
+            expect(result.clipped).toBe(false);
         });
 
         test('contracts extents when min/max within domain', () => {
@@ -159,6 +180,7 @@ describe('extent module', () => {
             );
             expect(result.extent[0]).toStrictEqual(new Date(2019, 6, 1));
             expect(result.extent[1]).toStrictEqual(new Date(2022, 6, 1));
+            expect(result.clipped).toBe(true);
         });
 
         test('does not contract extents when preferredMin/preferredMax within domain', () => {
@@ -179,6 +201,7 @@ describe('extent module', () => {
             );
             expect(result.extent[0]).toStrictEqual(new Date(2019, 0, 1));
             expect(result.extent[1]).toStrictEqual(new Date(2023, 0, 1));
+            expect(result.clipped).toBe(false);
         });
 
         test('prioritises min/max over preferredMin/preferredMax', () => {
@@ -199,6 +222,7 @@ describe('extent module', () => {
             );
             expect(result.extent[0]).toStrictEqual(new Date(2019, 6, 1));
             expect(result.extent[1]).toStrictEqual(new Date(2022, 6, 1));
+            expect(result.clipped).toBe(true);
         });
     });
 });
