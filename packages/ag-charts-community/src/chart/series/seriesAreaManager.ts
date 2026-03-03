@@ -533,7 +533,7 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
-        this.handleFocusFromUserInput({ datumIndexDelta: 0, otherIndexDelta: 0 });
+        this.refreshFocus();
     }
 
     private onBlur(event: FocusEvent) {
