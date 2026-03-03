@@ -271,7 +271,11 @@ export class SeriesAreaManager extends BaseManager {
             if (this.announceMode !== 'always') {
                 this.announceMode = 'never';
             }
-            this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
+
+            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
+            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
+            // trigger and infinite redraw loop).
+            this.refreshFocus();
         }
     }
 
@@ -529,7 +533,7 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
-        this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
+        this.handleFocusFromUserInput({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
     private onBlur(event: FocusEvent) {
@@ -591,19 +595,19 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.onNav(event)) return;
         this.focus.seriesIndex += otherIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
-        this.handleFocus({ datumIndexDelta, otherIndexDelta });
+        this.handleFocusFromUserInput({ datumIndexDelta, otherIndexDelta });
     }
 
     private onHome(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(event)) return;
-        this.handleFocus({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
+        this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
     }
 
     private onEnd(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(event)) return;
         const n = this.focus.series?.data?.data.length;
         if (n !== undefined) {
-            this.handleFocus({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
+            this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
         }
     }
 
@@ -666,6 +670,15 @@ export class SeriesAreaManager extends BaseManager {
         return false;
     }
 
+    private handleFocusFromUserInput(inputs: HandleFocusInputs): void {
+        this.handleFocus(inputs);
+        this.chart.ctx.eventsHub.emit('series:focus-change', null);
+    }
+
+    private refreshFocus(): void {
+        this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
+    }
+
     private handleFocus(inputs: HandleFocusInputs) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
@@ -680,7 +693,6 @@ export class SeriesAreaManager extends BaseManager {
             this.swapChain.update(overlayFocus.text);
             this.announceMode = 'always';
         }
-        this.chart.ctx.eventsHub.emit('series:focus-change', null);
     }
 
     private handleSeriesFocus(inputs: HandleFocusInputs): PickedFocusStatus {
