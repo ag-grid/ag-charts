@@ -48,7 +48,13 @@ import {
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { PickManager, type PickedNode, type PickedNodes } from './pickManager';
-import { type PickFocusInputs, type PickFocusOutputs, type PickViewportFocusInputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
+import {
+    type PickFocusInputs,
+    type PickFocusOutputs,
+    type PickViewportFocusInputs,
+    type SeriesNodePickIntent,
+    type UnknownSeries,
+} from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
@@ -275,15 +281,9 @@ export class SeriesAreaManager extends BaseManager {
                 this.announceMode = 'never';
             }
 
-            if (this.focus.pendingViewportFocus && this.hoverRect) {
+            if (this.focus.pendingViewportFocus) {
                 try {
-                    const pickedFocus = this.focus.series?.pickViewportFocus({ where: 'viewport-start', hoverRect: this.hoverRect, otherIndex: this.focus.seriesIndex });
-                    if (pickedFocus) {
-                        const oldDatumIndex = this.focus.datumIndex;
-                        const oldOtherIndex = this.focus.seriesIndex;
-                        const { datumIndex, otherIndex = oldOtherIndex } = pickedFocus;
-                        this.updatePickedFocus({datumIndex, datumIndexDelta: 0, oldDatumIndex, otherIndex, otherIndexDelta: 0, oldOtherIndex });
-                    }
+                    this.pickViewportFocus('viewport-start');
                 } finally {
                     this.focus.pendingViewportFocus = undefined;
                 }
@@ -787,14 +787,14 @@ export class SeriesAreaManager extends BaseManager {
     private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
         const updateInputs = this.makeUpdateFocusParamsFromDeltas(inputs);
         if (updateInputs === PickedFocusStatus.SERIES_NOT_FOUND) return PickedFocusStatus.SERIES_NOT_FOUND;
-        return this.updatePickedFocus(updateInputs);
+        return this.pickFocus(updateInputs);
     }
 
     private handleSeriesFocusIndices(inputs: FocusIndices): PickedFocusStatus {
         const { datumIndex, otherIndex } = inputs;
         const oldDatumIndex = this.focus.datumIndex;
         const oldOtherIndex = this.focus.seriesIndex;
-        return this.updatePickedFocus({
+        return this.pickFocus({
             datumIndex,
             datumIndexDelta: datumIndex - oldDatumIndex,
             oldDatumIndex: oldDatumIndex,
@@ -804,14 +804,40 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private updatePickedFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
-        const { datumIndex, datumIndexDelta, oldDatumIndex, otherIndex, otherIndexDelta, oldOtherIndex } = inputs;
+    private pickFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
+        const { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta } = inputs;
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
         const pick = focus.series.pickFocus(focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
+
+        return this.updatePickedFocus(inputs, pick);
+    }
+
+    private pickViewportFocus(where: PickViewportFocusInputs['where']): PickedFocusStatus {
+        const { focus, hoverRect } = this;
+        if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
+
+        const pick = focus.series.pickViewportFocus({ where, hoverRect, otherIndex: focus.seriesIndex });
+        if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
+
+        const inputs: UpdatePickedFocusInputs = {
+            datumIndex: pick.datumIndex,
+            datumIndexDelta: 0,
+            oldDatumIndex: this.focus.datumIndex,
+            otherIndex: pick.otherIndex ?? this.focus.seriesIndex,
+            otherIndexDelta: 0,
+            oldOtherIndex: this.focus.seriesIndex,
+        };
+        return this.updatePickedFocus(inputs, pick);
+    }
+
+    private updatePickedFocus(inputs: UpdatePickedFocusInputs, pick: PickFocusOutputs): PickedFocusStatus {
+        const { datumIndexDelta, oldDatumIndex, otherIndexDelta, oldOtherIndex } = inputs;
+        const { focus, hoverRect } = this;
+        if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const { datum } = pick;
         focus.datum = datum;
