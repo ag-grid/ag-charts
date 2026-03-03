@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRangesButtonValue, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -21,6 +21,9 @@ export class Ranges extends AbstractModuleInstance {
     @Property
     public buttons = new PropertiesArray(RangesButtonProperties);
 
+    @Property
+    public enableOutOfRange = false;
+
     private readonly container: HTMLElement;
     private readonly toolbar: _ModuleSupport.BaseToolbar;
     private readonly verticalSpacing = 10;
@@ -38,6 +41,7 @@ export class Ranges extends AbstractModuleInstance {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
+            ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );
@@ -70,6 +74,32 @@ export class Ranges extends AbstractModuleInstance {
         layoutBox.shrink({ bottom: height + verticalSpacing });
     }
 
+    private onLayoutComplete() {
+        const {
+            enabled,
+            enableOutOfRange,
+            buttons,
+            toolbar,
+            ctx: { zoomManager },
+        } = this;
+
+        if (!enabled) return;
+
+        let index = 0;
+        for (const button of buttons) {
+            let buttonEnabled = button.enabled ?? enableOutOfRange;
+
+            if (button.enabled == null && enableOutOfRange === false) {
+                const updateWithFn = this.getUpdateWithFn(button.value);
+                buttonEnabled =
+                    updateWithFn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn);
+            }
+
+            toolbar.toggleButtonEnabledByIndex(index, buttonEnabled);
+            index += 1;
+        }
+    }
+
     private onZoomChanged() {
         this.toolbar.clearActiveButton();
     }
@@ -83,23 +113,39 @@ export class Ranges extends AbstractModuleInstance {
         const { value } = button;
 
         const sourcing = userInteraction(`zoom-range-button-${index}`);
-        if (value == null) {
+        const updateWithFn = this.getUpdateWithFn(value);
+
+        if (updateWithFn == null) {
             zoomManager.resetZoom(sourcing);
-        } else if (typeof value === 'number') {
-            zoomManager.extendToEnd(sourcing, ChartAxisDirection.X, value);
-        } else if (Array.isArray(value)) {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, () => value);
-        } else if (typeof value === 'function') {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, value);
-        } else if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
+        } else {
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn);
+        }
+
+        this.toolbar.toggleActiveButtonByIndex(index);
+    }
+
+    private getUpdateWithFn(value: AgRangesButtonValue): _ModuleSupport.UpdateZoomWithFunction | undefined {
+        if (value == null) return;
+
+        if (typeof value === 'number') {
+            return (_start, end) => [Number(end) - value, undefined];
+        }
+
+        if (Array.isArray(value)) {
+            return () => value;
+        }
+
+        if (typeof value === 'function') {
+            return value;
+        }
+
+        if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
             const [, domainMax] =
                 this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)?.scale.getDomainMinMax() ?? [];
             if (isValidDate(domainMax)) {
                 const start = intervalAgo(value, domainMax);
-                zoomManager.updateWith(sourcing, ChartAxisDirection.X, (d0, d1) => [start ?? d0, d1]);
+                return (d0, d1) => [start ?? d0, d1];
             }
         }
-
-        this.toolbar.toggleActiveButtonByIndex(index);
     }
 }

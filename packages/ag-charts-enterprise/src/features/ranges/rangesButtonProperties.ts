@@ -5,5 +5,8 @@ import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 
 export class RangesButtonProperties extends ToolbarButtonProperties {
     @Property
+    public enabled?: boolean;
+
+    @Property
     public value!: AgRangesButtonValue;
 }
