@@ -297,6 +297,23 @@ describe('DOMElementProxy', () => {
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
+        it('should deduplicate writes to the same property, applying only the last value', () => {
+            const el = createElement();
+            const spy = jest.spyOn(el.style, 'setProperty');
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.setProperty('color', 'red');
+            proxy.invalidate('p:color'); // force cache miss so next write is accepted
+            proxy.setProperty('color', 'green');
+            proxy.invalidate('p:color');
+            proxy.setProperty('color', 'blue');
+            proxy.flush();
+
+            // Only one DOM write should happen — the last value wins
+            expect(spy).toHaveBeenCalledTimes(1);
+            expect(spy).toHaveBeenCalledWith('color', 'blue');
+        });
+
         it('should clear pending writes after flush', () => {
             const el = createElement();
             const spy = jest.spyOn(el.style, 'setProperty');

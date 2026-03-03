@@ -69,7 +69,9 @@ export async function traceAction(page: Page, action: () => Promise<void>): Prom
     const done = new Promise<void>((resolve) => {
         client.on('Tracing.tracingComplete', () => resolve());
         client.on('Tracing.dataCollected', (data: any) => {
-            events.push(...(data.value as TraceEvent[]));
+            for (const ev of data.value as TraceEvent[]) {
+                events.push(ev);
+            }
         });
     });
 

@@ -13,7 +13,7 @@ import type { Size, SizeMonitor } from '../util/sizeMonitor';
  */
 export class DOMElementProxy {
     private cache: Record<string, unknown> = {};
-    private readonly pendingWrites: Array<() => void> | undefined;
+    private readonly pendingWrites: Map<string, () => void> | undefined;
     private readonly sizeMonitor: SizeMonitor | undefined;
 
     constructor(
@@ -21,7 +21,7 @@ export class DOMElementProxy {
         opts?: { deferred?: boolean; sizeMonitor?: SizeMonitor }
     ) {
         if (opts?.deferred) {
-            this.pendingWrites = [];
+            this.pendingWrites = new Map();
         }
         this.sizeMonitor = opts?.sizeMonitor;
     }
@@ -78,9 +78,10 @@ export class DOMElementProxy {
     /** style.setProperty(name, value), skipped if unchanged.
      *  Works for both standard properties and CSS custom properties. */
     setProperty(name: string, value: string): void {
-        if (this.changed(`p:${name}`, value)) {
+        const cacheKey = `p:${name}`;
+        if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {
-                this.pendingWrites.push(() => {
+                this.pendingWrites.set(cacheKey, () => {
                     this.element.style.setProperty(name, value);
                 });
             } else {
@@ -91,9 +92,10 @@ export class DOMElementProxy {
 
     /** classList.toggle(name, force), skipped if unchanged. */
     toggleClass(name: string, force: boolean): void {
-        if (this.changed(`c:${name}`, force)) {
+        const cacheKey = `c:${name}`;
+        if (this.changed(cacheKey, force)) {
             if (this.pendingWrites) {
-                this.pendingWrites.push(() => {
+                this.pendingWrites.set(cacheKey, () => {
                     this.element.classList.toggle(name, force);
                 });
             } else {
@@ -104,9 +106,10 @@ export class DOMElementProxy {
 
     /** setAttribute (value != null) or removeAttribute (value == null). */
     setAttr(name: string, value: string | null): void {
-        if (this.changed(`a:${name}`, value)) {
+        const cacheKey = `a:${name}`;
+        if (this.changed(cacheKey, value)) {
             if (this.pendingWrites) {
-                this.pendingWrites.push(() => {
+                this.pendingWrites.set(cacheKey, () => {
                     if (value == null) {
                         this.element.removeAttribute(name);
                     } else {
@@ -125,7 +128,7 @@ export class DOMElementProxy {
     setInnerHTML(html: string): boolean {
         if (this.changed('innerHTML', html)) {
             if (this.pendingWrites) {
-                this.pendingWrites.push(() => {
+                this.pendingWrites.set('innerHTML', () => {
                     this.element.innerHTML = html;
                 });
             } else {
@@ -146,7 +149,7 @@ export class DOMElementProxy {
                 Object.assign(target.style, styles);
             };
             if (this.pendingWrites) {
-                this.pendingWrites.push(apply);
+                this.pendingWrites.set('contentStyles', apply);
             } else {
                 apply();
             }
@@ -156,8 +159,8 @@ export class DOMElementProxy {
     /** Flush all pending deferred writes. No-op if not in deferred mode. */
     flush(): void {
         if (this.pendingWrites) {
-            for (const fn of this.pendingWrites) fn();
-            this.pendingWrites.length = 0;
+            for (const fn of this.pendingWrites.values()) fn();
+            this.pendingWrites.clear();
         }
     }
 
