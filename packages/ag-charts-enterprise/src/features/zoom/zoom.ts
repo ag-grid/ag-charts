@@ -651,6 +651,14 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onWheelPanning(event: _Widget.WheelWidgetEvent) {
+        const zoom = this.getZoom();
+        const isZoomCapped =
+            (event.deltaY > 0 && zoom.y.min === UNIT_MIN) || (event.deltaY < 0 && zoom.y.max === UNIT_MAX);
+
+        this.wheelSequencer.onWheel(event, () => this.handleWheelPanning(event, isZoomCapped));
+    }
+
+    private handleWheelPanning(event: _Widget.WheelWidgetEvent, isZoomCapped: boolean): ZoomWheelSequencerCbResult {
         const {
             scrollingStep,
             scrollPanner,
@@ -659,9 +667,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return;
-
-        event.sourceEvent.preventDefault();
+        if (!seriesRect) return 'abort';
 
         const newZooms = scrollPanner.update(
             event,
@@ -671,6 +677,8 @@ export class Zoom extends AbstractModuleInstance {
             zoomManager.getAxisZooms()
         );
         this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
+
+        return isZoomCapped ? 'capped' : 'uncapped';
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
