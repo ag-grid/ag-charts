@@ -1,7 +1,6 @@
 import {
     AgDocument,
     CallbackCache,
-    ChartUpdateType,
     CleanupRegistry,
     EventEmitter,
     ModuleRegistry,
@@ -43,7 +42,7 @@ import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
-import { type UpdateCallback, UpdateService } from './updateService';
+import { UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
@@ -95,7 +94,6 @@ export class ChartContext implements ModuleContext {
             domMode?: 'normal' | 'minimal';
             withDragInterpretation: boolean;
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
-            updateCallback: UpdateCallback;
             updateMutex: Mutex;
         }
     ) {
@@ -106,7 +104,6 @@ export class ChartContext implements ModuleContext {
             agDocument,
             container,
             fireEvent,
-            updateCallback,
             updateMutex,
             styleContainer,
             skipCss,
@@ -140,11 +137,6 @@ export class ChartContext implements ModuleContext {
 
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
-        this.cleanup.register(
-            this.scene.on('scene-changed', () => {
-                this.updateService.update(ChartUpdateType.SCENE_RENDER);
-            })
-        );
 
         this.axisManager = new AxisManager(this.eventsHub, root);
         this.legendManager = new LegendManager(this.eventsHub);
@@ -153,7 +145,7 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
-        this.updateService = new UpdateService(updateCallback);
+        this.updateService = new UpdateService();
         this.activeManager = new ActiveManager(
             this.chartService,
             this.eventsHub,
