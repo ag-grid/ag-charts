@@ -363,6 +363,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
+        this.cleanup.register(
+            ctx.eventsHub.on('font:load', () => {
+                this.title.node.markDirty();
+                this.subtitle.node.markDirty();
+                this.footnote.node.markDirty();
+                this.update(ChartUpdateType.PERFORM_LAYOUT);
+            })
+        );
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>

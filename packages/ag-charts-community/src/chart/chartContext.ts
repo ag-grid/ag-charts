@@ -162,7 +162,7 @@ export class ChartContext implements ModuleContext {
             fireEvent
         );
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
-        this.fontManager = new FontManager(this.domManager, this.updateService);
+        this.fontManager = new FontManager(this.domManager, this.eventsHub);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
