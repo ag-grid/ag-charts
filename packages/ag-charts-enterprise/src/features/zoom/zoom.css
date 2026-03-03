@@ -1,4 +1,5 @@
 .ag-charts-zoom-buttons {
+    direction: ltr; /* Force LTR until official support for RTL is added to toolbars. */
     align-items: center;
     display: flex;
     height: 44px;
@@ -24,26 +25,26 @@
 
         /* TODO: move these out once toolbar.css is cleaned up */
         .ag-charts-toolbar__button--first {
-            border-bottom-left-radius: var(--ag-charts-border-radius);
-            border-top-left-radius: var(--ag-charts-border-radius);
+            border-end-start-radius: var(--ag-charts-border-radius);
+            border-start-start-radius: var(--ag-charts-border-radius);
         }
 
         .ag-charts-toolbar__button--last {
-            border-bottom-right-radius: var(--ag-charts-border-radius);
-            border-top-right-radius: var(--ag-charts-border-radius);
+            border-end-end-radius: var(--ag-charts-border-radius);
+            border-start-end-radius: var(--ag-charts-border-radius);
         }
 
         .ag-charts-toolbar__label {
-            padding-left: var(--ag-charts-spacing);
-            padding-right: var(--ag-charts-spacing);
+            padding-inline-start: var(--ag-charts-spacing);
+            padding-inline-end: var(--ag-charts-spacing);
         }
 
         .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
-            padding-left: 0;
+            padding-inline-start: 0;
         }
 
         .ag-charts-toolbar__button--gap {
-            margin-left: var(--toolbar-gap);
+            margin-inline-start: var(--toolbar-gap);
         }
 
         &.ag-charts-zoom-buttons__toolbar--hidden {

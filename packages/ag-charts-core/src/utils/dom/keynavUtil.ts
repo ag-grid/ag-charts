@@ -1,14 +1,18 @@
+import type { Direction } from 'ag-charts-types';
+
 import { CleanupRegistry } from '../../state/cleanupRegistry';
 import { getAttribute, setAttribute } from './attributeUtil';
 import { attachListener } from './domEvents';
+import { isDirectionRtl } from './domUtil';
 import { isElement, isNode } from './globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,
     onEscape: (event: KeyboardEvent) => void,
-    keyCodes: readonly string[] = ['Escape']
+    keyCodesGetter?: () => readonly string[]
 ) {
     return attachListener(elem, 'keydown', (event: KeyboardEvent) => {
+        const keyCodes = keyCodesGetter?.() ?? ['Escape'];
         if (matchesKey(event, ...keyCodes)) {
             onEscape(event);
         }
@@ -75,14 +79,20 @@ function linkTwoButtons(src: HTMLElement, dst: HTMLElement, key: string) {
     });
 }
 
-export const PREV_NEXT_KEYS = {
+const PREV_NEXT_KEYS = {
     horizontal: { nextKey: 'ArrowRight', prevKey: 'ArrowLeft' },
     vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
-} as const;
+};
+
+const RTL_PREV_NEXT_HORIZONTAL_KEYS = { nextKey: 'ArrowLeft', prevKey: 'ArrowRight' };
+
+export function getPrevNextKeys(orientation: Direction, isRtl?: boolean) {
+    return isRtl && orientation === 'horizontal' ? RTL_PREV_NEXT_HORIZONTAL_KEYS : PREV_NEXT_KEYS[orientation];
+}
 
 // https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
 export function initRovingTabIndex(opts: {
-    orientation: 'horizontal' | 'vertical';
+    orientation: Direction;
     buttons: HTMLElement[];
     wrapAround?: boolean;
     onFocus?: (event: FocusEvent) => void;
@@ -90,7 +100,7 @@ export function initRovingTabIndex(opts: {
     onEscape?: (event: KeyboardEvent) => void;
 }) {
     const { orientation, buttons, wrapAround = false, onEscape, onFocus, onBlur } = opts;
-    const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+    const { nextKey, prevKey } = getPrevNextKeys(orientation, isDirectionRtl(buttons[0]));
 
     // Assistive Technologies might provide functionality to focus on any element at random.
     // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then

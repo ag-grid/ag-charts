@@ -521,6 +521,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     zoom: defined,
     scrollbar: defined,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
+    enableRtl: boolean,
 };
 
 // @ts-expect-error undocumented option

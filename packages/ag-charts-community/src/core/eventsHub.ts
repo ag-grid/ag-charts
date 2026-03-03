@@ -84,6 +84,7 @@ export interface EventsHubMap {
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
+    'rtl:change': null;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series-area:hover': SeriesAreaHoverEvent;

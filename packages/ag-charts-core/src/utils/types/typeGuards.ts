@@ -1,7 +1,7 @@
 import type { CssColor } from 'ag-charts-types';
 
 import type { PlainObject } from '../../types/global';
-import { parseColor } from '../dom/domUtils';
+import { parseColor } from '../dom/domUtil';
 
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;

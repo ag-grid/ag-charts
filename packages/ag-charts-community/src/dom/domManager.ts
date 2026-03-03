@@ -5,6 +5,7 @@ import {
     createElement,
     createId,
     entries,
+    isDirectionRtl,
     isDocumentFragment,
     kebabCase,
     setAttribute,
@@ -117,6 +118,8 @@ export class DOMManager extends BaseManager {
 
     private minWidth: number = 0;
     private minHeight: number = 0;
+    private enableRtl?: boolean;
+    private _isRtl: boolean = false;
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -274,11 +277,11 @@ export class DOMManager extends BaseManager {
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.element;
 
-        style.width = `${optionsWidth ?? minWidth}px`;
-        style.height = `${optionsHeight ?? minHeight}px`;
-
         this.minWidth = optionsWidth ?? minWidth;
         this.minHeight = optionsHeight ?? minHeight;
+
+        style.minWidth = `${this.minWidth}px`;
+        style.minHeight = `${this.minHeight}px`;
 
         this.updateContainerClassName();
     }
@@ -361,6 +364,7 @@ export class DOMManager extends BaseManager {
             this.eventsHub.emit('dom:resize', null);
         });
 
+        this.updateRtl();
         this.eventsHub.emit('dom:container-change', null);
     }
 
@@ -590,6 +594,23 @@ export class DOMManager extends BaseManager {
 
     getCursor() {
         return this.element.style.cursor;
+    }
+
+    get isRtl(): boolean {
+        return this._isRtl;
+    }
+
+    setEnableRtl(enableRtl?: boolean) {
+        this.enableRtl = enableRtl;
+        this.updateRtl();
+    }
+
+    private updateRtl() {
+        const isRtl = this.enableRtl ?? isDirectionRtl(this.container ?? this.pendingContainer);
+        if (isRtl === this._isRtl) return;
+        this._isRtl = isRtl;
+        this.element.dir = isRtl ? 'rtl' : 'ltr';
+        this.eventsHub.emit('rtl:change', null);
     }
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
