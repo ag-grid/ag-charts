@@ -74,7 +74,7 @@ type FocusOldIndices = {
     oldOtherIndex: number;
 };
 type HandleFocusInputs = FocusIndices | FocusDeltas;
-type UpatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
+type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -705,7 +705,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private makeUpdateFocusParamsFromDeltas(
         inputs: FocusDeltas
-    ): UpatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
+    ): UpdatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
         const { otherIndexDelta, datumIndexDelta } = inputs;
         if (this.chart.chartType === 'standalone') {
             // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
@@ -771,7 +771,7 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private updatePickedFocus(inputs: UpatePickedFocusInputs): PickedFocusStatus {
+    private updatePickedFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
         const { datumIndex, datumIndexDelta, oldDatumIndex, otherIndex, otherIndexDelta, oldOtherIndex } = inputs;
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
