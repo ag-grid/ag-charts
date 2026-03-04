@@ -9,6 +9,8 @@
 HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=_protected-branch.sh
 source "$HOOKS_DIR/_protected-branch.sh"
+# shellcheck source=_detect-agent.sh
+source "$HOOKS_DIR/_detect-agent.sh"
 # shellcheck source=_run-hook-chain.sh
 source "$HOOKS_DIR/_run-hook-chain.sh"
 
@@ -20,12 +22,18 @@ if ! is_protected_branch "$BRANCH"; then
     exit $?
 fi
 
-# On a protected branch — check for TTY
+# On a protected branch — check for a known AI agent first
+if AGENT_NAME=$(detect_agent); then
+    agent_block_message "$AGENT_NAME" "commit" "$BRANCH"
+    exit 1
+fi
+
+# No known agent — fall back to TTY check
 if ! [ -t 0 ]; then
-    # No TTY: agentic tool or CI — block the commit
+    # No TTY: unknown agentic tool or CI — block the commit
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  BLOCKED: Agentic commit to protected branch '$BRANCH'  ║"
+    echo "║  BLOCKED: Commit to protected branch '$BRANCH'  ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║  Direct commits to '$BRANCH' from non-interactive tools     ║"
     echo "║  are not allowed.                                            ║"
