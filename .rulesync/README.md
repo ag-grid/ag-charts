@@ -29,13 +29,11 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Type  | Name                  | Invoke                             | What it does                                       |
 | ----- | --------------------- | ---------------------------------- | -------------------------------------------------- |
 | Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)     | Fix build and lint errors across a package         |
-| Skill | 🔵 `code-cleanup`     | `/code-cleanup` (user)             | Remove bloat, duplication; improve clarity         |
 | Skill | 🔵 `pr-create`        | `/pr-create` (user)                | Commit, push, and open a PR                        |
 | Skill | 🔵 `pr-review`        | `/pr-review [--json] <PR#>` (user) | Review a PR (Markdown default, JSON with `--json`) |
 | Skill | 🔵 `dev-server`       | `/dev-server`                      | Start dev server, check build status               |
 | Skill | 🔵 `git-conventions`  | `/git-conventions`                 | Branch, commit, and PR naming conventions          |
 | Skill | 🟢 `technology-stack` | `/technology-stack`                | Architecture constraints and zero-dependency rules |
-| Agent | 🔵 `code-reviewer`    | Auto (after edits)                 | Quality, security, and maintainability review      |
 
 ## Testing and Quality
 
@@ -58,7 +56,6 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | ------- | ---------------------- | ----------------- | ----------------------------------------------------- |
 | Command | 🟠 `/docs-create`      | `/docs-create`    | Scaffold a new documentation page                     |
 | Command | 🟠 `/docs-review`      | `/docs-review`    | Review docs for accuracy and example consistency      |
-| Command | 🟠 `/spruce-example`   | `/spruce-example` | Improve gallery examples to professional quality      |
 | Skill   | 🟠 `spruce-docs`       | `/spruce-docs`    | Create or improve docs following established patterns |
 | Skill   | 🟠 `plunker`           | `/plunker`        | Create and manage Plunker demos for AG Charts         |
 | Skill   | 🔵 `batch-plunkers`    | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents   |
@@ -174,7 +171,6 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | Skill                           | Description                                               |
 | ------------------------------- | --------------------------------------------------------- |
 | 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                        |
-| 🔵 `code-cleanup`               | Remove bloat, duplication; improve clarity                |
 | 🔵 `code-fixup`                 | Fix build and lint errors across a package                |
 | 🔵 `dev-server`                 | Start dev server, check build status                      |
 | 🟠 `estimate-jira`              | Estimate complexity, effort, and risks for JIRA tickets   |
@@ -204,14 +200,13 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 
 Sub-agents are spawned automatically when the AI determines a task matches their speciality. They cannot be invoked directly.
 
-| Agent                           | Description                                             |
-| ------------------------------- | ------------------------------------------------------- |
-| 🔵 `code-reviewer`              | Reviews code for quality, security, and maintainability |
-| 🟠 `data-viz-designer`          | Guides dataset selection and chart type choices         |
-| 🟠 `example-tester`             | Tests AG Charts examples for correctness                |
-| 🔵 `nx-expert`                  | Nx monorepo configuration and build optimisation        |
-| 🔵 `playwright-expert`          | Playwright E2E test architecture and debugging          |
-| 🟠 `previs-evaluator`           | PREVis methodology evaluation of visualisations         |
-| 🟠 `technical-research-analyst` | In-depth technical research with citations              |
-| 🟠 `test-writer`                | Creates Jest snapshot and Playwright E2E tests          |
-| 🟠 `visual-qa`                  | Reviews visual regression test diffs                    |
+| Agent                           | Description                                      |
+| ------------------------------- | ------------------------------------------------ |
+| 🟠 `data-viz-designer`          | Guides dataset selection and chart type choices  |
+| 🟠 `example-tester`             | Tests AG Charts examples for correctness         |
+| 🔵 `nx-expert`                  | Nx monorepo configuration and build optimisation |
+| 🔵 `playwright-expert`          | Playwright E2E test architecture and debugging   |
+| 🟠 `previs-evaluator`           | PREVis methodology evaluation of visualisations  |
+| 🟠 `technical-research-analyst` | In-depth technical research with citations       |
+| 🟠 `test-writer`                | Creates Jest snapshot and Playwright E2E tests   |
+| 🟠 `visual-qa`                  | Reviews visual regression test diffs             |
