@@ -36,3 +36,4 @@ After meaningful chart changes, also run:
 -   **Dev server:** `yarn nx dev`
 -   **Clean:** `yarn nx clean` – purge dist folders when switching branches
 -   **Benchmark:** `yarn nx benchmark <package>`
+-   **NX daemon:** Always use `NX_DAEMON=false` for nx commands to avoid pipe hangs (set automatically via SessionStart hook)
