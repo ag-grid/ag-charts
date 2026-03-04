@@ -849,31 +849,34 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         const { otherIndex, where, hoverRect } = opts;
 
-        let resultIndex: number | undefined = undefined;
+        let result: PickFocusOutputs | undefined = undefined;
 
         let left: number = 0;
         let mid: number;
         let right: number = this.contextNodeData.nodeData.length - 1;
         const reverse: boolean = this.axes.x?.reverse ?? false;
 
-        const shrinkBounds: (focusBBox: Readonly<BoxBounds>) => void = (function initShrinkBounds() {
+        // Generate a binary-search iterator (`where` and `reverse`)
+        const iterate: (pickedFocus: PickFocusOutputs) => void = (function initIterator() {
             if (where === 'viewport-start') {
                 // Looking for smallest index whose left edge is inside viewport
                 if (reverse) {
-                    return function shrinkViewportStartReverse(focusBBox: Readonly<BoxBounds>): void {
+                    return function shrinkViewportStartReverse(pickedFocus: PickFocusOutputs): void {
+                        const focusBBox = getPickedFocusBBox(pickedFocus);
                         const viewportRight = hoverRect.x + hoverRect.width;
                         const nodeRight = focusBBox.x + focusBBox.width;
                         if (nodeRight <= viewportRight) {
-                            resultIndex = mid;
+                            result = pickedFocus;
                             right = mid - 1;
                         } else {
                             left = mid + 1;
                         }
                     };
                 } else {
-                    return function shrinkViewportStart(focusBBox: Readonly<BoxBounds>): void {
+                    return function shrinkViewportStart(pickedFocus: PickFocusOutputs): void {
+                        const focusBBox = getPickedFocusBBox(pickedFocus);
                         if (focusBBox.x >= hoverRect.x) {
-                            resultIndex = mid;
+                            result = pickedFocus;
                             right = mid - 1;
                         } else {
                             left = mid + 1;
@@ -883,20 +886,22 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             } else if (where === 'viewport-end') {
                 // Looking for smallest index whose left edge is inside viewport
                 if (reverse) {
-                    return function shrinkViewportEndReverse(focusBBox: Readonly<BoxBounds>): void {
+                    return function shrinkViewportEndReverse(pickedFocus: PickFocusOutputs): void {
+                        const focusBBox = getPickedFocusBBox(pickedFocus);
                         if (focusBBox.x >= hoverRect.x) {
-                            resultIndex = mid;
+                            result = pickedFocus;
                             left = mid + 1;
                         } else {
                             right = mid - 1;
                         }
                     };
                 } else {
-                    return function shrinkViewportEnd(focusBBox: Readonly<BoxBounds>): void {
+                    return function shrinkViewportEnd(pickedFocus: PickFocusOutputs): void {
+                        const focusBBox = getPickedFocusBBox(pickedFocus);
                         const viewportRight = hoverRect.x + hoverRect.width;
                         const nodeRight = focusBBox.x + focusBBox.width;
                         if (nodeRight <= viewportRight) {
-                            resultIndex = mid;
+                            result = pickedFocus;
                             left = mid + 1;
                         } else {
                             right = mid - 1;
@@ -908,6 +913,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }
         })();
 
+        // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect):
         while (left <= right) {
             mid = Math.floor((left + right) / 2);
 
@@ -917,17 +923,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 return undefined;
             }
 
-            shrinkBounds(getPickedFocusBBox(pickedFocus));
+            iterate(pickedFocus);
         }
-
-        if (resultIndex === undefined) return undefined;
-
-        return this.pickFocus({
-            datumIndex: resultIndex,
-            datumIndexDelta: 0,
-            otherIndex,
-            otherIndexDelta: 0,
-        });
+        return result;
     }
 
     protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
