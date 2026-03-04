@@ -454,6 +454,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.animationManager.addListener('animation-stop', () => {
                 ctx.domManager.setDataBoolean('animating', false);
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
+                ctx.domManager.flushElement();
             }),
             ctx.eventsHub.on('zoom:change-complete', () => {
                 for (const s of this.series) {
