@@ -1,0 +1,26 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="randomize()">Randomize</button>
+        <label>Colour:</label>
+        <select onchange="setColor(event.target.value)">
+            <option value="#cfeeff">Default (#cfeeff)</option>
+            <option value="#ffd6a5" selected>Warm (#ffd6a5)</option>
+            <option value="#ffadad">Red (#ffadad)</option>
+        </select>
+        <label>Flash:</label>
+        <select onchange="setFlashDuration(event.target.value)">
+            <option value="0">0ms</option>
+            <option value="100">100ms</option>
+            <option value="300" selected>300ms</option>
+            <option value="500">500ms</option>
+        </select>
+        <label>Fade:</label>
+        <select onchange="setFadeDuration(event.target.value)">
+            <option value="200">200ms</option>
+            <option value="500">500ms</option>
+            <option value="700" selected>700ms</option>
+            <option value="1500">1500ms</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

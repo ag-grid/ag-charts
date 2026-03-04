@@ -35,12 +35,93 @@ In this example, click a duration then change the series type to see the initial
 
 {% chartExampleRunner title="Duration" name="duration" type="generated" /%}
 
+## Flash On Update
+
+Flash on Update draws attention to data changes by briefly highlighting updated, added or removed data with a flash animation. The flash runs alongside the data update animation phases.
+
+{% chartExampleRunner title="Flash On Update" name="flash-on-update" type="generated" /%}
+
+Flash on Update is disabled by default. To enable it, set `flashOnUpdate.enabled` to `true`.
+
+```js format="snippet"
+{
+    flashOnUpdate: {
+        enabled: true,
+    },
+}
+```
+
+In this example:
+
+-   Click **Randomize** to update the chart data and observe the flash effect covering the entire chart.
+
+By default, the flash covers the entire chart area. Use the `item` option to control what is highlighted.
+
+### Category Flash
+
+Setting `item` to `'category'` highlights individual category bands rather than the whole chart, making it easier to identify which categories have changed.
+
+{% chartExampleRunner title="Category Flash" name="flash-on-update-category" type="generated" /%}
+
+```js format="snippet"
+{
+    flashOnUpdate: {
+        enabled: true,
+        item: 'category',
+    },
+}
+```
+
+In this example:
+
+-   Click **Randomize** to update random categories — only the changed categories flash.
+-   Click **Append** to add a new category — the new category band flashes.
+-   Click **Reset** to restore the original data.
+
+{% note %}
+`item: 'category'` requires the chart to have a category axis. If no category axis is present, a warning is logged and no flash occurs.
+{% /note %}
+
+### Live Data Updates
+
+Flash on Update is particularly useful for real-time data feeds, such as stock tickers or monitoring dashboards, where it draws the user's attention to the parts of the chart that have changed.
+
+{% chartExampleRunner title="Live Data Updates" name="flash-on-update-live" type="generated" /%}
+
+In this example:
+
+-   Click **Start Updates** to begin a simulated live data feed that updates 1–2 random regions every 2 seconds.
+-   Category bands flash to indicate which regions received new data.
+-   Click **Stop Updates** to pause the feed.
+
+### Customisation
+
+The appearance and timing of the flash effect can be customised.
+
+{% chartExampleRunner title="Customisation" name="flash-on-update-customisation" type="generated" /%}
+
+-   `color` — the colour of the flash overlay.
+-   `opacity` — the peak opacity of the flash.
+-   `flashDuration` — how long (in milliseconds) the flash holds at full opacity before fading.
+-   `fadeDuration` — how long (in milliseconds) the fade-out takes.
+
+By default, the flash fades linearly from full opacity to zero over the animation phase duration. Setting `flashDuration` and `fadeDuration` introduces a two-stage effect: the flash holds at full opacity, then fades to zero. The ratio of `flashDuration` to `fadeDuration` controls how the phase duration is split between the hold and fade stages.
+
+In this example:
+
+-   Use the **Colour**, **Flash** and **Fade** controls to adjust the flash appearance.
+-   Click **Randomize** to trigger the flash with the current settings.
+
 ## API Reference
 
 {% tabs %}
 
 {% tabItem id="AgAnimationOptions" label="Animation" %}
 {% apiReference id="AgAnimationOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgFlashOnUpdateOptions" label="Flash On Update" %}
+{% apiReference id="AgFlashOnUpdateOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
