@@ -21,7 +21,14 @@ type HtmlAttribute =
     | 'role'
     | 'tabindex';
 
-type CacheKey = 'innerHTML' | 'contentStyles' | 'popover' | `p:${StyleProperty}` | `c:${string}` | `a:${HtmlAttribute}`;
+type CacheKey =
+    | 'innerHTML'
+    | 'contentStyles'
+    | 'popover'
+    | `p:${StyleProperty}`
+    | `c:${string}`
+    | `a:${HtmlAttribute}`
+    | `d:${string}`;
 
 /**
  * Proxies all DOM access to a single HTMLElement.
@@ -159,6 +166,29 @@ export class DOMElementProxy {
                 this.element.setAttribute(name, value);
             }
         }
+    }
+
+    /** element.dataset[name] = value, skipped if unchanged. */
+    setData(name: string, value: string): void {
+        const cacheKey: CacheKey = `d:${name}`;
+        if (this.changed(cacheKey, value)) {
+            if (this.pendingWrites) {
+                this.pendingWrites.set(cacheKey, () => {
+                    this.element.dataset[name] = value;
+                });
+            } else {
+                this.element.dataset[name] = value;
+            }
+        }
+    }
+
+    /** Returns the cached data attribute value (deferred mode) or reads from the element. */
+    getData(name: string): string | undefined {
+        const cacheKey: CacheKey = `d:${name}`;
+        if (this.pendingWrites) {
+            return this.cache[cacheKey] as string | undefined;
+        }
+        return this.element.dataset[name];
     }
 
     /** Cached innerHTML write. Returns true if the write happened. */

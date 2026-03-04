@@ -120,6 +120,7 @@ export class DOMManager extends BaseManager {
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
+    private readonly elementProxy: DOMElementProxy;
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -144,6 +145,7 @@ export class DOMManager extends BaseManager {
         this.sizeMonitor = new SizeMonitor(agDocument);
 
         this.element = this.initDOM();
+        this.elementProxy = new DOMElementProxy(this.element, { deferred: true });
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
@@ -251,6 +253,7 @@ export class DOMManager extends BaseManager {
     }
 
     public postRenderUpdate() {
+        this.elementProxy.flush();
         for (const proxy of this.deferredProxies.values()) {
             proxy.flush();
         }
@@ -723,17 +726,16 @@ export class DOMManager extends BaseManager {
     }
 
     incrementDataCounter(name: string) {
-        const { dataset } = this.element;
-        dataset[name] ??= '0';
-        dataset[name] = String(Number(dataset[name]) + 1);
+        const current = this.elementProxy.getData(name) ?? '0';
+        this.elementProxy.setData(name, String(Number(current) + 1));
     }
 
     setDataBoolean(name: string, value: boolean) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
     }
 
     setDataNumber(name: string, value: number) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
     }
 
     getDocument() {

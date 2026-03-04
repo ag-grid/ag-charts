@@ -52,6 +52,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import { DebugSelectors } from '../scene/sceneDebug';
 import { Mutex } from '../util/mutex';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
@@ -892,7 +893,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                     debugSplitTimes: splits,
                     extraDebugStats,
                     seriesRect: this.seriesRect,
-                    debugColors: this.getDebugColors(),
+                    debugColors: Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)
+                        ? this.getDebugColors()
+                        : undefined,
                 });
                 this.extraDebugStats = {};
                 for (const key of Object.keys(splits)) {
