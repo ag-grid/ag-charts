@@ -50,6 +50,20 @@ test.describe('keyboard-nav', () => {
         });
     }
 
+    test('Home/End keys', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        await page.locator('input').first().click();
+        await page.keyboard.press('Tab');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+
+        await page.keyboard.press('End');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('last-datum-focus.png');
+
+        await page.keyboard.press('Home');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+    });
+
     test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
         await gotoExample(
             page,

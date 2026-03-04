@@ -61,6 +61,21 @@ enum PickedFocusStatus {
     PAN_REQUIRED,
 }
 
+type FocusIndices = {
+    datumIndex: number;
+    otherIndex: number;
+};
+type FocusDeltas = {
+    datumIndexDelta: number;
+    otherIndexDelta: number;
+};
+type FocusOldIndices = {
+    oldDatumIndex: number;
+    oldOtherIndex: number;
+};
+type HandleFocusInputs = FocusIndices | FocusDeltas;
+type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
+
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
@@ -256,7 +271,11 @@ export class SeriesAreaManager extends BaseManager {
             if (this.announceMode !== 'always') {
                 this.announceMode = 'never';
             }
-            this.handleFocus(0, 0);
+
+            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
+            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
+            // trigger and infinite redraw loop).
+            this.refreshFocus();
         }
     }
 
@@ -514,7 +533,7 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
-        this.handleFocus(0, 0);
+        this.refreshFocus();
     }
 
     private onBlur(event: FocusEvent) {
@@ -526,7 +545,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator?.overrideFocusVisible(undefined);
     }
 
-    private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>) {
+    private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Keyable)) return;
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
@@ -551,20 +570,45 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onArrow(0, -1, widgetEvent);
             case 'arrowright':
                 return this.onArrow(0, 1, widgetEvent);
+            case 'home':
+                return this.onHome(widgetEvent);
+            case 'end':
+                return this.onEnd(widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
+            case 'delete':
+                return;
+            default:
+                action?.name satisfies undefined; // check for switch-exhaustion
         }
     }
 
-    private onArrow(seriesIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.isState(InteractionState.Focusable)) return;
+    private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
+        if (!this.isState(InteractionState.Focusable)) return false;
         this.hoverDevice = 'keyboard';
         this.focusIndicator?.overrideFocusVisible(true);
-        this.focus.seriesIndex += seriesIndexDelta;
-        this.focus.datumIndex += datumIndexDelta;
-        this.handleFocus(seriesIndexDelta, datumIndexDelta);
         event.sourceEvent.preventDefault();
-        this.chart.ctx.eventsHub.emit('series:focus-change', null);
+        return true;
+    }
+
+    private onArrow(otherIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.onNav(event)) return;
+        this.focus.seriesIndex += otherIndexDelta;
+        this.focus.datumIndex += datumIndexDelta;
+        this.handleFocusFromUserInput({ datumIndexDelta, otherIndexDelta });
+    }
+
+    private onHome(event: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.onNav(event)) return;
+        this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
+    }
+
+    private onEnd(event: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.onNav(event)) return;
+        const n = this.focus.series?.data?.data.length;
+        if (n !== undefined) {
+            this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
+        }
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
@@ -626,10 +670,19 @@ export class SeriesAreaManager extends BaseManager {
         return false;
     }
 
-    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
+    private handleFocusFromUserInput(inputs: HandleFocusInputs): void {
+        this.handleFocus(inputs);
+        this.chart.ctx.eventsHub.emit('series:focus-change', null);
+    }
+
+    private refreshFocus(): void {
+        this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
+    }
+
+    private handleFocus(inputs: HandleFocusInputs) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
-            if (this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
+            if (this.handleSeriesFocus(inputs) === PickedFocusStatus.SUCCESS) {
                 this.announceMode = 'when-changed';
             } else {
                 // As a safe-guard, always announce the next focus-change if this current focus-change failed.
@@ -642,10 +695,38 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
-        if (this.chart.chartType === 'standalone') {
-            return this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta);
+    private handleSeriesFocus(inputs: HandleFocusInputs): PickedFocusStatus {
+        if ('datumIndexDelta' in inputs) {
+            return this.handleSeriesFocusDeltas(inputs);
+        } else {
+            return this.handleSeriesFocusIndices(inputs);
         }
+    }
+
+    private makeUpdateFocusParamsFromDeltas(
+        inputs: FocusDeltas
+    ): UpdatePickedFocusInputs | PickedFocusStatus.SERIES_NOT_FOUND {
+        const { otherIndexDelta, datumIndexDelta } = inputs;
+        if (this.chart.chartType === 'standalone') {
+            // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
+            // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
+            // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
+            // implementation.
+            this.focus.series = this.focus.sortedSeries[0];
+            const datumIndex = this.focus.datumIndex;
+            const otherIndex = this.focus.seriesIndex;
+            const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
+            const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+            return {
+                datumIndex,
+                datumIndexDelta,
+                oldDatumIndex,
+                otherIndex,
+                otherIndexDelta,
+                oldOtherIndex,
+            };
+        }
+
         const { focus } = this;
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
         if (visibleSeries.length === 0) return PickedFocusStatus.SERIES_NOT_FOUND;
@@ -660,44 +741,38 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const datumIndex = this.focus.datumIndex;
         const otherIndex = this.focus.seriesIndex;
-        return this.updatePickedFocus(
+        return {
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
-            oldOtherIndex
-        );
+            oldOtherIndex,
+        };
     }
 
-    private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
-        // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
-        // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
-        // (bar/needle, targets). This allows the hierarchical and gauge charts to piggyback on the base keyboard handling
-        // implementation.
-        this.focus.series = this.focus.sortedSeries[0];
-        const datumIndex = this.focus.datumIndex;
-        const otherIndex = this.focus.seriesIndex;
-        const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
-        const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
-        return this.updatePickedFocus(
+    private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
+        const updateInputs = this.makeUpdateFocusParamsFromDeltas(inputs);
+        if (updateInputs === PickedFocusStatus.SERIES_NOT_FOUND) return PickedFocusStatus.SERIES_NOT_FOUND;
+        return this.updatePickedFocus(updateInputs);
+    }
+
+    private handleSeriesFocusIndices(inputs: FocusIndices): PickedFocusStatus {
+        const { datumIndex, otherIndex } = inputs;
+        const oldDatumIndex = this.focus.datumIndex;
+        const oldOtherIndex = this.focus.seriesIndex;
+        return this.updatePickedFocus({
             datumIndex,
-            datumIndexDelta,
-            oldDatumIndex,
+            datumIndexDelta: datumIndex - oldDatumIndex,
+            oldDatumIndex: oldDatumIndex,
             otherIndex,
-            otherIndexDelta,
-            oldOtherIndex
-        );
+            otherIndexDelta: otherIndex - oldOtherIndex,
+            oldOtherIndex: oldOtherIndex,
+        });
     }
 
-    private updatePickedFocus(
-        datumIndex: number,
-        datumIndexDelta: number,
-        oldDatumIndex: number,
-        otherIndex: number,
-        otherIndexDelta: number,
-        oldOtherIndex: number
-    ): PickedFocusStatus {
+    private updatePickedFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
+        const { datumIndex, datumIndexDelta, oldDatumIndex, otherIndex, otherIndexDelta, oldOtherIndex } = inputs;
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
