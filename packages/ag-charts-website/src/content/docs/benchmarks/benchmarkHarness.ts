@@ -72,6 +72,7 @@ interface CompactExportData {
         chart?: { width: number; height: number } | null;
         devicePixelRatio: number;
         hostname?: string;
+        browser?: string;
     };
     metadata?: Record<string, unknown>;
     results: CompactResult[];
@@ -107,6 +108,29 @@ function escapeHtml(str: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function detectBrowser(): string {
+    const ua = navigator.userAgent;
+    // Check Edge before Chrome since Edge UA contains "Chrome"
+    const edgeMatch = ua.match(/Edg\/(\d+\.\d+)/);
+    if (edgeMatch) return `Edge ${edgeMatch[1]}`;
+
+    const chromeMatch = ua.match(/Chrome\/(\d+\.\d+)/);
+    if (chromeMatch) return `Chrome ${chromeMatch[1]}`;
+
+    const firefoxMatch = ua.match(/Firefox\/(\d+\.\d+)/);
+    if (firefoxMatch) return `Firefox ${firefoxMatch[1]}`;
+
+    const safariVersionMatch = ua.match(/Version\/(\d+\.\d+)/);
+    if (safariVersionMatch && ua.includes('Safari/')) return `Safari ${safariVersionMatch[1]}`;
+
+    return 'Unknown';
+}
+
+function formatHostname(hostname: string | undefined): string | undefined {
+    if (!hostname) return undefined;
+    return hostname.replace(/\.ag-grid\.com$/, '') || hostname;
 }
 
 /**
@@ -475,7 +499,8 @@ class BenchmarkUI {
         updateIndex: number,
         totalUpdates: number,
         version: string,
-        warnings: string[]
+        warnings: string[],
+        compareMode?: boolean
     ): void {
         if (!this.progressElement) return;
 
@@ -519,10 +544,9 @@ class BenchmarkUI {
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                     <span id="benchmark-info-btn-slot" style="position: relative; display: flex; align-items: center;"></span>
-                    <span style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;">
+                    <span id="benchmark-version-badge" style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;${compareMode ? ' display: none;' : ''}">
                         v${version}
                     </span>
-                    <span id="benchmark-action-btns-slot" style="position: relative; display: flex; gap: 6px; align-items: center;"></span>
                 </div>
             </div>
         `;
@@ -627,46 +651,48 @@ class BenchmarkUI {
                     border-color: var(--bm-change-slower);
                     color: white;
                 }
-                .benchmark-info-popup {
-                    position: absolute;
-                    top: calc(100% + 4px);
-                    right: 0;
-                    background: var(--bm-container-bg);
-                    border: 1px solid var(--bm-table-border);
-                    border-radius: 4px;
-                    padding: 8px 12px;
-                    font-size: 12px;
-                    color: var(--bm-table-text);
-                    font-family: system-ui, -apple-system, sans-serif;
-                    white-space: nowrap;
-                    z-index: 10;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                }
             </style>
         `;
 
         let baselineMap: Map<string, CompactResult> | null = null;
-        let infoSlotHtml: string;
+        let infoSlotHtml = '';
         if (baselineData) {
             baselineMap = new Map<string, CompactResult>();
             for (const r of baselineData.results) {
                 baselineMap.set(resultKey(r), r);
             }
 
-            const vp = baselineData.environment.viewport;
-            const dpr = baselineData.environment.devicePixelRatio;
-            const currentHostname = window.location.hostname || undefined;
-            const baselineHostname = baselineData.environment.hostname;
-            const showHostnames = currentHostname || baselineHostname;
-            const currentLabel = showHostnames && currentHostname ? ` (${currentHostname})` : '';
-            const baselineLabel = showHostnames && baselineHostname ? ` (${baselineHostname})` : '';
-            infoSlotHtml = `<button class="benchmark-action-btn" title="Comparison details" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='none'?'block':'none'">ⓘ</button>
-                <div class="benchmark-info-popup" style="display: none;">
-                    Comparing <strong>v${escapeHtml(version)}${escapeHtml(currentLabel)}</strong> vs <strong>v${escapeHtml(baselineData.version)}${escapeHtml(baselineLabel)}</strong><br>${vp.width}×${vp.height}px, ${dpr}× DPR
-                </div>`;
-        } else {
-            // Always reserve space for the info button so the other buttons don't shift when it appears
-            infoSlotHtml = `<button class="benchmark-action-btn" style="visibility: hidden;" tabindex="-1" aria-hidden="true">ⓘ</button>`;
+            const currentHostname = formatHostname(window.location.hostname || undefined);
+            const baselineHostname = formatHostname(baselineData.environment.hostname);
+            const currentBrowser = detectBrowser();
+            const baselineBrowser = baselineData.environment.browser;
+
+            const currentParts: string[] = [];
+            const baselineParts: string[] = [];
+            const versionsMatch = version === baselineData.version;
+            if (!versionsMatch) {
+                currentParts.push(`v${version}`);
+                baselineParts.push(`v${baselineData.version}`);
+            }
+
+            if (currentHostname !== baselineHostname) {
+                if (currentHostname) currentParts.push(currentHostname);
+                if (baselineHostname) baselineParts.push(baselineHostname);
+            }
+            if (currentBrowser !== baselineBrowser) {
+                currentParts.push(currentBrowser);
+                if (baselineBrowser) baselineParts.push(baselineBrowser);
+            }
+
+            // If nothing differs, show version once as context
+            if (currentParts.length === 0 && baselineParts.length === 0) {
+                currentParts.push(`v${version}`);
+                baselineParts.push(`v${baselineData.version}`);
+            }
+
+            const currentSide = escapeHtml(currentParts.join(' · '));
+            const baselineSide = escapeHtml(baselineParts.join(' · '));
+            infoSlotHtml = `<span style="background: var(--bm-badge-bg); color: var(--bm-badge-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-badge-border); font-size: 12px; font-weight: 500; white-space: nowrap;">${currentSide}&nbsp;&nbsp;⇄&nbsp;&nbsp;${baselineSide}</span>`;
         }
 
         html += '<div class="benchmark-table-wrapper">';
@@ -719,27 +745,13 @@ class BenchmarkUI {
 
         this.resultsElement.innerHTML = html;
 
-        // Inject main action buttons into the slot to the right of the version badge
-        const slot = document.getElementById('benchmark-action-btns-slot');
-        if (slot) {
-            slot.innerHTML = `
-                <button class="benchmark-action-btn" id="copyBenchmarkResults" title="Copy results to clipboard">⎘</button>
-                <button class="benchmark-action-btn" id="exportBenchmarkResults" title="Export as JSON">⤓</button>
-                <button class="benchmark-action-btn" id="compareBenchmarkResults" title="Compare with clipboard">⇄</button>`;
-        }
+        // Inject main action buttons as floating overlay in the chart area
+        this.injectFloatingActionButtons(onExport);
 
         // Inject info button into its dedicated slot to the left of the version badge
         const infoSlot = document.getElementById('benchmark-info-btn-slot');
         if (infoSlot) {
             infoSlot.innerHTML = infoSlotHtml;
-        }
-
-        // Wire up export button
-        const exportButton = document.getElementById('exportBenchmarkResults');
-        if (exportButton && onExport) {
-            exportButton.addEventListener('click', onExport);
-        } else if (exportButton) {
-            exportButton.remove();
         }
 
         // Log to console
@@ -754,10 +766,48 @@ class BenchmarkUI {
         console.table(consoleData);
     }
 
+    injectFloatingActionButtons(onExport?: () => void): void {
+        document.getElementById('benchmarkFloatingActions')?.remove();
+        const chartParent = this.getChartParentWithPositioning();
+        if (!chartParent) return;
+
+        const container = document.createElement('div');
+        container.id = 'benchmarkFloatingActions';
+        container.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 6px;';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'benchmark-action-btn';
+        copyBtn.id = 'copyBenchmarkResults';
+        copyBtn.title = 'Copy results to clipboard';
+        copyBtn.textContent = '⎘';
+
+        const compareBtn = document.createElement('button');
+        compareBtn.className = 'benchmark-action-btn';
+        compareBtn.id = 'compareBenchmarkResults';
+        compareBtn.title = 'Compare with clipboard';
+        compareBtn.textContent = '⇄';
+
+        container.appendChild(copyBtn);
+
+        if (onExport) {
+            const exportBtn = document.createElement('button');
+            exportBtn.className = 'benchmark-action-btn';
+            exportBtn.id = 'exportBenchmarkResults';
+            exportBtn.title = 'Export as JSON';
+            exportBtn.textContent = '⤓';
+            exportBtn.addEventListener('click', onExport);
+            container.appendChild(exportBtn);
+        }
+
+        container.appendChild(compareBtn);
+        chartParent.appendChild(container);
+    }
+
     clearResults(): void {
         if (this.resultsElement) {
             this.resultsElement.innerHTML = '';
         }
+        document.getElementById('benchmarkFloatingActions')?.remove();
     }
 
     setRunButtonHandler(handler: () => void): void {
@@ -1040,7 +1090,8 @@ class BenchmarkRunner {
             this.updateIndex,
             this.totalUpdates,
             this.version,
-            this.config.warnings
+            this.config.warnings,
+            !!this.baselineData
         );
     }
 
@@ -1108,6 +1159,7 @@ class BenchmarkRunner {
                     : null,
                 devicePixelRatio: window.devicePixelRatio,
                 hostname: window.location.hostname || undefined,
+                browser: detectBrowser(),
             },
             metadata: this.config.metadata || {},
             results: this.results.map((r) => ({
@@ -1151,6 +1203,7 @@ class BenchmarkRunner {
                     : null,
                 devicePixelRatio: window.devicePixelRatio,
                 hostname: window.location.hostname || undefined,
+                browser: detectBrowser(),
             },
             metadata: this.config.metadata || {},
             results: this.results.map((r) => ({
