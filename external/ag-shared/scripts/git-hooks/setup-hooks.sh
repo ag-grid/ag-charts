@@ -52,10 +52,14 @@ fi
 
 MAIN_REPO_ROOT=$(get_main_repo_root)
 
+# Use a path relative to the main repo root so the config is valid for all
+# worktrees (each worktree has the same directory structure).
+HOOKS_RELATIVE="${SCRIPT_DIR#"$MAIN_REPO_ROOT"/}"
+
 current_hooks=$(git -C "$MAIN_REPO_ROOT" config core.hooksPath 2>/dev/null || true)
 
 # Already configured to our hooks directory — nothing to do
-if [[ "$current_hooks" == "$SCRIPT_DIR" ]]; then
+if [[ "$current_hooks" == "$HOOKS_RELATIVE" ]]; then
     exit 0
 fi
 
@@ -64,4 +68,4 @@ if [[ -n "$current_hooks" ]]; then
     git -C "$MAIN_REPO_ROOT" config core.ag-shared.previousHooksPath "$current_hooks"
 fi
 
-git -C "$MAIN_REPO_ROOT" config core.hooksPath "$SCRIPT_DIR"
+git -C "$MAIN_REPO_ROOT" config core.hooksPath "$HOOKS_RELATIVE"
