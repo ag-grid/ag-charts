@@ -9,6 +9,7 @@ import type {
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
+    ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -46,7 +47,13 @@ import {
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { PickManager, type PickedNode, type PickedNodes } from './pickManager';
-import { type PickFocusInputs, type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
+import {
+    type PickFocusInputs,
+    type PickFocusOutputs,
+    type PickViewportFocusInputs,
+    type SeriesNodePickIntent,
+    type UnknownSeries,
+} from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
@@ -150,6 +157,7 @@ export class SeriesAreaManager extends BaseManager {
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<DatumIndexType> | undefined,
+        pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
     };
 
     private cachedTooltipContent:
@@ -197,7 +205,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
-            chart.ctx.eventsHub.on('zoom:change-complete', () => this.clearAll()),
+            chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
         if (seriesDragInterpreter) {
@@ -258,7 +266,10 @@ export class SeriesAreaManager extends BaseManager {
 
     private updateComplete() {
         // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
+        const needsFocusRefresh: boolean =
+            this.isState(InteractionState.Focusable) &&
+            (this.focus.pendingViewportFocus !== undefined || !!this.focusIndicator?.isFocusVisible());
+        if (needsFocusRefresh) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
             // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
             // setting mode='never' to avoid announcing the change.
@@ -272,10 +283,18 @@ export class SeriesAreaManager extends BaseManager {
                 this.announceMode = 'never';
             }
 
-            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
-            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
-            // trigger and infinite redraw loop).
-            this.refreshFocus();
+            if (this.focus.pendingViewportFocus) {
+                try {
+                    this.pickViewportFocus('viewport-start');
+                } finally {
+                    this.focus.pendingViewportFocus = undefined;
+                }
+            } else {
+                // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
+                // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so
+                // would trigger and infinite redraw loop).
+                this.refreshFocus();
+            }
         }
     }
 
@@ -313,6 +332,13 @@ export class SeriesAreaManager extends BaseManager {
     private onAnimationStart(): void {
         if (this.hoverDevice !== 'setState') {
             this.clearAll();
+        }
+    }
+
+    private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
+        this.clearAll();
+        if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
+            this.focus.pendingViewportFocus = 'viewport-start';
         }
     }
 
@@ -562,6 +588,10 @@ export class SeriesAreaManager extends BaseManager {
                 return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: 1, widgetEvent });
             case 'zoomout':
                 return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: -1, widgetEvent });
+            case 'panxleft':
+                return this.onPage(-1, widgetEvent);
+            case 'panxright':
+                return this.onPage(1, widgetEvent);
             case 'arrowup':
                 return this.onArrow(-1, 0, widgetEvent);
             case 'arrowdown':
@@ -581,6 +611,12 @@ export class SeriesAreaManager extends BaseManager {
             default:
                 action?.name satisfies undefined; // check for switch-exhaustion
         }
+    }
+
+    private onPage(delta: -1 | 1, widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.onNav(widgetEvent)) return;
+        this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, widgetEvent });
+        this.handleFocusFromUserInput({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
@@ -754,14 +790,14 @@ export class SeriesAreaManager extends BaseManager {
     private handleSeriesFocusDeltas(inputs: FocusDeltas): PickedFocusStatus {
         const updateInputs = this.makeUpdateFocusParamsFromDeltas(inputs);
         if (updateInputs === PickedFocusStatus.SERIES_NOT_FOUND) return PickedFocusStatus.SERIES_NOT_FOUND;
-        return this.updatePickedFocus(updateInputs);
+        return this.pickFocus(updateInputs);
     }
 
     private handleSeriesFocusIndices(inputs: FocusIndices): PickedFocusStatus {
         const { datumIndex, otherIndex } = inputs;
         const oldDatumIndex = this.focus.datumIndex;
         const oldOtherIndex = this.focus.seriesIndex;
-        return this.updatePickedFocus({
+        return this.pickFocus({
             datumIndex,
             datumIndexDelta: datumIndex - oldDatumIndex,
             oldDatumIndex: oldDatumIndex,
@@ -771,14 +807,40 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private updatePickedFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
-        const { datumIndex, datumIndexDelta, oldDatumIndex, otherIndex, otherIndexDelta, oldOtherIndex } = inputs;
+    private pickFocus(inputs: UpdatePickedFocusInputs): PickedFocusStatus {
+        const { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta } = inputs;
         const { focus, hoverRect, seriesRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const focusInputs: PickFocusInputs = { datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect };
         const pick = focus.series.pickFocus(focusInputs);
         if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
+
+        return this.updatePickedFocus(inputs, pick);
+    }
+
+    private pickViewportFocus(where: PickViewportFocusInputs['where']): PickedFocusStatus {
+        const { focus, hoverRect } = this;
+        if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
+
+        const pick = focus.series.pickViewportFocus({ where, hoverRect, otherIndex: focus.seriesIndex });
+        if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
+
+        const inputs: UpdatePickedFocusInputs = {
+            datumIndex: pick.datumIndex,
+            datumIndexDelta: 0,
+            oldDatumIndex: this.focus.datumIndex,
+            otherIndex: pick.otherIndex ?? this.focus.seriesIndex,
+            otherIndexDelta: 0,
+            oldOtherIndex: this.focus.seriesIndex,
+        };
+        return this.updatePickedFocus(inputs, pick);
+    }
+
+    private updatePickedFocus(inputs: UpdatePickedFocusInputs, pick: PickFocusOutputs): PickedFocusStatus {
+        const { datumIndexDelta, oldDatumIndex, otherIndexDelta, oldOtherIndex } = inputs;
+        const { focus, hoverRect } = this;
+        if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const { datum } = pick;
         focus.datum = datum;

@@ -34,6 +34,7 @@ import {
     DEFAULT_ANCHOR_POINT_Y,
     UNIT_SIZE,
     ZOOM_VALID_CHECK_DEBOUNCE,
+    constrainAxis,
     constrainZoom,
     dx,
     dy,
@@ -238,6 +239,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHoverEvent(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClickEvent(event)),
             ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
+            ctx.eventsHub.on('series:keynav-panx', (event) => this.onNavPanX(event)),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
@@ -639,6 +641,21 @@ export class Zoom extends AbstractModuleInstance {
             userInteraction(`keyboard(${event.delta})`),
             scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom())
         );
+    }
+
+    private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
+        const { enabled, scrollingStep } = this;
+        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+
+        if (!isDefaultState || !enabled) return;
+        event.widgetEvent.sourceEvent.preventDefault();
+
+        const zoom = this.getZoom();
+        const scrollDelta: number = event.delta * scrollingStep;
+        zoom.x.min += scrollDelta;
+        zoom.x.max += scrollDelta;
+        zoom.x = constrainAxis(zoom.x);
+        this.updateZoom(userInteraction(`keyboard-page(${event.delta})`), zoom);
     }
 
     private onWheel(event: _Widget.WheelWidgetEvent) {

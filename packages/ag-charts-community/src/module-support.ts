@@ -81,6 +81,7 @@ export type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavZoomEvent,
+    SeriesKeyNavPanXEvent,
     ZoomChangeCompleteEvent,
     ZoomChangeRequestEvent,
     ZoomChangeState,
