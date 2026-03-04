@@ -66,6 +66,7 @@ export type InsertionCacheValue = {
     values: Map<number, ProcessedValueEntry>;
     hasInvalidKey: boolean;
     hasInvalidValue: boolean;
+    hasMissingValue: boolean;
 };
 
 export type InsertionCache = Map<number, InsertionCacheValue>;
@@ -88,6 +89,7 @@ export interface CommonMetadata<D> {
     invalidKeyCount: Map<ScopeId, number> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
     invalidDataCount: Map<ScopeId, number> | undefined;
+    missingData: Map<ScopeId, boolean[]> | undefined;
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
     columnScopes: Set<ScopeId>[];

@@ -436,6 +436,46 @@ describe('DataModel', () => {
                 // Value domain only includes valid values (only item 0 with y=10 is fully valid)
                 expect(reprocessed.domain.values).toEqual([[10, 10]]);
             });
+
+            it('should track missing data in insertions', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), { ...value('y'), missingValue: 0 }],
+                });
+
+                // Start with data that includes missing item to ensure missingData is initialized
+                const initialData = [
+                    { x: 1, y: 10 },
+                    { x: 2 }, // missing `y`
+                ];
+                const dataSet = new DataSet(initialData);
+                const sources = basicDataSet(initialData).set('test', dataSet);
+
+                const processedData = dataModel.processData(sources)!;
+
+                // Verify initial missing tracking
+                expect(processedData.missingData?.has('test')).toBe(true);
+
+                // Append with another missing value
+                dataSet.addTransaction({
+                    append: [{ x: 3 }], // missing `y`
+                });
+
+                const reprocessed = dataModel.reprocessData(processedData);
+                verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
+
+                // The new missing value should be tracked
+                const missingDataArray = reprocessed.missingData?.get('test');
+                expect(missingDataArray).toBeDefined();
+                expect(missingDataArray![1]).toBe(true); // Second item (from initial)
+                expect(missingDataArray![2]).toBe(true); // Third item (appended)
+
+                // Verify domains
+                // Key domain includes all valid keys (1, 2, 3), even though items with keys 2 and 3 have missing y values
+                // This matches processData() behaviour where each property domain is independent
+                expect(reprocessed.domain.keys).toEqual([[1, 3]]);
+                // Value domain includes missing value (0)
+                expect(reprocessed.domain.values).toEqual([[0, 10]]);
+            });
         });
 
         describe('grouped data reprocessing', () => {

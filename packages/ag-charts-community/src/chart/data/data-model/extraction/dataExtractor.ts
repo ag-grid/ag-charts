@@ -88,12 +88,20 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
         const { keys: keyDefs, values: valueDefs } = this.ctx;
 
-        const { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings, keySortOrders } =
-            this.extractKeys(keyDefs, sources, getProcessValue);
+        const {
+            invalidData,
+            invalidKeys,
+            invalidKeyCount,
+            invalidDataCount,
+            missingData,
+            allKeyMappings,
+            keySortOrders,
+        } = this.extractKeys(keyDefs, sources, getProcessValue);
 
         const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
             invalidDataCount,
+            missingData,
             valueDefs,
             sources,
             invalidKeys,
@@ -124,6 +132,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             invalidKeyCount,
             invalidData,
             invalidDataCount,
+            missingData,
             domain: {
                 keys: keyDefs.map(propertyDomain),
                 values: valueDefs.map(propertyDomain),
@@ -153,6 +162,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const invalidData = new Map<ScopeId, boolean[]>();
         const invalidKeyCount = new Map<ScopeId, number>();
         const invalidDataCount = new Map<ScopeId, number>();
+        const missingData = new Map<ScopeId, boolean[]>();
         const allKeys = new Map<(typeof keyDefs)[number], Map<ScopeId, unknown[]>>();
         const keySortOrders = new Map<number, SortOrderEntry>();
 
@@ -195,13 +205,14 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                 let invalidScopeKeys;
                 let invalidScopeData;
-                let missingKeys = 0;
+                let invalidScopeKeysCount = 0;
+                let missingScopeData;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
                     if (data[datumIndex] == null || typeof data[datumIndex] !== 'object') {
                         // Count non-object items as invalid data
                         invalidScopeKeys ??= createArray(data.length, false);
                         invalidScopeData ??= createArray(data.length, false);
-                        missingKeys += 1;
+                        invalidScopeKeysCount += 1;
                         invalidScopeKeys[datumIndex] = true;
                         invalidScopeData[datumIndex] = true;
                         keys.push(invalidValue);
@@ -217,12 +228,16 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         continue;
                     }
 
+                    if (result.missing) {
+                        missingScopeData ??= createArray(data.length, false);
+                    }
+
                     keys.push(invalidValue);
 
                     invalidScopeKeys ??= createArray(data.length, false);
                     invalidScopeData ??= createArray(data.length, false);
 
-                    missingKeys += 1;
+                    invalidScopeKeysCount += 1;
                     invalidScopeKeys[datumIndex] = true;
                     invalidScopeData[datumIndex] = true;
                 }
@@ -230,18 +245,30 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 if (invalidScopeKeys && invalidScopeData) {
                     invalidKeys.set(scope, invalidScopeKeys);
                     invalidData.set(scope, invalidScopeData);
-                    invalidKeyCount.set(scope, missingKeys);
-                    invalidDataCount.set(scope, missingKeys);
+                    invalidKeyCount.set(scope, invalidScopeKeysCount);
+                    invalidDataCount.set(scope, invalidScopeKeysCount);
+                }
+
+                if (missingScopeData) {
+                    missingData.set(scope, missingScopeData);
                 }
             }
 
             // Store the computed sort order entry for this key definition
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
         }
-        return { invalidData, invalidKeys, invalidKeyCount, invalidDataCount, allKeyMappings: allKeys, keySortOrders };
+        return {
+            invalidData,
+            invalidKeys,
+            invalidKeyCount,
+            invalidDataCount,
+            missingData,
+            allKeyMappings: allKeys,
+            keySortOrders,
+        };
     }
 
-    private readonly markScopeDatumInvalid = function (
+    private markScopeDatumInvalid(
         scopes: string[],
         data: unknown[],
         datumIndex: number,
@@ -259,11 +286,29 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 invalidDataCount.set(scope, invalidDataCount.get(scope)! + 1);
             }
         }
-    };
+    }
+
+    private markScopeDatumMissing(
+        scopes: string[],
+        data: unknown[],
+        datumIndex: number,
+        missingData: Map<ScopeId, boolean[]>
+    ) {
+        for (const scope of scopes) {
+            if (!missingData.has(scope)) {
+                missingData.set(scope, createArray(data.length, false));
+            }
+            const scopeMissingData = missingData.get(scope)!;
+            if (!scopeMissingData[datumIndex]) {
+                scopeMissingData[datumIndex] = true;
+            }
+        }
+    }
 
     private extractValues(
         invalidData: Map<ScopeId, boolean[]>,
         invalidDataCount: Map<ScopeId, number>,
+        missingData: Map<ScopeId, boolean[]>,
         valueDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, DataSet<unknown>>,
         scopeInvalidKeys: Map<ScopeId, boolean[]>,
@@ -307,6 +352,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                 if (invalidKey || !result.valid) {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
+                } else if (result.missing) {
+                    this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
                 }
 
                 if (invalidKey) {

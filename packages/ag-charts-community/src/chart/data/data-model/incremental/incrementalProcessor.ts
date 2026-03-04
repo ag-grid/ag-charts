@@ -389,6 +389,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         const values = new Map<number, ProcessedValueEntry>();
         let hasInvalidKey = false;
         let hasInvalidValue = false;
+        let hasMissingValue = false;
 
         if (datum == null || typeof datum !== 'object') {
             hasInvalidKey = true;
@@ -414,10 +415,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                 if (!result.valid) {
                     hasInvalidValue = true;
                 }
+
+                if (result.missing) {
+                    hasMissingValue = true;
+                }
             }
         }
 
-        return { keys, values, hasInvalidKey, hasInvalidValue };
+        return { keys, values, hasInvalidKey, hasInvalidValue, hasMissingValue };
     }
 
     /**
@@ -639,6 +644,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         if (processedData.invalidData) {
             this.transformInvalidityMap(processedData.invalidData, scopeChanges, insertionCaches, (cached) =>
                 cached ? cached.hasInvalidKey || cached.hasInvalidValue : false
+            );
+        }
+
+        if (processedData.missingData) {
+            this.transformInvalidityMap(
+                processedData.missingData,
+                scopeChanges,
+                insertionCaches,
+                (cached) => cached?.hasMissingValue ?? false
             );
         }
     }
@@ -881,6 +895,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
 
         // Recompute invalidDataCount
         this.recountInvalid(processedData.invalidData, processedData.invalidDataCount);
+
+        if (processedData.missingData) {
+            for (const [scope, missingArray] of processedData.missingData) {
+                if (!missingArray.includes(false)) {
+                    // Clean up entries with no missings to match full reprocessing behaviour
+                    processedData.missingData.delete(scope);
+                }
+            }
+        }
 
         // Intelligent cache invalidation based on change patterns
         this.invalidateCachesForChanges(processedData);
