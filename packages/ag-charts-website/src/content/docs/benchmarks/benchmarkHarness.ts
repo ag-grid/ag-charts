@@ -855,9 +855,7 @@ class BenchmarkRunner {
         return total;
     }
 
-    async run(): Promise<void> {
-        if (this.isRunning) return;
-
+    private cleanupClipboardListeners(): void {
         if (this.clipboardPollInterval !== null) {
             clearInterval(this.clipboardPollInterval);
             this.clipboardPollInterval = null;
@@ -866,6 +864,12 @@ class BenchmarkRunner {
             document.removeEventListener('visibilitychange', this.clipboardVisibilityHandler);
             this.clipboardVisibilityHandler = null;
         }
+    }
+
+    async run(): Promise<void> {
+        if (this.isRunning) return;
+
+        this.cleanupClipboardListeners();
         this.isRunning = true;
         this.results = [];
         this.updateIndex = 0;
@@ -1162,14 +1166,7 @@ class BenchmarkRunner {
     }
 
     private displayResults(): void {
-        if (this.clipboardPollInterval !== null) {
-            clearInterval(this.clipboardPollInterval);
-            this.clipboardPollInterval = null;
-        }
-        if (this.clipboardVisibilityHandler !== null) {
-            document.removeEventListener('visibilitychange', this.clipboardVisibilityHandler);
-            this.clipboardVisibilityHandler = null;
-        }
+        this.cleanupClipboardListeners();
         this.updateProgress();
         this.ui.displayResults(
             this.results,
