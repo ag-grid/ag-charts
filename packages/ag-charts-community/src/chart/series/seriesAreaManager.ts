@@ -267,7 +267,7 @@ export class SeriesAreaManager extends BaseManager {
     private updateComplete() {
         if (this.focus.pendingViewportFocus) {
             try {
-                this.pickViewportFocus('viewport-start');
+                this.pickViewportFocus(this.focus.pendingViewportFocus);
             } finally {
                 this.focus.pendingViewportFocus = undefined;
             }
