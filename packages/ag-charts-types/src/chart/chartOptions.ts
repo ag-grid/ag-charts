@@ -6,6 +6,7 @@ import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgFlashOnUpdateOptions } from './flashOnUpdateOptions';
 import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
@@ -233,6 +234,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     gradientLegend?: AgGradientLegendOptions<TContext>;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
+    /** Configuration for the flash on update effect. */
+    flashOnUpdate?: AgFlashOnUpdateOptions;
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
