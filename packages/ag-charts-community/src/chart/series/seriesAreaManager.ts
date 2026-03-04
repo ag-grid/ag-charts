@@ -9,7 +9,6 @@ import type {
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
-    SeriesKeyNavPanXEvent,
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
