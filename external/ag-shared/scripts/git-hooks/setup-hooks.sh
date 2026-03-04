@@ -21,23 +21,19 @@ is_ci() {
 }
 
 # Get the main repo root (handles worktrees)
-# In a worktree, .git is a file containing "gitdir: /path/to/main/.git/worktrees/name"
+# Uses git rev-parse --git-common-dir which works for both regular repos and worktrees,
+# and handles relative gitdir paths correctly.
 get_main_repo_root() {
-    local git_path="$REPO_ROOT/.git"
-
-    if [[ -f "$git_path" ]]; then
-        # We're in a worktree - parse the gitdir to find main repo
-        local gitdir
-        gitdir=$(cat "$git_path" | sed 's/gitdir: //')
-        # gitdir is like /path/to/main/.git/worktrees/name
-        # Go up twice to get /path/to/main/.git, then dirname for main repo
-        local main_git_dir
-        main_git_dir=$(dirname "$(dirname "$gitdir")")
-        dirname "$main_git_dir"
-    else
-        # Normal checkout - current directory is the repo root
+    local common_dir
+    common_dir=$(cd "$REPO_ROOT" && git rev-parse --git-common-dir 2>/dev/null) || {
         echo "$REPO_ROOT"
-    fi
+        return
+    }
+    # Resolve to absolute path (handles relative paths from --git-common-dir)
+    # then strip the .git component to get the repo root
+    local abs_common_dir
+    abs_common_dir=$(cd "$REPO_ROOT" && cd "$common_dir" && pwd)
+    dirname "$abs_common_dir"
 }
 
 # Skip in CI — hook configuration is a local developer setup concern
