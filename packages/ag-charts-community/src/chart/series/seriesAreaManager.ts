@@ -614,7 +614,8 @@ export class SeriesAreaManager extends BaseManager {
 
     private onPage(delta: -1 | 1, widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(widgetEvent)) return;
-        this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, widgetEvent });
+        const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
+        this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
     }
 
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
