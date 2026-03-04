@@ -331,6 +331,11 @@ class BenchmarkUI {
     panelToggleButton: HTMLButtonElement | null = null;
     panelContent: HTMLDivElement | null = null;
     isFloatingMode: boolean = false;
+    private compareMode = false;
+
+    setCompareMode(value: boolean): void {
+        this.compareMode = value;
+    }
 
     /**
      * Initialize the benchmark UI by creating DOM elements
@@ -501,8 +506,7 @@ class BenchmarkUI {
         updateIndex: number,
         totalUpdates: number,
         version: string,
-        warnings: string[],
-        compareMode?: boolean
+        warnings: string[]
     ): void {
         if (!this.progressElement) return;
 
@@ -546,7 +550,7 @@ class BenchmarkUI {
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                     <span id="benchmark-info-btn-slot" style="position: relative; display: flex; align-items: center;"></span>
-                    <span id="benchmark-version-badge" style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;${compareMode ? ' display: none;' : ''}">
+                    <span id="benchmark-version-badge" style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;${this.compareMode ? ' display: none;' : ''}">
                         v${version}
                     </span>
                     <span id="benchmark-action-btns-slot" style="display: flex; gap: 6px; align-items: center;"></span>
@@ -672,8 +676,7 @@ class BenchmarkUI {
 
             const currentParts: string[] = [];
             const baselineParts: string[] = [];
-            const versionsMatch = version === baselineData.version;
-            if (!versionsMatch) {
+            if (version !== baselineData.version) {
                 currentParts.push(`v${version}`);
                 baselineParts.push(`v${baselineData.version}`);
             }
@@ -749,7 +752,7 @@ class BenchmarkUI {
         this.resultsElement.innerHTML = html;
 
         // Inject main action buttons as floating overlay in the chart area
-        this.injectFloatingActionButtons(onExport);
+        this.injectActionButtons(onExport);
 
         // Inject info button into its dedicated slot to the left of the version badge
         const infoSlot = document.getElementById('benchmark-info-btn-slot');
@@ -769,7 +772,7 @@ class BenchmarkUI {
         console.table(consoleData);
     }
 
-    injectFloatingActionButtons(onExport?: () => void): void {
+    private injectActionButtons(onExport?: () => void): void {
         const slot = document.getElementById('benchmark-action-btns-slot');
         if (!slot) return;
 
@@ -1087,8 +1090,7 @@ class BenchmarkRunner {
             this.updateIndex,
             this.totalUpdates,
             this.version,
-            this.config.warnings,
-            !!this.baselineData
+            this.config.warnings
         );
     }
 
@@ -1217,6 +1219,7 @@ class BenchmarkRunner {
 
     private displayResults(): void {
         this.cleanupClipboardListeners();
+        this.ui.setCompareMode(!!this.baselineData);
         this.updateProgress();
         this.ui.displayResults(
             this.results,
