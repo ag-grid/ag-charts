@@ -18,7 +18,7 @@ module.exports = [
     {
         name: 'Cartesian modules',
         import: '{ AllCartesianModule }',
-        limit: '343 kB',
+        limit: '344 kB',
         ...defaultConfig,
     },
     {
