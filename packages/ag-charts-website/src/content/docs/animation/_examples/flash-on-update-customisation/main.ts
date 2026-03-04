@@ -76,12 +76,33 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     flashOnUpdate: {
         enabled: true,
+        color: '#ffd6a5',
+        flashDuration: 300,
+        fadeDuration: 700,
     },
-} as any; /* documented flashOnUpdate option */
+};
 
 const chart = AgCharts.create(options);
 
 function randomize() {
+    options.data = getRandomizedData();
+    chart.update(options);
+}
+
+function setColor(value: string) {
+    options.flashOnUpdate!.color = value;
+    options.data = getRandomizedData();
+    chart.update(options);
+}
+
+function setFlashDuration(value: string) {
+    options.flashOnUpdate!.flashDuration = Number(value);
+    options.data = getRandomizedData();
+    chart.update(options);
+}
+
+function setFadeDuration(value: string) {
+    options.flashOnUpdate!.fadeDuration = Number(value);
     options.data = getRandomizedData();
     chart.update(options);
 }

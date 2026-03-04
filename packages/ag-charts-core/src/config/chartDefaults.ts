@@ -468,6 +468,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
     },
     animation: defined,
+    flashOnUpdate: defined,
     contextMenu: defined,
     context: () => true,
     dataSource: {
@@ -524,8 +525,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     enableRtl: boolean,
 };
 
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.flashOnUpdate = undocumented(defined);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
