@@ -829,6 +829,7 @@ class BenchmarkRunner {
     private eventBlockers: Array<{ el: Element; type: string; handler: (e: Event) => void }> = [];
     private baselineData: CompactExportData | null = null;
     private clipboardPollInterval: ReturnType<typeof setInterval> | null = null;
+    private clipboardVisibilityHandler: (() => void) | null = null;
 
     constructor(config: NormalizedConfig, ui: BenchmarkUI) {
         this.config = config;
@@ -860,6 +861,10 @@ class BenchmarkRunner {
         if (this.clipboardPollInterval !== null) {
             clearInterval(this.clipboardPollInterval);
             this.clipboardPollInterval = null;
+        }
+        if (this.clipboardVisibilityHandler !== null) {
+            document.removeEventListener('visibilitychange', this.clipboardVisibilityHandler);
+            this.clipboardVisibilityHandler = null;
         }
         this.isRunning = true;
         this.results = [];
@@ -1161,6 +1166,10 @@ class BenchmarkRunner {
             clearInterval(this.clipboardPollInterval);
             this.clipboardPollInterval = null;
         }
+        if (this.clipboardVisibilityHandler !== null) {
+            document.removeEventListener('visibilitychange', this.clipboardVisibilityHandler);
+            this.clipboardVisibilityHandler = null;
+        }
         this.updateProgress();
         this.ui.displayResults(
             this.results,
@@ -1184,25 +1193,21 @@ class BenchmarkRunner {
         // Wire up Copy button
         const copyBtn = document.getElementById('copyBenchmarkResults') as HTMLButtonElement | null;
         if (copyBtn) {
-            copyBtn.addEventListener(
-                'click',
-                () => {
-                    const json = JSON.stringify(this.buildCompactExportData(), null, 2);
-                    navigator.clipboard?.writeText(json).then(
-                        () => {
-                            copyBtn.classList.add('bm-flash-success');
-                            setTimeout(() => copyBtn.classList.remove('bm-flash-success'), 600);
-                        },
-                        () => {
-                            copyBtn.classList.add('bm-flash-error');
-                            setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600);
-                        }
-                    ) ??
-                        (copyBtn.classList.add('bm-flash-error'),
-                        setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600));
-                },
-                { once: true }
-            );
+            copyBtn.addEventListener('click', () => {
+                const json = JSON.stringify(this.buildCompactExportData(), null, 2);
+                navigator.clipboard?.writeText(json).then(
+                    () => {
+                        copyBtn.classList.add('bm-flash-success');
+                        setTimeout(() => copyBtn.classList.remove('bm-flash-success'), 600);
+                    },
+                    () => {
+                        copyBtn.classList.add('bm-flash-error');
+                        setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600);
+                    }
+                ) ??
+                    (copyBtn.classList.add('bm-flash-error'),
+                    setTimeout(() => copyBtn.classList.remove('bm-flash-error'), 600));
+            });
         }
 
         // Wire up Compare button — toggles comparison on/off
@@ -1280,8 +1285,30 @@ class BenchmarkRunner {
                 }
             );
         };
+        const startPolling = () => {
+            if (this.clipboardPollInterval === null) {
+                this.clipboardPollInterval = setInterval(pollClipboard, 1000);
+            }
+        };
+        const stopPolling = () => {
+            if (this.clipboardPollInterval !== null) {
+                clearInterval(this.clipboardPollInterval);
+                this.clipboardPollInterval = null;
+            }
+        };
+        const onVisibilityChange = () => {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                pollClipboard();
+                startPolling();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        this.clipboardVisibilityHandler = onVisibilityChange;
+
         pollClipboard();
-        this.clipboardPollInterval = setInterval(pollClipboard, 1000);
+        startPolling();
     }
 }
 
