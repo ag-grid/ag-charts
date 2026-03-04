@@ -71,6 +71,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onStopEditing = () => {
             ctx.hideTextInput();
+            this.node?.setTextInputBBox();
             if (this.datum) this.datum.visible = true;
             ctx.deselect();
         };

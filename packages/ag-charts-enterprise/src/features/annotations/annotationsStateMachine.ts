@@ -577,6 +577,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     const node = ctx.node(wasActive);
                     if (!datum || !node) return;
 
+                    if ('setTextInputBBox' in node) {
+                        node.setTextInputBBox();
+                    }
                     datum.visible = true;
                 },
             },
