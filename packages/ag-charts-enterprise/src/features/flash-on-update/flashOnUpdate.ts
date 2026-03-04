@@ -381,7 +381,6 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                 groupId: this.id,
                 forceAnimation: true,
                 phase,
-                duration,
                 ease: easeOut,
                 from: { t: 0 },
                 to: { t: 1 },
