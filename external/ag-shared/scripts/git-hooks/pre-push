@@ -30,21 +30,19 @@ done
 # Determine whether any push target is a protected branch.
 # Check 1: the current local branch itself.
 # Check 2: any remote-ref in the push refspecs that maps to a protected branch.
-needs_guard=false
-PROTECTED_BRANCH="$BRANCH"
+PROTECTED_BRANCH=""
 
 if is_protected_branch "$BRANCH"; then
-    needs_guard=true
+    PROTECTED_BRANCH="$BRANCH"
 fi
 
-if [[ "$needs_guard" == "false" ]]; then
+if [[ -z "$PROTECTED_BRANCH" ]]; then
     for line in "${STDIN_LINES[@]}"; do
         # remote-ref is the 3rd field, e.g. refs/heads/latest
-        remote_ref=$(echo "$line" | awk '{print $3}')
+        read -r _ _ remote_ref _ <<< "$line"
         # Strip refs/heads/ prefix
         remote_branch="${remote_ref#refs/heads/}"
         if is_protected_branch "$remote_branch"; then
-            needs_guard=true
             PROTECTED_BRANCH="$remote_branch"
             break
         fi
@@ -52,7 +50,7 @@ if [[ "$needs_guard" == "false" ]]; then
 fi
 
 # Not targeting a protected branch — pass through
-if [[ "$needs_guard" == "false" ]]; then
+if [[ -z "$PROTECTED_BRANCH" ]]; then
     printf '%s\n' "${STDIN_LINES[@]}" | run_hook_chain "pre-push" "$@"
     exit $?
 fi
