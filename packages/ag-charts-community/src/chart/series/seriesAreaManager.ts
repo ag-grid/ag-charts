@@ -763,10 +763,10 @@ export class SeriesAreaManager extends BaseManager {
         const oldOtherIndex = this.focus.seriesIndex;
         return this.updatePickedFocus({
             datumIndex,
-            datumIndexDelta: oldDatumIndex - datumIndex,
+            datumIndexDelta: datumIndex - oldDatumIndex,
             oldDatumIndex: oldDatumIndex,
             otherIndex,
-            otherIndexDelta: oldOtherIndex - otherIndex,
+            otherIndexDelta: otherIndex - oldOtherIndex,
             oldOtherIndex: oldOtherIndex,
         });
     }
