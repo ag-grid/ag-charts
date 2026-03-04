@@ -207,7 +207,7 @@ export class Tooltip extends BaseProperties {
         this.cleanup.register(
             this.springAnimation.events.on('update', () => {
                 this.updateTooltipPosition();
-                this.elementProxy?.flush();
+                this.elementProxy?.flushKey('p:translate');
             })
         );
     }
@@ -222,7 +222,7 @@ export class Tooltip extends BaseProperties {
         const removeResizeListener = this.elementProxy.addResizeListener((size) => {
             this._elementSize = size;
             this.updateTooltipPosition();
-            this.elementProxy?.flush();
+            this.elementProxy?.flushKey('p:translate');
         });
         this.localeManager = localeManager;
 

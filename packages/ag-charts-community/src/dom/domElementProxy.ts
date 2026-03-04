@@ -21,7 +21,7 @@ type HtmlAttribute =
     | 'role'
     | 'tabindex';
 
-type CacheKey = 'innerHTML' | 'contentStyles' | `p:${StyleProperty}` | `c:${string}` | `a:${HtmlAttribute}`;
+type CacheKey = 'innerHTML' | 'contentStyles' | 'popover' | `p:${StyleProperty}` | `c:${string}` | `a:${HtmlAttribute}`;
 
 /**
  * Proxies all DOM access to a single HTMLElement.
@@ -201,9 +201,42 @@ export class DOMElementProxy {
         }
     }
 
-    /** Delegates to element.togglePopover(force). No caching (side effects beyond attribute state). */
+    /** Flush a single pending write by key. Used by the spring animation to flush only position
+     *  without accidentally flushing innerHTML or togglePopover outside the render cycle. */
+    flushKey(key: CacheKey): void {
+        const fn = this.pendingWrites?.get(key);
+        if (fn) {
+            fn();
+            this.pendingWrites!.delete(key);
+        }
+    }
+
+    /**
+     * Delegates to element.togglePopover(force).
+     *
+     * In deferred mode, show (force=true) is buffered so that innerHTML is flushed first —
+     * Map insertion order guarantees setInnerHTML() runs before togglePopover(true) since
+     * show() always writes content before calling toggle(). Hide (force=false) executes
+     * immediately and cancels any pending show to avoid the element briefly appearing.
+     */
     togglePopover(force: boolean): void {
-        this.element.togglePopover(force);
+        if (this.pendingWrites) {
+            if (force) {
+                if (this.changed('popover', true)) {
+                    this.pendingWrites.set('popover', () => {
+                        this.element.togglePopover(true);
+                    });
+                }
+            } else {
+                // Cancel any pending show and hide immediately — no render cycle needed.
+                this.pendingWrites.delete('popover');
+                if (this.changed('popover', false)) {
+                    this.element.togglePopover(false);
+                }
+            }
+        } else if (this.changed('popover', force)) {
+            this.element.togglePopover(force);
+        }
     }
 
     /** Delegates to element.appendChild(). No caching — structural mutation. */

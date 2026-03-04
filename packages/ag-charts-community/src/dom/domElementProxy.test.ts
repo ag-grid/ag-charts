@@ -327,6 +327,78 @@ describe('DOMElementProxy', () => {
             proxy.flush();
             expect(spy).not.toHaveBeenCalled();
         });
+
+        it('flushKey() should apply only the specified pending write', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.setProperty('left', '10px');
+            proxy.setProperty('top', '20px');
+            proxy.flushKey('p:left');
+
+            expect(el.style.left).toBe('10px'); // flushed
+            expect(el.style.top).toBe(''); // not flushed yet
+        });
+
+        it('flushKey() should remove the key from pendingWrites so flush() does not re-apply it', () => {
+            const el = createElement();
+            const spy = jest.spyOn(el.style, 'setProperty');
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.setProperty('left', '10px');
+            proxy.flushKey('p:left');
+            spy.mockClear();
+
+            proxy.flush(); // should not call setProperty for 'left' again
+            expect(spy).not.toHaveBeenCalledWith('left', expect.anything());
+        });
+    });
+
+    describe('togglePopover()', () => {
+        it('should buffer show (true) in deferred mode and apply on flush', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.togglePopover(true);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false); // not applied yet
+
+            proxy.flush();
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+        });
+
+        it('should apply hide (false) immediately in deferred mode', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.togglePopover(true);
+            proxy.flush(); // show it
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+
+            proxy.togglePopover(false); // hide immediately
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should cancel a pending show when hide is called before flush', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferred: true });
+
+            proxy.togglePopover(true); // queued
+            proxy.togglePopover(false); // cancel + immediate hide (already hidden, no-op on DOM)
+
+            proxy.flush(); // should not show the element
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should apply togglePopover immediately in non-deferred mode', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el);
+
+            proxy.togglePopover(true);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+
+            proxy.togglePopover(false);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
     });
 
     describe('cache lifecycle', () => {

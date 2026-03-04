@@ -92,6 +92,10 @@ export class FocusIndicator {
         // never been activated.
         if (!force && !this.hasBeenActivated) return false;
 
+        // Return the cached value when it has been explicitly set via overrideFocusVisible(),
+        // avoiding a getComputedStyle() call on paths where we already know the state.
+        if (this.focusVisible !== undefined) return this.focusVisible;
+
         const parent = this.element.parentElement;
         const elWin = this.element.ownerDocument.defaultView!;
         return parent != null && elWin.getComputedStyle(parent).opacity === '1';
