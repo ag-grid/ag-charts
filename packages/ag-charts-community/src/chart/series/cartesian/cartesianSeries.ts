@@ -854,30 +854,55 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         let left: number = 0;
         let mid: number;
         let right: number = this.contextNodeData.nodeData.length - 1;
+        const reverse: boolean = this.axes.x?.reverse ?? false;
 
         const shrinkBounds: (focusBBox: Readonly<BoxBounds>) => void = (function initShrinkBounds() {
             if (where === 'viewport-start') {
-                return function shrinkViewportStart(focusBBox: Readonly<BoxBounds>): void {
-                    // Looking for smallest index whose left edge is inside viewport
-                    if (focusBBox.x >= hoverRect.x) {
-                        resultIndex = mid;
-                        right = mid - 1;
-                    } else {
-                        left = mid + 1;
-                    }
-                };
+                // Looking for smallest index whose left edge is inside viewport
+                if (reverse) {
+                    return function shrinkViewportStartReverse(focusBBox: Readonly<BoxBounds>): void {
+                        const viewportRight = hoverRect.x + hoverRect.width;
+                        const nodeRight = focusBBox.x + focusBBox.width;
+                        if (nodeRight <= viewportRight) {
+                            resultIndex = mid;
+                            right = mid - 1;
+                        } else {
+                            left = mid + 1;
+                        }
+                    };
+                } else {
+                    return function shrinkViewportStart(focusBBox: Readonly<BoxBounds>): void {
+                        if (focusBBox.x >= hoverRect.x) {
+                            resultIndex = mid;
+                            right = mid - 1;
+                        } else {
+                            left = mid + 1;
+                        }
+                    };
+                }
             } else if (where === 'viewport-end') {
-                return function shrinkViewportEnd(focusBBox: Readonly<BoxBounds>): void {
-                    // Looking for largest index whose right edge is inside viewport
-                    const viewportRight = hoverRect.x + hoverRect.width;
-                    const nodeRight = focusBBox.x + focusBBox.width;
-                    if (nodeRight <= viewportRight) {
-                        resultIndex = mid;
-                        left = mid + 1;
-                    } else {
-                        right = mid - 1;
-                    }
-                };
+                // Looking for smallest index whose left edge is inside viewport
+                if (reverse) {
+                    return function shrinkViewportEndReverse(focusBBox: Readonly<BoxBounds>): void {
+                        if (focusBBox.x >= hoverRect.x) {
+                            resultIndex = mid;
+                            left = mid + 1;
+                        } else {
+                            right = mid - 1;
+                        }
+                    };
+                } else {
+                    return function shrinkViewportEnd(focusBBox: Readonly<BoxBounds>): void {
+                        const viewportRight = hoverRect.x + hoverRect.width;
+                        const nodeRight = focusBBox.x + focusBBox.width;
+                        if (nodeRight <= viewportRight) {
+                            resultIndex = mid;
+                            left = mid + 1;
+                        } else {
+                            right = mid - 1;
+                        }
+                    };
+                }
             } else {
                 return where satisfies never;
             }
