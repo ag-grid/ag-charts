@@ -1,0 +1,57 @@
+---
+title: 'Right-to-Left (RTL)'
+description: '$framework Charts supports right-to-left (RTL) layouts for languages such as Arabic, Persian, and Hebrew.'
+---
+
+$framework Charts supports right-to-left (RTL) text direction for languages such as Arabic, Persian, and Hebrew. Enabling RTL flips text rendering direction, legend item layout, pagination controls, and context menu positioning. The axes and data direction are not changed — configure axis positions manually for conventional RTL chart layouts.
+
+## Enabling RTL
+
+Set `enableRtl: true` to enable right-to-left layout for the chart.
+
+```js format="snippet"
+{
+    enableRtl: true,
+}
+```
+
+{% note %}
+AG Charts can also detect RTL automatically from the `dir="rtl"` attribute set on the chart container or any of its ancestor elements. When the `dir` attribute is present, `enableRtl` does not need to be set explicitly.
+{% /note %}
+
+## RTL with Locale Switching
+
+The following example demonstrates RTL support with locale integration and bidirectional text. Use the language dropdown to switch between English (LTR), Arabic, Persian, and Hebrew. The RTL language options enable RTL layout, apply the corresponding locale, and show mixed bidirectional text in captions, axis titles, and legend labels.
+
+{% chartExampleRunner title="RTL Locale Switcher" name="rtl-locale-switcher" type="generated" /%}
+
+## What RTL Affects
+
+Enabling RTL changes the following:
+
+-   **Text rendering direction** — all chart text is rendered right-to-left.
+-   **Legend item layout** — legend items are laid out from right to left.
+-   **Pagination controls** — previous/next buttons are mirrored.
+-   **Context menu positioning** — menus open to the left of the cursor (enterprise feature).
+-   **Keyboard navigation** — the left and right arrow keys are swapped for navigating between data points.
+
+RTL does **not** change the axis or data direction. To position the y-axis on the right side for a conventional RTL layout, set `axes.y.position: 'right'` explicitly:
+
+```js format="snippet"
+{
+    axes: {
+        y: {
+            type: 'number',
+            position: 'right',
+        },
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+{% tabItem id="AgBaseThemeableChartOptions" label="Chart" %}
+{% apiReference id="AgBaseThemeableChartOptions" include=["enableRtl"] /%}
+{% /tabItem %}
+{% /tabs %}
