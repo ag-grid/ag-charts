@@ -323,6 +323,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Right-to-Left (RTL)",
+                            "path": "rtl"
+                        },
+                        {
+                            "type": "item",
                             "title": "Overlays",
                             "path": "overlays"
                         },
