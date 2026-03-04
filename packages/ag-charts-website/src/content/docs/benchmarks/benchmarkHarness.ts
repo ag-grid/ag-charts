@@ -128,6 +128,8 @@ function detectBrowser(): string {
     return 'Unknown';
 }
 
+const DETECTED_BROWSER = detectBrowser();
+
 function formatHostname(hostname: string | undefined): string | undefined {
     if (!hostname) return undefined;
     return hostname.replace(/\.ag-grid\.com$/, '') || hostname;
@@ -547,6 +549,7 @@ class BenchmarkUI {
                     <span id="benchmark-version-badge" style="background: var(--bm-version-bg); color: var(--bm-version-text); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--bm-version-border); font-size: 12px; font-weight: 500; white-space: nowrap;${compareMode ? ' display: none;' : ''}">
                         v${version}
                     </span>
+                    <span id="benchmark-action-btns-slot" style="display: flex; gap: 6px; align-items: center;"></span>
                 </div>
             </div>
         `;
@@ -664,7 +667,7 @@ class BenchmarkUI {
 
             const currentHostname = formatHostname(window.location.hostname || undefined);
             const baselineHostname = formatHostname(baselineData.environment.hostname);
-            const currentBrowser = detectBrowser();
+            const currentBrowser = DETECTED_BROWSER;
             const baselineBrowser = baselineData.environment.browser;
 
             const currentParts: string[] = [];
@@ -767,27 +770,17 @@ class BenchmarkUI {
     }
 
     injectFloatingActionButtons(onExport?: () => void): void {
-        document.getElementById('benchmarkFloatingActions')?.remove();
-        const chartParent = this.getChartParentWithPositioning();
-        if (!chartParent) return;
+        const slot = document.getElementById('benchmark-action-btns-slot');
+        if (!slot) return;
 
-        const container = document.createElement('div');
-        container.id = 'benchmarkFloatingActions';
-        container.style.cssText = 'position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 6px;';
+        slot.innerHTML = '';
 
         const copyBtn = document.createElement('button');
         copyBtn.className = 'benchmark-action-btn';
         copyBtn.id = 'copyBenchmarkResults';
         copyBtn.title = 'Copy results to clipboard';
         copyBtn.textContent = '⎘';
-
-        const compareBtn = document.createElement('button');
-        compareBtn.className = 'benchmark-action-btn';
-        compareBtn.id = 'compareBenchmarkResults';
-        compareBtn.title = 'Compare with clipboard';
-        compareBtn.textContent = '⇄';
-
-        container.appendChild(copyBtn);
+        slot.appendChild(copyBtn);
 
         if (onExport) {
             const exportBtn = document.createElement('button');
@@ -796,18 +789,21 @@ class BenchmarkUI {
             exportBtn.title = 'Export as JSON';
             exportBtn.textContent = '⤓';
             exportBtn.addEventListener('click', onExport);
-            container.appendChild(exportBtn);
+            slot.appendChild(exportBtn);
         }
 
-        container.appendChild(compareBtn);
-        chartParent.appendChild(container);
+        const compareBtn = document.createElement('button');
+        compareBtn.className = 'benchmark-action-btn';
+        compareBtn.id = 'compareBenchmarkResults';
+        compareBtn.title = 'Compare with clipboard';
+        compareBtn.textContent = '⇄';
+        slot.appendChild(compareBtn);
     }
 
     clearResults(): void {
         if (this.resultsElement) {
             this.resultsElement.innerHTML = '';
         }
-        document.getElementById('benchmarkFloatingActions')?.remove();
     }
 
     setRunButtonHandler(handler: () => void): void {
@@ -873,6 +869,7 @@ class BenchmarkRunner {
     private results: BenchmarkResult[] = [];
     private updateIndex = 0;
     private totalUpdates = 0;
+    private totalTests = 0;
     private currentTestCase: NormalizedTestCase | null = null;
     private currentVariant: NormalizedVariant | null = null;
     private readonly version: string;
@@ -924,6 +921,10 @@ class BenchmarkRunner {
         this.results = [];
         this.updateIndex = 0;
         this.totalUpdates = this.calculateTotalUpdates();
+        this.totalTests = this.config.testCases.reduce(
+            (sum, tc) => sum + tc.variants.filter((v) => v.available).length,
+            0
+        );
 
         this.ui.clearResults();
         this.ui.hideControls();
@@ -1077,16 +1078,12 @@ class BenchmarkRunner {
             ? `${this.currentTestCase.label || this.currentTestCase.id}${variantDisplay ? ` (${variantDisplay})` : ''}`
             : 'Initializing...';
         const completedTests = this.results.length;
-        let totalTests = 0;
-        for (const testCase of this.config.testCases) {
-            totalTests += testCase.variants.filter((v) => v.available).length;
-        }
 
         this.ui.updateProgress(
             this.isRunning ? 'running' : 'complete',
             currentTest,
             completedTests,
-            totalTests,
+            this.totalTests,
             this.updateIndex,
             this.totalUpdates,
             this.version,
@@ -1159,7 +1156,7 @@ class BenchmarkRunner {
                     : null,
                 devicePixelRatio: window.devicePixelRatio,
                 hostname: window.location.hostname || undefined,
-                browser: detectBrowser(),
+                browser: DETECTED_BROWSER,
             },
             metadata: this.config.metadata || {},
             results: this.results.map((r) => ({
@@ -1203,7 +1200,7 @@ class BenchmarkRunner {
                     : null,
                 devicePixelRatio: window.devicePixelRatio,
                 hostname: window.location.hostname || undefined,
-                browser: detectBrowser(),
+                browser: DETECTED_BROWSER,
             },
             metadata: this.config.metadata || {},
             results: this.results.map((r) => ({
