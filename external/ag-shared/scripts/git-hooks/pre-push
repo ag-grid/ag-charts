@@ -31,6 +31,7 @@ done
 # Check 1: the current local branch itself.
 # Check 2: any remote-ref in the push refspecs that maps to a protected branch.
 needs_guard=false
+PROTECTED_BRANCH="$BRANCH"
 
 if is_protected_branch "$BRANCH"; then
     needs_guard=true
@@ -44,6 +45,7 @@ if [[ "$needs_guard" == "false" ]]; then
         remote_branch="${remote_ref#refs/heads/}"
         if is_protected_branch "$remote_branch"; then
             needs_guard=true
+            PROTECTED_BRANCH="$remote_branch"
             break
         fi
     done
@@ -57,7 +59,7 @@ fi
 
 # On/targeting a protected branch — check for a known AI agent first
 if AGENT_NAME=$(detect_agent); then
-    agent_block_message "$AGENT_NAME" "push" "$BRANCH"
+    agent_block_message "$AGENT_NAME" "push" "$PROTECTED_BRANCH"
     exit 1
 fi
 
@@ -66,7 +68,7 @@ if ! [ -t 0 ] && ! [ -t 1 ]; then
     # No TTY on stdin or stdout: unknown agentic tool or CI — block the push
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  BLOCKED: Push to protected branch '$BRANCH'    ║"
+    echo "║  BLOCKED: Push to protected branch '$PROTECTED_BRANCH'    ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║  Direct pushes to protected branches from non-interactive   ║"
     echo "║  tools are not allowed.                                      ║"
@@ -80,7 +82,7 @@ fi
 
 # TTY present — interactive confirmation
 echo ""
-echo "⚠  You are about to push to protected branch '$BRANCH'."
+echo "⚠  You are about to push to protected branch '$PROTECTED_BRANCH'."
 echo "   Direct pushes to this branch should only be made by release"
 echo "   engineers. Consider using a feature branch and pull request."
 echo ""
