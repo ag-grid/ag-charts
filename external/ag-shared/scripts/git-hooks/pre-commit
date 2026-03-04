@@ -32,15 +32,15 @@ fi
 if ! [ -t 0 ]; then
     # No TTY: unknown agentic tool or CI — block the commit
     echo ""
-    echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  BLOCKED: Commit to protected branch '$BRANCH'  ║"
-    echo "╠══════════════════════════════════════════════════════════════╣"
-    echo "║  Direct commits to '$BRANCH' from non-interactive tools     ║"
-    echo "║  are not allowed.                                            ║"
-    echo "║                                                              ║"
-    echo "║  Work on a feature branch and open a pull request instead.  ║"
-    echo "║  To bypass manually: git commit --no-verify                 ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo "==========================================================================="
+    echo "BLOCKED: Commit to protected branch '$BRANCH'"
+    echo "==========================================================================="
+    echo "Direct commits to '$BRANCH' from non-interactive tools"
+    echo "are not allowed."
+    echo ""
+    echo "Work on a feature branch and open a pull request instead."
+    echo "To bypass manually: git commit --no-verify"
+    echo "==========================================================================="
     echo ""
     exit 1
 fi

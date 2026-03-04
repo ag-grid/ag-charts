@@ -65,15 +65,15 @@ fi
 if ! [ -t 0 ] && ! [ -t 1 ]; then
     # No TTY on stdin or stdout: unknown agentic tool or CI — block the push
     echo ""
-    echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  BLOCKED: Push to protected branch '$PROTECTED_BRANCH'    ║"
-    echo "╠══════════════════════════════════════════════════════════════╣"
-    echo "║  Direct pushes to protected branches from non-interactive   ║"
-    echo "║  tools are not allowed.                                      ║"
-    echo "║                                                              ║"
-    echo "║  Work on a feature branch and open a pull request instead.  ║"
-    echo "║  To bypass manually: git push --no-verify                   ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo "==========================================================================="
+    echo "BLOCKED: Push to protected branch '$PROTECTED_BRANCH'"
+    echo "==========================================================================="
+    echo "Direct pushes to protected branches from non-interactive"
+    echo "tools are not allowed."
+    echo ""
+    echo "Work on a feature branch and open a pull request instead."
+    echo "To bypass manually: git push --no-verify"
+    echo "==========================================================================="
     echo ""
     exit 1
 fi
