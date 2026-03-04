@@ -252,6 +252,10 @@ export class DOMManager extends BaseManager {
         this.element.remove();
     }
 
+    public flushElement() {
+        this.elementProxy.flush();
+    }
+
     public postRenderUpdate() {
         this.elementProxy.flush();
         for (const proxy of this.deferredProxies.values()) {
