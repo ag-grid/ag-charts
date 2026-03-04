@@ -30,9 +30,11 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
 
     options: {
         enabled: boolean,
+        enableOutOfRange: boolean,
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
+                enabled: boolean,
                 value: or(
                     number,
                     and(arrayOf(or(number, date)), arrayLength(2, 2)),
@@ -46,6 +48,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     },
     themeTemplate: {
         enabled: false,
+        enableOutOfRange: false,
         buttons: {
             $shallowSimple: [
                 {

@@ -99,6 +99,13 @@ export type UpdateZoomParams = UpdateZoomSourcing & {
     changes: UpdateZoomChanges;
 };
 
+export type UpdateZoomWithFunction = (
+    start: Date | number,
+    end: Date | number,
+    windowStart: Date | number,
+    windowEnd: Date | number
+) => [Date | number | undefined, Date | number | undefined];
+
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
     const result: CoreZoomState = {};
     for (const { id, direction } of nextAxes) {
@@ -452,44 +459,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
-    public extendToEnd(sourcing: UpdateZoomSourcing, direction: CartesianAxisDirection, extent: number) {
-        return this.extendWith(sourcing, direction, (end) => Number(end) - extent);
-    }
-
-    public extendWith(
-        { source, sourceDetail }: UpdateZoomSourcing,
-        direction: CartesianAxisDirection,
-        fn: (end: Date | number) => Date | number
-    ) {
-        const axis = this.getPrimaryAxis(direction);
-        if (!axis) return;
-
-        const extents = this.getDomainExtents(axis);
-        if (!extents) return;
-
-        const [, end] = extents;
-        const start = fn(end);
-
-        const ratio = this.rangeToRatioAxis(axis, { start });
-        if (!ratio) return;
-
-        this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
-    }
-
     public updateWith(
         { source, sourceDetail }: UpdateZoomSourcing,
         direction: CartesianAxisDirection,
-        fn: (
-            start: Date | number,
-            end: Date | number,
-            windowStart: Date | number,
-            windowEnd: Date | number
-        ) => [Date | number, Date | number]
+        fn: UpdateZoomWithFunction
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
 
-        const extents = this.getDomainExtents(axis);
+        const extents = axis.scale.getDomainMinMax();
         if (!extents) return;
 
         const [min, max] = axis.visibleRange;
@@ -505,6 +483,33 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!ratio) return;
 
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
+    }
+
+    public isValidUpdateWith(direction: CartesianAxisDirection, fn: UpdateZoomWithFunction) {
+        const axis = this.getPrimaryAxis(direction);
+        if (!axis) return true;
+
+        const extents = axis.scale.getDomainMinMax();
+        if (!extents) return true;
+
+        const [min, max] = axis.visibleRange;
+        const range = this.getRange(axis.id, { min, max });
+        if (!range) return true;
+
+        const [domainStart, domainEnd] = extents;
+        const { start: windowStart, end: windowEnd } = range;
+
+        const [start, end] = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+
+        let valid = true;
+        if (start != null) {
+            valid &&= start >= domainStart;
+        }
+        if (end != null) {
+            valid &&= end <= domainEnd;
+        }
+
+        return valid;
     }
 
     public getZoom(): ZoomState | undefined {
@@ -845,16 +850,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     public getPrimaryAxis(direction: CartesianAxisDirection) {
         return this.axes?.find((a) => a.direction === direction);
-    }
-
-    private getDomainExtents(axis: CartesianAxisLike) {
-        const { domain } = axis.scale;
-        const d0 = domain.at(0);
-        const d1 = domain.at(-1);
-
-        if (d0 == null || d1 == null) return;
-
-        return [d0, d1];
     }
 
     private getDomainPixelExtents(axis: CartesianAxisLike) {

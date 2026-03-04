@@ -139,7 +139,12 @@ export type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from './
 export { HighlightManager } from './chart/interaction/highlightManager';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
-export { userInteraction, type UpdateZoomSourcing, ZoomManager } from './chart/interaction/zoomManager';
+export {
+    userInteraction,
+    type UpdateZoomSourcing,
+    type UpdateZoomWithFunction,
+    ZoomManager,
+} from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
 export type {

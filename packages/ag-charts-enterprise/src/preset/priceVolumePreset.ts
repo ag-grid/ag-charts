@@ -167,6 +167,7 @@ export function priceVolume(
     const toolbarOpts = {
         ranges: {
             enabled: rangeButtons,
+            enableOutOfRange: true,
         } satisfies AgRangesOptions,
     };
 
