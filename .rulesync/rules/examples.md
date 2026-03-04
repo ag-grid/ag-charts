@@ -44,8 +44,10 @@ Example paths are mapped from repo paths:
         <div id="myChart"></div>
         ```
     -   **Important**: Controls should be placed BEFORE the chart div, wrapped in `class="example-controls"` with `class="controls-row"` for each row of controls.
+    -   For simple binary toggles (e.g. zoom/pan, enabled/disabled), use two `<button>` elements rather than a `<select>` dropdown.
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
     -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
+-   Examples should include a `title` on the chart options. Do not disable tooltips (`tooltip: { enabled: false }`) or add explicit axis/option configurations that aren't needed — let defaults work and only configure what the example is demonstrating.
 -   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
@@ -240,6 +242,25 @@ axes: {
 ```
 
 See [Upgrade to AG Charts 13](packages/ag-charts-website/src/content/docs/upgrade-to-ag-charts-13/) for migration details.
+
+### Multiple Axes
+
+To associate a series with a specific axis when using multiple axes, use the `yKeyAxis` or `xKeyAxis` property on the series. There is **no `axes` object on the series** — axis association is done via key mapping only.
+
+```typescript
+// ✅ CORRECT - Associate series with named axes
+const options: AgCartesianChartOptions = {
+    axes: {
+        x: { type: 'time' },
+        y: { type: 'number', title: { text: 'Price' } },
+        y2: { type: 'number', position: 'right', title: { text: 'Volume' } },
+    },
+    series: [
+        { type: 'line', xKey: 'date', yKey: 'price' },
+        { type: 'bar', xKey: 'date', yKey: 'volume', yKeyAxis: 'y2' },
+    ],
+};
+```
 
 ### Why This Matters
 
