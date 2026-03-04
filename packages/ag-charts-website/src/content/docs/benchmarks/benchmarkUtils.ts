@@ -303,9 +303,12 @@ export async function performDatumHighlight(
         await waitForAsyncEventTriggeredUpdate(chart);
     }
 
-    // Clear highlight
-    const leaveEvent = new MouseEvent('mouseleave', { bubbles: true });
-    container.dispatchEvent(leaveEvent);
+    // Clear highlight — must target the inner element the chart listens on, same as hover()
+    const leaveTarget =
+        (container.querySelector('.ag-charts-series-area') as HTMLElement) ??
+        (container.querySelector('canvas') as HTMLElement) ??
+        container;
+    leaveTarget.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
 
     return performance.now() - start;
 }
