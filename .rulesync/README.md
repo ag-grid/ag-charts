@@ -74,6 +74,12 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations         |
 | Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation   |
 
+## Prompt Hygiene
+
+| Type  | Name                  | Invoke                     | What it does                                     |
+| ----- | --------------------- | -------------------------- | ------------------------------------------------ |
+| Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
+
 ## Memory
 
 | Type    | Name                   | Invoke              | What it does                                       |
@@ -168,31 +174,32 @@ Rules load automatically when you edit files matching their glob patterns.
 
 Skills load on-demand when invoked. All skills are invoked via `/skill-name`. All skills are shared across AI tools via `.rulesync/skills/`.
 
-| Skill                           | Description                                               |
-| ------------------------------- | --------------------------------------------------------- |
-| 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                        |
-| 🔵 `code-fixup`                 | Fix build and lint errors across a package                |
-| 🔵 `dev-server`                 | Start dev server, check build status                      |
-| 🟠 `estimate-jira`              | Estimate complexity, effort, and risks for JIRA tickets   |
-| 🔵 `git-bisect`                 | Find the commit that introduced a regression              |
-| 🔵 `git-conventions`            | Branch, commit, and PR naming conventions                 |
-| 🔵 `git-split`                  | Split large files preserving git history                  |
-| 🔵 `git-worktree-clean`         | Hard-reset worktree to `origin/latest`                    |
-| 🟠 `jira-create`                | Create JIRA tickets with proper formatting and templates  |
-| 🟠 `optimize-series`            | Series performance optimisation and GC pressure reduction |
-| 🔵 `plan-implementation-review` | Review plan execution, identify delivery gaps             |
-| 🔵 `plan-review`                | Review plans for completeness and correctness             |
-| 🟠 `plunker`                    | Create and manage Plunker demos for AG Charts             |
-| 🔵 `pr-create`                  | Commit, push, and open a PR                               |
-| 🔵 `pr-review`                  | Review a PR (Markdown default, JSON with `--json`)        |
-| 🔵 `pr-split`                   | Split a branch into stacked PRs                           |
-| 🔵 `recall`                     | Load branch context, browse project memories              |
-| 🟢 `releases`                   | Release conventions, branch naming, and constraints       |
-| 🔵 `remember`                   | Save branch context or project learnings as memory        |
-| 🟠 `spruce-docs`                | Create or improve documentation following patterns        |
-| 🟠 `spruce-example`             | Improve gallery examples to professional quality          |
-| 🔵 `sync-ag-shared`             | Sync ag-shared subrepo changes across AG repos            |
-| 🟢 `technology-stack`           | Architecture constraints and zero-dependency requirements |
+| Skill                           | Description                                                 |
+| ------------------------------- | ----------------------------------------------------------- |
+| 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                          |
+| 🔵 `code-fixup`                 | Fix build and lint errors across a package                  |
+| 🔵 `dev-server`                 | Start dev server, check build status                        |
+| 🟠 `estimate-jira`              | Estimate complexity, effort, and risks for JIRA tickets     |
+| 🔵 `git-bisect`                 | Find the commit that introduced a regression                |
+| 🔵 `git-conventions`            | Branch, commit, and PR naming conventions                   |
+| 🔵 `git-split`                  | Split large files preserving git history                    |
+| 🔵 `git-worktree-clean`         | Hard-reset worktree to `origin/latest`                      |
+| 🟠 `jira-create`                | Create JIRA tickets with proper formatting and templates    |
+| 🟠 `optimize-series`            | Series performance optimisation and GC pressure reduction   |
+| 🔵 `plan-implementation-review` | Review plan execution, identify delivery gaps               |
+| 🔵 `plan-review`                | Review plans for completeness and correctness               |
+| 🟠 `plunker`                    | Create and manage Plunker demos for AG Charts               |
+| 🔵 `pr-create`                  | Commit, push, and open a PR                                 |
+| 🔵 `pr-review`                  | Review a PR (Markdown default, JSON with `--json`)          |
+| 🔵 `pr-split`                   | Split a branch into stacked PRs                             |
+| 🔵 `recall`                     | Load branch context, browse project memories                |
+| 🟢 `releases`                   | Release conventions, branch naming, and constraints         |
+| 🔵 `remember`                   | Save branch context or project learnings as memory          |
+| 🟠 `spruce-docs`                | Create or improve documentation following patterns          |
+| 🟠 `spruce-example`             | Improve gallery examples to professional quality            |
+| 🔵 `sync-ag-shared`             | Sync ag-shared subrepo changes across AG repos              |
+| 🟢 `technology-stack`           | Architecture constraints and zero-dependency requirements   |
+| 🔵 `validate-prompts`           | Validate prompt file references for consistency and hygiene |
 
 ---
 
