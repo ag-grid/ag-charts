@@ -20,7 +20,7 @@ import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
-import { DOMElementProxy } from './domElementProxy';
+import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
 const DOM_ELEMENT_CLASSES = [
@@ -121,7 +121,7 @@ export class DOMManager extends BaseManager {
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
     private readonly elementProxy: DOMElementProxy;
-    private readonly deferredMode = { active: false };
+    private readonly deferredMode: DeferredMode = { scheduleFlush: this.scheduleFlush.bind(this) };
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -131,6 +131,8 @@ export class DOMManager extends BaseManager {
     private _cachedCanvasRect: DOMRect | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
+    private _pendingFlush?: ReturnType<typeof setTimeout>;
+    private _deferring: boolean = false;
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -253,11 +255,17 @@ export class DOMManager extends BaseManager {
         this.element.remove();
     }
 
-    public flushElement() {
-        this.elementProxy.flush();
+    private scheduleFlush() {
+        if (this._deferring) return;
+        if (this._pendingFlush != null) return;
+        this._pendingFlush = setTimeout(() => {
+            this._pendingFlush = undefined;
+            if (this._deferring) return; // If we're deferring, we don't want to flush - another flush will be scheduled
+            this.flushDeferredProxies();
+        });
     }
 
-    public postRenderUpdate() {
+    private flushDeferredProxies() {
         this.elementProxy.flush();
         for (const proxy of this.deferredProxies.values()) {
             proxy.flush();
@@ -722,9 +730,9 @@ export class DOMManager extends BaseManager {
     }
 
     public setDeferring(active: boolean): void {
-        this.deferredMode.active = active;
+        this._deferring = active;
         if (!active) {
-            this.postRenderUpdate();
+            this.scheduleFlush();
         }
     }
 

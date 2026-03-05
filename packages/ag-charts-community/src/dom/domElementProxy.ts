@@ -30,6 +30,8 @@ type CacheKey =
     | `a:${HtmlAttribute}`
     | `d:${string}`;
 
+export type DeferredMode = { scheduleFlush: () => void };
+
 /**
  * Proxies all DOM access to a single HTMLElement.
  *
@@ -45,44 +47,40 @@ type CacheKey =
  *
  * When created with `{ deferredMode }`, all write operations (`setProperty`,
  * `toggleClass`, `setAttr`, `setInnerHTML`, `setContentStyles`) are buffered in
- * a `pendingWrites` Map while `deferredMode.active` is `true`, and applied
- * immediately when `deferredMode.active` is `false`.
+ * a `pendingWrites` Map and `deferredMode.scheduleFlush()` is called to request
+ * an async flush via `DOMManager`.
  *
- * This allows the same proxy to operate in deferred mode inside
- * `chart.performUpdate()` and in immediate mode outside it — writes from
- * spring animation callbacks and ResizeObserver callbacks go straight to the
- * DOM without any manual flush call.
- *
- * - **Automatic flush**: `DOMManager.postRenderUpdate()` calls `flush()` on all
- *   deferred proxies at the end of each render cycle — callers within the
- *   normal render pipeline don't need to do anything.
+ * - **Automatic flush**: `DOMManager.setDeferring(false)` schedules a
+ *   `setImmediate` that calls `flush()` on all deferred proxies at the end of
+ *   each render cycle.
  * - **Manual flush**: `flush()` and `flushKey()` remain available for callers
- *   that need explicit control (e.g. `postRenderUpdate()` itself).
+ *   that need explicit control.
  */
 export class DOMElementProxy {
     private cache: Partial<Record<CacheKey, unknown>> = {};
-    private readonly pendingWrites: Map<CacheKey, () => void> | undefined;
-    private readonly deferredMode: { active: boolean } | undefined;
+    private readonly pendingWrites = new Map<CacheKey, () => void>();
+    private readonly deferredMode: DeferredMode | undefined;
     private readonly sizeMonitor: SizeMonitor | undefined;
 
     constructor(
         private readonly element: HTMLElement,
-        opts?: { deferredMode?: { active: boolean }; sizeMonitor?: SizeMonitor }
+        opts?: { deferredMode?: DeferredMode; sizeMonitor?: SizeMonitor }
     ) {
         this.deferredMode = opts?.deferredMode;
-        if (opts?.deferredMode) {
-            this.pendingWrites = new Map();
-        }
         this.sizeMonitor = opts?.sizeMonitor;
-    }
-
-    private isDeferred(): boolean {
-        return this.deferredMode?.active ?? false;
     }
 
     /** Delegates to `element.isConnected`. */
     get isConnected(): boolean {
         return this.element.isConnected;
+    }
+
+    private scheduleFlush(): void {
+        if (this.deferredMode) {
+            this.deferredMode.scheduleFlush();
+        } else {
+            this.flush();
+        }
     }
 
     /** Delegates to `element.contains()`. */
@@ -134,13 +132,10 @@ export class DOMElementProxy {
     setProperty(name: StyleProperty, value: string): void {
         const cacheKey: CacheKey = `p:${name}`;
         if (this.changed(cacheKey, value)) {
-            if (this.isDeferred()) {
-                this.pendingWrites!.set(cacheKey, () => {
-                    this.element.style.setProperty(name, value);
-                });
-            } else {
+            this.pendingWrites.set(cacheKey, () => {
                 this.element.style.setProperty(name, value);
-            }
+            });
+            this.scheduleFlush();
         }
     }
 
@@ -148,13 +143,10 @@ export class DOMElementProxy {
     toggleClass(name: string, force: boolean): void {
         const cacheKey: CacheKey = `c:${name}`;
         if (this.changed(cacheKey, force)) {
-            if (this.isDeferred()) {
-                this.pendingWrites!.set(cacheKey, () => {
-                    this.element.classList.toggle(name, force);
-                });
-            } else {
+            this.pendingWrites.set(cacheKey, () => {
                 this.element.classList.toggle(name, force);
-            }
+            });
+            this.scheduleFlush();
         }
     }
 
@@ -162,19 +154,14 @@ export class DOMElementProxy {
     setAttr(name: HtmlAttribute, value: string | null): void {
         const cacheKey: CacheKey = `a:${name}`;
         if (this.changed(cacheKey, value)) {
-            if (this.isDeferred()) {
-                this.pendingWrites!.set(cacheKey, () => {
-                    if (value == null) {
-                        this.element.removeAttribute(name);
-                    } else {
-                        this.element.setAttribute(name, value);
-                    }
-                });
-            } else if (value == null) {
-                this.element.removeAttribute(name);
-            } else {
-                this.element.setAttribute(name, value);
-            }
+            this.pendingWrites.set(cacheKey, () => {
+                if (value == null) {
+                    this.element.removeAttribute(name);
+                } else {
+                    this.element.setAttribute(name, value);
+                }
+            });
+            this.scheduleFlush();
         }
     }
 
@@ -182,13 +169,10 @@ export class DOMElementProxy {
     setData(name: string, value: string): void {
         const cacheKey: CacheKey = `d:${name}`;
         if (this.changed(cacheKey, value)) {
-            if (this.isDeferred()) {
-                this.pendingWrites!.set(cacheKey, () => {
-                    this.element.dataset[name] = value;
-                });
-            } else {
+            this.pendingWrites.set(cacheKey, () => {
                 this.element.dataset[name] = value;
-            }
+            });
+            this.scheduleFlush();
         }
     }
 
@@ -204,13 +188,10 @@ export class DOMElementProxy {
     /** Cached innerHTML write. Returns true if the write happened. */
     setInnerHTML(html: string): boolean {
         if (this.changed('innerHTML', html)) {
-            if (this.isDeferred()) {
-                this.pendingWrites!.set('innerHTML', () => {
-                    this.element.innerHTML = html;
-                });
-            } else {
+            this.pendingWrites.set('innerHTML', () => {
                 this.element.innerHTML = html;
-            }
+            });
+            this.scheduleFlush();
             this.invalidate('contentStyles');
             return true;
         }
@@ -225,11 +206,8 @@ export class DOMElementProxy {
                 const target = (this.element.firstElementChild ?? this.element) as HTMLElement;
                 Object.assign(target.style, styles);
             };
-            if (this.isDeferred()) {
-                this.pendingWrites!.set('contentStyles', apply);
-            } else {
-                apply();
-            }
+            this.pendingWrites.set('contentStyles', apply);
+            this.scheduleFlush();
         }
     }
 
@@ -246,7 +224,7 @@ export class DOMElementProxy {
         const fn = this.pendingWrites?.get(key);
         if (fn) {
             fn();
-            this.pendingWrites!.delete(key);
+            this.pendingWrites.delete(key);
         }
     }
 
@@ -259,22 +237,19 @@ export class DOMElementProxy {
      * immediately and cancels any pending show to avoid the element briefly appearing.
      */
     togglePopover(force: boolean): void {
-        if (this.isDeferred()) {
-            if (force) {
-                if (this.changed('popover', true)) {
-                    this.pendingWrites!.set('popover', () => {
-                        this.element.togglePopover(true);
-                    });
-                }
-            } else {
-                // Cancel any pending show and hide immediately — no render cycle needed.
-                this.pendingWrites!.delete('popover');
-                if (this.changed('popover', false)) {
-                    this.element.togglePopover(false);
-                }
+        if (force) {
+            if (this.changed('popover', true)) {
+                this.pendingWrites.set('popover', () => {
+                    this.element.togglePopover(true);
+                });
+                this.scheduleFlush();
             }
-        } else if (this.changed('popover', force)) {
-            this.element.togglePopover(force);
+        } else {
+            // Cancel any pending show and hide immediately — no render cycle needed.
+            this.pendingWrites.delete('popover');
+            if (this.changed('popover', false)) {
+                this.element.togglePopover(false);
+            }
         }
     }
 
