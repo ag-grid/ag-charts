@@ -30,6 +30,12 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-category-axis.png');
     });
 
+    test('out of range', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-out-of-range', 'vanilla');
+        await gotoExample(page, url);
+        await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot('range-buttons-out-of-range.png');
+    });
+
     test('actions', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
         await gotoExample(page, url);
