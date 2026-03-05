@@ -121,6 +121,7 @@ export class DOMManager extends BaseManager {
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
     private readonly elementProxy: DOMElementProxy;
+    private readonly deferredMode = { active: false };
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -145,7 +146,7 @@ export class DOMManager extends BaseManager {
         this.sizeMonitor = new SizeMonitor(agDocument);
 
         this.element = this.initDOM();
-        this.elementProxy = new DOMElementProxy(this.element, { deferred: true });
+        this.elementProxy = new DOMElementProxy(this.element, { deferredMode: this.deferredMode });
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
@@ -715,9 +716,16 @@ export class DOMManager extends BaseManager {
 
     addDeferredProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
         const element = this.addChild(domElementClass, id);
-        const proxy = new DOMElementProxy(element, { deferred: true, sizeMonitor: this.sizeMonitor });
+        const proxy = new DOMElementProxy(element, { deferredMode: this.deferredMode, sizeMonitor: this.sizeMonitor });
         this.deferredProxies.set(`${domElementClass}:${id}`, proxy);
         return proxy;
+    }
+
+    public setDeferring(active: boolean): void {
+        this.deferredMode.active = active;
+        if (!active) {
+            this.postRenderUpdate();
+        }
     }
 
     removeChild(domElementClass: DOMElementClass, id: string) {

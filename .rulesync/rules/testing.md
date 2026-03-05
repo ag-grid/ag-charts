@@ -57,7 +57,7 @@ After meaningful chart changes, expect to run:
 
 -   `yarn nx test ag-charts-community`
 -   `yarn nx test ag-charts-enterprise`
--   `yarn nx e2e ag-charts-website`
+-   `yarn nx test:e2e ag-charts-website`
 
 ## Test Verification Patterns
 

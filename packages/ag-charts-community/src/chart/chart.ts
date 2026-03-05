@@ -797,6 +797,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this._previousSplit = performance.now();
         splits.start ??= this._previousSplit;
 
+        ctx.domManager.setDeferring(true);
+
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
                 if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
@@ -904,9 +906,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
 
                 this.ctx.domManager.incrementDataCounter('sceneRenders');
-
-                // Deferred update to avoid DOM changes mid-update.
-                this.ctx.domManager.postRenderUpdate();
             // fallthrough
 
             case ChartUpdateType.NONE:
@@ -917,6 +916,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this._performUpdateSkipAnimations = false;
                 ctx.animationManager.endBatch();
         }
+
+        // Also triggers deferred update to avoid DOM changes mid-update.
+        ctx.domManager.setDeferring(false);
 
         if (!this.destroyed) {
             ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);

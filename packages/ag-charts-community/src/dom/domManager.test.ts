@@ -183,6 +183,7 @@ describe('DOMManager', () => {
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
             proxy.setProperty('left', '10px');
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
@@ -195,6 +196,7 @@ describe('DOMManager', () => {
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
             proxy.setProperty('left', '10px');
 
             dm.postRenderUpdate();
