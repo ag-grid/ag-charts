@@ -322,8 +322,13 @@ function isBuildBlocked() {
 }
 
 let buildBuffer = [];
+let firstEventTime = null;
 function processWatchOutput({ project: rawProject, getProjectBuildTargets }) {
     if (rawProject === '') return;
+
+    if (buildBuffer.length === 0) {
+        firstEventTime = performance.now();
+    }
 
     for (const [project, targets, config] of getProjectBuildTargets(rawProject)) {
         for (const target of targets) {
@@ -412,7 +417,8 @@ async function build() {
         updateBuildHistory(target, config, projects, 'completed', buildStartTime, performance.now());
 
         if (beforeReloadableCount > 0 && afterReloadableCount === 0) {
-            success(`Reloading dev server...`);
+            const elapsed = formatTime(performance.now() - firstEventTime);
+            success(`Reloading dev server... (${elapsed} since first change)`);
             await touchBuildQueueEmptyFile();
         }
 
@@ -424,6 +430,7 @@ async function build() {
                 .split('\n')
                 .forEach((str) => info(str));
             timeManager.clear();
+            firstEventTime = null;
 
             // Update status to IDLE when queue is empty
             await writeStatusFile(STATUS.IDLE);
