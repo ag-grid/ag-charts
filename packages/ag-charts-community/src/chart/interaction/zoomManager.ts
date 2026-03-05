@@ -771,7 +771,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return changeAccepted;
     }
 
-    public getRange(axisId: AxisID, ratio: ZoomMinMax): AgZoomRange | undefined {
+    private getRange(axisId: AxisID, ratio: ZoomMinMax): AgZoomRange | undefined {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
 
@@ -779,8 +779,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return this.getRangeAxis(this.getPrimaryAxis(direction), ratio);
     }
 
-    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomMinMax | undefined): AgZoomRange | undefined {
-        if (!axis || !ratio || (!ContinuousScale.is(axis.scale) && !DiscreteTimeScale.is(axis.scale))) return;
+    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomMinMax): AgZoomRange | undefined {
+        if (!axis) return;
 
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;

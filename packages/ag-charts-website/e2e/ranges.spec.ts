@@ -8,8 +8,7 @@ test.describe('range buttons', () => {
         const { url } = toExamplePageUrl('range-buttons', 'range-buttons', 'vanilla');
         await gotoExample(page, url);
         await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot(
-            'range-buttons-default-range-buttons.png',
-            { animations: 'disabled' }
+            'range-buttons-default-range-buttons.png'
         );
     });
 
@@ -17,9 +16,18 @@ test.describe('range buttons', () => {
         const { url } = toExamplePageUrl('range-buttons', 'custom-range-buttons', 'vanilla');
         await gotoExample(page, url);
         await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot(
-            'range-buttons-custom-range-buttons.png',
-            { animations: 'disabled' }
+            'range-buttons-custom-range-buttons.png'
         );
+    });
+
+    test('category axis', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-category-range-buttons', 'vanilla');
+        await gotoExample(page, url);
+
+        const { canvas } = await locateCanvas(page);
+
+        await page.getByText('Young Adults').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-category-axis.png');
     });
 
     test('actions', async ({ page }) => {
