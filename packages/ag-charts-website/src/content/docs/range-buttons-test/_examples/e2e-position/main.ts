@@ -6,11 +6,12 @@ import {
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
+    RangesModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule]);
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
