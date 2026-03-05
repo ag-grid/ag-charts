@@ -34,9 +34,6 @@ const options: AgChartOptions<DataType> = {
             { label: 'All Ages', value: undefined },
         ],
     },
-    zoom: {
-        enabled: true,
-    },
     series: [
         {
             type: 'line',
