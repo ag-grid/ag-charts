@@ -10,10 +10,10 @@ The watch system provides a fast dev feedback loop: source file change → brows
 Source file saved
   → Nx daemon detects change (~100–500ms)
   → nx watch echoes project name
-  → watch.js quiet period debounce (100ms, resets on each event)
+  → watch.js quiet period debounce (50ms, resets on each event)
   → nx run-many <target> -c watch -p <projects>  (one batch at a time)
   → touch ag-build-queue.empty  (only when last reloadable target completes)
-  → Vite plugin detects file touch (50ms debounce)
+  → Vite plugin detects file touch (10ms debounce)
   → Browser full-reload
 ```
 
@@ -23,7 +23,7 @@ Source file saved
 
 Only one `nx run-many` runs at a time. New change events accumulate in `buildBuffer` while a build is in progress, then are processed in the next cycle. This avoids Nx task graph contention and keeps output readable.
 
-### Quiet period debounce (100ms)
+### Quiet period debounce (50ms)
 
 `QUIET_PERIOD_MS` in `constants.js` delays the first build until the file-event stream quiets. This batches multi-file IDE saves (which typically complete within tens of milliseconds). Git operations are handled separately by `isBuildBlocked()` — see below.
 
@@ -54,17 +54,18 @@ This ensures the browser does not reload until all build outputs needed by the d
 | Phase | Duration |
 |---|---|
 | Nx daemon file detection | 100–500ms |
-| Quiet period debounce | 100ms |
+| Quiet period debounce | 50ms |
 | Nx invocation overhead | 180–320ms |
 | Build execution (esbuild, cached) | 50–500ms |
-| HMR plugin debounce | 50ms |
-| **Total (cached)** | **~0.4–1.4s** |
+| HMR plugin debounce | 10ms |
+| **Total (cached)** | **~0.3–1.1s** |
 
 ### Nx invocation optimisations (watch mode)
 
 - **Combined targets**: a single `nx run-many -t build:umd build` replaces 2–3 separate spawns, saving ~280–620ms per cycle.
 - **`NX_FORCE_REUSE_CACHED_GRAPH`**: reads cached project graph directly instead of an IPC round-trip (~20–40ms per invocation).
 - **`nx run` fast path**: single-project single-target changes use `nx run <project>:<target>:<config>` instead of `run-many` (~10–30ms saving).
+- **`build:umd` source-only inputs**: community and enterprise override `dependsOn: []` and `inputs: ["production", "^production"]`, removing the inherited `build:package` dependency chain (~200–600ms saving for core changes).
 
 ## Files
 
