@@ -9,8 +9,16 @@ export interface AgRangesOptions extends Toggleable {
      * Default: `false`
      */
     enableOutOfRange?: boolean;
+    /**
+     * The position of the range buttons on the chart.
+     *
+     * Default: `'top-right'`
+     */
+    position?: AgRangesPosition;
     buttons?: AgRangesButton[];
 }
+
+export type AgRangesPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
 export interface AgRangesButton extends ToolbarButton {
     /** Set to force this button to be enabled or disabled. */

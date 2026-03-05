@@ -1,9 +1,10 @@
-import { type AgRangesButtonValue, _ModuleSupport } from 'ag-charts-community';
+import { type AgRangesButtonValue, type AgRangesPosition, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
     PropertiesArray,
     Property,
+    clamp,
     intervalAgo,
     isTimeInterval,
     isTimeIntervalUnit,
@@ -23,6 +24,9 @@ export class Ranges extends AbstractModuleInstance {
 
     @Property
     public enableOutOfRange = false;
+
+    @Property
+    public position: AgRangesPosition = 'top-right';
 
     private readonly container: HTMLElement;
     private readonly toolbar: _ModuleSupport.BaseToolbar;
@@ -53,7 +57,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { buttons, ctx, enabled, toolbar, verticalSpacing } = this;
+        const { buttons, ctx, enabled, position, toolbar, verticalSpacing } = this;
 
         if (!enabled || !ctx.zoomManager.isZoomEnabled()) {
             toolbar.setHidden(true);
@@ -63,27 +67,40 @@ export class Ranges extends AbstractModuleInstance {
         toolbar.setHidden(false);
         toolbar.updateButtons(buttons);
 
-        const height = toolbar.getBounds().height;
-        toolbar.setBounds({
-            x: layoutBox.x,
-            y: layoutBox.y + layoutBox.height - height,
-            width: layoutBox.width,
-            height: height,
-        });
+        const { width, height } = toolbar.getBounds();
+        const bounds = { x: layoutBox.x, y: layoutBox.y, width, height };
 
-        layoutBox.shrink({ bottom: height + verticalSpacing });
+        if (position === 'top' || position === 'top-left' || position === 'top-right') {
+            layoutBox.shrink({ top: height + verticalSpacing });
+        } else {
+            bounds.y = layoutBox.y + layoutBox.height - height;
+            layoutBox.shrink({ bottom: height + verticalSpacing });
+        }
+
+        if (position === 'top-right' || position === 'bottom-right') {
+            bounds.x = layoutBox.x + layoutBox.width - width;
+        } else if (position === 'top' || position === 'bottom') {
+            bounds.x = layoutBox.x + layoutBox.width / 2 - width / 2;
+        }
+
+        toolbar.setBounds(bounds);
     }
 
-    private onLayoutComplete() {
+    private onLayoutComplete({ series: { rect: seriesRect } }: _ModuleSupport.LayoutCompleteEvent) {
         const {
+            ctx,
+            buttons,
             enabled,
             enableOutOfRange,
-            buttons,
             toolbar,
             ctx: { zoomManager },
         } = this;
 
-        if (!enabled) return;
+        if (!enabled || !ctx.zoomManager.isZoomEnabled()) return;
+
+        const bounds = toolbar.getBounds();
+        bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
+        toolbar.setBounds(bounds);
 
         let index = 0;
         for (const button of buttons) {

@@ -36,6 +36,31 @@ test.describe('range buttons', () => {
         await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot('range-buttons-out-of-range.png');
     });
 
+    test('position', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-position', 'vanilla');
+        await gotoExample(page, url);
+
+        const { canvas } = await locateCanvas(page);
+
+        await page.getByText('Top Left').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-top-left.png');
+
+        await page.getByText('Top', { exact: true }).click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-top.png');
+
+        await page.getByText('Top Right').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-top-right.png');
+
+        await page.getByText('Bottom Left').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-left.png');
+
+        await page.getByText('Bottom', { exact: true }).click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-bottom.png');
+
+        await page.getByText('Bottom Right').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-right.png');
+    });
+
     test('actions', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
         await gotoExample(page, url);
