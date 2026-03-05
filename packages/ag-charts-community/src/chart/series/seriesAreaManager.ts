@@ -181,10 +181,7 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        if (chart.keyboard.initialFocus === 'data-end') {
-            this.focus.datumIndex = Number.MAX_VALUE;
-        }
-
+        this.initFocus(chart.keyboard.initialFocus);
         this.hoverScheduler = this.createHoverScheduler();
 
         this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
@@ -232,6 +229,26 @@ export class SeriesAreaManager extends BaseManager {
                 seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
                 seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget))
             );
+        }
+    }
+
+    private initFocus(initialFocus: AgInitialFocus): void {
+        switch (initialFocus) {
+            case 'data-end': {
+                // We don't need to know the length of the input data; indices that are too small or too big will get
+                // clamped. So just set datumIndex to the maximum.
+                this.focus.datumIndex = Number.MAX_VALUE;
+                break;
+            }
+            case 'viewport-start':
+            case 'viewport-end': {
+                this.focus.pendingViewportFocus = initialFocus;
+                break;
+            }
+            default:
+                // Nothing to do if initialFocus is 'data-start' (datumIndex is zero-initialised). Just verify at
+                // compile-time that we've not missed an AgInitialFocus case:
+                initialFocus satisfies 'data-start';
         }
     }
 
@@ -283,7 +300,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        if (this.focus.pendingViewportFocus) {
+        if (this.focus.pendingViewportFocus && this.focus.series !== undefined) {
             try {
                 this.pickViewportFocus(this.focus.pendingViewportFocus);
             } finally {
