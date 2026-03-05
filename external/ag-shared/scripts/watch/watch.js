@@ -243,18 +243,24 @@ function spawnNxWatch(outputCb) {
     return exitPromise;
 }
 
-function spawnNxRun(target, config, projects) {
+function spawnNxRun(targets, config, projects) {
     let exitResolve, exitReject;
     const exitPromise = new Promise((resolve, reject) => {
         exitResolve = resolve;
         exitReject = reject;
     });
 
-    const nxRunArgs = [...NX_ARGS, 'run-many', '-t', target];
-    if (config != null) {
-        nxRunArgs.push('-c', config);
+    let nxRunArgs;
+    if (targets.length === 1 && projects.length === 1) {
+        const configSuffix = config != null ? `:${config}` : '';
+        nxRunArgs = [...NX_ARGS, 'run', `${projects[0]}:${targets[0]}${configSuffix}`];
+    } else {
+        nxRunArgs = [...NX_ARGS, 'run-many', '-t', ...targets];
+        if (config != null) {
+            nxRunArgs.push('-c', config);
+        }
+        nxRunArgs.push('-p', ...projects);
     }
-    nxRunArgs.push('-p', ...projects);
 
     success(`Executing: nx ${nxRunArgs.join(' ')}`);
     const nxRun = spawn(`nx`, nxRunArgs, { stdio: 'inherit', env: process.env });
@@ -375,12 +381,17 @@ async function build() {
     buildRunning = true;
 
     const beforeReloadableCount = countReloadTargets();
-    const [, config, target] = buildBuffer.at(0);
+    const reloadableSet = globalConfig?.devServerReloadTargets ? new Set(globalConfig.devServerReloadTargets) : new Set();
+    const [, config, firstTarget] = buildBuffer.at(0);
+    const firstIsReloadable = reloadableSet.has(firstTarget);
     const newBuildBuffer = [];
     const projects = new Set();
+    const targets = new Set();
     for (const next of buildBuffer) {
-        if (projects.size < BATCH_LIMIT && next[2] === target && next[1] === config) {
+        const nextIsReloadable = reloadableSet.has(next[2]);
+        if (projects.size < BATCH_LIMIT && next[1] === config && nextIsReloadable === firstIsReloadable) {
             projects.add(next[0]);
+            targets.add(next[2]);
         } else {
             newBuildBuffer.push(next);
         }
@@ -388,6 +399,7 @@ async function build() {
     buildBuffer = newBuildBuffer;
     const afterReloadableCount = countReloadTargets();
 
+    const targetsArr = [...targets];
     let targetMsg = [...projects.values()].slice(0, PROJECT_ECHO_LIMIT).join(' ');
     if (projects.size > PROJECT_ECHO_LIMIT) {
         targetMsg += ` (+${projects.size - PROJECT_ECHO_LIMIT} targets)`;
@@ -396,7 +408,7 @@ async function build() {
     // Update status to BUILDING
     await writeStatusFile(STATUS.BUILDING, {
         currentBuild: {
-            target,
+            targets: targetsArr,
             config,
             projects: Array.from(projects),
             queueLength: buildBuffer.length,
@@ -407,14 +419,14 @@ async function build() {
     try {
         timeManager.start(`${targetMsg} build`);
         success(`Starting build for: ${targetMsg}`);
-        await spawnNxRun(target, config, [...projects.values()]);
+        await spawnNxRun(targetsArr, config, [...projects.values()]);
         success(`Completed build for: ${targetMsg}`);
         success(`Build queue has ${buildBuffer.length} remaining.`);
         timeManager.stop(`${targetMsg} build`);
         info(timeManager.timeString(`${targetMsg} build`));
 
         // Update build history with success
-        updateBuildHistory(target, config, projects, 'completed', buildStartTime, performance.now());
+        updateBuildHistory(targetsArr.join(','), config, projects, 'completed', buildStartTime, performance.now());
 
         if (beforeReloadableCount > 0 && afterReloadableCount === 0) {
             const elapsed = formatTime(performance.now() - firstEventTime);
@@ -440,7 +452,7 @@ async function build() {
         error(`Build failed for: ${targetMsg}: ${errorMsg}`);
 
         // Update build history with failure
-        updateBuildHistory(target, config, projects, 'failed', buildStartTime, performance.now(), errorMsg);
+        updateBuildHistory(targetsArr.join(','), config, projects, 'failed', buildStartTime, performance.now(), errorMsg);
 
         // Update status if queue is empty
         if (buildBuffer.length === 0) {
@@ -596,6 +608,10 @@ Run these commands to reset the workspace:
 `);
     writeStatusFile(STATUS.STOPPED).then(() => process.exit(1));
 } else {
+    // Reuse the cached project graph in watch mode — the daemon keeps it up to date,
+    // so bypassing the IPC round-trip saves ~20-40ms per Nx invocation.
+    process.env.NX_FORCE_REUSE_CACHED_GRAPH = 'true';
+
     // Write initial STARTING status
     writeStatusFile(STATUS.STARTING).then(() => {
         const config = LIBRARY_CONFIGS[library];

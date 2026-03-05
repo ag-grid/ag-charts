@@ -55,10 +55,16 @@ This ensures the browser does not reload until all build outputs needed by the d
 |---|---|
 | Nx daemon file detection | 100–500ms |
 | Quiet period debounce | 100ms |
-| Nx run-many overhead | 200–500ms |
+| Nx invocation overhead | 180–320ms |
 | Build execution (esbuild, cached) | 50–500ms |
 | HMR plugin debounce | 50ms |
-| **Total (cached)** | **~0.5–1.5s** |
+| **Total (cached)** | **~0.4–1.4s** |
+
+### Nx invocation optimisations (watch mode)
+
+- **Combined targets**: a single `nx run-many -t build:umd build` replaces 2–3 separate spawns, saving ~280–620ms per cycle.
+- **`NX_FORCE_REUSE_CACHED_GRAPH`**: reads cached project graph directly instead of an IPC round-trip (~20–40ms per invocation).
+- **`nx run` fast path**: single-project single-target changes use `nx run <project>:<target>:<config>` instead of `run-many` (~10–30ms saving).
 
 ## Files
 
