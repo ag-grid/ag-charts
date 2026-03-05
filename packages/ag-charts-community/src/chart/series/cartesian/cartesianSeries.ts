@@ -1,4 +1,4 @@
-import type { BoxBounds, ChartAnimationPhase, Scaling } from 'ag-charts-core';
+import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
