@@ -17,7 +17,7 @@ export default function createAgHotModuleReload(): Plugin {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     server.ws.send({ type: 'full-reload', path });
-                }, 300);
+                }, 10);
             };
 
             const watcher = chokidar.watch(filesToWatch);

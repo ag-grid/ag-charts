@@ -27,6 +27,8 @@
       }
     },
     "build:umd": {
+      "dependsOn": [],
+      "inputs": ["production", "^production"],
       "options": {
         "outputFileName": "ag-charts-community",
         "main": "{projectRoot}/src/main-umd.ts"
