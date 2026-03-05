@@ -186,7 +186,7 @@ export interface AgZoomOptions {
     /**
      * Whether scrolling the mouse wheel or track pad vertically zooms or pans.
      *
-     * Default: `zoom`;
+     * Default: `zoom`
      */
     scrollingMode?: AgZoomScrollingMode;
     /**
