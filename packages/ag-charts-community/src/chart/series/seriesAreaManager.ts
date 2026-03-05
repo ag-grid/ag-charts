@@ -1,6 +1,6 @@
 import type { Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
 import type {
     ActiveLoadMementoEvent,
@@ -36,6 +36,7 @@ import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
+import type { Keyboard } from '../keyboard';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
@@ -97,6 +98,7 @@ export interface SeriesAreaChartDependencies {
     ctx: ChartContext;
     tooltip: Tooltip;
     highlight: ChartHighlight;
+    keyboard: Keyboard;
     overlays: ChartOverlays;
     mode: ChartMode;
 }
@@ -178,6 +180,10 @@ export class SeriesAreaManager extends BaseManager {
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
+
+        if (chart.keyboard.initialFocus === 'data-end') {
+            this.focus.datumIndex = Number.MAX_VALUE;
+        }
 
         this.hoverScheduler = this.createHoverScheduler();
 
