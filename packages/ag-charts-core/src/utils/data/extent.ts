@@ -66,13 +66,13 @@ export function normalisedExtentWithMetadata<T>(
     let [d0, d1] = domainExtent;
 
     if (min != null) {
-        clipped = true;
+        clipped ||= min > d0;
         d0 = min;
     } else if (preferredMin != null && preferredMin < d0) {
         d0 = preferredMin;
     }
     if (max != null) {
-        clipped = true;
+        clipped ||= max < d1;
         d1 = max;
     } else if (preferredMax != null && preferredMax > d1) {
         d1 = preferredMax;
