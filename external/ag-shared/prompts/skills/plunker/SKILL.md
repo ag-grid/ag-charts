@@ -28,6 +28,14 @@ This guide covers working with Plunker for creating and sharing code examples.
 -   Easier to debug and share
 -   Framework wrappers are thin - most bugs reproduce in vanilla JS
 
+## Plan Mode
+
+When creating a plan that involves building or modifying a plunker, the plan **must explicitly state** that the `/plunker` skill will be invoked before writing any files. Do not assume the skill will be used implicitly — name it directly, e.g.:
+
+> "Invoke `/plunker` skill to load the AG Charts guide before writing any files."
+
+This ensures the implementation step uses the correct axis format, CDN URLs, CSS, and API patterns from the skill guide rather than relying on training data.
+
 ## Workflows
 
 ### Create a New Plunker
