@@ -260,7 +260,7 @@ export class DOMManager extends BaseManager {
         if (this._pendingFlush != null) return;
         this._pendingFlush = setTimeout(() => {
             this._pendingFlush = undefined;
-            if (this._deferring) return; // If we're deferring, we don't want to flush - another flush will be scheduled
+            if (this._deferring) return; // Abort if re-entered deferring state; next setDeferring(false) will reschedule
             this.flushDeferredProxies();
         });
     }

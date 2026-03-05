@@ -51,7 +51,7 @@ export type DeferredMode = { scheduleFlush: () => void };
  * an async flush via `DOMManager`.
  *
  * - **Automatic flush**: `DOMManager.setDeferring(false)` schedules a
- *   `setImmediate` that calls `flush()` on all deferred proxies at the end of
+ *   `setTimeout(0)` that calls `flush()` on all deferred proxies at the end of
  *   each render cycle.
  * - **Manual flush**: `flush()` and `flushKey()` remain available for callers
  *   that need explicit control.
@@ -221,7 +221,7 @@ export class DOMElementProxy {
 
     /** Flush a single pending write by key. */
     flushKey(key: CacheKey): void {
-        const fn = this.pendingWrites?.get(key);
+        const fn = this.pendingWrites.get(key);
         if (fn) {
             fn();
             this.pendingWrites.delete(key);
