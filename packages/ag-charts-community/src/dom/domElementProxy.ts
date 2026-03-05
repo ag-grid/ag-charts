@@ -32,6 +32,8 @@ type CacheKey =
 
 export type DeferredMode = { scheduleFlush: () => void };
 
+const SAFE_PROPERTIES_FOR_IMMEDIATE: StyleProperty[] = ['translate'];
+
 /**
  * Proxies all DOM access to a single HTMLElement.
  *
@@ -131,12 +133,16 @@ export class DOMElementProxy {
      *  Works for both standard properties and CSS custom properties. */
     setProperty(name: StyleProperty, value: string): void {
         const cacheKey: CacheKey = `p:${name}`;
-        if (this.changed(cacheKey, value)) {
-            this.pendingWrites.set(cacheKey, () => {
-                this.element.style.setProperty(name, value);
-            });
-            this.scheduleFlush();
+        if (!this.changed(cacheKey, value)) return;
+
+        if (SAFE_PROPERTIES_FOR_IMMEDIATE.includes(name)) {
+            this.element.style.setProperty(name, value);
+            return;
         }
+        this.pendingWrites.set(cacheKey, () => {
+            this.element.style.setProperty(name, value);
+        });
+        this.scheduleFlush();
     }
 
     /** classList.toggle(name, force), skipped if unchanged. */

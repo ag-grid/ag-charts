@@ -916,9 +916,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.animationManager.endBatch();
         }
 
-        // Also triggers deferred update to avoid DOM changes mid-update.
-        ctx.domManager.setDeferring(false);
-
         if (!this.destroyed) {
             ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);
             this.apiUpdate = false;
@@ -927,6 +924,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.syncStatus = 'ready';
         }
         this._performUpdateNotify.notify();
+
+        // Also triggers deferred update to avoid DOM changes mid-update.
+        ctx.domManager.setDeferring(false);
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {

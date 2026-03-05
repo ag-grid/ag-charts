@@ -266,6 +266,11 @@ export class DOMManager extends BaseManager {
     }
 
     private flushDeferredProxies() {
+        if (this._pendingFlush != null) {
+            clearTimeout(this._pendingFlush);
+            this._pendingFlush = undefined;
+        }
+
         this.elementProxy.flush();
         for (const proxy of this.deferredProxies.values()) {
             proxy.flush();
@@ -732,7 +737,7 @@ export class DOMManager extends BaseManager {
     public setDeferring(active: boolean): void {
         this._deferring = active;
         if (!active) {
-            this.scheduleFlush();
+            this.flushDeferredProxies();
         }
     }
 
