@@ -50,13 +50,17 @@ export abstract class TopologySeries<
             highlightedDatum?.datum == null &&
             legendItemName === highlightedDatum?.legendItemName;
 
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
+        if (highlightedDatum != null && highlightedDatum.series !== this && !matchingLegendItemName) {
             highlightedDatum = undefined;
         }
 
         return highlightedDatum;
+    }
+
+    public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {
+        if (!this.properties.highlight.enabled) return false;
+        const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
+        const { legendItemName } = this.properties;
+        return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 }

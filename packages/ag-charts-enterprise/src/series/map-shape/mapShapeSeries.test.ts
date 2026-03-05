@@ -15,10 +15,13 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningMessages,
     extractImageData,
     hoverAction,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -371,6 +374,59 @@ describe('MapShapeSeries', () => {
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
+        });
+    });
+
+    describe('AG-16858 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                topology: ukTopology,
+                legend: { enabled: true },
+                series: [
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'England' }] },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Scotland' }] },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }] },
+                ],
+            },
+        });
+    });
+
+    describe('AG-16858 shared legend highlight', () => {
+        it('should highlight series with matching legendItemName on legend hover', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'England' }], legendItemName: 'Group A' },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Scotland' }], legendItemName: 'Group A' },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }], legendItemName: 'Group B' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            resetMockConsole();
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expectWarningMessages([
+                `AG Charts - legend item 'Group A' has multiple fill colours, this may cause unexpected behaviour.`,
+            ]);
+
+            const series0 = (chart as Chart).series[0];
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, {
+                series: series0,
+                itemId: series0.id,
+                datum: undefined,
+                datumIndex: undefined,
+                legendItemName: 'Group A',
+            } as any);
+
+            const activeHighlight = highlightManager.getActiveHighlight();
+            expect((chart as Chart).series[0].isSeriesHighlighted(activeHighlight)).toBe(true);
+            expect((chart as Chart).series[1].isSeriesHighlighted(activeHighlight)).toBe(true);
+            expect((chart as Chart).series[2].isSeriesHighlighted(activeHighlight)).toBe(false);
+
+            await compare();
         });
     });
 
