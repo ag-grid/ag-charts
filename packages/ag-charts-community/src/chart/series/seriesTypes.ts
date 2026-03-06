@@ -39,6 +39,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly event: Event;
     readonly datum: unknown;
     readonly seriesId: string;
+    readonly itemId: string | number;
     readonly defaultPrevented: boolean;
 }
 

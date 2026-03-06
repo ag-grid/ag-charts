@@ -23,7 +23,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 
-const { ContextMenuRegistry } = _ModuleSupport;
+const { getItemId, ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
     _ModuleSupport.DatumIndexType,
     unknown,
@@ -145,6 +145,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     showOn,
                     context,
                     seriesId: this.pickedNode.series.id,
+                    itemId: getItemId(this.pickedNode),
                     datum: this.pickedNode.datum,
                     defaultItems,
                 };

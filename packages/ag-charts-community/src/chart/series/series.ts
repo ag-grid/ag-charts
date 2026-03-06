@@ -65,6 +65,7 @@ import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
+import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -149,6 +150,7 @@ export class SeriesNodeEvent<
 {
     readonly datum: unknown;
     readonly seriesId: string;
+    readonly itemId: string | number;
     defaultPrevented = false;
 
     constructor(
@@ -159,6 +161,7 @@ export class SeriesNodeEvent<
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
+        this.itemId = getItemId(nodeDatum);
     }
 
     public preventDefault() {
