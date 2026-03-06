@@ -1843,6 +1843,28 @@ test.describe('state', () => {
         test.describe('click-to-freeze', () => {
             let canvas: Locator;
 
+            const Q2_2024_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 1 },
+                datum: { quarter: 'Q2 2024', sales: 720 },
+            });
+
+            const Q4_2024_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 3 },
+                datum: { quarter: 'Q3 2024', sales: 890 },
+            });
+
+            const Q2_2024_ACTIVE_CHANGE = Object.freeze({
+                ...Q2_2024_ACTIVE,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            const Q4_2024_ACTIVE_CHANGE = Object.freeze({
+                ...Q4_2024_ACTIVE,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
             async function hover2024q2(page: Page): Promise<void> {
                 await page.mouse.click(300, 400);
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
@@ -1882,11 +1904,44 @@ test.describe('state', () => {
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-thawed.png');
                 });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hover2024q2(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: false });
+
+                    await click2024q2(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: true });
+
+                    await click2024q2(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: false });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hover2024q2(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await click2024q2(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
+                    ]);
+
+                    await click2024q2(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'state-change', frozen: false },
+                    ]);
+                });
             });
 
             test.describe('clicking 2024q4 on frozen chart updates frozen state', () => {
                 test('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+
+                    await hover2024q4(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
 
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
@@ -1896,6 +1951,44 @@ test.describe('state', () => {
 
                     await click2024q4(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hover2024q4(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: false });
+
+                    await click2024q2(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: true });
+
+                    await click2024q4(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: true });
+
+                    await click2024q4(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: false });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hover2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await click2024q2(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
+                    ]);
+
+                    await click2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
+                    ]);
+
+                    await click2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: false },
+                    ]);
                 });
             });
         });
