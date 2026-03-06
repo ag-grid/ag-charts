@@ -265,11 +265,14 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        const needsFocusRefresh: boolean =
-            this.isState(InteractionState.Focusable) &&
-            (this.focus.pendingViewportFocus !== undefined || !!this.focusIndicator?.isFocusVisible());
-        if (needsFocusRefresh) {
+        if (this.focus.pendingViewportFocus) {
+            try {
+                this.pickViewportFocus(this.focus.pendingViewportFocus);
+            } finally {
+                this.focus.pendingViewportFocus = undefined;
+            }
+            // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
+        } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
             // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
             // setting mode='never' to avoid announcing the change.
@@ -283,18 +286,10 @@ export class SeriesAreaManager extends BaseManager {
                 this.announceMode = 'never';
             }
 
-            if (this.focus.pendingViewportFocus) {
-                try {
-                    this.pickViewportFocus('viewport-start');
-                } finally {
-                    this.focus.pendingViewportFocus = undefined;
-                }
-            } else {
-                // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
-                // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so
-                // would trigger and infinite redraw loop).
-                this.refreshFocus();
-            }
+            // The focus indicator & label might be outdated, but the current focus isn't changing. Therefore, just
+            // refresh the focus indicator & label, but without emitting the 'series:focus-change' event (doing so would
+            // trigger and infinite redraw loop).
+            this.refreshFocus();
         }
     }
 
@@ -616,7 +611,6 @@ export class SeriesAreaManager extends BaseManager {
     private onPage(delta: -1 | 1, widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(widgetEvent)) return;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, widgetEvent });
-        this.handleFocusFromUserInput({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {

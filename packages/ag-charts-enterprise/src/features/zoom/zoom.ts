@@ -644,14 +644,14 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
-        const { enabled, scrollingStep } = this;
+        const { enabled } = this;
         const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
 
         if (!isDefaultState || !enabled) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
         const zoom = this.getZoom();
-        const scrollDelta: number = event.delta * scrollingStep;
+        const scrollDelta: number = event.delta * dx(zoom);
         zoom.x.min += scrollDelta;
         zoom.x.max += scrollDelta;
         zoom.x = constrainAxis(zoom.x);
