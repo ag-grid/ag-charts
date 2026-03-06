@@ -371,12 +371,6 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
-                        // console.log(
-                        //     rawTicks,
-                        //     timeInterval,
-                        //     [tickParams.interval, tickGeneration?.timeInterval],
-                        //     [intervalTickParams, niceDomain, visibleRange]
-                        // );
                         const paramsInterval =
                             typeof tickParams.interval === 'number'
                                 ? lowestGranularityForInterval(tickParams.interval)
