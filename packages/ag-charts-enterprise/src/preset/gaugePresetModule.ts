@@ -2,6 +2,7 @@ import { VERSION } from 'ag-charts-community';
 import {
     type OptionsDefs,
     type PresetModuleDefinition,
+    boolean,
     commonChartOptionsDefs,
     defined,
     linearGaugeSeriesOptionsDef,
@@ -45,6 +46,8 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
 commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 commonGaugeOptions.foreground = undocumented(defined);
+// @ts-expect-error undocumented option
+commonGaugeOptions.withinStudio = undocumented(boolean);
 
 export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',

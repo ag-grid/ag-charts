@@ -17,6 +17,7 @@ import {
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
     foreground?: object;
+    withinStudio?: boolean;
 }
 
 type GaugeTooltip = Exclude<AgGaugeOptions['tooltip'], undefined>;
@@ -90,6 +91,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
         label,
         secondaryLabel,
         spacing,
+        // eslint-disable-next-line sonarjs/no-unused-vars
+        withinStudio: _withinStudio, // unused within gauge itself
         ...seriesRest
     } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
@@ -187,6 +190,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
         cornerRadius,
         cornerMode,
         label,
+        // eslint-disable-next-line sonarjs/no-unused-vars
+        withinStudio: _withinStudio, // unused within gauge itself
         ...seriesRest
     } = opts as AgLinearGaugeOptions & UndocumentedProperties;
 
