@@ -63,4 +63,5 @@
 
 .ag-charts-menu__label {
     grid-column: -1 / span 1;
+    text-wrap: nowrap;
 }

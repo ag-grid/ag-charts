@@ -1,4 +1,9 @@
-import { type AgRangesButtonValue, type AgRangesPosition, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRangesButtonValue,
+    type AgRangesDropdown,
+    type AgRangesPosition,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -15,6 +20,8 @@ import { RangesButtonProperties } from './rangesButtonProperties';
 
 const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
+const DEFAULT_DROPDOWN_LABEL = 'toolbarRangeSelectRange';
+
 export class Ranges extends AbstractModuleInstance {
     @Property
     public enabled = false;
@@ -23,14 +30,22 @@ export class Ranges extends AbstractModuleInstance {
     public buttons = new PropertiesArray(RangesButtonProperties);
 
     @Property
+    public dropdown: AgRangesDropdown = 'auto';
+
+    @Property
     public enableOutOfRange = false;
 
     @Property
     public position: AgRangesPosition = 'top-right';
 
     private readonly container: HTMLElement;
+    private readonly dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
     private readonly toolbar: _ModuleSupport.BaseToolbar;
+
     private readonly verticalSpacing = 10;
+
+    private isDropdown = false;
+    private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -57,7 +72,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { buttons, enabled, position, toolbar, verticalSpacing } = this;
+        const { dropdown, enabled, position, toolbar, verticalSpacing } = this;
 
         if (!enabled) {
             toolbar.setHidden(true);
@@ -65,10 +80,15 @@ export class Ranges extends AbstractModuleInstance {
         }
 
         toolbar.setHidden(false);
-        toolbar.updateButtons(buttons);
 
-        const { width, height } = toolbar.getBounds();
-        const bounds = { x: layoutBox.x, y: layoutBox.y, width, height };
+        if (dropdown === 'always') {
+            this.swapDropdownIn();
+        } else {
+            this.swapDropdownOut();
+        }
+
+        const { height } = toolbar.getBounds();
+        const bounds = { x: layoutBox.x, y: layoutBox.y };
 
         if (position === 'top' || position === 'top-left' || position === 'top-right') {
             layoutBox.shrink({ top: height + verticalSpacing });
@@ -77,29 +97,44 @@ export class Ranges extends AbstractModuleInstance {
             layoutBox.shrink({ bottom: height + verticalSpacing });
         }
 
-        if (position === 'top-right' || position === 'bottom-right') {
-            bounds.x = layoutBox.x + layoutBox.width - width;
-        } else if (position === 'top' || position === 'bottom') {
-            bounds.x = layoutBox.x + layoutBox.width / 2 - width / 2;
-        }
-
         toolbar.setBounds(bounds);
     }
 
-    private onLayoutComplete({ series: { rect: seriesRect } }: _ModuleSupport.LayoutCompleteEvent) {
+    private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
         const {
             buttons,
+            dropdown,
+            dropdownMenu,
             enabled,
             enableOutOfRange,
+            position,
             toolbar,
             ctx: { zoomManager },
         } = this;
 
         if (!enabled) return;
 
-        const bounds = toolbar.getBounds();
+        let bounds = toolbar.getBounds();
+
+        if (bounds.width > seriesRect.width && dropdown === 'auto') {
+            this.swapDropdownIn();
+            bounds = toolbar.getBounds();
+        } else if (dropdown !== 'always') {
+            this.swapDropdownOut();
+        }
+
+        if (position === 'top-right' || position === 'bottom-right') {
+            bounds.x = layoutBox.x + layoutBox.width - bounds.width;
+        } else if (position === 'top' || position === 'bottom') {
+            bounds.x = layoutBox.x + layoutBox.width / 2 - bounds.width / 2;
+        }
+
         bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
-        toolbar.setBounds(bounds);
+        toolbar.setBounds({ x: bounds.x, y: bounds.y });
+
+        const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
+        const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
+        dropdownMenu.setAnchor(anchor, fallbackAnchor);
 
         let index = 0;
         for (const button of buttons) {
@@ -118,9 +153,61 @@ export class Ranges extends AbstractModuleInstance {
 
     private onZoomChanged() {
         this.toolbar.clearActiveButton();
+
+        if (this.isDropdown) {
+            this.resetDropdownButton();
+        }
     }
 
     private onButtonPress({ button: { index } }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
+        if (this.isDropdown) {
+            this.showDropdownMenu();
+        } else {
+            this.updateZoomWithButtonIndex(index);
+        }
+    }
+
+    private swapDropdownIn() {
+        this.isDropdown = true;
+        this.toolbar.clearButtons();
+        this.toolbar.updateButtons([{ label: this.dropdownLabel, value: Infinity }]);
+    }
+
+    private swapDropdownOut() {
+        this.isDropdown = false;
+        this.toolbar.updateButtons(this.buttons);
+        this.dropdownMenu.hide();
+    }
+
+    private resetDropdownButton() {
+        this.dropdownLabel = DEFAULT_DROPDOWN_LABEL;
+        this.toolbar.updateButtonByIndex(0, { label: this.dropdownLabel, value: Infinity });
+    }
+
+    private showDropdownMenu() {
+        const buttonWidget = this.toolbar.getButtonWidget(0);
+        if (!buttonWidget) return;
+
+        const menuItems = this.buttons.map((button, index) => {
+            return {
+                ariaLabel: button.ariaLabel,
+                label: button.label ?? `${index}`,
+                value: `${index}`,
+                icon: button.icon,
+            };
+        });
+
+        this.dropdownMenu.show(buttonWidget, {
+            items: menuItems,
+            onPress: (item) => {
+                const index = Number(item.value);
+                this.updateZoomWithButtonIndex(index);
+                this.dropdownLabel = item.label ?? DEFAULT_DROPDOWN_LABEL;
+            },
+        });
+    }
+
+    private updateZoomWithButtonIndex(index: number) {
         const { zoomManager } = this.ctx;
 
         const button = this.buttons.at(index);
