@@ -72,7 +72,7 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-lineSeriesOptionsDef.yFilterKey = undocumented(string);
+lineSeriesOptionsDef.selectedKey = undocumented(string);
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option

@@ -59,8 +59,4 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-scatterSeriesOptionsDef.xFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-scatterSeriesOptionsDef.yFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-scatterSeriesOptionsDef.sizeFilterKey = undocumented(string);
+scatterSeriesOptionsDef.selectedKey = undocumented(string);

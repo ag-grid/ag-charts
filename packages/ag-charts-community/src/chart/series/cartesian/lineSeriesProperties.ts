@@ -28,7 +28,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     yName?: string;
 
     @Property
-    yFilterKey: string | undefined;
+    selectedKey: string | undefined;
 
     @Property
     stackGroup?: string;
