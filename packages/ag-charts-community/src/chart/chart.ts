@@ -504,9 +504,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Chart & SeriesAreaManager initialization happens options processing:
         const initialFocus: AgInitialFocus | undefined =
             options.userOptions.keyboard?.initialFocus ??
-            (typeof options.userOptions.theme !== 'object'
-                ? undefined
-                : options.userOptions.theme.overrides?.common?.keyboard?.initialFocus);
+            (typeof options.userOptions.theme === 'object'
+                ? options.userOptions.theme.overrides?.common?.keyboard?.initialFocus
+                : undefined);
         if (initialFocus !== undefined) {
             keyboard.initialFocus = initialFocus;
         }
