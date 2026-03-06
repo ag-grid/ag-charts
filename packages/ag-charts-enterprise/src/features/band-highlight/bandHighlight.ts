@@ -129,7 +129,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private clearAllHighlight() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
+        if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
 
         this.onHighlightChange();
     }
@@ -141,7 +141,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private onHoverLikeEvent(event: _ModuleSupport.HoverLikeEvent): void {
-        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
         this.handleHoverHighlight(event);
     }

@@ -67,7 +67,7 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private onMouseMove(e: _Widget.MouseWidgetEvent<'mousemove'>) {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
+        if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.show(e);
     }
 
     private onMouseDrag(e: _Widget.DragWidgetEvent) {
@@ -75,7 +75,7 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private onMouseLeave() {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.hide();
+        if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
     private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
