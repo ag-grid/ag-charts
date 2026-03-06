@@ -1839,5 +1839,60 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('click-to-freeze', () => {
+            let canvas: Locator;
+
+            async function click2024q2(page: Page): Promise<void> {
+                await page.mouse.click(300, 400);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function click2024q4(page: Page): Promise<void> {
+                await page.mouse.click(600, 300);
+            }
+
+            async function clickOut(page: Page): Promise<void> {
+                await page.mouse.click(20, 20);
+            }
+
+            // async function waitForFreezeStatus(page: Page, desiredStatus: string): Promise<void> {
+            //     const wrapper = page.locator(SELECTORS.wrapper);
+            //     for (let attempt = 0; attempt < 4; attempt++) {
+            //         const currentStatus: string= await page.locator('#myFreezeStatus').textContent() ?? '';
+            //         if (desiredStatus !== currentStatus) {
+            //             await waitForChartUpdate(wrapper);
+            //         }
+            //     }
+            //     throw new Error(`cannot get freeze-status ${desiredStatus}`);
+            // }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'click-to-freeze', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('hovering over country shapes prevents activeChange events', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+
+                    await click2024q2(page);
+                    //await clickOut(page);
+                    //await waitForFreezeStatus(page, 'FROZEN on item 1. Hover elsewhere — highlight stays fixed. Click bar again to unfreeze.');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
+                });
+
+                test('screenshots2', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+
+                    await click2024q4(page);
+                    await clickOut(page);
+                    //await waitForFreezeStatus(page, 'FROZEN on item 3. Hover elsewhere — highlight stays fixed. Click bar again to unfreeze.');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-frozen.png');
+                });
+            });
+        });
     });
 });
