@@ -26,6 +26,8 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 
+    override defaultTickMinSpacing = 20;
+
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
