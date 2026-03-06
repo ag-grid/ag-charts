@@ -29,33 +29,25 @@ const options: AgCartesianChartOptions<DatumType> = {
             id: 'sales-series',
             listeners: {
                 seriesNodeClick: function (event: AgNodeClickEvent<'seriesNodeClick', DatumType>) {
+                    const { seriesId, itemId } = event;
                     let state = chart.getState();
                     let statusEl = document.getElementById('myFreezeStatus');
-                    if (state.active && state.active.frozen && event.itemId === frozenItemId) {
+                    const activeItem = { type: 'series-node', seriesId, itemId };
+                    if (state.active && state.active.frozen && itemId === frozenItemId) {
                         // Already frozen — unfreeze
-                        chart.setState({
-                            version: state.version,
-                            active: { frozen: false, activeItem: undefined },
-                        });
+                        chart.setState({ version: state.version, active: { frozen: false, activeItem } });
                         statusEl.textContent = 'Unfrozen. Click a bar to freeze again.';
                         statusEl.style.background = '';
                         frozenItemId = undefined;
                     } else {
                         // Freeze current active item
-                        chart.setState({
-                            version: state.version,
-                            active: { frozen: true, activeItem: {
-                                type: 'series-node',
-                                seriesId: event.seriesId,
-                                itemId: event.itemId,
-                            } },
-                        });
+                        chart.setState({ version: state.version, active: { frozen: true, activeItem } });
                         statusEl.textContent =
                             'FROZEN on item ' +
-                            event.itemId +
+                            itemId +
                             '. Hover elsewhere — highlight stays fixed. Click bar again to unfreeze.';
                         statusEl.style.background = '#fffbe6';
-                        frozenItemId = event.itemId;
+                        frozenItemId = itemId;
                     }
                 },
             },
