@@ -1869,27 +1869,33 @@ test.describe('state', () => {
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
-            test.describe('seriesNodeClick should be fired on frozen charts', () => {
+            test.describe('clicking 2024q2 toggles frozen state', () => {
                 test('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await hover2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-thawed.png');
 
-                    await hover2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
-
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
 
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-thawed.png');
+                });
+            });
+
+            test.describe('clicking 2024q4 on frozen chart updates frozen state', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
 
                     await click2024q4(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-frozen.png');
+
+                    await click2024q4(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
                 });
             });
         });
