@@ -431,7 +431,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onHover(event: MouseWidgetEvent<'mousemove'>, current: Widget): void {
-        if (!this.isState(InteractionState.Hoverable)) return;
+        if (!this.isState(InteractionState.Clickable)) return;
         this.onHoverLikeEvent(event, current);
     }
 
