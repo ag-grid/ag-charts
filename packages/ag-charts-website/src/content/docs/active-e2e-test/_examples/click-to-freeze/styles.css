@@ -1,4 +1,4 @@
-#freeze-status {
+.status {
     padding: 8px 12px;
     border: 1px solid var(--chart-border);
     border-radius: 4px;

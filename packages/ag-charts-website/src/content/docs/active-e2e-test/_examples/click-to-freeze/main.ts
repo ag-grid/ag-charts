@@ -26,8 +26,8 @@ const options: AgCartesianChartOptions<{ quarter: string; sales: number }> = {
             id: 'sales-series',
             listeners: {
                 seriesNodeClick: function () {
-                    var state = chart.getState();
-                    var statusEl = document.getElementById('freeze-status');
+                    let state = chart.getState();
+                    let statusEl = document.getElementById('myFreezeStatus');
                     if (state.active && state.active.frozen) {
                         // Already frozen — unfreeze
                         chart.setState({
@@ -63,10 +63,14 @@ const chart = AgCharts.create(options);
 export function unfreezeAll() {
     let state = chart.getState();
     chart.setState({ version: state.version, active: { frozen: false } });
-    let statusEl = document.getElementById('freeze-status');
+    let statusEl = document.getElementById('myFreezeStatus');
     statusEl.textContent = 'Unfrozen. Click a bar to freeze again.';
     statusEl.style.background = '';
 }
+
+window.addEventListener('mousemove', (ev: MouseEvent) => {
+    document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
 
 // For e2e testing:
 (window as any).agE2E = { chart };

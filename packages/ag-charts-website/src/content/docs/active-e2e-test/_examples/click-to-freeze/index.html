@@ -1,9 +1,12 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="unfreezeAll()">Unfreeze</button>
-        <div id="freeze-status">
+        <div class="status" id="myFreezeStatus">
             Click a bar to freeze its tooltip and highlight. Click again or press Unfreeze to clear.
         </div>
+    </div>
+    <div class="controls-row">
+        <button onclick="unfreezeAll()">Unfreeze</button>
+        <div class="status" id="myPointerPos">not assigned</div>
     </div>
 </div>
 <div id="myChart"></div>
