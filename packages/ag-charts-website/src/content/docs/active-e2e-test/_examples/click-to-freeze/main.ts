@@ -1,6 +1,6 @@
 // @ag-skip-fws
 import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgCartesianChartOptions } from 'ag-charts-types';
 
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
@@ -56,9 +56,26 @@ const options: AgCartesianChartOptions<{ quarter: string; sales: number }> = {
         x: { type: 'category' },
         y: { type: 'number', title: { text: 'Sales ($k)' } },
     },
+    listeners: {
+        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+            events.push(ev);
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
+let events: unknown[] = [];
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
+
+export function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
 
 export function unfreezeAll() {
     let state = chart.getState();
@@ -73,4 +90,4 @@ window.addEventListener('mousemove', (ev: MouseEvent) => {
 });
 
 // For e2e testing:
-(window as any).agE2E = { chart };
+(window as any).agE2E = { chart, popEvents };
