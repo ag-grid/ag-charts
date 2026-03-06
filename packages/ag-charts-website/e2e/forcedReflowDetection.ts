@@ -183,9 +183,10 @@ export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: Fil
         const hasAgChartsFrame = r.stackFrames.some((f) => f.url?.includes('ag-charts'));
         if (!hasAgChartsFrame) return false;
 
-        // Allowlist filter: skip known-unavoidable top-frame functions.
-        const topFunctionName = r.stackFrames[0]?.functionName;
-        if (topFunctionName != null && allowlist.has(topFunctionName)) return false;
+        // Allowlist filter: skip known-unavoidable functions. Check the first
+        // named frame because the top frame may be anonymous (e.g. an IIFE).
+        const firstNamedFunction = r.stackFrames.find((f) => f.functionName)?.functionName;
+        if (firstNamedFunction != null && allowlist.has(firstNamedFunction)) return false;
 
         return true;
     });

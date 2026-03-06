@@ -20,7 +20,7 @@ import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
-import { DOMElementProxy } from './domElementProxy';
+import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
 const DOM_ELEMENT_CLASSES = [
@@ -120,6 +120,8 @@ export class DOMManager extends BaseManager {
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
+    private readonly elementProxy: DOMElementProxy;
+    private readonly deferredMode: DeferredMode = { scheduleFlush: this.scheduleFlush.bind(this) };
 
     private minWidth: number = 0;
     private minHeight: number = 0;
@@ -129,6 +131,8 @@ export class DOMManager extends BaseManager {
     private _cachedCanvasRect: DOMRect | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
+    private _pendingFlush?: ReturnType<typeof setTimeout>;
+    private _deferring: boolean = false;
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -144,6 +148,7 @@ export class DOMManager extends BaseManager {
         this.sizeMonitor = new SizeMonitor(agDocument);
 
         this.element = this.initDOM();
+        this.elementProxy = new DOMElementProxy(this.element, { deferredMode: this.deferredMode });
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
@@ -250,7 +255,23 @@ export class DOMManager extends BaseManager {
         this.element.remove();
     }
 
-    public postRenderUpdate() {
+    private scheduleFlush() {
+        if (this._deferring) return;
+        if (this._pendingFlush != null) return;
+        this._pendingFlush = setTimeout(() => {
+            this._pendingFlush = undefined;
+            if (this._deferring) return; // Abort if re-entered deferring state; next setDeferring(false) will reschedule
+            this.flushDeferredProxies();
+        });
+    }
+
+    private flushDeferredProxies() {
+        if (this._pendingFlush != null) {
+            clearTimeout(this._pendingFlush);
+            this._pendingFlush = undefined;
+        }
+
+        this.elementProxy.flush();
         for (const proxy of this.deferredProxies.values()) {
             proxy.flush();
         }
@@ -708,9 +729,16 @@ export class DOMManager extends BaseManager {
 
     addDeferredProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
         const element = this.addChild(domElementClass, id);
-        const proxy = new DOMElementProxy(element, { deferred: true, sizeMonitor: this.sizeMonitor });
+        const proxy = new DOMElementProxy(element, { deferredMode: this.deferredMode, sizeMonitor: this.sizeMonitor });
         this.deferredProxies.set(`${domElementClass}:${id}`, proxy);
         return proxy;
+    }
+
+    public setDeferring(active: boolean): void {
+        this._deferring = active;
+        if (!active) {
+            this.flushDeferredProxies();
+        }
     }
 
     removeChild(domElementClass: DOMElementClass, id: string) {
@@ -723,17 +751,16 @@ export class DOMManager extends BaseManager {
     }
 
     incrementDataCounter(name: string) {
-        const { dataset } = this.element;
-        dataset[name] ??= '0';
-        dataset[name] = String(Number(dataset[name]) + 1);
+        const current = this.elementProxy.getData(name) ?? '0';
+        this.elementProxy.setData(name, String(Number(current) + 1));
     }
 
     setDataBoolean(name: string, value: boolean) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
     }
 
     setDataNumber(name: string, value: number) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
     }
 
     getDocument() {

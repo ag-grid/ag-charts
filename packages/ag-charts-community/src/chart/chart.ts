@@ -52,6 +52,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import { DebugSelectors } from '../scene/sceneDebug';
 import { Mutex } from '../util/mutex';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
@@ -795,6 +796,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this._previousSplit = performance.now();
         splits.start ??= this._previousSplit;
 
+        ctx.domManager.setDeferring(true);
+
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
                 if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
@@ -892,7 +895,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                     debugSplitTimes: splits,
                     extraDebugStats,
                     seriesRect: this.seriesRect,
-                    debugColors: this.getDebugColors(),
+                    debugColors: Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)
+                        ? this.getDebugColors()
+                        : undefined,
                 });
                 this.extraDebugStats = {};
                 for (const key of Object.keys(splits)) {
@@ -900,9 +905,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
 
                 this.ctx.domManager.incrementDataCounter('sceneRenders');
-
-                // Deferred update to avoid DOM changes mid-update.
-                this.ctx.domManager.postRenderUpdate();
             // fallthrough
 
             case ChartUpdateType.NONE:
@@ -922,6 +924,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.syncStatus = 'ready';
         }
         this._performUpdateNotify.notify();
+
+        // Also triggers deferred update to avoid DOM changes mid-update.
+        ctx.domManager.setDeferring(false);
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {

@@ -272,7 +272,11 @@ export class SeriesAreaManager extends BaseManager {
                 this.focus.pendingViewportFocus = undefined;
             }
             // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
+        } else if (
+            this.isState(InteractionState.Focusable) &&
+            this.hoverDevice !== 'pointer' &&
+            this.focusIndicator?.isFocusVisible()
+        ) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
             // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
             // setting mode='never' to avoid announcing the change.
