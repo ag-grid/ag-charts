@@ -304,3 +304,71 @@ reason = "We don't use webpack-dev-server to serve files outside of development"
 id = "GHSA-8fgc-7cc6-rx7x"
 reason = "We don't use webpack-dev-server to serve files outside of development"
 
+[[IgnoredVulns]]
+id = "GHSA-wc8c-qw6v-h7f6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-vpq2-c234-7xj6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-5rq4-664w-9x2c"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-33hq-fvwr-56pm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-8qm3-746x-r74r"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-73rr-hh4g-fpgx"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-v2wj-7wpq-c8vv"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-v8jm-5vwx-cfxm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-5pq2-9x2x-5p6w"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-gq3j-xvxp-8hrf"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-p6xx-57qc-3wxr"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-q5qw-h33p-qvwr"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-wf6x-7x77-mvgw"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-7gcc-r8m5-44qm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-xpqw-6gx7-v673"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-qffp-2rhf-9h96"
+reason = "Dev dependencies that dont form part of the distributable library"
+
