@@ -1,4 +1,6 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+
+import type { AgInitialFocus } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
@@ -618,5 +620,37 @@ test.describe('keyboard-nav', () => {
         // Should already be on the 2nd legend item
 
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('CRT-1047-after-change-font.png');
+    });
+
+    test.describe('initial-focus', () => {
+        async function selectOption(page: Page, initialFocus: AgInitialFocus): Promise<void> {
+            await page.selectOption('#myInitialFocus', initialFocus);
+            await page.locator('#above-chart').focus();
+            await page.keyboard.press('Tab');
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('accessibility-test', 'initial-focus', 'vanilla').url);
+        });
+
+        test('data-start', async ({ page }) => {
+            await selectOption(page, 'data-start');
+            await expect(page).toHaveScreenshot('initial-focus-data-start.png');
+        });
+
+        test('data-end', async ({ page }) => {
+            await selectOption(page, 'data-end');
+            await expect(page).toHaveScreenshot('initial-focus-data-end.png');
+        });
+
+        test('viewport-start', async ({ page }) => {
+            await selectOption(page, 'viewport-start');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+        });
+
+        test('viewport-end', async ({ page }) => {
+            await selectOption(page, 'viewport-end');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-end.png');
+        });
     });
 });
