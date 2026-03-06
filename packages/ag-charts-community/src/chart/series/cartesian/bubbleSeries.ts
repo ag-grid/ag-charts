@@ -154,9 +154,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly yDataValues: any[];
     readonly sizeDataValues: number[] | undefined;
     readonly labelDataValues: any[] | undefined;
-    readonly xFilterDataValues: any[] | undefined;
-    readonly yFilterDataValues: any[] | undefined;
-    readonly sizeFilterDataValues: number[] | undefined;
+    readonly selectedDataValues: boolean[] | undefined;
 
     // Additional scale (size is BubbleSeries-specific)
     readonly sizeScale: Scale<any, number>;
@@ -270,17 +268,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
-        const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
+        const { xKey, yKey, sizeKey, selectedKey, labelKey, marker } = this.properties;
         const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
-                ...(xFilterKey == null ? [] : [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })]),
-                ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })]),
-                ...(sizeFilterKey == null
-                    ? []
-                    : [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]),
+                ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: `selectedValue` })]),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
             ],
@@ -447,9 +441,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             xKey,
             yKey,
             sizeKey,
-            xFilterKey,
-            yFilterKey,
-            sizeFilterKey,
+            selectedKey,
             labelKey,
             xName,
             yName,
@@ -493,14 +485,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData),
             labelDataValues:
                 labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData),
-            xFilterDataValues:
-                xFilterKey == null ? undefined : dataModel.resolveColumnById(this, `xFilterValue`, processedData),
-            yFilterDataValues:
-                yFilterKey == null ? undefined : dataModel.resolveColumnById(this, `yFilterValue`, processedData),
-            sizeFilterDataValues:
-                sizeFilterKey == null
+            selectedDataValues:
+                selectedKey == null
                     ? undefined
-                    : dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData),
+                    : dataModel.resolveColumnById<boolean>(this, `selectedValue`, processedData),
 
             // Scales
             xScale,
@@ -697,14 +685,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined;
 
-        // Compute selection state
-        let selected: boolean | undefined;
-        if (ctx.xFilterDataValues != null && ctx.yFilterDataValues != null) {
-            selected = ctx.xFilterDataValues[datumIndex] === xDatum && ctx.yFilterDataValues[datumIndex] === yDatum;
-            if (ctx.sizeFilterDataValues != null) {
-                selected &&= ctx.sizeFilterDataValues[datumIndex] === sizeValue;
-            }
-        }
+        const selected = ctx.selectedDataValues?.[datumIndex];
 
         // Compute label (skip expensive formatting if labels disabled)
         let nodeLabel: MeasuredLabel;

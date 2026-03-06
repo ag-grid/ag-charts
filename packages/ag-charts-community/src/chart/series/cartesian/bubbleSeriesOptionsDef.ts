@@ -64,8 +64,4 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.xFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.yFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.sizeFilterKey = undocumented(string);
+bubbleSeriesOptionsDef.selectedKey = undocumented(string);

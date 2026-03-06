@@ -68,4 +68,4 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
-areaSeriesOptionsDef.yFilterKey = undocumented(string);
+areaSeriesOptionsDef.selectedKey = undocumented(string);

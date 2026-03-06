@@ -58,13 +58,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     labelKey?: string;
 
     @Property
-    xFilterKey: string | undefined;
-
-    @Property
-    yFilterKey: string | undefined;
-
-    @Property
-    sizeFilterKey: string | undefined;
+    selectedKey: string | undefined;
 
     @Property
     xName?: string;

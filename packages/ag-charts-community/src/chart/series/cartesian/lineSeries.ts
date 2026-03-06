@@ -149,7 +149,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 0 } = {} } = this;
-        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.properties;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -189,8 +189,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             })
         );
 
-        if (yFilterKey != null) {
-            props.push(valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' }));
+        if (selectedKey != null) {
+            props.push(valueProperty(selectedKey, 'category', { id: 'selectedRaw' }));
         }
 
         if (stacked) {
@@ -404,8 +404,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
             yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
             yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
-            selectionValues: this.properties.yFilterKey
-                ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData)
+            selectionValues: this.properties.selectedKey
+                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
                 : undefined,
             xScale,
             yScale,
@@ -604,8 +604,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         });
         result.strokeData = { itemId: ctx.yKey, spans: strokeSpans };
 
-        result.crossFiltering =
-            ctx.selectionValues?.some((selectionValue, index) => selectionValue === ctx.yRawValues[index]) ?? false;
+        result.crossFiltering = this.properties.selectedKey != null;
 
         result.segments = calculateSegments(
             this.properties.segmentation,

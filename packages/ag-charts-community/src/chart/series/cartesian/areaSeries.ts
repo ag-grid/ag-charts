@@ -127,7 +127,7 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     // Additional data arrays specific to area series
     readonly yRawValues: any[];
     readonly yCumulativeValues: any[];
-    readonly yFilterValues: any[] | undefined;
+    readonly selectedValues: boolean[] | undefined;
     readonly invalidData: boolean[] | undefined;
 
     // Aggregation
@@ -148,7 +148,6 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
 
     // Mutable state (in addition to nodes, nodeIndex from base)
     labelData: LabelSelectionDatum[];
-    crossFiltering: boolean;
 }
 
 /**
@@ -294,7 +293,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -319,7 +318,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const props: PropertyDefinition<any, any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-            ...(yFilterKey == null ? [] : [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })]),
+            ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: 'selectedRaw' })]),
         ];
 
         if (stacked) {
@@ -887,7 +886,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const {
             xKey,
             xName,
-            yFilterKey,
+            selectedKey,
             yKey,
             yName,
             legendItemName,
@@ -928,8 +927,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             yCumulativeValues: stacked
                 ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData)
                 : dataModel.resolveColumnById(this, 'yValueRaw', processedData),
-            yFilterValues:
-                yFilterKey == null ? undefined : dataModel.resolveColumnById(this, 'yFilterRaw', processedData),
+            selectedValues:
+                selectedKey == null ? undefined : dataModel.resolveColumnById(this, 'selectedRaw', processedData),
             invalidData: processedData.invalidData?.get(this.id),
 
             // Scales (cached)
@@ -964,7 +963,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             nodes: canIncrementallyUpdate ? existingNodeData : [],
             labelData: [],
             nodeIndex: 0,
-            crossFiltering: false,
         };
     }
 
@@ -1015,10 +1013,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         // Compute marker coordinates
         this.computeMarkerCoordinate(ctx, scratch);
 
-        scratch.selected = ctx.yFilterValues == null ? undefined : ctx.yFilterValues[datumIndex] === scratch.yDatum;
-        if (scratch.selected === false) {
-            ctx.crossFiltering = true;
-        }
+        scratch.selected = ctx.selectedValues?.[datumIndex];
 
         // Marker data (using ctx.nodes to match base interface)
         if (scratch.validPoint) {
@@ -1147,7 +1142,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
-            crossFiltering: ctx.crossFiltering,
+            crossFiltering: this.properties.selectedKey != null,
             styles: getMarkerStyles(this, this.properties, this.properties.marker),
             segments: undefined,
         };
