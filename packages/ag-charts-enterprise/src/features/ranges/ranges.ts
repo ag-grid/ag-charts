@@ -57,9 +57,9 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { buttons, ctx, enabled, position, toolbar, verticalSpacing } = this;
+        const { buttons, enabled, position, toolbar, verticalSpacing } = this;
 
-        if (!enabled || !ctx.zoomManager.isZoomEnabled()) {
+        if (!enabled) {
             toolbar.setHidden(true);
             return;
         }
@@ -88,7 +88,6 @@ export class Ranges extends AbstractModuleInstance {
 
     private onLayoutComplete({ series: { rect: seriesRect } }: _ModuleSupport.LayoutCompleteEvent) {
         const {
-            ctx,
             buttons,
             enabled,
             enableOutOfRange,
@@ -96,7 +95,7 @@ export class Ranges extends AbstractModuleInstance {
             ctx: { zoomManager },
         } = this;
 
-        if (!enabled || !ctx.zoomManager.isZoomEnabled()) return;
+        if (!enabled) return;
 
         const bounds = toolbar.getBounds();
         bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
