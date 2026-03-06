@@ -1,10 +1,13 @@
 // @ag-skip-fws
 import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
-import type { AgActiveChangeEvent, AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgCartesianChartOptions, AgNodeClickEvent } from 'ag-charts-types';
 
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
-const options: AgCartesianChartOptions<{ quarter: string; sales: number }> = {
+let frozenItemId: string | number | undefined = undefined;
+
+type DatumType = { quarter: string; sales: number };
+const options: AgCartesianChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Click-to-Freeze Bar Chart' },
     subtitle: {
@@ -25,28 +28,34 @@ const options: AgCartesianChartOptions<{ quarter: string; sales: number }> = {
             yName: 'Sales',
             id: 'sales-series',
             listeners: {
-                seriesNodeClick: function () {
+                seriesNodeClick: function (event: AgNodeClickEvent<'seriesNodeClick', DatumType>) {
                     let state = chart.getState();
                     let statusEl = document.getElementById('myFreezeStatus');
-                    if (state.active && state.active.frozen) {
+                    if (state.active && state.active.frozen && event.itemId === frozenItemId) {
                         // Already frozen — unfreeze
                         chart.setState({
                             version: state.version,
-                            active: { frozen: false, activeItem: state.active.activeItem },
+                            active: { frozen: false, activeItem: undefined },
                         });
                         statusEl.textContent = 'Unfrozen. Click a bar to freeze again.';
                         statusEl.style.background = '';
-                    } else if (state.active && state.active.activeItem) {
+                        frozenItemId = undefined;
+                    } else {
                         // Freeze current active item
                         chart.setState({
                             version: state.version,
-                            active: { frozen: true, activeItem: state.active.activeItem },
+                            active: { frozen: true, activeItem: {
+                                type: 'series-node',
+                                seriesId: event.seriesId,
+                                itemId: event.itemId,
+                            } },
                         });
                         statusEl.textContent =
                             'FROZEN on item ' +
-                            state.active.activeItem.itemId +
+                            event.itemId +
                             '. Hover elsewhere — highlight stays fixed. Click bar again to unfreeze.';
                         statusEl.style.background = '#fffbe6';
+                        frozenItemId = event.itemId;
                     }
                 },
             },
