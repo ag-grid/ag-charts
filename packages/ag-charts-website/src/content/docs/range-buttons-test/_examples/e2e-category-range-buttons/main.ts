@@ -6,12 +6,11 @@ import {
     ModuleRegistry,
     NumberAxisModule,
     RangesModule,
-    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule, ZoomModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule]);
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -26,7 +25,6 @@ const options: AgChartOptions<DataType> = {
         text: 'Source: American Time Use Survey 2022',
         fontStyle: 'italic',
     },
-    zoom: { enabled: true },
     ranges: {
         buttons: [
             { label: 'Teenagers', value: [15, 19] },

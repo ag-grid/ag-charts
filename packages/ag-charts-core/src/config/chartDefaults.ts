@@ -482,6 +482,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         dragAction: union('none', 'drag', 'hover'),
     },
     ranges: {
+        dropdown: union('auto', 'always', 'never'),
         enabled: boolean,
         enableOutOfRange: boolean,
         position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),

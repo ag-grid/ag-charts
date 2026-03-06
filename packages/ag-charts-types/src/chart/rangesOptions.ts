@@ -4,6 +4,12 @@ import type { ToolbarButton } from './buttonOptions';
 
 export interface AgRangesOptions extends Toggleable {
     /**
+     * When to swap out the range buttons for a dropdown.
+     *
+     * Default: `'auto'`
+     */
+    dropdown?: AgRangesDropdown;
+    /**
      * Whether out of range buttons should be enabled.
      *
      * Default: `false`
@@ -17,6 +23,8 @@ export interface AgRangesOptions extends Toggleable {
     position?: AgRangesPosition;
     buttons?: AgRangesButton[];
 }
+
+export type AgRangesDropdown = 'auto' | 'always' | 'never';
 
 export type AgRangesPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 

@@ -148,6 +148,7 @@ export interface LayoutCompleteEvent {
     readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
     readonly clipSeries: boolean;
     readonly axes: Readonly<Record<string, AxisLayout>>;
+    readonly layoutBox: Readonly<BBox>;
 }
 
 export interface LegendChangeEvent {

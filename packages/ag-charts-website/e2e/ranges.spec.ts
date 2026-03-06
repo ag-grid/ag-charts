@@ -89,4 +89,26 @@ test.describe('range buttons', () => {
         await page.getByText('Visible Window Function').click();
         await expect(canvas).toHaveScreenshot('range-buttons-actions-visible-window-function.png');
     });
+
+    test('dropdown', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-dropdown', 'vanilla');
+        await gotoExample(page, url);
+
+        const { canvas } = await locateCanvas(page);
+
+        // Swaps to the dropdown button
+        await expect(canvas).toHaveScreenshot('range-buttons-dropdown-1.png');
+
+        // Opens the dropdown menu
+        await page.getByText('Select range').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-dropdown-2.png');
+
+        // Does the action
+        await page.getByText('Young Adults').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-dropdown-3.png');
+
+        // Resets on zoom
+        await page.mouse.dblclick(200, 400);
+        await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
+    });
 });

@@ -120,6 +120,7 @@ export class TopologyChart extends Chart {
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: seriesVisible, rect: seriesRect, paddedRect: ctx.layoutBox },
+            layoutBox: ctx.layoutBox,
         });
     }
 }

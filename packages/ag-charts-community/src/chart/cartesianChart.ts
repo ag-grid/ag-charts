@@ -187,6 +187,7 @@ export class CartesianChart extends Chart {
                 paddedRect: seriesPaddedRect,
             },
             clipSeries,
+            layoutBox: ctx.layoutBox,
         });
 
         stackCartesianSeries(this.series);

@@ -26,6 +26,7 @@ export class StandaloneChart extends Chart {
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
+            layoutBox: ctx.layoutBox,
         });
     }
 

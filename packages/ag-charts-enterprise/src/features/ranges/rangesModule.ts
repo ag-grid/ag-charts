@@ -30,6 +30,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     version: VERSION,
 
     options: {
+        dropdown: union('auto', 'always', 'never'),
         enabled: boolean,
         enableOutOfRange: boolean,
         position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
@@ -49,6 +50,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
         ),
     },
     themeTemplate: {
+        dropdown: 'auto',
         enabled: false,
         enableOutOfRange: false,
         position: 'top-right',

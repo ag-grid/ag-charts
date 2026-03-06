@@ -25,6 +25,7 @@ export interface LayoutState {
     axes?: Record<string, AxisLayout>;
     clipSeries?: boolean;
     series: { rect: BBox; paddedRect: BBox; visible: boolean };
+    layoutBox: BBox;
 }
 
 export enum LayoutElement {
@@ -71,6 +72,7 @@ export class LayoutManager {
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
             series: options.series,
+            layoutBox: options.layoutBox,
         });
     }
 }

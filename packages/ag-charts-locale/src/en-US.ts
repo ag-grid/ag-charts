@@ -231,6 +231,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarRangeAll: 'All',
     // Aria label for the range toolbar's full range button
     toolbarRangeAllAria: 'All',
+    // Text for the range toolbar's dropdown default
+    toolbarRangeSelectRange: 'Select range',
+    // Aria label for the range toolbar's dropdown default
+    toolbarRangeSelectRangeAria: 'Select range',
     // Text for the zoom toolbar's zoom out button
     toolbarZoomZoomOut: 'Zoom out',
     // Text for the zoom toolbar's zoom in button

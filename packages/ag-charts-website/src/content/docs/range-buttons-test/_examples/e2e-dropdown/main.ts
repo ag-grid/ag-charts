@@ -1,17 +1,17 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgRangesPosition,
     CategoryAxisModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     RangesModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule, ZoomModule]);
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -26,11 +26,12 @@ const options: AgChartOptions<DataType> = {
         text: 'Source: American Time Use Survey 2022',
         fontStyle: 'italic',
     },
+    zoom: { enabled: true },
     ranges: {
         buttons: [
             { label: 'Teenagers', value: [15, 19] },
             { label: 'Young Adults', value: [20, 29] },
-            { label: 'Middle Aged', value: [30, 65] },
+            { label: 'Middle Aged Very Long Label Very Long Label Very Long Label Very Long Label', value: [30, 65] },
             { label: 'Retired', value: (_start, end) => [66, end] },
             { label: 'All Ages', value: undefined },
         ],
@@ -98,9 +99,4 @@ const options: AgChartOptions<DataType> = {
     },
 };
 
-const chart = AgCharts.create(options);
-
-function changePosition(position: AgRangesPosition) {
-    options.ranges!.position = position;
-    chart.update(options as any);
-}
+AgCharts.create(options);
