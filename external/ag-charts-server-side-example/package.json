@@ -19,7 +19,7 @@
   },
   "nx": {
     "implicitDependencies": [
-      "ag-charts-community",
+      "ag-charts-enterprise",
       "ag-charts-server-side"
     ],
     "tags": [

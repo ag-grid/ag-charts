@@ -1,7 +1,8 @@
 import { FontLibrary } from 'skia-canvas';
 
-import { AgCharts, ModuleRegistry } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import { enterpriseRegistry, withTimeout } from 'ag-charts-core';
+import 'ag-charts-enterprise';
 
 import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
 import { patchDocumentCreateElement } from './documentPatch';
@@ -103,14 +104,12 @@ export class AgChartsServerSide {
             // This is intentional: each SSR render needs its own isolated document reference
             // for hostname detection. The static licenseKey is shared across instances.
             let chartOptions: any = options;
-            if (ModuleRegistry.isEnterprise()) {
-                const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
-                licenseManager?.validateLicense();
+            const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
+            licenseManager?.validateLicense();
 
-                const foreground = licenseManager?.getWatermarkForegroundConfig();
-                if (foreground) {
-                    chartOptions = { ...options, foreground };
-                }
+            const foreground = licenseManager?.getWatermarkForegroundConfig();
+            if (foreground) {
+                chartOptions = { ...options, foreground };
             }
 
             const createdChart = AgCharts[api]({
