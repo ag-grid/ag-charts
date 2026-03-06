@@ -484,6 +484,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     ranges: {
         enabled: boolean,
         enableOutOfRange: boolean,
+        position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,

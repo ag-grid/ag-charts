@@ -13,6 +13,7 @@ import {
     timeInterval,
     timeIntervalUnit,
     toolbarButtonOptionsDefs,
+    union,
 } from 'ag-charts-core';
 
 import { Ranges } from './ranges';
@@ -31,6 +32,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     options: {
         enabled: boolean,
         enableOutOfRange: boolean,
+        position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
@@ -49,6 +51,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     themeTemplate: {
         enabled: false,
         enableOutOfRange: false,
+        position: 'top-right',
         buttons: {
             $shallowSimple: [
                 {

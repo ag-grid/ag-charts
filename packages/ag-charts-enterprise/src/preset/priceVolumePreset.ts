@@ -168,6 +168,7 @@ export function priceVolume(
         ranges: {
             enabled: rangeButtons,
             enableOutOfRange: true,
+            position: 'bottom-left',
         } satisfies AgRangesOptions,
     };
 
