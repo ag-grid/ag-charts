@@ -31,8 +31,8 @@ const options: AgCartesianChartOptions<DatumType> = {
                 seriesNodeClick: function (event: AgNodeClickEvent<'seriesNodeClick', DatumType>) {
                     const { seriesId, itemId } = event;
                     let state = chart.getState();
-                    let statusEl = document.getElementById('myFreezeStatus');
-                    const activeItem = { type: 'series-node', seriesId, itemId };
+                    let statusEl = document.getElementById('myFreezeStatus')!;
+                    const activeItem = { type: 'series-node' as const, seriesId, itemId };
                     if (state.active && state.active.frozen && itemId === frozenItemId) {
                         // Already frozen — unfreeze
                         chart.setState({ version: state.version, active: { frozen: false, activeItem } });
@@ -81,7 +81,7 @@ export function onPopEvents() {
 export function unfreezeAll() {
     let state = chart.getState();
     chart.setState({ version: state.version, active: { frozen: false } });
-    let statusEl = document.getElementById('myFreezeStatus');
+    let statusEl = document.getElementById('myFreezeStatus')!;
     statusEl.textContent = 'Unfrozen. Click a bar to freeze again.';
     statusEl.style.background = '';
 }
