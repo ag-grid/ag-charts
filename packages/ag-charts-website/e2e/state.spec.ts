@@ -1850,7 +1850,7 @@ test.describe('state', () => {
 
             const Q4_2024_ACTIVE = Object.freeze({
                 activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 3 },
-                datum: { quarter: 'Q3 2024', sales: 890 },
+                datum: { quarter: 'Q4 2024', sales: 890 },
             });
 
             const Q2_2024_ACTIVE_CHANGE = Object.freeze({
