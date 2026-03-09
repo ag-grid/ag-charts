@@ -1845,22 +1845,22 @@ test.describe('state', () => {
 
             const Q2_2024_ACTIVE = Object.freeze({
                 activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 1 },
-                datum: { quarter: 'Q2 2024', sales: 720 },
             });
 
             const Q4_2024_ACTIVE = Object.freeze({
                 activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 3 },
-                datum: { quarter: 'Q4 2024', sales: 890 },
             });
 
             const Q2_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q2_2024_ACTIVE,
+                datum: { quarter: 'Q2 2024', sales: 720 },
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
 
             const Q4_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q4_2024_ACTIVE,
+                datum: { quarter: 'Q4 2024', sales: 890 },
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
