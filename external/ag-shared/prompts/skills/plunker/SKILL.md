@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: plunker
-description: 'Create and manage Plunker (plnkr.co) code examples. Use when working with plnkr.co URLs, creating shareable code demos, forking existing plunks, or troubleshooting Plunker structure issues.'
+description: 'Create and manage Plunker (plnkr.co) code examples for AG Charts and AG Grid. Use this skill whenever the user mentions plunker, plnkr, or plunk, wants to create a shareable code demo or bug reproduction, needs to fork or modify an existing plunk, or asks for a live code example they can share via URL. This includes creating repros for JIRA tickets, building demos for stakeholders, downloading plunks to inspect them, or making any interactive code example hosted on plnkr.co. Also trigger when users ask for "a shareable example", "a repro", "a demo I can send", or "a live example" — even without explicitly saying "plunker".'
 context: fork
 ---
 
@@ -21,12 +21,7 @@ This guide covers working with Plunker for creating and sharing code examples.
 1. Convert it to vanilla JS before using or creating a repro
 2. Only keep the framework version if the issue is framework-specific
 
-**Rationale:**
-
--   Vanilla JS examples are simpler and load faster
--   They work without framework dependencies or build systems
--   Easier to debug and share
--   Framework wrappers are thin - most bugs reproduce in vanilla JS
+Vanilla JS is preferred because it's simpler, loads faster, needs no build system, and most bugs reproduce without framework wrappers.
 
 ## Plan Mode
 
@@ -41,12 +36,13 @@ This ensures the implementation step uses the correct axis format, CDN URLs, CSS
 ### Create a New Plunker
 
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-new-XXXXXX)`
-2. Write files per the product-specific guide (index.html, main.js, etc.)
-3. Upload:
+2. Copy the CSS asset: `cp "<skill-base-directory>/assets/ag-example-styles.css" "$PLNKR_DIR/ag-example-styles.css"`
+3. Write remaining files per the product-specific guide (index.html, main.js, package.json, etc.)
+4. Upload:
    ```bash
    bash "<skill-base-directory>/plnkr.sh" upload "$PLNKR_DIR" --title "Example Title"
    ```
-4. Parse output for `URL=` — the shareable link.
+5. Parse output for `URL=` — the shareable link.
 
 ### Fork/Modify an Existing Plunker
 
