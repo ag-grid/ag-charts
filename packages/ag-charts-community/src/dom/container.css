@@ -91,6 +91,6 @@
     pointer-events: auto;
 }
 
-.ag-charts-canvas-overlay > [role="presentation"] {
+.ag-charts-canvas-overlay > [role='presentation'] {
     left: 0;
 }
