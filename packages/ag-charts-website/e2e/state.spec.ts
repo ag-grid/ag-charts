@@ -1843,17 +1843,39 @@ test.describe('state', () => {
         test.describe('click-to-freeze', () => {
             let canvas: Locator;
 
+            const Q1_2024_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 0 },
+            });
+
             const Q2_2024_ACTIVE = Object.freeze({
                 activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 1 },
+            });
+
+            const Q3_2024_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 2 },
             });
 
             const Q4_2024_ACTIVE = Object.freeze({
                 activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 3 },
             });
 
+            const Q1_2024_ACTIVE_CHANGE = Object.freeze({
+                ...Q1_2024_ACTIVE,
+                datum: { quarter: 'Q1 2024', sales: 450 },
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
             const Q2_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q2_2024_ACTIVE,
                 datum: { quarter: 'Q2 2024', sales: 720 },
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            const Q3_2024_ACTIVE_CHANGE = Object.freeze({
+                ...Q3_2024_ACTIVE,
+                datum: { quarter: 'Q3 2024', sales: 610 },
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -1883,6 +1905,32 @@ test.describe('state', () => {
             async function click2024q4(page: Page): Promise<void> {
                 await page.mouse.click(600, 300);
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function clickMiss(page: Page): Promise<void> {
+                await page.mouse.click(20, 20);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function tabIntoChart(page: Page): Promise<void> {
+                await clickMiss(page);
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
+            }
+
+            async function twoArrowRight(page: Page): Promise<void> {
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            }
+
+            async function keyboardClick(page: Page): Promise<void> {
+                await page.keyboard.press('Space');
+            }
+
+            async function tabInTwoArrowRightAndKeyboardClick(page: Page): Promise<void> {
+                await tabIntoChart(page);
+                await twoArrowRight(page);
+                await keyboardClick(page);
             }
 
             test.beforeEach(async ({ page }) => {
@@ -1989,6 +2037,92 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: false },
                     ]);
+                });
+            });
+
+            test.describe('clicking 2024q2 blocks keyboard activation but not keyboard input', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+
+                    await click2024q4(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen.png');
+
+                    await tabIntoChart(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen-2024q1-focused.png');
+
+                    await twoArrowRight(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen-2024q3-focused.png');
+
+                    await keyboardClick(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-and-focused.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await click2024q4(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: true });
+
+                    await tabIntoChart(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: true });
+
+                    await twoArrowRight(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: true });
+
+                    await keyboardClick(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q3_2024_ACTIVE, frozen: true });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await click2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                    ]);
+
+                    await tabIntoChart(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await twoArrowRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyboardClick(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q3_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                    ]);
+                });
+            });
+
+            test.describe('keyboard-clicking 2024q3 blocks keyboard activation but not keyboard input', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+
+                    await tabInTwoArrowRightAndKeyboardClick(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-and-focused.png');
+
+                    await twoArrowRight(page);
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-2025q1-focused.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await tabInTwoArrowRightAndKeyboardClick(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q3_2024_ACTIVE, frozen: true });
+
+                    await twoArrowRight(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...Q3_2024_ACTIVE, frozen: true });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await tabInTwoArrowRightAndKeyboardClick(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...Q1_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q3_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                    ]);
+
+                    await twoArrowRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
                 });
             });
         });
