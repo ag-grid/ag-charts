@@ -234,7 +234,7 @@ To validate that file path references within prompt files are correct, use the `
 
 **Never commit the TOON block in AGENTS.md.** Rulesync's `agentsmd` target prepends a TOON-format rules index to `AGENTS.md`. This block starts with `Please also reference the following rules as needed. The list below is provided in TOON format` and lists all rules with paths, descriptions, and `applyTo` globs. **Never keep or commit this block.** It is generated noise that bloats `AGENTS.md` with content already available. The `setup-prompts.sh --postinstall` flag handles this automatically (stash user edits, reset after rulesync, restore edits), but if you run rulesync manually and see this block appear in `AGENTS.md`, discard it with `git checkout -- AGENTS.md`.
 
-**Never reference `external/` paths from content.** When writing rules or skills that reference other files, use `.rulesync/` paths (e.g. `.rulesync/rules/testing.md`), not the `external/` source paths. The `/validate-prompts` skill checks for this.
+**Never reference `external/` paths from prompt cross-references.** When one rule or skill references another (e.g. "see the testing guide"), use `.rulesync/` paths (e.g. `.rulesync/rules/testing.md`), not `external/` source paths. Symlink setup instructions and source-tier descriptions naturally use `external/` paths — that's fine. The `/validate-prompts` skill checks for incorrect cross-references.
 
 **Never add `alwaysApply: true` without good reason.** Every always-applied rule consumes context budget in every conversation. Reserve this for core project rules that genuinely apply everywhere.
 
