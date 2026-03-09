@@ -23,5 +23,6 @@
     "**/node_modules/**": true
   },
   "image-diff.viewer.showDiffByDefault": true,
-  "cSpell.words": ["ultrathink", "unhighlighted"]
+  "cSpell.words": ["ultrathink", "unhighlighted"],
+  "terminal.integrated.macOptionIsMeta": true
 }
