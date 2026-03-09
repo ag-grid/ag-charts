@@ -1866,7 +1866,7 @@ test.describe('state', () => {
             });
 
             async function hover2024q2(page: Page): Promise<void> {
-                await page.mouse.move(300, 400);
+                await page.mouse.move(300, 330);
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
             }
 
@@ -1896,7 +1896,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await hover2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-hover.png');
 
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
@@ -1941,7 +1941,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await hover2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-hover.png');
 
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
