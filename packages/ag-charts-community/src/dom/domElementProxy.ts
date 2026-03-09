@@ -21,7 +21,18 @@ type HtmlAttribute =
     | 'role'
     | 'tabindex';
 
-type CacheKey = 'innerHTML' | 'contentStyles' | `p:${StyleProperty}` | `c:${string}` | `a:${HtmlAttribute}`;
+type CacheKey =
+    | 'innerHTML'
+    | 'contentStyles'
+    | 'popover'
+    | `p:${StyleProperty}`
+    | `c:${string}`
+    | `a:${HtmlAttribute}`
+    | `d:${string}`;
+
+export type DeferredMode = { scheduleFlush: () => void };
+
+const SAFE_PROPERTIES_FOR_IMMEDIATE: StyleProperty[] = ['translate'];
 
 /**
  * Proxies all DOM access to a single HTMLElement.
@@ -36,36 +47,42 @@ type CacheKey = 'innerHTML' | 'contentStyles' | `p:${StyleProperty}` | `c:${stri
  *
  * ## Flush behaviour (deferred mode)
  *
- * When created with `{ deferred: true }`, all write operations (`setProperty`,
+ * When created with `{ deferredMode }`, all write operations (`setProperty`,
  * `toggleClass`, `setAttr`, `setInnerHTML`, `setContentStyles`) are buffered in
- * a `pendingWrites` Map rather than applied immediately. The Map deduplicates
- * by key, so only the last write per property survives.
+ * a `pendingWrites` Map and `deferredMode.scheduleFlush()` is called to request
+ * an async flush via `DOMManager`.
  *
- * - **Automatic flush**: `DOMManager.postRenderUpdate()` calls `flush()` on all
- *   deferred proxies at the end of each render cycle — callers within the
- *   normal render pipeline don't need to do anything.
- * - **Manual flush**: Code paths that update the DOM *outside* a render cycle
- *   (e.g. tooltip spring animation, resize listeners) must call `flush()`
- *   explicitly to apply pending writes.
+ * - **Automatic flush**: `DOMManager.setDeferring(false)` schedules a
+ *   `setTimeout(0)` that calls `flush()` on all deferred proxies at the end of
+ *   each render cycle.
+ * - **Manual flush**: `flush()` and `flushKey()` remain available for callers
+ *   that need explicit control.
  */
 export class DOMElementProxy {
     private cache: Partial<Record<CacheKey, unknown>> = {};
-    private readonly pendingWrites: Map<CacheKey, () => void> | undefined;
+    private readonly pendingWrites = new Map<CacheKey, () => void>();
+    private readonly deferredMode: DeferredMode | undefined;
     private readonly sizeMonitor: SizeMonitor | undefined;
 
     constructor(
         private readonly element: HTMLElement,
-        opts?: { deferred?: boolean; sizeMonitor?: SizeMonitor }
+        opts?: { deferredMode?: DeferredMode; sizeMonitor?: SizeMonitor }
     ) {
-        if (opts?.deferred) {
-            this.pendingWrites = new Map();
-        }
+        this.deferredMode = opts?.deferredMode;
         this.sizeMonitor = opts?.sizeMonitor;
     }
 
     /** Delegates to `element.isConnected`. */
     get isConnected(): boolean {
         return this.element.isConnected;
+    }
+
+    private scheduleFlush(): void {
+        if (this.deferredMode) {
+            this.deferredMode.scheduleFlush();
+        } else {
+            this.flush();
+        }
     }
 
     /** Delegates to `element.contains()`. */
@@ -91,7 +108,7 @@ export class DOMElementProxy {
         this.element.removeEventListener(type, listener, options);
     }
 
-    /** Reads innerHTML — returns cached value in deferred mode since DOM may not have flushed yet. */
+    /** Reads innerHTML — returns cached value when in a deferred-capable proxy since DOM may not have flushed yet. */
     get innerHTML(): string {
         if (this.pendingWrites) {
             return (this.cache['innerHTML'] as string) ?? '';
@@ -116,28 +133,26 @@ export class DOMElementProxy {
      *  Works for both standard properties and CSS custom properties. */
     setProperty(name: StyleProperty, value: string): void {
         const cacheKey: CacheKey = `p:${name}`;
-        if (this.changed(cacheKey, value)) {
-            if (this.pendingWrites) {
-                this.pendingWrites.set(cacheKey, () => {
-                    this.element.style.setProperty(name, value);
-                });
-            } else {
-                this.element.style.setProperty(name, value);
-            }
+        if (!this.changed(cacheKey, value)) return;
+
+        if (SAFE_PROPERTIES_FOR_IMMEDIATE.includes(name)) {
+            this.element.style.setProperty(name, value);
+            return;
         }
+        this.pendingWrites.set(cacheKey, () => {
+            this.element.style.setProperty(name, value);
+        });
+        this.scheduleFlush();
     }
 
     /** classList.toggle(name, force), skipped if unchanged. */
     toggleClass(name: string, force: boolean): void {
         const cacheKey: CacheKey = `c:${name}`;
         if (this.changed(cacheKey, force)) {
-            if (this.pendingWrites) {
-                this.pendingWrites.set(cacheKey, () => {
-                    this.element.classList.toggle(name, force);
-                });
-            } else {
+            this.pendingWrites.set(cacheKey, () => {
                 this.element.classList.toggle(name, force);
-            }
+            });
+            this.scheduleFlush();
         }
     }
 
@@ -145,32 +160,44 @@ export class DOMElementProxy {
     setAttr(name: HtmlAttribute, value: string | null): void {
         const cacheKey: CacheKey = `a:${name}`;
         if (this.changed(cacheKey, value)) {
-            if (this.pendingWrites) {
-                this.pendingWrites.set(cacheKey, () => {
-                    if (value == null) {
-                        this.element.removeAttribute(name);
-                    } else {
-                        this.element.setAttribute(name, value);
-                    }
-                });
-            } else if (value == null) {
-                this.element.removeAttribute(name);
-            } else {
-                this.element.setAttribute(name, value);
-            }
+            this.pendingWrites.set(cacheKey, () => {
+                if (value == null) {
+                    this.element.removeAttribute(name);
+                } else {
+                    this.element.setAttribute(name, value);
+                }
+            });
+            this.scheduleFlush();
         }
+    }
+
+    /** element.dataset[name] = value, skipped if unchanged. */
+    setData(name: string, value: string): void {
+        const cacheKey: CacheKey = `d:${name}`;
+        if (this.changed(cacheKey, value)) {
+            this.pendingWrites.set(cacheKey, () => {
+                this.element.dataset[name] = value;
+            });
+            this.scheduleFlush();
+        }
+    }
+
+    /** Returns the cached data attribute value (deferred-capable proxy) or reads from the element. */
+    getData(name: string): string | undefined {
+        const cacheKey: CacheKey = `d:${name}`;
+        if (this.pendingWrites) {
+            return this.cache[cacheKey] as string | undefined;
+        }
+        return this.element.dataset[name];
     }
 
     /** Cached innerHTML write. Returns true if the write happened. */
     setInnerHTML(html: string): boolean {
         if (this.changed('innerHTML', html)) {
-            if (this.pendingWrites) {
-                this.pendingWrites.set('innerHTML', () => {
-                    this.element.innerHTML = html;
-                });
-            } else {
+            this.pendingWrites.set('innerHTML', () => {
                 this.element.innerHTML = html;
-            }
+            });
+            this.scheduleFlush();
             this.invalidate('contentStyles');
             return true;
         }
@@ -185,11 +212,8 @@ export class DOMElementProxy {
                 const target = (this.element.firstElementChild ?? this.element) as HTMLElement;
                 Object.assign(target.style, styles);
             };
-            if (this.pendingWrites) {
-                this.pendingWrites.set('contentStyles', apply);
-            } else {
-                apply();
-            }
+            this.pendingWrites.set('contentStyles', apply);
+            this.scheduleFlush();
         }
     }
 
@@ -201,9 +225,38 @@ export class DOMElementProxy {
         }
     }
 
-    /** Delegates to element.togglePopover(force). No caching (side effects beyond attribute state). */
+    /** Flush a single pending write by key. */
+    flushKey(key: CacheKey): void {
+        const fn = this.pendingWrites.get(key);
+        if (fn) {
+            fn();
+            this.pendingWrites.delete(key);
+        }
+    }
+
+    /**
+     * Delegates to element.togglePopover(force).
+     *
+     * In deferred mode, show (force=true) is buffered so that innerHTML is flushed first —
+     * Map insertion order guarantees setInnerHTML() runs before togglePopover(true) since
+     * show() always writes content before calling toggle(). Hide (force=false) executes
+     * immediately and cancels any pending show to avoid the element briefly appearing.
+     */
     togglePopover(force: boolean): void {
-        this.element.togglePopover(force);
+        if (force) {
+            if (this.changed('popover', true)) {
+                this.pendingWrites.set('popover', () => {
+                    this.element.togglePopover(true);
+                });
+                this.scheduleFlush();
+            }
+        } else {
+            // Cancel any pending show and hide immediately — no render cycle needed.
+            this.pendingWrites.delete('popover');
+            if (this.changed('popover', false)) {
+                this.element.togglePopover(false);
+            }
+        }
     }
 
     /** Delegates to element.appendChild(). No caching — structural mutation. */

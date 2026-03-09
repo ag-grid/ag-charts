@@ -207,7 +207,7 @@ describe('DOMElementProxy', () => {
     describe('deferred mode', () => {
         it('should not apply setProperty to element before flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
             expect(el.style.getPropertyValue('left')).toBe('');
@@ -215,7 +215,7 @@ describe('DOMElementProxy', () => {
 
         it('should apply setProperty after flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
             proxy.flush();
@@ -224,7 +224,7 @@ describe('DOMElementProxy', () => {
 
         it('should not apply toggleClass before flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.toggleClass('active', true);
             expect(el.classList.contains('active')).toBe(false);
@@ -232,7 +232,7 @@ describe('DOMElementProxy', () => {
 
         it('should apply toggleClass after flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.toggleClass('active', true);
             proxy.flush();
@@ -241,7 +241,7 @@ describe('DOMElementProxy', () => {
 
         it('should not apply setAttr before flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setAttr('role', 'tooltip');
             expect(el.hasAttribute('role')).toBe(false);
@@ -249,7 +249,7 @@ describe('DOMElementProxy', () => {
 
         it('should apply setAttr after flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setAttr('role', 'tooltip');
             proxy.flush();
@@ -258,7 +258,7 @@ describe('DOMElementProxy', () => {
 
         it('should not apply setInnerHTML before flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setInnerHTML('<b>hello</b>');
             expect(el.innerHTML).toBe('');
@@ -266,7 +266,7 @@ describe('DOMElementProxy', () => {
 
         it('should apply setInnerHTML after flush', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setInnerHTML('<b>hello</b>');
             proxy.flush();
@@ -275,7 +275,7 @@ describe('DOMElementProxy', () => {
 
         it('should return cached innerHTML value in deferred mode', () => {
             const el = createElement();
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setInnerHTML('<b>cached</b>');
             // Before flush, innerHTML getter returns cached value
@@ -287,7 +287,7 @@ describe('DOMElementProxy', () => {
         it('should skip redundant writes in deferred mode', () => {
             const el = createElement();
             const spy = jest.spyOn(el.style, 'setProperty');
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
             proxy.setProperty('left', '10px'); // duplicate — should not buffer again
@@ -300,7 +300,7 @@ describe('DOMElementProxy', () => {
         it('should deduplicate writes to the same property, applying only the last value', () => {
             const el = createElement();
             const spy = jest.spyOn(el.style, 'setProperty');
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
             proxy.invalidate('p:left'); // force cache miss so next write is accepted
@@ -317,7 +317,7 @@ describe('DOMElementProxy', () => {
         it('should clear pending writes after flush', () => {
             const el = createElement();
             const spy = jest.spyOn(el.style, 'setProperty');
-            const proxy = new DOMElementProxy(el, { deferred: true });
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
             proxy.flush();
@@ -326,6 +326,78 @@ describe('DOMElementProxy', () => {
             // Second flush should be a no-op
             proxy.flush();
             expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('flushKey() should apply only the specified pending write', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
+
+            proxy.setProperty('left', '10px');
+            proxy.setProperty('top', '20px');
+            proxy.flushKey('p:left');
+
+            expect(el.style.left).toBe('10px'); // flushed
+            expect(el.style.top).toBe(''); // not flushed yet
+        });
+
+        it('flushKey() should remove the key from pendingWrites so flush() does not re-apply it', () => {
+            const el = createElement();
+            const spy = jest.spyOn(el.style, 'setProperty');
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
+
+            proxy.setProperty('left', '10px');
+            proxy.flushKey('p:left');
+            spy.mockClear();
+
+            proxy.flush(); // should not call setProperty for 'left' again
+            expect(spy).not.toHaveBeenCalledWith('left', expect.anything());
+        });
+    });
+
+    describe('togglePopover()', () => {
+        it('should buffer show (true) in deferred mode and apply on flush', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
+
+            proxy.togglePopover(true);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false); // not applied yet
+
+            proxy.flush();
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+        });
+
+        it('should apply hide (false) immediately in deferred mode', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
+
+            proxy.togglePopover(true);
+            proxy.flush(); // show it
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+
+            proxy.togglePopover(false); // hide immediately
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should cancel a pending show when hide is called before flush', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
+
+            proxy.togglePopover(true); // queued
+            proxy.togglePopover(false); // cancel + immediate hide (already hidden, no-op on DOM)
+
+            proxy.flush(); // should not show the element
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
+        });
+
+        it('should apply togglePopover immediately in non-deferred mode', () => {
+            const el = createElement();
+            const proxy = new DOMElementProxy(el);
+
+            proxy.togglePopover(true);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(true);
+
+            proxy.togglePopover(false);
+            expect(el.hasAttribute('data-presented-as-popover')).toBe(false);
         });
     });
 

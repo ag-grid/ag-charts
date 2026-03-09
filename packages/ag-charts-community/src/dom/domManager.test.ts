@@ -57,6 +57,9 @@ describe('DOMManager', () => {
     });
 
     describe('when connecting after initialisation', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
         it('should move styles to head when the container is attached to the document', () => {
             const container = doc.createElement('div');
             const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, doc, container);
@@ -66,7 +69,8 @@ describe('DOMManager', () => {
             expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
 
             doc.body.append(container);
-            dm.postRenderUpdate();
+            dm.setDeferring(false);
+            jest.runAllTimers();
 
             expect(container.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
@@ -83,7 +87,8 @@ describe('DOMManager', () => {
             dm.addStyles('late-test', '.test { width: 100% }');
 
             shadow.appendChild(container);
-            dm.postRenderUpdate();
+            dm.setDeferring(false);
+            jest.runAllTimers();
 
             expect(shadow.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
             expect(shadow.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
@@ -167,7 +172,7 @@ describe('DOMManager', () => {
         });
     });
 
-    describe('postRenderUpdate() flushing deferred proxies', () => {
+    describe('deferred proxy flushing', () => {
         it('should create a proxy tracked for deferred flushing', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
@@ -177,27 +182,32 @@ describe('DOMManager', () => {
             expect(proxy).toBeDefined();
         });
 
-        it('should not apply buffered writes to DOM before postRenderUpdate', () => {
+        it('should not apply buffered writes to DOM before flush', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
             proxy.setProperty('left', '10px');
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
             expect(childEl!.style.getPropertyValue('left')).toBe('');
         });
 
-        it('should apply buffered writes after postRenderUpdate', () => {
+        it('should apply buffered writes after setDeferring(false)', () => {
+            jest.useFakeTimers();
             const container = doc.createElement('div');
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, {}, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
             proxy.setProperty('left', '10px');
 
-            dm.postRenderUpdate();
+            dm.setDeferring(false);
+            jest.runAllTimers();
+            jest.useRealTimers();
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
             expect(childEl!.style.getPropertyValue('left')).toBe('10px');

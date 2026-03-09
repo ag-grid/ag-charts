@@ -27,7 +27,7 @@ test.describe('forced reflow detection', () => {
         const initialAnalysis = analyseForcedReflows(initialEvents);
         const initialFiltered = filterAgChartsReflows(initialAnalysis, {
             // These functions are unavoidable initially due to the tooltip being shown.
-            additionalAllowlist: ['getBoundingClientRect', 'togglePopover'],
+            additionalAllowlist: ['getBoundingClientRect', 'flush'],
         });
         expect(initialFiltered.count, formatReflowDiagnostics(initialFiltered)).toBe(0);
 

@@ -31,7 +31,7 @@ After meaningful chart changes, also run:
 
 -   `yarn nx test ag-charts-community`
 -   `yarn nx test ag-charts-enterprise`
--   `yarn nx e2e ag-charts-website`
+-   `yarn nx test:e2e ag-charts-website`
 
 ## Quick Reference
 
@@ -39,7 +39,7 @@ After meaningful chart changes, also run:
 -   **Install:** `yarn install` (or `./external/ag-shared/scripts/install-for-cloud/install-for-cloud.sh` in cloud/remote environments)
 -   **Build:** `yarn nx build <package>`
 -   **Test:** `yarn nx test <package>` (add `--testPathPattern` and `--testNamePattern` to filter)
--   **E2E:** `yarn nx e2e ag-charts-website`
+-   **E2E:** `yarn nx test:e2e ag-charts-website`
 -   **Dev server:** `yarn nx dev`
 -   **Clean:** `yarn nx clean` – purge dist folders when switching branches
 -   **Benchmark:** `yarn nx benchmark <package>`
