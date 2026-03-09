@@ -72,6 +72,27 @@
                     }
                 ]
             }
+        ],
+        "WorktreeCreate": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/setup-worktree/claude-worktree-create.sh",
+                        "timeout": 300
+                    }
+                ]
+            }
+        ],
+        "WorktreeRemove": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/setup-worktree/claude-worktree-remove.sh"
+                    }
+                ]
+            }
         ]
     }
 }

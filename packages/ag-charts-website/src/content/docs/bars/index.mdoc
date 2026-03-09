@@ -134,14 +134,26 @@ In this example:
 
 ## Skip Null Bars
 
-Use the `skipNullBars` option to prevent bars with nullish values from taking up space in each category.
+Use the `skipNullBars` option on a [Category](./axes-types/#category), [Unit Time](./axes-time/#unit-time) or [Ordinal Time](./axes-time/#ordinal-time) axis to prevent bars with `null`, `undefined` or missing values from taking up space within each category band.
 
 {% chartExampleRunner title="Skip Null Bars" name="skip-null-bars" type="generated" /%}
 
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            skipNullBars: true,
+        },
+    },
+}
+```
+
 In this example:
 
--   Various values in the data are set to `null` or `undefined`.
--   When an axis has `skipNullBars: true`, these nullish values are not represented on the chart.
+-   Various values in the data are set to `null`, `undefined` or missing.
+-   When an axis has `skipNullBars: true`, bars with `null`, `undefined` or missing values are not represented on the chart.
+-   Toggle between "Skip Null Bars" and "Show Null Bars" to compare the difference.
 
 ## API Reference
 
@@ -159,6 +171,13 @@ These properties are common to [Bar](./bar-series), [Range Bar](./range-bar-seri
 This property is available on [Category](./axes-types/#category), [Ordinal Time](./axes-time/#ordinal-time) and [Unit Time](./axes-time/#unit-time) axes.
 
 {% apiReference id="AgCategoryAxisOptions" include=["bandAlignment"] hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgSkipNullBars" label="Skip Null Bars" %}
+
+This property is available on [Category](./axes-types/#category), [Ordinal Time](./axes-time/#ordinal-time) and [Unit Time](./axes-time/#unit-time) axes.
+
+{% apiReference id="AgCategoryAxisOptions" include=["skipNullBars"] hideHeader=true /%}
 {% /tabItem %}
 
 {% /tabs %}
