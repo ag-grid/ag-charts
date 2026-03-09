@@ -364,12 +364,14 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;
+            title.textAlign = 'left';
             title.textBaseline = textVAlign;
             title.y = offsetTop;
             title.x = left;
 
             left += titleMetrics.width + innerSpacing;
 
+            value.textAlign = 'left';
             value.textBaseline = textVAlign;
             value.y = offsetTop;
             value.x = left;
