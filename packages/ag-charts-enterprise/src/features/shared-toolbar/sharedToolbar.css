@@ -7,6 +7,6 @@
     }
 
     .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
-        border-left-color: var(--ag-charts-border-color);
+        border-inline-start-color: var(--ag-charts-border-color);
     }
 }

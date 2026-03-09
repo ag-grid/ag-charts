@@ -1,5 +1,12 @@
 import { expect, test } from './fixture';
-import { canvasToPageTransformer, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    canvasToPageTransformer,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+} from './util';
 
 test.describe('rtl', () => {
     setupIntrinsicAssertions(test);
@@ -120,6 +127,44 @@ test.describe('rtl', () => {
             const p = point(width / 2, height - 20);
             await page.mouse.click(p.x, p.y, { button: 'right' });
             await expect(page).toHaveScreenshot('rtl-legend-context-menu.png', { animations: 'disabled' });
+        });
+    });
+
+    test.describe('financial chart toolbar', () => {
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('rtl-test', 'rtl-financial-chart', 'vanilla');
+            await gotoExample(page, url);
+        });
+
+        test('renders RTL financial chart', async ({ page }) => {
+            await expect(page).toHaveScreenshot('rtl-financial-chart.png', { animations: 'disabled' });
+        });
+
+        test('toolbar trend line popover', async ({ page }) => {
+            await page.getByTitle('Trend Lines').click();
+            await expect(page).toHaveScreenshot('rtl-toolbar-trend-line-popover.png', { animations: 'disabled' });
+        });
+
+        test('toolbar draw trend line', async ({ page }) => {
+            await page.getByTitle('Trend Lines').click();
+            await page.getByText('Trend Line').click();
+
+            await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+            await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
+            await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+            await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+            await expect(page).toHaveScreenshot('rtl-toolbar-trend-line-drawn.png', { animations: 'disabled' });
+        });
+
+        test('toolbar text annotation', async ({ page }) => {
+            await page.getByTitle('Text Annotations').click();
+            await expect(page).toHaveScreenshot('rtl-toolbar-text-popover.png', { animations: 'disabled' });
+
+            await page.getByText('Text').click();
+            await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+            await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+            await page.keyboard.type('Hello RTL');
+            await expect(page).toHaveScreenshot('rtl-toolbar-text-input.png', { animations: 'disabled' });
         });
     });
 });

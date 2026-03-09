@@ -50,7 +50,7 @@
     z-index: 2;
 
     + .ag-charts-toolbar__button {
-        border-left-color: var(--ag-charts-accent-color);
+        border-inline-start-color: var(--ag-charts-accent-color);
     }
 }
 
@@ -66,19 +66,19 @@
     flex-direction: row;
 
     .ag-charts-toolbar__button {
-        border-right-width: 0;
+        border-inline-end-width: 0;
     }
 
     .ag-charts-toolbar__button--first {
-        border-bottom-left-radius: var(--ag-charts-border-radius);
-        border-top-left-radius: var(--ag-charts-border-radius);
+        border-end-start-radius: var(--ag-charts-border-radius);
+        border-start-start-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-bottom-right-radius: var(--ag-charts-border-radius);
-        border-top-right-radius: var(--ag-charts-border-radius);
-        border-right-width: 1px;
+        border-end-end-radius: var(--ag-charts-border-radius);
+        border-start-end-radius: var(--ag-charts-border-radius);
+        border-inline-end-width: 1px;
     }
 }
 
@@ -91,21 +91,21 @@
     }
 
     .ag-charts-toolbar__button--first {
-        border-top-left-radius: var(--ag-charts-border-radius);
-        border-top-right-radius: var(--ag-charts-border-radius);
+        border-start-start-radius: var(--ag-charts-border-radius);
+        border-start-end-radius: var(--ag-charts-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-bottom-left-radius: var(--ag-charts-border-radius);
-        border-bottom-right-radius: var(--ag-charts-border-radius);
+        border-end-start-radius: var(--ag-charts-border-radius);
+        border-end-end-radius: var(--ag-charts-border-radius);
     }
 }
 
 /* Icon */
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
-    margin-left: var(--toolbar-gap);
+    margin-inline-start: var(--toolbar-gap);
 }
 
 .ag-charts-toolbar__icon,
@@ -129,15 +129,15 @@
     align-items: center;
     background: var(--ag-charts-chrome-background-color);
     border: var(--ag-charts-border);
-    border-bottom-left-radius: var(--ag-charts-border-radius);
-    border-top-left-radius: var(--ag-charts-border-radius);
-    border-right-width: 0;
+    border-end-start-radius: var(--ag-charts-border-radius);
+    border-start-start-radius: var(--ag-charts-border-radius);
+    border-inline-end-width: 0;
     cursor: grab;
     display: flex;
     justify-content: center;
     min-width: 24px;
-    padding-left: 0;
-    padding-right: 0;
+    padding-inline-start: 0;
+    padding-inline-end: 0;
 }
 
 .ag-charts-floating-toolbar__drag-handle--dragging {
