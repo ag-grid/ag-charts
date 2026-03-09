@@ -132,7 +132,7 @@ This is because skills can contain multiple files (SKILL.md + helpers, templates
 ```bash
 # From .rulesync/commands/
 ln -s ../../external/ag-shared/prompts/commands/git/bisect.md git-bisect.md
-ln -s ../../external/prompts/commands/spruce-example.md spruce-example.md
+ln -s ../../external/prompts/commands/docs-create.md docs-create.md
 
 # From .rulesync/rules/
 ln -s ../../external/ag-shared/prompts/guides/code-quality.md code-quality.md

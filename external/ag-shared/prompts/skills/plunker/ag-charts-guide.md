@@ -1,6 +1,6 @@
 ## AG Charts Example Structure
 
-This section covers the specific file structure and content needed for AG Charts demos on Plunker.
+This section covers the Plunker-specific file structure for AG Charts demos. For general chart construction patterns (axes syntax, module registration, controls), see `.rulesync/skills/example/ag-charts/chart-construction.md`. For enterprise vs community feature decisions, see `.rulesync/skills/example/ag-charts/enterprise-features.md`.
 
 **CRITICAL**: Follow this exact structure to match website-generated Plunkers.
 
@@ -93,18 +93,9 @@ For Enterprise features, use the enterprise CDN URL:
 <script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@13.0.0/dist/umd/ag-charts-enterprise.js"></script>
 ```
 
-### Enterprise-Only Features
+### Enterprise vs Community
 
-The following features require the **enterprise** CDN bundle. If your example uses any of these, you **must** use `ag-charts-enterprise` — the community bundle will silently skip them.
-
-| Category | Enterprise-only | Community |
-|----------|----------------|-----------|
-| **Series** | box-plot, candlestick, ohlc, heatmap, range-area, range-bar, waterfall, funnel, cone-funnel, nightingale, radar-area, radar-line, radial-bar, radial-column, map-shape, map-line, map-marker, pyramid, linear-gauge, radial-gauge, sunburst, treemap, chord, sankey | bar, line, area, scatter, bubble, pie, donut, histogram |
-| **Axes** | ordinal-time, angle-category, angle-number, radius-category, radius-number | number, log, time, unit-time, category, grouped-category |
-| **Plugins** | annotations, zoom, navigator, scrollbar, crosshair, animation, context-menu, toolbar, sync, ranges, gradient-legend, error-bars, data-source | legend, locale |
-| **Presets** | financial charts (price-volume), gauge | sparkline |
-
-**Rule of thumb:** If it's a specialised chart type (financial, statistical, hierarchical, geographic) or an interactive plugin (zoom, annotations, navigator), it's enterprise.
+See `.rulesync/skills/example/ag-charts/enterprise-features.md` for the full feature matrix. Use `ag-charts-enterprise` CDN URL if the example uses any enterprise-only series, axis, or plugin.
 
 ### main.js
 
@@ -124,38 +115,9 @@ const options = {
 AgCharts.create(options);
 ```
 
-### Axes Configuration (v13+)
+### Axes (v13+)
 
-**IMPORTANT**: Use the object-based axes syntax, NOT the legacy array syntax:
-
-```javascript
-// ✅ CORRECT - New object syntax (v13+)
-axes: {
-    x: { type: 'time' },
-    y: { type: 'number' },
-}
-
-// ❌ WRONG - Legacy array syntax (pre-v13, deprecated)
-axes: [
-    { type: 'time', position: 'bottom' },
-    { type: 'number', position: 'left' },
-]
-```
-
-Only options that differ from defaults need to be specified:
-
-```javascript
-// Minimal - just specify what you need
-axes: {
-    x: { type: 'time' },
-}
-
-// With additional options
-axes: {
-    x: { type: 'time' },
-    y: { type: 'number', title: { text: 'Price' } },
-}
-```
+Use the **object-based axes syntax**: `axes: { x: { type: 'time' }, y: { type: 'number' } }`. See `.rulesync/skills/example/ag-charts/chart-construction.md` for full syntax and multiple axes patterns.
 
 ### ag-example-styles.css
 

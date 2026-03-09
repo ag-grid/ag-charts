@@ -85,190 +85,19 @@ The framework generator handles function exposure automatically. Using `window` 
 
 ## Module Registration
 
-_New Nov 2024 • Required for all examples_
+Examples must explicitly register the modules they use with `ModuleRegistry` **before** creating charts. Key rules:
 
-Examples must explicitly register the modules they use with `ModuleRegistry` **before** creating any charts. This ensures proper tree-shaking and module loading. See the [Module Registry documentation](packages/ag-charts-website/src/content/docs/module-registry/) for full details.
+-   Enterprise examples: single import from `ag-charts-enterprise` (re-exports all community modules; never mix packages)
+-   Community examples: import from `ag-charts-community`
+-   Register at the top of `main.ts`, before chart creation; list modules alphabetically
 
-### Enterprise Examples - Single Package Import
-
-**For Enterprise examples, import everything from `ag-charts-enterprise` in a single import statement.** The enterprise package re-exports all community modules, so you never need to mix imports from both packages.
-
-```typescript
-// ✅ CORRECT: Single import from ag-charts-enterprise
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AnimationModule,
-    BarSeriesModule,
-    CategoryAxisModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-enterprise';
-
-import { getData } from './data';
-
-ModuleRegistry.registerModules([AnimationModule, BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
-
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    // ... rest of options
-};
-
-const chart = AgCharts.create(options);
-```
-
-```typescript
-// ❌ WRONG: Mixing imports from community and enterprise
-import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
-import { AnimationModule, BandHighlightModule } from 'ag-charts-enterprise';
-```
-
-### Community Examples
-
-For Community-only examples, import from `ag-charts-community`:
-
-```typescript
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    BarSeriesModule,
-    CategoryAxisModule,
-    ModuleRegistry,
-    NumberAxisModule,
-} from 'ag-charts-community';
-
-import { getData } from './data';
-
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
-
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    // ... rest of options
-};
-
-const chart = AgCharts.create(options);
-```
-
-### Financial Charts
-
-Financial charts use `FinancialChartModule` and `AgCharts.createFinancialChart()`:
-
-```typescript
-import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
-
-ModuleRegistry.registerModules([FinancialChartModule]);
-
-const options: AgFinancialChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    volume: true,
-    navigator: true,
-    // ... rest of options
-};
-
-const chart = AgCharts.createFinancialChart(options);
-```
-
-### Common Modules
-
-**Series Modules:**
-
--   `BarSeriesModule`, `LineSeriesModule`, `AreaSeriesModule`, `ScatterSeriesModule`
--   `PieSeriesModule`, `DonutSeriesModule`, `RadarSeriesModule`
--   `CandlestickSeriesModule`, `OhlcSeriesModule` (enterprise)
--   `WaterfallSeriesModule`, `BoxPlotSeriesModule`, `HeatmapSeriesModule` (enterprise)
-
-**Axis Modules:**
-
--   `CategoryAxisModule`, `NumberAxisModule`, `TimeAxisModule`, `LogAxisModule`
--   `OrdinalTimeAxisModule` (enterprise)
-
-**Feature Modules:**
-
--   `AnimationModule` - Chart animations (enterprise)
--   `ZoomModule` - Zoom functionality (enterprise)
--   `NavigatorModule` - Navigator mini-chart (enterprise)
--   `CrosshairModule` - Crosshair tooltip (enterprise)
--   `FinancialChartModule` - Financial chart preset (enterprise)
-
-### Best Practices
-
--   ✅ Use a **single import statement** from the appropriate package
--   ✅ Import everything from `ag-charts-enterprise` for enterprise examples (never mix packages)
--   ✅ Register modules at the top of `main.ts`, before chart creation
--   ✅ Only import and register modules actually used by the example
--   ✅ List modules alphabetically in both import and registration for consistency
+See `.rulesync/skills/example/ag-charts/chart-construction.md` for full import patterns (enterprise, community, financial) and common module listings.
 
 ## Axes Configuration (v13+)
 
-**IMPORTANT**: Use the object-based axes syntax, NOT the legacy array syntax:
+Use the **object-based axes syntax** (`axes: { x: { type: 'time' }, y: { type: 'number' } }`), NOT the legacy array syntax. For multiple axes, use `yKeyAxis`/`xKeyAxis` on the series — there is no `axes` object on the series.
 
-```typescript
-// ✅ CORRECT - New object syntax (v13+)
-const options: AgCartesianChartOptions = {
-    // ...
-    axes: {
-        x: { type: 'time' },
-        y: { type: 'number' },
-    },
-};
-
-// ❌ WRONG - Legacy array syntax (pre-v13, deprecated)
-const options: AgCartesianChartOptions = {
-    // ...
-    axes: [
-        { type: 'time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
-};
-```
-
-Only options that differ from defaults need to be specified:
-
-```typescript
-// Minimal - just specify what you need
-axes: {
-    x: { type: 'time' },
-}
-
-// With additional options
-axes: {
-    x: { type: 'time' },
-    y: { type: 'number', title: { text: 'Price' } },
-}
-```
-
-See [Upgrade to AG Charts 13](packages/ag-charts-website/src/content/docs/upgrade-to-ag-charts-13/) for migration details.
-
-### Multiple Axes
-
-To associate a series with a specific axis when using multiple axes, use the `yKeyAxis` or `xKeyAxis` property on the series. There is **no `axes` object on the series** — axis association is done via key mapping only.
-
-```typescript
-// ✅ CORRECT - Associate series with named axes
-const options: AgCartesianChartOptions = {
-    axes: {
-        x: { type: 'time' },
-        y: { type: 'number', title: { text: 'Price' } },
-        y2: { type: 'number', position: 'right', title: { text: 'Volume' } },
-    },
-    series: [
-        { type: 'line', xKey: 'date', yKey: 'price' },
-        { type: 'bar', xKey: 'date', yKey: 'volume', yKeyAxis: 'y2' },
-    ],
-};
-```
-
-### Why This Matters
-
--   Enables proper tree-shaking in production builds
--   Ensures modules are loaded before chart creation
--   Prevents runtime errors from missing module registrations
--   Improves bundle size by only including used modules
--   Single-package imports avoid potential version mismatch issues
+See `.rulesync/skills/example/ag-charts/chart-construction.md` for full axes syntax, multiple axes patterns, and migration details.
 
 ## Framework Generation
 
@@ -599,19 +428,13 @@ Is this a public documentation example?
 
 ## Example Validation + Building
 
--   **Gallery example** (`packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/`)
-    -   `yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`
-    -   `yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:typecheck`
--   **Docs example** (`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/`)
-    -   `yarn nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate`
-    -   `yarn nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
--   **All examples**
-    -   `yarn nx validate-examples` (batch typecheck; much faster than individual targets)
+-   **Gallery example**: `yarn nx run ag-charts-website-gallery_${exampleName}_main.ts:generate` + `:typecheck`
+-   **Docs example**: `yarn nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate` + `:typecheck`
+-   **All examples**: `yarn nx validate-examples` (batch typecheck; much faster than individual targets)
+-   **Full generation**: `yarn nx generate-examples ag-charts-website`
+-   **Thumbnails**: `yarn nx generate-thumbnails ag-charts-website`
 
-## Example Generation
-
--   Use `yarn nx generate-examples ag-charts-website` to exercise example generation
--   Use `yarn nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
+See `.rulesync/skills/example/ag-charts/validation.md` for full validation workflow, decision tree, and common failure fixes.
 
 ## Reading External Examples (Plnkr, CodePen, etc.)
 
