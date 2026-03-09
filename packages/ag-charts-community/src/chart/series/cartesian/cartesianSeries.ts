@@ -916,8 +916,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         };
         const { predicate, iterator } = truthTable[`${where} + ${reverse}`];
 
-        // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect):
-        while (left <= right) {
+        // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect).
+        //
+        // The worst-case time complexity of a binary search is O(log_2(n)); so abort the loop if something goes wrong
+        // and we hit that bound. Math.log2(0) is -Infinity, so `currentIteration <= maxIterations` is false when length
+        // is 0.
+        let currentIteration = 0;
+        const maxIterations = Math.ceil(Math.log2(this.contextNodeData.nodeData.length)) + 1;
+        while (left <= right && currentIteration <= maxIterations) {
             mid = Math.floor((left + right) / 2);
 
             const pickedFocus = this.pickFocus({ datumIndex: mid, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
@@ -927,6 +933,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }
 
             iterator(predicate, pickedFocus);
+            currentIteration++;
         }
         return result;
     }
