@@ -1916,6 +1916,7 @@ test.describe('state', () => {
                 await clickMiss(page);
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
+                await page.keyboard.press('Tab');
             }
 
             async function twoArrowRight(page: Page): Promise<void> {
