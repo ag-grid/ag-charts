@@ -30,6 +30,28 @@ DIR_NAME=$(echo "$NAME" | tr '/' '-')
 WORKTREE_ROOT="$HOME/.worktrees"
 WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 
+# Clean up stale agent worktrees from previous runs.
+# Claude Code does not trigger the WorktreeRemove hook for Agent subagent
+# worktrees, so we clean them up opportunistically here.
+cleanup_stale_agent_worktrees() {
+    local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
+    [[ -d "$repo_wt_dir" ]] || return 0
+
+    local remove_script
+    remove_script="$(dirname "$0")/claude-worktree-remove.sh"
+
+    for candidate in "$repo_wt_dir"/agent-*; do
+        [[ -d "$candidate" ]] || continue
+        # Never clean up the worktree we're about to create.
+        [[ "$candidate" == "$WT_PATH" ]] && continue
+
+        log "Cleaning up stale agent worktree: $candidate"
+        echo "{\"worktree_path\": \"$candidate\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
+    done
+}
+
+cleanup_stale_agent_worktrees
+
 log "Creating worktree '${NAME}' for ${REPO_NAME}..."
 
 log "Fetching from origin..."

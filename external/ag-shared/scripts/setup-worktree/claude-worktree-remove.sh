@@ -26,5 +26,17 @@ if git -C "$WT_PATH" status --porcelain 2>/dev/null | grep -q .; then
 fi
 
 log "Removing worktree: ${WT_PATH}"
-git worktree remove --force "$WT_PATH" >&2 || true
+if ! git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
+    log "git worktree remove failed, falling back to rm + prune..."
+    rm -rf "$WT_PATH"
+    git worktree prune >&2 2>/dev/null || true
+fi
+
+# Belt-and-suspenders: verify removal.
+if [[ -d "$WT_PATH" ]]; then
+    log "Directory still exists after removal, force-removing..."
+    rm -rf "$WT_PATH"
+    git worktree prune >&2 2>/dev/null || true
+fi
+
 log "Done."
