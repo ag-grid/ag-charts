@@ -184,6 +184,7 @@ export interface SeriesKeyNavZoomEvent {
 
 export interface SeriesKeyNavPanXEvent {
     readonly delta: -1 | 1;
+    readonly reverse: boolean;
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 

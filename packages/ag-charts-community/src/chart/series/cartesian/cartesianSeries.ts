@@ -1,4 +1,4 @@
-import type { BoxBounds, ChartAnimationPhase, Scaling } from 'ag-charts-core';
+import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -845,44 +845,78 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     public override pickViewportFocus(opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
+        type Predicate = (focusBBox: Readonly<BBox>) => boolean;
+        type PredicateIterator = (predicate: Predicate, pickedFocus: PickFocusOutputs) => void;
+
         if (this.contextNodeData?.nodeData === undefined) return;
 
         const { otherIndex, where, hoverRect } = opts;
 
-        let resultIndex: number | undefined = undefined;
+        let result: PickFocusOutputs | undefined = undefined;
 
         let left: number = 0;
         let mid: number;
         let right: number = this.contextNodeData.nodeData.length - 1;
+        const reverse: boolean = this.axes.x?.reverse ?? false;
 
-        const shrinkBounds: (focusBBox: Readonly<BoxBounds>) => void = (function initShrinkBounds() {
-            if (where === 'viewport-start') {
-                return function shrinkViewportStart(focusBBox: Readonly<BoxBounds>): void {
-                    // Looking for smallest index whose left edge is inside viewport
-                    if (focusBBox.x >= hoverRect.x) {
-                        resultIndex = mid;
-                        right = mid - 1;
-                    } else {
-                        left = mid + 1;
-                    }
-                };
-            } else if (where === 'viewport-end') {
-                return function shrinkViewportEnd(focusBBox: Readonly<BoxBounds>): void {
-                    // Looking for largest index whose right edge is inside viewport
-                    const viewportRight = hoverRect.x + hoverRect.width;
-                    const nodeRight = focusBBox.x + focusBBox.width;
-                    if (nodeRight <= viewportRight) {
-                        resultIndex = mid;
-                        left = mid + 1;
-                    } else {
-                        right = mid - 1;
-                    }
-                };
+        function isRightEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
+            const viewportRight = hoverRect.x + hoverRect.width;
+            const nodeRight = focusBBox.x + focusBBox.width;
+            return nodeRight <= viewportRight;
+        }
+        function isLeftEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
+            return focusBBox.x >= hoverRect.x;
+        }
+        function cullRightWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+            const focusBBox = getPickedFocusBBox(pickedFocus);
+            if (predicate(focusBBox)) {
+                result = pickedFocus;
+                right = mid - 1;
             } else {
-                return where satisfies never;
+                left = mid + 1;
             }
-        })();
+        }
+        function cullLeftWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+            const focusBBox = getPickedFocusBBox(pickedFocus);
+            if (predicate(focusBBox)) {
+                result = pickedFocus;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        /**
+         * The pickViewportFocus algorithm must answer two questions to figure out what the iterator must do:
+         *
+         * 1.  Predicate:
+         *     Which side of the focusBBox are we testing is in the viewport? (right edge / left edge)
+         *
+         * 2.  Direction:
+         *     Which section (of the binary-search) gets culled when the predicate is true? (cull right or left).
+         *
+         * There's four possible iterators that we need to support (depending on `where` and `reverse`):
+         *
+         * |                | reverse: true      | reverse:  false    |
+         * |----------------|--------------------|--------------------|
+         * | viewport-start | test right edge    | test left edge     |
+         * |                | cull right section | cull right section |
+         * |----------------|--------------------|--------------------|
+         * | viewport-end   | test left edge     | test right edge    |
+         * |                | cull left section  | cull left section  |
+         *
+         * Note: When `reverse === true`, the nodeData order is unchanged, but the focusBBox bounds are reversed by the
+         * axis transformation.
+         */
+        type Keys = `${'viewport-start' | 'viewport-end'} + ${boolean}`;
+        const truthTable: { [K in Keys]: { predicate: Predicate; iterator: PredicateIterator } } = {
+            'viewport-start + true': { predicate: isRightEdgeInViewport, iterator: cullRightWhenTrue },
+            'viewport-start + false': { predicate: isLeftEdgeInViewport, iterator: cullRightWhenTrue },
+            'viewport-end + true': { predicate: isLeftEdgeInViewport, iterator: cullLeftWhenTrue },
+            'viewport-end + false': { predicate: isRightEdgeInViewport, iterator: cullLeftWhenTrue },
+        };
+        const { predicate, iterator } = truthTable[`${where} + ${reverse}`];
 
+        // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect):
         while (left <= right) {
             mid = Math.floor((left + right) / 2);
 
@@ -892,17 +926,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 return undefined;
             }
 
-            shrinkBounds(getPickedFocusBBox(pickedFocus));
+            iterator(predicate, pickedFocus);
         }
-
-        if (resultIndex === undefined) return undefined;
-
-        return this.pickFocus({
-            datumIndex: resultIndex,
-            datumIndexDelta: 0,
-            otherIndex,
-            otherIndexDelta: 0,
-        });
+        return result;
     }
 
     protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {

@@ -651,7 +651,7 @@ export class Zoom extends AbstractModuleInstance {
         event.widgetEvent.sourceEvent.preventDefault();
 
         const zoom = this.getZoom();
-        const scrollDelta: number = event.delta * dx(zoom);
+        const scrollDelta: number = event.delta * (event.reverse ? -1 : 1) * dx(zoom);
         zoom.x.min += scrollDelta;
         zoom.x.max += scrollDelta;
         zoom.x = constrainAxis(zoom.x);
