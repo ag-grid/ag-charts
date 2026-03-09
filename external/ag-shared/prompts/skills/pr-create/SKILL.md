@@ -84,11 +84,7 @@ If there are uncommitted changes:
     git status
     ```
 2.  Stage relevant files (prefer specific files over `git add -A`).
-3.  Write a commit message following git-conventions:
-    -   JIRA-linked: `AG-XXXX <description>` (uppercase JIRA number)
-    -   No JIRA: `<description>` (concise, imperative mood)
-    -   Under 72 characters.
-    -   Never attribute agentic tooling.
+3.  Write a commit message following git-conventions (see Commits section).
 4.  Commit:
     ```bash
     git commit -m "$(cat <<'EOF'
@@ -118,13 +114,7 @@ EOF
 )"
 ```
 
-Follow git-conventions for the PR:
-
--   **Title:** Under 70 characters. JIRA-linked: `AG-XXXX <description>`. No JIRA: `<description>`.
--   **Body:** JIRA-linked: include link(s) to the JIRA ticket(s). No JIRA: concise description of the change.
--   Keep descriptions concise - this is a public repo.
--   Never attribute agentic tooling.
--   If JIRA-linked include "Fix #AG-XXXX"
+Follow git-conventions (see Pull Requests section). If JIRA-linked, include "Fix #AG-XXXX" in the body.
 
 ### STEP 7: Report Result
 
