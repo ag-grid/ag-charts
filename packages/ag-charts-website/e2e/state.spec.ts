@@ -2077,7 +2077,7 @@ test.describe('state', () => {
 
                     await click2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
                     await tabIntoChart(page);
@@ -2088,7 +2088,7 @@ test.describe('state', () => {
 
                     await keyboardClick(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q3_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q3_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
                 });
             });
@@ -2117,9 +2117,10 @@ test.describe('state', () => {
 
                     await tabInTwoArrowRightAndKeyboardClick(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q1_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
-                        { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
-                        { ...Q3_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q1_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                        { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                        { ...Q3_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                        { ...Q3_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
                     await twoArrowRight(page);
@@ -2151,12 +2152,13 @@ test.describe('state', () => {
 
                     await click2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                        { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
                     await keyboardClick(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q1_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: true },
+                        { ...Q1_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
                 });
             });
