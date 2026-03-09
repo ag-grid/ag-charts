@@ -564,7 +564,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
-        if (!this.maybeEnterInteractiveTooltip(event)) {
+        if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
         this.focusIndicator?.overrideFocusVisible(undefined);
@@ -902,17 +902,19 @@ export class SeriesAreaManager extends BaseManager {
             // came from the keyboard so that's what we should honour.
             this.clearCachedEvents();
 
-            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
-            this.pickManager.maybeActivate(
-                datum,
-                ({ series }): void => {
-                    this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-                    if (this.isTooltipEnabled(series)) {
-                        this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
-                    }
-                },
-                { defaultCbArg: { series: focus.series } }
-            );
+            if (!this.isState(InteractionState.Frozen)) {
+                const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
+                this.pickManager.maybeActivate(
+                    datum,
+                    ({ series }): void => {
+                        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+                        if (this.isTooltipEnabled(series)) {
+                            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+                        }
+                    },
+                    { defaultCbArg: { series: focus.series } }
+                );
+            }
         }
 
         this.maybeAnnouncePickedFocus(
