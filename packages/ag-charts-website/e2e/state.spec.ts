@@ -1896,13 +1896,13 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await hover2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-thawed.png');
 
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
 
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-thawed.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -1941,16 +1941,16 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
 
                     await hover2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-thawed.png');
 
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q2-frozen.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-frozen.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-map-2024q4-thawed.png');
+                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-thawed.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
