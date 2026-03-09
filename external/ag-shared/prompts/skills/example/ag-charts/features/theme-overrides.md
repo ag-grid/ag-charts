@@ -172,6 +172,8 @@ formatter: (params) => {
 };
 ```
 
+**Preferred style:** Use the object syntax `formatter: { y: ..., x: ... }` as documented in `quality-rules.md`. The function syntax `formatter: (params) => ...` is supported but less consistent across axes/labels/tooltips.
+
 ### Root-Level Format Configuration
 
 ```typescript

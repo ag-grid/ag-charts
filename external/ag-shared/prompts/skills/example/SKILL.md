@@ -52,3 +52,17 @@ Feature modules live in `.rulesync/skills/example/ag-charts/features/` and provi
 | **Tier 1 — Essentials** | `tooltips.md`, `theme-overrides.md` | Always for quality work |
 | **Tier 2 — Enhancement** | `axes.md`, `legends.md`, `data-labels.md` | When improving visual hierarchy, readability, or layout |
 | **Tier 3 — Advanced** | `enterprise.md`, `segmentation.md`, `reference-lines.md`, `recent-features.md` | When PREVis identifies specific advanced needs |
+
+## Quick Reference — Critical Rules
+
+These five rules apply to **every** AG Charts example. Internalise them before reading sub-documents.
+
+1. **No hardcoded colours or fonts.** Never set `fill`, `stroke`, `color`, `fontSize`, `fontWeight`, or `fontFamily`. The theme handles all visual styling.
+
+2. **Object-based axes syntax (v13+).** Use `axes: { x: { type: 'category' }, y: { type: 'number' } }` — not the legacy array syntax. Always specify `type` on every axis.
+
+3. **Root-level formatters.** Prefer `formatter: { y: ..., x: ... }` at the options root so axes, labels, and tooltips share one definition. Only nest formatters when they genuinely differ.
+
+4. **Tooltip `heading` required.** Always include `heading` on tooltip configurations to prevent empty lines at the top.
+
+5. **Specific chart option types.** Use `AgCartesianChartOptions`, `AgPolarChartOptions`, etc. — never generic `AgChartOptions`.

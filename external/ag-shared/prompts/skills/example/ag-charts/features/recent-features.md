@@ -6,6 +6,8 @@ Track the latest AG Charts capabilities to ensure gallery examples showcase cutt
 
 ### ⚡ Quick Date/Price Measurement Overlay
 
+> For base annotation setup, see `enterprise.md`. This section covers the quick measurement overlay added in Mar 2025.
+
 _New Mar 2025 • Apply: 6 minutes • Impact: HIGH_ ⭐ **RECOMMENDED for financial timelines**
 
 ```typescript
@@ -445,6 +447,8 @@ _Best for_: Tailoring toolbars to analyst workflows (earnings windows, YTD, cust
 
 ### 🔄 Zoom Data Change Strategy
 
+> For base zoom setup, see `enterprise.md`. This section covers the data-change strategy added in Nov 2024.
+
 _New Nov 2024 • Apply: 3 minutes • Impact: MEDIUM_
 
 ```typescript
@@ -580,6 +584,8 @@ series: [
 _Replaces: Simple solid marker borders, custom marker implementations_
 
 ### 📊 Zoom Aspect Ratio Control
+
+> For base zoom setup, see `enterprise.md`. This section covers the aspect-ratio control added in Dec 2024.
 
 _Enterprise • New Dec 2024 • Apply: 6 minutes • Impact: Medium_
 
@@ -741,6 +747,8 @@ fill: {
 _Replaces: Custom SVG pattern definitions and manual pattern creation_
 
 ### 📊 Crosshair Label Enhancements
+
+> For base crosshair setup, see `enterprise.md`. This section covers label enhancements added in Feb 2024.
 
 _Enterprise • New Feb 2024 • Apply: 7 minutes • Impact: Medium_
 

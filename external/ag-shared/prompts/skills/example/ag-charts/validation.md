@@ -58,6 +58,8 @@ Is this a public documentation or gallery example?
 └─ NO (benchmark or *-test page) → Can use @ag-skip-fws if needed
 ```
 
+For detailed `@ag-skip-fws` usage patterns and restrictions, see `.rulesync/rules/examples.md`.
+
 ## Common Failure Fixes
 
 | Failure | Likely Cause | Fix |
