@@ -1866,7 +1866,7 @@ test.describe('state', () => {
             });
 
             async function hover2024q2(page: Page): Promise<void> {
-                await page.mouse.click(300, 400);
+                await page.mouse.move(300, 400);
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
             }
 
@@ -1876,7 +1876,7 @@ test.describe('state', () => {
             }
 
             async function hover2024q4(page: Page): Promise<void> {
-                await page.mouse.click(600, 300);
+                await page.mouse.move(600, 300);
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
             }
 
