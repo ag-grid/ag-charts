@@ -239,6 +239,6 @@ function startUpdates() {
 ## Chart Options
 
 - Always include a `title` on chart options
-- Use specific chart types (`AgCartesianChartOptions`, `AgPolarChartOptions`, etc.) — not generic `AgChartOptions`
+- Use specific chart types: `AgCartesianChartOptions` (cartesian), `AgPolarChartOptions` (polar), `AgFinancialChartOptions` (financial). Hierarchy charts (treemap, sunburst) use generic `AgChartOptions`.
 - All axes must have `type` specified
 - Do not disable tooltips or add unnecessary explicit configurations — let defaults work

@@ -1,10 +1,15 @@
 ---
-targets: ['*']
 name: example
-description: 'Example construction fundamentals. Use when building any example — gallery, docs, or Plunker. Supports AG Charts, AG Grid, and AG Studio.'
-context: fork
+description: >-
+  MUST load before creating or modifying any AG Charts, AG Grid, or AG Studio
+  code example — bar, line, pie, donut, treemap, or any chart type — whether
+  for gallery, docs, or Plunker. Contains required conventions that differ from
+  training data: v13 object-based axis syntax, ModuleRegistry registration,
+  enterprise module imports, specific chart option types, custom tooltip
+  renderers with heading rules. Also load when troubleshooting example issues
+  (empty tooltips, TypeScript errors, wrong axis format) or asking about
+  example file structure and patterns.
 ---
-
 # Example Construction
 
 This skill provides the foundational patterns for building examples across all AG products. Load the appropriate product guide based on what you're working with.
@@ -63,6 +68,6 @@ These five rules apply to **every** AG Charts example. Internalise them before r
 
 3. **Root-level formatters.** Prefer `formatter: { y: ..., x: ... }` at the options root so axes, labels, and tooltips share one definition. Only nest formatters when they genuinely differ.
 
-4. **Tooltip `heading` required.** Always include `heading` on tooltip configurations to prevent empty lines at the top.
+4. **Tooltip `heading` required.** When using a custom tooltip `renderer`, always include `heading` in the return object to prevent empty lines. `heading` is the primary label at the top (category name for pie/donut, x-axis value for cartesian); `title` is the series name.
 
-5. **Specific chart option types.** Use `AgCartesianChartOptions`, `AgPolarChartOptions`, etc. — never generic `AgChartOptions`.
+5. **Specific chart option types.** Use `AgCartesianChartOptions` for cartesian charts and `AgPolarChartOptions` for polar charts. Hierarchy charts (treemap, sunburst) use generic `AgChartOptions`. Financial charts use `AgFinancialChartOptions`.

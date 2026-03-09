@@ -23,12 +23,13 @@ Mandatory rules for all AG Charts examples. Theme compatibility is the #1 priori
 
 - **`axes.*.type`** — MUST always be specified for every axis (axes are a dictionary: `axes: { x: { type: 'category' }, y: { type: 'number' } }`)
 - All TypeScript types must be properly defined — NEVER use `any`
-- Use specific chart types (`AgCartesianChartOptions`, `AgPolarChartOptions`, etc.) instead of generic `AgChartOptions`
+- Use specific chart types: `AgCartesianChartOptions` (cartesian), `AgPolarChartOptions` (polar), `AgFinancialChartOptions` (financial). Hierarchy charts (treemap, sunburst) use generic `AgChartOptions`.
 
 ## Tooltip Requirements
 
-- ALWAYS include `heading` property on tooltip configurations — prevents empty lines at the top
-- Do NOT use custom tooltip HTML via `renderer()` — use multiple `data[]` elements instead (simpler + better styling)
+- When using a custom tooltip `renderer`, **ALWAYS include `heading`** in the return object — omitting it causes an empty line at the top. `heading` is the primary label (e.g. `heading: params.datum.month` for cartesian, `heading: datum.category` for pie/donut). Return `{ heading, title, data[] }`.
+- `tooltip: { mode: 'shared' }` without a renderer is fine — the built-in shared tooltip handles heading automatically.
+- Do NOT use custom tooltip HTML via `renderer()` — use `{ heading, title, data[] }` object instead (simpler + better styling)
 
 ## Formatter Best Practices
 

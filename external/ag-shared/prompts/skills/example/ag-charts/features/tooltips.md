@@ -45,7 +45,7 @@ tooltip: {
         const [player, result] = yName?.split(' - ') ?? ['', ''];
 
         return {
-            heading: datum.year, // X-axis value
+            heading: datum.year, // Primary label at top of tooltip
             title: player || 'Player', // Series/player name
             data: [{
                 label: result,
@@ -99,11 +99,11 @@ tooltip: {
 ## PREFERRED Tooltip Approach - Use data[] Elements
 
 ```typescript
-// ❌ BAD: Missing title causes empty line at top of tooltip!
+// ❌ BAD: Missing heading causes empty line at top of tooltip!
 tooltip: {
     renderer: (params) => {
         return {
-            // MISSING title - will show empty line!
+            // MISSING heading - will show empty line!
             data: [
                 { label: 'Revenue', value: `$${params.value.toLocaleString()}` },
                 { label: 'Growth', value: `${params.datum.growth}%` },
@@ -112,12 +112,12 @@ tooltip: {
     };
 }
 
-// ✅ GOOD: Always include title to avoid empty lines
+// ✅ GOOD: Always include heading to avoid empty lines
 tooltip: {
     renderer: (params) => {
         return {
-            heading: params.datum.month || params.datum.category, // X-axis value (date/category)
-            title: params.yName || params.title || 'Series', // REQUIRED! Series name
+            heading: params.datum.month || params.datum.category, // Primary label at top of tooltip (REQUIRED!)
+            title: params.yName || params.title || 'Series', // Series name
             data: [
                 { label: 'Revenue', value: `$${params.value.toLocaleString()}` },
                 { label: 'Growth', value: `${params.datum.growth}%` },
@@ -150,19 +150,24 @@ tooltip: {
 
 **SOLUTION**: ALWAYS include a `heading` property in your tooltip renderer return object.
 
-### Understanding `title`, `heading`, and `data`:
+### Understanding `heading`, `title`, and `data`:
 
-- **`title`**: The x-axis value (date, category, etc.) - shown at the very top
-- **`heading`**: The series name/label - shown below the title (REQUIRED to avoid empty lines!)
+- **`heading`**: The primary label at the top of the tooltip — the identifying value for the data point (e.g. month, category name, year). **REQUIRED** to avoid empty lines!
+- **`title`**: The series name/label — shown below the heading
 - **`data`**: The actual data points and values
 
+**`heading` applies to ALL chart types:**
+- Cartesian charts: the x-axis value (date, category, year, etc.)
+- Pie/donut charts: the category/sector name (e.g. `params.datum.category`)
+- Any chart: whatever identifies the data point being hovered
+
 ```typescript
-// ✅ CORRECT: Proper use of title and heading
+// ✅ CORRECT: heading = primary label, title = series name
 tooltip: {
     renderer: (params) => {
         return {
-            heading: params.datum.year, // X-axis value (shown at top)
-            title: params.yName || 'Series', // Series name (REQUIRED - prevents empty line)
+            heading: params.datum.year,          // Primary label (REQUIRED — prevents empty line)
+            title: params.yName || 'Series',     // Series name
             data: [
                 { label: 'Value', value: params.value },
                 { label: 'Change', value: `${params.datum.change}%` },
@@ -221,24 +226,47 @@ tooltip: {
 ### Choosing the Right Values for tooltip.renderer result object
 
 ```typescript
-// TITLE - The x-axis value (date/category):
-// For time series charts:
+// HEADING (REQUIRED) - The primary label at the top — prevents empty lines:
+
+// For cartesian time series charts:
 heading: params.datum.date || params.datum.year || params.datum.month;
 
-// For category charts:
+// For cartesian category charts:
 heading: params.datum.category || params.datum.name || params.datum.label;
 
-// Default fallback for title:
+// For pie/donut charts (use the sector/category name):
+heading: params.datum.category || params.datum.name || params.datum.label;
+
+// Default fallback for heading:
 heading: params.xValue || params.datum[params.xKey];
 
-// TITLE - The series name (REQUIRED to prevent empty lines):
+// TITLE - The series name:
 title: params.yName || params.title || 'Series';
+```
+
+### Pie/Donut Chart Tooltip Example
+
+```typescript
+// ✅ Pie/donut charts: heading = category name (NOT title!)
+series: [{
+    type: 'donut',
+    angleKey: 'value',
+    sectorLabelKey: 'category',
+    tooltip: {
+        renderer: ({ datum, angleKey }) => ({
+            heading: datum.category,   // Category/sector name (REQUIRED!)
+            data: [
+                { label: 'Value', value: String(datum[angleKey]) },
+            ],
+        }),
+    },
+}],
 ```
 
 ### Key Properties Explained:
 
-- **`heading`**: The x-axis value (date, category, etc.) - shown at the very top
-- **`title`** (REQUIRED): The series name/label - prevents empty lines below title!
+- **`heading`** (REQUIRED): The primary label at the top of the tooltip — identifies the data point (category name, date, year, etc.). **Omitting this causes an empty line!**
+- **`title`**: The series name/label — shown below the heading
 - **`data[]`**: Use for actual data points and values
 - **Avoid HTML**: Stick to data[] elements unless absolutely necessary
 - **Test visually**: Always verify tooltip rendering with screenshots
