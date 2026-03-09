@@ -88,6 +88,9 @@
 
 .ag-charts-canvas-overlay > * {
     position: absolute;
-    left: 0;
     pointer-events: auto;
+}
+
+.ag-charts-canvas-overlay > [role="presentation"] {
+    left: 0;
 }
