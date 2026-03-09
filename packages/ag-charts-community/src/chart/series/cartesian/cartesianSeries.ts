@@ -867,7 +867,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         function isLeftEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
             return focusBBox.x >= hoverRect.x;
         }
-        function searchRightWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+        function cullRightWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
             const focusBBox = getPickedFocusBBox(pickedFocus);
             if (predicate(focusBBox)) {
                 result = pickedFocus;
@@ -876,7 +876,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 left = mid + 1;
             }
         }
-        function searchLeftWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+        function cullLeftWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
             const focusBBox = getPickedFocusBBox(pickedFocus);
             if (predicate(focusBBox)) {
                 result = pickedFocus;
@@ -886,13 +886,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }
         }
         /**
-         * The pickViewportFocus algorithm must ask two questions to figure out what the iterator must do:
+         * The pickViewportFocus algorithm must answer two questions to figure out what the iterator must do:
          *
          * 1.  Predicate:
-         *     Which side of the focusBBox are we testing is in the viewport? (right-edge / left-edge)
+         *     Which side of the focusBBox are we testing is in the viewport? (right edge / left edge)
          *
          * 2.  Direction:
-         *     Which section (of the binary-search) gets culled when the predicate is true? (right-cull or trim-cull).
+         *     Which section (of the binary-search) gets culled when the predicate is true? (cull right or left).
          *
          * There's four possible iterators that we need to support (depending on `where` and `reverse`):
          *
@@ -901,18 +901,18 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
          * | viewport-start | test right edge    | test left edge     |
          * |                | cull right section | cull right section |
          * |----------------|--------------------|--------------------|
-         * | viewport-end   | test left edge     | test right-edge    |
+         * | viewport-end   | test left edge     | test right edge    |
          * |                | cull left section  | cull left section  |
          *
-         * Note: When `reverse === true`, the nodeData is not reversed, but the focusBBox bounds are reversed.
+         * Note: When `reverse === true`, the nodeData order is unchanged, but the focusBBox bounds are reversed by the
+         * axis transformation.
          */
-        const truthTable: {
-            [K in `${typeof where} + ${typeof reverse}`]: { predicate: Predicate; iterator: PredicateIterator };
-        } = {
-            'viewport-start + true': { predicate: isRightEdgeInViewport, iterator: searchRightWhenTrue },
-            'viewport-start + false': { predicate: isLeftEdgeInViewport, iterator: searchRightWhenTrue },
-            'viewport-end + true': { predicate: isLeftEdgeInViewport, iterator: searchLeftWhenTrue },
-            'viewport-end + false': { predicate: isRightEdgeInViewport, iterator: searchLeftWhenTrue },
+        type Keys = `${'viewport-start' | 'viewport-end'} + ${boolean}`;
+        const truthTable: { [K in Keys]: { predicate: Predicate; iterator: PredicateIterator } } = {
+            'viewport-start + true': { predicate: isRightEdgeInViewport, iterator: cullRightWhenTrue },
+            'viewport-start + false': { predicate: isLeftEdgeInViewport, iterator: cullRightWhenTrue },
+            'viewport-end + true': { predicate: isLeftEdgeInViewport, iterator: cullLeftWhenTrue },
+            'viewport-end + false': { predicate: isRightEdgeInViewport, iterator: cullLeftWhenTrue },
         };
         const { predicate, iterator } = truthTable[`${where} + ${reverse}`];
 
