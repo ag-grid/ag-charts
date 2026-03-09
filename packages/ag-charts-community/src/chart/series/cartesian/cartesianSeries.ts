@@ -845,6 +845,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     public override pickViewportFocus(opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
+        type Predicate = (focusBBox: Readonly<BBox>) => boolean;
+        type PredicateIterator = (predicate: Predicate, pickedFocus: PickFocusOutputs) => void;
+
         if (this.contextNodeData?.nodeData === undefined) return;
 
         const { otherIndex, where, hoverRect } = opts;
@@ -856,62 +859,62 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         let right: number = this.contextNodeData.nodeData.length - 1;
         const reverse: boolean = this.axes.x?.reverse ?? false;
 
-        // Generate a binary-search iterator (`where` and `reverse`)
-        const iterate: (pickedFocus: PickFocusOutputs) => void = (function initIterator() {
-            if (where === 'viewport-start') {
-                // Looking for smallest index whose left edge is inside viewport
-                if (reverse) {
-                    return function shrinkViewportStartReverse(pickedFocus: PickFocusOutputs): void {
-                        const focusBBox = getPickedFocusBBox(pickedFocus);
-                        const viewportRight = hoverRect.x + hoverRect.width;
-                        const nodeRight = focusBBox.x + focusBBox.width;
-                        if (nodeRight <= viewportRight) {
-                            result = pickedFocus;
-                            right = mid - 1;
-                        } else {
-                            left = mid + 1;
-                        }
-                    };
-                } else {
-                    return function shrinkViewportStart(pickedFocus: PickFocusOutputs): void {
-                        const focusBBox = getPickedFocusBBox(pickedFocus);
-                        if (focusBBox.x >= hoverRect.x) {
-                            result = pickedFocus;
-                            right = mid - 1;
-                        } else {
-                            left = mid + 1;
-                        }
-                    };
-                }
-            } else if (where === 'viewport-end') {
-                // Looking for smallest index whose left edge is inside viewport
-                if (reverse) {
-                    return function shrinkViewportEndReverse(pickedFocus: PickFocusOutputs): void {
-                        const focusBBox = getPickedFocusBBox(pickedFocus);
-                        if (focusBBox.x >= hoverRect.x) {
-                            result = pickedFocus;
-                            left = mid + 1;
-                        } else {
-                            right = mid - 1;
-                        }
-                    };
-                } else {
-                    return function shrinkViewportEnd(pickedFocus: PickFocusOutputs): void {
-                        const focusBBox = getPickedFocusBBox(pickedFocus);
-                        const viewportRight = hoverRect.x + hoverRect.width;
-                        const nodeRight = focusBBox.x + focusBBox.width;
-                        if (nodeRight <= viewportRight) {
-                            result = pickedFocus;
-                            left = mid + 1;
-                        } else {
-                            right = mid - 1;
-                        }
-                    };
-                }
+        function isRightEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
+            const viewportRight = hoverRect.x + hoverRect.width;
+            const nodeRight = focusBBox.x + focusBBox.width;
+            return nodeRight <= viewportRight;
+        }
+        function isLeftEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
+            return focusBBox.x >= hoverRect.x;
+        }
+        function searchRightWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+            const focusBBox = getPickedFocusBBox(pickedFocus);
+            if (predicate(focusBBox)) {
+                result = pickedFocus;
+                right = mid - 1;
             } else {
-                return where satisfies never;
+                left = mid + 1;
             }
-        })();
+        }
+        function searchLeftWhenTrue(predicate: Predicate, pickedFocus: PickFocusOutputs): void {
+            const focusBBox = getPickedFocusBBox(pickedFocus);
+            if (predicate(focusBBox)) {
+                result = pickedFocus;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        /**
+         * The pickViewportFocus algorithm must ask two questions to figure out what the iterator must do:
+         *
+         * 1.  Predicate:
+         *     Which side of the focusBBox are we testing is in the viewport? (right-edge / left-edge)
+         *
+         * 2.  Direction:
+         *     Which section (of the binary-search) gets culled when the predicate is true? (right-cull or trim-cull).
+         *
+         * There's four possible iterators that we need to support (depending on `where` and `reverse`):
+         *
+         * |                | reverse: true      | reverse:  false    |
+         * |----------------|--------------------|--------------------|
+         * | viewport-start | test right edge    | test left edge     |
+         * |                | cull right section | cull right section |
+         * |----------------|--------------------|--------------------|
+         * | viewport-end   | test left edge     | test right-edge    |
+         * |                | cull left section  | cull left section  |
+         *
+         * Note: When `reverse === true`, the nodeData is not reversed, but the focusBBox bounds are reversed.
+         */
+        const truthTable: {
+            [K in `${typeof where} + ${typeof reverse}`]: { predicate: Predicate; iterator: PredicateIterator };
+        } = {
+            'viewport-start + true': { predicate: isRightEdgeInViewport, iterator: searchRightWhenTrue },
+            'viewport-start + false': { predicate: isLeftEdgeInViewport, iterator: searchRightWhenTrue },
+            'viewport-end + true': { predicate: isLeftEdgeInViewport, iterator: searchLeftWhenTrue },
+            'viewport-end + false': { predicate: isRightEdgeInViewport, iterator: searchLeftWhenTrue },
+        };
+        const { predicate, iterator } = truthTable[`${where} + ${reverse}`];
 
         // Binary-search for the node-datum shape (datumIndex) in the current viewport (hoverRect):
         while (left <= right) {
@@ -923,7 +926,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 return undefined;
             }
 
-            iterate(pickedFocus);
+            iterator(predicate, pickedFocus);
         }
         return result;
     }
