@@ -1,9 +1,10 @@
 import express from 'express';
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+LicenseManager.setLicenseKey('your-licence-key');
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 function getBaseUrl(port: number): string {
     if (process.env.CODESPACES === 'true') {

@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+LicenseManager.setLicenseKey('your-licence-key');
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const buffer = await AgChartsServerSide.render({
     options: {

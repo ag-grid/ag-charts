@@ -7,7 +7,7 @@ enterprise: true
 The `ag-charts-server-side` package renders AG Charts to PNG and JPEG image buffers in Node.js, without a browser or DOM. Use it to generate chart images for email reports, PDF documents, social media cards, thumbnails, or API endpoints.
 
 {% idea %}
-Try server-side rendering with zero setup in {% link href="https://codespaces.new/ag-grid/ag-charts-server-side-example" isExternal=true %}GitHub Codespaces{% /link %}.
+Try server-side rendering with zero setup in {% link href="https://codespaces.new/ag-grid/ag-charts-server-side-example" isExternal=true %}GitHub Codespaces{% /link %}. Note that in Codespaces, the server URL will be a forwarded port URL (e.g. `https://<name>-3000.<domain>`) rather than `localhost:3000`.
 {% /idea %}
 
 ## Prerequisites
@@ -18,20 +18,20 @@ Server-side rendering requires Node.js 20.0.0 or later, and an [AG Charts Enterp
 
 ## Installation
 
-Install `ag-charts-server-side` alongside `ag-charts-community`:
+Install `ag-charts-server-side`:
 
 {% tabs omitFromOverview=true snippetTabs=true %}
 {% tabItem id="ssr-npm" label="NPM" %}
 
 ```bash
-npm install ag-charts-server-side ag-charts-community
+npm install ag-charts-server-side
 ```
 
 {% /tabItem %}
 {% tabItem id="ssr-yarn" label="Yarn" %}
 
 ```bash
-yarn add ag-charts-server-side ag-charts-community
+yarn add ag-charts-server-side
 ```
 
 {% /tabItem %}
@@ -42,9 +42,10 @@ yarn add ag-charts-server-side ag-charts-community
 Register modules before rendering any charts. This is typically done once at application startup:
 
 ```js format="snippet"
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+LicenseManager.setLicenseKey('your-licence-key');
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 ```
 
 ## Rendering a chart
@@ -62,10 +63,10 @@ The `options` property accepts the same chart options as `AgCharts.create()`, ex
 ```js
 import * as fs from 'fs';
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const buffer = await AgChartsServerSide.render({
     options: {
@@ -110,36 +111,6 @@ const buffer = await AgChartsServerSide.render({
 // Output image is 400x300 actual pixels
 ```
 
-## Enterprise features
-
-To use enterprise chart types such as waterfall, heatmap, or gauges, install the `ag-charts-enterprise` package and register `AllEnterpriseModule`:
-
-{% tabs omitFromOverview=true snippetTabs=true %}
-{% tabItem id="ent-npm" label="NPM" %}
-
-```bash
-npm install ag-charts-enterprise
-```
-
-{% /tabItem %}
-{% tabItem id="ent-yarn" label="Yarn" %}
-
-```bash
-yarn add ag-charts-enterprise
-```
-
-{% /tabItem %}
-{% /tabs %}
-
-```js format="snippet"
-import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
-
-LicenseManager.setLicenseKey('your-licence-key');
-ModuleRegistry.registerModules([AllEnterpriseModule]);
-```
-
-See [Enterprise Licence Key](./license-install/) for details on obtaining and configuring a licence key.
-
 ## Custom fonts
 
 {% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
@@ -161,10 +132,10 @@ Serve chart images from an HTTP endpoint:
 ```js
 import express from 'express';
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { AgChartsServerSide } from 'ag-charts-server-side';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const app = express();
 
