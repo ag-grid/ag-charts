@@ -240,7 +240,7 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
      */
     bandAlignment?: AgBandAlignment;
     /**
-     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
      *
      * Default: `false`
      */
@@ -325,7 +325,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
      */
     bandAlignment?: AgBandAlignment;
     /**
-     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
      *
      * Default: `false`
      */
@@ -358,7 +358,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
      */
     bandAlignment?: AgBandAlignment;
     /**
-     * Set to `true` to prevent bars with nullish values from taking up space in each category.
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
      *
      * Default: `false`
      */
