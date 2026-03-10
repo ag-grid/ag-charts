@@ -147,18 +147,18 @@ export class SeriesAreaManager extends BaseManager {
      *   -   For keyboard users, `mousemove` events update the tooltip/highlight iff `pickNode` finds a match
      *       for the mouse event offsets.
      */
-    private _hoverDevice: HoverDevice = 'pointer';
+    private _device: HoverDevice = 'pointer';
 
     private setHoverDevice(desiredDevice: HoverDevice): void {
         // Keyboard and Pointer interactions are still permitted on Frozen charts. However, we shouldn't update the
         // hoverDevice when we receive Keyboard/Pointer events, because we should still be honouring the `setState`
         // requested active highlight/tooltip.
         if (desiredDevice === 'setState' || !this.isState(InteractionState.Frozen)) {
-            this._hoverDevice = desiredDevice;
+            this._device = desiredDevice;
         }
     }
     private getHoverDevice(): HoverDevice {
-        return this._hoverDevice;
+        return this._device;
     }
 
     private readonly pickManager: PickManager;
