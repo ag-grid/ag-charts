@@ -646,7 +646,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.isState(InteractionState.Focusable)) return;
+        if (!this.onNav(event)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
         if (series != null && datum != null) {
@@ -657,7 +657,6 @@ export class SeriesAreaManager extends BaseManager {
                 event: sourceEvent,
             });
         }
-        sourceEvent.preventDefault();
     }
 
     private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): boolean {
