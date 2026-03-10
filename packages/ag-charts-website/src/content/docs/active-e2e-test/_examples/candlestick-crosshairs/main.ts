@@ -1,4 +1,5 @@
 import {
+    AgActiveChangeEvent,
     AgActiveItemState,
     AgCandlestickSeriesTooltipRendererParams,
     AgCartesianChartOptions,
@@ -136,6 +137,30 @@ const options: AgCartesianChartOptions<TradeDatum> = {
             },
         },
     },
+    listeners: {
+        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+            events.push(ev);
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
+let events: unknown[] = [];
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
+
+export function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
+
+window.addEventListener('mousemove', (ev: MouseEvent) => {
+    document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
+
+// For e2e testing:
+(window as any).agE2E = { chart, popEvents };
