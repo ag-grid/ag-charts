@@ -2202,12 +2202,12 @@ test.describe('state', () => {
             let canvas: Locator;
 
             const DATUM7_ACTIVE = Object.freeze({
-                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 6 },
+                activeItem: { type: 'series-node', seriesId: 'CandleStickSeries-1', itemId: 17 },
             });
 
             const DATUM7_ACTIVE_CHANGE = Object.freeze({
                 ...DATUM7_ACTIVE,
-                datum: { date: new Date('2026-02-10T12:00:00Z'), open: 3728, high: 3745, low: 3690, close: 3710 },
+                datum: { date: new Date('2026-02-10T00:00:00Z'), open: 3715, high: 3730, low: 3670, close: 3688 },
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
