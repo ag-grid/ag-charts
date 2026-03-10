@@ -1993,6 +1993,7 @@ test.describe('state', () => {
                     await hover2024q4(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-hover.png');
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
 
@@ -2008,6 +2009,7 @@ test.describe('state', () => {
                     await hover2024q4(page);
                     expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: false });
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: true });
 
@@ -2025,6 +2027,7 @@ test.describe('state', () => {
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
                     ]);
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
