@@ -10,6 +10,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     ZoomChangeCompleteEvent,
+    ZoomPanStartEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -211,14 +212,14 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
-            chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
+            chart.ctx.eventsHub.on('dom:resize', (event) => this.onResize(event)),
             chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
-            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event))
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -346,10 +347,24 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
+    private onResize(_event: null): void {
+        if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
+        }
+    }
+
     private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
-        this.clearAll();
+        if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
+        }
         if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
             this.focus.pendingViewportFocus = 'viewport-start';
+        }
+    }
+
+    private onZoomPanStart(_event: ZoomPanStartEvent): void {
+        if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
         }
     }
 

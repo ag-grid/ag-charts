@@ -21,9 +21,9 @@ export enum InteractionState {
     ContextMenuable = Default | ContextMenu, // AG-10233
     AnnotationsMoveable = Annotations | AnnotationsSelected,
     AnnotationsDraggable = Default | ZoomDrag | Annotations | AnnotationsSelected,
-    ZoomDraggable = Default | Animation | ZoomDrag,
-    ZoomClickable = Default | Animation,
-    ZoomWheelable = Default | Animation | ZoomDrag | Annotations | AnnotationsSelected,
+    ZoomDraggable = Default | Frozen | Animation | ZoomDrag,
+    ZoomClickable = Default | Frozen | Animation,
+    ZoomWheelable = Default | Frozen | Animation | ZoomDrag | Annotations | AnnotationsSelected,
 
     All = Default | ZoomDrag | Annotations | ContextMenu | Animation | AnnotationsSelected,
 }
