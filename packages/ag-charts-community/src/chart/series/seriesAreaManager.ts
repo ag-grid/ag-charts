@@ -342,30 +342,22 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
-        if (this.getHoverDevice() !== 'setState') {
-            this.clearAll();
-        }
+        this.clearUserInteractions();
     }
 
     private onResize(_event: null): void {
-        if (this.getHoverDevice() !== 'setState') {
-            this.clearAll();
-        }
+        this.clearUserInteractions();
     }
 
     private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
-        if (this.getHoverDevice() !== 'setState') {
-            this.clearAll();
-        }
+        this.clearUserInteractions();
         if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
             this.focus.pendingViewportFocus = 'viewport-start';
         }
     }
 
     private onZoomPanStart(_event: ZoomPanStartEvent): void {
-        if (this.getHoverDevice() !== 'setState') {
-            this.clearAll();
-        }
+        this.clearUserInteractions();
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
@@ -1013,6 +1005,12 @@ export class SeriesAreaManager extends BaseManager {
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
+    }
+
+    private clearUserInteractions(): void {
+        if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
+        }
     }
 
     private clearStaleHighlightTooltip(): void {
