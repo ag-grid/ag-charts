@@ -38,7 +38,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     override readonly type = 'unit-time';
 
-    override readonly defaultTickCount = 12;
+    override readonly defaultTickCount = Infinity;
 
     static supportsInterval(domain: Date[], interval: AgTimeInterval | AgTimeIntervalUnit) {
         return supportsInterval(domain, interval);
