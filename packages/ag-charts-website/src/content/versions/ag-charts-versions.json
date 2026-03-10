@@ -1,5 +1,32 @@
 [
     {
+        "version": "13.2.0",
+        "date": "March 25th, 2026",
+        "highlights": [
+            {
+                "text": "Server Side Rendering",
+                "path": "./server-side-rendering/"
+            },
+            {
+                "text": "Range Buttons",
+                "path": "./range-buttons/"
+            },
+            {
+                "text": "Flash on Update",
+                "path": "./animation/#flash-on-update"
+            },
+            {
+                "text": "RTL",
+                "path": "./rtl/"
+            },
+            {
+                "text": "Improved Accessibility",
+                "path": "./accessibility/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-13-2"
+    },
+    {
         "version": "13.1.0",
         "date": "February 11th, 2026",
         "highlights": [
