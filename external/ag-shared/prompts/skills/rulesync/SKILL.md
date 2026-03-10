@@ -143,7 +143,7 @@ ln -s ../../external/prompts/subagents/visual-qa.md visual-qa.md
 
 # From .rulesync/skills/ (DIRECTORY symlinks)
 ln -s ../../external/ag-shared/prompts/skills/dev-server/ dev-server
-ln -s ../../external/prompts/skills/jira-create/ jira-create
+ln -s ../../external/ag-shared/prompts/skills/jira jira
 ```
 
 ## Adding New Content

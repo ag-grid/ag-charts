@@ -68,9 +68,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness      |
 | Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps      |
 | Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research      |
-| Command | 🟠 `/analyze-jira-issue`           | `/analyze-jira-issue <key>`          | Analyse a JIRA issue and propose solutions         |
-| Skill   | 🟠 `estimate-jira`                 | `/estimate-jira`                     | Estimate complexity, effort, and risks for tickets |
-| Skill   | 🟠 `jira-create`                   | `/jira-create`                       | Create JIRA tickets with proper formatting         |
+| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets          |
 | Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations         |
 | Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation   |
 
@@ -165,7 +163,6 @@ Rules load automatically when you edit files matching their glob patterns.
 
 | Rule               | Activates on                                  | Description                         |
 | ------------------ | --------------------------------------------- | ----------------------------------- |
-| 🟠 `jira`          | Always (no glob)                              | JIRA ticket creation and management |
 | 🔵 `setup-prompts` | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide             |
 
 ---
@@ -179,12 +176,11 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                          |
 | 🔵 `code-fixup`                 | Fix build and lint errors across a package                  |
 | 🔵 `dev-server`                 | Start dev server, check build status                        |
-| 🟠 `estimate-jira`              | Estimate complexity, effort, and risks for JIRA tickets     |
 | 🔵 `git-bisect`                 | Find the commit that introduced a regression                |
 | 🔵 `git-conventions`            | Branch, commit, and PR naming conventions                   |
 | 🔵 `git-split`                  | Split large files preserving git history                    |
 | 🔵 `git-worktree-clean`         | Hard-reset worktree to `origin/latest`                      |
-| 🟠 `jira-create`                | Create JIRA tickets with proper formatting and templates    |
+| 🔵 `jira`                       | Create, estimate, or analyse JIRA tickets (all AG products) |
 | 🟠 `optimize-series`            | Series performance optimisation and GC pressure reduction   |
 | 🔵 `plan-implementation-review` | Review plan execution, identify delivery gaps               |
 | 🔵 `plan-review`                | Review plans for completeness and correctness               |

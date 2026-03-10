@@ -1,1 +1,0 @@
-../../external/prompts/rules/jira.md
