@@ -2074,7 +2074,7 @@ test.describe('state', () => {
                     expect((await getChartState(page)).active).toMatchObject({ ...Q3_2024_ACTIVE, frozen: true });
                 });
                 test('popEvents', async ({ page }) => {
-                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                    expect(await popChartEvents(page)).toEqual([]);
 
                     await click2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
@@ -2114,7 +2114,7 @@ test.describe('state', () => {
                     expect((await getChartState(page)).active).toMatchObject({ ...Q3_2024_ACTIVE, frozen: true });
                 });
                 test('popEvents', async ({ page }) => {
-                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                    expect(await popChartEvents(page)).toEqual([]);
 
                     await tabInTwoArrowRightAndKeyboardClick(page);
                     expect(await popChartEvents(page)).toEqual([
@@ -2149,7 +2149,7 @@ test.describe('state', () => {
                     expect((await getChartState(page)).active).toMatchObject({ ...Q1_2024_ACTIVE, frozen: true });
                 });
                 test('popEvents', async ({ page }) => {
-                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                    expect(await popChartEvents(page)).toEqual([]);
 
                     await click2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
