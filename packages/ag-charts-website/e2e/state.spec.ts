@@ -9,6 +9,7 @@ import {
     createConsoleLogs,
     gotoExample,
     locateCanvas,
+    readSwapchainText,
     repeat,
     setupIntrinsicAssertions,
     toExamplePageUrl,
@@ -2092,6 +2093,23 @@ test.describe('state', () => {
                         { ...Q3_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
                 });
+                test('ariaLabel', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await click2024q4(page);
+                    expect(await readSwapchainText(page)).toBe('Q1 2024; Sales; 450');
+
+                    await tabIntoChart(page);
+                    expect(await readSwapchainText(page)).toBe('Q1 2024; Sales; 450');
+
+                    await page.keyboard.press('ArrowRight');
+                    expect(await readSwapchainText(page)).toBe('Q2 2024; Sales; 720');
+                    await page.keyboard.press('ArrowRight');
+                    expect(await readSwapchainText(page)).toBe('Q3 2024; Sales; 610');
+
+                    await keyboardClick(page);
+                    expect(await readSwapchainText(page)).toBe('Q3 2024; Sales; 610');
+                });
             });
 
             test.describe('keyboard-clicking 2024q3 blocks keyboard activation but not keyboard input', () => {
@@ -2127,6 +2145,15 @@ test.describe('state', () => {
                     await twoArrowRight(page);
                     expect(await popChartEvents(page)).toEqual([]);
                 });
+                test('ariaLabel', async ({ page }) => {
+                    await tabInTwoArrowRightAndKeyboardClick(page);
+                    expect(await readSwapchainText(page)).toBe('Q3 2024; Sales; 610');
+
+                    await page.keyboard.press('ArrowRight');
+                    expect(await readSwapchainText(page)).toBe('Q4 2024; Sales; 890');
+                    await page.keyboard.press('ArrowRight');
+                    expect(await readSwapchainText(page)).toBe('Q1 2025; Sales; 530');
+                });
             });
 
             test.describe('keyboard-clicking 2024q1 updates mouse-click frozen chart', () => {
@@ -2160,6 +2187,13 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q1_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
+                });
+                test('ariaLabel', async ({ page }) => {
+                    await click2024q4(page);
+                    expect(await readSwapchainText(page)).toBe('Q1 2024; Sales; 450');
+
+                    await keyboardClick(page);
+                    expect(await readSwapchainText(page)).toBe('Q1 2024; Sales; 450');
                 });
             });
         });
