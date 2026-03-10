@@ -2,7 +2,7 @@ import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { definedZoomState, entries } from 'ag-charts-core';
 import type { BoxBounds } from 'ag-charts-core';
 
-import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+import { constrainZoom, dx, dy, pointToRatio, translateZoom } from '../zoom/zoomUtils';
 
 type State = _ModuleSupport.CoreZoomState;
 type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;

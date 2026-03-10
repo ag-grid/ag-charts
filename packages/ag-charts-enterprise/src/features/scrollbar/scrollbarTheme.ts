@@ -36,6 +36,8 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
 
 export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     enabled: false,
+    enableAxisScrolling: false,
+    enableSeriesAreaScrolling: false,
     thickness: 12,
     spacing: 16,
     tickSpacing: 0,
