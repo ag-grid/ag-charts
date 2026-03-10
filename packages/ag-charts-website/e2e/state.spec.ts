@@ -1993,6 +1993,7 @@ test.describe('state', () => {
                     await hover2024q4(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-hover.png');
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
 
@@ -2008,6 +2009,7 @@ test.describe('state', () => {
                     await hover2024q4(page);
                     expect((await getChartState(page)).active).toMatchObject({ ...Q4_2024_ACTIVE, frozen: false });
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     expect((await getChartState(page)).active).toMatchObject({ ...Q2_2024_ACTIVE, frozen: true });
 
@@ -2025,6 +2027,7 @@ test.describe('state', () => {
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
                     ]);
 
+                    await hover2024q2(page);
                     await click2024q2(page);
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q2_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
@@ -2194,6 +2197,95 @@ test.describe('state', () => {
 
                     await keyboardClick(page);
                     expect(await readSwapchainText(page)).toBe('Q1 2024; Sales; 450');
+                });
+            });
+        });
+
+        test.describe('candlestick-crosshairs', () => {
+            let canvas: Locator;
+
+            const DATUM7_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'CandleStickSeries-1', itemId: 17 },
+            });
+
+            const DATUM7_ACTIVE_CHANGE = Object.freeze({
+                ...DATUM7_ACTIVE,
+                datum: { date: new Date('2026-02-10T00:00:00Z'), open: 3715, high: 3730, low: 3670, close: 3688 },
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            async function hoverOnCandlestick7(page: Page): Promise<void> {
+                await page.mouse.move(260, 325);
+            }
+
+            async function clickOnCandlestick7(page: Page): Promise<void> {
+                await page.mouse.click(260, 325);
+            }
+
+            async function hoverElsewhereInSeriesArea(page: Page): Promise<void> {
+                await page.mouse.move(524, 163);
+            }
+
+            async function leaveSeriesArea(page: Page): Promise<void> {
+                await page.mouse.move(20, 20);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'candlestick-crosshairs', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('non-snap Y crosshairs respond to mousemove on frozen charts', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('crosshairs-inactive.png');
+
+                    await hoverOnCandlestick7(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-hover.png');
+
+                    await clickOnCandlestick7(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-frozen.png');
+
+                    await hoverElsewhereInSeriesArea(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-updated.png');
+
+                    await leaveSeriesArea(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-dismissed.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverOnCandlestick7(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: false });
+
+                    await clickOnCandlestick7(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+
+                    await hoverElsewhereInSeriesArea(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+
+                    await leaveSeriesArea(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverOnCandlestick7(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...DATUM7_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await clickOnCandlestick7(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...DATUM7_ACTIVE_CHANGE, source: 'state-change', frozen: true },
+                    ]);
+
+                    await hoverElsewhereInSeriesArea(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await leaveSeriesArea(page);
+                    expect(await popChartEvents(page)).toEqual([]);
                 });
             });
         });

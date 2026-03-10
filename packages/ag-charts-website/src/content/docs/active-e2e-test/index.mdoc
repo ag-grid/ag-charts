@@ -99,3 +99,19 @@ When `preventDefault` is ticked:
     name="click-to-freeze"
     type="generated"
 /%}
+
+## Candlestick Crosshairs
+
+When clicking a candlestick
+
+-   An "Unfreeze" button **MUST** be shown in the tooltip
+-   Series Area Mouse/Keyboard interactions **MUST NOT** update Highlight.
+-   Series Area Mouse/Keyboard interactions **MUST NOT** update Tooltip.
+-   Series Area Mouse/Keyboard interactions **MUST NOT** update the X-Crosshair.
+-   Series Area Mouse-Move interactions **MUST** update the Y-Crosshair.
+
+{% chartExampleRunner
+    title="Candlestick Crosshairs"
+    name="candlestick-crosshairs"
+    type="generated"
+/%}

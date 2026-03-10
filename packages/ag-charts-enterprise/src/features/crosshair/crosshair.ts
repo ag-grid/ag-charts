@@ -131,6 +131,14 @@ export class Crosshair extends AbstractModuleInstance {
 
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
+
+        if (!this.snap && this.activeHighlight) {
+            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
+            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
+            // positioning can stay as-is to stay in sync with the mouse position.
+            return;
+        }
+
         this.updateLines();
         this.updateLabels(crosshairKeys);
         this.refreshPositions();
@@ -210,7 +218,9 @@ export class Crosshair extends AbstractModuleInstance {
     private onMouseHoverLike(event: HoverLikeEvent) {
         if (!this.enabled || this.snap) return;
 
-        const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
+        const requiredState = this.isHover(event)
+            ? InteractionState.Hoverable | InteractionState.Frozen
+            : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
 
         this.updatePositions(this.getData(event));
@@ -220,7 +230,11 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private onMouseOut() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
+        // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
+        const mask: _ModuleSupport.InteractionState = this.snap
+            ? InteractionState.Hoverable
+            : InteractionState.Hoverable | InteractionState.Frozen;
+        if (!this.ctx.interactionManager.isState(mask)) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
