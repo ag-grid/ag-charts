@@ -69,6 +69,7 @@ export interface EventsHubMap {
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;
+    'chart:request-update': UpdateRequestEvent;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: unknown[] };
@@ -109,7 +110,11 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
-    'chart:request-update': UpdateRequestEvent;
+    'zoom-base:request-axis-wheel': ZoomBaseRequestAxisWheelEvent<any, any>;
+    'zoom-base:scrollbar:wheel': ZoomBaseWheelEvent<any>;
+    'zoom-base:zoom:wheel': ZoomBaseWheelEvent<any>;
+    'zoom-base:scrollbar:axis-wheel': ZoomBaseAxisWheelEvent<any, ChartAxisDirection>;
+    'zoom-base:zoom:axis-wheel': ZoomBaseAxisWheelEvent<any, ChartAxisDirection>;
 }
 
 export interface ActiveLoadMementoEvent {
@@ -275,6 +280,23 @@ export interface ZoomChangeCompleteEvent {
 
 export interface ZoomPanStartEvent {
     readonly callerId: string;
+}
+
+export interface ZoomBaseRequestAxisWheelEvent<T, U> {
+    readonly event: T;
+    readonly direction: U;
+}
+
+export interface ZoomBaseWheelEvent<T> {
+    readonly event: T;
+    readonly stopProcessing: () => void;
+    readonly abort: () => void;
+    readonly capped: () => void;
+    readonly uncapped: () => void;
+}
+
+export interface ZoomBaseAxisWheelEvent<T, U> extends ZoomBaseWheelEvent<T> {
+    direction: U;
 }
 
 export interface UpdateRequestEvent {

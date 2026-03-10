@@ -16,6 +16,8 @@ import {
 } from 'ag-charts-core';
 import type { AgZoomAnchorPoint } from 'ag-charts-types';
 
+import type { ZoomBaseAxisWheelEvent, ZoomBaseWheelEvent } from '../zoom-base/zoomBase';
+import { ZoomScrollPanner } from '../zoom-base/zoomScrollPanner';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -23,7 +25,6 @@ import { ZoomContextMenu } from './zoomContextMenu';
 import { ZoomDOMProxy } from './zoomDOMProxy';
 import { ZoomOnDataChange, ZoomOnDataChangeProperties } from './zoomOnDataChange';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
-import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import { ZoomToolbar } from './zoomToolbar';
@@ -42,7 +43,6 @@ import {
     scaleZoom,
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
-import { ZoomWheelSequencer, type ZoomWheelSequencerCbResult } from './zoomWheelSequencer';
 
 const { userInteraction, InteractionState } = _ModuleSupport;
 type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
@@ -187,7 +187,6 @@ export class Zoom extends AbstractModuleInstance {
     private readonly isState = (state: _ModuleSupport.InteractionState) => this.ctx.interactionManager.isState(state);
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
-    private readonly wheelSequencer = new ZoomWheelSequencer();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -223,7 +222,8 @@ export class Zoom extends AbstractModuleInstance {
             onAxisDragMove: (id, direction, event) => this.onAxisDragMove(id, direction, event),
             onAxisDragEnd: () => this.onAxisDragEnd(),
             onAxisDoubleClick: (id) => this.onAxisDoubleClick(id),
-            onAxisWheel: (direction, event) => this.onAxisWheel(direction, event),
+            onAxisWheel: (direction, event) =>
+                this.ctx.eventsHub.emit('zoom-base:request-axis-wheel', { direction, event }),
         });
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -240,7 +240,8 @@ export class Zoom extends AbstractModuleInstance {
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClickEvent(event)),
             ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
             ctx.eventsHub.on('series:keynav-panx', (event) => this.onNavPanX(event)),
-            ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('zoom-base:zoom:wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('zoom-base:zoom:axis-wheel', (event) => this.onAxisWheel(event)),
             ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
@@ -658,30 +659,24 @@ export class Zoom extends AbstractModuleInstance {
         this.updateZoom(userInteraction(`keyboard-page(${event.delta})`), zoom);
     }
 
-    private onWheel(event: _Widget.WheelWidgetEvent) {
+    private onWheel(baseEvent: ZoomBaseWheelEvent) {
         const { enabled, enablePanning, enableScrolling, paddedRect, scrollingMode } = this;
 
         if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
-        const { deltaX, deltaY } = event;
+        baseEvent.stopProcessing();
+
+        const { deltaX, deltaY } = baseEvent.event;
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
         if (enablePanning && (scrollingMode === 'pan' || isHorizontalScrolling)) {
-            this.onWheelPanning(event);
+            this.onWheelPanning(baseEvent);
         } else {
-            this.onWheelScrolling(event);
+            this.onWheelScrolling(baseEvent);
         }
     }
 
-    private onWheelPanning(event: _Widget.WheelWidgetEvent) {
-        const zoom = this.getZoom();
-        const isZoomCapped =
-            (event.deltaY > 0 && zoom.y.min === UNIT_MIN) || (event.deltaY < 0 && zoom.y.max === UNIT_MAX);
-
-        this.wheelSequencer.onWheel(event, () => this.handleWheelPanning(event, isZoomCapped));
-    }
-
-    private handleWheelPanning(event: _Widget.WheelWidgetEvent, isZoomCapped: boolean): ZoomWheelSequencerCbResult {
+    private onWheelPanning(baseEvent: ZoomBaseWheelEvent) {
         const {
             scrollingStep,
             scrollPanner,
@@ -690,7 +685,15 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return 'abort';
+        if (!seriesRect) {
+            baseEvent.abort();
+            return;
+        }
+
+        const { event } = baseEvent;
+        const zoom = this.getZoom();
+        const isZoomCapped =
+            (event.deltaY > 0 && zoom.y.min === UNIT_MIN) || (event.deltaY < 0 && zoom.y.max === UNIT_MAX);
 
         const newZooms = scrollPanner.update(
             event,
@@ -701,18 +704,27 @@ export class Zoom extends AbstractModuleInstance {
         );
         this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
 
-        return isZoomCapped ? 'capped' : 'uncapped';
+        if (isZoomCapped) {
+            baseEvent.capped();
+        } else {
+            baseEvent.uncapped();
+        }
     }
 
-    private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
+    private onWheelScrolling(baseEvent: ZoomBaseWheelEvent) {
         const zoom = this.getZoom();
-        const isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
+        const isZoomCapped = baseEvent.event.deltaY > 0 && isMaxZoom(zoom);
 
-        this.wheelSequencer.onWheel(event, () => this.handleWheelScrolling(event, isZoomCapped));
+        this.handleWheelScrolling(baseEvent, isZoomCapped);
     }
 
-    private onAxisWheel(axisDirection: ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
+    private onAxisWheel(baseEvent: ZoomBaseAxisWheelEvent) {
         if (!this.enableAxisScrolling) return;
+
+        baseEvent.stopProcessing();
+
+        const { event, direction: axisDirection } = baseEvent;
+
         if (axisDirection !== ChartAxisDirection.X && axisDirection !== ChartAxisDirection.Y) {
             return;
         }
@@ -727,14 +739,14 @@ export class Zoom extends AbstractModuleInstance {
             event.deltaY > 0 && zoom[axisDirection].min === UNIT_MIN && zoom[axisDirection].max === UNIT_MAX;
 
         this.autoScaler.onManualAdjustment(axisDirection);
-        this.wheelSequencer.onWheel(event, () => this.handleWheelScrolling(event, isZoomCapped, props));
+        this.handleWheelScrolling(baseEvent, isZoomCapped, props);
     }
 
     private handleWheelScrolling(
-        event: _ModuleSupport.WheelWidgetEvent,
+        baseEvent: ZoomBaseWheelEvent | ZoomBaseAxisWheelEvent,
         isZoomCapped: boolean,
         props: ZoomProperties = this.getModuleProperties()
-    ): ZoomWheelSequencerCbResult {
+    ) {
         const {
             enableIndependentAxes,
             scroller,
@@ -742,7 +754,12 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return 'abort';
+        if (!seriesRect) {
+            baseEvent.abort();
+            return;
+        }
+
+        const { event } = baseEvent;
 
         let updated = true;
 
@@ -762,7 +779,11 @@ export class Zoom extends AbstractModuleInstance {
             updated = this.updateUnifiedZoom(sourcing, newZoom, { directional: true });
         }
 
-        return isZoomCapped || (event.deltaY < 0 && !updated) ? 'capped' : 'uncapped';
+        if (isZoomCapped || (event.deltaY < 0 && !updated)) {
+            baseEvent.capped();
+        } else {
+            baseEvent.uncapped();
+        }
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
