@@ -2152,7 +2152,6 @@ test.describe('state', () => {
 
                     await click2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
-                        { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
