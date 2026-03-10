@@ -22,6 +22,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
+    /** The unique identifier of the picked datum. */
+    itemId: string | number;
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** xKey as specified on series options */

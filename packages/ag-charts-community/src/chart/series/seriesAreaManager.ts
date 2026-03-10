@@ -402,7 +402,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {
-        if (!this.isState(InteractionState.Clickable)) return;
+        if (!this.isState(InteractionState.Hoverable)) return;
 
         // Edge-case: when clicking an annotation to edit the text, do not consider this 'mouseleave' event. We may want
         // to remove this check, although it will require a snapshot update.
@@ -419,13 +419,13 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onWheel(_event: WheelWidgetEvent): void {
-        if (!this.isState(InteractionState.Clickable)) return;
+        if (!this.isState(InteractionState.Hoverable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
         this.hoverDevice = 'pointer';
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
-        if (!this.isState(InteractionState.Clickable)) return;
+        if (!this.isState(InteractionState.Hoverable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
         this.onHoverLikeEvent(event, current);
     }
@@ -452,7 +452,7 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverScheduler.schedule();
 
         let pick: PickedNodes | undefined;
-        if (this.isState(InteractionState.Default)) {
+        if (this.isState(InteractionState.Default | InteractionState.Frozen)) {
             const { currentX: x, currentY: y } = event;
             pick = this.pickNodes({ x, y }, 'event');
             const matches = pick?.matches;
@@ -506,7 +506,7 @@ export class SeriesAreaManager extends BaseManager {
         const isSeriesWidget = current === this.chart.ctx.widgets.seriesWidget;
 
         // Do not run chartOptions click handlers if an annotation is selected.
-        if (!this.isState(InteractionState.Default)) {
+        if (this.isState(InteractionState.AnnotationsMoveable)) {
             if (isSeriesWidget) {
                 this.emitSeriesAreaClickEvent(event, false);
             }
@@ -1057,7 +1057,7 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.pendingHoverEvent = undefined;
 
         const event = this.highlight.appliedHoverEvent;
-        if (!event || !this.isState(InteractionState.Clickable)) return;
+        if (!event || !this.isState(InteractionState.Hoverable)) return;
 
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
@@ -1090,7 +1090,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleHoverTooltip(event: HoverLikeEvent, redisplay: boolean) {
-        if (!this.isState(InteractionState.Clickable)) return;
+        if (!this.isState(InteractionState.Hoverable)) return;
 
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const targetElement = event.sourceEvent.target as HTMLElement;

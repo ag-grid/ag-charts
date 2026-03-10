@@ -146,6 +146,7 @@ export {
     ZoomManager,
 } from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
+export { getItemId } from './chart/series/pickManager';
 export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
 export type {
     PickFocusInputs,

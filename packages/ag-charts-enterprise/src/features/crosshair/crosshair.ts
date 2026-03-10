@@ -210,7 +210,7 @@ export class Crosshair extends AbstractModuleInstance {
     private onMouseHoverLike(event: HoverLikeEvent) {
         if (!this.enabled || this.snap) return;
 
-        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
 
         this.updatePositions(this.getData(event));
@@ -220,7 +220,7 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private onMouseOut() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
+        if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }

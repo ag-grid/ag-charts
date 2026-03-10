@@ -14,7 +14,8 @@ export enum InteractionState {
     AnnotationsSelected = 2,
     Frozen = 1,
 
-    Clickable = Default | Annotations | AnnotationsSelected,
+    Hoverable = Default | Annotations | AnnotationsSelected,
+    Clickable = Default | Annotations | AnnotationsSelected | Frozen,
     Focusable = Default | Animation,
     Keyable = Default | Animation | Annotations | AnnotationsSelected,
     ContextMenuable = Default | ContextMenu, // AG-10233

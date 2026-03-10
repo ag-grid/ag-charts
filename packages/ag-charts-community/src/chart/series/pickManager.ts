@@ -27,7 +27,7 @@ export type PickedNodes = {
     distance: number;
 };
 
-function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
+export function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
     if (node.itemId !== undefined) {
         return node.itemId;
     } else if (typeof node.datumIndex === 'number') {
