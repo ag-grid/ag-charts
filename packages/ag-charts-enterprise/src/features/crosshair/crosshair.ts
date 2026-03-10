@@ -229,7 +229,11 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private onMouseOut() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
+        // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
+        const mask: _ModuleSupport.InteractionState = this.snap
+            ? InteractionState.Hoverable
+            : InteractionState.Hoverable | InteractionState.Frozen;
+        if (!this.ctx.interactionManager.isState(mask)) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
