@@ -2197,5 +2197,94 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('candlestick-crosshairs', () => {
+            let canvas: Locator;
+
+            const DATUM7_ACTIVE = Object.freeze({
+                activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 6 },
+            });
+
+            const DATUM7_ACTIVE_CHANGE = Object.freeze({
+                ...DATUM7_ACTIVE,
+                datum: { date: new Date('2026-02-10T12:00:00Z'), open: 3728, high: 3745, low: 3690, close: 3710 },
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            async function hoverOnCandlestick7(page: Page): Promise<void> {
+                await page.mouse.move(260, 325);
+            }
+
+            async function clickOnCandlestick7(page: Page): Promise<void> {
+                await page.mouse.click(260, 325);
+            }
+
+            async function hoverElsewhereInSeriesArea(page: Page): Promise<void> {
+                await page.mouse.move(524, 163);
+            }
+
+            async function leaveSeriesArea(page: Page): Promise<void> {
+                await page.mouse.move(20, 20);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'candlestick-crosshairs', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('non-snap Y crosshairs respond to mousemove on frozen charts', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('crosshairs-inactive.png');
+
+                    await hoverOnCandlestick7(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-hover.png');
+
+                    await clickOnCandlestick7(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-frozen.png');
+
+                    await hoverElsewhereInSeriesArea(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-updated.png');
+
+                    await leaveSeriesArea(page);
+                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-dismissed.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverOnCandlestick7(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: false });
+
+                    await clickOnCandlestick7(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+
+                    await hoverElsewhereInSeriesArea(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+
+                    await leaveSeriesArea(page);
+                    expect((await getChartState(page)).active).toMatchObject({ ...DATUM7_ACTIVE, frozen: true });
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverOnCandlestick7(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...DATUM7_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await clickOnCandlestick7(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...DATUM7_ACTIVE_CHANGE, source: 'state-change', frozen: true },
+                    ]);
+
+                    await hoverElsewhereInSeriesArea(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await leaveSeriesArea(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
     });
 });
