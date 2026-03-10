@@ -83,6 +83,28 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 
 **For feature requests:** Do not include rationale or justification in the description. Rationale belongs in the linked PRD/design document, not in the ticket itself. The ticket should state **what** the feature is and its acceptance criteria, not **why** a particular approach was chosen. Link to the design document in the "Design Documents" section.
 
+### Example: Completed Bug Ticket
+
+**Summary:** `[Charts] Tooltip not shown when hovering near bar edge`
+
+**Description:**
+
+```
+**TC1 - Tooltip missing at bar boundary**
+
+1. Open and preview https://plnkr.co/edit/abc123.
+
+2. Hover the mouse over the rightmost edge of any bar in the bar chart.
+
+    - **Actual:** No tooltip appears when the cursor is within ~2px of the bar edge.
+    - **Expected:** Tooltip should appear consistently across the full bar area.
+
+**Notes**
+
+-   Root cause: Hit-testing uses bar bounds without accounting for stroke width offset.
+-   Regression: Introduced in v9.3.0 (works correctly in v9.2.1).
+```
+
 ## Completion Checklist
 
 **Cannot mark complete until ALL checked:**

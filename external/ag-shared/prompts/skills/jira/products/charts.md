@@ -69,3 +69,9 @@ Use these baseline estimates for common AG Charts work items:
 - **Add 30-50%** if feature has significant unknowns or unclear requirements.
 - **Add 40-60%** for enterprise features requiring licensing checks, advanced theming.
 - **Reduce by 20-30%** only if leveraging substantial existing infrastructure with minimal changes.
+
+### Common Estimation Pitfalls
+
+- Canvas rendering changes always require visual regression test updates — budget at least 30% of implementation time for test maintenance.
+- Changes to AbstractSeries or CartesianSeries affect ALL series types — scope the blast radius before estimating.
+- Theme integration is often underestimated — new properties need defaults in every theme variant.

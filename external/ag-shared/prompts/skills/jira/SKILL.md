@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: jira
-description: 'Work with JIRA tickets for AG products. Covers creating tickets (bugs, features, tech-debt), estimating complexity and effort, and analysing issues for product/UX solutions. Use when the user asks to "create a JIRA", "file a bug", "estimate a ticket", "size this feature", "analyse a JIRA issue", or any JIRA-related task.'
+description: 'Create, estimate, and analyse JIRA tickets using Atlassian MCP tools. Creates bug/feature/tech-debt/improvement/docs tickets with structured templates. Estimates ticket complexity, effort (in days), risks, and unknowns. Analyses issues for product/UX solutions with multi-ticket synthesis. Use when the user mentions "create a JIRA", "file a bug", "log a ticket", "estimate this", "size this feature", "how much effort", "break this down", "analyse this issue", or any JIRA workflow task. Does NOT handle simple ticket reads or status checks.'
 ---
 
 # JIRA Skill
@@ -81,20 +81,10 @@ Follow the exact structure from the template. Do not use free-form markdown head
 
 ### Troubleshooting
 
-**Discovering required fields:**
-
-```javascript
-mcp__atlassian__getJiraIssueTypeMetaWithFields({
-    cloudId: '1565837d-d6d1-4228-bcb2-4cb74df700f2',
-    projectIdOrKey: 'AG',
-    issueTypeId: '10105', // Task
-});
-```
+**Discovering required fields:** Use `mcp__atlassian__getJiraIssueTypeMetaWithFields` with `cloudId`, `projectIdOrKey: 'AG'`, `issueTypeId: '10105'` (Task).
 
 **Common errors:**
 
-- **"Track is required"**: Add `customfield_10501`.
-- **"Components is required"**: Add `components` array.
-- **Unknown field IDs**: Use metadata API above.
-- **Ticket created in Backlog instead of To Do**: New AG project tickets default to "Backlog" status. Transition to "To Do" using transition ID `141` after creation.
-- **Do not set the `in_kanban` label**: Never add `in_kanban` to the `labels` field when creating tickets — it is managed automatically.
+- **"Track/Components is required"**: Add `customfield_10501` and/or `components` array.
+- **Ticket in Backlog instead of To Do**: Transition to "To Do" using transition ID `141` after creation.
+- **Do not set `in_kanban` label**: Managed automatically — never add to `labels` field.
