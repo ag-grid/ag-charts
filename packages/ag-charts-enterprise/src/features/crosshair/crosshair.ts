@@ -114,13 +114,6 @@ export class Crosshair extends AbstractModuleInstance {
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         if (!visible || !axes || !this.enabled) return;
 
-        if (!this.snap && this.activeHighlight) {
-            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
-            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
-            // positioning can stay as-is to stay in sync with the mouse position.
-            return;
-        }
-
         this.seriesRect = rect;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
@@ -138,6 +131,14 @@ export class Crosshair extends AbstractModuleInstance {
 
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
+
+        if (!this.snap && this.activeHighlight) {
+            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
+            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
+            // positioning can stay as-is to stay in sync with the mouse position.
+            return;
+        }
+
         this.updateLines();
         this.updateLabels(crosshairKeys);
         this.refreshPositions();
