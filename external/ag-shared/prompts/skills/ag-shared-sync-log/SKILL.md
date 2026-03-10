@@ -33,10 +33,11 @@ git rev-parse --verify "origin/$DEFAULT_BRANCH" >/dev/null 2>&1 || DEFAULT_BRANC
 
 # Find the merge base
 BASE=$(git merge-base HEAD "origin/$DEFAULT_BRANCH")
+TARGET="HEAD"
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Verify there are ag-shared changes
-CHANGES=$(git diff "$BASE"...HEAD --name-only -- external/ag-shared/)
+CHANGES=$(git diff "$BASE"..."$TARGET" --name-only -- external/ag-shared/)
 ```
 
 ### Explicit range
@@ -45,8 +46,9 @@ When `${ARGUMENTS}` contains `--range <from>..<to>`:
 
 ```bash
 BASE="<from>"
+TARGET="<to>"
 # Use the provided range
-CHANGES=$(git diff "$BASE"..."<to>" --name-only -- external/ag-shared/)
+CHANGES=$(git diff "$BASE"..."$TARGET" --name-only -- external/ag-shared/)
 ```
 
 If no changes are found in `external/ag-shared/`, report "No ag-shared changes found in the specified range" and **STOP**.
@@ -57,18 +59,18 @@ Run these commands to understand what changed:
 
 ```bash
 # File-level summary
-git diff "$BASE"...HEAD --stat -- external/ag-shared/
+git diff "$BASE"..."$TARGET" --stat -- external/ag-shared/
 
 # Detailed diff
-git diff "$BASE"...HEAD -- external/ag-shared/
+git diff "$BASE"..."$TARGET" -- external/ag-shared/
 
 # Commit log scoped to ag-shared
-git log --oneline "$BASE"...HEAD -- external/ag-shared/
+git log --oneline "$BASE"..."$TARGET" -- external/ag-shared/
 
 # Detect added/removed files
-git diff "$BASE"...HEAD --diff-filter=A --name-only -- external/ag-shared/
-git diff "$BASE"...HEAD --diff-filter=D --name-only -- external/ag-shared/
-git diff "$BASE"...HEAD --diff-filter=R --name-only -- external/ag-shared/
+git diff "$BASE"..."$TARGET" --diff-filter=A --name-only -- external/ag-shared/
+git diff "$BASE"..."$TARGET" --diff-filter=D --name-only -- external/ag-shared/
+git diff "$BASE"..."$TARGET" --diff-filter=R --name-only -- external/ag-shared/
 ```
 
 ### Categorise Each Changed File
