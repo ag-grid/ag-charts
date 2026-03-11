@@ -156,6 +156,6 @@ To determine which method to use:
 
 ## 10. Devil's Advocate Mode
 
-By default, the review skill runs a second pass using an adversarial sub-agent defined in `agents/devils-advocate.md`. Pass `--no-devils-advocate` to skip it. This agent challenges assumptions, stress-tests edge cases, questions necessity, and probes for gaps in testing.
+When the `--devils-advocate` flag is passed, the review skill runs a second pass using an adversarial sub-agent defined in `agents/devils-advocate.md`. This agent challenges assumptions, stress-tests edge cases, questions necessity, and probes for gaps in testing.
 
 The Devil's Advocate agent follows the same priority scheme (P0-P3), line number guidelines, and environment detection described in this file. Its findings are prefixed with `[DA]` and merged with the standard review output. See `SKILL.md` for the full workflow and merge logic.

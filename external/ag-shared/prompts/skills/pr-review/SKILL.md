@@ -16,10 +16,10 @@ You are acting as a reviewer for a proposed code change. Your goal is to identif
 Parse the `ARGUMENTS` environment variable (or skill arguments) for flags and the PR number:
 
 - `--json` — output structured JSON instead of Markdown (used for inline commenting in CI)
-- `--no-devils-advocate` — skip the Devil's Advocate review pass (it runs by default)
+- `--devils-advocate` — run an additional Devil's Advocate review pass after the standard review (see below)
 - Remaining positional argument — the PR number
 
-Examples: `123`, `--json 123`, `123 --json`, `--no-devils-advocate 123`
+Examples: `123`, `--json 123`, `123 --json`, `--devils-advocate 123`, `--json --devils-advocate 123`
 
 ## Output Format
 
@@ -198,9 +198,9 @@ When `--json` is specified, output **ONLY** valid JSON. No markdown code fences,
 }
 ```
 
-## Devil's Advocate Mode (default)
+## Devil's Advocate Mode (`--devils-advocate`)
 
-By default, an additional adversarial review pass runs after the standard review completes. This mode challenges assumptions, stress-tests edge cases, and questions whether the PR's approach is the right one. Pass `--no-devils-advocate` to skip it.
+When the `--devils-advocate` flag is present, run an additional adversarial review pass after the standard review completes. This mode challenges assumptions, stress-tests edge cases, and questions whether the PR's approach is the right one.
 
 ### Workflow
 
