@@ -1,8 +1,16 @@
 import type { ChartAnimationPhase, Scale } from 'ag-charts-core';
-import { ChartAxisDirection, Property, StateMachine, arraysEqual, calcLineHeight, countLines, diffArrays, findMinMax, isPlainObject } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    Property,
+    StateMachine,
+    arraysEqual,
+    calcLineHeight,
+    countLines,
+    diffArrays,
+    findMinMax,
+    isPlainObject,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -24,13 +32,21 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import { type AxisFillDatum, type AxisLabelDatum, type AxisLineDatum, NiceMode, type TickDatum, prepareAxisAnimationContext, prepareAxisAnimationFunctions, resetAxisFillSelectionFn, resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
+import {
+    type AxisFillDatum,
+    type AxisLabelDatum,
+    type AxisLineDatum,
+    NiceMode,
+    type TickDatum,
+    prepareAxisAnimationContext,
+    prepareAxisAnimationFunctions,
+    resetAxisFillSelectionFn,
+    resetAxisGroupFn,
+    resetAxisLabelSelectionFn,
+    resetAxisLineSelectionFn,
+} from './axisUtil';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
 import { generateTicks } from './generateTicks';
-
-
-
-
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
