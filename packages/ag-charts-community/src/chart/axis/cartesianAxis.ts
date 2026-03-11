@@ -544,9 +544,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected titleBBox(domain: D[], spacing: number) {
         const { tempCaption } = this;
-        const axisLength = Math.abs(this.range[1] - this.range[0]);
+        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
-        tempCaption.computeTextWrap(axisLength, Infinity);
+        tempCaption.computeTextWrap(axisLength, this.thickness ?? Infinity);
         return tempCaption.node.getBBox();
     }
 
@@ -559,7 +559,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         scrollbar: ScrollbarLayout | undefined,
         labelThickness: number
     ): (ScrollbarLayout & { offset: number }) | undefined {
-        if (!scrollbar) return undefined;
+        if (!scrollbar) return;
 
         const { position } = this;
         const direction = position === 'top' || position === 'left' ? -1 : 1;
@@ -844,8 +844,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.node.datum = titleProps;
 
         if (titleProps.visible) {
-            const axisLength = Math.abs(this.range[1] - this.range[0]);
-            caption.computeTextWrap(axisLength, Infinity);
+            const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
+            caption.computeTextWrap(axisLength, this.thickness ?? Infinity);
         }
     }
 
