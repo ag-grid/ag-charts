@@ -704,14 +704,15 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.maxWidth = title.maxWidth;
         caption.maxHeight = title.maxHeight;
 
-        const padding = (title.spacing ?? 0) + spacing;
-
         const { range } = this;
         const midOffset = (range[0] + range[1]) / 2;
+        const padding = title.spacing + spacing;
+
         let x: number;
         let y: number;
         let rotation: number;
         let textBaseline: CanvasTextBaseline;
+
         switch (this.position) {
             case 'top':
                 x = midOffset;

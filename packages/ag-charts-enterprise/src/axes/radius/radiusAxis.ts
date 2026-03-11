@@ -12,7 +12,7 @@ import {
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { Caption, Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
+const { Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];
@@ -317,7 +317,7 @@ export abstract class RadiusAxis<
 
             titleNode.rotation = Math.PI / 2;
             titleNode.x = Math.floor((requestedRange[0] + requestedRange[1]) / 2);
-            titleNode.y = -Caption.SMALL_PADDING;
+            titleNode.y = -title.spacing;
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
