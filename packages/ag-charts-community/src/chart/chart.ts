@@ -456,11 +456,19 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.eventsHub.on('zoom:change-complete', () => {
+                const initialPhase = this.chartAnimationPhase === 'initial';
                 for (const s of this.series) {
                     (s as any).animationState?.transition('updateData');
                 }
-                const skipAnimations = this.chartAnimationPhase !== 'initial';
-                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
+                if (initialPhase) {
+                    for (const axis of this.axes) {
+                        axis.resetAnimation(this.chartAnimationPhase);
+                    }
+                }
+                this.update(ChartUpdateType.PERFORM_LAYOUT, {
+                    forceNodeDataRefresh: true,
+                    skipAnimations: !initialPhase,
+                });
             })
         );
 

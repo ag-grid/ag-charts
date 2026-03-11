@@ -676,6 +676,37 @@ describe('Zoom', () => {
             await prepareChart({}, { rangeX: { start: 0.2, end: 0.8 } }, TIME_EXAMPLE_OPTIONS);
             await waitForChartStability(chart);
         });
+
+        it('should start with the given ratioX', async () => {
+            await prepareChart({}, { ratioX: { start: 0.2, end: 0.8 } });
+            await compare();
+        });
+
+        it('should start with the given ratioX and ratioY', async () => {
+            await prepareChart({}, { ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.3, end: 0.7 } });
+            await compare();
+        });
+
+        it('should start with the given ratioX for bar series', async () => {
+            await prepareChart(
+                {},
+                { ratioX: { start: 0.2, end: 0.8 } },
+                { ...ORDINAL_EXAMPLE_OPTIONS, zoom: { enabled: true } }
+            );
+            await compare();
+        });
+
+        it('should start with the given ratioX for area series', async () => {
+            await prepareChart(
+                {},
+                { ratioX: { start: 0.2, end: 0.8 } },
+                {
+                    ...EXAMPLE_OPTIONS,
+                    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                }
+            );
+            await compare();
+        });
     });
 
     describe('listeners', () => {
