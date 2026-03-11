@@ -9,8 +9,8 @@
 
 # Derive repo name from git remote, falling back to directory name.
 repo_name=$(git remote get-url origin 2>/dev/null \
-    | sed -E 's|.*[:/]([^/]+)$|\1|; s|\.git$||') \
-    || repo_name=$(basename "$PWD")
+    | sed -E 's|.*[:/]([^/]+)$|\1|; s|\.git$||')
+[ -n "$repo_name" ] || repo_name=$(basename "$PWD")
 
 cat >> "$CLAUDE_ENV_FILE" <<ENVEOF
 printf '\033]0;${repo_name}: %s\007' "\$(git rev-parse --abbrev-ref HEAD 2>/dev/null || basename "\$PWD")"
