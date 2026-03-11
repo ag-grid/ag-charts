@@ -1,5 +1,5 @@
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     ContextMenuModule,
     CrosshairModule,
@@ -23,7 +23,7 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
 ]);
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getInitialData(),
     title: {
