@@ -2289,5 +2289,139 @@ test.describe('state', () => {
                 });
             });
         });
+
+        test.describe('external-legend', () => {
+            let canvas: Locator;
+
+            const LEGENDITEM_PUBLICTRANSIT_ACTIVE = Object.freeze({
+                activeItem: {
+                    itemId: 'publicTransit',
+                    seriesId: 'publicTransit',
+                    type: 'legend',
+                },
+            });
+
+            const LEGENDITEM_CYCLE_ACTIVE = Object.freeze({
+                activeItem: {
+                    itemId: 'cycle',
+                    seriesId: 'cycle',
+                    type: 'legend',
+                },
+            });
+
+            const COMMON_ACTIVE_CHANGE = Object.freeze({
+                frozen: false,
+                datum: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'state-change',
+                type: 'activeChange',
+            });
+
+            const LEGENDITEM_PUBLICTRANSIT_ACTIVE_CHANGE = Object.freeze({
+                ...LEGENDITEM_PUBLICTRANSIT_ACTIVE,
+                ...COMMON_ACTIVE_CHANGE,
+            });
+
+            const LEGENDITEM_CYCLE_ACTIVE_CHANGE = Object.freeze({
+                ...LEGENDITEM_CYCLE_ACTIVE,
+                ...COMMON_ACTIVE_CHANGE,
+            });
+
+            const INACTIVE_CHANGE = Object.freeze({
+                activeItem: undefined,
+                ...COMMON_ACTIVE_CHANGE,
+            });
+
+            async function clickLegendCheckbox(page: Page): Promise<void> {
+                await page.locator('#myLegendEnabled').click();
+            }
+
+            async function hoverOverExternalLegendItemPublicTransit(page: Page): Promise<void> {
+                await page.mouse.move(84, 75);
+            }
+
+            async function hoverOverExternalLegendItemCycle(page: Page): Promise<void> {
+                await page.mouse.move(321, 74);
+            }
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(10, 10);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'legend-disabled', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('check that legend.enabled toggling updates correctly', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+
+                    await clickLegendCheckbox(page);
+                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive-legend-enabled.png');
+
+                    await clickLegendCheckbox(page);
+                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendCheckbox(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendCheckbox(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendCheckbox(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendCheckbox(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+
+            test.describe('external legend works with internal legend disabled', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+
+                    await hoverOverExternalLegendItemPublicTransit(page);
+                    await expect(page).toHaveScreenshot('external-legend-page-publictransit-active.png');
+
+                    await hoverOverExternalLegendItemCycle(page);
+                    await expect(page).toHaveScreenshot('external-legend-page-cycle-active.png');
+
+                    await hoverMiss(page);
+                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverOverExternalLegendItemPublicTransit(page);
+                    expect((await getChartState(page)).active).toMatchObject(LEGENDITEM_PUBLICTRANSIT_ACTIVE);
+
+                    await hoverOverExternalLegendItemCycle(page);
+                    expect((await getChartState(page)).active).toMatchObject(LEGENDITEM_CYCLE_ACTIVE);
+
+                    await hoverMiss(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverOverExternalLegendItemPublicTransit(page);
+                    expect(await popChartEvents(page)).toEqual([LEGENDITEM_PUBLICTRANSIT_ACTIVE_CHANGE]);
+
+                    await hoverOverExternalLegendItemCycle(page);
+                    expect(await popChartEvents(page)).toEqual([INACTIVE_CHANGE, LEGENDITEM_CYCLE_ACTIVE_CHANGE]);
+
+                    await hoverMiss(page);
+                    expect(await popChartEvents(page)).toEqual([INACTIVE_CHANGE]);
+                });
+            });
+        });
     });
 });
