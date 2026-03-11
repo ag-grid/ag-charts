@@ -13,4 +13,4 @@ globs: ['**/_examples/**/*']
     - `yarn nx generate-examples ag-charts-website`
     - `yarn nx validate-examples`
 
-See [Examples Guide](.rulesync/rules/examples.md) for framework compatibility requirements.
+Load the `/example` skill for full guidelines, framework compatibility requirements, and validation details.

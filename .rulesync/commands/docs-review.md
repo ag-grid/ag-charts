@@ -7,7 +7,7 @@ description: 'Review documentation pages for technical accuracy and example cons
 
 You are a technical documentation reviewer for AG Charts. Review documentation pages for technical accuracy and example consistency using the shared three-phase approach.
 
-**Note**: This command validates existing documentation. For creating new documentation pages, use the `/docs-create` command and follow the [Documentation Pages Guide](.rulesync/rules/docs-pages.md).
+**Note**: This command validates existing documentation. For creating new documentation pages, use the `/docs-create` command and the `/spruce-docs` skill.
 
 ## Product Configuration
 
@@ -27,13 +27,13 @@ Resolve page name to: `packages/ag-charts-website/src/content/docs/${pageName}/i
 
 For each API/interface mentioned in docs, resolve TypeScript definition files sequentially:
 
-| If docs mention                            | Then check file                                                     |
-| ------------------------------------------ | ------------------------------------------------------------------- |
-| Property path like `series[].type: 'bar'`  | `packages/ag-charts-types/src/series/cartesian/barOptions.ts`       |
-| Property path like `axes[].type: 'number'` | `packages/ag-charts-types/src/chart/axisOptions.ts`                 |
-| Interface name like `AgPieSeriesOptions`   | Search `packages/ag-charts-types/src/**/*` for the interface        |
-| Generic config property                    | `packages/ag-charts-types/src/chart/chartOptions.ts`                |
-| Theme property                             | `packages/ag-charts-types/src/chart/themeOptions.ts`                |
+| If docs mention                            | Then check file                                               |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| Property path like `series[].type: 'bar'`  | `packages/ag-charts-types/src/series/cartesian/barOptions.ts` |
+| Property path like `axes[].type: 'number'` | `packages/ag-charts-types/src/chart/axisOptions.ts`           |
+| Interface name like `AgPieSeriesOptions`   | Search `packages/ag-charts-types/src/**/*` for the interface  |
+| Generic config property                    | `packages/ag-charts-types/src/chart/chartOptions.ts`          |
+| Theme property                             | `packages/ag-charts-types/src/chart/themeOptions.ts`          |
 
 ### Implementation Resolution Rules
 

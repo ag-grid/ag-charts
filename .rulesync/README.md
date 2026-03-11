@@ -63,14 +63,14 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Planning and Analysis
 
-| Type    | Name                               | Invoke                               | What it does                                       |
-| ------- | ---------------------------------- | ------------------------------------ | -------------------------------------------------- |
-| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness      |
-| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps      |
-| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research      |
-| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets          |
-| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations         |
-| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation   |
+| Type    | Name                               | Invoke                               | What it does                                     |
+| ------- | ---------------------------------- | ------------------------------------ | ------------------------------------------------ |
+| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness    |
+| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps    |
+| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research    |
+| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets        |
+| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations       |
+| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation |
 
 ## Prompt Hygiene
 
@@ -143,10 +143,10 @@ Rules load automatically when you edit files matching their glob patterns.
 
 | Rule                             | Activates on                                           | Description                                        |
 | -------------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
-| 🟢 `docs-pages`                  | `**/docs/**/*.mdoc`, `**/docs/**/_examples/**`         | Creating high-quality documentation pages          |
-| 🟢 `docs-checklist`              | `**/docs/**/*.mdoc`                                    | Pre-submission documentation checklist             |
-| 🟢 `examples`                    | `**/_examples/**`, `**/gallery/**`                     | Working with examples in AG Charts                 |
-| 🟢 `examples-framework-patterns` | `**/_examples/**`, `**/generate-example-files/**`      | React, Angular, Vue transformation patterns        |
+| 🟢 `docs-pages`                  | `**/docs/**/*.mdoc`, `**/docs/**/_examples/**`         | Slim pointer → `/spruce-docs` skill                |
+| 🟢 `docs-checklist`              | `**/docs/**/*.mdoc`                                    | Slim pointer → `/spruce-docs` skill                |
+| 🟢 `examples`                    | `**/_examples/**`, `**/gallery/**`                     | Slim pointer → `/example` skill                    |
+| 🟢 `examples-framework-patterns` | `**/_examples/**`, `**/generate-example-files/**`      | Slim pointer → `/example` skill                    |
 | 🔵 `website-astro-pages`         | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Astro page patterns, layouts, and code conventions |
 | 🔵 `website-browser-testing`     | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Chrome DevTools MCP browser testing workflow       |
 | 🔵 `website-css`                 | `**/src/pages-styles/**/*.scss`, design-system         | CSS architecture, design system, and styling       |
@@ -161,9 +161,9 @@ Rules load automatically when you edit files matching their glob patterns.
 
 ### Other Rules
 
-| Rule               | Activates on                                  | Description                         |
-| ------------------ | --------------------------------------------- | ----------------------------------- |
-| 🔵 `setup-prompts` | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide             |
+| Rule               | Activates on                                  | Description             |
+| ------------------ | --------------------------------------------- | ----------------------- |
+| 🔵 `setup-prompts` | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide |
 
 ---
 
