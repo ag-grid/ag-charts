@@ -103,11 +103,15 @@ export class AgChartsServerSide {
             // the static licenseKey is shared across instances.
             let chartOptions: any = options;
             const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
-            licenseManager?.validateLicense();
-
-            const foreground = licenseManager?.getWatermarkForegroundConfig();
-            if (foreground) {
-                chartOptions = { ...options, foreground };
+            if (licenseManager) {
+                licenseManager.validateLicense();
+                const foreground = licenseManager.getWatermarkForegroundConfig();
+                if (foreground) {
+                    chartOptions = { ...options, foreground };
+                }
+            } else {
+                // Enterprise not registered — always show watermark in SSR
+                chartOptions = { ...options, foreground: buildFallbackWatermarkConfig() };
             }
 
             const createdChart = AgCharts[api]({
@@ -134,4 +138,8 @@ export class AgChartsServerSide {
             release();
         }
     }
+}
+
+function buildFallbackWatermarkConfig(): object {
+    return { text: 'For Trial Use Only' };
 }

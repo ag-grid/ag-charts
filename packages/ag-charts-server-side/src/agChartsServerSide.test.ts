@@ -1,4 +1,5 @@
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+import { enterpriseRegistry } from 'ag-charts-core';
 import { setupMockConsole } from 'ag-charts-test';
 
 import { AgChartsServerSide } from './agChartsServerSide';
@@ -338,6 +339,59 @@ describe('AgChartsServerSide enterprise licensing', () => {
     });
 
     it('should render watermark on bar chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'A', value: 30 },
+                    { category: 'B', value: 45 },
+                    { category: 'C', value: 25 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+});
+
+describe('AgChartsServerSide community-only watermark', () => {
+    let savedLicenseManager: typeof enterpriseRegistry.licenseManager;
+    let savedCreateForeground: typeof enterpriseRegistry.createForeground;
+
+    beforeEach(() => {
+        // Save and clear enterprise registry to simulate community-only usage
+        savedLicenseManager = enterpriseRegistry.licenseManager;
+        savedCreateForeground = enterpriseRegistry.createForeground;
+        enterpriseRegistry.licenseManager = undefined;
+        enterpriseRegistry.createForeground = undefined;
+    });
+
+    afterEach(() => {
+        // Restore enterprise registry
+        enterpriseRegistry.licenseManager = savedLicenseManager;
+        enterpriseRegistry.createForeground = savedCreateForeground;
+    });
+
+    it('should render watermark on line chart without enterprise', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on bar chart without enterprise', async () => {
         const buffer = await AgChartsServerSide.render({
             options: {
                 data: [

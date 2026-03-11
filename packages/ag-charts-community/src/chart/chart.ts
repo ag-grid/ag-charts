@@ -60,6 +60,7 @@ import { debouncedCallback } from '../util/render';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TimeAxis } from './axis/timeAxis';
 import { Background } from './background/background';
+import { SimpleForeground } from './background/simpleForeground';
 import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
@@ -147,7 +148,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly highlight: ChartHighlight;
     readonly background: Background<any>;
     readonly seriesArea: SeriesArea;
-    foreground?: Background<any>;
+    foreground: Background<any>;
 
     protected readonly debug = Debug.create(true, 'chart');
 
@@ -412,7 +413,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const moduleContext = this.getModuleContext();
         this.background = enterpriseRegistry.createBackground?.(moduleContext) ?? new Background(moduleContext);
-        this.foreground = enterpriseRegistry.createForeground?.(moduleContext);
+        this.foreground = enterpriseRegistry.createForeground?.(moduleContext) ?? new SimpleForeground(moduleContext);
         this.seriesArea = new SeriesArea(moduleContext);
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
@@ -608,7 +609,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.overlays.destroy();
         this.modulesManager.destroy();
         this.background.destroy();
-        this.foreground?.destroy();
+        this.foreground.destroy();
         this.seriesArea.destroy();
 
         if (keepTransferableResources) {
