@@ -14,7 +14,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import type { DataType } from './data';
-import { appendRandomizedElement, getRandomizedData, randomizeSomeElements } from './data';
+import { applyRandomUpdate, getInitialData } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -28,41 +28,23 @@ ModuleRegistry.registerModules([
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: getRandomizedData(),
+    data: getInitialData(),
+    title: {
+        text: 'Stock Trading Volume',
+    },
     series: [
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'one',
-            yName: 'One',
+            xKey: 'ticker',
+            yKey: 'buyVolume',
+            yName: 'Buy Volume (M)',
             stacked: true,
         },
         {
             type: 'bar',
-            xKey: 'year',
-            yKey: 'two',
-            yName: 'Two',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'three',
-            yName: 'Three',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'four',
-            yName: 'Four',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'five',
-            yName: 'Five',
+            xKey: 'ticker',
+            yKey: 'sellVolume',
+            yName: 'Sell Volume (M)',
             stacked: true,
         },
     ],
@@ -83,17 +65,31 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function randomize() {
-    options.data = randomizeSomeElements(options.data!);
+let updateInterval: ReturnType<typeof setInterval> | null = null;
+
+function update() {
+    options.data = applyRandomUpdate(options.data!);
     chart.update(options);
 }
 
-function append() {
-    options.data = appendRandomizedElement(options.data!);
-    chart.update(options);
+function startUpdates() {
+    if (updateInterval) return;
+    update();
+    updateInterval = setInterval(update, 2000);
 }
 
-function reset() {
-    options.data = getRandomizedData();
-    chart.update(options);
+function stopUpdates() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+function toggleUpdates() {
+    if (updateInterval) {
+        stopUpdates();
+    } else {
+        startUpdates();
+    }
+    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
 }

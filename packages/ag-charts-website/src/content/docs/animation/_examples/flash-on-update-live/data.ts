@@ -1,26 +1,28 @@
 export interface DataType {
-    region: string;
-    sales: number;
-    returns: number;
-    profit: number;
+    sector: string;
+    institutional: number;
+    retail: number;
+    etfFlows: number;
 }
 
-const REGIONS = ['North', 'South', 'East', 'West', 'Central'];
+const SECTORS = ['Technology', 'Healthcare', 'Finance', 'Energy', 'Consumer', 'Industrial', 'Materials', 'Utilities'];
 
-const BASE_VALUES: Record<string, Omit<DataType, 'region'>> = {
-    North: { sales: 420, returns: 38, profit: 185 },
-    South: { sales: 380, returns: 42, profit: 160 },
-    East: { sales: 510, returns: 35, profit: 220 },
-    West: { sales: 340, returns: 50, profit: 140 },
-    Central: { sales: 460, returns: 30, profit: 200 },
+const BASE_VALUES: Record<string, Omit<DataType, 'sector'>> = {
+    Technology: { institutional: 850, retail: 320, etfFlows: 180 },
+    Healthcare: { institutional: 420, retail: 150, etfFlows: 95 },
+    Finance: { institutional: 680, retail: 240, etfFlows: 150 },
+    Energy: { institutional: 380, retail: 180, etfFlows: 85 },
+    Consumer: { institutional: 520, retail: 280, etfFlows: 120 },
+    Industrial: { institutional: 350, retail: 120, etfFlows: 70 },
+    Materials: { institutional: 180, retail: 80, etfFlows: 45 },
+    Utilities: { institutional: 150, retail: 60, etfFlows: 35 },
 };
 
 export function getInitialData(): DataType[] {
-    return REGIONS.map((region) => ({ region, ...BASE_VALUES[region] }));
+    return SECTORS.map((sector) => ({ sector, ...BASE_VALUES[sector] }));
 }
 
 export function applyRandomUpdate(data: DataType[]): DataType[] {
-    // Pick 1-2 random regions to update
     const count = 1 + Math.floor(Math.random() * 2);
     const indices = new Set<number>();
     while (indices.size < count) {
@@ -29,13 +31,12 @@ export function applyRandomUpdate(data: DataType[]): DataType[] {
 
     return data.map((item, i) => {
         if (!indices.has(i)) return item;
-
-        const vary = (n: number) => Math.max(10, Math.round(n + (Math.random() - 0.5) * n * 0.3));
+        const vary = (n: number) => Math.max(10, Math.round(n + (Math.random() - 0.5) * n * 0.4));
         return {
             ...item,
-            sales: vary(item.sales),
-            returns: vary(item.returns),
-            profit: vary(item.profit),
+            institutional: vary(item.institutional),
+            retail: vary(item.retail),
+            etfFlows: vary(item.etfFlows),
         };
     });
 }

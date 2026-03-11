@@ -29,26 +29,29 @@ ModuleRegistry.registerModules([
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getInitialData(),
+    title: {
+        text: 'Sector Trading Activity',
+    },
     series: [
         {
             type: 'bar',
-            xKey: 'region',
-            yKey: 'sales',
-            yName: 'Sales',
+            xKey: 'sector',
+            yKey: 'institutional',
+            yName: 'Institutional ($M)',
             stacked: true,
         },
         {
             type: 'bar',
-            xKey: 'region',
-            yKey: 'returns',
-            yName: 'Returns',
+            xKey: 'sector',
+            yKey: 'retail',
+            yName: 'Retail ($M)',
             stacked: true,
         },
         {
             type: 'bar',
-            xKey: 'region',
-            yKey: 'profit',
-            yName: 'Profit',
+            xKey: 'sector',
+            yKey: 'etfFlows',
+            yName: 'ETF Flows ($M)',
             stacked: true,
         },
     ],
@@ -68,12 +71,15 @@ const chart = AgCharts.create(options);
 
 let updateInterval: ReturnType<typeof setInterval> | null = null;
 
+function update() {
+    options.data = applyRandomUpdate(options.data!);
+    chart.update(options);
+}
+
 function startUpdates() {
     if (updateInterval) return;
-    updateInterval = setInterval(() => {
-        options.data = applyRandomUpdate(options.data!);
-        chart.update(options);
-    }, 2000);
+    update();
+    updateInterval = setInterval(update, 2000);
 }
 
 function stopUpdates() {

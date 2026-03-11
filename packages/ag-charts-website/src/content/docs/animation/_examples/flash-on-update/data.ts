@@ -1,47 +1,66 @@
 export interface DataType {
-    year: string;
-    one: number;
-    two: number;
-    three: number;
-    four: number;
-    five: number;
+    date: Date;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
 }
 
 let seed = 1234;
-const START = [120, 150, 130, 140, 80] as const;
-const VARIANCE = 20;
-const LENGTH = 8;
 
 function random() {
     seed = (seed * 16807) % 2147483647;
     return (seed - 1) / 2147483646;
 }
 
-// Create a set of data with predictable "randomness"
-export function getRandomizedData(): DataType[] {
-    // Vary the datum by a random proportion of the variance +ve or -ve
-    const vary = (n: number) => Math.max(0, n + VARIANCE * random() * 2 - VARIANCE);
-
-    const startYear = 2025;
-    const data: DataType[] = [
-        {
-            year: `${startYear}`,
-            one: vary(START[0]),
-            two: vary(START[1]),
-            three: vary(START[2]),
-            four: vary(START[3]),
-            five: vary(START[4]),
-        },
-    ];
-    for (let i = 1; i < LENGTH; i++) {
-        data.push({
-            year: `${startYear + i}`,
-            one: vary(data[i - 1].one),
-            two: vary(data[i - 1].two),
-            three: vary(data[i - 1].three),
-            four: vary(data[i - 1].four),
-            five: vary(data[i - 1].five),
-        });
+function addBusinessDays(start: Date, days: number): Date {
+    const result = new Date(start);
+    let added = 0;
+    while (added < days) {
+        result.setDate(result.getDate() + 1);
+        const day = result.getDay();
+        if (day !== 0 && day !== 6) added++;
     }
+    return result;
+}
+
+export function getInitialData(): DataType[] {
+    seed = 1234;
+
+    const data: DataType[] = [];
+    const startDate = new Date('2025-01-27');
+    let previousClose = 228.5;
+
+    for (let i = 0; i < 30; i++) {
+        const date = i === 0 ? new Date(startDate) : addBusinessDays(startDate, i);
+        const dailyChange = (random() - 0.5) * 6;
+        const open = previousClose + (random() - 0.5) * 1.5;
+        const close = open + dailyChange;
+        const wickUp = random() * 2;
+        const wickDown = random() * 2;
+        const high = Math.max(open, close) + wickUp;
+        const low = Math.min(open, close) - wickDown;
+
+        data.push({
+            date,
+            open: Math.round(open * 100) / 100,
+            high: Math.round(high * 100) / 100,
+            low: Math.round(low * 100) / 100,
+            close: Math.round(close * 100) / 100,
+        });
+
+        previousClose = close;
+    }
+
     return data;
+}
+
+export function applyLiveUpdate(data: DataType[]): DataType[] {
+    const result = data.map((d) => ({ ...d }));
+    const last = result[result.length - 1];
+    const tick = (Math.random() - 0.5) * 3;
+    last.close = Math.round((last.close + tick) * 100) / 100;
+    last.high = Math.round(Math.max(last.high, last.close) * 100) / 100;
+    last.low = Math.round(Math.min(last.low, last.close) * 100) / 100;
+    return result;
 }
