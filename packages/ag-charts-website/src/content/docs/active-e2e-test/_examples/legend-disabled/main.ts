@@ -93,9 +93,9 @@ export function deactivateSeries() {
 }
 
 export function onLegendChange(event: { target: { checked: boolean } }) {
-  chart.updateDelta({
-    legend: { enabled: event.target.checked },
-  })
+    chart.updateDelta({
+        legend: { enabled: event.target.checked },
+    });
 }
 
 function popEvents(): unknown[] {
