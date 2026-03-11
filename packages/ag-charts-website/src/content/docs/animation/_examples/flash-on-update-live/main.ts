@@ -57,6 +57,7 @@ const options: AgCartesianChartOptions<DataType> = {
             type: 'category',
         },
     },
+    animation: { enabled: false },
     flashOnUpdate: {
         enabled: true,
         item: 'category',
