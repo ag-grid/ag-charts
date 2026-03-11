@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    BaseStyleTypeMap,
     ChartAxisDirection,
     ChartUpdateType,
     DeepReadonly,
@@ -30,7 +31,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legen
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { UpdateOpts } from '../chart/updateService';
 import type { BBox } from '../scene/bbox';
-import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
+import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
@@ -67,8 +68,17 @@ export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
     'active:update': AgActiveItemState | undefined;
     'annotations:restore': AnnotationsRestoreEvent;
-    'axis:hover': AxisHoverEvent;
     'axis:change': null;
+    'axis-dom-proxy:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
+    'axis-dom-proxy:toggle-dragging-cursor': { direction: ChartAxisDirection; enabled: boolean };
+    'axis-dom-proxy:drag-start': AxisDOMProxyDragEvent<'drag-start'>;
+    'axis-dom-proxy:drag-move': AxisDOMProxyDragEvent<'drag-move'>;
+    'axis-dom-proxy:drag-end': AxisDOMProxyDragEvent<'drag-end'>;
+    'axis-dom-proxy:dblclick': AxisDOMProxyMouseEvent<'dblclick'>;
+    'axis-dom-proxy:mouseenter': AxisDOMProxyMouseEnterEvent;
+    'axis-dom-proxy:mouseleave': AxisDOMProxyMouseLeaveEvent;
+    'axis-dom-proxy:update': AxisDOMProxyUpdateEvent;
+    'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
     'chart:request-update': UpdateRequestEvent;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
@@ -110,11 +120,23 @@ export interface EventsHubMap {
      */
     'zoom:change-complete': ZoomChangeCompleteEvent;
     'zoom:pan-start': ZoomPanStartEvent;
-    'zoom-base:request-axis-wheel': ZoomBaseRequestAxisWheelEvent<any, any>;
-    'zoom-base:scrollbar:wheel': ZoomBaseWheelEvent<any>;
-    'zoom-base:zoom:wheel': ZoomBaseWheelEvent<any>;
-    'zoom-base:scrollbar:axis-wheel': ZoomBaseAxisWheelEvent<any, ChartAxisDirection>;
-    'zoom-base:zoom:axis-wheel': ZoomBaseAxisWheelEvent<any, ChartAxisDirection>;
+    'zoom-interaction:request-axis-wheel': ZoomInteractionRequestAxisWheelEvent;
+    'zoom-interaction:scrollbar:wheel': ZoomInteractionWheelEvent;
+    'zoom-interaction:zoom:wheel': ZoomInteractionWheelEvent;
+    'zoom-interaction:scrollbar:axis-drag-start': ZoomInteractionAxisDragEvent<'drag-start'>;
+    'zoom-interaction:zoom:axis-drag-start': ZoomInteractionAxisDragEvent<'drag-start'>;
+    'zoom-interaction:scrollbar:axis-drag-move': ZoomInteractionAxisDragEvent<'drag-move'>;
+    'zoom-interaction:zoom:axis-drag-move': ZoomInteractionAxisDragEvent<'drag-move'>;
+    'zoom-interaction:scrollbar:axis-drag-end': ZoomInteractionAxisDragEvent<'drag-end'>;
+    'zoom-interaction:zoom:axis-drag-end': ZoomInteractionAxisDragEvent<'drag-end'>;
+    'zoom-interaction:scrollbar:axis-dblclick': ZoomInteractionAxisMouseEvent<'dblclick'>;
+    'zoom-interaction:zoom:axis-dblclick': ZoomInteractionAxisMouseEvent<'dblclick'>;
+    'zoom-interaction:scrollbar:axis-mouseenter': ZoomInteractionAxisMouseEvent<'mouseenter'>;
+    'zoom-interaction:zoom:axis-mouseenter': ZoomInteractionAxisMouseEvent<'mouseenter'>;
+    'zoom-interaction:scrollbar:axis-mouseleave': ZoomInteractionAxisMouseEvent<'mouseleave'>;
+    'zoom-interaction:zoom:axis-mouseleave': ZoomInteractionAxisMouseEvent<'mouseleave'>;
+    'zoom-interaction:scrollbar:axis-wheel': ZoomInteractionAxisWheelEvent;
+    'zoom-interaction:zoom:axis-wheel': ZoomInteractionAxisWheelEvent;
 }
 
 export interface ActiveLoadMementoEvent {
@@ -129,9 +151,40 @@ interface AnnotationsRestoreEvent {
     annotations: AgAnnotation[];
 }
 
-export interface AxisHoverEvent {
-    readonly axisId: string;
-    readonly direction: ChartAxisDirection;
+export interface AxisDOMProxyDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {
+    axisId: AxisID;
+    direction: ChartAxisDirection;
+    event: DragWidgetEvent<T>;
+}
+
+export interface AxisDOMProxyMouseEvent<T extends 'dblclick'> {
+    axisId: AxisID;
+    direction: ChartAxisDirection;
+    event: MouseWidgetEvent<T> | SeriesAreaClickEvent;
+}
+
+export interface AxisDOMProxyMouseEnterEvent {
+    axisId: AxisID;
+    direction: ChartAxisDirection;
+    event: MouseWidgetEvent<'mouseenter'> | SeriesAreaHoverEvent;
+}
+
+export interface AxisDOMProxyMouseLeaveEvent {
+    event: MouseWidgetEvent<'mouseleave'> | SeriesAreaHoverEvent;
+}
+
+export interface AxisDOMProxyWheelEvent {
+    axisId: AxisID;
+    direction: ChartAxisDirection;
+    event: WheelWidgetEvent;
+}
+
+export interface AxisDOMProxyUpdateEvent {
+    source: string;
+    enabled: boolean;
+    enableDoubleClick: boolean;
+    enableDragging: boolean;
+    enableScrolling: boolean;
 }
 
 export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
@@ -282,21 +335,35 @@ export interface ZoomPanStartEvent {
     readonly callerId: string;
 }
 
-export interface ZoomBaseRequestAxisWheelEvent<T, U> {
-    readonly event: T;
-    readonly direction: U;
+export interface ZoomInteractionRequestAxisWheelEvent {
+    readonly event: WheelWidgetEvent;
+    readonly direction: ChartAxisDirection;
 }
 
-export interface ZoomBaseWheelEvent<T> {
-    readonly event: T;
+export interface ZoomInteractionWheelEvent {
+    readonly event: WheelWidgetEvent;
     readonly stopProcessing: () => void;
     readonly abort: () => void;
     readonly capped: () => void;
     readonly uncapped: () => void;
 }
 
-export interface ZoomBaseAxisWheelEvent<T, U> extends ZoomBaseWheelEvent<T> {
-    direction: U;
+export interface ZoomInteractionAxisDragEvent<T extends 'drag-start' | 'drag-move' | 'drag-end'> {
+    readonly event: DragWidgetEvent<T>;
+    readonly axisId: AxisID;
+    readonly direction: ChartAxisDirection;
+    readonly stopProcessing: () => void;
+}
+
+export interface ZoomInteractionAxisMouseEvent<T extends 'dblclick' | 'mouseenter' | 'mouseleave'> {
+    readonly event: MouseWidgetEvent<T> | SeriesAreaHoverEvent;
+    readonly axisId: AxisID;
+    readonly direction: ChartAxisDirection;
+    readonly stopProcessing: () => void;
+}
+
+export interface ZoomInteractionAxisWheelEvent extends ZoomInteractionWheelEvent {
+    direction: ChartAxisDirection;
 }
 
 export interface UpdateRequestEvent {

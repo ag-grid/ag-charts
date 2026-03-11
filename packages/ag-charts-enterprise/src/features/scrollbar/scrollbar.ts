@@ -1,4 +1,4 @@
-import { type AgCartesianAxisPosition, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type AgCartesianAxisPosition, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -11,8 +11,7 @@ import {
     definedZoomState,
 } from 'ag-charts-core';
 
-import type { ZoomBaseAxisWheelEvent, ZoomBaseWheelEvent } from '../zoom-base/zoomBase';
-import { ZoomScrollPanner } from '../zoom-base/zoomScrollPanner';
+import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
 import {
     HorizontalScrollbarProperties,
@@ -44,13 +43,13 @@ const SCROLLING_MODE = 'pan';
 
 export class Scrollbar extends AbstractModuleInstance {
     @Property
-    public enabled?: boolean;
+    public enabled: boolean = false;
 
     @Property
-    public enableAxisScrolling?: boolean;
+    public enableAxisScrolling: boolean = false;
 
     @Property
-    public enableSeriesAreaScrolling?: boolean;
+    public enableSeriesAreaScrolling: boolean = false;
 
     @Property
     public thickness?: number;
@@ -98,8 +97,8 @@ export class Scrollbar extends AbstractModuleInstance {
             ctx.layoutManager.registerElement(LayoutElement.Scrollbar, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.eventsHub.on('zoom:change-complete', () => this.updateThumbs()),
-            ctx.eventsHub.on('zoom-base:scrollbar:wheel', (event) => this.onWheel(event)),
-            ctx.eventsHub.on('zoom-base:scrollbar:axis-wheel', (event) => this.onAxisWheel(event))
+            ctx.eventsHub.on('zoom-interaction:scrollbar:wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('zoom-interaction:scrollbar:axis-wheel', (event) => this.onAxisWheel(event))
         );
     }
 
@@ -210,6 +209,14 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: 'scrollbar',
+            enabled: this.enabled,
+            enableDoubleClick: false,
+            enableDragging: false,
+            enableScrolling: this.enableAxisScrolling,
+        });
+
         this.seriesRect = event.series.rect;
 
         for (const orientation of ['horizontal', 'vertical'] as const) {
@@ -399,17 +406,17 @@ export class Scrollbar extends AbstractModuleInstance {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
-    private onWheel(baseEvent: ZoomBaseWheelEvent) {
+    private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         if (!this.enableSeriesAreaScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
-    private onAxisWheel(baseEvent: ZoomBaseAxisWheelEvent) {
+    private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
         if (!this.enableAxisScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
-    private handleWheel(baseEvent: ZoomBaseWheelEvent) {
+    private handleWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         const {
             seriesRect,
             ctx: { zoomManager },
@@ -417,6 +424,7 @@ export class Scrollbar extends AbstractModuleInstance {
         const { event } = baseEvent;
 
         const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+
         if (isHorizontal && !this.horizontal.enabled) return;
         if (!isHorizontal && !this.vertical.enabled) return;
 

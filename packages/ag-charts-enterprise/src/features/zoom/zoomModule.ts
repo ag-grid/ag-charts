@@ -14,7 +14,7 @@ import {
 } from 'ag-charts-core';
 import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag-charts-types';
 
-import { ZoomBaseModule } from '../zoom-base/zoomBaseModule';
+import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
 import { Zoom } from './zoom';
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
@@ -24,7 +24,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
     name: 'zoom',
     enterprise: true,
     version: VERSION,
-    dependencies: [ZoomBaseModule],
+    dependencies: [ZoomInteractionModule],
 
     options: {
         enabled: boolean,
