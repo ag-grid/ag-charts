@@ -25,6 +25,7 @@ export * from './config/themeUtil';
 
 // API
 export * from './state/memento';
+export { ReactiveState } from './state/reactiveState';
 
 // Chart
 export * from './types/animationPhase';
