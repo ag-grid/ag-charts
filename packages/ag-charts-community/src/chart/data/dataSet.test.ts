@@ -2012,5 +2012,48 @@ describe('DataSet', () => {
             expect(dataSet.data).toEqual([newA, b, d, e]);
             expect(dataSet.data[0]).toBe(newA);
         });
+
+        test('NaN ID is ignored: item with NaN id is not indexed and update-by-ID has no effect', () => {
+            const dataSet = new DataSet<any>(
+                [
+                    { id: 'a', value: 1 },
+                    { id: Number.NaN, value: 2 },
+                    { id: 'c', value: 3 },
+                ],
+                'id'
+            );
+            // NaN-id item should not be in ID index, so update targeting NaN has no effect
+            dataSet.addTransaction({ update: [{ id: Number.NaN, value: 99 }] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([
+                { id: 'a', value: 1 },
+                { id: Number.NaN, value: 2 },
+                { id: 'c', value: 3 },
+            ]);
+            expectWarningMessages([`AG Charts - applyTransaction() update item is missing 'id' field; ignoring.`]);
+        });
+
+        test('add/addIndex API: mid-range insertion then ID-based remove of added item', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+            const e: Item = { id: 'e', value: 5 };
+            // Insert at index 1 via AG Grid-compatible API
+            dataSet.addTransaction({ add: [d, e], addIndex: 1 });
+            // Remove one of the just-added items by ID
+            dataSet.addTransaction({ remove: [{ id: 'd' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, e, b, c]);
+        });
+
+        test('add/addIndex API: append via add (no addIndex) then ID-based update', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+            dataSet.addTransaction({ add: [d] });
+            const newD: Item = { id: 'd', value: 40 };
+            dataSet.addTransaction({ update: [newD] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b, newD]);
+            expect(dataSet.data[2]).toBe(newD);
+        });
     });
 });

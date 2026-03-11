@@ -198,6 +198,8 @@ export class DataSet<T = unknown> {
         });
 
         // Apply pending replacements for ID-based updates using final indices.
+        // Only original-data updates populate pendingReplacements (via collectUpdatedOriginalIndicesById);
+        // prepend/append/insertion updates are applied in-place during collectUpdatedIndicesFromGroupsById.
         if (this.pendingReplacements && this.pendingReplacements.size > 0) {
             const { updatedIndices } = changeDescription.indexMap;
             for (const finalIdx of updatedIndices) {
@@ -377,7 +379,8 @@ export class DataSet<T = unknown> {
         return this.data;
     }
 
-    /** Builds a DataChangeDescription from pending transactions (does not modify data). */
+    /** Builds a DataChangeDescription from pending transactions.
+     * Note: when `dataIdKey` is set, this populates `pendingReplacements` as a side-effect. */
     getChangeDescription(): DataChangeDescription | undefined {
         if (!this.hasPendingTransactions()) {
             return undefined;
@@ -775,7 +778,7 @@ export class DataSet<T = unknown> {
     private getIdValue(item: T): string | number | undefined {
         if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
         const value = (item as any)[this.dataIdKey];
-        if (typeof value === 'string' || typeof value === 'number') return value;
+        if (typeof value === 'string' || (typeof value === 'number' && !Number.isNaN(value))) return value;
         return undefined;
     }
 

@@ -1598,6 +1598,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.data = new DataSet(dataForDataSet, this.dataIdKey);
         }
         if (
+            'dataIdKey' in deltaOptions &&
+            !(deltaOptions.data && userExplicitlyPassedData) &&
+            this.data.dataIdKey !== this.dataIdKey
+        ) {
+            this.data = new DataSet(this.data.data, this.dataIdKey);
+        }
+        if (
             'legend' in deltaOptions &&
             deltaOptions.legend &&
             'listeners' in deltaOptions.legend &&
