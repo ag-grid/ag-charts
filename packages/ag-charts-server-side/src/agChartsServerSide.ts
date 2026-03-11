@@ -2,6 +2,7 @@ import { FontLibrary } from 'skia-canvas';
 
 import { AgCharts } from 'ag-charts-community';
 import { enterpriseRegistry, withTimeout } from 'ag-charts-core';
+// Side-effect: registers enterprise modules on enterpriseRegistry
 import 'ag-charts-enterprise';
 
 import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
@@ -109,9 +110,6 @@ export class AgChartsServerSide {
                 if (foreground) {
                     chartOptions = { ...options, foreground };
                 }
-            } else {
-                // Enterprise not registered — always show watermark in SSR
-                chartOptions = { ...options, foreground: buildFallbackWatermarkConfig() };
             }
 
             const createdChart = AgCharts[api]({
@@ -138,8 +136,4 @@ export class AgChartsServerSide {
             release();
         }
     }
-}
-
-function buildFallbackWatermarkConfig(): object {
-    return { text: 'For Trial Use Only' };
 }

@@ -1,5 +1,4 @@
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
-import { enterpriseRegistry } from 'ag-charts-core';
 import { setupMockConsole } from 'ag-charts-test';
 
 import { AgChartsServerSide } from './agChartsServerSide';
@@ -357,21 +356,26 @@ describe('AgChartsServerSide enterprise licensing', () => {
 });
 
 describe('AgChartsServerSide community-only watermark', () => {
-    let savedLicenseManager: typeof enterpriseRegistry.licenseManager;
-    let savedCreateForeground: typeof enterpriseRegistry.createForeground;
+    // These tests verify watermark rendering with only AllCommunityModule registered
+    // (no AllEnterpriseModule). The enterpriseRegistry is still populated from the
+    // side-effect import of ag-charts-enterprise in the SSR package.
 
-    beforeEach(() => {
-        // Save and clear enterprise registry to simulate community-only usage
-        savedLicenseManager = enterpriseRegistry.licenseManager;
-        savedCreateForeground = enterpriseRegistry.createForeground;
-        enterpriseRegistry.licenseManager = undefined;
-        enterpriseRegistry.createForeground = undefined;
+    // Define afterEach BEFORE setupMockConsole so it runs first
+    afterEach(() => {
+        const errorMock = console.error as jest.Mock;
+        const unexpectedErrors = errorMock.mock.calls
+            .map((args) => String(args[0] ?? ''))
+            .filter((msg) => !msg.startsWith('*'));
+        errorMock.mockClear();
+        expect(unexpectedErrors).toEqual([]);
     });
 
-    afterEach(() => {
-        // Restore enterprise registry
-        enterpriseRegistry.licenseManager = savedLicenseManager;
-        enterpriseRegistry.createForeground = savedCreateForeground;
+    setupMockConsole();
+
+    beforeEach(async () => {
+        // Reset license state — no license key set means watermark should appear
+        const { LicenseManager } = await import('ag-charts-enterprise');
+        LicenseManager.setLicenseKey(undefined);
     });
 
     it('should render watermark on line chart without enterprise', async () => {
