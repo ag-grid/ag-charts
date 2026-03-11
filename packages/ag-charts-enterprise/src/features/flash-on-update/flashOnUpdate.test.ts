@@ -178,7 +178,7 @@ function withFlash(
         color?: string;
         opacity?: number;
         flashDuration?: number;
-        fadeDuration?: number;
+        fadeOutDuration?: number;
     }
 ): AgCartesianChartOptions {
     return { ...options, flashOnUpdate: flashOptions } as any;
@@ -296,7 +296,7 @@ describe('FlashOnUpdate', () => {
             it(`should apply custom flash and fade duration [ratio ${ratio}]`, async () => {
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'chart', flashDuration: 500, fadeDuration: 500 }
+                    { enabled: true, item: 'chart', flashDuration: 500, fadeOutDuration: 500 }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -579,7 +579,7 @@ describe('FlashOnUpdate', () => {
             it(`should render category bands with custom timing [ratio ${ratio}]`, async () => {
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'category', flashDuration: 500, fadeDuration: 500 }
+                    { enabled: true, item: 'category', flashDuration: 500, fadeOutDuration: 500 }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -601,7 +601,7 @@ describe('FlashOnUpdate', () => {
                 // flashProportion = 1.0, ease = () => 0 (constant hold at full opacity)
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'chart', flashDuration: 1000, fadeDuration: 0 }
+                    { enabled: true, item: 'chart', flashDuration: 1000, fadeOutDuration: 0 }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -615,11 +615,11 @@ describe('FlashOnUpdate', () => {
                 assertChartFlashActive(chart);
             });
 
-            it(`should fade linearly with fadeDuration only [ratio ${ratio}]`, async () => {
+            it(`should fade linearly with fadeOutDuration only [ratio ${ratio}]`, async () => {
                 // flashProportion = 0, ease = (t) => t (pure linear fade, no hold period)
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'chart', flashDuration: 0, fadeDuration: 1000 }
+                    { enabled: true, item: 'chart', flashDuration: 0, fadeOutDuration: 1000 }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -637,7 +637,7 @@ describe('FlashOnUpdate', () => {
                 // total = 50000ms, duration ratio = min(50000/1000, 2) = 2 (capped)
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'chart', flashDuration: 25000, fadeDuration: 25000 }
+                    { enabled: true, item: 'chart', flashDuration: 25000, fadeOutDuration: 25000 }
                 );
                 prepareEnterpriseTestOptions(options);
 

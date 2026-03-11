@@ -20,5 +20,5 @@ export interface AgFlashOnUpdateOptions {
      * The fade-out duration in milliseconds. Applied as a proportion of the default animation time and scaled
      * by the phase (add/remove/update), capped at 2x the default duration.
      */
-    fadeDuration?: DurationMs;
+    fadeOutDuration?: DurationMs;
 }

@@ -16,7 +16,7 @@ export const FlashOnUpdateModule: PluginModuleDefinition<AgFlashOnUpdateOptions>
         color: color,
         opacity: ratio,
         flashDuration: positiveNumber,
-        fadeDuration: positiveNumber,
+        fadeOutDuration: positiveNumber,
     },
     themeTemplate: {
         enabled: false,
@@ -24,7 +24,7 @@ export const FlashOnUpdateModule: PluginModuleDefinition<AgFlashOnUpdateOptions>
         color: '#cfeeff',
         opacity: 1,
         flashDuration: 100,
-        fadeDuration: 900,
+        fadeOutDuration: 900,
     },
     create: (ctx) => new FlashOnUpdate(ctx),
 };

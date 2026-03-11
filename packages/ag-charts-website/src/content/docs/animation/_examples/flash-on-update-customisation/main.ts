@@ -78,7 +78,7 @@ const options: AgCartesianChartOptions<DataType> = {
         enabled: true,
         color: '#ffd6a5',
         flashDuration: 300,
-        fadeDuration: 700,
+        fadeOutDuration: 700,
     },
 };
 
@@ -102,7 +102,7 @@ function setFlashDuration(value: string) {
 }
 
 function setFadeDuration(value: string) {
-    options.flashOnUpdate!.fadeDuration = Number(value);
+    options.flashOnUpdate!.fadeOutDuration = Number(value);
     options.data = getRandomizedData();
     chart.update(options);
 }

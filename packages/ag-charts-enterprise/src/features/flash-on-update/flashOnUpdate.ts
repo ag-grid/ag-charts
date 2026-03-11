@@ -120,7 +120,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     flashDuration?: DurationMs;
 
     @Property
-    fadeDuration?: DurationMs;
+    fadeOutDuration?: DurationMs;
 
     private readonly cleanup = new CleanupRegistry();
     private readonly flashGroup = new Group({ name: 'flash-on-update', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });
@@ -402,12 +402,12 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private getCustomTiming(): { duration: number; ease: (t: number) => number } | undefined {
-        const { flashDuration, fadeDuration } = this;
-        if (flashDuration == null && fadeDuration == null) return undefined;
+        const { flashDuration, fadeOutDuration } = this;
+        if (flashDuration == null && fadeOutDuration == null) return undefined;
 
         const { defaultDuration } = this.ctx.animationManager;
         const flash = flashDuration ?? 0;
-        const fade = fadeDuration ?? 0;
+        const fade = fadeOutDuration ?? 0;
         const total = flash + fade;
         if (total <= 0) return undefined;
 
