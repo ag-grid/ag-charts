@@ -1,79 +1,54 @@
 import {
-    BarSeriesModule,
-    CategoryAxisModule,
+    AgCartesianChartOptions,
+    AgCharts,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    FlashOnUpdateModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    ContextMenuModule,
-    CrosshairModule,
-    FlashOnUpdateModule,
+    OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';
 
-import type { DataType } from './data';
-import { getRandomizedData } from './data';
+import { applyLiveUpdate, getInitialData } from './data';
 
 ModuleRegistry.registerModules([
-    BarSeriesModule,
-    CategoryAxisModule,
+    CandlestickSeriesModule,
     ContextMenuModule,
     CrosshairModule,
     FlashOnUpdateModule,
     LegendModule,
     NumberAxisModule,
+    OrdinalTimeAxisModule,
 ]);
 
-const options: AgCartesianChartOptions<DataType> = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getRandomizedData(),
+    data: getInitialData(),
+    title: {
+        text: 'AAPL Stock Price',
+    },
     series: [
         {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'one',
-            yName: 'One',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'two',
-            yName: 'Two',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'three',
-            yName: 'Three',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'four',
-            yName: 'Four',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'five',
-            yName: 'Five',
-            stacked: true,
+            type: 'candlestick',
+            xKey: 'date',
+            xName: 'Date',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
         },
     ],
     axes: {
-        x: {
-            type: 'category',
+        y: {
+            type: 'number',
             label: {
-                autoRotate: false,
+                formatter: ({ value }) => `$${Number(value).toFixed(0)}`,
             },
         },
     },
+    animation: { enabled: false },
     flashOnUpdate: {
         enabled: true,
     },
@@ -81,7 +56,31 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function randomize() {
-    options.data = getRandomizedData();
+let updateInterval: ReturnType<typeof setInterval> | null = null;
+
+function update() {
+    options.data = applyLiveUpdate(options.data!);
     chart.update(options);
+}
+
+function startUpdates() {
+    if (updateInterval) return;
+    update();
+    updateInterval = setInterval(update, 2000);
+}
+
+function stopUpdates() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+function toggleUpdates() {
+    if (updateInterval) {
+        stopUpdates();
+    } else {
+        startUpdates();
+    }
+    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
 }
