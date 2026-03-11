@@ -105,7 +105,11 @@ The appearance and timing of the flash effect can be customised.
 -   `flashDuration` — how long (in milliseconds) the flash holds at full opacity before fading.
 -   `fadeOutDuration` — how long (in milliseconds) the fade-out takes.
 
-By default, the flash fades linearly from full opacity to zero over the animation phase duration. Setting `flashDuration` and `fadeOutDuration` introduces a two-stage effect: the flash holds at full opacity, then fades to zero. The ratio of `flashDuration` to `fadeOutDuration` controls how the phase duration is split between the hold and fade stages.
+Setting `flashDuration` and `fadeOutDuration` introduces a two-stage effect: the flash holds at full opacity, then fades to zero.
+
+{% note %}
+When animations are enabled, the `flashDuration` and `fadeOutDuration` values are scaled to fit within the data update animation phase, so the actual timing may differ from the configured values. Their ratio still controls how the duration is split between the hold and fade stages. When animations are disabled, the configured values are respected as exact milliseconds.
+{% /note %}
 
 In this example:
 

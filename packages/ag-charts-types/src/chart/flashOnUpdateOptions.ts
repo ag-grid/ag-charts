@@ -11,14 +11,8 @@ export interface AgFlashOnUpdateOptions {
     color?: CssColor;
     /** The opacity of the flash effect. */
     opacity?: Opacity;
-    /**
-     * The flash hold duration in milliseconds before fading begins. Applied as a proportion of the default
-     * animation time and scaled by the phase (add/remove/update), capped at 2x the default duration.
-     */
+    /** The flash hold duration in milliseconds before fading begins. Actual timing may vary when animations are enabled. */
     flashDuration?: DurationMs;
-    /**
-     * The fade-out duration in milliseconds. Applied as a proportion of the default animation time and scaled
-     * by the phase (add/remove/update), capped at 2x the default duration.
-     */
+    /** The fade-out duration in milliseconds. Actual timing may vary when animations are enabled. */
     fadeOutDuration?: DurationMs;
 }
