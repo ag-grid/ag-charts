@@ -38,6 +38,12 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     color?: string;
 
     @Property
+    maxWidth?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
     wrapping: TextWrap = 'always';
 
     @Property

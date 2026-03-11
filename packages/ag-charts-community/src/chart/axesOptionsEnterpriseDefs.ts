@@ -2,14 +2,10 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
-    callbackOf,
     constant,
-    fontOptionsDef,
     number,
     numberFormatValidator,
-    positiveNumber,
     ratio,
-    textOrSegments,
     union,
 } from 'ag-charts-core';
 import type {
@@ -27,6 +23,7 @@ import {
     cartesianAxisOptionsDefs,
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
+    commonAxisCaptionOptionsDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
@@ -89,6 +86,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
+    title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
         {
             ...commonCrossLineOptionsDefs,
@@ -99,13 +97,6 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
         },
         'cross-line options'
     ),
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callbackOf(textOrSegments),
-        ...fontOptionsDef,
-    },
     label: {
         ...commonAxisLabelOptionsDefs,
         format: numberFormatValidator,
@@ -121,6 +112,7 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     label: commonAxisLabelOptionsDefs,
+    title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
         {
             ...commonCrossLineOptionsDefs,
@@ -131,11 +123,4 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
         },
         'cross-line options'
     ),
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callbackOf(textOrSegments),
-        ...fontOptionsDef,
-    },
 };

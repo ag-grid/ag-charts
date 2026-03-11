@@ -1,16 +1,8 @@
 import type { ChartAnimationPhase, Scale } from 'ag-charts-core';
-import {
-    ChartAxisDirection,
-    Property,
-    StateMachine,
-    arraysEqual,
-    calcLineHeight,
-    countLines,
-    diffArrays,
-    findMinMax,
-    isPlainObject,
-} from 'ag-charts-core';
+import { ChartAxisDirection, Property, StateMachine, arraysEqual, calcLineHeight, countLines, diffArrays, findMinMax, isPlainObject } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
+
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -32,21 +24,13 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import {
-    type AxisFillDatum,
-    type AxisLabelDatum,
-    type AxisLineDatum,
-    NiceMode,
-    type TickDatum,
-    prepareAxisAnimationContext,
-    prepareAxisAnimationFunctions,
-    resetAxisFillSelectionFn,
-    resetAxisGroupFn,
-    resetAxisLabelSelectionFn,
-    resetAxisLineSelectionFn,
-} from './axisUtil';
+import { type AxisFillDatum, type AxisLabelDatum, type AxisLineDatum, NiceMode, type TickDatum, prepareAxisAnimationContext, prepareAxisAnimationFunctions, resetAxisFillSelectionFn, resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
 import { generateTicks } from './generateTicks';
+
+
+
+
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -544,7 +528,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected titleBBox(domain: D[], spacing: number) {
         const { tempCaption } = this;
+        const axisLength = Math.abs(this.range[1] - this.range[0]);
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
+        tempCaption.computeTextWrap(axisLength, Infinity);
         return tempCaption.node.getBBox();
     }
 
@@ -699,6 +685,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.fontStyle = title.fontStyle;
         caption.fontWeight = title.fontWeight;
         caption.wrapping = title.wrapping;
+        caption.maxWidth = title.maxWidth;
+        caption.maxHeight = title.maxHeight;
 
         const padding = (title.spacing ?? 0) + spacing;
 
@@ -838,6 +826,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.node.text = titleProps.text;
         caption.node.textBaseline = titleProps.textBaseline;
         caption.node.datum = titleProps;
+
+        if (titleProps.visible) {
+            const axisLength = Math.abs(this.range[1] - this.range[0]);
+            caption.computeTextWrap(axisLength, Infinity);
+        }
     }
 
     protected updateLabels() {

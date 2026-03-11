@@ -305,10 +305,14 @@ export abstract class RadiusAxis<
         title.caption.fontWeight = title.fontWeight;
         title.caption.color = title.color;
         title.caption.wrapping = title.wrapping;
+        title.caption.maxWidth = title.maxWidth;
+        title.caption.maxHeight = title.maxHeight;
 
         let titleVisible = false;
         const titleNode = title.caption.node;
         if (title.enabled) {
+            const axisLength = Math.abs(requestedRange[1] - requestedRange[0]);
+
             titleVisible = true;
 
             titleNode.rotation = Math.PI / 2;
@@ -318,6 +322,8 @@ export abstract class RadiusAxis<
             titleNode.textBaseline = 'bottom';
 
             titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
+            title.caption.text = titleNode.text;
+            title.caption.computeTextWrap(axisLength, Infinity);
         }
 
         titleNode.visible = titleVisible;
@@ -352,14 +358,12 @@ export abstract class RadiusAxis<
         const text = datum.tickLabel ?? '';
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
-        const visible = text !== '' && text != null;
-
-        const combinedRotation = rotation;
+        const visible = text !== '';
 
         return {
             ...this.getLabelStyles({ value: datum.tick, formattedValue: datum.tickLabel }),
             tickId: datum.tickId,
-            rotation: combinedRotation,
+            rotation,
             text,
             textAlign,
             textBaseline,
