@@ -46,6 +46,24 @@ Undocumented series-level options:
 
 -   `allowNullKeys` - allows null/undefined as discrete category keys
 
+## Documented Options on Chart
+
+When adding a **documented** chart-level option (one that exists in `ag-charts-types`), expose it as a `@Property` decorated field on the `Chart` class:
+
+```typescript
+@Property
+dataIdKey: string | undefined = undefined;
+```
+
+This is automatically synced from `processedOptions` via `jsonApply()` in `applyOptions()`. Do **not** access `processedOptions` directly (e.g., `(this.chartOptions.processedOptions as any).foo`) — that bypasses the decorator infrastructure and is not reactive to option changes.
+
+**Checklist for a new documented chart-level option:**
+
+1. Add type to `ag-charts-types` (e.g., `AgBaseChartOptions`)
+2. Add validator to all chart option defs in `chartOptionsDefs.ts`
+3. Add `@Property` field on `Chart` class — `jsonApply` handles the rest
+4. If the option affects the DataSet or other persistent state, ensure state is recreated when the option changes (not just when `data` changes)
+
 ## Propagating Undocumented Options
 
 To propagate a root-level undocumented option to series, use the `processSeriesOptions()` method in `optionsModule.ts`. This is the preferred centralised approach that affects all series types.
