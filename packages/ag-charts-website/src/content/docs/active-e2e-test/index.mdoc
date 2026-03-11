@@ -115,3 +115,16 @@ When clicking a candlestick
     name="candlestick-crosshairs"
     type="generated"
 /%}
+
+# External Legend
+
+-   The external legend should behave just like our internal legend.
+-   The external legend is implemented using `setState({active})`.
+-   Our internal legend is disabled (`legend.enabled: false`); this **MUST NOT**
+    affect the external legend.
+
+{% chartExampleRunner
+    title="External Legends"
+    name="legend-disabled"
+    type="generated"
+/%}
