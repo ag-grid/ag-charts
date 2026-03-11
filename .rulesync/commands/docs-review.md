@@ -29,11 +29,11 @@ For each API/interface mentioned in docs, resolve TypeScript definition files se
 
 | If docs mention                            | Then check file                                                     |
 | ------------------------------------------ | ------------------------------------------------------------------- |
-| Property path like `series[].type: 'bar'`  | `packages/ag-charts-types/src/series/cartesian/barSeriesOptions.ts` |
-| Property path like `axes[].type: 'number'` | `packages/ag-charts-types/src/axes/axis/axisOptions.ts`             |
+| Property path like `series[].type: 'bar'`  | `packages/ag-charts-types/src/series/cartesian/barOptions.ts`       |
+| Property path like `axes[].type: 'number'` | `packages/ag-charts-types/src/chart/axisOptions.ts`                 |
 | Interface name like `AgPieSeriesOptions`   | Search `packages/ag-charts-types/src/**/*` for the interface        |
-| Generic config property                    | `packages/ag-charts-types/src/chart/agChartOptions.ts`              |
-| Theme property                             | `packages/ag-charts-types/src/chart/themes/chartTheme.ts`           |
+| Generic config property                    | `packages/ag-charts-types/src/chart/chartOptions.ts`                |
+| Theme property                             | `packages/ag-charts-types/src/chart/themeOptions.ts`                |
 
 ### Implementation Resolution Rules
 
