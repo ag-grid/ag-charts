@@ -50,6 +50,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     initialState: defined,
     title: defined,
     data: array,
+    dataIdKey: string,
     formatter: defined,
 };
 

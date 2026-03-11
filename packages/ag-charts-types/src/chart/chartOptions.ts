@@ -19,6 +19,7 @@ import type {
     ContextDefault,
     CssColor,
     DatumDefault,
+    DatumKey,
     FontFamilyFull,
     FontSize,
     FontStyle,
@@ -294,6 +295,10 @@ export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDef
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
+    /** The key of the property on each datum that contains its unique identifier.
+     * When specified, transactions will match items by this field instead of by object reference.
+     * The values of this field must be unique across the dataset. */
+    dataIdKey?: DatumKey<TDatum>;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
     /** The initial state of the chart. This must be a serialisable value. */

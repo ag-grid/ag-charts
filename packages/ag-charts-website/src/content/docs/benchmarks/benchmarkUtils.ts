@@ -389,3 +389,81 @@ export async function performRollingWindow<T>(
     await waitForAsyncEventTriggeredUpdate(chart);
     return performance.now() - start;
 }
+
+/**
+ * Perform data update benchmark using applyTransaction (mutate-in-place).
+ *
+ * @param chart - Chart instance
+ * @param dataRef - Mutable reference to data array
+ * @param batchSize - Number of items to update from the beginning
+ * @param mutator - Function to mutate each item in place
+ * @returns Elapsed time in milliseconds
+ */
+export async function performUpdate<T>(
+    chart: AgChartInstance,
+    dataRef: DataRef<T>,
+    batchSize: number,
+    mutator: (item: T) => void
+): Promise<number> {
+    const itemsToUpdate = dataRef.data.slice(0, batchSize);
+    for (const item of itemsToUpdate) {
+        mutator(item);
+    }
+
+    const start = performance.now();
+    await chart.applyTransaction({ update: itemsToUpdate });
+    await waitForAsyncEventTriggeredUpdate(chart);
+    return performance.now() - start;
+}
+
+/**
+ * Perform data removal benchmark using applyTransaction with ID-based matching.
+ * Passes partial objects containing only the ID field.
+ *
+ * @param chart - Chart instance
+ * @param dataRef - Mutable reference to data array (will be updated)
+ * @param batchSize - Number of items to remove from the beginning
+ * @param idKey - Property name used as the ID field
+ * @returns Elapsed time in milliseconds
+ */
+export async function performRemoveById<T>(
+    chart: AgChartInstance,
+    dataRef: DataRef<T>,
+    batchSize: number,
+    idKey: string
+): Promise<number> {
+    const itemsToRemove = dataRef.data.slice(0, batchSize).map((d) => ({ [idKey]: (d as any)[idKey] }));
+    dataRef.data = dataRef.data.slice(batchSize);
+
+    const start = performance.now();
+    await chart.applyTransaction({ remove: itemsToRemove as any });
+    await waitForAsyncEventTriggeredUpdate(chart);
+    return performance.now() - start;
+}
+
+/**
+ * Perform data update benchmark using applyTransaction with ID-based replacement.
+ * Creates new objects via a factory function instead of mutating in place.
+ *
+ * @param chart - Chart instance
+ * @param dataRef - Mutable reference to data array (will be updated with replacements)
+ * @param batchSize - Number of items to update from the beginning
+ * @param replacementFactory - Function to create a replacement object from an existing item
+ * @returns Elapsed time in milliseconds
+ */
+export async function performUpdateById<T>(
+    chart: AgChartInstance,
+    dataRef: DataRef<T>,
+    batchSize: number,
+    replacementFactory: (item: T) => T
+): Promise<number> {
+    const replacements = dataRef.data.slice(0, batchSize).map(replacementFactory);
+    for (let i = 0; i < batchSize; i++) {
+        dataRef.data[i] = replacements[i];
+    }
+
+    const start = performance.now();
+    await chart.applyTransaction({ update: replacements });
+    await waitForAsyncEventTriggeredUpdate(chart);
+    return performance.now() - start;
+}

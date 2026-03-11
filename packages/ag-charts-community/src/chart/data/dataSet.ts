@@ -1,6 +1,11 @@
 import { Logger } from 'ag-charts-core';
 
-import { DataChangeDescription, type IndexTransformationMap, type SpliceOperation } from './dataChangeDescription';
+import {
+    DataChangeDescription,
+    type IndexTransformationMap,
+    type SpliceOperation,
+    contiguousRemovalCountAtStart,
+} from './dataChangeDescription';
 
 export { DataChangeDescription } from './dataChangeDescription';
 
@@ -17,9 +22,9 @@ export interface DataSetTransaction<T> {
     prepend?: T[];
     /** Items to append to the end (internal format, converted from add with no addIndex). */
     append?: T[];
-    /** Items to remove by referential equality. */
+    /** Items to remove. Matched by referential equality, or by `dataIdKey` when set on the DataSet. */
     remove?: T[];
-    /** Items to update by referential equality. Items should be mutated in place before calling update. */
+    /** Items to update. Matched by referential equality, or by `dataIdKey` when set on the DataSet. When matched by ID, the item replaces the existing datum. */
     update?: T[];
     /** Arbitrary insertions at specific indices (internal format, converted from add with 0 < addIndex < length). */
     insertions?: Array<{ index: number; items: T[] }>;
@@ -65,21 +70,26 @@ export class DataSet<T = unknown> {
     private pendingTransactions: DataSetTransaction<T>[] = [];
     private cachedChangeDescription: DataChangeDescription | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
+    private idToIndexCache: Map<string | number, number> | undefined;
+    private pendingReplacements: Map<string | number, T> | undefined;
 
-    constructor(public data: T[]) {}
+    constructor(
+        public data: T[],
+        public readonly dataIdKey?: string
+    ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(): DataSet<U> {
-        return new DataSet<U>([]);
+    static empty<U = unknown>(dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>([], dataIdKey);
     }
 
     /**
      * Wraps existing data in a DataSet.
      */
-    static wrap<U = unknown>(data: U[]): DataSet<U> {
-        return new DataSet<U>(data);
+    static wrap<U = unknown>(data: U[], dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>(data, dataIdKey);
     }
 
     netSize(): number {
@@ -105,7 +115,7 @@ export class DataSet<T = unknown> {
      * @returns A deep clone of the DataSet.
      */
     deepClone() {
-        return new DataSet([...this.data]);
+        return new DataSet([...this.data], this.dataIdKey);
     }
 
     /**
@@ -187,11 +197,24 @@ export class DataSet<T = unknown> {
             return allInsertionValues[insertionValueIndex++];
         });
 
+        // Apply pending replacements for ID-based updates using final indices.
+        if (this.pendingReplacements && this.pendingReplacements.size > 0) {
+            const { updatedIndices } = changeDescription.indexMap;
+            for (const finalIdx of updatedIndices) {
+                const id = this.getIdValue(this.data[finalIdx]);
+                if (id !== undefined && this.pendingReplacements.has(id)) {
+                    this.data[finalIdx] = this.pendingReplacements.get(id)!;
+                }
+            }
+            this.pendingReplacements = undefined;
+        }
+
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
 
         // Maintain index cache incrementally where possible, otherwise invalidate.
         this.updateItemToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
+        this.updateIdToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
 
         return true;
     }
@@ -204,6 +227,12 @@ export class DataSet<T = unknown> {
         insertionValues: T[]
     ): void {
         if (!this.itemToIndexCache) return;
+
+        // When dataIdKey is set, reference-based cache is not useful — invalidate.
+        if (this.dataIdKey) {
+            this.itemToIndexCache = undefined;
+            return;
+        }
 
         const { indexMap } = changeDescription;
         const { totalPrependCount, totalAppendCount, removedIndices } = indexMap;
@@ -219,25 +248,8 @@ export class DataSet<T = unknown> {
             return; // Arbitrary insertions are complex
         }
 
-        let removalsAreContiguousAtStart = false;
-        let contiguousRemovalCount = 0;
-        if (hasRemovals) {
-            const sortedRemovals = Array.from(removedIndices).sort((a, b) => a - b);
-            removalsAreContiguousAtStart = sortedRemovals[0] === 0;
-            if (removalsAreContiguousAtStart) {
-                for (let i = 0; i < sortedRemovals.length; i++) {
-                    if (sortedRemovals[i] !== i) {
-                        removalsAreContiguousAtStart = false;
-                        break;
-                    }
-                }
-                if (removalsAreContiguousAtStart) {
-                    contiguousRemovalCount = sortedRemovals.length;
-                }
-            }
-        }
-
-        if (hasRemovals && !removalsAreContiguousAtStart) {
+        const contiguousRemovalCount = contiguousRemovalCountAtStart(removedIndices);
+        if (hasRemovals && contiguousRemovalCount === 0) {
             this.itemToIndexCache = undefined;
             return; // Complex removal pattern
         }
@@ -277,10 +289,82 @@ export class DataSet<T = unknown> {
         }
     }
 
+    /** Updates id→index cache incrementally, or invalidates for complex changes. */
+    private updateIdToIndexCache(
+        changeDescription: DataChangeDescription,
+        appendedValues: T[],
+        prependedValues: T[],
+        insertionValues: T[]
+    ): void {
+        if (!this.idToIndexCache) return;
+
+        const { indexMap } = changeDescription;
+        const { totalPrependCount, totalAppendCount, removedIndices } = indexMap;
+        const hasRemovals = removedIndices.size > 0;
+        const hasArbitraryInsertions = insertionValues.length > 0;
+
+        // Update-only: no index changes, cache is still valid.
+        if (!hasRemovals && totalPrependCount === 0 && totalAppendCount === 0 && !hasArbitraryInsertions) {
+            return;
+        }
+
+        // Complex cases: invalidate and let lazy rebuild handle it.
+        if (hasArbitraryInsertions) {
+            this.idToIndexCache = undefined;
+            return;
+        }
+
+        const contiguousRemovalCount = contiguousRemovalCountAtStart(removedIndices);
+        if (hasRemovals && contiguousRemovalCount === 0) {
+            this.idToIndexCache = undefined;
+            return;
+        }
+
+        // Incremental maintenance: shift indices, remove deleted entries, add new entries.
+        // Safe to mutate Map during for..of: delete of current/visited keys is spec-safe,
+        // set of existing keys updates value without affecting iteration order.
+        const idCache = this.idToIndexCache;
+        const indexShift = totalPrependCount - contiguousRemovalCount;
+
+        if (indexShift !== 0) {
+            for (const [id, oldIndex] of idCache) {
+                if (removedIndices.has(oldIndex)) {
+                    idCache.delete(id);
+                } else {
+                    idCache.set(id, oldIndex + indexShift);
+                }
+            }
+        } else if (hasRemovals) {
+            for (const [id, oldIndex] of idCache) {
+                if (removedIndices.has(oldIndex)) {
+                    idCache.delete(id);
+                }
+            }
+        }
+
+        // Add entries for prepended items.
+        for (let i = 0; i < prependedValues.length; i++) {
+            const id = this.getIdValue(prependedValues[i]);
+            if (id !== undefined && !idCache.has(id)) {
+                idCache.set(id, i);
+            }
+        }
+
+        // Add entries for appended items.
+        const appendStartIndex = indexMap.finalLength - totalAppendCount;
+        for (let i = 0; i < appendedValues.length; i++) {
+            const id = this.getIdValue(appendedValues[i]);
+            if (id !== undefined && !idCache.has(id)) {
+                idCache.set(id, appendStartIndex + i);
+            }
+        }
+    }
+
     clearPendingTransactions(): number {
         const count = this.pendingTransactions.length;
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
+        this.pendingReplacements = undefined;
         return count;
     }
 
@@ -487,6 +571,14 @@ export class DataSet<T = unknown> {
             return;
         }
 
+        if (this.dataIdKey) {
+            this.applyRemovalsById(remove, state);
+        } else {
+            this.applyRemovalsByRef(remove, state);
+        }
+    }
+
+    private applyRemovalsByRef(remove: T[], state: TransactionCollectionState<T>): void {
         const toRemove = new Set(remove);
 
         this.removeFromGroups(state.prependsList, toRemove);
@@ -521,11 +613,65 @@ export class DataSet<T = unknown> {
         }
     }
 
+    private applyRemovalsById(remove: T[], state: TransactionCollectionState<T>): void {
+        const idsToRemove = new Set<string | number>();
+        for (const item of remove) {
+            const id = this.getIdValue(item);
+            if (id === undefined) {
+                Logger.warnOnce(`applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`);
+            } else {
+                idsToRemove.add(id);
+            }
+        }
+
+        if (idsToRemove.size === 0) return;
+
+        this.removeFromGroupsById(state.prependsList, idsToRemove);
+
+        if (idsToRemove.size > 0) {
+            this.removeFromGroupsById(state.insertionsList, idsToRemove);
+        }
+
+        if (state.trackedInsertions.length > 0) {
+            this.removeFromTrackedInsertionsById(remove, state);
+        }
+
+        if (idsToRemove.size > 0) {
+            this.removeFromGroupsById(state.appendsList, idsToRemove);
+        }
+
+        if (idsToRemove.size > 0) {
+            const idMap = this.getIdToIndexMap();
+            for (const id of idsToRemove) {
+                const idx = idMap.get(id);
+                if (idx !== undefined) {
+                    state.removedOriginalIndices.add(idx);
+                    state.virtualLength--;
+                    idsToRemove.delete(id);
+                }
+            }
+        }
+
+        if (idsToRemove.size > 0) {
+            Logger.warnOnce(
+                'applyTransaction() remove includes items not present in current data; ignoring missing items.'
+            );
+        }
+    }
+
     private applyUpdates(update: T[] | undefined, state: TransactionCollectionState<T>): void {
         if (!Array.isArray(update) || update.length === 0) {
             return;
         }
 
+        if (this.dataIdKey) {
+            this.applyUpdatesById(update, state);
+        } else {
+            this.applyUpdatesByRef(update, state);
+        }
+    }
+
+    private applyUpdatesByRef(update: T[], state: TransactionCollectionState<T>): void {
         const toUpdate = new Set(update);
         const updatedPrependsIndices = this.collectUpdatedIndicesFromGroups(state.prependsList, toUpdate);
         const updatedInsertionsIndices =
@@ -535,6 +681,42 @@ export class DataSet<T = unknown> {
 
         if (toUpdate.size > 0) {
             this.collectUpdatedOriginalIndices(toUpdate, state);
+        }
+
+        state.updateTracking = {
+            updatedPrependsIndices,
+            updatedAppendsIndices,
+            updatedInsertionsIndices,
+        };
+
+        if (toUpdate.size > 0) {
+            Logger.warnOnce(
+                'applyTransaction() update includes items not present in current data; ignoring missing items.'
+            );
+        }
+    }
+
+    private applyUpdatesById(update: T[], state: TransactionCollectionState<T>): void {
+        const toUpdate = new Map<string | number, T>();
+        for (const item of update) {
+            const id = this.getIdValue(item);
+            if (id === undefined) {
+                Logger.warnOnce(`applyTransaction() update item is missing '${this.dataIdKey}' field; ignoring.`);
+            } else {
+                toUpdate.set(id, item);
+            }
+        }
+
+        if (toUpdate.size === 0) return;
+
+        const updatedPrependsIndices = this.collectUpdatedIndicesFromGroupsById(state.prependsList, toUpdate);
+        const updatedInsertionsIndices =
+            toUpdate.size > 0 ? this.collectUpdatedIndicesFromGroupsById(state.insertionsList, toUpdate) : [];
+        const updatedAppendsIndices =
+            toUpdate.size > 0 ? this.collectUpdatedIndicesFromGroupsById(state.appendsList, toUpdate) : [];
+
+        if (toUpdate.size > 0) {
+            this.collectUpdatedOriginalIndicesById(toUpdate, state);
         }
 
         state.updateTracking = {
@@ -589,10 +771,95 @@ export class DataSet<T = unknown> {
         return this.itemToIndexCache;
     }
 
+    /** Extracts the ID value from a datum; returns `undefined` if missing or not a string/number. */
+    private getIdValue(item: T): string | number | undefined {
+        if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
+        const value = (item as any)[this.dataIdKey];
+        if (typeof value === 'string' || typeof value === 'number') return value;
+        return undefined;
+    }
+
+    /** Lazy ID→index map for O(1) lookups when `dataIdKey` is set. */
+    private getIdToIndexMap(): Map<string | number, number> {
+        if (this.idToIndexCache === undefined) {
+            this.idToIndexCache = new Map();
+            for (let i = 0; i < this.data.length; i++) {
+                const id = this.getIdValue(this.data[i]);
+                if (id === undefined) continue;
+                if (this.idToIndexCache.has(id)) {
+                    Logger.warnOnce(
+                        `dataIdKey '${this.dataIdKey}' has duplicate value '${id}'; first occurrence used.`
+                    );
+                } else {
+                    this.idToIndexCache.set(id, i);
+                }
+            }
+        }
+        return this.idToIndexCache;
+    }
+
+    /** Removes items from groups by matching their ID values against a set of IDs. */
+    private removeFromGroupsById(groups: T[][], idsToRemove: Set<string | number>): void {
+        for (const group of groups) {
+            let i = 0;
+            while (i < group.length && idsToRemove.size > 0) {
+                const id = this.getIdValue(group[i]);
+                if (id !== undefined && idsToRemove.has(id)) {
+                    idsToRemove.delete(id);
+                    group.splice(i, 1);
+                } else {
+                    i++;
+                }
+            }
+            if (idsToRemove.size === 0) break;
+        }
+    }
+
+    /** Collects updated indices from groups by matching their ID values against a map of IDs to new datums. */
+    private collectUpdatedIndicesFromGroupsById(groups: T[][], toUpdate: Map<string | number, T>): number[] {
+        if (toUpdate.size === 0 || groups.length === 0) return [];
+
+        const updatedIndices: number[] = [];
+        let flatIndex = 0;
+
+        for (const group of groups) {
+            for (let i = 0; i < group.length; i++) {
+                const id = this.getIdValue(group[i]);
+                if (id !== undefined && toUpdate.has(id)) {
+                    group[i] = toUpdate.get(id)!;
+                    updatedIndices.push(flatIndex);
+                    toUpdate.delete(id);
+                }
+                flatIndex++;
+            }
+            if (toUpdate.size === 0) break;
+        }
+
+        return updatedIndices;
+    }
+
+    /** Collects updated original indices by ID, storing replacements (keyed by ID) for commit. */
+    private collectUpdatedOriginalIndicesById(
+        toUpdate: Map<string | number, T>,
+        state: TransactionCollectionState<T>
+    ): void {
+        const idMap = this.getIdToIndexMap();
+
+        for (const [id, newDatum] of toUpdate) {
+            const idx = idMap.get(id);
+            if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
+                state.updatedOriginalIndices.add(idx);
+                this.pendingReplacements ??= new Map();
+                this.pendingReplacements.set(id, newDatum);
+                toUpdate.delete(id);
+            }
+        }
+    }
+
     private collectUpdatedOriginalIndices(toUpdate: Set<T>, state: TransactionCollectionState<T>): void {
         const indexMap = this.getItemToIndexMap();
 
-        for (const item of [...toUpdate]) {
+        for (const item of toUpdate) {
             const idx = indexMap.get(item);
             if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
                 state.updatedOriginalIndices.add(idx);
@@ -627,6 +894,46 @@ export class DataSet<T = unknown> {
                     removedOffsets
                 );
             }
+        }
+    }
+
+    private removeFromTrackedInsertionsById(removeValues: T[], state: TransactionCollectionState<T>): void {
+        const idsToRemove = new Set<string | number>();
+        for (const item of removeValues) {
+            const id = this.getIdValue(item);
+            if (id !== undefined) idsToRemove.add(id);
+        }
+        if (idsToRemove.size === 0) return;
+
+        for (let trackedIdx = 0; trackedIdx < state.trackedInsertions.length; trackedIdx++) {
+            const tracked = state.trackedInsertions[trackedIdx];
+            const previousLength = tracked.items.length;
+            const removedOffsets: number[] = [];
+            let itemIndex = 0;
+
+            while (itemIndex < tracked.items.length) {
+                const id = this.getIdValue(tracked.items[itemIndex]);
+                if (id !== undefined && idsToRemove.has(id)) {
+                    removedOffsets.push(itemIndex + removedOffsets.length);
+                    tracked.items.splice(itemIndex, 1);
+                    state.virtualLength--;
+                    idsToRemove.delete(id);
+                } else {
+                    itemIndex++;
+                }
+            }
+
+            if (removedOffsets.length > 0) {
+                this.adjustLaterInsertionsAfterRemoval(
+                    state.trackedInsertions,
+                    trackedIdx,
+                    tracked,
+                    previousLength,
+                    removedOffsets
+                );
+            }
+
+            if (idsToRemove.size === 0) break;
         }
     }
 

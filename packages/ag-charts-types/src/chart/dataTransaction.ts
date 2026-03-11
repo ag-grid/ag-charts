@@ -3,8 +3,8 @@
  *
  * Used for efficient high frequency updates.
  *
- *
- * Object identity is determined by referential equality.
+ * By default, object identity is determined by referential equality.
+ * When `dataIdKey` is set on the chart options, items are matched by the specified ID field instead.
  */
 export interface AgDataTransaction<T = unknown> {
     /**
@@ -26,6 +26,7 @@ export interface AgDataTransaction<T = unknown> {
      * Data items to remove from the dataset.
      *
      * Items are matched by referential equality (object reference).
+     * When `dataIdKey` is set on the chart, only the ID field is needed on each item.
      */
     remove?: T[];
 
@@ -33,6 +34,8 @@ export interface AgDataTransaction<T = unknown> {
      * Data items to update in the dataset.
      *
      * Items are matched by referential equality (object reference).
+     * When `dataIdKey` is set on the chart, items are matched by the ID field and the
+     * existing datum is replaced entirely by the new object.
      */
     update?: T[];
 }

@@ -1724,4 +1724,293 @@ describe('DataSet', () => {
             });
         });
     });
+
+    describe('ID-based matching (dataIdKey)', () => {
+        interface Item {
+            id: string;
+            value: number;
+        }
+
+        const a: Item = { id: 'a', value: 1 };
+        const b: Item = { id: 'b', value: 2 };
+        const c: Item = { id: 'c', value: 3 };
+
+        test('remove by ID: items matched by ID field, partial objects accepted', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            dataSet.addTransaction({ remove: [{ id: 'b' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, c]);
+        });
+
+        test('update by ID (replacement): old datum replaced by new object with same ID', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const newB: Item = { id: 'b', value: 99 };
+            dataSet.addTransaction({ update: [newB] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, newB, c]);
+            expect(dataSet.data[1]).toBe(newB);
+        });
+
+        test('fallback: no dataIdKey preserves referential equality matching', () => {
+            const dataSet = new DataSet<Item>([a, b, c]);
+            // Without dataIdKey, a different object with matching id should NOT match
+            dataSet.addTransaction({ remove: [{ id: 'b', value: 2 }] });
+            dataSet.commitPendingTransactions();
+            // b should still be there because the reference is different
+            expect(dataSet.data).toEqual([a, b, c]);
+            expectWarningMessages([
+                'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+            ]);
+        });
+
+        test('remove from pending prepends by ID', () => {
+            const dataSet = new DataSet<Item>([{ ...a }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+            dataSet.addTransaction({ prepend: [{ ...b }, { ...d }] });
+            dataSet.addTransaction({ remove: [{ id: 'b' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([d, a]);
+        });
+
+        test('remove from pending appends by ID', () => {
+            const dataSet = new DataSet<Item>([{ ...a }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+            dataSet.addTransaction({ append: [{ ...b }, { ...d }] });
+            dataSet.addTransaction({ remove: [{ id: 'd' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b]);
+        });
+
+        test('update (replace) in pending prepends by ID', () => {
+            const dataSet = new DataSet<Item>([{ ...a }], 'id');
+            dataSet.addTransaction({ prepend: [{ ...b }] });
+            const newB: Item = { id: 'b', value: 77 };
+            dataSet.addTransaction({ update: [newB] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newB, a]);
+            expect(dataSet.data[0]).toBe(newB);
+        });
+
+        test('update (replace) in pending appends by ID', () => {
+            const dataSet = new DataSet<Item>([{ ...a }], 'id');
+            dataSet.addTransaction({ append: [{ ...b }] });
+            const newB: Item = { id: 'b', value: 77 };
+            dataSet.addTransaction({ update: [newB] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, newB]);
+            expect(dataSet.data[1]).toBe(newB);
+        });
+
+        test('duplicate ID validation: warning logged, first occurrence used', () => {
+            const dataSet = new DataSet<Item>(
+                [
+                    { id: 'a', value: 1 },
+                    { id: 'a', value: 2 },
+                    { id: 'b', value: 3 },
+                ],
+                'id'
+            );
+            dataSet.addTransaction({ remove: [{ id: 'a' } as Item] });
+            dataSet.commitPendingTransactions();
+            // First occurrence (index 0) removed; second 'a' (index 1) survives
+            expect(dataSet.data).toEqual([
+                { id: 'a', value: 2 },
+                { id: 'b', value: 3 },
+            ]);
+            expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
+        });
+
+        test('combined operations: remove + update + append in single transaction with IDs', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const newA: Item = { id: 'a', value: 10 };
+            const d: Item = { id: 'd', value: 4 };
+            dataSet.addTransaction({
+                remove: [{ id: 'b' } as Item],
+                update: [newA],
+                append: [d],
+            });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA, c, d]);
+            expect(dataSet.data[0]).toBe(newA);
+        });
+
+        test('change description: getUpdatedIndices() reports correct final indices', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const newC: Item = { id: 'c', value: 99 };
+            dataSet.addTransaction({ update: [newC] });
+            const changeDesc = dataSet.getChangeDescription();
+            expect(changeDesc).toBeDefined();
+            expect(changeDesc!.getUpdatedIndices()).toEqual([2]);
+        });
+
+        test('change description: getRemovedIndices() correct for ID-based removals', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            dataSet.addTransaction({ remove: [{ id: 'b' } as Item] });
+            const changeDesc = dataSet.getChangeDescription();
+            expect(changeDesc).toBeDefined();
+            expect(changeDesc!.getRemovedIndices()).toEqual([1]);
+        });
+
+        test('multi-step transactions: sequential commits with ID-based matching', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+
+            // Step 1: remove b
+            dataSet.addTransaction({ remove: [{ id: 'b' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, c]);
+
+            // Step 2: update a, append d
+            const newA: Item = { id: 'a', value: 10 };
+            const d: Item = { id: 'd', value: 4 };
+            dataSet.addTransaction({ update: [newA], append: [d] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA, c, d]);
+            expect(dataSet.data[0]).toBe(newA);
+        });
+
+        test('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
+            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], 'id');
+            dataSet.addTransaction({ remove: [{ value: 1 }] });
+            dataSet.commitPendingTransactions();
+            // Item should not be removed because it has no 'id' field
+            expect(dataSet.data).toEqual([{ id: 'a', value: 1 }]);
+            expectWarningMessages([`AG Charts - applyTransaction() remove item is missing 'id' field; ignoring.`]);
+        });
+
+        test('ID type mismatch: string "123" vs number 123 produces no match (strict equality)', () => {
+            const dataSet = new DataSet<any>(
+                [
+                    { id: 123, value: 1 },
+                    { id: 'other', value: 2 },
+                ],
+                'id'
+            );
+            dataSet.addTransaction({ remove: [{ id: '123' }] });
+            dataSet.commitPendingTransactions();
+            // No match because string '123' !== number 123
+            expect(dataSet.data).toEqual([
+                { id: 123, value: 1 },
+                { id: 'other', value: 2 },
+            ]);
+            expectWarningMessages([
+                'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+            ]);
+        });
+
+        test('update with non-existent ID: warning logged, item ignored', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            dataSet.addTransaction({ update: [{ id: 'nonexistent', value: 99 }] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b]);
+            expectWarningMessages([
+                'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
+            ]);
+        });
+
+        test('change description: combined remove + update reports correct final indices', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const newC: Item = { id: 'c', value: 99 };
+            dataSet.addTransaction({
+                remove: [{ id: 'a' } as Item],
+                update: [newC],
+            });
+            const changeDesc = dataSet.getChangeDescription();
+            expect(changeDesc).toBeDefined();
+            // After removing index 0 (a), c moves from index 2 to index 1
+            expect(changeDesc!.getUpdatedIndices()).toEqual([1]);
+            expect(changeDesc!.getRemovedIndices()).toEqual([0]);
+
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([b, newC]);
+            expect(dataSet.data[1]).toBe(newC);
+        });
+
+        test('consecutive update-only commits: idToIndexCache survives across commits', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+
+            // First commit: update b
+            const newB: Item = { id: 'b', value: 20 };
+            dataSet.addTransaction({ update: [newB] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, newB, c]);
+            expect(dataSet.data[1]).toBe(newB);
+
+            // Second commit: update a (cache must still map 'a' → 0)
+            const newA: Item = { id: 'a', value: 10 };
+            dataSet.addTransaction({ update: [newA] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA, newB, c]);
+            expect(dataSet.data[0]).toBe(newA);
+        });
+
+        test('append then update appended item: cache includes appended entries', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+
+            // Commit 1: append d
+            dataSet.addTransaction({ append: [d] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b, d]);
+
+            // Commit 2: update d by ID
+            const newD: Item = { id: 'd', value: 40 };
+            dataSet.addTransaction({ update: [newD] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b, newD]);
+            expect(dataSet.data[2]).toBe(newD);
+        });
+
+        test('contiguous removal from start then update: cache adjusts indices', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+
+            // Commit 1: remove a and b (indices 0-1)
+            dataSet.addTransaction({ remove: [{ id: 'a' } as Item, { id: 'b' } as Item] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([c]);
+
+            // Commit 2: update c (formerly at index 2, now at index 0)
+            const newC: Item = { id: 'c', value: 30 };
+            dataSet.addTransaction({ update: [newC] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newC]);
+            expect(dataSet.data[0]).toBe(newC);
+        });
+
+        test('three consecutive update-only commits: cache survives through all', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+
+            const newA1: Item = { id: 'a', value: 10 };
+            dataSet.addTransaction({ update: [newA1] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA1, b, c]);
+
+            const newB1: Item = { id: 'b', value: 20 };
+            dataSet.addTransaction({ update: [newB1] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA1, newB1, c]);
+
+            const newC1: Item = { id: 'c', value: 30 };
+            dataSet.addTransaction({ update: [newC1] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA1, newB1, newC1]);
+        });
+
+        test('append + update in separate commits: both reflected correctly', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            const d: Item = { id: 'd', value: 4 };
+            const e: Item = { id: 'e', value: 5 };
+
+            // Commit 1: append d and e
+            dataSet.addTransaction({ append: [d, e] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b, d, e]);
+
+            // Commit 2: update original item a
+            const newA: Item = { id: 'a', value: 10 };
+            dataSet.addTransaction({ update: [newA] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([newA, b, d, e]);
+            expect(dataSet.data[0]).toBe(newA);
+        });
+    });
 });
