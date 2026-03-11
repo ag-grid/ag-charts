@@ -18,9 +18,10 @@ User provides one of:
 
 Optional flags:
 
--   `--quick` - Fast review with fewer agents (2-3 vs 5-6)
+-   `--quick` - Fast review with fewer agents (3-4 vs 6-8)
 -   `--thorough` - Comprehensive review (default)
 -   `--external` - Include external tools (Codex/Gemini) if available
+-   `--no-devils-advocate` - Skip the Devil's Advocate review pass (runs by default)
 
 ## Sub-Documents
 
@@ -33,6 +34,7 @@ Load sub-documents progressively based on the review mode and phase.
 | `output-format.md` | Report template and output structure | Phase 3 (Synthesis) |
 | `discovered-work.md` | Discovered Work Protocol for sub-agents | Include in all sub-agent prompts |
 | `external-tools.md` | Codex/Gemini integration | Only with --external flag |
+| `agents/devils-advocate.md` | Devil's Advocate adversarial review agent | Default (skip with --no-devils-advocate) |
 
 ## Execution Phases
 
@@ -55,8 +57,8 @@ Load sub-documents progressively based on the review mode and phase.
 
     | Flag                   | Mode     | Agents | Use Case                            |
     | ---------------------- | -------- | ------ | ----------------------------------- |
-    | `--quick`              | Quick    | 2-3    | Fast feedback, simple plans         |
-    | `--thorough` (default) | Thorough | 5-6    | Comprehensive review, complex plans |
+    | `--quick`              | Quick    | 3-4    | Fast feedback, simple plans         |
+    | `--thorough` (default) | Thorough | 6-8    | Comprehensive review, complex plans |
 
 3. **Extract original request/specification:**
 
@@ -115,7 +117,7 @@ Launch specialised review agents based on mode. Load the appropriate agent promp
 
 Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discovered-work.md` in all sub-agent prompts.
 
-#### Quick Mode (3 agents)
+#### Quick Mode (3-4 agents)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -137,10 +139,16 @@ Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discover
 │    - Concurrency: What can run in parallel?                 │
 │    - Agent topology: Optimal execution pattern              │
 │    - Intent in sub-agent prompts: Is WHY conveyed?          │
+├─────────────────────────────────────────────────────────────┤
+│ 4. Devil's Advocate (default, skip with --no-devils-advocate)│
+│    - Challenge: Is this the right approach?                 │
+│    - Assumptions: What if key assumptions are wrong?        │
+│    - Necessity: Could tasks be removed or deferred?         │
+│    - Adversary: What is the most likely point of failure?   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Thorough Mode (6-7 agents)
+#### Thorough Mode (6-8 agents)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -152,7 +160,8 @@ Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discover
 │ 4. Verification Reviewer                                     │
 │ 5. Risk Reviewer                                             │
 │ 6. Parallelisability Analyser                               │
-│ 7. External Reviewer (optional, --external flag)            │
+│ 7. Devil's Advocate (default, skip with --no-devils-advocate)│
+│ 8. External Reviewer (optional, --external flag)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -195,6 +204,24 @@ Aggregate findings from all review agents:
 ### Phase 4: Interactive Resolution (Optional)
 
 If issues found, present to user for iterative refinement.
+
+---
+
+## Devil's Advocate Mode (Default)
+
+By default, an additional adversarial review pass runs after the standard review agents complete. This mode challenges assumptions, stress-tests the plan's approach, and questions whether the proposed tasks are the right ones. Pass `--no-devils-advocate` to skip it.
+
+### Workflow
+
+1. **Run the standard review agents first.** Complete Phase 1 (parallel review agents) and collect all findings.
+2. **Spawn a sub-agent with the Devil's Advocate instructions.** Use the Agent tool to spawn a sub-agent with:
+   - The full instructions from `agents/devils-advocate.md`.
+   - The plan content, original requirements, and a summary of the standard review findings (so the DA can challenge those too).
+3. **Merge findings from both passes.**
+   - Combine standard review findings with Devil's Advocate findings (prefixed with `[DA]`).
+   - Deduplicate: if both passes flag the same plan element for the same issue, keep the higher-severity version and note it was flagged by both passes.
+   - Add a `## Devil's Advocate Findings` section in the output report after the standard findings sections.
+4. **Update the assessment.** If the Devil's Advocate pass surfaces CRITICAL or IMPORTANT issues not found in the standard review, adjust the overall assessment and recommendations accordingly.
 
 ---
 

@@ -16,9 +16,10 @@ You are acting as a reviewer for a proposed code change. Your goal is to identif
 Parse the `ARGUMENTS` environment variable (or skill arguments) for flags and the PR number:
 
 - `--json` — output structured JSON instead of Markdown (used for inline commenting in CI)
+- `--devils-advocate` — run an additional Devil's Advocate review pass after the standard review (see below)
 - Remaining positional argument — the PR number
 
-Examples: `123`, `--json 123`, `123 --json`
+Examples: `123`, `--json 123`, `123 --json`, `--devils-advocate 123`, `--json --devils-advocate 123`
 
 ## Output Format
 
@@ -196,3 +197,21 @@ When `--json` is specified, output **ONLY** valid JSON. No markdown code fences,
   }
 }
 ```
+
+## Devil's Advocate Mode (`--devils-advocate`)
+
+When the `--devils-advocate` flag is present, run an additional adversarial review pass after the standard review completes. This mode challenges assumptions, stress-tests edge cases, and questions whether the PR's approach is the right one.
+
+### Workflow
+
+1. **Run the standard review first.** Complete the full review as described above and collect all findings.
+2. **Spawn a sub-agent with the Devil's Advocate instructions.** Use the Agent tool to spawn a sub-agent with the following prompt structure:
+   - Include the full contents of `agents/devils-advocate.md` (co-located in this skill's directory) as the sub-agent's instructions.
+   - Pass the PR diff, PR metadata, and the `--json` flag state to the sub-agent so it has full context.
+   - The sub-agent should read and follow `_review-core.md` for shared methodology.
+3. **Merge findings from both passes.**
+   - Combine standard review findings with Devil's Advocate findings (prefixed with `[DA]`).
+   - Deduplicate: if both passes flag the same file and line for the same issue, keep the higher-priority version and note it was flagged by both passes.
+   - In Markdown mode, add a `## Devil's Advocate Findings` section after the standard `## Findings` section.
+   - In JSON mode, merge the Devil's Advocate findings into the `findings` array (the `[DA]` prefix in the title distinguishes them).
+4. **Update the verdict.** If the Devil's Advocate pass surfaces P0 or P1 issues not found in the standard review, adjust the verdict and confidence accordingly.

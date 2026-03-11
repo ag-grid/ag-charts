@@ -157,6 +157,20 @@ Execution Graph:
 
 ---
 
+## Devil's Advocate Findings
+
+### [DA] [Issue Title]
+
+- **Severity:** [Critical/Important/Minor]
+- **Location:** [Task N / Plan section]
+- **Challenge:** [What is being questioned]
+- **Risk:** [Why this matters — what could go wrong]
+- **Recommendation:** [Alternative approach or mitigation]
+
+_{Or "The Devil's Advocate found no substantive issues — this is a strong signal the plan is robust."}_
+
+---
+
 ## Recommendations
 
 ### High Priority (Address Before Implementation)
