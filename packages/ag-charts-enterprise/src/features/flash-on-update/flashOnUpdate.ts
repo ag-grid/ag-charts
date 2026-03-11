@@ -248,10 +248,19 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private flashCategoryBands(categoryPhases: Map<string, FlashAnimationPhase>): void {
+        const animationsSkipped = this.ctx.animationManager.isSkipped();
+
+        if (animationsSkipped) {
+            // Removed categories no longer exist on the new scale and cannot be flashed.
+            for (const [key, phase] of categoryPhases) {
+                if (phase === 'remove') categoryPhases.delete(key);
+            }
+        }
+
         const data = this.createBandFlashData(categoryPhases);
         if (!data) return;
 
-        this.updateSelection(data);
+        this.updateSelection(data, animationsSkipped);
         this.animateBands();
     }
 
@@ -309,11 +318,11 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         return data;
     }
 
-    private updateSelection(data: BandFlashDatum[]): void {
+    private updateSelection(data: BandFlashDatum[], useNewBounds: boolean): void {
         this.bandSelection.update(data);
 
         this.bandSelection.each((rect, datum) => {
-            const b = datum.prevBounds ?? datum.bounds;
+            const b = useNewBounds ? datum.bounds : datum.prevBounds ?? datum.bounds;
             rect.fill = this.color;
             rect.fillOpacity = 0;
             rect.x = b.x;
@@ -348,9 +357,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
         const { opacity } = this;
         const { animationManager } = this.ctx;
-        const timing = this.getCustomTiming();
-        const phaseDuration = _ModuleSupport.PHASE_METADATA[phase].animationDuration;
-        const duration = timing ? timing.duration * phaseDuration : undefined;
+        const timing = this.getCustomTiming(phase);
+        const duration = timing?.duration;
         const ease = timing?.ease;
 
         animationManager.animate({
@@ -375,7 +383,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             },
         });
 
-        if (phase === 'update') {
+        if (phase === 'update' && !animationManager.isSkipped()) {
             animationManager.animate({
                 id: `${this.id}_${phase}_position`,
                 groupId: this.id,
@@ -401,20 +409,32 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         }
     }
 
-    private getCustomTiming(): { duration: number; ease: (t: number) => number } | undefined {
+    private getCustomTiming(
+        phase: _ModuleSupport.AnimationPhase
+    ): { duration: number; ease: (t: number) => number } | undefined {
         const { flashDuration, fadeOutDuration } = this;
         if (flashDuration == null && fadeOutDuration == null) return undefined;
 
-        const { defaultDuration } = this.ctx.animationManager;
+        const { animationManager } = this.ctx;
+        const { defaultDuration } = animationManager;
         const flash = flashDuration ?? 0;
         const fade = fadeOutDuration ?? 0;
         const total = flash + fade;
         if (total <= 0) return undefined;
 
+        let duration: number;
+        if (animationManager.isSkipped()) {
+            // When animations are disabled, use exact millisecond timing (capped at 2x default duration).
+            duration = Math.min(total, MAX_ANIMATION_DURATION_RATIO * defaultDuration) / defaultDuration;
+        } else {
+            // When animations are enabled, scale to fit within the animation phase.
+            const phaseDuration = _ModuleSupport.PHASE_METADATA[phase].animationDuration;
+            duration = Math.min(total / defaultDuration, MAX_ANIMATION_DURATION_RATIO) * phaseDuration;
+        }
+
         const flashProportion = flash / total;
         return {
-            // express total ms as a proportion of the default animation duration, capped at 2x.
-            duration: Math.min(total / defaultDuration, MAX_ANIMATION_DURATION_RATIO),
+            duration,
             ease:
                 // if flash duration exceeds total, hold flash for the entire duration, otherwise hold flash then fade
                 flashProportion >= 1
