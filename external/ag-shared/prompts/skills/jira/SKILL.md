@@ -1,7 +1,19 @@
 ---
 targets: ['*']
 name: jira
-description: 'Create, estimate, and analyse JIRA tickets using Atlassian MCP tools. Creates bug/feature/tech-debt/improvement/docs tickets with structured templates. Estimates ticket complexity, effort (in days), risks, and unknowns. Analyses issues for product/UX solutions with multi-ticket synthesis. Use when the user mentions "create a JIRA", "file a bug", "log a ticket", "estimate this", "size this feature", "how much effort", "break this down", "analyse this issue", or any JIRA workflow task. Does NOT handle simple ticket reads or status checks.'
+description: >-
+  Whenever the user asks to create a JIRA ticket, file a bug, log an issue,
+  write up a ticket, estimate a ticket, size effort, analyse a JIRA issue, do
+  product analysis, or link tickets — ALWAYS invoke this skill first. It provides
+  the AG project's required JIRA configuration: custom field IDs for Track
+  (customfield_10501), component mappings, description templates with
+  numbered-list format, and issue type conventions. Without this skill, ticket
+  creation will fail due to missing required fields. Covers all ticket types:
+  Bug, Task, Feature Request, Improvement, Housekeeping, Doc change. Does NOT
+  cover: reading tickets, checking status, adding comments, transitioning status,
+  searching issues, or assigning tickets — those use Atlassian MCP tools
+  directly. Does NOT cover: analysing source code, estimating code performance,
+  or reviewing pull requests.
 ---
 
 # JIRA Skill
