@@ -982,6 +982,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private clearAll(delayed: boolean = false) {
+        if (this.isState(InteractionState.Frozen)) return;
         this.pickManager.onClearUI();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
@@ -1304,7 +1305,9 @@ export class SeriesAreaManager extends BaseManager {
 
     private refreshSetState(): void {
         if (this.activeState.lastActive === undefined) {
-            this.clearAll();
+            this.pickManager.onClearUI();
+            this.clearHighlight(false);
+            this.clearTooltip(false);
         } else if (this.activeState.lastActive !== 'legend') {
             const { seriesId, itemId } = this.activeState.lastActive;
             const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
