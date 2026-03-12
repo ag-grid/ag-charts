@@ -179,25 +179,6 @@ exports[`NightingaleSeries AG-15782 styler highlights sequenced 1 1`] = `
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "radiusKey": "hw",
-      "seriesId": "NightingaleSeries-2",
-      "stackGroup": undefined,
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 1,
-    },
-  ],
-  [
-    {
-      "angleKey": "quarter",
-      "cornerRadius": 0,
-      "fill": "#fba71b",
-      "fillOpacity": 1,
       "highlightState": "none",
       "lineDash": [
         0,
