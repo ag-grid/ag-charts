@@ -10,7 +10,6 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     ZoomChangeCompleteEvent,
-    ZoomPanStartEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -212,14 +211,14 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
-            chart.ctx.eventsHub.on('dom:resize', (event) => this.onResize(event)),
+            chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
-            chart.ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event))
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -342,22 +341,16 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
-        this.clearUserInteractions();
-    }
-
-    private onResize(_event: null): void {
-        this.clearUserInteractions();
-    }
-
-    private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
-        this.clearUserInteractions();
-        if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
-            this.focus.pendingViewportFocus = 'viewport-start';
+        if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
         }
     }
 
-    private onZoomPanStart(_event: ZoomPanStartEvent): void {
-        this.clearUserInteractions();
+    private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
+        this.clearAll();
+        if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
+            this.focus.pendingViewportFocus = 'viewport-start';
+        }
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
@@ -1001,16 +994,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private clearAll(delayed: boolean = false) {
+        if (this.isState(InteractionState.Frozen)) return;
         this.pickManager.onClearUI();
         this.clearHighlight(delayed);
         this.clearTooltip(delayed); // Pass through the delayed flag
         this.focusIndicator?.clear();
-    }
-
-    private clearUserInteractions(): void {
-        if (this.getHoverDevice() !== 'setState') {
-            this.clearAll();
-        }
     }
 
     private clearStaleHighlightTooltip(): void {
@@ -1329,7 +1317,9 @@ export class SeriesAreaManager extends BaseManager {
 
     private refreshSetState(): void {
         if (this.activeState.lastActive === undefined) {
-            this.clearAll();
+            this.pickManager.onClearUI();
+            this.clearHighlight(false);
+            this.clearTooltip(false);
         } else if (this.activeState.lastActive !== 'legend') {
             const { seriesId, itemId } = this.activeState.lastActive;
             const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
