@@ -101,16 +101,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const {
-            buttons,
-            dropdown,
-            dropdownMenu,
-            enabled,
-            enableOutOfRange,
-            position,
-            toolbar,
-            ctx: { zoomManager },
-        } = this;
+        const { buttons, dropdown, dropdownMenu, enabled, position, toolbar } = this;
 
         if (!enabled) return;
 
@@ -136,18 +127,12 @@ export class Ranges extends AbstractModuleInstance {
         const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
 
-        let index = 0;
-        for (const button of buttons) {
-            let buttonEnabled = button.enabled ?? enableOutOfRange;
-
-            if (button.enabled == null && enableOutOfRange === false) {
-                const updateWithFn = this.getUpdateWithFn(button.value);
-                buttonEnabled =
-                    updateWithFn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn);
+        if (!this.isDropdown) {
+            let index = 0;
+            for (const button of buttons) {
+                toolbar.toggleButtonEnabledByIndex(index, this.getButtonEnabled(button));
+                index++;
             }
-
-            toolbar.toggleButtonEnabledByIndex(index, buttonEnabled);
-            index += 1;
         }
     }
 
@@ -191,6 +176,7 @@ export class Ranges extends AbstractModuleInstance {
         const menuItems = this.buttons.map((button, index) => {
             return {
                 ariaLabel: button.ariaLabel,
+                enabled: this.getButtonEnabled(button),
                 label: button.label ?? `${index}`,
                 value: `${index}`,
                 icon: button.icon,
@@ -250,5 +236,22 @@ export class Ranges extends AbstractModuleInstance {
                 return (d0, d1) => [start ?? d0, d1];
             }
         }
+    }
+
+    private getButtonEnabled(button: RangesButtonProperties) {
+        const {
+            enableOutOfRange,
+            ctx: { zoomManager },
+        } = this;
+
+        let buttonEnabled = button.enabled ?? enableOutOfRange;
+
+        if (button.enabled == null && enableOutOfRange === false) {
+            const updateWithFn = this.getUpdateWithFn(button.value);
+            buttonEnabled =
+                updateWithFn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn);
+        }
+
+        return buttonEnabled;
     }
 }

@@ -16,6 +16,7 @@ export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
 
 export type MenuItem<Value = any> = LabelIcon & {
     value: Value;
+    enabled?: boolean;
     strokeWidth?: number;
 };
 
@@ -48,8 +49,14 @@ export class Menu extends AnchoredPopover {
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>, menu: MenuWidget): MenuRow {
         const active = item.value === options.value;
         const row = this.allocRow(options, item);
+
+        if (item.enabled != null) {
+            row.setEnabled(item.enabled);
+        }
+
         row.addClass('ag-charts-menu__row');
         row.toggleClass(`ag-charts-menu__row--active`, active);
+
         if (typeof item.value === 'string') {
             row.getElement().dataset.popoverId = item.value;
         }

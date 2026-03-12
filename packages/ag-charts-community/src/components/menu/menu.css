@@ -61,6 +61,12 @@
     color: var(--ag-charts-accent-color);
 }
 
+.ag-charts-menu__row[aria-disabled='true'] {
+    background: var(--ag-charts-button-disabled-background-color);
+    color: var(--ag-charts-button-disabled-text-color);
+    cursor: default;
+}
+
 .ag-charts-menu__label {
     grid-column: -1 / span 1;
     text-wrap: nowrap;
