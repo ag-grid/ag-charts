@@ -44,6 +44,10 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         return sep;
     }
 
+    public toggleChildEnabledByIndex(index: number, enabled: boolean): void {
+        this.children.at(index)?.setEnabled(enabled);
+    }
+
     protected override onChildAdded(child: MenuItemWidget): void {
         super.onChildAdded(child);
         child.addListener('mouseenter', this.handleMouseEnter);
