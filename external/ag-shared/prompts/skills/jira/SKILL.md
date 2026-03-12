@@ -72,6 +72,8 @@ All API calls use: `1565837d-d6d1-4228-bcb2-4cb74df700f2`
 
 Format: `[{"value": "Bug"}]` or `[{"id": "10401"}]`
 
+Each ticket has exactly **one** track value. Never set multiple track values on a single ticket.
+
 ### Description Formatting
 
 - Use plain numbered lists: `1. Item` (not `#` wiki markup).

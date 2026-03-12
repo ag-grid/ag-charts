@@ -115,6 +115,8 @@ const options = {
 AgCharts.create(options);
 ```
 
+**No module registration in vanilla JS:** Vanilla JS examples using UMD bundles do NOT call `AgCharts.setupModules()` or `ModuleRegistry.register()`. Module registration is only needed in framework/ESM examples. The UMD bundle automatically registers all included modules.
+
 ### Axes (v13+)
 
 Use the **object-based axes syntax**: `axes: { x: { type: 'time' }, y: { type: 'number' } }`. See `.rulesync/skills/example/ag-charts/chart-construction.md` for full syntax and multiple axes patterns.

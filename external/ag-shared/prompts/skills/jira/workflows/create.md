@@ -12,6 +12,8 @@ Ask the user which type of ticket they need:
 | **Tech-debt** | `"Task"` | `"Housekeeping"` | Refactoring, cleanup, infrastructure |
 | **Docs** | `"Task"` | `"Doc change"` | Documentation updates only |
 
+Each ticket has exactly **one** track value. Never set multiple track values on a single ticket.
+
 ### Improvement Tasks
 
 An "improvement task" is a hybrid: it uses the **bug template** (TC-based format) for the description but is filed as a **Task** with **Improvement** track — not as a Bug.
