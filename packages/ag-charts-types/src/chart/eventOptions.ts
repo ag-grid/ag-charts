@@ -75,7 +75,7 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     /** Datum from the chart or series data array. */
     datum?: TDatum;
     /** The data ID key, if set on chart options. When present, `activeItem.itemId` is a stable identifier. */
-    dataIdKey?: string;
+    dataIdKey?: DatumKey<TDatum>;
 }
 
 export interface AgAnnotationsEvent<TContext = ContextDefault> {

@@ -345,20 +345,12 @@ const updateCallback = async () => {
         switch (method) {
             case 'applyTransaction-remove-first': {
                 const removed = data.shift()!;
-                if (matchingMode === 'id') {
-                    chart.applyTransaction({ remove: [{ id: removed.id } as any] });
-                } else {
-                    chart.applyTransaction({ remove: [removed] });
-                }
+                chart.applyTransaction({ remove: [removed] });
                 break;
             }
             case 'applyTransaction-remove-last': {
                 const removed = data.pop()!;
-                if (matchingMode === 'id') {
-                    chart.applyTransaction({ remove: [{ id: removed.id } as any] });
-                } else {
-                    chart.applyTransaction({ remove: [removed] });
-                }
+                chart.applyTransaction({ remove: [removed] });
                 break;
             }
             case 'updateDelta-remove-first':

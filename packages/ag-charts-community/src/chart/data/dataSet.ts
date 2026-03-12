@@ -50,6 +50,7 @@ interface TransactionCollectionState<T> {
     updatedOriginalIndices: Set<number>;
     virtualLength: number;
     updateTracking?: UpdateIndexTracking;
+    pendingReplacements?: Map<string | number, T>;
 }
 
 interface TransactionEffects<T> {
@@ -60,6 +61,7 @@ interface TransactionEffects<T> {
     removedOriginalIndices: Set<number>;
     updatedOriginalIndices: Set<number>;
     updateTracking?: UpdateIndexTracking;
+    pendingReplacements?: Map<string | number, T>;
 }
 
 /**
@@ -69,9 +71,9 @@ interface TransactionEffects<T> {
 export class DataSet<T = unknown> {
     private pendingTransactions: DataSetTransaction<T>[] = [];
     private cachedChangeDescription: DataChangeDescription | undefined;
+    private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
     private idToIndexCache: Map<string | number, number> | undefined;
-    private pendingReplacements: Map<string | number, T> | undefined;
 
     constructor(
         public data: T[],
@@ -200,19 +202,19 @@ export class DataSet<T = unknown> {
         // Apply pending replacements for ID-based updates using final indices.
         // Only original-data updates populate pendingReplacements (via collectUpdatedOriginalIndicesById);
         // prepend/append/insertion updates are applied in-place during collectUpdatedIndicesFromGroupsById.
-        if (this.pendingReplacements && this.pendingReplacements.size > 0) {
+        if (this.cachedPendingReplacements && this.cachedPendingReplacements.size > 0) {
             const { updatedIndices } = changeDescription.indexMap;
             for (const finalIdx of updatedIndices) {
                 const id = this.getIdValue(this.data[finalIdx]);
-                if (id !== undefined && this.pendingReplacements.has(id)) {
-                    this.data[finalIdx] = this.pendingReplacements.get(id)!;
+                if (id !== undefined && this.cachedPendingReplacements.has(id)) {
+                    this.data[finalIdx] = this.cachedPendingReplacements.get(id)!;
                 }
             }
-            this.pendingReplacements = undefined;
         }
 
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
+        this.cachedPendingReplacements = undefined;
 
         // Maintain index cache incrementally where possible, otherwise invalidate.
         this.updateItemToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
@@ -367,7 +369,7 @@ export class DataSet<T = unknown> {
         const count = this.pendingTransactions.length;
         this.pendingTransactions = [];
         this.cachedChangeDescription = undefined;
-        this.pendingReplacements = undefined;
+        this.cachedPendingReplacements = undefined;
         return count;
     }
 
@@ -380,8 +382,7 @@ export class DataSet<T = unknown> {
         return this.data;
     }
 
-    /** Builds a DataChangeDescription from pending transactions.
-     * Note: when `dataIdKey` is set, this populates `pendingReplacements` as a side-effect. */
+    /** Builds a DataChangeDescription from pending transactions. */
     getChangeDescription(): DataChangeDescription | undefined {
         if (!this.hasPendingTransactions()) {
             return undefined;
@@ -392,7 +393,7 @@ export class DataSet<T = unknown> {
             return this.cachedChangeDescription;
         }
 
-        const { indexMap, prependValues, appendValues, insertionValues } = this.buildIndexMap();
+        const { indexMap, prependValues, appendValues, insertionValues, pendingReplacements } = this.buildIndexMap();
         const changeDescription = new DataChangeDescription(indexMap, {
             prependValues,
             appendValues,
@@ -400,6 +401,7 @@ export class DataSet<T = unknown> {
         });
 
         this.cachedChangeDescription = changeDescription;
+        this.cachedPendingReplacements = pendingReplacements;
         return changeDescription;
     }
 
@@ -438,6 +440,7 @@ export class DataSet<T = unknown> {
         prependValues: T[];
         appendValues: T[];
         insertionValues: T[];
+        pendingReplacements?: Map<string | number, T>;
     } {
         const originalLength = this.data.length;
         const effects = this.collectTransactionEffects();
@@ -492,6 +495,7 @@ export class DataSet<T = unknown> {
             prependValues: survivingPrepends,
             appendValues: survivingAppends,
             insertionValues: survivingInsertions,
+            pendingReplacements: effects.pendingReplacements,
         };
     }
 
@@ -529,6 +533,7 @@ export class DataSet<T = unknown> {
             removedOriginalIndices: state.removedOriginalIndices,
             updatedOriginalIndices: state.updatedOriginalIndices,
             updateTracking: state.updateTracking,
+            pendingReplacements: state.pendingReplacements,
         };
     }
 
@@ -842,7 +847,7 @@ export class DataSet<T = unknown> {
         return updatedIndices;
     }
 
-    /** Collects updated original indices by ID, storing replacements (keyed by ID) for commit. */
+    /** Collects updated original indices by ID, storing replacements (keyed by ID) in state for commit. */
     private collectUpdatedOriginalIndicesById(
         toUpdate: Map<string | number, T>,
         state: TransactionCollectionState<T>
@@ -853,8 +858,8 @@ export class DataSet<T = unknown> {
             const idx = idMap.get(id);
             if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
                 state.updatedOriginalIndices.add(idx);
-                this.pendingReplacements ??= new Map();
-                this.pendingReplacements.set(id, newDatum);
+                state.pendingReplacements ??= new Map();
+                state.pendingReplacements.set(id, newDatum);
                 toUpdate.delete(id);
             }
         }
