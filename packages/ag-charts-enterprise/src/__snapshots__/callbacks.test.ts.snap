@@ -9,6 +9,7 @@ exports[`AG-15850 activeChange area mouse 1`] = `
         "seriesId": "AreaSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatB",
         "myValue": 20,
@@ -32,6 +33,7 @@ exports[`AG-15850 activeChange area mouse 2`] = `
         "seriesId": "AreaSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatD",
         "myValue": 15,
@@ -51,6 +53,7 @@ exports[`AG-15850 activeChange area mouse 3`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -65,6 +68,7 @@ exports[`AG-15850 activeChange area mouse 3`] = `
         "seriesId": "AreaSeries-1",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -80,6 +84,7 @@ exports[`AG-15850 activeChange area mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -99,6 +104,7 @@ exports[`AG-15850 activeChange area setState 1`] = `
         "seriesId": "AreaSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatB",
         "myValue": 20,
@@ -122,6 +128,7 @@ exports[`AG-15850 activeChange area setState 2`] = `
         "seriesId": "AreaSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatD",
         "myValue": 15,
@@ -145,6 +152,7 @@ exports[`AG-15850 activeChange area setState 3`] = `
         "seriesId": "AreaSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -164,6 +172,7 @@ exports[`AG-15850 activeChange bar mouse 1`] = `
         "seriesId": "BarSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -187,6 +196,7 @@ exports[`AG-15850 activeChange bar mouse 2`] = `
         "seriesId": "BarSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatC",
         "myValue": 12,
@@ -206,6 +216,7 @@ exports[`AG-15850 activeChange bar mouse 3`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -220,6 +231,7 @@ exports[`AG-15850 activeChange bar mouse 3`] = `
         "seriesId": "BarSeries-1",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -235,6 +247,7 @@ exports[`AG-15850 activeChange bar mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -254,6 +267,7 @@ exports[`AG-15850 activeChange bar setState 1`] = `
         "seriesId": "BarSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -277,6 +291,7 @@ exports[`AG-15850 activeChange bar setState 2`] = `
         "seriesId": "BarSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatD",
         "myValue": 15,
@@ -300,6 +315,7 @@ exports[`AG-15850 activeChange bar setState 3`] = `
         "seriesId": "BarSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -319,6 +335,7 @@ exports[`AG-15850 activeChange bar tooltip disabled (race condition) hover does 
         "seriesId": "BarSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "iphone": 140,
         "quarter": "Q1'18",
@@ -341,6 +358,7 @@ exports[`AG-15850 activeChange box-plot mouse 1`] = `
         "seriesId": "BoxPlotSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "CatB",
         "plot1max": 148,
@@ -372,6 +390,7 @@ exports[`AG-15850 activeChange box-plot mouse 2`] = `
         "seriesId": "BoxPlotSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "CatC",
         "plot1max": 197,
@@ -399,6 +418,7 @@ exports[`AG-15850 activeChange box-plot mouse 3`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -413,6 +433,7 @@ exports[`AG-15850 activeChange box-plot mouse 3`] = `
         "seriesId": "BoxPlotSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -428,6 +449,7 @@ exports[`AG-15850 activeChange box-plot mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -447,6 +469,7 @@ exports[`AG-15850 activeChange box-plot setState 1`] = `
         "seriesId": "BoxPlotSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "CatB",
         "plot1max": 148,
@@ -478,6 +501,7 @@ exports[`AG-15850 activeChange box-plot setState 2`] = `
         "seriesId": "BoxPlotSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "CatC",
         "plot1max": 197,
@@ -509,6 +533,7 @@ exports[`AG-15850 activeChange box-plot setState 3`] = `
         "seriesId": "BoxPlotSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -528,6 +553,7 @@ exports[`AG-15850 activeChange chord mouse 1`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "A",
         "mySize": 15,
@@ -551,6 +577,7 @@ exports[`AG-15850 activeChange chord mouse 2`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "B",
         "mySize": 25,
@@ -574,6 +601,7 @@ exports[`AG-15850 activeChange chord mouse 3`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -593,6 +621,7 @@ exports[`AG-15850 activeChange chord mouse 4`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -612,6 +641,7 @@ exports[`AG-15850 activeChange chord setState 1`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "A",
         "mySize": 15,
@@ -635,6 +665,7 @@ exports[`AG-15850 activeChange chord setState 2`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "B",
         "mySize": 25,
@@ -658,6 +689,7 @@ exports[`AG-15850 activeChange chord setState 3`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -677,6 +709,7 @@ exports[`AG-15850 activeChange chord setState 4`] = `
         "seriesId": "ChordSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -696,6 +729,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
         "seriesId": "DonutSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "innerSlices": 40000,
         "name": "Slice2",
@@ -719,6 +753,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 2`] = `
         "seriesId": "DonutSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "innerSlices": 60000,
         "name": "Slice3",
@@ -738,6 +773,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 3`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -752,6 +788,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 3`] = `
         "seriesId": "DonutSeries-1",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -767,6 +804,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -786,6 +824,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 1`] = `
         "seriesId": "DonutSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "innerSlices": 5000,
         "name": "Slice0",
@@ -809,6 +848,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 2`] = `
         "seriesId": "DonutSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "innerSlices": 60000,
         "name": "Slice3",
@@ -832,6 +872,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
         "seriesId": "DonutSeries-1",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -851,6 +892,7 @@ exports[`AG-15850 activeChange line broadcast frozen changes 1`] = `
         "seriesId": "LineSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -874,6 +916,7 @@ exports[`AG-15850 activeChange line broadcast frozen changes 2`] = `
         "seriesId": "LineSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -897,6 +940,7 @@ exports[`AG-15850 activeChange line mouse 1`] = `
         "seriesId": "LineSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -920,6 +964,7 @@ exports[`AG-15850 activeChange line mouse 2`] = `
         "seriesId": "LineSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatC",
         "myValue": 12,
@@ -939,6 +984,7 @@ exports[`AG-15850 activeChange line mouse 3`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -953,6 +999,7 @@ exports[`AG-15850 activeChange line mouse 3`] = `
         "seriesId": "LineSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -968,6 +1015,7 @@ exports[`AG-15850 activeChange line mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -987,6 +1035,7 @@ exports[`AG-15850 activeChange line setState 1`] = `
         "seriesId": "LineSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatA",
         "myValue": 10,
@@ -1010,6 +1059,7 @@ exports[`AG-15850 activeChange line setState 2`] = `
         "seriesId": "LineSeries-2",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myCategory": "CatD",
         "myValue": 15,
@@ -1033,6 +1083,7 @@ exports[`AG-15850 activeChange line setState 3`] = `
         "seriesId": "LineSeries-2",
         "type": "legend",
       },
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -1048,6 +1099,7 @@ exports[`AG-15850 activeChange line setState 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -1067,6 +1119,7 @@ exports[`AG-15850 activeChange sankey mouse 1`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "A",
         "mySize": 15,
@@ -1090,6 +1143,7 @@ exports[`AG-15850 activeChange sankey mouse 2`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "B",
         "mySize": 25,
@@ -1113,6 +1167,7 @@ exports[`AG-15850 activeChange sankey mouse 3`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -1132,6 +1187,7 @@ exports[`AG-15850 activeChange sankey mouse 4`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -1151,6 +1207,7 @@ exports[`AG-15850 activeChange sankey setState 1`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "A",
         "mySize": 15,
@@ -1174,6 +1231,7 @@ exports[`AG-15850 activeChange sankey setState 2`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myFrom": "B",
         "mySize": 25,
@@ -1197,6 +1255,7 @@ exports[`AG-15850 activeChange sankey setState 3`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -1216,6 +1275,7 @@ exports[`AG-15850 activeChange sankey setState 4`] = `
         "seriesId": "SankeySeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {},
       "frozen": false,
       "preventDefault": [Function],
@@ -1235,6 +1295,7 @@ exports[`AG-15850 activeChange sunburst mouse 1`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1286,6 +1347,7 @@ exports[`AG-15850 activeChange sunburst mouse 2`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "name": "A2",
         "size": 70,
@@ -1308,6 +1370,7 @@ exports[`AG-15850 activeChange sunburst mouse 3`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1340,6 +1403,7 @@ exports[`AG-15850 activeChange sunburst setState 1`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1391,6 +1455,7 @@ exports[`AG-15850 activeChange sunburst setState 2`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "name": "A2",
         "size": 70,
@@ -1413,6 +1478,7 @@ exports[`AG-15850 activeChange sunburst setState 3`] = `
         "seriesId": "SunburstSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1445,6 +1511,7 @@ exports[`AG-15850 activeChange treemap mouse 1`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1496,6 +1563,7 @@ exports[`AG-15850 activeChange treemap mouse 2`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "name": "A2",
         "size": 70,
@@ -1518,6 +1586,7 @@ exports[`AG-15850 activeChange treemap mouse 3`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1550,6 +1619,7 @@ exports[`AG-15850 activeChange treemap setState 1`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1601,6 +1671,7 @@ exports[`AG-15850 activeChange treemap setState 2`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "name": "A2",
         "size": 70,
@@ -1623,6 +1694,7 @@ exports[`AG-15850 activeChange treemap setState 3`] = `
         "seriesId": "TreemapSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "children": [
           {
@@ -1655,6 +1727,7 @@ exports[`AG-15850 activeChange waterfall mouse 1`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "Positive 2",
         "myY": 145,
@@ -1677,6 +1750,7 @@ exports[`AG-15850 activeChange waterfall mouse 2`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "axisLabel": "Subtotal 1",
         "index": 4,
@@ -1701,6 +1775,7 @@ exports[`AG-15850 activeChange waterfall mouse 3`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "Negative 3",
         "myY": -165,
@@ -1719,6 +1794,7 @@ exports[`AG-15850 activeChange waterfall mouse 4`] = `
   [
     {
       "activeItem": undefined,
+      "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
@@ -1738,6 +1814,7 @@ exports[`AG-15850 activeChange waterfall setState 1`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "Positive 2",
         "myY": 145,
@@ -1760,6 +1837,7 @@ exports[`AG-15850 activeChange waterfall setState 2`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "axisLabel": "Subtotal 1",
         "index": 4,
@@ -1784,6 +1862,7 @@ exports[`AG-15850 activeChange waterfall setState 3`] = `
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
+      "dataIdKey": undefined,
       "datum": {
         "myX": "Negative 3",
         "myY": -165,
