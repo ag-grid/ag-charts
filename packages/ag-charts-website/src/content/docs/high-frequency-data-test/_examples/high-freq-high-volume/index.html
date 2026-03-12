@@ -35,6 +35,10 @@
             <option value="ordinal-time">ordinal-time</option>
             <option value="unit-time">unit-time</option>
         </select>
+        <select id="matchingModeSelect" onchange="setMatchingMode(this.value)">
+            <option value="ref" selected>Matching: ref</option>
+            <option value="id">Matching: dataIdKey</option>
+        </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
         <span id="fpsCounter" style="margin-left: 10px">FPS: 0</span>
         <span id="dataCount" style="margin-left: 10px">Points: 100000</span>

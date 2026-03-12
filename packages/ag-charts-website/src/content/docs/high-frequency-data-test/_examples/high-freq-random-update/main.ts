@@ -54,12 +54,15 @@ let UPDATE_FREQUENCY_MODE: 'raf' | number = 200;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
+type MatchingMode = 'ref' | 'id';
+
 // Unified form configuration
 interface FormConfig {
     seriesType?: SeriesType;
     updatesRunning?: boolean;
     frequency?: string;
     axisType?: AxisType;
+    matchingMode?: MatchingMode;
 }
 
 const DEFAULT_CONFIG: Required<FormConfig> = {
@@ -67,6 +70,7 @@ const DEFAULT_CONFIG: Required<FormConfig> = {
     updatesRunning: false,
     frequency: '200',
     axisType: 'time',
+    matchingMode: 'ref',
 };
 
 let config: FormConfig = { ...DEFAULT_CONFIG };
@@ -99,6 +103,11 @@ function loadConfig(): FormConfig {
             if (axisType && ALL_AXIS_TYPES.includes(axisType as AxisType)) {
                 loaded.axisType = axisType as AxisType;
             }
+
+            const matchingMode = params.get('matchingMode');
+            if (matchingMode === 'ref' || matchingMode === 'id') {
+                loaded.matchingMode = matchingMode;
+            }
         }
     } catch {
         // Ignore parsing errors
@@ -125,6 +134,9 @@ function saveConfig(newConfig: FormConfig) {
             if (newConfig.axisType && newConfig.axisType !== DEFAULT_CONFIG.axisType) {
                 params.set('axisType', newConfig.axisType);
             }
+            if (newConfig.matchingMode && newConfig.matchingMode !== DEFAULT_CONFIG.matchingMode) {
+                params.set('matchingMode', newConfig.matchingMode);
+            }
 
             const newHash = params.toString();
             history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
@@ -145,8 +157,7 @@ function setConfigValue<K extends keyof FormConfig>(key: K, value: FormConfig[K]
 
 let currentSeriesType: SeriesType;
 let currentAxisType: AxisType;
-
-let matchingMode: 'ref' | 'id' = 'ref';
+let matchingMode: MatchingMode;
 
 function generateValueDatum(index: number): ValueDatum {
     const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
@@ -444,6 +455,7 @@ function createAxesConfig(axisType: AxisType) {
 config = loadConfig();
 currentSeriesType = getConfigValue('seriesType') as SeriesType;
 currentAxisType = getConfigValue('axisType') as AxisType;
+matchingMode = getConfigValue('matchingMode') as MatchingMode;
 
 // Initialize frequency from config
 const persistedFrequency = getConfigValue('frequency') as string;
@@ -459,6 +471,7 @@ if (persistedFrequency === 'raf') {
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    dataIdKey: matchingMode === 'id' ? 'id' : undefined,
     data,
     animation: { enabled: false },
     zoom: { enabled: true },
@@ -783,15 +796,24 @@ async function setSeriesType(newSeriesType: SeriesType) {
 }
 
 function setMatchingMode(mode: string) {
+    const newMode = mode as MatchingMode;
+    if (newMode === matchingMode) return;
+
     const wasRunning = isRunning;
     if (wasRunning) stopUpdates();
 
-    matchingMode = mode as 'ref' | 'id';
+    matchingMode = newMode;
+    setConfigValue('matchingMode', matchingMode);
 
     // Recreate chart data with or without dataIdKey
     const seedResult = createSeedData(data.length);
     data = seedResult.data;
     chart.updateDelta({ data, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
+
+    const matchingModeSelect = document.getElementById('matchingModeSelect') as HTMLSelectElement | null;
+    if (matchingModeSelect && matchingModeSelect.value !== matchingMode) {
+        matchingModeSelect.value = matchingMode;
+    }
 
     resetCpuIndicator();
     resetFpsCounter();
@@ -865,6 +887,11 @@ if (axisTypeSelect) {
     axisTypeSelect.value = currentAxisType;
 }
 
+const matchingModeSelectInit = document.getElementById('matchingModeSelect') as HTMLSelectElement | null;
+if (matchingModeSelectInit) {
+    matchingModeSelectInit.value = matchingMode;
+}
+
 // Start updates AFTER config has been loaded and controls initialized
 if (getConfigValue('updatesRunning')) {
     startUpdates();
@@ -896,6 +923,11 @@ window.addEventListener('hashchange', () => {
     const newAxisType = (newConfig.axisType ?? DEFAULT_CONFIG.axisType) as AxisType;
     if (newAxisType !== currentAxisType && !axisTypeUpdateInProgress) {
         void setAxisType(newAxisType);
+    }
+
+    const newMatchingMode = (newConfig.matchingMode ?? DEFAULT_CONFIG.matchingMode) as MatchingMode;
+    if (newMatchingMode !== matchingMode) {
+        setMatchingMode(newMatchingMode);
     }
 
     // Update config object
