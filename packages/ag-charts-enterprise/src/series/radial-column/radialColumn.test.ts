@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
     expectWarningsCalls,
     extractImageData,
@@ -797,6 +798,7 @@ describe('RadialColumnSeries', () => {
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
                     await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
                 }
                 test('1', async () => {
                     await hover(miss);
@@ -808,6 +810,8 @@ describe('RadialColumnSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
