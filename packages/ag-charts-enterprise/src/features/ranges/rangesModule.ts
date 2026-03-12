@@ -10,6 +10,7 @@ import {
     date,
     number,
     or,
+    positiveNumber,
     timeInterval,
     timeIntervalUnit,
     toolbarButtonOptionsDefs,
@@ -34,6 +35,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
         enabled: boolean,
         enableOutOfRange: boolean,
         position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
+        spacing: positiveNumber,
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
@@ -54,6 +56,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
         enabled: false,
         enableOutOfRange: false,
         position: 'top-right',
+        spacing: 10,
         buttons: {
             $shallowSimple: [
                 {
