@@ -930,6 +930,173 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('title text wrap', () => {
+        it('should wrap a long axis title to fit within the axis length', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Be Wrapped Across Multiple Lines',
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            options.width = 300;
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-text-wrap');
+        });
+
+        it('should respect title maxWidth', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Be Wrapped',
+                            maxWidth: 150,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-max-width');
+        });
+
+        it('should respect title maxHeight to truncate wrapped text', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Be Truncated After A Certain Height',
+                            maxWidth: 150,
+                            maxHeight: 30,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-max-height');
+        });
+
+        it('should not wrap title when wrapping is "never"', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Not Be Wrapped',
+                            wrapping: 'never',
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            options.width = 300;
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-wrap-never');
+        });
+
+        it('should wrap title on left axis (vertical)', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Y-Axis Title That Should Be Wrapped',
+                        },
+                    },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            options.height = 300;
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-wrap-vertical');
+        });
+
+        it('should hyphenate title when wrapping is "hyphenate"', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'Electroencephalography Measurements',
+                            wrapping: 'hyphenate',
+                            maxWidth: 100,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-wrap-hyphenate');
+        });
+
+        it('should only wrap on spaces when wrapping is "on-space"', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'Electroencephalography Measurements Over Time',
+                            wrapping: 'on-space',
+                            maxWidth: 100,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare('cartesian-axis-title-wrap-on-space');
+        });
+    });
+
     // CRT-1055: Wrapped (multi-line) labels should NOT trigger tooltips. Only truncated labels
     // (with ellipsis) should show tooltips.
     describe('CRT-1055 wrapped label tooltip', () => {

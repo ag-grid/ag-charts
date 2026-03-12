@@ -41,6 +41,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgAxisBaseIntervalOptions,
+    AgAxisCaptionOptions,
     AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
@@ -216,10 +217,22 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
     width: required(positiveNumber),
 });
 
+export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
+    enabled: boolean,
+    text: textOrSegments,
+    spacing: positiveNumber,
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+    formatter: callbackOf(textOrSegments),
+    ...fontOptionsDef,
+};
+
 export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
+    title: commonAxisCaptionOptionsDefs,
     crossAt: {
         value: required(or(number, date, string, arrayOf(string))),
         sticky: boolean,
@@ -228,13 +241,6 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     maxThicknessRatio: ratio,
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callbackOf(textOrSegments),
-        ...fontOptionsDef,
-    },
 };
 
 // @ts-expect-error undocumented option

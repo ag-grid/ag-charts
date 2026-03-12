@@ -383,7 +383,6 @@ export class Legend extends BaseProperties {
     }
 
     private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
-        if (!this.enabled) return;
         this.data = legendData.filter((datum) => !datum.hideInLegend);
     }
 

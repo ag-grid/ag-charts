@@ -10,6 +10,7 @@ import type {
     FontWeight,
     PixelSize,
     Ratio,
+    TextWrap,
 } from './types';
 
 export interface AgAxisBoundSeries {
@@ -49,6 +50,20 @@ export interface AgAxisCaptionOptions {
     color?: CssColor;
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
+    /** Used to constrain the width of the title before text is wrapped or truncated. */
+    maxWidth?: PixelSize;
+    /** Used to constrain the height of the title before text is truncated. */
+    maxHeight?: PixelSize;
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'always'`
+     */
+    wrapping?: TextWrap;
     /** Formatter to allow dynamic axis title calculation. */
     formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }

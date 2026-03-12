@@ -20,7 +20,7 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     text?: string;
 
     @Property
-    spacing?: number = Caption.SMALL_PADDING;
+    spacing!: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -36,6 +36,12 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
 
     @Property
     color?: string;
+
+    @Property
+    maxWidth?: number;
+
+    @Property
+    maxHeight?: number;
 
     @Property
     wrapping: TextWrap = 'always';
