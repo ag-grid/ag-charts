@@ -1164,6 +1164,10 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
+        // Skip SERIES_UPDATE when neither series has visual highlight effects
+        const lastHighlightEnabled = lastSeries?.isHighlightEnabled() ?? false;
+        if (event.highlightSuppressed && !lastHighlightEnabled) return;
+
         // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
         // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
         // this is unknown, further investigation may be required.
