@@ -413,7 +413,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { previousHighlight, currentHighlight } = event;
 
-        if (currentHighlight?.series === this.cartesianSeries) {
+        if (currentHighlight?.series === this.cartesianSeries && this.cartesianSeries.isHighlightEnabled()) {
             // Highlight this node:
             this.restyleHighlightChange(currentHighlight, this.getHighlightStyle(), true);
         }

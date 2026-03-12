@@ -23,10 +23,6 @@ export class HighlightManager {
     constructor(private readonly eventsHub: EventsHub) {}
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
-        if (highlightedDatum?.series?.isHighlightEnabled() === false) {
-            highlightedDatum = undefined;
-        }
-
         const previousHighlight = this.getActiveHighlight();
 
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {

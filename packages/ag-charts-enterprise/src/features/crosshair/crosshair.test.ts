@@ -382,6 +382,45 @@ describe('Crosshair', () => {
         await compare();
     });
 
+    it('AG-16729 should display crosshair with snap when highlight.enabled is false', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 100 },
+                { x: 'B', y: 200 },
+                { x: 'C', y: 150 },
+                { x: 'D', y: 300 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    highlight: { enabled: false },
+                },
+            ],
+            axes: {
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crosshair: { ...CROSSHAIR_OPTIONS, snap: true },
+                },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crosshair: { ...CROSSHAIR_OPTIONS, snap: true },
+                },
+            },
+            tooltip: { range: 'exact' },
+        };
+
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 300)(chart);
+        await compare();
+    });
+
     it('AG-16613 should handle null category values with crosshair', async () => {
         const options: AgCartesianChartOptions = {
             data: [
