@@ -208,7 +208,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.eventsHub.on('series:keynav-panx', (event) => this.onNavPanX(event)),
             ctx.eventsHub.on('zoom-interaction:zoom:wheel', (event) => this.onWheel(event)),
             ctx.eventsHub.on('zoom-interaction:zoom:axis-mouseenter', (event) => this.onAxisMouseEnter(event)),
-            ctx.eventsHub.on('zoom-interaction:zoom:axis-mouseleave', (event) => this.onAxisMouseLeave(event)),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-mouseleave', () => this.onAxisMouseLeave()),
             ctx.eventsHub.on('zoom-interaction:zoom:axis-drag-start', (event) => this.onAxisDragStart(event.direction)),
             ctx.eventsHub.on('zoom-interaction:zoom:axis-drag-move', (event) =>
                 this.onAxisDragMove(event.axisId, event.direction, event.event)
@@ -445,8 +445,8 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private onAxisMouseLeave(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseleave'>) {
-        this.hoveredAxisId = event.axisId;
+    private onAxisMouseLeave() {
+        this.hoveredAxisId = undefined;
         this.ctx.domManager.updateCursor(CURSOR_ID);
 
         if (!this.enabled || !this.enableAxisDragging) return;

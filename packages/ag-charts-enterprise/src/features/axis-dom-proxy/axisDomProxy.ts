@@ -181,15 +181,13 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
-        const { enabled, enableDoubleClick, hoveredAxisId } = this;
-
-        if (!enabled || !enableDoubleClick) return;
+        if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
 
         // Only continue if we know we have axes that overlap the series area.
         if (!this.hasOverlappingAxes()) return;
 
         // Since the axis has already been hovered, we do not need to pick it.
-        const axis = this.getAxis(hoveredAxisId);
+        const axis = this.getAxis(this.hoveredAxisId);
         if (!axis) return;
 
         this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', {
@@ -200,12 +198,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
-        const { enabled, enableDragging, hoveredAxisId } = this;
-
-        if (!enabled || !enableDragging) return;
+        if (!this.isEnabled() || !this.isEnabledDragging()) return;
 
         // Since the axis has already been hovered, we do not need to pick it.
-        const hoveredAxis = this.getAxis(hoveredAxisId);
+        const hoveredAxis = this.getAxis(this.hoveredAxisId);
         if (!hoveredAxis) return;
 
         // Check if the hovered axis is overlapping the series area, since it may have been set by hovering on the
@@ -226,16 +222,14 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        const { draggingAxisId, enabled, enableDragging } = this;
-
-        if (!enabled || !enableDragging || !draggingAxisId) return;
+        if (!this.isEnabled() || !this.isEnabledDragging() || !this.draggingAxisId) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
         // axis dom element.
-        if (!this.overlappingAxisIds.has(draggingAxisId)) return;
+        if (!this.overlappingAxisIds.has(this.draggingAxisId)) return;
 
         // Since the axis has already been hovered, we do not need to pick it.
-        const draggingAxis = this.getAxis(draggingAxisId);
+        const draggingAxis = this.getAxis(this.draggingAxisId);
         if (!draggingAxis) return;
 
         this.ctx.eventsHub.emit('axis-dom-proxy:drag-move', {
@@ -246,15 +240,13 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragEnd(event: _Widget.DragWidgetEvent<'drag-end'>) {
-        const { draggingAxisId } = this;
-
-        if (!draggingAxisId) return;
+        if (!this.draggingAxisId) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
         // axis dom element.
-        if (!this.overlappingAxisIds.has(draggingAxisId)) return;
+        if (!this.overlappingAxisIds.has(this.draggingAxisId)) return;
 
-        const draggingAxis = this.getAxis(draggingAxisId);
+        const draggingAxis = this.getAxis(this.draggingAxisId);
         if (!draggingAxis) return;
 
         this.draggingAxisId = undefined;
@@ -286,11 +278,9 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private updateOverlappingAxisPointerEvents() {
-        const { enableDragging, enableScrolling } = this;
-
         this.overlappingAxisIds.clear();
 
-        const shouldEnableInteraction = (enableDragging || enableScrolling) && this.seriesRect;
+        const shouldEnableInteraction = (this.isEnabledDragging() || this.isEnabledScrolling()) && this.seriesRect;
 
         for (const axis of this.axes) {
             if (!shouldEnableInteraction) {
