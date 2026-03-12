@@ -18,10 +18,10 @@ type ProxyAxis = {
  * effects of these interactions, those are expected to be handled by other modules.
  */
 export class AxisDOMProxy extends AbstractModuleInstance {
-    private enabled = new Map<string, boolean>();
-    private enableDoubleClick = new Map<string, boolean>();
-    private enableDragging = new Map<string, boolean>();
-    private enableScrolling = new Map<string, boolean>();
+    private readonly enabled = new Map<string, boolean>();
+    private readonly enableDoubleClick = new Map<string, boolean>();
+    private readonly enableDragging = new Map<string, boolean>();
+    private readonly enableScrolling = new Map<string, boolean>();
 
     private axes: ProxyAxis[] = [];
 

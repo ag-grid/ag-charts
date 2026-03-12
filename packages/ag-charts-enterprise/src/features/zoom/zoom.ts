@@ -410,7 +410,7 @@ export class Zoom extends AbstractModuleInstance {
 
         const zoom = this.getZoom();
 
-        let cursor: BaseStyleTypeMap['cursor'] = 'default';
+        let cursor: BaseStyleTypeMap['cursor'];
         let showCursor = false;
 
         if (event.direction === ChartAxisDirection.X) {
