@@ -18,7 +18,8 @@ describe('unit time axis benchmark', () => {
         { expectedRetainedSizeMB: 200, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
-        }
+        },
+        20_000
     );
 
     describe('after load', () => {

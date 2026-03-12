@@ -388,4 +388,90 @@ describe('Polar Axes', () => {
         chart = AgCharts.create(options);
         await compare();
     });
+
+    describe('radius axis title text wrap', () => {
+        it('should wrap a long radius axis title', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                width: 300,
+                height: 300,
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: {
+                        type: 'radius-number',
+                        title: {
+                            text: 'This Is A Very Long Radius Axis Title That Should Be Wrapped Across Multiple Lines',
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should respect radius axis title maxWidth', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: {
+                        type: 'radius-number',
+                        title: {
+                            text: 'This Is A Very Long Radius Axis Title That Should Be Wrapped',
+                            maxWidth: 80,
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should respect radius axis title maxHeight', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: {
+                        type: 'radius-number',
+                        title: {
+                            text: 'This Is A Very Long Radius Axis Title That Should Be Truncated After A Certain Height',
+                            maxWidth: 80,
+                            maxHeight: 25,
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should not wrap radius axis title when wrapping is "never"', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                width: 300,
+                height: 300,
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: {
+                        type: 'radius-number',
+                        title: {
+                            text: 'This Is A Very Long Radius Axis Title That Should Not Be Wrapped',
+                            wrapping: 'never',
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

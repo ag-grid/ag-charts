@@ -199,8 +199,9 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }) {
+    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }, customTheme?: object) {
         return mergeDefaults(
+            customTheme,
             title && {
                 title: {
                     enabled: false,
@@ -484,8 +485,14 @@ export class ChartTheme {
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ title: false, time: false }),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ title: false, time: false }),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
+            { title: true, time: false },
+            { title: { spacing: 10 } }
+        ),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
+            { title: true, time: false },
+            { title: { spacing: 10 } }
+        ),
     };
 
     constructor(options: AgChartTheme = {}) {

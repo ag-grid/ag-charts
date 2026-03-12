@@ -544,7 +544,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected titleBBox(domain: D[], spacing: number) {
         const { tempCaption } = this;
+        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
+        tempCaption.computeTextWrap(axisLength, this.thickness ?? Infinity);
         return tempCaption.node.getBBox();
     }
 
@@ -557,7 +559,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         scrollbar: ScrollbarLayout | undefined,
         labelThickness: number
     ): (ScrollbarLayout & { offset: number }) | undefined {
-        if (!scrollbar) return undefined;
+        if (!scrollbar) return;
 
         const { position } = this;
         const direction = position === 'top' || position === 'left' ? -1 : 1;
@@ -699,15 +701,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.fontStyle = title.fontStyle;
         caption.fontWeight = title.fontWeight;
         caption.wrapping = title.wrapping;
-
-        const padding = (title.spacing ?? 0) + spacing;
+        caption.maxWidth = title.maxWidth;
+        caption.maxHeight = title.maxHeight;
 
         const { range } = this;
         const midOffset = (range[0] + range[1]) / 2;
+        const padding = title.spacing + spacing;
+
         let x: number;
         let y: number;
         let rotation: number;
         let textBaseline: CanvasTextBaseline;
+
         switch (this.position) {
             case 'top':
                 x = midOffset;
@@ -838,6 +843,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.node.text = titleProps.text;
         caption.node.textBaseline = titleProps.textBaseline;
         caption.node.datum = titleProps;
+
+        if (titleProps.visible) {
+            const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
+            caption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+        }
     }
 
     protected updateLabels() {
