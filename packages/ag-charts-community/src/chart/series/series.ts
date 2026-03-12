@@ -501,6 +501,7 @@ export abstract class Series<
 
     protected hasHighlightOpacity() {
         if (!this.properties.highlight.enabled) return false;
+        if (this.ctx.highlightManager.getActiveHighlight()?.series?.isHighlightEnabled() === false) return false;
         if (this.ctx.highlightManager.getActiveHighlight() == null) return false;
 
         const { unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
@@ -740,6 +741,10 @@ export abstract class Series<
             return HighlightState.None;
         }
 
+        if (highlightedDatum.series.isHighlightEnabled() === false) {
+            return HighlightState.None;
+        }
+
         if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
             const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
             if (itemHighlighted == null) {
@@ -851,8 +856,6 @@ export abstract class Series<
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
-        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
-        if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
