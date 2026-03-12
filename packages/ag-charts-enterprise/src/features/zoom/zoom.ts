@@ -443,8 +443,6 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             this.ctx.domManager.updateCursor(CURSOR_ID);
         }
-
-        // console.log('Zoom.onAxisMouseEnter()', event.axisId, showCursor, cursor);
     }
 
     private onAxisMouseLeave(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseleave'>) {
@@ -452,8 +450,6 @@ export class Zoom extends AbstractModuleInstance {
         this.ctx.domManager.updateCursor(CURSOR_ID);
 
         if (!this.enabled || !this.enableAxisDragging) return;
-
-        // event.stopProcessing();
     }
 
     private onAxisDoubleClick(id: AxisID) {
