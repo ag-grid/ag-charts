@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
 test.describe('fonts', () => {
     setupIntrinsicAssertions(test);
@@ -10,6 +10,8 @@ test.describe('fonts', () => {
         test.describe(`for ${framework}`, () => {
             test('google fonts', async ({ page }) => {
                 await gotoExample(page, url);
+                await page.evaluate(() => document.fonts.ready);
+                await waitForAllChartUpdates(page);
 
                 const { canvas } = await locateCanvas(page);
                 await expect(canvas).toHaveScreenshot('google-fonts.png');

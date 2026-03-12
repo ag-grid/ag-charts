@@ -758,6 +758,7 @@ describe('NightingaleSeries', () => {
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
                     await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
                 }
                 test('1', async () => {
                     await hover(miss);
