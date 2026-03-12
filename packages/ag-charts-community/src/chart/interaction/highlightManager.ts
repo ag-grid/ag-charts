@@ -61,10 +61,12 @@ export class HighlightManager {
         const currentHighlight = this.getActiveHighlight();
 
         if (!this.isEqual(currentHighlight, previousHighlight)) {
+            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
+                highlightSuppressed,
             });
         }
     }
@@ -87,10 +89,12 @@ export class HighlightManager {
 
         // Only emit if something actually changed
         if (!this.isEqual(currentHighlight, previousHighlight)) {
+            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
+                highlightSuppressed,
             });
         }
     }
