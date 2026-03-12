@@ -147,7 +147,19 @@ export class SeriesAreaManager extends BaseManager {
      *   -   For keyboard users, `mousemove` events update the tooltip/highlight iff `pickNode` finds a match
      *       for the mouse event offsets.
      */
-    private hoverDevice: HoverDevice = 'pointer';
+    private _device: HoverDevice = 'pointer';
+
+    private setHoverDevice(desiredDevice: HoverDevice): void {
+        // Keyboard and Pointer interactions are still permitted on Frozen charts. However, we shouldn't update the
+        // hoverDevice when we receive Keyboard/Pointer events, because we should still be honouring the `setState`
+        // requested active highlight/tooltip.
+        if (desiredDevice === 'setState' || !this.isState(InteractionState.Frozen)) {
+            this._device = desiredDevice;
+        }
+    }
+    private getHoverDevice(): HoverDevice {
+        return this._device;
+    }
 
     private readonly pickManager: PickManager;
 
@@ -241,7 +253,7 @@ export class SeriesAreaManager extends BaseManager {
             this.clearHighlight();
         }
 
-        if (this.hoverDevice !== 'setState') {
+        if (this.getHoverDevice() !== 'setState') {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
             this.focusIndicator?.clear();
         }
@@ -259,7 +271,7 @@ export class SeriesAreaManager extends BaseManager {
             this.handleHoverTooltip(this.tooltip.lastHover, true);
         }
 
-        if (this.hoverDevice === 'setState') {
+        if (this.getHoverDevice() === 'setState') {
             this.refreshSetState();
         }
     }
@@ -274,7 +286,7 @@ export class SeriesAreaManager extends BaseManager {
             // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
         } else if (
             this.isState(InteractionState.Focusable) &&
-            this.hoverDevice !== 'pointer' &&
+            this.getHoverDevice() !== 'pointer' &&
             this.focusIndicator?.isFocusVisible()
         ) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
@@ -329,7 +341,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
-        if (this.hoverDevice !== 'setState') {
+        if (this.getHoverDevice() !== 'setState') {
             this.clearAll();
         }
     }
@@ -415,13 +427,13 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.chart.ctx.domManager.updateCursor(this.id);
-        if (this.hoverDevice !== 'keyboard') this.clearAll(true); // true = delayed
+        if (this.getHoverDevice() !== 'keyboard') this.clearAll(true); // true = delayed
     }
 
     private onWheel(_event: WheelWidgetEvent): void {
         if (!this.isState(InteractionState.Hoverable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
-        this.hoverDevice = 'pointer';
+        this.setHoverDevice('pointer');
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
@@ -447,7 +459,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.tooltip.lastHover = event;
 
-        this.hoverDevice = 'pointer';
+        this.setHoverDevice('pointer');
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -557,13 +569,13 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
-        this.hoverDevice = this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer';
+        this.setHoverDevice(this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer');
         this.refreshFocus();
     }
 
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
-        this.hoverDevice = 'pointer';
+        this.setHoverDevice('pointer');
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
@@ -575,7 +587,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         if (action?.activatesFocusIndicator === false) {
-            this.focusIndicator?.overrideFocusVisible(this.hoverDevice === 'keyboard');
+            this.focusIndicator?.overrideFocusVisible(this.getHoverDevice() === 'keyboard');
         }
 
         switch (action?.name) {
@@ -620,7 +632,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
         if (!this.isState(InteractionState.Focusable)) return false;
-        this.hoverDevice = 'keyboard';
+        this.setHoverDevice('keyboard');
         this.focusIndicator?.overrideFocusVisible(true);
         event.sourceEvent.preventDefault();
         return true;
@@ -897,7 +909,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
-        if (keyboardEvent != null && this.hoverDevice === 'keyboard') {
+        if (keyboardEvent != null && this.getHoverDevice() === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
             // came from the keyboard so that's what we should honour.
             this.clearCachedEvents();
@@ -991,7 +1003,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private clearStaleHighlightTooltip(): void {
         // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
-        if (this.hoverDevice === 'setState') {
+        if (this.getHoverDevice() === 'setState') {
             this.clearCachedEvents();
             this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
             this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
@@ -1007,7 +1019,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private createHoverScheduler() {
         return debouncedAnimationFrame(this.chart.ctx.domManager.getDocument(), () => {
-            if (this.hoverDevice === 'setState') {
+            if (this.getHoverDevice() === 'setState') {
                 return this.handleHoverFromState();
             }
 
@@ -1097,7 +1109,7 @@ export class SeriesAreaManager extends BaseManager {
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
-            if (this.hoverDevice == 'pointer') this.clearTooltip();
+            if (this.getHoverDevice() == 'pointer') this.clearTooltip();
             return;
         }
 
@@ -1114,7 +1126,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { active, paginationState } = this.pickManager.onPickedNodesTooltip(pick);
         if (active === undefined) {
-            if (this.hoverDevice == 'pointer') {
+            if (this.getHoverDevice() == 'pointer') {
                 this.clearTooltip(true); // true = delayed
             }
         } else {
@@ -1168,7 +1180,7 @@ export class SeriesAreaManager extends BaseManager {
         // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
         // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
         // this is unknown, further investigation may be required.
-        if (this.hoverDevice === 'setState' || newSeries == null || lastSeries == null) {
+        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
@@ -1297,7 +1309,7 @@ export class SeriesAreaManager extends BaseManager {
 
     public onActiveClear() {
         this.pickManager.onClearAPI();
-        this.hoverDevice = 'setState';
+        this.setHoverDevice('setState');
         this.activeState.lastActive = undefined;
         this.clearHighlight();
         this.clearTooltip();
@@ -1327,7 +1339,7 @@ export class SeriesAreaManager extends BaseManager {
         } else {
             const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
             event.setDatum(picked);
-            this.hoverDevice = 'setState';
+            this.setHoverDevice('setState');
             this.activeState.lastActive = { seriesId, itemId };
             if (event.initialState) {
                 // Tooltip positioning relies on call `getBoundingClientRect()` on the `<canvas>`, whose size is not
