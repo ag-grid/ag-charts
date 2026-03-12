@@ -3,6 +3,7 @@ targets: ['*']
 name: plan-implementation-review
 description: 'Review plan execution completeness and identify delivery gaps'
 invocable: user-only
+context: fork
 ---
 
 # Plan Implementation Review Prompt

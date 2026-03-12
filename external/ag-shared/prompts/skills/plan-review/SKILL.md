@@ -3,6 +3,7 @@ targets: ['*']
 name: plan-review
 description: 'Review plans for completeness, correctness, and verifiability'
 invocable: user-only
+context: fork
 ---
 
 # Plan Review Prompt

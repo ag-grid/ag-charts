@@ -3,6 +3,7 @@ targets: ['*']
 name: sync-ag-shared
 description: 'Sync ag-shared subrepo changes across ag-charts, ag-grid, and ag-studio repos'
 invocable: user-only
+context: fork
 ---
 
 # Sync ag-shared Subrepo Across AG Repos

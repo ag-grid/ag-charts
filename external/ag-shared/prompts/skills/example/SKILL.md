@@ -9,6 +9,7 @@ description: >-
   renderers with heading rules. Also load when troubleshooting example issues
   (empty tooltips, TypeScript errors, wrong axis format) or asking about
   example file structure and patterns.
+context: fork
 ---
 # Example Construction
 
@@ -47,6 +48,8 @@ Determine which product guide to load:
 | `quality-rules.md` | Styling rules, formatters, deprecated APIs | Always when editing examples |
 | `enterprise-features.md` | Enterprise vs community matrix | When deciding imports/CDN |
 | `validation.md` | Build and validate commands | Before committing |
+| `examples-guide.md` | Repo paths, guidelines, validation, Plnkr integration | When working with example infrastructure |
+| `framework-patterns.md` | Framework transformation technical reference | When debugging framework generation issues |
 
 ### Progressive Feature Modules (AG Charts)
 

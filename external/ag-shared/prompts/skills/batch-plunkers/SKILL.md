@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: batch-plunkers
-description: 'Create a batch of Plunkers with one sub-agent per Plunker'
+description: 'Create multiple Plunkers in parallel using sub-agents — one sub-agent per Plunker. Use this skill when the user asks to create multiple plunkers, batch create plunkers, create plunkers for all examples or acceptance criteria, build several plunker demos at once, or generate a set of plunks from a JIRA ticket. Also trigger when the user provides a spec table of plunker assignments, says "create N plunkers", asks for "plunkers for each AC", or wants to batch create shareable demos or repros. Each sub-agent follows the /plunker skill workflow while the main thread orchestrates and collects results.'
 context: fork
 ---
 

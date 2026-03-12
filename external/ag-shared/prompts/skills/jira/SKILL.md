@@ -14,6 +14,7 @@ description: >-
   searching issues, or assigning tickets — those use Atlassian MCP tools
   directly. Does NOT cover: analysing source code, estimating code performance,
   or reviewing pull requests.
+context: fork
 ---
 
 # JIRA Skill
