@@ -6,11 +6,13 @@ Ask the user which type of ticket they need:
 
 | Type | Issue Type | Track Value | Use When |
 |------|-----------|-------------|----------|
-| **Bug** | `"Bug"` | `"Bug"` | Something is broken or behaving incorrectly |
+| **Bug** | `"Bug"` | `"Bug"` | Customer-reported bug |
 | **Feature** | `"Task"` | `"Feature Request"` | New capability requested |
-| **Improvement** | `"Task"` | `"Improvement"` | Enhancement to existing feature |
+| **Improvement** | `"Task"` | `"Improvement"` | Internally reported bug |
 | **Tech-debt** | `"Task"` | `"Housekeeping"` | Refactoring, cleanup, infrastructure |
 | **Docs** | `"Task"` | `"Doc change"` | Documentation updates only |
+
+Each ticket has exactly **one** track value. Never set multiple track values on a single ticket.
 
 ### Improvement Tasks
 
@@ -27,15 +29,15 @@ Based on ticket type, read the relevant template (in the `templates/` subdirecto
 
 ## Step 2: Gather Information
 
-**For Bug tickets, collect:**
+**For Bug and Improvement tickets, collect:**
 
 - [ ] Reproduction URL (Plunker, CodeSandbox, etc.).
 - [ ] Steps to reproduce (numbered list).
 - [ ] Actual vs Expected behaviour.
-- [ ] Affected versions (test from end-user perspective in browser — see product file).
+- [ ] Affected versions (test from end-user perspective in browser — see product file; required for Bug, optional for Improvement).
 - [ ] Root cause analysis (if known).
 
-**For Feature/Improvement tickets, collect:**
+**For Feature tickets, collect:**
 
 - [ ] Requirements statement (what, not how).
 - [ ] Current behaviour and problem.
@@ -69,7 +71,7 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
 }
 ```
 
-**For bug tickets, also include:**
+**For Bug and Improvement tickets, also include:**
 
 ```json
 {
@@ -114,7 +116,8 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 - [ ] All required fields populated.
 - [ ] Summary starts with correct product prefix.
 - [ ] Track field set correctly.
-- [ ] For bugs: Affects Version included.
+- [ ] For Bug and Improvement tickets: Affects Version included.
+- [ ] For Bug and Improvement tickets: Bug template used (reproduction steps, actual/expected).
 - [ ] URLs pasted as raw URLs (not markdown links).
 
 ## Critical Rules
@@ -124,3 +127,4 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 3. **End numbered items with periods** — JIRA formatting requirement.
 4. **No comments** — Put all information in the description.
 5. **No rationale in feature requests** — State **what** and acceptance criteria, not **why**.
+6. **Improvement = internally reported bug** — Always use the bug template for Improvement tickets, not the feature/task template.
