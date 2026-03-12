@@ -344,10 +344,11 @@ export class DataSet<T = unknown> {
             }
         }
 
-        // Add entries for prepended items.
-        for (let i = 0; i < prependedValues.length; i++) {
+        // Add entries for prepended items (reverse to preserve "first occurrence" rule).
+        // Prepended items have lower indices than shifted originals, so must override existing mappings.
+        for (let i = prependedValues.length - 1; i >= 0; i--) {
             const id = this.getIdValue(prependedValues[i]);
-            if (id !== undefined && !idCache.has(id)) {
+            if (id !== undefined) {
                 idCache.set(id, i);
             }
         }

@@ -2055,5 +2055,28 @@ describe('DataSet', () => {
             expect(dataSet.data).toEqual([a, b, newD]);
             expect(dataSet.data[2]).toBe(newD);
         });
+
+        test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+
+            // Warm the ID cache with an update
+            const newC: Item = { id: 'c', value: 30 };
+            dataSet.addTransaction({ update: [newC] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([a, b, newC]);
+
+            // Prepend a duplicate 'a' — the prepended copy should become the "first occurrence"
+            const prependedA: Item = { id: 'a', value: 100 };
+            dataSet.addTransaction({ prepend: [prependedA] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data).toEqual([prependedA, a, b, newC]);
+
+            // Update by ID 'a' should target index 0 (the prepended first occurrence)
+            const updatedA: Item = { id: 'a', value: 200 };
+            dataSet.addTransaction({ update: [updatedA] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data[0]).toBe(updatedA);
+            expect(dataSet.data[1]).toEqual(a); // original 'a' untouched
+        });
     });
 });
