@@ -14,8 +14,82 @@ type Datum = {
     volume: number;
 };
 
+type MatchingMode = 'ref' | 'id';
+
+const ALL_METHODS = [
+    'applyTransaction-append',
+    'applyTransaction-prepend',
+    'applyTransaction-remove-first',
+    'applyTransaction-remove-last',
+    'updateDelta-append',
+    'updateDelta-prepend',
+    'updateDelta-remove-first',
+    'updateDelta-remove-last',
+];
+
+interface FormConfig {
+    matchingMode?: MatchingMode;
+    method?: string;
+}
+
+const DEFAULT_CONFIG: Required<FormConfig> = {
+    matchingMode: 'ref',
+    method: 'applyTransaction-append',
+};
+
+let config: FormConfig = { ...DEFAULT_CONFIG };
+
+function loadConfig(): FormConfig {
+    const loaded: FormConfig = {};
+    try {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+            const params = new URLSearchParams(hash);
+
+            const matchingMode = params.get('matchingMode');
+            if (matchingMode === 'ref' || matchingMode === 'id') {
+                loaded.matchingMode = matchingMode;
+            }
+
+            const method = params.get('method');
+            if (method && ALL_METHODS.includes(method)) {
+                loaded.method = method;
+            }
+        }
+    } catch {
+        // Ignore parsing errors
+    }
+
+    return { ...DEFAULT_CONFIG, ...loaded };
+}
+
+function saveConfig(newConfig: FormConfig) {
+    try {
+        if (window.parent === window) {
+            const params = new URLSearchParams();
+
+            if (newConfig.matchingMode && newConfig.matchingMode !== DEFAULT_CONFIG.matchingMode) {
+                params.set('matchingMode', newConfig.matchingMode);
+            }
+            if (newConfig.method && newConfig.method !== DEFAULT_CONFIG.method) {
+                params.set('method', newConfig.method);
+            }
+
+            const newHash = params.toString();
+            history.replaceState(null, '', newHash ? `#${newHash}` : window.location.pathname);
+        }
+    } catch {
+        // Ignore hash update errors
+    }
+}
+
+function setConfigValue<K extends keyof FormConfig>(key: K, value: FormConfig[K]) {
+    config[key] = value;
+    saveConfig(config);
+}
+
 let nextId = 0;
-let matchingMode: 'ref' | 'id' = 'ref';
+let matchingMode: MatchingMode;
 
 function createLiveDatumFactory(getData: () => Datum[], mode = 'append') {
     return () => {
@@ -124,6 +198,10 @@ class RapidDataFeed {
     }
 }
 
+// Load config first
+config = loadConfig();
+matchingMode = config.matchingMode ?? DEFAULT_CONFIG.matchingMode;
+
 /* @ag-options-extract */
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)): Datum[] {
@@ -149,6 +227,7 @@ function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)): Datum[] {
 const initialData = createSeedData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    dataIdKey: matchingMode === 'id' ? 'id' : undefined,
     data: initialData,
     animation: { enabled: false },
     legend: { enabled: false },
@@ -182,16 +261,25 @@ const appendDatumFactory = createLiveDatumFactory(() => data, 'append');
 const prependDatumFactory = createLiveDatumFactory(() => data, 'prepend');
 
 function setMatchingMode(mode: string) {
+    const newMode = mode as MatchingMode;
+    if (newMode === matchingMode) return;
+
     const wasRunning = feed.running;
     if (wasRunning) toggleFeed();
 
-    matchingMode = mode as 'ref' | 'id';
+    matchingMode = newMode;
+    setConfigValue('matchingMode', matchingMode);
 
     // Recreate chart data with or without dataIdKey
     nextId = 0;
     const newData = createSeedData();
     data = [...newData];
     chart.updateDelta({ data: newData, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
+
+    const matchingModeSelect = document.getElementById('matchingModeSelect') as HTMLSelectElement | null;
+    if (matchingModeSelect && matchingModeSelect.value !== matchingMode) {
+        matchingModeSelect.value = matchingMode;
+    }
 
     if (wasRunning) toggleFeed();
 }
@@ -231,7 +319,7 @@ function tickFeed() {
     feed.tick();
 }
 
-let method = 'applyTransaction-append';
+let method = config.method ?? DEFAULT_CONFIG.method;
 let cpuUsageHistory: number[] = [];
 let updateCount = 0;
 let updateCountStartTime = performance.now();
@@ -239,7 +327,7 @@ let updateRateHistory: number[] = [];
 
 function use(newMethod: string) {
     method = newMethod;
-    console.log(method);
+    setConfigValue('method', method);
 }
 
 const updateCallback = async () => {
@@ -358,3 +446,34 @@ const updateCallback = async () => {
 
 const feed = new RealTimeDataFeed(updateCallback);
 const rapidFeed = new RapidDataFeed(updateCallback);
+
+// Initialize form controls from config
+const methodSelect = document.getElementById('methodSelect') as HTMLSelectElement | null;
+if (methodSelect) {
+    methodSelect.value = method;
+}
+
+const matchingModeSelectInit = document.getElementById('matchingModeSelect') as HTMLSelectElement | null;
+if (matchingModeSelectInit) {
+    matchingModeSelectInit.value = matchingMode;
+}
+
+// Listen for hash changes
+window.addEventListener('hashchange', () => {
+    const newConfig = loadConfig();
+
+    const newMatchingMode = newConfig.matchingMode ?? DEFAULT_CONFIG.matchingMode;
+    if (newMatchingMode !== matchingMode) {
+        setMatchingMode(newMatchingMode);
+    }
+
+    const newMethod = newConfig.method ?? DEFAULT_CONFIG.method;
+    if (newMethod !== method) {
+        method = newMethod;
+        if (methodSelect && methodSelect.value !== method) {
+            methodSelect.value = method;
+        }
+    }
+
+    config = newConfig;
+});
