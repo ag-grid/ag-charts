@@ -501,8 +501,9 @@ export abstract class Series<
 
     protected hasHighlightOpacity() {
         if (!this.properties.highlight.enabled) return false;
-        if (this.ctx.highlightManager.getActiveHighlight()?.series?.isHighlightEnabled() === false) return false;
-        if (this.ctx.highlightManager.getActiveHighlight() == null) return false;
+        const activeHighlight = this.ctx.highlightManager.getActiveHighlight();
+        if (activeHighlight == null) return false;
+        if (activeHighlight.series?.isHighlightEnabled() === false) return false;
 
         const { unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
