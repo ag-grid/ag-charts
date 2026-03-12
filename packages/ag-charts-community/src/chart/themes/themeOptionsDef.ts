@@ -216,6 +216,8 @@ const scrollbarVerticalOrientationOptionsDef: OptionsDefs<AgScrollbarVerticalOri
 
 export const scrollbarOptionsDef: OptionsDefs<AgScrollbarOptions> = {
     enabled: boolean,
+    enableAxisScrolling: boolean,
+    enableSeriesAreaScrolling: boolean,
     thickness: positiveNumber,
     spacing: positiveNumber,
     tickSpacing: positiveNumber,

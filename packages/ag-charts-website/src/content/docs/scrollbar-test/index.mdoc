@@ -1,0 +1,22 @@
+---
+title: 'Scrollbar Test'
+---
+
+## Scrollbar wheel
+
+1. Hold `shift` and scroll the mouse wheel on the series area.
+2. Hold `shift` and scroll the mouse wheel on the x-axis.
+3. Hold `shift` and scroll the mouse wheel on the x-axis scrollbar track and thumb.
+
+{% chartExampleRunner title="Scrollbar" name="scrollbar-wheel" type="generated" /%}
+
+## Scrollbar with crossAt
+
+1. Cursor should change to `ns-resize` when hovering over the y-axis
+2. Cursor should revert to `default` when hovering over the series marker that overlaps the y-axis.
+3. Drag the y-axis to zoom in.
+4. Drag the series area to pan, cursor should change to `grabbing`.
+5. Drag the y-axis scrollbar to pan, cursor should remain as `default`.
+6. Confirm cursors are still correct in steps 1. and 2.
+
+{% chartExampleRunner title="Scrollbar with crossAt" name="scrollbar-cross-at" type="generated" /%}

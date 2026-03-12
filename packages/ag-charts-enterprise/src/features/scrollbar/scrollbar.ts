@@ -4,10 +4,14 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     Property,
+    UNIT_MAX,
+    UNIT_MIN,
     ZIndexMap,
     clamp,
+    definedZoomState,
 } from 'ag-charts-core';
 
+import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
 import {
     HorizontalScrollbarProperties,
@@ -34,9 +38,18 @@ interface ScrollbarOrientationState {
     hovered: boolean;
 }
 
+const SCROLLING_STEP = 0.1;
+const SCROLLING_MODE = 'pan';
+
 export class Scrollbar extends AbstractModuleInstance {
     @Property
-    public enabled?: boolean;
+    public enabled: boolean = false;
+
+    @Property
+    public enableAxisScrolling: boolean = false;
+
+    @Property
+    public enableSeriesAreaScrolling: boolean = false;
 
     @Property
     public thickness?: number;
@@ -68,6 +81,8 @@ export class Scrollbar extends AbstractModuleInstance {
     private readonly state: Record<ScrollbarOrientation, ScrollbarOrientationState>;
     private seriesRect?: _ModuleSupport.BBox;
 
+    private readonly scrollPanner = new ZoomScrollPanner();
+
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -81,7 +96,9 @@ export class Scrollbar extends AbstractModuleInstance {
             ctx.scene.attachNode(this.state.vertical.group),
             ctx.layoutManager.registerElement(LayoutElement.Scrollbar, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('zoom:change-complete', () => this.updateThumbs())
+            ctx.eventsHub.on('zoom:change-complete', () => this.updateThumbs()),
+            ctx.eventsHub.on('zoom-interaction:scrollbar:wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('zoom-interaction:scrollbar:axis-wheel', (event) => this.onAxisWheel(event))
         );
     }
 
@@ -192,6 +209,14 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: 'scrollbar',
+            enabled: this.enabled,
+            enableDoubleClick: false,
+            enableDragging: false,
+            enableScrolling: this.enableAxisScrolling,
+        });
+
         this.seriesRect = event.series.rect;
 
         for (const orientation of ['horizontal', 'vertical'] as const) {
@@ -379,6 +404,63 @@ export class Scrollbar extends AbstractModuleInstance {
         state.hovered = nextHovered;
         this.updateStyles(state);
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
+        if (!this.enableSeriesAreaScrolling) return;
+        return this.handleWheel(baseEvent);
+    }
+
+    private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
+        if (!this.enableAxisScrolling) return;
+        return this.handleWheel(baseEvent);
+    }
+
+    private handleWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
+        const {
+            seriesRect,
+            ctx: { zoomManager },
+        } = this;
+        const { event } = baseEvent;
+
+        const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+
+        if (isHorizontal && !this.horizontal.enabled) return;
+        if (!isHorizontal && !this.vertical.enabled) return;
+
+        baseEvent.stopProcessing();
+
+        const direction = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
+
+        if (!seriesRect || !axisId) {
+            baseEvent.abort();
+            return;
+        }
+
+        const newAxisZooms = this.scrollPanner.update(
+            event,
+            SCROLLING_STEP,
+            SCROLLING_MODE,
+            seriesRect,
+            zoomManager.getAxisZooms()
+        );
+        const newZoom = { [direction]: { min: newAxisZooms[axisId].min, max: newAxisZooms[axisId].max } };
+        zoomManager.updateZoom({ source: 'user-interaction', sourceDetail: 'scrollbar' }, newZoom);
+
+        const zoom = this.getZoom();
+        const isZoomCapped =
+            (event.deltaY > 0 && zoom.y.min === UNIT_MIN) || (event.deltaY < 0 && zoom.y.max === UNIT_MAX);
+
+        if (isZoomCapped) {
+            baseEvent.capped();
+        } else {
+            baseEvent.uncapped();
+        }
+    }
+
+    private getZoom() {
+        return definedZoomState(this.ctx.zoomManager.getZoom());
     }
 
     override destroy() {
