@@ -99,6 +99,7 @@ export interface EventsHubMap {
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
     'rtl:change': null;
+    'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:keynav-panx': SeriesKeyNavPanXEvent;
@@ -233,6 +234,11 @@ export interface LegendItemDoubleClickEvent {
     readonly itemId: number | string | undefined;
     readonly legendItemName?: string;
     readonly numVisibleItems: number;
+}
+
+export interface ScrollbarWheelEvent {
+    readonly event: WheelWidgetEvent;
+    readonly orientation: 'horizontal' | 'vertical';
 }
 
 export interface SeriesKeyNavZoomEvent {

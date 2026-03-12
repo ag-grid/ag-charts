@@ -19,6 +19,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
             ctx.eventsHub.on('axis-dom-proxy:drag-end', (event) => this.onAxisDragEnd(event)),
             ctx.eventsHub.on('axis-dom-proxy:dblclick', (event) => this.onAxisDoubleClick(event)),
             ctx.eventsHub.on('axis-dom-proxy:wheel', (event) => this.onAxisWheel(event)),
+            ctx.eventsHub.on('scrollbar:wheel', (event) => this.onScrollbarWheel(event)),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onSeriesAreaWheel(event))
         );
     }
@@ -53,6 +54,15 @@ export class ZoomInteraction extends AbstractModuleInstance {
 
     private onAxisWheel({ event, direction }: _ModuleSupport.AxisDOMProxyWheelEvent) {
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('axis-wheel', { event, direction }));
+    }
+
+    private onScrollbarWheel({ event, orientation }: _ModuleSupport.ScrollbarWheelEvent) {
+        this.wheelSequencer.onWheel(event, () =>
+            this.handleWheelSequencer('wheel', {
+                event,
+                direction: orientation === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y,
+            })
+        );
     }
 
     private handleWheelSequencer(

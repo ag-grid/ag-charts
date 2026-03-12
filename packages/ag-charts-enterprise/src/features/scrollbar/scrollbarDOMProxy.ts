@@ -4,8 +4,6 @@ import type { BoxBounds } from 'ag-charts-core';
 
 const { SliderWidget } = _ModuleSupport;
 
-type ScrollbarDOMProxyCtx = Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>;
-
 const STEP_REPEAT_DELAY_MS = 400;
 const STEP_REPEAT_INTERVAL_MS = 50;
 
@@ -156,7 +154,7 @@ export class ScrollbarDOMProxy {
     private readonly repeater = new StepRepeater((target) => this.applyStepToward(target));
 
     constructor(
-        private readonly ctx: ScrollbarDOMProxyCtx,
+        private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly orientation: 'horizontal' | 'vertical',
         private readonly onChange: (min: number, max: number) => void,
         private readonly onHoverChange: (hovered: boolean) => void
@@ -196,6 +194,7 @@ export class ScrollbarDOMProxy {
         this.slider.addListener('mouseenter', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mousemove', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mouseleave', () => this.onMouseLeave());
+        this.slider.addListener('wheel', (event) => ctx.eventsHub.emit('scrollbar:wheel', { event, orientation }));
 
         this.thumbFocus = ctx.proxyInteractionService.createProxyElement({
             type: 'region',

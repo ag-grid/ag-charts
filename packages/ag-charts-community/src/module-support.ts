@@ -84,6 +84,7 @@ export type {
     HighlightChangeEvent,
     HighlightNodeDatum,
     LayoutCompleteEvent,
+    ScrollbarWheelEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavZoomEvent,
