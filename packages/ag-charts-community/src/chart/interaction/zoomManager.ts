@@ -508,6 +508,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (end != null) {
             valid &&= end <= domainEnd;
         }
+        if (start != null && end != null) {
+            valid &&= start <= end;
+        }
 
         return valid;
     }
