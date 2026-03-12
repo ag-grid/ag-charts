@@ -369,9 +369,25 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
             const adjusted = new Date(date.getTime());
             if (utc) {
                 adjusted.setUTCMonth(date.getUTCMonth() + step);
+
+                // Ensure the date is correctly adjusted when the number of days in each month differs. For example, 31st
+                // March minus 1 month would be 31st February, which resolves to 3rd March. We then adjust by days until
+                // we reach Feburary.
+                if (step !== 0) {
+                    while (adjusted.getUTCMonth() === date.getUTCMonth()) {
+                        adjusted.setUTCDate(adjusted.getUTCDate() + (step > 0 ? 1 : -1));
+                    }
+                }
             } else {
                 adjusted.setMonth(date.getMonth() + step);
+
+                if (step !== 0) {
+                    while (adjusted.getMonth() === date.getMonth()) {
+                        adjusted.setDate(adjusted.getDate() + (step > 0 ? 1 : -1));
+                    }
+                }
             }
+
             return adjusted;
         },
     },
