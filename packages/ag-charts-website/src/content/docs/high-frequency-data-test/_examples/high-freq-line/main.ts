@@ -191,7 +191,7 @@ function setMatchingMode(mode: string) {
     nextId = 0;
     const newData = createSeedData();
     data = [...newData];
-    chart.update({ data: newData, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
+    chart.updateDelta({ data: newData, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
 
     if (wasRunning) toggleFeed();
 }

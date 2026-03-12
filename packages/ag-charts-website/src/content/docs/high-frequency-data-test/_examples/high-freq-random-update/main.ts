@@ -791,7 +791,7 @@ function setMatchingMode(mode: string) {
     // Recreate chart data with or without dataIdKey
     const seedResult = createSeedData(data.length);
     data = seedResult.data;
-    chart.update({ data, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
+    chart.updateDelta({ data, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
 
     resetCpuIndicator();
     resetFpsCounter();
