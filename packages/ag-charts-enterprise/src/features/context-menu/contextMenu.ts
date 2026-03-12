@@ -145,7 +145,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     showOn,
                     context,
                     seriesId: this.pickedNode.series.id,
-                    itemId: getItemId(this.pickedNode),
+                    itemId: getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey),
                     datum: this.pickedNode.datum,
                     defaultItems,
                 };

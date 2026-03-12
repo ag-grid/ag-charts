@@ -348,7 +348,7 @@ export abstract class FlowProportionSeries<
     }
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {
-        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData);
+        return findNodeDatumInArray(itemId, this.contextNodeData?.nodeData, this.data?.dataIdKey);
     }
 
     protected abstract getNodeStyle(

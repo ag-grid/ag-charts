@@ -27,14 +27,20 @@ export type PickedNodes = {
     distance: number;
 };
 
-export function getItemId(node: PickedNode): NonNullable<AgActiveItemState['itemId']> {
+export function getItemId(node: PickedNode, dataIdKey?: string): NonNullable<AgActiveItemState['itemId']> {
     if (node.itemId !== undefined) {
         return node.itemId;
-    } else if (typeof node.datumIndex === 'number') {
-        return node.datumIndex;
-    } else {
-        return JSON.stringify(node.datumIndex);
     }
+    if (dataIdKey !== undefined) {
+        const idValue = (node.datum as any)?.[dataIdKey];
+        if (idValue != null) {
+            return typeof idValue === 'number' ? idValue : String(idValue);
+        }
+    }
+    if (typeof node.datumIndex === 'number') {
+        return node.datumIndex;
+    }
+    return JSON.stringify(node.datumIndex);
 }
 
 function pickedNodesEqual(a: PickedNode, b: PickedNode) {
@@ -86,7 +92,7 @@ export class PickManager {
             return [undefined, undefined];
         } else {
             const seriesId: string = desiredActive.series.id;
-            const itemId: string | number = getItemId(desiredActive);
+            const itemId: string | number = getItemId(desiredActive, desiredActive.series.data?.dataIdKey);
             return [{ type: 'series-node', seriesId, itemId }, desiredActive];
         }
     }
