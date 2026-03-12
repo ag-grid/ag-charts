@@ -354,3 +354,61 @@ describe('AgChartsServerSide enterprise licensing', () => {
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 });
+
+describe('AgChartsServerSide community-only watermark', () => {
+    // These tests verify watermark rendering with only AllCommunityModule registered
+    // (no AllEnterpriseModule). The enterpriseRegistry is still populated from the
+    // side-effect import of ag-charts-enterprise in the SSR package.
+
+    // Define afterEach BEFORE setupMockConsole so it runs first
+    afterEach(() => {
+        const errorMock = console.error as jest.Mock;
+        const unexpectedErrors = errorMock.mock.calls
+            .map((args) => String(args[0] ?? ''))
+            .filter((msg) => !msg.startsWith('*'));
+        errorMock.mockClear();
+        expect(unexpectedErrors).toEqual([]);
+    });
+
+    setupMockConsole();
+
+    beforeEach(async () => {
+        // Reset license state — no license key set means watermark should appear
+        const { LicenseManager } = await import('ag-charts-enterprise');
+        LicenseManager.setLicenseKey(undefined);
+    });
+
+    it('should render watermark on line chart without enterprise', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 15 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on bar chart without enterprise', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'A', value: 30 },
+                    { category: 'B', value: 45 },
+                    { category: 'C', value: 25 },
+                ],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+});

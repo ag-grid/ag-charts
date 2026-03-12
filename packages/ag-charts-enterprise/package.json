@@ -15,7 +15,9 @@
   },
   "sideEffects": [
     "*.css",
-    "*.html"
+    "*.html",
+    "./dist/package/main.esm.mjs",
+    "./dist/package/main.cjs.js"
   ],
   "scripts": {
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"

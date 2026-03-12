@@ -24,7 +24,7 @@
       "dependsOn": ["^build:types", "^build:package"],
       "options": {
         "main": "{projectRoot}/src/main.ts",
-        "external": ["ag-charts-community", "ag-charts-core", "jsdom", "skia-canvas"],
+        "external": ["ag-charts-community", "ag-charts-core", "ag-charts-enterprise", "jsdom", "skia-canvas"],
         "platform": "node"
       }
     },

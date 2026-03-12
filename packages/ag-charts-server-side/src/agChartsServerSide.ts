@@ -2,6 +2,7 @@ import { FontLibrary } from 'skia-canvas';
 
 import { AgCharts } from 'ag-charts-community';
 import { enterpriseRegistry, withTimeout } from 'ag-charts-core';
+// Side-effect: registers enterprise modules on enterpriseRegistry
 import 'ag-charts-enterprise';
 
 import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
@@ -103,11 +104,12 @@ export class AgChartsServerSide {
             // the static licenseKey is shared across instances.
             let chartOptions: any = options;
             const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
-            licenseManager?.validateLicense();
-
-            const foreground = licenseManager?.getWatermarkForegroundConfig();
-            if (foreground) {
-                chartOptions = { ...options, foreground };
+            if (licenseManager) {
+                licenseManager.validateLicense();
+                const foreground = licenseManager.getWatermarkForegroundConfig();
+                if (foreground) {
+                    chartOptions = { ...options, foreground };
+                }
             }
 
             const createdChart = AgCharts[api]({
