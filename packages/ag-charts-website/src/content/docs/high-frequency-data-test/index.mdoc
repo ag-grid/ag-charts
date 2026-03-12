@@ -60,18 +60,6 @@ This example investigates the performance of `applyTransaction()` with randomize
 
 {% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" initialLoadDeferred=true /%}
 
-## ID-Key Line Series
-
-This example is the same as the Line Series example above, but with `dataIdKey: 'id'` set. Remove operations use partial objects containing only the ID field.
-
-{% chartExampleRunner title="Line Series (dataIdKey)" name="high-freq-line-idkey" type="generated" initialLoadDeferred=true /%}
-
-## ID-Key Random Updates
-
-This example is the same as the Random Updates example above, but with `dataIdKey: 'id'` set. Instead of mutating data items in place, it creates new replacement objects with the same ID, exercising the ID-based replacement semantics.
-
-{% chartExampleRunner title="Random Updates (dataIdKey)" name="high-freq-random-update-idkey" type="generated" initialLoadDeferred=true /%}
-
 ## Financial Charts
 
 The following examples demonstrate high-frequency updates using the Financial Charts API (`AgCharts.createFinancialChart`). This uses the simplified financial chart options with built-in features like volume, navigator, range buttons, status bar, and zoom.

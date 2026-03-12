@@ -7,7 +7,17 @@ const STREAM_INTERVAL_MS = 10;
 const DATA_INTERVAL_MS = 250;
 const MAX_POINTS = 600;
 
-function createLiveDatumFactory(getData: () => any[], mode = 'append') {
+type Datum = {
+    id: number;
+    timestamp: number;
+    price: number;
+    volume: number;
+};
+
+let nextId = 0;
+let matchingMode: 'ref' | 'id' = 'ref';
+
+function createLiveDatumFactory(getData: () => Datum[], mode = 'append') {
     return () => {
         const currentData = getData();
 
@@ -34,7 +44,8 @@ function createLiveDatumFactory(getData: () => any[], mode = 'append') {
             price = Number((price + drift).toFixed(2));
         }
 
-        const datum = {
+        const datum: Datum = {
+            id: nextId++,
             timestamp,
             price,
             volume: 600 + Math.round((Math.sin(index / 8) + 1) * 220),
@@ -115,8 +126,8 @@ class RapidDataFeed {
 
 /* @ag-options-extract */
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
-function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)) {
-    const data: { timestamp: number; price: number; volume: number }[] = [];
+function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)): Datum[] {
+    const data: Datum[] = [];
     let price = 100;
     let timestamp = START_TIMESTAMP;
 
@@ -124,6 +135,7 @@ function createSeedData(count = 30 * 60 * (1000 / DATA_INTERVAL_MS)) {
         const drift = Math.sin(i / 12) * 0.7 + Math.cos(i / 24) * 0.4;
         price = Number((price + drift).toFixed(2));
         data.push({
+            id: nextId++,
             timestamp,
             price,
             volume: 600 + Math.round((Math.sin(i / 8) + 1) * 220),
@@ -169,6 +181,21 @@ let data = [...initialData];
 const appendDatumFactory = createLiveDatumFactory(() => data, 'append');
 const prependDatumFactory = createLiveDatumFactory(() => data, 'prepend');
 
+function setMatchingMode(mode: string) {
+    const wasRunning = feed.running;
+    if (wasRunning) toggleFeed();
+
+    matchingMode = mode as 'ref' | 'id';
+
+    // Recreate chart data with or without dataIdKey
+    nextId = 0;
+    const newData = createSeedData();
+    data = [...newData];
+    chart.update({ data: newData, dataIdKey: matchingMode === 'id' ? 'id' : undefined });
+
+    if (wasRunning) toggleFeed();
+}
+
 function toggleFeed() {
     const button = document.getElementById('toggleFeedBtn');
     if (feed.running) {
@@ -185,10 +212,8 @@ function toggleFeed() {
 }
 
 function toggleRapidFeed() {
-    const button = document.getElementById('toggleRapidFeedBtn');
     if (rapidFeed.running) {
         rapidFeed.stop();
-        if (button) button.textContent = 'Start Rapid Feed';
     } else {
         // Stop regular feed if running
         if (feed.running) {
@@ -199,7 +224,6 @@ function toggleRapidFeed() {
         updateCountStartTime = performance.now();
         updateRateHistory = [];
         rapidFeed.start();
-        if (button) button.textContent = 'Stop Rapid Feed';
     }
 }
 
@@ -231,18 +255,24 @@ const updateCallback = async () => {
         }
 
         switch (method) {
-            case 'applyTransaction-remove-first':
-                const removedFirst = data.shift();
-                if (removedFirst) {
-                    chart.applyTransaction({ remove: [removedFirst] });
+            case 'applyTransaction-remove-first': {
+                const removed = data.shift()!;
+                if (matchingMode === 'id') {
+                    chart.applyTransaction({ remove: [{ id: removed.id } as any] });
+                } else {
+                    chart.applyTransaction({ remove: [removed] });
                 }
                 break;
-            case 'applyTransaction-remove-last':
-                const removedLast = data.pop();
-                if (removedLast) {
-                    chart.applyTransaction({ remove: [removedLast] });
+            }
+            case 'applyTransaction-remove-last': {
+                const removed = data.pop()!;
+                if (matchingMode === 'id') {
+                    chart.applyTransaction({ remove: [{ id: removed.id } as any] });
+                } else {
+                    chart.applyTransaction({ remove: [removed] });
                 }
                 break;
+            }
             case 'updateDelta-remove-first':
                 data.shift();
                 chart.updateDelta({ data });
