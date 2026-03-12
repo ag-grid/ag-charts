@@ -26,14 +26,14 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Everyday Development
 
-| Type  | Name                  | Invoke                             | What it does                                       |
-| ----- | --------------------- | ---------------------------------- | -------------------------------------------------- |
-| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)     | Fix build and lint errors across a package         |
-| Skill | 🔵 `pr-create`        | `/pr-create` (user)                | Commit, push, and open a PR                        |
-| Skill | 🔵 `pr-review`        | `/pr-review [--json] <PR#>` (user) | Review a PR (Markdown default, JSON with `--json`) |
-| Skill | 🔵 `dev-server`       | `/dev-server`                      | Start dev server, check build status               |
-| Skill | 🔵 `git-conventions`  | `/git-conventions`                 | Branch, commit, and PR naming conventions          |
-| Skill | 🟢 `technology-stack` | `/technology-stack`                | Architecture constraints and zero-dependency rules |
+| Type  | Name                  | Invoke                                     | What it does                                               |
+| ----- | --------------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)             | Fix build and lint errors across a package                 |
+| Skill | 🔵 `pr-create`        | `/pr-create` (user)                        | Commit, push, and open a PR                                |
+| Skill | 🔵 `pr-review`        | `/pr-review [--json] [--all] <PR#>` (user) | Review a PR (Markdown default; `--all` adds DA + Simplify) |
+| Skill | 🔵 `dev-server`       | `/dev-server`                              | Start dev server, check build status                       |
+| Skill | 🔵 `git-conventions`  | `/git-conventions`                         | Branch, commit, and PR naming conventions                  |
+| Skill | 🟢 `technology-stack` | `/technology-stack`                        | Architecture constraints and zero-dependency rules         |
 
 ## Testing and Quality
 
@@ -171,31 +171,39 @@ Rules load automatically when you edit files matching their glob patterns.
 
 Skills load on-demand when invoked. All skills are invoked via `/skill-name`. All skills are shared across AI tools via `.rulesync/skills/`.
 
-| Skill                           | Description                                                 |
-| ------------------------------- | ----------------------------------------------------------- |
-| 🔵 `batch-lint-cleanup`         | Auto-fix ESLint violations by rule                          |
-| 🔵 `code-fixup`                 | Fix build and lint errors across a package                  |
-| 🔵 `dev-server`                 | Start dev server, check build status                        |
-| 🔵 `git-bisect`                 | Find the commit that introduced a regression                |
-| 🔵 `git-conventions`            | Branch, commit, and PR naming conventions                   |
-| 🔵 `git-split`                  | Split large files preserving git history                    |
-| 🔵 `git-worktree-clean`         | Hard-reset worktree to `origin/latest`                      |
-| 🔵 `jira`                       | Create, estimate, or analyse JIRA tickets (all AG products) |
-| 🟠 `optimize-series`            | Series performance optimisation and GC pressure reduction   |
-| 🔵 `plan-implementation-review` | Review plan execution, identify delivery gaps               |
-| 🔵 `plan-review`                | Review plans for completeness and correctness               |
-| 🟠 `plunker`                    | Create and manage Plunker demos for AG Charts               |
-| 🔵 `pr-create`                  | Commit, push, and open a PR                                 |
-| 🔵 `pr-review`                  | Review a PR (Markdown default, JSON with `--json`)          |
-| 🔵 `pr-split`                   | Split a branch into stacked PRs                             |
-| 🔵 `recall`                     | Load branch context, browse project memories                |
-| 🟢 `releases`                   | Release conventions, branch naming, and constraints         |
-| 🔵 `remember`                   | Save branch context or project learnings as memory          |
-| 🟠 `spruce-docs`                | Create or improve documentation following patterns          |
-| 🟠 `spruce-example`             | Improve gallery examples to professional quality            |
-| 🔵 `sync-ag-shared`             | Sync ag-shared subrepo changes across AG repos              |
-| 🟢 `technology-stack`           | Architecture constraints and zero-dependency requirements   |
-| 🔵 `validate-prompts`           | Validate prompt file references for consistency and hygiene |
+-   **✂ = context fork** — runs in a forked context (`context: fork`), so loaded instructions don't persist after completion.
+-   **👤 = user-only** — `disable-model-invocation: true`; the LLM cannot invoke autonomously.
+-   **🤖 = auto** — the LLM may invoke via the Skill tool when it matches the task.
+
+| Skill                           | Fork | Invoke | Description                                                 |
+| ------------------------------- | ---- | ------ | ----------------------------------------------------------- |
+| 🔵 `batch-lint-cleanup`         |      | 👤     | Auto-fix ESLint violations by rule                          |
+| 🔵 `batch-plunkers`             | ✂   | 🤖     | Create multiple Plunkers in parallel via sub-agents         |
+| 🔵 `code-fixup`                 |      | 👤     | Fix build and lint errors across a package                  |
+| 🔵 `dev-server`                 |      | 🤖     | Start dev server, check build status                        |
+| 🟠 `docs-create`                | ✂   | 👤     | Scaffold a new documentation page                           |
+| 🔵 `example`                    | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
+| 🔵 `git-bisect`                 |      | 👤     | Find the commit that introduced a regression                |
+| 🔵 `git-conventions`            |      | 🤖     | Branch, commit, and PR naming conventions                   |
+| 🔵 `git-split`                  |      | 👤     | Split large files preserving git history                    |
+| 🔵 `git-worktree-clean`         |      | 👤     | Hard-reset worktree to `origin/latest`                      |
+| 🔵 `jira`                       | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
+| 🟠 `optimize-series`            | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
+| 🔵 `plan-implementation-review` | ✂   | 👤     | Review plan execution, identify delivery gaps               |
+| 🔵 `plan-review`                | ✂   | 👤     | Review plans for completeness and correctness               |
+| 🟠 `plunker`                    | ✂   | 🤖     | Create and manage Plunker demos for AG Charts               |
+| 🔵 `pr-create`                  |      | 👤     | Commit, push, and open a PR                                 |
+| 🔵 `pr-review`                  |      | 👤     | Review a PR (Markdown default, JSON with `--json`)          |
+| 🔵 `pr-split`                   |      | 👤     | Split a branch into stacked PRs                             |
+| 🔵 `recall`                     | ✂   | 👤     | Load branch context, browse project memories                |
+| 🟢 `releases`                   |      | 🤖     | Release conventions, branch naming, and constraints         |
+| 🔵 `remember`                   | ✂   | 👤     | Save branch context or project learnings as memory          |
+| 🟠 `sonar-fix`                  | ✂   | 👤     | Fetch and fix SonarCloud issues                             |
+| 🟠 `spruce-docs`                | ✂   | 🤖     | Create or improve documentation following patterns          |
+| 🟠 `spruce-example`             | ✂   | 🤖     | Improve gallery examples to professional quality            |
+| 🔵 `sync-ag-shared`             | ✂   | 👤     | Sync ag-shared subrepo changes across AG repos              |
+| 🟢 `technology-stack`           |      | 🤖     | Architecture constraints and zero-dependency requirements   |
+| 🔵 `validate-prompts`           |      | 👤     | Validate prompt file references for consistency and hygiene |
 
 ---
 
