@@ -131,15 +131,21 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
     return undefined;
 }
 
-function findZoomTarget(zoomModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
+function findZoomTarget(
+    zoomModule: unknown,
+    axisDOMProxyModule: unknown,
+    clientX: number,
+    clientY: number
+): MockEvent | undefined {
     if (zoomModule === undefined) return undefined;
 
     const caster = new Caster(zoomModule);
     const zoom = caster.findBoolean('enabled').findBoolean('enableAxisDragging').value;
 
+    const axisDOMProxyCaster = new Caster(axisDOMProxyModule);
+
     if (zoom.enabled && zoom.enableAxisDragging) {
-        const domProxy = caster
-            .accessProperty('domProxy')
+        const domProxy = axisDOMProxyCaster
             .findProperty('axes')
             .castProperty('axes', Array)
             .findArrayElementProperties('axes', 'div')
@@ -183,7 +189,7 @@ export function findChartTarget(chart: Chart, clientX: number, clientY: number):
     return (
         findLegendTarget(getModule('legend'), clientX, clientY) ??
         findNavigatorTarget(getModule('navigator'), clientX, clientY) ??
-        findZoomTarget(getModule('zoom'), clientX, clientY) ??
+        findZoomTarget(getModule('zoom'), getModule('axis-dom-proxy'), clientX, clientY) ??
         findSeriesAreaTarget(chart, widgets, clientX, clientY)
     );
 }
