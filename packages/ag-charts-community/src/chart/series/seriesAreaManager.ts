@@ -997,7 +997,7 @@ export class SeriesAreaManager extends BaseManager {
         if (this.isState(InteractionState.Frozen)) return;
         this.pickManager.onClearUI();
         this.clearHighlight(delayed);
-        if (!this.pickManager.wasDeactivationPrevented()) {
+        if (!this.pickManager.wasActivationPrevented()) {
             this.clearTooltip(delayed); // Pass through the delayed flag
         }
         this.focusIndicator?.clear();
@@ -1123,12 +1123,16 @@ export class SeriesAreaManager extends BaseManager {
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'tooltip');
 
         const { active, paginationState } = this.pickManager.onPickedNodesTooltip(pick);
-        if (active === undefined) {
-            if (this.getHoverDevice() == 'pointer' && !this.pickManager.wasDeactivationPrevented()) {
-                this.clearTooltip(true); // true = delayed
+        // If the developer has called `preventDefault()` on the activeChange test (i.e. highlight update), then don't
+        // touch the tooltip at all, leave it as-is until we get a new event that's not default-prevented.
+        if (!this.pickManager.wasActivationPrevented()) {
+            if (active === undefined) {
+                if (this.getHoverDevice() == 'pointer') {
+                    this.clearTooltip(true); // true = delayed
+                }
+            } else {
+                this.showTooltip(active, canvasX, canvasY, paginationState);
             }
-        } else {
-            this.showTooltip(active, canvasX, canvasY, paginationState);
         }
     }
 
