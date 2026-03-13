@@ -13,6 +13,17 @@ const IMAGE_SNAPSHOT_OPTIONS = {
 };
 
 describe('AgChartsServerSide', () => {
+    afterEach(() => {
+        const errorMock = console.error as jest.Mock;
+        const unexpectedErrors = errorMock.mock.calls
+            .map((args) => String(args[0] ?? ''))
+            .filter((msg) => !msg.startsWith('*'));
+        errorMock.mockClear();
+        expect(unexpectedErrors).toEqual([]);
+    });
+
+    setupMockConsole();
+
     describe('render', () => {
         it('should render a simple line chart to buffer', async () => {
             const renderOptions: AgRenderOptions = {
@@ -315,7 +326,10 @@ describe('AgChartsServerSide enterprise licensing', () => {
     });
 
     beforeEach(async () => {
-        // Reset license state between tests
+        // Reset SSR license cache for each test
+        (AgChartsServerSide as any).licenseValidated = false;
+        (AgChartsServerSide as any).cachedForeground = undefined;
+        // Reset license key (also resets LicenseManager.licenseOutputLogged)
         const { LicenseManager } = await import('ag-charts-enterprise');
         LicenseManager.setLicenseKey(undefined);
     });
@@ -373,6 +387,9 @@ describe('AgChartsServerSide community-only watermark', () => {
     setupMockConsole();
 
     beforeEach(async () => {
+        // Reset SSR license cache for each test
+        (AgChartsServerSide as any).licenseValidated = false;
+        (AgChartsServerSide as any).cachedForeground = undefined;
         // Reset license state — no license key set means watermark should appear
         const { LicenseManager } = await import('ag-charts-enterprise');
         LicenseManager.setLicenseKey(undefined);
