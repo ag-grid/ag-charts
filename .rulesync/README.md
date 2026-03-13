@@ -59,6 +59,8 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Skill   | 🟠 `spruce-docs`       | `/spruce-docs`    | Create or improve docs following established patterns |
 | Skill   | 🟠 `plunker`           | `/plunker`        | Create and manage Plunker demos for AG Charts         |
 | Skill   | 🔵 `batch-plunkers`    | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents   |
+| Skill   | 🔵 `website-astro`    | `/website-astro`  | Astro page patterns, content collections, and components |
+| Skill   | 🔵 `website-css`      | `/website-css`    | CSS architecture, design tokens, and styling patterns    |
 | Agent   | 🟠 `data-viz-designer` | Auto              | Dataset selection, chart type guidance                |
 
 ## Planning and Analysis
@@ -77,6 +79,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                  | Invoke                     | What it does                                     |
 | ----- | --------------------- | -------------------------- | ------------------------------------------------ |
+| Skill | 🔵 `rulesync`          | `/rulesync` (user)         | Configure AI/agentic tooling via `.rulesync/`    |
 | Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
 
 ## Memory
@@ -91,6 +94,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                    | Invoke                       | What it does                             |
 | ----- | ----------------------- | ---------------------------- | ---------------------------------------- |
+| Skill | 🔵 `ag-shared-sync-log`  | `/ag-shared-sync-log` (user)  | Generate migration log for ag-shared changes |
 | Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos   |
 | Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`   |
 | Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history |
@@ -178,6 +182,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 
 | Skill                           | Fork | Invoke | Description                                                 |
 | ------------------------------- | ---- | ------ | ----------------------------------------------------------- |
+| 🔵 `ag-shared-sync-log`         | ✂   | 👤     | Generate migration log entries for ag-shared changes        |
 | 🔵 `batch-lint-cleanup`         |      | 👤     | Auto-fix ESLint violations by rule                          |
 | 🔵 `batch-plunkers`             | ✂   | 🤖     | Create multiple Plunkers in parallel via sub-agents         |
 | 🔵 `code-fixup`                 |      | 👤     | Fix build and lint errors across a package                  |
@@ -199,12 +204,15 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `recall`                     | ✂   | 👤     | Load branch context, browse project memories                |
 | 🟢 `releases`                   |      | 🤖     | Release conventions, branch naming, and constraints         |
 | 🔵 `remember`                   | ✂   | 👤     | Save branch context or project learnings as memory          |
+| 🔵 `rulesync`                   | ✂   | 👤     | Configure AI/agentic tooling via `.rulesync/`               |
 | 🟠 `sonar-fix`                  | ✂   | 👤     | Fetch and fix SonarCloud issues                             |
 | 🟠 `spruce-docs`                | ✂   | 🤖     | Create or improve documentation following patterns          |
 | 🟠 `spruce-example`             | ✂   | 🤖     | Improve gallery examples to professional quality            |
 | 🔵 `sync-ag-shared`             | ✂   | 👤     | Sync ag-shared subrepo changes across AG repos              |
 | 🟢 `technology-stack`           |      | 🤖     | Architecture constraints and zero-dependency requirements   |
 | 🔵 `validate-prompts`           |      | 👤     | Validate prompt file references for consistency and hygiene |
+| 🔵 `website-astro`              | ✂   | 🤖     | Astro page patterns, content collections, and components    |
+| 🔵 `website-css`                | ✂   | 🤖     | CSS architecture, design tokens, and styling patterns       |
 
 ---
 
