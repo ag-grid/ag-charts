@@ -12,8 +12,8 @@
                 "path": "./range-buttons/"
             },
             {
-                "text": "Flash on Update",
-                "path": "./animation/#flash-on-update"
+                "text": "Flash On Update",
+                "path": "./flash-on-update/"
             },
             {
                 "text": "RTL",

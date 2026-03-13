@@ -65,7 +65,9 @@ export type AgChartThemeName =
     | 'ag-financial-dark';
 
 export interface AgPaletteColors {
+    /** The fill colour for the palette. */
     fill?: AgColorTypeStrict;
+    /** The stroke colour for the palette. */
     stroke?: CssColor;
 }
 
@@ -77,8 +79,11 @@ export interface AgChartThemePalette {
     fills?: AgColorType[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];
+    /** Colours used for positive or upward values, such as rising prices in Financial Charts. */
     up?: AgPaletteColors;
+    /** Colours used for negative or downward values, such as falling prices in Financial Charts. */
     down?: AgPaletteColors;
+    /** Colours used for neutral values, such as unchanged prices in financial charts. */
     neutral?: AgPaletteColors;
 }
 
@@ -100,162 +105,195 @@ export interface AgChartTheme<TDatum = DatumDefault, TContext = ContextDefault>
 
 export interface AgLineSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for line series. */
     series?: AgLineSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgScatterSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for scatter series. */
     series?: AgScatterSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgBubbleSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for bubble series. */
     series?: AgBubbleSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgAreaSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for area series. */
     series?: AgAreaSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgBarSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for bar series. */
     series?: AgBarSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgBoxPlotSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for box plot series. */
     series?: AgBoxPlotSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgCandlestickSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for candlestick series. */
     series?: AgCandlestickSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgConeFunnelSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for cone funnel series. */
     series?: AgConeFunnelSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgFunnelSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for funnel series. */
     series?: AgFunnelSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgOhlcSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for OHLC series. */
     series?: AgOhlcSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgHistogramSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for axes used with histogram series. */
     axes?: AgContinuousCartesianAxesTheme<TContext>;
+    /** Themeable options for histogram series. */
     series?: AgHistogramSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgHeatmapSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for heatmap series. */
     series?: AgHeatmapSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgWaterfallSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for waterfall series. */
     series?: AgWaterfallSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRangeBarSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for range bar series. */
     series?: AgRangeBarSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRangeAreaSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for range area series. */
     series?: AgRangeAreaSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgDonutSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
+    /** Themeable options for donut series. */
     series?: AgDonutSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgPieSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
+    /** Themeable options for pie series. */
     series?: AgPieSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRadarLineSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
+    /** Themeable options for radar line series. */
     series?: AgRadarLineSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRadarAreaSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
+    /** Themeable options for radar area series. */
     series?: AgRadarAreaSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRadialBarSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
+    /** Themeable options for radial bar series. */
     series?: AgRadialBarSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgRadialColumnSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
+    /** Themeable options for radial column series. */
     series?: AgRadialColumnSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgNightingaleSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarThemeOptions<TDatum, TContext> {
+    /** Themeable options for nightingale series. */
     series?: AgNightingaleSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgMapShapeSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
+    /** Themeable options for map shape series. */
     series?: AgMapShapeSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgMapLineSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
+    /** Themeable options for map line series. */
     series?: AgMapLineSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgMapMarkerSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
+    /** Themeable options for map marker series. */
     series?: AgMapMarkerSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgMapShapeBackgroundThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
+    /** Themeable options for map shape background series. */
     series?: AgMapShapeBackgroundThemeableOptions;
 }
 
 export interface AgMapLineBackgroundThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
+    /** Themeable options for map line background series. */
     series?: AgMapLineBackgroundThemeableOptions;
 }
 
 export interface AgSankeyThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for Sankey series. */
     series?: AgSankeySeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgChordThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for chord series. */
     series?: AgChordSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgPyramidThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for pyramid series. */
     series?: AgPyramidSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgSunburstSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for sunburst series. */
     series?: AgSunburstSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgTreemapSeriesThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for treemap series. */
     series?: AgTreemapSeriesThemeableOptions<TDatum, TContext>;
 }
 
@@ -284,6 +322,7 @@ type AgRadialGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum
 export interface AgRadialGaugeTargetTheme extends Omit<AgRadialGaugeTarget, 'value' | 'text'> {}
 export interface AgRadialGaugeThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgRadialGaugeTheme<TDatum, TContext> {
+    /** Themeable options for radial gauge targets. */
     targets?: AgRadialGaugeTargetTheme;
 }
 
@@ -292,6 +331,7 @@ type AgLinearGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum
 export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
 export interface AgLinearGaugeThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgLinearGaugeTheme<TDatum, TContext> {
+    /** Themeable options for linear gauge targets. */
     targets?: AgLinearGaugeTargetTheme;
 }
 
@@ -301,9 +341,13 @@ export interface AgCommonThemeableAxisOptions<TContext = ContextDefault>
 
 export interface AgCommonThemeableChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
+    /** Themeable options for axes. */
     axes?: AgCommonThemeableAxisOptions<TContext>;
+    /** Themeable options for annotations. */
     annotations?: AgAnnotationsThemeableOptions;
+    /** Themeable options for the chart toolbar. */
     chartToolbar?: AgChartToolbarThemeableOptions;
+    /** Themeable options for the initial state. */
     initialState?: AgInitialStateThemeableOptions;
 }
 

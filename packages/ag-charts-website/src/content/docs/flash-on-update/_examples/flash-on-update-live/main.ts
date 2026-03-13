@@ -1,59 +1,68 @@
 import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
+import {
     AgCartesianChartOptions,
     AgCharts,
     ContextMenuModule,
     CrosshairModule,
     FlashOnUpdateModule,
-    LegendModule,
-    ModuleRegistry,
-    NumberAxisModule,
-    OhlcSeriesModule,
-    OrdinalTimeAxisModule,
 } from 'ag-charts-enterprise';
 
-import { applyLiveUpdate, getInitialData } from './data';
+import type { DataType } from './data';
+import { applyRandomUpdate, getInitialData } from './data';
 
 ModuleRegistry.registerModules([
+    BarSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     CrosshairModule,
     FlashOnUpdateModule,
     LegendModule,
     NumberAxisModule,
-    OhlcSeriesModule,
-    OrdinalTimeAxisModule,
 ]);
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getInitialData(),
     title: {
-        text: 'MSFT Stock Price',
+        text: 'Sector Trading Activity',
     },
     series: [
         {
-            type: 'ohlc',
-            xKey: 'date',
-            xName: 'Date',
-            openKey: 'open',
-            highKey: 'high',
-            lowKey: 'low',
-            closeKey: 'close',
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'institutional',
+            yName: 'Institutional ($M)',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'retail',
+            yName: 'Retail ($M)',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'sector',
+            yKey: 'etfFlows',
+            yName: 'ETF Flows ($M)',
+            stacked: true,
         },
     ],
     axes: {
-        y: {
-            type: 'number',
-            label: {
-                formatter: ({ value }) => `$${Number(value).toFixed(0)}`,
-            },
+        x: {
+            type: 'category',
         },
     },
-    animation: { enabled: false },
     flashOnUpdate: {
         enabled: true,
-        color: '#ffd6a5',
-        flashDuration: 300,
-        fadeOutDuration: 700,
+        item: 'category',
     },
 };
 
@@ -62,7 +71,7 @@ const chart = AgCharts.create(options);
 let updateInterval: ReturnType<typeof setInterval> | null = null;
 
 function update() {
-    options.data = applyLiveUpdate(options.data!);
+    options.data = applyRandomUpdate(options.data!);
     chart.update(options);
 }
 
@@ -86,16 +95,4 @@ function toggleUpdates() {
         startUpdates();
     }
     document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
-}
-
-function setColor(value: string) {
-    options.flashOnUpdate!.color = value;
-}
-
-function setFlashDuration(value: string) {
-    options.flashOnUpdate!.flashDuration = Number(value);
-}
-
-function setFadeDuration(value: string) {
-    options.flashOnUpdate!.fadeOutDuration = Number(value);
 }
