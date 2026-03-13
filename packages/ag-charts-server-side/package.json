@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-server-side",
-  "version": "13.1.0-beta.20260312",
+  "version": "13.1.0-beta.20260313",
   "description": "Server-side rendering for AG Charts",
   "main": "./dist/package/main.cjs.js",
   "module": "./dist/package/main.esm.mjs",
@@ -37,15 +37,15 @@
   },
   "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-community": "13.1.0-beta.20260312",
-    "ag-charts-core": "13.1.0-beta.20260312",
-    "ag-charts-enterprise": "13.1.0-beta.20260312",
+    "ag-charts-community": "13.1.0-beta.20260313",
+    "ag-charts-core": "13.1.0-beta.20260313",
+    "ag-charts-enterprise": "13.1.0-beta.20260313",
     "jsdom": "^24.0.0",
     "skia-canvas": "^3.0.8"
   },
   "devDependencies": {
-    "ag-charts-community": "13.1.0-beta.20260312",
-    "ag-charts-enterprise": "13.1.0-beta.20260312",
+    "ag-charts-community": "13.1.0-beta.20260313",
+    "ag-charts-enterprise": "13.1.0-beta.20260313",
     "jest-image-snapshot": "^6.0.0"
   },
   "engines": {
