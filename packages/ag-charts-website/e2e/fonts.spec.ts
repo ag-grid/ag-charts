@@ -11,24 +11,27 @@ test.describe('fonts', () => {
             test('google fonts', async ({ page }) => {
                 await gotoExample(page, url);
 
-                // document.fonts.ready is unreliable with @import CSS — it can resolve
-                // before fonts start downloading. Poll document.fonts.check() instead.
+                // Poll individual FontFace.status for each Google Font. Unlike
+                // fonts.check() (which returns true when a matching @font-face exists,
+                // before the file downloads) and fonts.ready (which resolves before
+                // @import triggers downloads), FontFace.status tracks the actual
+                // download lifecycle: 'unloaded' → 'loading' → 'loaded'.
                 await page.waitForFunction(
-                    () => {
-                        return (
-                            document.fonts.check('25px "Pacifico"') &&
-                            document.fonts.check('18px "DM Serif Text"') &&
-                            document.fonts.check('12px "Orbitron"')
+                    (families: string[]) => {
+                        const fonts = [...document.fonts];
+                        return families.every((family) =>
+                            fonts.some((f) => f.family.replace(/['"]/g, '') === family && f.status === 'loaded')
                         );
                     },
-                    null,
+                    ['Pacifico', 'DM Serif Text', 'Orbitron'],
                     { timeout: 15_000 }
                 );
 
-                // Wait for ResizeObserver callbacks to propagate and trigger chart update
-                await page.evaluate(
-                    () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
-                );
+                // Wait for the font-triggered re-render chain to complete:
+                // fonts loaded → ResizeObserver fires → chart schedules update → re-render.
+                // A short delay ensures the ResizeObserver has fired and the chart has begun
+                // its update before we poll for completion.
+                await page.waitForTimeout(200);
                 await waitForAllChartUpdates(page);
 
                 const { canvas } = await locateCanvas(page);
