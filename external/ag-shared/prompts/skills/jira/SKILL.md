@@ -4,13 +4,15 @@ name: jira
 description: >-
   Whenever the user asks to create a JIRA ticket, file a bug, log an issue,
   write up a ticket, estimate a ticket, size effort, analyse a JIRA issue, do
-  product analysis, or link tickets — ALWAYS invoke this skill first. It provides
-  the AG project's required JIRA configuration: custom field IDs for Track
-  (customfield_10501), component mappings, description templates with
-  numbered-list format, and issue type conventions. Without this skill, ticket
-  creation will fail due to missing required fields. Covers all ticket types:
-  Bug, Task, Feature Request, Improvement, Housekeeping, Doc change. Does NOT
-  cover: reading tickets, checking status, adding comments, transitioning status,
+  product analysis, or link tickets — ALWAYS invoke this skill first. Also
+  invoke when **planning** ticket creation — e.g., drafting a plan that includes
+  a "create JIRA ticket" step, or when in plan mode discussing what ticket to
+  file. The skill provides field defaults (Track values, component mappings,
+  description templates) that must be embedded in the plan so the user can
+  review and adjust them before execution. Without this skill, plans and ticket
+  creation will use wrong field values and fail. Covers all ticket types: Bug,
+  Task, Feature Request, Improvement, Housekeeping, Doc change. Does NOT cover:
+  reading tickets, checking status, adding comments, transitioning status,
   searching issues, or assigning tickets — those use Atlassian MCP tools
   directly. Does NOT cover: analysing source code, estimating code performance,
   or reviewing pull requests.
@@ -37,6 +39,7 @@ Based on user intent, read the corresponding workflow file (in the `workflows/` 
 
 | Intent | Keywords | Workflow |
 |--------|----------|----------|
+| **Plan** | In plan mode, drafting a plan that includes JIRA ticket creation | `workflows/plan.md` |
 | **Create** | "create a JIRA", "file a bug", "write up a ticket", "log this issue" | `workflows/create.md` |
 | **Estimate** | "estimate", "size", "analyse complexity", "how long", "effort" | `workflows/estimate.md` |
 | **Analyse** | "analyse this issue", "product analysis", "UX analysis", "propose solutions" | `workflows/analyze.md` |
@@ -85,7 +88,7 @@ Each ticket has exactly **one** track value. Never set multiple track values on 
 - Empty sections: Just `N/A`.
 - No comments — all info in description.
 - When creating tickets from analysis/research documents, distil to decisions and recommendations only. Do not reproduce full analysis in the description — link to the analysis document in the "Design Documents" section instead.
-- Related tickets: Use formal JIRA issue links (not ticket keys in description text). When a fix resolves downstream bugs, use "Blocks" link type. Note: the MCP API does not support creating issue links, so ask the user to add them manually after ticket creation.
+- Related tickets: Use formal JIRA issue links (not ticket keys in description text). When a fix resolves downstream bugs, use "Blocks" link type. Use `mcp__atlassian__createIssueLink` to create links after ticket creation.
 
 ### Templates
 
