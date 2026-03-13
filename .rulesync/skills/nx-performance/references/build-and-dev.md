@@ -14,17 +14,17 @@ build (nx:noop aggregator)
 
 ### Why decomposition matters
 
-- **Parallel execution**: `build:types` and `build:package` run simultaneously — no mutual dependency.
-- **Granular caching**: Changing a type signature invalidates `build:types` but not `build:package` (if the JS output is unchanged). Changing implementation invalidates `build:package` but not `build:types`.
-- **Minimal downstream invalidation**: `build:umd` uses `jsOutputs` (not `production`), so it only rebuilds when actual JS output changes — not when comments or tests change.
+-   **Parallel execution**: `build:types` and `build:package` run simultaneously — no mutual dependency.
+-   **Granular caching**: Changing a type signature invalidates `build:types` but not `build:package` (if the JS output is unchanged). Changing implementation invalidates `build:package` but not `build:types`.
+-   **Minimal downstream invalidation**: `build:umd` uses `jsOutputs` (not `production`), so it only rebuilds when actual JS output changes — not when comments or tests change.
 
 ### What invalidates what
 
-| Change type | build:types | build:package | build:umd | build:test |
-|---|---|---|---|---|
-| Source code change | Rebuilds | Rebuilds | Only if JS output changed | Rebuilds |
-| Test file change | Cached | Cached | Cached | Rebuilds |
-| Comment-only change | Rebuilds | Cached | Cached | Rebuilds |
+| Change type         | build:types | build:package | build:umd                 | build:test |
+| ------------------- | ----------- | ------------- | ------------------------- | ---------- |
+| Source code change  | Rebuilds    | Rebuilds      | Only if JS output changed | Rebuilds   |
+| Test file change    | Cached      | Cached        | Cached                    | Rebuilds   |
+| Comment-only change | Rebuilds    | Cached        | Cached                    | Rebuilds   |
 
 ### Per-package overrides
 
@@ -53,8 +53,9 @@ AG Charts uses `@nx/esbuild:esbuild` for `build:package` and `build:umd`. esbuil
 Custom esbuild plugins (`esbuild.config.cjs`) handle: CSS inlining and minification, HTML minification, post-build `.min.js` generation, UMD wrapper adaptation.
 
 ### What to audit
-- Is tsc being used for JS output when esbuild could do it?
-- Are there separate minification steps that could be folded into esbuild plugins?
+
+-   Is tsc being used for JS output when esbuild could do it?
+-   Are there separate minification steps that could be folded into esbuild plugins?
 
 ---
 
@@ -62,15 +63,16 @@ Custom esbuild plugins (`esbuild.config.cjs`) handle: CSS inlining and minificat
 
 For targets that run hundreds of times with identical setup (e.g., ~200 example generation tasks), batch executors avoid spawning a separate Node process per task:
 
-- Receives all tasks in a single process
-- Uses Node.js worker threads for CPU-parallelism (requires Node >= 18.18)
-- Falls back to serial execution on older Node versions
+-   Receives all tasks in a single process
+-   Uses Node.js worker threads for CPU-parallelism (requires Node >= 18.18)
+-   Falls back to serial execution on older Node versions
 
 Both `implementation` and `batchImplementation` must be declared in `executors.json`.
 
 ### What to audit
-- Are there targets that run hundreds of times with identical setup? These are candidates for batch executors.
-- Are batch executors registered with `batchImplementation` in `executors.json`?
+
+-   Are there targets that run hundreds of times with identical setup? These are candidates for batch executors.
+-   Are batch executors registered with `batchImplementation` in `executors.json`?
 
 ---
 
@@ -90,8 +92,9 @@ nx dev
 ```
 
 **Variants:**
-- `dev:lite` — simple HTTPS file server instead of Astro. Much faster startup for core library work.
-- `dev:quick` — only depends on a single thumbnail generation. Fastest startup for gallery-focused work.
+
+-   `dev:lite` — simple HTTPS file server instead of Astro. Much faster startup for core library work.
+-   `dev:quick` — only depends on a single thumbnail generation. Fastest startup for gallery-focused work.
 
 ### Watch system design
 
@@ -105,9 +108,10 @@ The watch script is a queue-based system:
 6. HMR bridge — touching a sentinel file signals Astro/Vite to send full-reload WebSocket message
 
 **Key environment variables:**
-- `NX_FORCE_REUSE_CACHED_GRAPH=true` — skips re-computing the project graph on every watch-triggered build (~20-40ms savings per invocation)
-- `NX_DAEMON=true` — required for the watch process (even if daemon is disabled for one-shot commands)
-- `BUILD_FWS` — opt-in to rebuild framework wrappers during watch (excluded by default)
+
+-   `NX_FORCE_REUSE_CACHED_GRAPH=true` — skips re-computing the project graph on every watch-triggered build (~20-40ms savings per invocation)
+-   `NX_DAEMON=true` — required for the watch process (even if daemon is disabled for one-shot commands)
+-   `BUILD_FWS` — opt-in to rebuild framework wrappers during watch (excluded by default)
 
 **Git-aware pausing**: Builds are blocked during `git rebase`, `git merge`, or any operation that creates `.git/index.lock`.
 
@@ -145,8 +149,9 @@ The watch script is a queue-based system:
 ```
 
 ### What to audit
-- **Are targets depending on more than they need?** Common mistake: `test` depending on `build` (which includes UMD).
-- **Are `^` (upstream) dependencies used correctly?** `^build:types` means "build types for all dependencies". Without `^`, it means "build types for this project only".
+
+-   **Are targets depending on more than they need?** Common mistake: `test` depending on `build` (which includes UMD).
+-   **Are `^` (upstream) dependencies used correctly?** `^build:types` means "build types for all dependencies". Without `^`, it means "build types for this project only".
 
 ---
 
@@ -157,7 +162,8 @@ AG Charts uses an aggregator project with `nx:noop` targets and `dependsOn: ["^t
 Convenience targets: `blt` (build-lint-test), `blt:ci` (adds e2e and pack), `clean`, `nuke`.
 
 ### What to audit
-- Does the repo have an aggregator project? Without one, developers use `nx run-many` with hand-maintained project lists that drift.
+
+-   Does the repo have an aggregator project? Without one, developers use `nx run-many` with hand-maintained project lists that drift.
 
 ---
 
@@ -166,12 +172,13 @@ Convenience targets: `blt` (build-lint-test), `blt:ci` (adds e2e and pack), `cle
 AG Charts uses a custom Nx plugin (`ag-charts-task-autogen`) that scans `packages/*/src/**/_examples/*/main.ts` and creates ~200 virtual projects at graph-computation time, each with `generate-example`, `generate-thumbnail`, and `typecheck` targets.
 
 ### What to audit
-- Is dynamic project creation used for examples/generated content, or are hundreds of targets hand-maintained in `project.json` files?
+
+-   Is dynamic project creation used for examples/generated content, or are hundreds of targets hand-maintained in `project.json` files?
 
 ---
 
 ## Nx references
 
-- [Batch executors](https://nx.dev/docs/technologies/typescript/guides/enable-tsc-batch-mode)
-- [Project graph plugins](https://nx.dev/docs/extending-nx/project-graph-plugins) — `createNodes` API
-- [Workspace watching](https://nx.dev/docs/guides/tasks--caching/workspace-watching)
+-   [Batch executors](https://nx.dev/docs/technologies/typescript/guides/enable-tsc-batch-mode)
+-   [Project graph plugins](https://nx.dev/docs/extending-nx/project-graph-plugins) — `createNodes` API
+-   [Workspace watching](https://nx.dev/docs/guides/tasks--caching/workspace-watching)

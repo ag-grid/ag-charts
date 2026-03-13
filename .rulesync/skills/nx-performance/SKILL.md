@@ -1,13 +1,13 @@
 ---
 name: nx-performance
 description: >-
-  Nx monorepo performance, caching, and build pipeline best practices. Use this
-  skill whenever planning or making changes to nx.json, project.json, targetDefaults,
-  namedInputs, or any Nx configuration. Also use when auditing a repo for Nx
-  optimisations, diagnosing cache misses, investigating slow builds, reviewing CI
-  pipeline efficiency, or when anyone mentions Nx caching, build performance,
-  task graph, or build decomposition. If the user is touching Nx config files or
-  asking "why is my build slow?", this skill applies.
+    Nx monorepo performance, caching, and build pipeline best practices. Use this
+    skill whenever planning or making changes to nx.json, project.json, targetDefaults,
+    namedInputs, or any Nx configuration. Also use when auditing a repo for Nx
+    optimisations, diagnosing cache misses, investigating slow builds, reviewing CI
+    pipeline efficiency, or when anyone mentions Nx caching, build performance,
+    task graph, or build decomposition. If the user is touching Nx config files or
+    asking "why is my build slow?", this skill applies.
 ---
 
 # Nx Performance & Caching Guide
@@ -16,12 +16,12 @@ This skill encodes battle-tested patterns from AG Charts' Nx setup — an Nx 20 
 
 ## When to consult reference files
 
-| Topic | Reference file | Read when... |
-|-------|---------------|--------------|
-| Named inputs, cache config, output declarations | `references/caching-strategy.md` | Modifying `namedInputs`, `targetDefaults`, `cache`, or `outputs` in nx.json or project.json |
-| Build decomposition, esbuild, dev server, batch executors | `references/build-and-dev.md` | Changing build targets, adding new targets, modifying the dev server, or working with batch executors |
-| CI caching, sharding, artifacts, concurrency | `references/ci-patterns.md` | Modifying GitHub Actions workflows, CI caching strategy, test sharding, or artifact sharing |
-| Known bugs and fixes from AG Charts | `references/gotchas.md` | Debugging unexpected cache behaviour, or auditing a repo that may have inherited older patterns |
+| Topic                                                     | Reference file                   | Read when...                                                                                          |
+| --------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Named inputs, cache config, output declarations           | `references/caching-strategy.md` | Modifying `namedInputs`, `targetDefaults`, `cache`, or `outputs` in nx.json or project.json           |
+| Build decomposition, esbuild, dev server, batch executors | `references/build-and-dev.md`    | Changing build targets, adding new targets, modifying the dev server, or working with batch executors |
+| CI caching, sharding, artifacts, concurrency              | `references/ci-patterns.md`      | Modifying GitHub Actions workflows, CI caching strategy, test sharding, or artifact sharing           |
+| Known bugs and fixes from AG Charts                       | `references/gotchas.md`          | Debugging unexpected cache behaviour, or auditing a repo that may have inherited older patterns       |
 
 ---
 
@@ -34,11 +34,13 @@ Every Nx target that has `cache: true` must satisfy all five. Violating any one 
 A target's inputs (files Nx hashes for the cache key) and outputs (files the target produces) must be disjoint. When they overlap, the target invalidates its own cache every time it runs.
 
 **Common violations:**
-- Code generation that writes back to `src/`
-- In-place transpilation (`.js` alongside `.ts` in `src/`)
-- Auto-formatting (`--fix`) during build, mutating source files
+
+-   Code generation that writes back to `src/`
+-   In-place transpilation (`.js` alongside `.ts` in `src/`)
+-   Auto-formatting (`--fix`) during build, mutating source files
 
 **Fix:** Write generated/transformed files to `dist/` or `.generated/`, and exclude that directory from inputs:
+
 ```json
 "buildOutputExcludes": ["!{projectRoot}/dist/**"]
 ```
@@ -50,6 +52,7 @@ Running a target twice with the same inputs must produce byte-identical outputs.
 **Common breakers:** timestamps in output, non-deterministic ordering (`Object.keys()`, `fs.readdir()`), random values, absolute paths in source maps.
 
 **How to test:**
+
 ```bash
 nx run my-package:build
 cp -r packages/my-package/dist /tmp/first-run
@@ -69,11 +72,13 @@ When target A produces output that target B reads, A's outputs must not land in 
 The cache key must invalidate when any tool that transforms the output changes. This means two things:
 
 **npm tool versions** — declare `externalDependencies` so upgrading TypeScript or esbuild invalidates the cache:
+
 ```json
 { "externalDependencies": ["npm:typescript", "npm:esbuild"] }
 ```
 
 **Local build scripts** — if the target runs a custom script (e.g., `node tools/compile-sass.js`), that script file must be in the target's `inputs`. Otherwise, changes to the script produce stale cached results:
+
 ```json
 "inputs": [
   "{projectRoot}/src/**/*.scss",
@@ -106,9 +111,10 @@ Even targets that produce no files (lint, test) should declare `"outputs": []` e
 Define reusable `namedInputs` in `nx.json` so every target references a well-scoped input set. This is the single most impactful optimisation — it prevents over-invalidation (cache misses from irrelevant file changes) and under-invalidation (stale results).
 
 Essential named inputs:
-- **`production`** — source files minus tests, snapshots, lint configs, and build outputs
-- **`buildOutputExcludes`** — `!{projectRoot}/dist/**` (prevents self-invalidation)
-- **`sharedGlobals`** — root config files that affect all builds (tsconfig, esbuild config)
+
+-   **`production`** — source files minus tests, snapshots, lint configs, and build outputs
+-   **`buildOutputExcludes`** — `!{projectRoot}/dist/**` (prevents self-invalidation)
+-   **`sharedGlobals`** — root config files that affect all builds (tsconfig, esbuild config)
 
 See `references/caching-strategy.md` for the full hierarchy and dependency output inputs (`tsDeclarations`, `jsOutputs`, `allTransitiveOutputs`).
 
@@ -116,13 +122,13 @@ See `references/caching-strategy.md` for the full hierarchy and dependency outpu
 
 Split monolithic `build` into sub-targets that maximise parallelism and minimise cache invalidation:
 
-| Target | Executor | Produces | Key benefit |
-|--------|----------|----------|-------------|
-| `build` | `nx:noop` | Nothing (aggregator) | Fan-out point, `inputs: [], outputs: []` |
-| `build:types` | `@nx/js:tsc` | `dist/types/*.d.ts` | Parallel with `build:package` |
-| `build:package` | `@nx/esbuild` | `dist/package/*.cjs.js + *.esm.mjs` | Only rebuilds on source changes |
-| `build:umd` | `@nx/esbuild` | `dist/umd/*.js` | Consumes JS output, not source |
-| `build:test` | `tsc` | `dist/test/**` | Depends on types only, not packages |
+| Target          | Executor      | Produces                            | Key benefit                              |
+| --------------- | ------------- | ----------------------------------- | ---------------------------------------- |
+| `build`         | `nx:noop`     | Nothing (aggregator)                | Fan-out point, `inputs: [], outputs: []` |
+| `build:types`   | `@nx/js:tsc`  | `dist/types/*.d.ts`                 | Parallel with `build:package`            |
+| `build:package` | `@nx/esbuild` | `dist/package/*.cjs.js + *.esm.mjs` | Only rebuilds on source changes          |
+| `build:umd`     | `@nx/esbuild` | `dist/umd/*.js`                     | Consumes JS output, not source           |
+| `build:test`    | `tsc`         | `dist/test/**`                      | Depends on types only, not packages      |
 
 See `references/build-and-dev.md` for the full pipeline including dev server and batch executors.
 
@@ -208,11 +214,11 @@ When auditing a repo for Nx optimisations, work through these checks in order. T
 ### Phase 5: Known gotchas
 
 17. See `references/gotchas.md` for 13 specific bugs discovered and fixed in AG Charts. The most common in peer repos (check these first):
-    - **Noop aggregator targets with inherited outputs** — can destroy real build artifacts on cache restore. Fix: `inputs: [], outputs: []`.
-    - **`nx:run-commands` with `parallel: true`** — race conditions when commands must run sequentially. Fix: `parallel: false`.
-    - **Lint inputs missing config files** — `.dependency-cruiser.js`, `eslint.*` not in lint inputs means stale lint results after config changes.
-    - **Dev setup/generation cached across branches** — Nx cache is branch-unaware. Fix: `cache: false` on orchestrator targets, or broaden inputs so branch switches invalidate the cache. Workaround: `nx reset` or `--skip-nx-cache`.
-    - **External (unbundled) packages missing `implicitDependencies`** — Nx can't trace through `external` imports for build ordering.
+    -   **Noop aggregator targets with inherited outputs** — can destroy real build artifacts on cache restore. Fix: `inputs: [], outputs: []`.
+    -   **`nx:run-commands` with `parallel: true`** — race conditions when commands must run sequentially. Fix: `parallel: false`.
+    -   **Lint inputs missing config files** — `.dependency-cruiser.js`, `eslint.*` not in lint inputs means stale lint results after config changes.
+    -   **Dev setup/generation cached across branches** — Nx cache is branch-unaware. Fix: `cache: false` on orchestrator targets, or broaden inputs so branch switches invalidate the cache. Workaround: `nx reset` or `--skip-nx-cache`.
+    -   **External (unbundled) packages missing `implicitDependencies`** — Nx can't trace through `external` imports for build ordering.
 
 ---
 
@@ -262,10 +268,12 @@ When modifying Nx configuration, follow these principles:
 3. **Scope inputs as tightly as possible, but don't forget build tools** — Every file included in inputs that doesn't affect the target's output is a potential false cache invalidation. Use specific globs (`{projectRoot}/src/**`) rather than broad ones (`{projectRoot}/**/*`). But be careful not to go too narrow: include every file that affects the output — source files, local build/transform scripts (e.g., `{workspaceRoot}/tools/compile-sass.js`), relevant config files, and tool versions via `externalDependencies`.
 
 4. **Use `dependentTasksOutputFiles` for cross-package dependencies** — Instead of including all upstream source in inputs, reference specific output file patterns:
-   ```json
-   "tsDeclarations": [{ "dependentTasksOutputFiles": "**/*.d.ts", "transitive": false }]
-   ```
-   Use `transitive: false` unless you genuinely need the full dependency tree (e.g., `pack`).
+
+    ```json
+    "tsDeclarations": [{ "dependentTasksOutputFiles": "**/*.d.ts", "transitive": false }]
+    ```
+
+    Use `transitive: false` unless you genuinely need the full dependency tree (e.g., `pack`).
 
 5. **Test cache behaviour after changes** — Run the target, then run it again. The second run should be a cache hit. If not, investigate what changed between runs using `NX_VERBOSE_LOGGING=true`.
 
