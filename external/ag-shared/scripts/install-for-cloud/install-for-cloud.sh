@@ -155,19 +155,6 @@ clone_directory() {
     return 1
 }
 
-# Clone a directory using APFS COW clone, with rsync fallback.
-# Args: $1 = source, $2 = destination
-clone_directory() {
-    local src="$1" dest="$2"
-    if cp -cR "${src}/" "${dest}/" 2>/dev/null; then
-        return 0
-    fi
-    if rsync -a "${src}/" "${dest}/"; then
-        return 0
-    fi
-    return 1
-}
-
 # Try to copy node_modules from root worktree if lockfiles match.
 # Uses APFS COW clone (cp -cR) for speed and disk savings, with rsync fallback.
 # Returns 0 if copy succeeded (node_modules now exists), 1 if fallback to install needed.
