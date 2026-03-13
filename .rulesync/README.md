@@ -70,6 +70,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research    |
 | Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets        |
 | Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations       |
+| Skill   | 🟢 `nx-performance`                | `/nx-performance`                    | Nx caching, build pipeline, and performance best practices |
 | Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation |
 
 ## Prompt Hygiene
