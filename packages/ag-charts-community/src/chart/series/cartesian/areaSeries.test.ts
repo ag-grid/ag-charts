@@ -2300,4 +2300,22 @@ describe('AreaSeries', () => {
             await compare();
         });
     });
+
+    describe('crossfiltering', () => {
+        it('selectedKey with one selected item sets crossFiltering on contextNodeData', async () => {
+            const data = [
+                { x: 'Jan', y: 10, selected: true },
+                { x: 'Feb', y: 20, selected: false },
+                { x: 'Mar', y: 15, selected: false },
+            ];
+            const options = prepareTestOptions({
+                data,
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
 });

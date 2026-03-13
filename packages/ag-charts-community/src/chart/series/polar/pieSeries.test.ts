@@ -1199,6 +1199,55 @@ describe('PieSeries', () => {
         }
     });
 
+    describe('crossfiltering', () => {
+        const angleFilterData = [
+            { label: 'A', angle: 10, angleFilter: 20 },
+            { label: 'B', angle: 5, angleFilter: 15 },
+            { label: 'C', angle: 8, angleFilter: 12 },
+        ];
+
+        it('angleKey less than angleFilterKey', async () => {
+            chart = await createChart({
+                ...options,
+                data: angleFilterData,
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'angle',
+                        angleFilterKey: 'angleFilter',
+                        calloutLabelKey: 'label',
+                    } as AgPieSeriesOptions,
+                ],
+            });
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('angleKey greater than angleFilterKey', async () => {
+            const data = [
+                { label: 'A', angle: 20, angleFilter: 10 },
+                { label: 'B', angle: 15, angleFilter: 5 },
+                { label: 'C', angle: 12, angleFilter: 8 },
+            ];
+            chart = await createChart({
+                ...options,
+                data,
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'angle',
+                        angleFilterKey: 'angleFilter',
+                        calloutLabelKey: 'label',
+                    } as AgPieSeriesOptions,
+                ],
+            });
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });

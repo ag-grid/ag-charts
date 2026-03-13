@@ -2619,4 +2619,77 @@ describe('BarSeries', () => {
             });
         });
     });
+
+    describe('crossfiltering', () => {
+        const filterLargerData = [
+            { x: 'A', y: 10, yFilter: 20 },
+            { x: 'B', y: 5, yFilter: 15 },
+        ];
+        const filterSmallerData = [
+            { x: 'A', y: 20, yFilter: 10 },
+            { x: 'B', y: 15, yFilter: 5 },
+        ];
+
+        it('unstacked: yKey less than yFilterKey', async () => {
+            // For unstacked bars, filterValidation is not used; phantom nodes always exist.
+            // node.yValue is set to the filter value (yFilter > y in this case).
+            const options = prepareTestOptions({
+                data: filterLargerData,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('unstacked: yKey greater than yFilterKey', async () => {
+            // For unstacked bars, filterValidation is not used; phantom nodes always exist.
+            // node.yValue is set to the filter value (yFilter < y in this case).
+            const options = prepareTestOptions({
+                data: filterSmallerData,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('stacked: yKey less than yFilterKey', async () => {
+            const stackData = [
+                { x: 'A', y1: 10, y2: 5, yFilter1: 20, yFilter2: 8 },
+                { x: 'B', y1: 8, y2: 7, yFilter1: 15, yFilter2: 12 },
+            ];
+            const options = prepareTestOptions({
+                data: stackData,
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('stacked: yKey greater than yFilterKey', async () => {
+            const stackData = [
+                { x: 'A', y1: 20, y2: 15, yFilter1: 10, yFilter2: 8 },
+                { x: 'B', y1: 18, y2: 12, yFilter1: 9, yFilter2: 6 },
+            ];
+            const options = prepareTestOptions({
+                data: stackData,
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
 });
