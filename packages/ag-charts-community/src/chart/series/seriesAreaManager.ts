@@ -385,8 +385,8 @@ export class SeriesAreaManager extends BaseManager {
             if (pick) {
                 this.pickManager.maybeActivate(undefined, (): void => {
                     this.chart.ctx.highlightManager.updateHighlight(this.id);
-                    pickedNode = pick.matches[0];
                 });
+                pickedNode = pick.matches[0];
             }
         }
 
