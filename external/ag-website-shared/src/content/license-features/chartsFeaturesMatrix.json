@@ -552,6 +552,15 @@
             },
             {
                 "label": {
+                    "name": "Flash On Update",
+                    "link": "https://www.ag-grid.com/charts/r/flash-on-update/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
                     "name": "Navigator",
                     "link": "https://www.ag-grid.com/charts/r/navigator/"
                 },

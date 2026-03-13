@@ -30,37 +30,32 @@ const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getInitialData(),
     title: {
-        text: 'Sector Trading Activity',
+        text: 'Stock Trading Volume',
     },
     series: [
         {
             type: 'bar',
-            xKey: 'sector',
-            yKey: 'institutional',
-            yName: 'Institutional ($M)',
+            xKey: 'ticker',
+            yKey: 'buyVolume',
+            yName: 'Buy Volume (M)',
             stacked: true,
         },
         {
             type: 'bar',
-            xKey: 'sector',
-            yKey: 'retail',
-            yName: 'Retail ($M)',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'sector',
-            yKey: 'etfFlows',
-            yName: 'ETF Flows ($M)',
+            xKey: 'ticker',
+            yKey: 'sellVolume',
+            yName: 'Sell Volume (M)',
             stacked: true,
         },
     ],
     axes: {
         x: {
             type: 'category',
+            label: {
+                autoRotate: false,
+            },
         },
     },
-    animation: { enabled: false },
     flashOnUpdate: {
         enabled: true,
         item: 'category',

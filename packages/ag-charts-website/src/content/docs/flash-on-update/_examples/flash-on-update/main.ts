@@ -48,7 +48,6 @@ const options: AgCartesianChartOptions = {
             },
         },
     },
-    animation: { enabled: false },
     flashOnUpdate: {
         enabled: true,
     },

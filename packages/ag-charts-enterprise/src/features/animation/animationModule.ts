@@ -15,7 +15,7 @@ export const AnimationModule: PluginModuleDefinition<AgAnimationOptions> = {
         duration: positiveNumber,
     },
     themeTemplate: {
-        enabled: true,
+        enabled: { $if: [{ $path: ['../flashOnUpdate/enabled', false] }, false, true] },
     },
 
     create: (ctx) => new Animation(ctx),

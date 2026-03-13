@@ -50,9 +50,9 @@ export interface AgAxisCaptionOptions {
     color?: CssColor;
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
-    /** Used to constrain the width of the title before text is wrapped or truncated. */
+    /** Used to constrain the size of the title along the text direction before wrapping or truncation. */
     maxWidth?: PixelSize;
-    /** Used to constrain the height of the title before text is truncated. */
+    /** Used to constrain the size of the title across the text direction before wrapping or truncation. */
     maxHeight?: PixelSize;
     /**
      * Text wrapping strategy for long text.
