@@ -24,6 +24,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     seriesId: string;
     /** The unique identifier of the picked datum. */
     itemId: string | number;
+    /** The data ID key, if set on chart options. When present, `itemId` is a stable identifier. */
+    dataIdKey?: DatumKey<TDatum>;
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** xKey as specified on series options */
@@ -72,6 +74,8 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     context?: TContext;
     /** Datum from the chart or series data array. */
     datum?: TDatum;
+    /** The data ID key, if set on chart options. When present, `activeItem.itemId` is a stable identifier. */
+    dataIdKey?: DatumKey<TDatum>;
 }
 
 export interface AgAnnotationsEvent<TContext = ContextDefault> {

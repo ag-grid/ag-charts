@@ -36,9 +36,11 @@ Transactions support three types of operations: adding, removing, and updating d
 -   **Update First 5**: Modifies the values of the first 5 items.
 
 {% note %}
-Items are identified by object reference, not by comparing property values.
+By default, items are identified by object reference. To update or remove an item,
+you must pass the same object instance that exists in the data array.
 
-To update or remove an item, you must pass the same object instance that exists in the data array.
+Alternatively, set `dataIdKey` to identify items by a unique field instead.
+See [Identifying Items by Key](#identifying-items-by-key) below.
 {% /note %}
 
 ### Adding Data
@@ -132,6 +134,59 @@ chart.applyTransaction({
 
 Operations are processed in order: remove, then update, then add.
 
+## Identifying Items by Key
+
+Set `dataIdKey` to a property name on your data items to identify them by that field
+instead of by object reference. When `dataIdKey` is set:
+
+-   **Remove** operations only need the ID field on each item.
+-   **Update** operations match by ID and replace the existing datum with the new object.
+-   **Add** operations work the same as without `dataIdKey`.
+
+{% chartExampleRunner title="ID-Based Transaction" name="id-based-transaction" type="generated" /%}
+
+-   **Add 3 Items**: Appends 3 new items to the dataset.
+-   **Remove Last by ID**: Removes the last item using only its `id` field.
+-   **Update First by ID**: Creates a new object with the same `id` to replace the first item.
+
+### Setting dataIdKey
+
+```js format="snippet"
+const options = {
+    dataIdKey: 'id',
+    data: [
+        { id: 'item-1', category: 'Category A', value: 42 },
+        { id: 'item-2', category: 'Category B', value: 58 },
+    ],
+    // ...
+};
+```
+
+The values of the `dataIdKey` field must be unique strings or numbers across the dataset.
+
+### Removing by ID
+
+When `dataIdKey` is set, remove items by passing objects containing only the ID field:
+
+```js
+chart.applyTransaction({
+    remove: [{ id: 'item-1' }],
+});
+```
+
+### Updating by ID
+
+Pass a new object with the matching ID. The existing datum is fully replaced:
+
+```js
+chart.applyTransaction({
+    update: [{ id: 'item-2', category: 'Category B', value: 99 }],
+});
+```
+
+Unlike reference-based updates where you mutate the original object, ID-based updates use
+replacement semantics — the chart stores the new object in place of the old one.
+
 ## API Reference
 
 {% tabs %}
@@ -142,6 +197,10 @@ Operations are processed in order: remove, then update, then add.
 
 {% tabItem id="_AgChartInstanceInterface" label="Chart Instance" %}
 {% apiReference id="_AgChartInstanceInterface" include=["applyTransaction"] /%}
+{% /tabItem %}
+
+{% tabItem id="AgBaseChartOptions" label="Chart Options" %}
+{% apiReference id="AgBaseChartOptions" include=["dataIdKey"] /%}
 {% /tabItem %}
 
 {% /tabs %}

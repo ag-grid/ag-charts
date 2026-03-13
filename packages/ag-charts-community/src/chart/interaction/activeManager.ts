@@ -83,6 +83,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
                 frozen,
                 activeItem,
                 datum,
+                dataIdKey: nodeDatum?.series.data?.dataIdKey,
                 preventDefault: () => {
                     defaultPrevented = true;
                 },

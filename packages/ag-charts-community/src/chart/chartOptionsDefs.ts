@@ -68,6 +68,7 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     ...commonChartOptions,
     axes: object,
     data: array,
+    dataIdKey: string,
 };
 
 export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
@@ -75,12 +76,14 @@ export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     ...commonChartOptions,
     axes: object,
     data: array,
+    dataIdKey: string,
 };
 
 export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
+    dataIdKey: string,
     topology: geoJson,
 };
 
@@ -88,4 +91,5 @@ export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> =
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
+    dataIdKey: string,
 };

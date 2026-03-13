@@ -151,6 +151,7 @@ export class SeriesNodeEvent<
     readonly datum: unknown;
     readonly seriesId: string;
     readonly itemId: string | number;
+    readonly dataIdKey: string | undefined;
     defaultPrevented = false;
 
     constructor(
@@ -161,7 +162,8 @@ export class SeriesNodeEvent<
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
-        this.itemId = getItemId(nodeDatum);
+        this.dataIdKey = series.data?.dataIdKey;
+        this.itemId = getItemId(nodeDatum, this.dataIdKey);
     }
 
     public preventDefault() {

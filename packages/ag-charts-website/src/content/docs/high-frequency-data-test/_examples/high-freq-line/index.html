@@ -1,9 +1,7 @@
 <div class="example-controls">
     <div class="controls-row">
         <button id="toggleFeedBtn" onclick="toggleFeed()">Start Feed</button>
-        <button id="toggleRapidFeedBtn" onclick="toggleRapidFeed()">Start Rapid Feed</button>
-        <button onclick="tickFeed()">Tick Feed</button>
-        <select onchange="use(this.value)">
+        <select id="methodSelect" onchange="use(this.value)">
             <option value="applyTransaction-append">applyTransaction (append)</option>
             <option value="applyTransaction-prepend">applyTransaction (prepend)</option>
             <option value="applyTransaction-remove-first">applyTransaction (remove first)</option>
@@ -12,6 +10,10 @@
             <option value="updateDelta-prepend">updateDelta (prepend)</option>
             <option value="updateDelta-remove-first">updateDelta (remove first)</option>
             <option value="updateDelta-remove-last">updateDelta (remove last)</option>
+        </select>
+        <select id="matchingModeSelect" onchange="setMatchingMode(this.value)">
+            <option value="ref" selected>Matching: ref</option>
+            <option value="id">Matching: dataIdKey</option>
         </select>
         <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
     </div>

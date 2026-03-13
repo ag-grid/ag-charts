@@ -12,6 +12,7 @@ import type { AgActiveItemState } from 'ag-charts-types';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
+import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
 
@@ -40,6 +41,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly datum: unknown;
     readonly seriesId: string;
     readonly itemId: string | number;
+    readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
 }
 
@@ -99,6 +101,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     minTimeInterval(): number | undefined;
     isPointInArea?(x: number, y: number): boolean;
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
+    readonly data?: DataSet<any>;
 }
 
 /**

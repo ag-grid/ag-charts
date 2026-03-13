@@ -140,16 +140,20 @@ export function hasOnlyRemovals(indexMap: IndexTransformationMap): boolean {
 
 /** Check if all removals are contiguous starting at index 0. */
 export function hasContiguousRemovalsAtStart(indexMap: IndexTransformationMap): boolean {
-    const { removedIndices } = indexMap;
-    if (removedIndices.size === 0) return false;
+    return contiguousRemovalCountAtStart(indexMap.removedIndices) > 0;
+}
+
+/** Returns the count of contiguous removals from index 0, or 0 if removals are absent/non-contiguous. */
+export function contiguousRemovalCountAtStart(removedIndices: Set<number>): number {
+    if (removedIndices.size === 0) return 0;
 
     const sorted = Array.from(removedIndices).sort((a, b) => a - b);
-    if (sorted[0] !== 0) return false;
+    if (sorted[0] !== 0) return 0;
 
     for (let i = 0; i < sorted.length; i++) {
-        if (sorted[i] !== i) return false;
+        if (sorted[i] !== i) return 0;
     }
-    return true;
+    return sorted.length;
 }
 
 /** Check for rolling window pattern: contiguous removals at start + appends at end. */

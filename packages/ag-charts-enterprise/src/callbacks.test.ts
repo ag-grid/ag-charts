@@ -1310,10 +1310,11 @@ describe('AG-15850 activeChange', () => {
         DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
     >;
     function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
-        const { activeItem, datum, frozen, source, type, ..._rest } = props;
+        const { activeItem, dataIdKey, datum, frozen, source, type, ..._rest } = props;
         true satisfies AreExact<keyof typeof _rest, never>; // ensure the deconstruction is exhaustive
         return expect.objectContaining({
             activeItem,
+            dataIdKey,
             datum,
             frozen,
             source,
@@ -1324,6 +1325,7 @@ describe('AG-15850 activeChange', () => {
 
     const INACTIVE_SETSTATE_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
+        dataIdKey: undefined,
         datum: undefined,
         frozen: false,
         source: 'state-change',
@@ -1332,6 +1334,7 @@ describe('AG-15850 activeChange', () => {
 
     const INACTIVE_USERINTERACTION_EVENT = expectAgActiveChangeEvent({
         activeItem: undefined,
+        dataIdKey: undefined,
         datum: undefined,
         frozen: false,
         source: 'user-interaction',
@@ -2622,6 +2625,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        dataIdKey: undefined,
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
                     }),
@@ -2638,6 +2642,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'state-change',
                         activeItem: { type: 'series-node', seriesId: 'sales', itemId: 9 },
+                        dataIdKey: undefined,
                         frozen: false,
                         datum: { month: 'Oct', sales: 220 },
                     }),
@@ -2686,6 +2691,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'user-interaction',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-1', itemId: 'apples' },
+                        dataIdKey: undefined,
                         frozen: false,
                         datum: undefined,
                     }),
@@ -2701,6 +2707,7 @@ describe('AG-15850 activeChange', () => {
                         type: 'activeChange',
                         source: 'user-interaction',
                         activeItem: { type: 'legend', seriesId: 'BarSeries-2', itemId: 'oranges' },
+                        dataIdKey: undefined,
                         frozen: false,
                         datum: undefined,
                     }),

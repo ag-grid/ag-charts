@@ -215,7 +215,8 @@ export function resolveMarkerDrawingMode(
 
 export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
     itemIdOrIndex: AgActiveItemState['itemId'],
-    nodeData: D[] | undefined
+    nodeData: D[] | undefined,
+    dataIdKey?: string
 ): D | undefined {
     for (const node of nodeData ?? []) {
         switch (typeof itemIdOrIndex) {
@@ -223,10 +224,22 @@ export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
                 if (node.itemId === itemIdOrIndex) {
                     return node;
                 }
+                if (node.itemId === undefined && dataIdKey !== undefined) {
+                    const idValue = (node.datum as any)?.[dataIdKey];
+                    if (idValue != null && String(idValue) === itemIdOrIndex) {
+                        return node;
+                    }
+                }
                 break;
             case 'number':
                 if (node.datumIndex === itemIdOrIndex) {
                     return node;
+                }
+                if (node.itemId === undefined && dataIdKey !== undefined) {
+                    const idValue = (node.datum as any)?.[dataIdKey];
+                    if (idValue === itemIdOrIndex) {
+                        return node;
+                    }
                 }
                 break;
             default:

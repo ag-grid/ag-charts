@@ -268,6 +268,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @Property
     loadGoogleFonts: boolean = false;
 
+    @Property
+    dataIdKey: string | undefined = undefined;
+
     context?: unknown;
 
     public destroyed = false;
@@ -429,7 +432,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = new DataSet(event.data);
+                this.data = new DataSet(event.data, this.dataIdKey);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1592,7 +1595,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const userOptionsData = newChartOptions.userOptions.data;
             const needsClone = Array.isArray(suppliedData) && suppliedData !== userOptionsData;
             const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
-            this.data = new DataSet(dataForDataSet);
+            this.data = new DataSet(dataForDataSet, this.dataIdKey);
+        }
+        if (
+            'dataIdKey' in deltaOptions &&
+            !(deltaOptions.data && userExplicitlyPassedData) &&
+            this.data.dataIdKey !== this.dataIdKey
+        ) {
+            this.data = new DataSet(this.data.data, this.dataIdKey);
         }
         if (
             'legend' in deltaOptions &&

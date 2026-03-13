@@ -44,6 +44,7 @@ Example paths are mapped from repo paths:
 -   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
 -   If a TData type is useful for the example, `data.ts` should also declare this.
 -   For deeper architectural context, see the main AGENTS.md file for Documentation Resources.
+-   **Hash param persistence**: Examples with configurable state (e.g., high-frequency test examples) use a `FormConfig` pattern to persist selections to URL hash params (`loadConfig()`/`saveConfig()`/`hashchange` listener). When adding new configurable state to such an example, wire it into this infrastructure so settings round-trip correctly.
 
 ## Event Handlers and Functions
 
@@ -358,6 +359,7 @@ Follow these guidelines to ensure your examples transform cleanly across all fra
 | Issue                         | Problem                        | Solution                                      |
 | ----------------------------- | ------------------------------ | --------------------------------------------- |
 | Chart not updating            | Not calling `chart.update()`   | Always call `update()` after changing options |
+| "No data to display" after partial update | Using `chart.update()` with subset of options | `chart.update()` is a **full replacement** — omitted options (axes, series, etc.) are wiped. Use `chart.updateDelta()` for partial updates |
 | TypeScript errors in React    | Using `chart` in wrong scope   | Ensure chart stored in top-level variable     |
 | Event handlers not working    | Complex inline handlers        | Use simple function calls                     |
 | Options not persisting        | Creating new options each time | Mutate the options object, then update        |
