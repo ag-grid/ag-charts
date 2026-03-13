@@ -1094,14 +1094,10 @@ export class SeriesAreaManager extends BaseManager {
                 opts?.defaultCb();
             });
         } else {
-            this.pickManager.maybeActivate(
-                active,
-                () => {
-                    this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
-                    opts?.defaultCb();
-                },
-                { rollbackCb: () => this.clearTooltip() }
-            );
+            this.pickManager.maybeActivate(active, () => {
+                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                opts?.defaultCb();
+            });
         }
     }
 

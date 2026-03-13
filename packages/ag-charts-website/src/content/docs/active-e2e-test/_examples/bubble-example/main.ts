@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgActiveChangeEvent, AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { getData1, getData2 } from './data';
@@ -77,13 +77,50 @@ const options: AgCartesianChartOptions<DatumType> = {
     legend: {
         position: 'right',
     },
+    listeners: {
+        seriesNodeClick: () => {
+            if (shouldPreventDefault) {
+                preventNextActiveChange = true;
+            }
+        },
+        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+            events.push(ev);
+            if (preventNextActiveChange) {
+                ev.preventDefault();
+                preventNextActiveChange = false;
+            }
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
+let events: unknown[] = [];
+
+let shouldPreventDefault = false;
+let preventNextActiveChange = false;
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
 
 function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }
 
+function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
+
+function onPreventDefaultChange(value: boolean) {
+    shouldPreventDefault = value;
+}
+
+window.addEventListener('mousemove', (ev: MouseEvent) => {
+    document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
+
 // For e2e testing:
-(window as any).agE2E = { chart };
+(window as any).agE2E = { chart, popEvents };

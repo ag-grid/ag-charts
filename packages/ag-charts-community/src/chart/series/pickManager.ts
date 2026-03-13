@@ -9,15 +9,8 @@ type ActivationArgs =
     | [NonNullable<Parameters<ActiveManager['update']>[0]>, NonNullable<Parameters<ActiveManager['update']>[1]>]
     | [undefined, undefined];
 
-type ActivationOptsCommon = {
-    rollbackCb?: () => void;
-};
-type ActivationOptsNoArg = ActivationOptsCommon & {
-    defaultCbArg?: never;
-};
-type ActivationOptsWithArg<A> = ActivationOptsCommon & {
-    defaultCbArg: A;
-};
+type ActivationOptsNoArg = { defaultCbArg?: never };
+type ActivationOptsWithArg<A> = { defaultCbArg: A };
 type ActivationOpts<A> = ActivationOptsNoArg | ActivationOptsWithArg<A>;
 
 export type PickedNode = SeriesNodeDatum<DatumIndexType>;
@@ -124,12 +117,11 @@ export class PickManager {
             this.blockEntrance = true;
             const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(node);
             const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
-            if (!defaultPrevented) {
+            if (defaultPrevented) {
+                this.deactivationPrevented = node === undefined;
+            } else {
                 this.active = node;
                 defaultCb(opts?.defaultCbArg);
-            } else {
-                this.deactivationPrevented = node === undefined;
-                opts?.rollbackCb?.();
             }
         } finally {
             this.blockEntrance = false;
