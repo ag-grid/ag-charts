@@ -1177,10 +1177,18 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
+        // Skip SERIES_UPDATE when neither series has visual highlight effects
+        const lastHighlightEnabled = lastSeries?.isHighlightEnabled() ?? false;
+        if (event.highlightSuppressed && !lastHighlightEnabled) return;
+
+        // When transitioning between highlight-enabled and highlight-disabled series,
+        // all series need updating since their visual highlight state changes.
+        const suppressionChanged = event.highlightSuppressed !== !lastHighlightEnabled;
+
         // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
         // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
         // this is unknown, further investigation may be required.
-        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null) {
+        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null || suppressionChanged) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
