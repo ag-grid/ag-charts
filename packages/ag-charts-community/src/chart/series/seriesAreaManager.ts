@@ -1326,6 +1326,12 @@ export class SeriesAreaManager extends BaseManager {
             if (desiredPickedNodes) {
                 this.pickManager.onPickedNodesAPI(desiredPickedNodes);
                 this.hoverScheduler.schedule();
+            } else {
+                // Active datum was removed (e.g. by a transaction); clear the active state.
+                this.activeState.lastActive = undefined;
+                this.pickManager.onClearUI();
+                this.clearHighlight(false);
+                this.clearTooltip(false);
             }
         }
     }
