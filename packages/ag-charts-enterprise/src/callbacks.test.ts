@@ -2720,4 +2720,164 @@ describe('AG-15850 activeChange', () => {
             expect(popCalls()).toEqual([]);
         });
     });
+
+    describe('bar with dataIdKey', () => {
+        const DATA = [
+            { id: 'alpha', myCategory: 'CatA', myValue: 10 },
+            { id: 'beta', myCategory: 'CatB', myValue: 20 },
+            { id: 'gamma', myCategory: 'CatC', myValue: 12 },
+            { id: 'delta', myCategory: 'CatD', myValue: 15 },
+        ];
+
+        beforeEach(async () => {
+            await createChart({
+                dataIdKey: 'id',
+                data: DATA,
+                series: [{ type: 'bar', xKey: 'myCategory', yKey: 'myValue', id: 'mySeries' }],
+                listeners: { activeChange: mockActiveChange.frozen },
+            });
+            expect(popCalls()).toEqual([]);
+        });
+
+        test('setState with dataIdKey-based itemId', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' });
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'series-node', seriesId: 'mySeries', itemId: 'beta' },
+                        dataIdKey: 'id',
+                        frozen: false,
+                        datum: { id: 'beta', myCategory: 'CatB', myValue: 20 },
+                    }),
+                ],
+            ]);
+        });
+
+        test('getState returns stable ID', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' });
+            popCalls();
+
+            const state = chart.getState();
+            expect(state.active?.activeItem).toEqual({
+                type: 'series-node',
+                seriesId: 'mySeries',
+                itemId: 'beta',
+            });
+        });
+
+        test('initialState with dataIdKey-based itemId', async () => {
+            chart.destroy();
+            mockActiveChange = newFreezableMock<D, C, M>();
+            await createChart({
+                dataIdKey: 'id',
+                data: DATA,
+                series: [{ type: 'bar', xKey: 'myCategory', yKey: 'myValue', id: 'mySeries' }],
+                listeners: { activeChange: mockActiveChange.frozen },
+                initialState: {
+                    active: {
+                        activeItem: { type: 'series-node', seriesId: 'mySeries', itemId: 'gamma' },
+                    },
+                },
+            });
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'state-change',
+                        activeItem: { type: 'series-node', seriesId: 'mySeries', itemId: 'gamma' },
+                        dataIdKey: 'id',
+                        frozen: false,
+                        datum: { id: 'gamma', myCategory: 'CatC', myValue: 12 },
+                    }),
+                ],
+            ]);
+        });
+
+        test('mouse hover emits stable itemId', async () => {
+            await hover(168, 300);
+            const calls = popCalls();
+            expect(calls.length).toBe(1);
+            const event = calls[0]?.[0];
+            expect(event?.dataIdKey).toBe('id');
+            expect(typeof event?.activeItem?.itemId).toBe('string');
+        });
+
+        test('active state persists across data update', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' }, true);
+            popCalls();
+
+            const updatedData = DATA.map((d) => (d.id === 'beta' ? { ...d, myValue: 99 } : d));
+            await chart.updateDelta({ data: updatedData });
+            await waitForChartStability(chart);
+
+            const state = chart.getState();
+            expect(state.active?.activeItem).toEqual({
+                type: 'series-node',
+                seriesId: 'mySeries',
+                itemId: 'beta',
+            });
+        });
+
+        test('active state clears when datum removed by data update', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' }, true);
+            popCalls();
+
+            const filteredData = DATA.filter((d) => d.id !== 'beta');
+            await chart.updateDelta({ data: filteredData });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "beta"']]);
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'user-interaction',
+                        activeItem: undefined,
+                        dataIdKey: undefined,
+                        datum: undefined,
+                        frozen: true,
+                    }),
+                ],
+            ]);
+        });
+
+        test('active state persists across applyTransaction update', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' }, true);
+            popCalls();
+
+            await chart.applyTransaction({ update: [{ id: 'beta', myCategory: 'CatB', myValue: 99 }] });
+            await waitForChartStability(chart);
+
+            const state = chart.getState();
+            expect(state.active?.activeItem).toEqual({
+                type: 'series-node',
+                seriesId: 'mySeries',
+                itemId: 'beta',
+            });
+        });
+
+        test('active state clears via applyTransaction remove', async () => {
+            await setActiveItem({ type: 'series-node', itemId: 'beta', seriesId: 'mySeries' }, true);
+            popCalls();
+
+            await chart.applyTransaction({ remove: [{ id: 'beta' }] });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([['AG Charts - Cannot find itemId: "beta"']]);
+            expect(popCalls()).toEqual([
+                [
+                    expectAgActiveChangeEvent({
+                        type: 'activeChange',
+                        source: 'user-interaction',
+                        activeItem: undefined,
+                        dataIdKey: undefined,
+                        datum: undefined,
+                        frozen: true,
+                    }),
+                ],
+            ]);
+        });
+    });
 });
