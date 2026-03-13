@@ -125,7 +125,7 @@ export interface AgChartLegendEvent<T extends string, TContext = ContextDefault>
     /** Series id */
     seriesId: string;
     /** Legend item id - usually yKey value for cartesian series. */
-    itemId: string;
+    itemId: string | number;
     /** Legend item text value. */
     text: string;
     /** The browser event that triggered the legend event. */

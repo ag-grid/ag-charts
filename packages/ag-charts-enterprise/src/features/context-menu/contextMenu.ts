@@ -162,11 +162,6 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
                 const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
                 const text = toPlainText(label.text);
-
-                if (typeof itemId !== 'string') {
-                    throw new Error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
-                }
-
                 return { showOn, context, itemId, seriesId, text, visible: enabled, defaultItems };
 
             default:
@@ -330,11 +325,6 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
                     const { chartService: chart } = this.ctx;
-                    if (typeof itemId !== 'string') {
-                        Logger.error(`unexpected itemId type: [${typeof itemId}] (expected [string])`);
-                        return;
-                    }
-
                     const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
                     const callers: Caller[] = [series?.properties, chart];
                     const apiEvent = {
