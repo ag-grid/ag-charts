@@ -29,7 +29,7 @@ export function makeLegendItemEvent(
         defaultPrevented: false,
         apiEvent: {
             type,
-            itemId: itemId as (AgChartLegendClickEvent | AgChartLegendDoubleClickEvent)['itemId'] satisfies string, // FIXME: AG-16068
+            itemId,
             seriesId,
             event,
             text: toPlainText(text),
