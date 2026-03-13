@@ -104,6 +104,7 @@ export interface CommonMetadata<D> {
         diff?: Record<string, ProcessedOutputDiff>;
         smallestKeyInterval?: number;
         largestKeyInterval?: number;
+        filteredValueExceedUnfiltered?: boolean;
         sortedGroupDomain?: any[][];
         animationValidation?: {
             uniqueKeys: boolean;

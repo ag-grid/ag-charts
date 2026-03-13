@@ -44,6 +44,7 @@ import {
     animationValidation,
     createDatumId,
     diff,
+    filterValidation,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
@@ -131,6 +132,7 @@ interface BarSeriesNodeDatumContext {
     readonly labelSpacing: number;
     readonly crisp: boolean;
     readonly isStacked: boolean;
+    readonly filteredValueExceedUnfiltered: boolean;
     readonly animationEnabled: boolean;
     readonly dataAggregationFilter: BarSeriesDataAggregationFilter | undefined;
     readonly canIncrementallyUpdate: boolean;
@@ -280,12 +282,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
-    private crossFilteringEnabled() {
-        return (
-            this.properties.yFilterKey != null && (this.seriesGrouping == null || this.seriesGrouping.stackIndex === 0)
-        );
-    }
-
     override async processData(dataController: DataController) {
         if (!this.data) return;
 
@@ -302,34 +298,26 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const stackGroupName = `bar-stack-${groupIndex}-yValues`;
-        const stackGroupTrailingName = `${stackGroupName}-trailing`;
-
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any>[] = [
             keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
-            valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+            valueProperty(yKey, yScaleType, { id: 'yValue-raw', invalidValue: null, ...visibleProps }),
         ];
-
-        if (this.crossFilteringEnabled()) {
-            props.push(
-                valueProperty(yFilterKey!, yScaleType, {
-                    id: `yFilterValue`,
-                    invalidValue: null,
-                    ...visibleProps,
-                })
-            );
-        }
+        const normalizeGroups: string[] = [];
 
         if (stacked) {
+            const stackGroupName = `bar-stack-${groupIndex}-yValues`;
+            const stackGroupTrailingName = `${stackGroupName}-trailing`;
+            normalizeGroups.push(stackGroupName, stackGroupTrailingName);
+
             props.push(
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
                     {
-                        id: `yValue-end`,
-                        rangeId: `yValue-range`,
+                        id: 'yValue-end',
+                        rangeId: 'yValue-range',
                         invalidValue: null,
                         missingValue: 0,
                         groupId: stackGroupName,
@@ -342,7 +330,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     yKey,
                     'trailing',
                     {
-                        id: `yValue-start`,
+                        id: 'yValue-start',
                         invalidValue: null,
                         missingValue: 0,
                         groupId: stackGroupTrailingName,
@@ -354,12 +342,59 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             );
         }
 
+        if (yFilterKey != null) {
+            props.push(
+                valueProperty(yFilterKey, yScaleType, {
+                    id: 'yFilterValue-raw',
+                    invalidValue: null,
+                    ...visibleProps,
+                })
+            );
+
+            if (stacked) {
+                const filterStackGroupName = `bar-stack-${groupIndex}-yFilterValues`;
+                const filterStackGroupTrailingName = `${filterStackGroupName}-trailing`;
+                normalizeGroups.push(filterStackGroupName, filterStackGroupTrailingName);
+
+                props.push(
+                    ...groupAccumulativeValueProperty(
+                        yFilterKey,
+                        'normal',
+                        {
+                            id: 'yFilterValue-end',
+                            rangeId: 'yFilterValue-range',
+                            invalidValue: null,
+                            missingValue: 0,
+                            groupId: filterStackGroupName,
+                            separateNegative: true,
+                            ...visibleProps,
+                        },
+                        yScaleType
+                    ),
+                    ...groupAccumulativeValueProperty(
+                        yFilterKey,
+                        'trailing',
+                        {
+                            id: 'yFilterValue-start',
+                            invalidValue: null,
+                            missingValue: 0,
+                            groupId: filterStackGroupTrailingName,
+                            separateNegative: true,
+                            ...visibleProps,
+                        },
+                        yScaleType
+                    ),
+                    filterValidation(this.id, 'yValue-raw', 'yFilterValue-raw')
+                );
+            }
+        }
+
         if (isContinuousX) {
             props.push(SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL);
         }
 
         if (isFiniteNumber(normalizedTo)) {
-            props.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
+            props.push(normaliseGroupTo(normalizeGroups, Math.abs(normalizedTo)));
         }
         if (this.needsDataModelDiff() && this.processedData) {
             props.push(diff(this.id, this.processedData));
@@ -383,7 +418,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     private yCumulativeKey(dataModel: DataModel<any, any>) {
-        return dataModel.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
+        return dataModel.hasColumnById(this, 'yValue-end') ? 'yValue-end' : 'yValue-raw';
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
@@ -392,21 +427,27 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (dataModel == null || processedData == null) return { domain: [] };
 
         if (direction === this.getCategoryDirection()) {
-            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-            const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
+            const keyDef = dataModel.resolveProcessedDataDefById(this, 'xValue');
+            const keys = dataModel.getDomain(this, 'xValue', 'key', processedData);
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
             return { domain: this.padBandExtent(keys.domain) };
         }
 
-        const yKey = this.yCumulativeKey(dataModel);
-        let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
-        const yFilterExtent = this.crossFilteringEnabled()
-            ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData).domain
-            : undefined;
-        if (yFilterExtent != null) {
-            yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
+        let yExtent: any[];
+        if (processedData.reduced?.filteredValueExceedUnfiltered === true) {
+            yExtent = this.domainForClippedRange(direction, ['yFilterValue-end'], 'xValue');
+        } else {
+            const yKey = this.yCumulativeKey(dataModel);
+            yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
+
+            const yFilterExtent = dataModel.hasColumnById(this, 'yFilterValue-raw')
+                ? dataModel.getDomain(this, 'yFilterValue-raw', 'value', processedData).domain
+                : undefined;
+            if (yFilterExtent != null) {
+                yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
+            }
         }
 
         const yAxis = this.getValueAxis();
@@ -515,22 +556,38 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
-        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
+        const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
+        const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
+        let yStartValues: number[] | undefined;
+        let yEndValues: number[] | undefined;
+        let yFilterValues: number[] | undefined;
+        if (filteredValueExceedUnfiltered) {
+            yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData);
+            yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData);
+            yFilterValues = undefined;
+        } else {
+            const isCrossFilteringEnabled = dataModel.hasColumnById(this, 'yFilterValue-raw');
+
+            yStartValues = isStacked ? dataModel.resolveColumnById(this, 'yValue-start', processedData) : undefined;
+            yEndValues = isStacked ? dataModel.resolveColumnById(this, 'yValue-end', processedData) : undefined;
+            yFilterValues = isCrossFilteringEnabled
+                ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData)
+                : undefined;
+        }
+
         return {
             dataSource: rawData,
             rawData: rawData.data,
-            xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
-            yRawValues: dataModel.resolveColumnById(this, `yValue-raw`, processedData),
-            yFilterValues: this.crossFilteringEnabled()
-                ? dataModel.resolveColumnById(this, `yFilterValue`, processedData)
-                : undefined,
-            yStartValues: isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined,
-            yEndValues: isStacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined,
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValue-raw', processedData),
+            yStartValues,
+            yEndValues,
+            yFilterValues,
             xScale,
             yScale,
             xAxis,
@@ -547,6 +604,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 (this.properties.crisp ??
                     checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval)),
             isStacked,
+            filteredValueExceedUnfiltered,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             dataAggregationFilter,
             canIncrementallyUpdate,
@@ -940,7 +998,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const processedData = this.processedData! as GroupedData<any>;
         const invalidData = processedData.invalidData?.get(this.id);
         const width = ctx.barWidth;
-        const yRangeIndex = ctx.isStacked ? this.dataModel!.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
+        let yRangeIndex: number;
+        if (ctx.filteredValueExceedUnfiltered) {
+            yRangeIndex = this.dataModel!.resolveProcessedDataIndexById(this, 'yFilterValue-range');
+        } else if (ctx.isStacked) {
+            yRangeIndex = this.dataModel!.resolveProcessedDataIndexById(this, 'yValue-range');
+        } else {
+            yRangeIndex = -1;
+        }
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
         const groups = processedData.groups;
 
@@ -1284,8 +1349,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { xKey, yKey, stackGroup } = this.properties;
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData)[datumIndex];
+        const xDomain = dataModel.getDomain(this, 'xValue', 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData).domain;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -1367,7 +1432,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
-            const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+            const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
 
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId({ xValue, phantom: false }), isHighlight ? 'highlight' : 'node'),
@@ -1497,8 +1562,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
-        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison

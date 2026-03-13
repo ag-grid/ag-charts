@@ -395,6 +395,36 @@ export function normalisePropertyTo(
     };
 }
 
+function buildFilterValidation([id, yKey, yFilterKey]: [id: string, yKey: string, yFilterKey: string]) {
+    return function calculate(result: ProcessedData<any>, previousValue: any) {
+        if (previousValue === true) return true;
+
+        const yKeyIndex = result.defs.values.findIndex((d) => d.scopes.includes(id) && d.id === yKey);
+        const yFilterKeyIndex = result.defs.values.findIndex((d) => d.scopes.includes(id) && d.id === yFilterKey);
+
+        const yValues = result.columns[yKeyIndex];
+        const yFilterValues = result.columns[yFilterKeyIndex];
+
+        if (yValues.length !== yFilterValues.length) return true;
+
+        for (let i = 0; i < yValues.length; i++) {
+            if (Math.abs(yFilterValues[i]) > Math.abs(yValues[i])) return true;
+        }
+
+        return false;
+    };
+}
+
+export function filterValidation(id: string, yKey: string, yFilterKey: string): ProcessorOutputPropertyDefinition {
+    const calculate = memo([id, yKey, yFilterKey], buildFilterValidation);
+
+    return {
+        type: 'processor',
+        property: 'filteredValueExceedUnfiltered',
+        calculate,
+    };
+}
+
 const ANIMATION_VALIDATION_UNIQUE_KEYS = 0b01;
 const ANIMATION_VALIDATION_ORDERED_KEYS = 0b10;
 
