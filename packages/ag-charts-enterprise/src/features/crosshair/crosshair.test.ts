@@ -408,10 +408,8 @@ describe('Crosshair', () => {
             },
             formatter: {
                 y: ({ value }: any) => {
-                    return Number(value).toLocaleString('en-GB', {
-                        notation: 'compact',
-                        maximumFractionDigits: 1,
-                    });
+                    const num = Number(value);
+                    return `${(num / 1e9).toFixed(1)}bn`;
                 },
             },
         };

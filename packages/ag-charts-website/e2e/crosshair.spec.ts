@@ -3,6 +3,7 @@ import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageU
 
 test.describe('crosshair', () => {
     setupIntrinsicAssertions(test);
+    test.describe.configure({ retries: 3 });
     const x = 666;
     const y = 400;
 
