@@ -27,6 +27,7 @@ import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 import {
     chartsVersion,
     chartsVersionPatch,
+    codespaceUrl,
     gridVersion,
     gridVersionPatch,
 } from '@utils/markdoc/functions/libraryVersions';
@@ -50,6 +51,7 @@ export default defineMarkdocConfig({
         gridVersionPatch,
         chartsVersion,
         chartsVersionPatch,
+        codespaceUrl,
     },
     tags: {
         kbd,

@@ -20,6 +20,7 @@ export class LicenseManager {
     private static readonly RELEASE_INFORMATION: string = 'MTc3MDgwNzY1NDM4MQ==';
     private static licenseKey?: string;
     private static gridContext: boolean = false;
+    private static licenseOutputLogged = false;
     private watermarkMessage: string | undefined = undefined;
 
     private readonly md5: MD5;
@@ -66,6 +67,8 @@ export class LicenseManager {
         } else if (licenseDetails.isTrial && licenseDetails.trialExpired) {
             this.outputExpiredTrialKey(licenseDetails.expiry, currentLicenseName, suppliedLicenseName);
         }
+
+        LicenseManager.licenseOutputLogged = true;
     }
 
     private static extractExpiry(license: string) {
@@ -348,6 +351,9 @@ export class LicenseManager {
             );
         }
 
+        if (this.licenseKey !== licenseKey) {
+            LicenseManager.licenseOutputLogged = false;
+        }
         LicenseManager.licenseKey = licenseKey;
     }
 
@@ -372,11 +378,13 @@ export class LicenseManager {
     }
 
     private centerPadAndOutput(input: string) {
+        if (LicenseManager.licenseOutputLogged) return;
         const paddingRequired = this.totalMessageLength - input.length;
         console.error(input.padStart(paddingRequired / 2 + input.length, '*').padEnd(this.totalMessageLength, '*'));
     }
 
     private padAndOutput(input: string, padding = '*', terminateWithPadding = '') {
+        if (LicenseManager.licenseOutputLogged) return;
         console.error(
             input.padEnd(this.totalMessageLength - terminateWithPadding.length, padding) + terminateWithPadding
         );
