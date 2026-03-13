@@ -1547,7 +1547,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseLeave(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-left.png');
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseMove2ndBar(page);
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');

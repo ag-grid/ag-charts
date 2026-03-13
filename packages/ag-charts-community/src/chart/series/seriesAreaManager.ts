@@ -997,7 +997,9 @@ export class SeriesAreaManager extends BaseManager {
         if (this.isState(InteractionState.Frozen)) return;
         this.pickManager.onClearUI();
         this.clearHighlight(delayed);
-        this.clearTooltip(delayed); // Pass through the delayed flag
+        if (!this.pickManager.wasDeactivationPrevented()) {
+            this.clearTooltip(delayed); // Pass through the delayed flag
+        }
         this.focusIndicator?.clear();
     }
 
@@ -1126,7 +1128,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { active, paginationState } = this.pickManager.onPickedNodesTooltip(pick);
         if (active === undefined) {
-            if (this.getHoverDevice() == 'pointer') {
+            if (this.getHoverDevice() == 'pointer' && !this.pickManager.wasDeactivationPrevented()) {
                 this.clearTooltip(true); // true = delayed
             }
         } else {
