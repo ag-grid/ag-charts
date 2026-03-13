@@ -16,9 +16,6 @@ const DEFAULT_TIMEOUT = 30000;
 let renderLock: Promise<void> = Promise.resolve();
 
 export class AgChartsServerSide {
-    private static licenseValidated = false;
-    private static cachedForeground: object | undefined;
-
     /**
      * Acquire exclusive access for rendering.
      * Returns a release function to call when done.
@@ -103,18 +100,15 @@ export class AgChartsServerSide {
             // Show watermark for unlicensed enterprise use.
             // We use getWatermarkForegroundConfig() (not getWatermarkForegroundConfigForBrowser())
             // because SSR should always show the watermark when unlicensed, even for localhost.
-            if (!AgChartsServerSide.licenseValidated) {
-                const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
-                if (licenseManager) {
-                    licenseManager.validateLicense();
-                    AgChartsServerSide.cachedForeground = licenseManager.getWatermarkForegroundConfig();
-                }
-                AgChartsServerSide.licenseValidated = true;
-            }
-
+            // Console output is guarded by LicenseManager.licenseOutputLogged to print at most once.
             let chartOptions: any = options;
-            if (AgChartsServerSide.cachedForeground) {
-                chartOptions = { ...options, foreground: AgChartsServerSide.cachedForeground };
+            const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
+            if (licenseManager) {
+                licenseManager.validateLicense();
+                const foreground = licenseManager.getWatermarkForegroundConfig();
+                if (foreground) {
+                    chartOptions = { ...options, foreground };
+                }
             }
 
             const createdChart = AgCharts[api]({

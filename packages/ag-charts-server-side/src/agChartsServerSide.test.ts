@@ -326,9 +326,6 @@ describe('AgChartsServerSide enterprise licensing', () => {
     });
 
     beforeEach(async () => {
-        // Reset SSR license cache for each test
-        (AgChartsServerSide as any).licenseValidated = false;
-        (AgChartsServerSide as any).cachedForeground = undefined;
         // Reset license key (also resets LicenseManager.licenseOutputLogged)
         const { LicenseManager } = await import('ag-charts-enterprise');
         LicenseManager.setLicenseKey(undefined);
@@ -387,9 +384,6 @@ describe('AgChartsServerSide community-only watermark', () => {
     setupMockConsole();
 
     beforeEach(async () => {
-        // Reset SSR license cache for each test
-        (AgChartsServerSide as any).licenseValidated = false;
-        (AgChartsServerSide as any).cachedForeground = undefined;
         // Reset license state — no license key set means watermark should appear
         const { LicenseManager } = await import('ag-charts-enterprise');
         LicenseManager.setLicenseKey(undefined);
