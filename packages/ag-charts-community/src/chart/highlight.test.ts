@@ -434,6 +434,128 @@ describe('Chart highlighting', () => {
             });
         });
 
+        it('dims other enabled series when transitioning from disabled to enabled series', async () => {
+            const threeSeriesData = [
+                { category: 'Q1', apples: 5, oranges: 3, bananas: 4 },
+                { category: 'Q2', apples: 7, oranges: 4, bananas: 5 },
+                { category: 'Q3', apples: 6, oranges: 5, bananas: 4 },
+                { category: 'Q4', apples: 8, oranges: 6, bananas: 7 },
+            ];
+
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: threeSeriesData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                        highlight: { enabled: false },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'bananas',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            chart = await createChart(options);
+
+            // First highlight the disabled series (apples)
+            const disabledDatum = defaultHighlightDatum(chart, {
+                name: 'disabled',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            await waitForChartStability(chart);
+
+            // Now transition to an enabled series (oranges) — bananas should dehighlight
+            const enabledDatum = defaultHighlightDatum(chart, {
+                name: 'enabled',
+                options,
+                seriesIndex: 1,
+                datumIndex: 0,
+            });
+            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            await compare();
+        });
+
+        it('clears dehighlight on all series when transitioning from enabled to disabled series', async () => {
+            const threeSeriesData = [
+                { category: 'Q1', apples: 5, oranges: 3, bananas: 4 },
+                { category: 'Q2', apples: 7, oranges: 4, bananas: 5 },
+                { category: 'Q3', apples: 6, oranges: 5, bananas: 4 },
+                { category: 'Q4', apples: 8, oranges: 6, bananas: 7 },
+            ];
+
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: threeSeriesData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                        highlight: { enabled: false },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'bananas',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            chart = await createChart(options);
+
+            // First highlight an enabled series (oranges) — bananas should dehighlight
+            const enabledDatum = defaultHighlightDatum(chart, {
+                name: 'enabled',
+                options,
+                seriesIndex: 1,
+                datumIndex: 0,
+            });
+            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            await waitForChartStability(chart);
+
+            // Now transition to the disabled series (apples) — all series should clear dehighlight
+            const disabledDatum = defaultHighlightDatum(chart, {
+                name: 'disabled',
+                options,
+                seriesIndex: 0,
+                datumIndex: 0,
+            });
+            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            await compare();
+        });
+
         it('does not dim disabled series when another series is highlighted', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: categoryData,
