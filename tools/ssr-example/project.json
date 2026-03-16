@@ -7,8 +7,21 @@
       "executor": "nx:run-commands",
       "dependsOn": ["ag-charts-server-side:build", "ag-charts-community:build"],
       "options": {
-        "cwd": "external/ag-charts-server-side-example",
+        "cwd": "examples/server-side-rendering",
         "commands": ["tsx examples/01-basic-render.ts", "tsx examples/02-jpeg-output.ts"]
+      }
+    },
+    "validate-examples": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["ag-charts-enterprise:build:types", "ag-charts-server-side:build:types"],
+      "inputs": [
+        "{workspaceRoot}/examples/server-side-rendering/examples/**/*.ts",
+        "{workspaceRoot}/examples/server-side-rendering/tsconfig.typecheck.json",
+        "tsDeclarations"
+      ],
+      "cache": true,
+      "options": {
+        "command": "npx tsc -p examples/server-side-rendering/tsconfig.typecheck.json"
       }
     },
     "docker": {

@@ -157,7 +157,7 @@
       "tests/react-package-tests",
       "tests/server-side-package-tests",
       "tests/vue-package-tests",
-      "external/ag-charts-server-side-example"
+      "examples/server-side-rendering"
     ],
     "nohoist": [
       "**/tinypool",
