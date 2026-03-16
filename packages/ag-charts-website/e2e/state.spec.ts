@@ -2465,6 +2465,114 @@ test.describe('state', () => {
             });
         });
 
+        test.describe('frozen-zoompan', () => {
+            let canvas: Locator;
+
+            const APRIL_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'sales-series',
+                itemId: 3,
+            });
+
+            const APRIL_ACTIVE_STATE = Object.freeze({
+                activeItem: APRIL_ACTIVE_ITEM,
+                frozen: true,
+            });
+
+            const APRIL_ACTIVE_CHANGE = Object.freeze({
+                ...APRIL_ACTIVE_STATE,
+                datum: { month: 'Apr', sales: 220 },
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'state-change',
+                type: 'activeChange',
+            });
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(1, 1);
+            }
+
+            async function clickFreezeOnApril(page: Page): Promise<void> {
+                await page.getByText('Freeze on April (index 3)').click();
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function slideNavigatorMaxLeft(page: Page): Promise<void> {
+                await page.mouse.move(762, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(413, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            async function slideNavigatorPanRight(page: Page): Promise<void> {
+                await page.mouse.move(269, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(698, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            async function slideNavigatorPanLeft(page: Page): Promise<void> {
+                await page.mouse.move(698, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(269, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'frozen-zoompan', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('adding and removing datums at start keeps frozen datum active', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+
+                    await clickFreezeOnApril(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+
+                    await slideNavigatorMaxLeft(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+
+                    await slideNavigatorPanRight(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-right.png');
+
+                    await slideNavigatorPanLeft(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickFreezeOnApril(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorMaxLeft(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorPanRight(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorPanLeft(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickFreezeOnApril(page);
+                    expect(await popChartEvents(page)).toEqual([APRIL_ACTIVE_CHANGE]);
+
+                    await slideNavigatorMaxLeft(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await slideNavigatorPanRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await slideNavigatorPanLeft(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
+
         test.describe('external-legend', () => {
             let canvas: Locator;
 

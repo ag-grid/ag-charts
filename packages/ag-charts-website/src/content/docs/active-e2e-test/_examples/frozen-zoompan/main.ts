@@ -43,6 +43,12 @@ const options: AgCartesianChartOptions<DataType, unknown> = {
     },
     zoom: {
         enabled: true,
+        autoScaling: {
+            enabled: false,
+        },
+        buttons: {
+            enabled: false,
+        },
     },
     listeners: {
         activeChange: function (event: AgActiveChangeEvent<DataType, unknown>) {
