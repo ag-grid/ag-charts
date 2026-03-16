@@ -13,10 +13,7 @@
     },
     "validate-examples": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "ag-charts-enterprise:build:types",
-        "ag-charts-server-side:build:types"
-      ],
+      "dependsOn": ["ag-charts-enterprise:build:types", "ag-charts-server-side:build:types"],
       "inputs": [
         "{workspaceRoot}/examples/server-side-rendering/examples/**/*.ts",
         "{workspaceRoot}/examples/server-side-rendering/tsconfig.typecheck.json",
