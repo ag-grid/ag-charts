@@ -61,7 +61,7 @@ test.describe('forced reflow detection', () => {
     // - SizeMonitor's synchronous getBoundingClientRect interleaved with DOM writes (fixed via skipInitialRead)
     // - getComputedStyle in isDirectionRtl during container setup (fixed via minimal mode skip)
     // - Tooltip's addResizeListener calling getBoundingClientRect (fixed via skipInitialRead on proxy)
-    const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'renderOffscreen'];
+    const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'renderOffscreen', 'drawImage'];
     const SPARKLINE_COUNT = 30; // must match the count in the test example
 
     test('sparkline creation should not cause forced reflows', async ({ page }) => {

@@ -331,7 +331,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 ...transform: [DOMMatrix] | [number, number, number, number, number, number]
             ) => {
                 const offscreenCtx = offscreenCanvas.context;
-                offscreenCtx.direction = ctx.direction;
+                offscreenCtx.direction = childRenderCtx.direction;
                 childRenderCtx.ctx = offscreenCtx;
 
                 offscreenCanvas.clear();

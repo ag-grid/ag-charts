@@ -250,6 +250,7 @@ describe('Sector', () => {
                     // Render.
                     const renderCtx = {
                         ctx,
+                        direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
@@ -400,6 +401,7 @@ describe('Sector', () => {
                     // Render.
                     const renderCtx = {
                         ctx,
+                        direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,

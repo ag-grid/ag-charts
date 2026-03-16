@@ -34,6 +34,7 @@ export class Scene extends EventEmitter<EventMap> {
     private root: Group | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
+    private direction: CanvasDirection = 'ltr';
     private _baseFont: string | undefined;
 
     private readonly cleanup = new CleanupRegistry();
@@ -149,6 +150,11 @@ export class Scene extends EventEmitter<EventMap> {
         return false;
     }
 
+    setDirection(isRtl: boolean) {
+        this.direction = isRtl ? 'rtl' : 'ltr';
+        this.canvas.setDirection(isRtl);
+    }
+
     updateBaseFont() {
         const baseFont = this.root?.resolveFont();
         if (baseFont != null && baseFont !== this._baseFont) {
@@ -225,6 +231,7 @@ export class Scene extends EventEmitter<EventMap> {
 
         const renderCtx: RenderContext = {
             ctx,
+            direction: this.direction,
             width,
             height,
             devicePixelRatio,

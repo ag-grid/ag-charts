@@ -241,6 +241,7 @@ describe('Text', () => {
                     ctx.save();
                     textNode.render({
                         ctx,
+                        direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
@@ -299,6 +300,7 @@ describe('Text', () => {
                     ctx.save();
                     textNode.render({
                         ctx,
+                        direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
