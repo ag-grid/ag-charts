@@ -539,6 +539,138 @@ describe('SunburstSeries', () => {
         });
     });
 
+    describe('colorScale', () => {
+        const COLOR_SUNBURST_DATA = [
+            {
+                name: 'Americas',
+                children: [
+                    { name: 'United States', gdp: 26.9, change: 6 },
+                    { name: 'Canada', gdp: 2.1, change: 0 },
+                    { name: 'Brazil', gdp: 2.1, change: 11 },
+                ],
+            },
+            {
+                name: 'Asia',
+                children: [
+                    { name: 'China', gdp: 17.7, change: 0 },
+                    { name: 'Japan', gdp: 4.2, change: -1 },
+                    { name: 'India', gdp: 4.0, change: 20 },
+                ],
+            },
+            {
+                name: 'Europe',
+                children: [
+                    { name: 'Germany', gdp: 4.4, change: 9 },
+                    { name: 'France', gdp: 3.0, change: 10 },
+                    { name: 'UK', gdp: 3.3, change: 9 },
+                ],
+            },
+        ];
+
+        const COLOR_SUNBURST_BASE: AgChartOptions = {
+            data: COLOR_SUNBURST_DATA,
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'gdp',
+                    colorKey: 'change',
+                },
+            ],
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [-10, 25] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 0, name: 'Decline' },
+                                { color: 'yellow', stop: 10, name: 'Stable' },
+                                { color: 'green', name: 'Growth' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('AG-15448', () => {
         const DATA1 = [
             { type: 'Fruits', category: 'Citrus', item: 'Orange', count: 10, status: 1 },

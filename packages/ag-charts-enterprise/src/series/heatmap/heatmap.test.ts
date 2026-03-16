@@ -325,6 +325,83 @@ describe('HeatmapSeries', () => {
         });
     });
 
+    describe('colorScale', () => {
+        it('should render with continuous colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 100] as [number, number],
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('null category key', () => {
         it('should render with null category key value', async () => {
             const options = prepareEnterpriseTestOptions({
