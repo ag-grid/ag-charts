@@ -1096,10 +1096,48 @@ test.describe('state', () => {
 
         test.describe('bubble-example', () => {
             const THREE_CANDIDATED_COORDS = { x: 383, y: 313 } as const;
+            const ANDROID_HOMEFEED_COORDS = { x: 404, y: 355 } as const;
             let canvas: Locator;
+
+            const ANDROID_HOMEFEED_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BubbleSeries-2',
+                itemId: 1,
+            });
+            const ANDROID_HOMEFEED_ACTIVE_CHANGE = Object.freeze({
+                activeItem: ANDROID_HOMEFEED_ACTIVE_ITEM,
+                datum: { name: 'Home Feed', sessionMinutes: 5.3, crashRate: 1.1, dau: 680 },
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+            const IOS_MESSAGING_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BubbleSeries-1',
+                itemId: 4,
+            });
+            const IOS_MESSAGING_ACTIVE_CHANGE = Object.freeze({
+                activeItem: IOS_MESSAGING_ACTIVE_ITEM,
+                datum: { name: 'Messaging', sessionMinutes: 5.3, crashRate: 1.1, dau: 510 },
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
 
             async function hoverOnThreeCandidates(page: Page): Promise<void> {
                 await page.mouse.move(THREE_CANDIDATED_COORDS.x, THREE_CANDIDATED_COORDS.y);
+            }
+
+            async function hoverOnAndroidHomeFeed(page: Page): Promise<void> {
+                await page.mouse.move(ANDROID_HOMEFEED_COORDS.x, ANDROID_HOMEFEED_COORDS.y);
+            }
+
+            async function clickOnAndroidHomeFeed(page: Page): Promise<void> {
+                await page.mouse.click(ANDROID_HOMEFEED_COORDS.x, ANDROID_HOMEFEED_COORDS.y);
             }
 
             async function nextCandidate(page: Page): Promise<void> {
@@ -1108,6 +1146,10 @@ test.describe('state', () => {
 
             async function hoverInTopLeft(page: Page): Promise<void> {
                 await page.mouse.move(0, 0);
+            }
+
+            async function clickPreventDefaultTickbox(page: Page): Promise<void> {
+                await page.locator('#myPreventDefault').click();
             }
 
             test.beforeEach(async ({ page }) => {
@@ -1161,6 +1203,41 @@ test.describe('state', () => {
                     await hoverInTopLeft(page);
                     state = await getChartState(page);
                     expect(state.active?.activeItem).toBeUndefined();
+                });
+            });
+
+            test.describe('calling activeChange-preventDefault keep highlight/tooltip unchanged', () => {
+                test('screenshots', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+
+                    await hoverOnAndroidHomeFeed(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-androidhomefeed.png');
+
+                    await clickOnAndroidHomeFeed(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-androidhomefeed.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await hoverOnAndroidHomeFeed(page);
+                    expect((await getChartState(page)).active?.activeItem).toEqual(ANDROID_HOMEFEED_ACTIVE_ITEM);
+
+                    await clickOnAndroidHomeFeed(page);
+                    expect((await getChartState(page)).active?.activeItem).toEqual(ANDROID_HOMEFEED_ACTIVE_ITEM);
+                });
+
+                test('popEvents', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await hoverOnAndroidHomeFeed(page);
+                    expect(await popChartEvents(page)).toEqual([ANDROID_HOMEFEED_ACTIVE_CHANGE]);
+
+                    await clickOnAndroidHomeFeed(page);
+                    expect(await popChartEvents(page)).toEqual([IOS_MESSAGING_ACTIVE_CHANGE]);
                 });
             });
         });
@@ -1547,7 +1624,7 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseLeave(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-left.png');
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseMove2ndBar(page);
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');

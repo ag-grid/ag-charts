@@ -152,4 +152,13 @@ test.describe('context-menu', () => {
             });
         }
     });
+
+    test('show context menu on activeChange preventDefault', async ({ page }) => {
+        const { url } = toExamplePageUrl('context-menu-test', 'activeChange-preventDefault', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.move(404, 265);
+        await page.mouse.click(404, 265, { button: 'right' });
+        await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
+    });
 });

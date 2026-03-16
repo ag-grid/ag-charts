@@ -9,15 +9,8 @@ type ActivationArgs =
     | [NonNullable<Parameters<ActiveManager['update']>[0]>, NonNullable<Parameters<ActiveManager['update']>[1]>]
     | [undefined, undefined];
 
-type ActivationOptsCommon = {
-    rollbackCb?: () => void;
-};
-type ActivationOptsNoArg = ActivationOptsCommon & {
-    defaultCbArg?: never;
-};
-type ActivationOptsWithArg<A> = ActivationOptsCommon & {
-    defaultCbArg: A;
-};
+type ActivationOptsNoArg = { defaultCbArg?: never };
+type ActivationOptsWithArg<A> = { defaultCbArg: A };
 type ActivationOpts<A> = ActivationOptsNoArg | ActivationOptsWithArg<A>;
 
 export type PickedNode = SeriesNodeDatum<DatumIndexType>;
@@ -70,6 +63,7 @@ export class PickManager {
     private candidates: PickedNode[] = [];
     private pendingPickedNodes?: PickedNodes;
     private blockEntrance = false;
+    private activationPrevented = false;
 
     constructor(
         private readonly activeManager: ActiveManager,
@@ -119,14 +113,15 @@ export class PickManager {
     maybeActivate<A>(node: PickedNode | undefined, defaultCb: (a?: A) => void, opts?: ActivationOpts<A>): void {
         if (this.blockEntrance) throw new Error('PickManager.maybeActivate is not re-entrant');
         try {
+            this.activationPrevented = false;
             this.blockEntrance = true;
             const [newItemState, nodeDatum]: ActivationArgs = this.getActivationArgs(node);
             const defaultPrevented: boolean = this.activeManager.update(newItemState, nodeDatum);
-            if (!defaultPrevented) {
+            if (defaultPrevented) {
+                this.activationPrevented = true;
+            } else {
                 this.active = node;
                 defaultCb(opts?.defaultCbArg);
-            } else if (opts?.rollbackCb) {
-                opts.rollbackCb();
             }
         } finally {
             this.blockEntrance = false;
@@ -204,5 +199,9 @@ export class PickManager {
         }
 
         return { active: this.active };
+    }
+
+    wasActivationPrevented(): boolean {
+        return this.activationPrevented;
     }
 }
