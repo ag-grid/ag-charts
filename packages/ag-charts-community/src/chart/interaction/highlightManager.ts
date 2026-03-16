@@ -22,16 +22,12 @@ export class HighlightManager {
 
     constructor(private readonly eventsHub: EventsHub) {}
 
-    private _inViewport = true;
-    public setInViewport(inViewport: boolean): void {
-        this._inViewport = inViewport;
-    }
-
-    public isInViewport(): boolean {
-        return this._inViewport;
-    }
-
-    public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
+    public updateHighlight(
+        callerId: string,
+        highlightedDatum?: HighlightNodeDatum,
+        delayed: boolean = false,
+        inViewport?: boolean
+    ): void {
         const previousHighlight = this.getActiveHighlight();
 
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {
@@ -63,10 +59,14 @@ export class HighlightManager {
         } else {
             this.highlightStates.delete(callerId);
         }
-        this.maybeEmitChange(callerId, previousHighlight);
+        this.maybeEmitChange(callerId, previousHighlight, inViewport);
     }
 
-    private maybeEmitChange(callerId: string, previousHighlight: HighlightNodeDatum | undefined): void {
+    private maybeEmitChange(
+        callerId: string,
+        previousHighlight: HighlightNodeDatum | undefined,
+        inViewport?: boolean
+    ): void {
         const currentHighlight = this.getActiveHighlight();
 
         if (!this.isEqual(currentHighlight, previousHighlight)) {
@@ -76,6 +76,7 @@ export class HighlightManager {
                 currentHighlight,
                 previousHighlight,
                 highlightSuppressed,
+                highlightInViewport: inViewport ?? true,
             });
         }
     }
@@ -104,6 +105,7 @@ export class HighlightManager {
                 currentHighlight,
                 previousHighlight,
                 highlightSuppressed,
+                highlightInViewport: true,
             });
         }
     }

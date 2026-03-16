@@ -147,6 +147,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly activeState = {
         lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined | 'legend',
+        highlightInViewport: false,
     };
 
     /**
@@ -1103,8 +1104,9 @@ export class SeriesAreaManager extends BaseManager {
                     this.clearStaleHighlightTooltip();
                 } else if (refPoint) {
                     const { canvasX, canvasY } = refPoint;
-                    this.chart.ctx.highlightManager.updateHighlight(this.id, active);
-                    if (this.chart.ctx.highlightManager.isInViewport()) {
+                    const inViewport = this.activeState.highlightInViewport;
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, inViewport);
+                    if (inViewport) {
                         this.showTooltip(active, canvasX, canvasY, paginationState);
                     } else {
                         this.clearTooltip();
@@ -1252,7 +1254,7 @@ export class SeriesAreaManager extends BaseManager {
         // intersects with the viewport is an expensive computation, but we only need to do this on frozen charts.
         if (!this.isState(InteractionState.Frozen) || !this.seriesRect) return;
         const highlightInViewport: boolean = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
-        this.chart.ctx.highlightManager.setInViewport(highlightInViewport);
+        this.activeState.highlightInViewport = highlightInViewport;
     }
 
     private pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNodes | undefined {

@@ -257,11 +257,15 @@ export class Crosshair extends AbstractModuleInstance {
         if (!this.activeHighlight) {
             this.hideCrosshairs();
         } else if (this.snap) {
-            const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
+            if (event.highlightInViewport) {
+                const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
-            this.updatePositions(activeHighlightData);
+                this.updatePositions(activeHighlightData);
 
-            crosshairGroup.visible = true;
+                crosshairGroup.visible = true;
+            } else {
+                this.hideCrosshairs();
+            }
         }
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });

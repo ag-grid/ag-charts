@@ -204,6 +204,7 @@ export interface HighlightChangeEvent {
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
     readonly highlightSuppressed: boolean;
+    readonly highlightInViewport: boolean;
 }
 
 export interface HighlightSelectionUpdatedEvent {
