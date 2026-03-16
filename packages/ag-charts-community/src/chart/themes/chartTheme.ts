@@ -403,6 +403,7 @@ export class ChartTheme {
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             highlight: {
+                enabled: true,
                 drawingMode: {
                     $if: [
                         {
