@@ -33,10 +33,6 @@ export const chartsVersionPatch: ConfigFunction = {
 export const codespaceUrl: ConfigFunction = {
     transform() {
         const { major, minor, patchNum } = parseVersion(agChartsVersion);
-        // Pre-release versions (e.g. "13.1.0-beta.20260312") target 'latest';
-        // release versions (e.g. "13.1.0") target the matching 'bX.Y.Z' branch.
-        const isPreRelease = agChartsVersion.includes('-');
-        const ref = isPreRelease ? 'latest' : `b${major}.${minor}.${patchNum}`;
-        return `https://codespaces.new/ag-grid/ag-charts?devcontainer_path=.devcontainer/ssr-example/devcontainer.json&ref=${ref}`;
+        return `https://codespaces.new/ag-grid/ag-charts?devcontainer_path=.devcontainer/ssr-example/devcontainer.json&ref=b${major}.${minor}.${patchNum}`;
     },
 };
