@@ -133,6 +133,25 @@ Check that `frozen` and `dataIdKey` work properly together:
     type="generated"
 /%}
 
+## Frozen Survives ZoomPan
+
+Check that `frozen` survives zoom/panning changes:
+
+-   Click "Freeze on April":
+    -   That marker **MUST** freeze and activate.
+-   Update the ZoomPan such that the April marker moves:
+    -   The highlight/tooltip **MUST** update to reflect the marker's new position.
+-   Update the ZoomPan such that the April marker is no longer in the viewport:
+    -   The higlight/tooltip/crosshair **MUST** be hidden.
+-   Update the ZoomPan such that the April marker return into the viewport:
+    -   The higlight/tooltip/crosshair **MUST** be restored.
+
+{% chartExampleRunner
+    title="Frozen Survives ZoomPan"
+    name="frozen-zoompan"
+    type="generated"
+/%}
+
 # External Legend
 
 -   The external legend should behave just like our internal legend.
