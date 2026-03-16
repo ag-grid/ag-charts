@@ -84,7 +84,7 @@ export function removeEnd() {
 
 function updateStatus() {
     const frozenText = isFrozen ? 'FROZEN' : 'Live';
-    document.getElementById('status').textContent = frozenText + ' — ' + currentData.length + ' points';
+    document.getElementById('status')!.textContent = frozenText + ' — ' + currentData.length + ' points';
 }
 
 function popEvents(): unknown[] {
