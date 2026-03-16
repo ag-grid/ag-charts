@@ -58,7 +58,7 @@ const options: AgCartesianChartOptions<DatumType> = {
         y: { type: 'number', title: { text: 'Sales ($k)' } },
     },
     listeners: {
-        activeChange: (ev: AgActiveChangeEvent<unknown, unknown>) => {
+        activeChange: (ev: AgActiveChangeEvent<DatumType, unknown>) => {
             events.push(ev);
         },
     },
