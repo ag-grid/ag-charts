@@ -1,0 +1,7 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "ag-charts-server-side-example",
+  "implicitDependencies": ["ag-charts-enterprise", "ag-charts-server-side"],
+  "tags": ["example"],
+  "includedScripts": []
+}

@@ -156,8 +156,7 @@
       "tests/angular-package-tests",
       "tests/react-package-tests",
       "tests/server-side-package-tests",
-      "tests/vue-package-tests",
-      "examples/server-side-rendering"
+      "tests/vue-package-tests"
     ],
     "nohoist": [
       "**/tinypool",
