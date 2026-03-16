@@ -86,9 +86,10 @@ PROMPTS_DIR="$MAIN_REPO_ROOT/../$PROMPTS_DIR_NAME"
 # Each function returns 0 if tool is detected, 1 otherwise
 
 detect_claudecode() {
-    command -v claude &>/dev/null && return 0
-    [[ -d "$HOME/.claude" ]] && return 0
-    return 1
+    # Always enable — Claude Code is the primary agentic tool across all AG repos.
+    # Generating its config is cheap and avoids issues in environments where the
+    # binary isn't on $PATH (CI, containers, remote dev boxes).
+    return 0
 }
 
 detect_cursor() {
@@ -527,6 +528,33 @@ get_rulesync_cmd() {
     fi
 }
 
+# Strip the TOON rules block from AGENTS.md
+# Rulesync's OpenCode target prepends a TOON-format rules index to AGENTS.md.
+# This adds noise for other tools that read AGENTS.md (Codex, Gemini, etc.)
+# and is redundant — OpenCode loads rules from .opencode/memories/ directly.
+strip_agents_md_toon() {
+    local verbose="$1"
+    local agents_file="$REPO_ROOT/AGENTS.md"
+
+    [[ -f "$agents_file" ]] || return 0
+
+    # Check if file starts with the TOON preamble
+    if head -1 "$agents_file" | grep -q "TOON format"; then
+        # Find the first markdown heading (# or ##) after the TOON block
+        local first_heading_line
+        first_heading_line=$(grep -n '^#' "$agents_file" | head -1 | cut -d: -f1)
+
+        if [[ -n "$first_heading_line" ]]; then
+            # Remove everything before the first heading
+            tail -n +"$first_heading_line" "$agents_file" > "$agents_file.tmp"
+            mv "$agents_file.tmp" "$agents_file"
+            if [[ "$verbose" == "true" ]]; then
+                echo -e "${GREEN}✓${NC} Stripped TOON rules block from AGENTS.md"
+            fi
+        fi
+    fi
+}
+
 # Generate rulesync configuration
 generate_config() {
     local targets="$1"
@@ -553,6 +581,7 @@ generate_config() {
 
     if [[ $exit_code -eq 0 ]]; then
         copy_extra_configs "$verbose" "$targets"
+        strip_agents_md_toon "$verbose"
 
         if [[ "$verbose" == "true" ]]; then
             echo "$output"

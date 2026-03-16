@@ -101,9 +101,6 @@ import {
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
-const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
-const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
-
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
 interface StackRange {
@@ -1179,7 +1176,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             visible,
             animationEnabled,
         } = opts;
-        const crossFiltering = this.contextNodeData?.crossFiltering === true;
         const segments = this.contextNodeData?.segments;
 
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
@@ -1193,7 +1189,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             pointerEvents: PointerEvents.None,
             stroke,
             strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
+            strokeOpacity,
             lineDash,
             lineDashOffset,
             opacity,
@@ -1201,14 +1197,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         });
         strokePaths.datum = segments;
 
-        fillPaths.setStyleProperties(
-            {
-                fill,
-                stroke: undefined,
-                fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
-            },
-            this.getShapeFillBBox()
-        );
+        fillPaths.setStyleProperties({ fill, stroke: undefined, fillOpacity }, this.getShapeFillBBox());
 
         fillPaths.setProperties({
             segments,

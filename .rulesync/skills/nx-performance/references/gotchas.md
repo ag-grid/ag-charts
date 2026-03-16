@@ -41,6 +41,7 @@ These are bugs and misconfigurations discovered in AG Charts and fixed. Peer rep
 **Root cause**: Test inputs only included local files, missing `^production` (upstream source files). Changes to upstream packages didn't invalidate the test cache.
 
 **Fix**: Added `^production` to test inputs:
+
 ```json
 "test": { "inputs": ["default", "buildOutputExcludes", "^production", ...] }
 ```
@@ -54,9 +55,11 @@ These are bugs and misconfigurations discovered in AG Charts and fixed. Peer rep
 **Root cause**: Nx's default `{projectRoot}/**/*` input glob includes `dist/` (which lives inside the project root). Every build modifies `dist/`, changing the input hash, invalidating its own cache.
 
 **Fix**: Introduced `buildOutputExcludes`:
+
 ```json
 "buildOutputExcludes": ["!{projectRoot}/dist/**"]
 ```
+
 Included in `production` and `default` named inputs.
 
 ---
@@ -68,6 +71,7 @@ Included in `production` and `default` named inputs.
 **Root cause**: `__image_snapshots__/` directories were included in the default input glob. These binary files are large and change frequently.
 
 **Fix**: Added exclusion to `defaultExcludes`:
+
 ```json
 "!{projectRoot}/**/__image_snapshots__/**"
 ```
@@ -81,6 +85,7 @@ Included in `production` and `default` named inputs.
 **Root cause**: `pack` inputs only referenced direct build outputs, not transitive ones. A change in `ag-charts-types` (two levels up from `ag-charts-enterprise`) wouldn't trigger a re-pack.
 
 **Fix**: Changed pack inputs to `allTransitiveOutputs`:
+
 ```json
 "pack": { "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"] }
 ```
@@ -94,6 +99,7 @@ Included in `production` and `default` named inputs.
 **Root cause**: Lint target inputs didn't include the lint tool's configuration files.
 
 **Fix**: Added config files to lint inputs:
+
 ```json
 "lint:depcruise": { "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"] }
 "lint:eslint": { "inputs": [..., "{workspaceRoot}/eslint.*", "{projectRoot}/eslint.*"] }
@@ -138,6 +144,7 @@ Included in `production` and `default` named inputs.
 **Root cause**: When a package is bundled, Nx detects the dependency through import analysis. When marked as `external`, the import still exists but Nx doesn't trace through it for build ordering.
 
 **Fix**: Added explicit `implicitDependencies`:
+
 ```json
 "implicitDependencies": ["ag-charts-types", "ag-charts-core"]
 ```
@@ -151,6 +158,7 @@ Included in `production` and `default` named inputs.
 **Root cause**: When Nx's parallel `run-commands` executor ran the watch process and Astro server, the Nx daemon could self-disable mid-session (writing to `.nx/workspace-data/d/disabled`), causing `nx watch` to exit silently.
 
 **Fix**: Replaced Nx's parallel execution with `yarn concurrently --kill-others`:
+
 ```json
 "commands": [
   "NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node watch.js charts\" \"nx run website:dev\""
@@ -170,9 +178,10 @@ Additionally, orphaned files in `dist/` from targets that only existed on the pr
 **Fix — two strategies:**
 
 1. **Set `cache: false` on orchestrator targets**: This forces the orchestrator to always re-evaluate its dependents, even when hashes match. Individual child targets can remain cached for performance. This is the approach AG Charts uses:
-   ```json
-   "generate": { "cache": false }
-   ```
+
+    ```json
+    "generate": { "cache": false }
+    ```
 
 2. **Broaden the target's inputs** so that branch switching is more likely to invalidate the cache. For example, include a broader set of source files or add `{workspaceRoot}/package.json` to the inputs so that version bumps or script changes between branches trigger re-generation. This preserves caching benefits at the cost of occasional false invalidations.
 
@@ -189,6 +198,7 @@ When auditing a peer repo:
 3. The fixes are listed — apply them as appropriate
 
 Most common gotchas in peer repos (in order of frequency):
+
 1. **#4** — `dist/` polluting input hashes (almost universal in repos without `buildOutputExcludes`)
 2. **#1** — noop targets with inherited outputs destroying build artifacts
 3. **#2** — test targets forcing full upstream builds

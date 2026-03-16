@@ -83,8 +83,6 @@ import {
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
-const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
-
 /**
  * Consolidated type interface for LineSeries.
  * Defines all type parameters in one place for the series.
@@ -628,7 +626,6 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             visible,
             animationEnabled,
         } = opts;
-        const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
@@ -643,7 +640,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             opacity,
             stroke,
             strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
+            strokeOpacity,
             lineDash,
             lineDashOffset,
         });
