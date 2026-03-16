@@ -556,13 +556,39 @@ function replotXAnimation(newData: SpanContext, oldData: SpanContext) {
     const moved: SpanInterpolationResult['moved'] = [];
     const added: SpanInterpolationResult['added'] = [];
 
-    for (let i = 0; i < oldData.data.length; i += 1) {
+    const minLen = Math.min(oldData.data.length, newData.data.length);
+
+    for (let i = 0; i < minLen; i += 1) {
         const oldSpan = oldData.data[i].span;
         const newSpan = newData.data[i].span;
 
         removed.push({ from: oldSpan, to: oldSpan });
         moved.push({ from: oldSpan, to: newSpan });
         added.push({ from: newSpan, to: newSpan });
+    }
+
+    if (oldData.data.length > newData.data.length && newData.data.length > 0) {
+        const lastNewSpan = newData.data.at(-1)!.span;
+        const [, lastNewEnd] = spanRange(lastNewSpan);
+        const collapsed = collapseSpanToPoint(lastNewSpan, lastNewEnd);
+
+        for (let i = minLen; i < oldData.data.length; i += 1) {
+            const oldSpan = oldData.data[i].span;
+            removed.push({ from: oldSpan, to: oldSpan });
+            moved.push({ from: oldSpan, to: collapsed });
+        }
+    }
+
+    if (newData.data.length > oldData.data.length && oldData.data.length > 0) {
+        const lastOldSpan = oldData.data.at(-1)!.span;
+        const [, lastOldEnd] = spanRange(lastOldSpan);
+        const collapsed = collapseSpanToPoint(lastOldSpan, lastOldEnd);
+
+        for (let i = minLen; i < newData.data.length; i += 1) {
+            const newSpan = newData.data[i].span;
+            moved.push({ from: collapsed, to: newSpan });
+            added.push({ from: newSpan, to: newSpan });
+        }
     }
 
     return {
