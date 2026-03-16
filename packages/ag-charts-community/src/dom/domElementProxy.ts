@@ -63,13 +63,15 @@ export class DOMElementProxy {
     private readonly pendingWrites = new Map<CacheKey, () => void>();
     private readonly deferredMode: DeferredMode | undefined;
     private readonly sizeMonitor: SizeMonitor | undefined;
+    private readonly skipInitialRead: boolean;
 
     constructor(
         private readonly element: HTMLElement,
-        opts?: { deferredMode?: DeferredMode; sizeMonitor?: SizeMonitor }
+        opts?: { deferredMode?: DeferredMode; sizeMonitor?: SizeMonitor; skipInitialRead?: boolean }
     ) {
         this.deferredMode = opts?.deferredMode;
         this.sizeMonitor = opts?.sizeMonitor;
+        this.skipInitialRead = opts?.skipInitialRead ?? false;
     }
 
     /** Delegates to `element.isConnected`. */
@@ -272,11 +274,11 @@ export class DOMElementProxy {
 
     /** Observe the element for resize events via the shared SizeMonitor. Returns an unsubscribe function. */
     addResizeListener(cb: (size: Size) => void): () => void {
-        const { sizeMonitor, element } = this;
+        const { sizeMonitor, element, skipInitialRead } = this;
         if (sizeMonitor == null) {
             throw new Error('AG Charts - addResizeListener requires a SizeMonitor');
         }
-        sizeMonitor.observe(element, (size) => cb(size));
+        sizeMonitor.observe(element, (size) => cb(size), { skipInitialRead });
         return () => sizeMonitor.unobserve(element);
     }
 

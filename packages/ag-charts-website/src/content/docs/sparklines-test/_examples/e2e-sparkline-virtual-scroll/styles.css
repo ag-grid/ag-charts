@@ -1,0 +1,31 @@
+#viewport {
+    position: relative;
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+}
+
+#scroll-content {
+    position: relative;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    border-bottom: 1px solid #eee;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.row-label {
+    width: 80px;
+    font: 12px monospace;
+    flex-shrink: 0;
+}
+
+.sparkline-cell {
+    width: 200px;
+    height: 30px;
+    flex-shrink: 0;
+}

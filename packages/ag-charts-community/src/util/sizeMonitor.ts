@@ -102,7 +102,7 @@ export class SizeMonitor {
     }
 
     // Only a single callback is supported.
-    observe(element: HTMLElement, cb: OnSizeChange) {
+    observe(element: HTMLElement, cb: OnSizeChange, opts?: { skipInitialRead?: boolean }) {
         if (!this.documentReady) {
             this.queuedObserveRequests.push([element, cb]);
             return;
@@ -116,11 +116,13 @@ export class SizeMonitor {
         const entry: Entry = { cb };
         this.elements.set(element, entry);
 
-        // Synchronous initial size read — cross-window ResizeObserver
-        // may delay its first callback until the target window gains focus.
-        const { width, height } = element.getBoundingClientRect();
-        if (width > 0 || height > 0) {
-            this.checkSize(entry, element, width, height);
+        if (!opts?.skipInitialRead) {
+            // Synchronous initial size read — cross-window ResizeObserver
+            // may delay its first callback until the target window gains focus.
+            const { width, height } = element.getBoundingClientRect();
+            if (width > 0 || height > 0) {
+                this.checkSize(entry, element, width, height);
+            }
         }
     }
 

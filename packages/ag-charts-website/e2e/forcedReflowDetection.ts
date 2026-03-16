@@ -162,6 +162,11 @@ interface FilterOptions {
     additionalAllowlist?: string[];
 }
 
+interface FilteredReflowAnalysis extends ForcedReflowAnalysis {
+    /** Counts of allowlisted reflows keyed by the matched function name. */
+    allowlisted: Record<string, number>;
+}
+
 /**
  * Filter a reflow analysis to only include reflows attributable to AG Charts code.
  *
@@ -174,9 +179,13 @@ interface FilterOptions {
  * 2. **Allowlist filter** — exclude reflows whose top stack frame function name
  *    matches a known-unavoidable pattern (e.g. `togglePopover` from the native
  *    Popover API).
+ *
+ * Returns both the unexpected reflows and per-function counts of allowlisted
+ * reflows so callers can assert upper bounds on the allowlisted ones.
  */
-export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: FilterOptions): ForcedReflowAnalysis {
+export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: FilterOptions): FilteredReflowAnalysis {
     const allowlist = new Set([...DEFAULT_ALLOWLIST, ...(opts?.additionalAllowlist ?? [])]);
+    const allowlisted: Record<string, number> = {};
 
     const filtered = analysis.reflows.filter((r) => {
         // Source filter: at least one frame must come from ag-charts source.
@@ -186,7 +195,10 @@ export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: Fil
         // Allowlist filter: skip known-unavoidable functions. Check the first
         // named frame because the top frame may be anonymous (e.g. an IIFE).
         const firstNamedFunction = r.stackFrames.find((f) => f.functionName)?.functionName;
-        if (firstNamedFunction != null && allowlist.has(firstNamedFunction)) return false;
+        if (firstNamedFunction != null && allowlist.has(firstNamedFunction)) {
+            allowlisted[firstNamedFunction] = (allowlisted[firstNamedFunction] ?? 0) + 1;
+            return false;
+        }
 
         return true;
     });
@@ -195,6 +207,7 @@ export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: Fil
         count: filtered.length,
         totalDuration: filtered.reduce((sum, r) => sum + r.dur, 0),
         reflows: filtered,
+        allowlisted,
     };
 }
 
