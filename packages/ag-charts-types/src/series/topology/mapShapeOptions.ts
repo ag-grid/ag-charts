@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -32,7 +32,7 @@ export type AgMapShapeSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
 export interface AgMapShapeSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */
     idKey?: DatumKey<TDatum>;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the segment colour. */
     colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels inside shapes. */
     labelKey?: DatumKey<TDatum>;
@@ -50,8 +50,13 @@ export interface AgMapShapeSeriesOptionsNames {
 export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
+     * @deprecated Use `colorScale.fills` instead.
+     */
     colorRange?: CssColor[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
     /** Configuration for the labels shown inside the shape. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Distance between the shape edges and the text. */

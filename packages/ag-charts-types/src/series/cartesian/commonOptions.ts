@@ -68,6 +68,28 @@ export interface AgGradientColorStop {
     stop?: Ratio;
 }
 
+export interface AgColorScaleColorStop {
+    /** Colour of this bin. */
+    color: CssColor;
+    /** Stop value of this bin. The stop is the first value of the next bin. */
+    stop?: number;
+    /** Display name for this bin, used in legend and tooltip labels. */
+    name?: string;
+}
+
+export interface AgColorScale {
+    /** Configuration for two or more colours, and the values they are rendered at. */
+    fills?: AgColorScaleColorStop[];
+    /** Fixed domain for the colour scale. If unset, the domain is derived from the data extent. */
+    domain?: [number, number];
+    /**
+     * Whether the fills should be rendered as a continuous gradient or discrete bins.
+     *
+     * Default: `continuous`
+     */
+    mode?: AgGradientColorMode;
+}
+
 export interface AgGradientColor {
     type: 'gradient';
     /** Represents the position and color of stops in the gradient. */

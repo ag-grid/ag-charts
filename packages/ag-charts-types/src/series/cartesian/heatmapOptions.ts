@@ -3,7 +3,7 @@ import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOpt
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export type AgHeatmapSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
     TDatum,
@@ -50,7 +50,7 @@ export interface AgHeatmapSeriesOptionsKeys<TDatum = DatumDefault> {
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
     yKey: DatumKey<TDatum>;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` configs) will be used to determine the cell colour. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the cell colour. */
     colorKey?: DatumKey<TDatum>;
 }
 
@@ -71,6 +71,11 @@ export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = Contex
         AgHeatmapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Heatmap Series. */
     type: 'heatmap';
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'.
+     * @deprecated Use `colorScale.fills` instead.
+     */
     colorRange?: string[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }

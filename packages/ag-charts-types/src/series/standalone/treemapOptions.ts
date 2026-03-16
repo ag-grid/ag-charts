@@ -19,7 +19,7 @@ import type {
     TextAlign,
     VerticalAlign,
 } from '../../chart/types';
-import type { AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
@@ -128,8 +128,13 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
+     * @deprecated Use `colorScale.fills` instead.
+     */
     colorRange?: CssColor[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
     /** Options for group nodes (i.e. nodes WITH children). */
     group?: AgTreemapSeriesGroupOptions<TDatum, TContext>;
     /** Options for leaf nodes (i.e. nodes WITHOUT children). */
@@ -158,7 +163,7 @@ export interface AgTreemapSeriesOptionsKeys {
     childrenKey?: string;
     /** The name of the node key containing the size value. */
     sizeKey?: string;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the tile colour. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the tile colour. */
     colorKey?: string;
 }
 

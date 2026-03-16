@@ -11,7 +11,7 @@ import type {
     LabelPlacement,
     PixelSize,
 } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
@@ -45,7 +45,7 @@ export interface AgMapMarkerSeriesOptionsKeys<TDatum = DatumDefault> {
     longitudeKey?: DatumKey<TDatum>;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: DatumKey<TDatum>;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the markers. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the colour of the markers. */
     colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: DatumKey<TDatum>;
@@ -90,8 +90,13 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     sizeDomain?: [number, number];
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
+     * @deprecated Use `colorScale.fills` instead.
+     */
     colorRange?: CssColor[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */
     label?: AgMapMarkerSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */

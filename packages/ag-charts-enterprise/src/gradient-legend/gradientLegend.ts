@@ -138,9 +138,8 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             return;
         }
 
-        const { colorRange } = this.normalizeColorArrays(data);
         const { strokeWidth, padding } = this.getContainerStyles();
-        const gradientRectBBox = this.updateGradientRect(layoutBox, colorRange);
+        const gradientRectBBox = this.updateGradientRect(layoutBox, data.colorStops);
         const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
         const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
 
@@ -156,37 +155,10 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         this.legendGroup.translationY = top;
     }
 
-    private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
-        let colorDomain = data.colorDomain.slice();
-        const colorRange = data.colorRange.slice();
-
-        if (colorDomain.length === colorRange.length) {
-            return { colorDomain, colorRange };
-        }
-
-        if (colorDomain.length > colorRange.length) {
-            colorRange.splice(colorDomain.length);
-        }
-
-        const [d0, d1] = colorDomain;
-        const count = colorRange.length;
-        colorDomain = colorRange.map((_, i) => {
-            if (i === 0) {
-                return d0;
-            } else if (i === count - 1) {
-                return d1;
-            }
-            return d0 + ((d1 - d0) * i) / (count - 1);
-        });
-
-        return { colorDomain, colorRange };
-    }
-
-    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
+    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorStops: _ModuleSupport.GradientColorStop[]) {
         const { gradientRect, gradient } = this;
         const { preferredLength, thickness } = gradient;
         const gradientRectBBox = new BBox(0, 0, 0, 0);
-        const colorCount = Math.max(colorRange.length - 1, 1);
 
         let angle: number;
         if (this.isVertical()) {
@@ -208,10 +180,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             type: 'gradient',
             gradient: 'linear',
             colorSpace: 'oklch',
-            colorStops: colorRange.map((color, i) => ({
-                stop: i / colorCount,
-                color,
-            })),
+            colorStops,
             rotation: angle,
         };
 
@@ -228,7 +197,8 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : offset;
-        axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
+        const [dMin, dMax] = data.axisDomain;
+        axisTicks.scale.domain = positiveAxis ? [dMax, dMin] : [dMin, dMax];
         axisTicks.scale.range = vertical
             ? [gradientRectBBox.x, gradientRectBBox.height]
             : [gradientRectBBox.y, gradientRectBBox.width];

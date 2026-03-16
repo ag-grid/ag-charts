@@ -1,5 +1,7 @@
 import type {
     AgBarHighlightStyleOptions,
+    AgColorScale,
+    AgColorScaleColorStop,
     AgColorType,
     AgGradientColor,
     AgGradientColorBounds,
@@ -71,6 +73,20 @@ export const colorStopsOrderValidator = attachDescription((value) => {
     return true;
 }, 'colour stops to be defined in ascending order');
 export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
+
+const colorScaleColorStop = optionsDefs<AgColorScaleColorStop>(
+    { color: required(color), stop: number, name: string },
+    'a color scale color stop'
+);
+export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
+    {
+        fills: and(arrayLength(2), arrayOf(colorScaleColorStop), colorStopsOrderValidator),
+        domain: and(arrayLength(2), arrayOf(number)),
+        mode: union('continuous', 'discrete'),
+    },
+    'a colour scale configuration'
+);
+
 const gradientBounds = union('axis', 'item', 'series');
 
 const gradientStrictDefs: OptionsDefs<AgGradientColorStrict> = {

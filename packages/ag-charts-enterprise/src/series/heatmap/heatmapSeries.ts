@@ -29,6 +29,8 @@ import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 const {
     SeriesNodePickMode,
     computeBarFocusBounds,
+    buildGradientLegendDatum,
+    configureColorScale,
     getMissCount,
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
@@ -193,14 +195,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const rawDomain = processedData.domain.values[colorKeyIdx].filter((v) => v != null);
             const domain = extent(rawDomain);
-            this.colorScale.domain = domain ?? [];
-            if (domain?.length && domain[0] === domain[1]) {
-                const midIndex = Math.floor(colorRange.length / 2);
-                this.colorScale.range = [colorRange[midIndex], colorRange[midIndex]];
-            } else {
-                this.colorScale.range = colorRange;
+
+            if (domain != null) {
+                let fallbackRange = colorRange;
+                if (domain[0] === domain[1]) {
+                    const midIndex = Math.floor(colorRange.length / 2);
+                    fallbackRange = [colorRange[midIndex], colorRange[midIndex]];
+                }
+                configureColorScale(this.colorScale, this.properties.colorScale, domain, fallbackRange);
             }
-            this.colorScale.update();
         }
     }
 
@@ -820,16 +823,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return [];
         }
 
-        return [
-            {
-                legendType: 'gradient',
-                enabled: this.visible,
-                seriesId: this.id,
-                series: this.getFormatterContext('color'),
-                colorDomain: this.colorScale.domain,
-                colorRange: this.colorScale.range,
-            },
-        ];
+        return [buildGradientLegendDatum(this.colorScale, this.id, this.visible, this.getFormatterContext('color'))];
     }
 
     protected isLabelEnabled() {

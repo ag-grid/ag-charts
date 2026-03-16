@@ -1,6 +1,7 @@
 import type { PluginModuleInstance } from 'ag-charts-core';
 import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
 
+import { type ColorScaleState, type GradientColorStop, deriveNormalizedStops } from '../../scale/colorScaleUtil';
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 
@@ -59,6 +60,27 @@ export interface GradientLegendDatum extends BaseChartLegendDatum {
     enabled: boolean;
     seriesId: string;
     series: FormatterBoundSeries[];
-    colorDomain: number[];
-    colorRange: string[];
+    colorStops: GradientColorStop[];
+    axisDomain: [number, number];
+}
+
+/**
+ * Builds a gradient legend datum from a configured ColorScale, deriving
+ * normalised colour stops from its domain/range/mode.
+ */
+export function buildGradientLegendDatum(
+    colorScale: ColorScaleState,
+    seriesId: string,
+    enabled: boolean,
+    series: FormatterBoundSeries[]
+): GradientLegendDatum {
+    const { domain } = colorScale;
+    return {
+        legendType: 'gradient',
+        enabled,
+        seriesId,
+        series,
+        colorStops: deriveNormalizedStops(colorScale),
+        axisDomain: [domain[0], domain.at(-1)!] as [number, number],
+    };
 }
