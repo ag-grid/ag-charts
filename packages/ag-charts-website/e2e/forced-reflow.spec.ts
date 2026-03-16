@@ -61,8 +61,36 @@ test.describe('forced reflow detection', () => {
     // - SizeMonitor's synchronous getBoundingClientRect interleaved with DOM writes (fixed via skipInitialRead)
     // - getComputedStyle in isDirectionRtl during container setup (fixed via minimal mode skip)
     // - Tooltip's addResizeListener calling getBoundingClientRect (fixed via skipInitialRead on proxy)
-    const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'renderOffscreen', 'drawImage'];
+    // - ctx.direction reads during offscreen rendering (fixed via RenderContext caching)
+    //
+    // IMPORTANT: Data in the test examples uses 150 points (> RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD
+    // of 100) to ensure the offscreen rendering path in group.ts is exercised. Without this,
+    // regressions in the offscreen path (e.g. expensive ctx.direction reads) would go undetected.
+    const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'drawImage'];
     const SPARKLINE_COUNT = 30; // must match the count in the test example
+
+    // Duration budget per allowlisted reflow event (microseconds). If any single
+    // allowlisted event exceeds this, a fixable performance bug is hiding behind the
+    // allowlist (e.g. the ctx.direction regression that was 1,942ms under renderOffscreen).
+    const MAX_ALLOWLISTED_EVENT_DURATION_US = 5_000; // 5ms — font resolution can take ~1.5ms; ctx.direction regression was 1,942ms
+
+    function assertAllowlistBounds(filtered: ReturnType<typeof filterAgChartsReflows>, bounds: Record<string, number>) {
+        for (const [fn, maxCount] of Object.entries(bounds)) {
+            const entry = filtered.allowlisted[fn];
+            expect(entry?.count ?? 0, `allowlisted ${fn} count`).toBeLessThanOrEqual(maxCount);
+        }
+
+        // Assert no single allowlisted event is suspiciously expensive — catches
+        // regressions like ctx.direction reads hiding behind function-name allowlisting.
+        for (const [fn, entry] of Object.entries(filtered.allowlisted)) {
+            if (entry.count === 0) continue;
+            const avgDuration = entry.totalDuration / entry.count;
+            expect(
+                avgDuration,
+                `allowlisted ${fn}: avg duration ${(avgDuration / 1000).toFixed(2)}ms exceeds budget`
+            ).toBeLessThan(MAX_ALLOWLISTED_EVENT_DURATION_US);
+        }
+    }
 
     test('sparkline creation should not cause forced reflows', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
@@ -76,11 +104,11 @@ test.describe('forced reflow detection', () => {
         const filtered = filterAgChartsReflows(analysis, { additionalAllowlist: sparklineAllowlist });
         expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
 
-        // Canvas resize fires once per new sparkline; font resolution fires once globally.
-        // Assert upper bounds so regressions that add new reflow sources are caught.
-        expect(filtered.allowlisted.applyPendingResize ?? 0).toBeLessThanOrEqual(SPARKLINE_COUNT);
-        expect(filtered.allowlisted.updateBaseFont ?? 0).toBeLessThanOrEqual(1);
-        expect(filtered.allowlisted.renderOffscreen ?? 0).toBe(0);
+        assertAllowlistBounds(filtered, {
+            applyPendingResize: SPARKLINE_COUNT,
+            updateBaseFont: 1,
+            drawImage: 0,
+        });
     });
 
     test('sparkline data update should not cause forced reflows', async ({ page }) => {
@@ -100,10 +128,11 @@ test.describe('forced reflow detection', () => {
         const filtered = filterAgChartsReflows(analysis, { additionalAllowlist: sparklineAllowlist });
         expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
 
-        // Data updates should not resize canvases; at most one offscreen render recalc.
-        expect(filtered.allowlisted.applyPendingResize ?? 0).toBe(0);
-        expect(filtered.allowlisted.updateBaseFont ?? 0).toBe(0);
-        expect(filtered.allowlisted.renderOffscreen ?? 0).toBeLessThanOrEqual(1);
+        assertAllowlistBounds(filtered, {
+            applyPendingResize: 0,
+            updateBaseFont: 0,
+            drawImage: SPARKLINE_COUNT, // offscreen compositing during update
+        });
     });
 
     // Simulates grid scroll: destroy visible sparklines (returning them to pool)
@@ -127,11 +156,11 @@ test.describe('forced reflow detection', () => {
         const filtered = filterAgChartsReflows(analysis, { additionalAllowlist: sparklineAllowlist });
         expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
 
-        // Pool recycling reuses existing canvases at the same size — no resize expected.
-        // At most one offscreen render recalc.
-        expect(filtered.allowlisted.applyPendingResize ?? 0).toBe(0);
-        expect(filtered.allowlisted.updateBaseFont ?? 0).toBe(0);
-        expect(filtered.allowlisted.renderOffscreen ?? 0).toBeLessThanOrEqual(1);
+        assertAllowlistBounds(filtered, {
+            applyPendingResize: 0,
+            updateBaseFont: 0,
+            drawImage: SPARKLINE_COUNT, // offscreen compositing during pool recycling
+        });
     });
 
     // Realistic virtual-scroll scenario: 1000-row list with a 400px viewport,
@@ -159,11 +188,11 @@ test.describe('forced reflow detection', () => {
         expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
 
         // After scrolling ~4000px through 36px rows, expect pool-recycled sparklines.
-        // Canvas resize should only fire for genuinely new sparklines (not pooled reuse
-        // at the same dimensions). Upper bound is generous to account for timing variance.
         const visibleRows = Math.ceil(400 / 36) + 2 * 5; // viewport/rowHeight + 2*overscan
-        expect(filtered.allowlisted.applyPendingResize ?? 0).toBeLessThanOrEqual(visibleRows);
-        expect(filtered.allowlisted.updateBaseFont ?? 0).toBeLessThanOrEqual(1);
+        assertAllowlistBounds(filtered, {
+            applyPendingResize: visibleRows,
+            updateBaseFont: 1,
+        });
     });
 
     test('crosshair label hover should not cause forced reflows', async ({ page }) => {

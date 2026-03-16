@@ -162,9 +162,15 @@ interface FilterOptions {
     additionalAllowlist?: string[];
 }
 
+interface AllowlistedEntry {
+    count: number;
+    /** Total duration in microseconds. */
+    totalDuration: number;
+}
+
 interface FilteredReflowAnalysis extends ForcedReflowAnalysis {
-    /** Counts of allowlisted reflows keyed by the matched function name. */
-    allowlisted: Record<string, number>;
+    /** Counts and durations of allowlisted reflows keyed by the matched function name. */
+    allowlisted: Record<string, AllowlistedEntry>;
 }
 
 /**
@@ -185,7 +191,7 @@ interface FilteredReflowAnalysis extends ForcedReflowAnalysis {
  */
 export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: FilterOptions): FilteredReflowAnalysis {
     const allowlist = new Set([...DEFAULT_ALLOWLIST, ...(opts?.additionalAllowlist ?? [])]);
-    const allowlisted: Record<string, number> = {};
+    const allowlisted: Record<string, AllowlistedEntry> = {};
 
     const filtered = analysis.reflows.filter((r) => {
         // Source filter: at least one frame must come from ag-charts source.
@@ -196,7 +202,9 @@ export function filterAgChartsReflows(analysis: ForcedReflowAnalysis, opts?: Fil
         // named frame because the top frame may be anonymous (e.g. an IIFE).
         const firstNamedFunction = r.stackFrames.find((f) => f.functionName)?.functionName;
         if (firstNamedFunction != null && allowlist.has(firstNamedFunction)) {
-            allowlisted[firstNamedFunction] = (allowlisted[firstNamedFunction] ?? 0) + 1;
+            const entry = (allowlisted[firstNamedFunction] ??= { count: 0, totalDuration: 0 });
+            entry.count++;
+            entry.totalDuration += r.dur;
             return false;
         }
 
