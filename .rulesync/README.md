@@ -81,7 +81,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | ----- | --------------------- | -------------------------- | ------------------------------------------------ |
 | Skill | 🔵 `rulesync`         | `/rulesync` (user)         | Configure AI/agentic tooling via `.rulesync/`    |
 | Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
-| Skill | 🔵 `reflect`           | `/reflect` (user)          | Analyse conversation friction and improve config |
+| Skill | 🔵 `reflect`          | `/reflect` (user)          | Analyse conversation friction and improve config |
 
 ## Memory
 
