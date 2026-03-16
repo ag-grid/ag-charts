@@ -443,6 +443,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     loadGoogleFonts: boolean,
     highlight: {
+        enabled: boolean,
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
     },

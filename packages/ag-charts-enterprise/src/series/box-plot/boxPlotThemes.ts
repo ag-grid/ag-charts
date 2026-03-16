@@ -39,6 +39,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
         lineDash: undefined,
         lineDashOffset: 0,
         highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
                 opacity: 0.5,
             },

@@ -38,6 +38,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             defaultColorRange: { $palette: 'gradients' },
             defaultPatternFills: SAFE_FILLS_OPERATION,
             highlight: {
+                enabled: { $path: ['/highlight/enabled', true] },
                 unhighlightedItem: {
                     opacity: 0.5,
                 },

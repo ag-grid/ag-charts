@@ -104,6 +104,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             blur: 5,
         },
         highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
                 opacity: 0.6,
             },

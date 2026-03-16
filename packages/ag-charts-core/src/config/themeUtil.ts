@@ -376,7 +376,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: true,
+    enabled: { $path: ['/highlight/enabled', true] },
     unhighlightedItem: {
         opacity: 0.6,
     },
@@ -386,14 +386,14 @@ export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighligh
 };
 
 export const MARKER_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: true,
+    enabled: { $path: ['/highlight/enabled', true] },
     unhighlightedSeries: {
         opacity: 0.2,
     },
 };
 
 export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: true,
+    enabled: { $path: ['/highlight/enabled', true] },
     unhighlightedItem: {
         opacity: 0.2,
     },
@@ -403,7 +403,7 @@ export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightO
 };
 
 export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: true,
+    enabled: { $path: ['/highlight/enabled', true] },
     unhighlightedItem: {
         opacity: 0.2,
     },
