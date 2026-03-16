@@ -210,7 +210,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
+        const isRtl = this.ctx.domManager.isRtl;
         const textMeasurer = cachedTextMeasurer(stageLabel);
+        const placeLeft = (stageLabel.placement === 'after') === isRtl;
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
@@ -218,7 +220,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             textAlign = 'center';
             textBaseline = stageLabel.placement === 'before' ? 'bottom' : 'top';
         } else {
-            textAlign = stageLabel.placement === 'after' ? 'left' : 'right';
+            textAlign = placeLeft ? 'right' : 'left';
             textBaseline = 'middle';
         }
 
@@ -281,12 +283,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             );
         } else {
             const horizontalInset = maxLabelWidth + stageLabel.spacing;
-            bounds = new BBox(
-                stageLabel.placement === 'after' ? 0 : horizontalInset,
-                0,
-                seriesRectWidth - horizontalInset,
-                seriesRectHeight
-            );
+            bounds = new BBox(placeLeft ? horizontalInset : 0, 0, seriesRectWidth - horizontalInset, seriesRectHeight);
         }
 
         if (aspectRatio != null && aspectRatio !== 0) {
@@ -310,10 +307,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     ? bounds.y - stageLabel.spacing
                     : bounds.y + bounds.height + stageLabel.spacing;
         } else {
-            labelX =
-                stageLabel.placement === 'after'
-                    ? bounds.x + bounds.width + stageLabel.spacing
-                    : bounds.x - stageLabel.spacing;
+            labelX = placeLeft ? bounds.x - stageLabel.spacing : bounds.x + bounds.width + stageLabel.spacing;
         }
 
         const availableWidth = bounds.width - (horizontal ? totalSpacing : 0);
