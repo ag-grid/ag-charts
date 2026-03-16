@@ -372,3 +372,43 @@ reason = "Dev dependencies that dont form part of the distributable library"
 id = "GHSA-qffp-2rhf-9h96"
 reason = "Dev dependencies that dont form part of the distributable library"
 
+[[IgnoredVulns]]
+id = "GHSA-46wh-pxpv-q5gq"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-5v7r-6r5c-r473"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-j47w-4g3g-c36v"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-25h7-pfq9-p65f"
+reason = "Test dependency - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-2mjp-6q6p-2qxm"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-4992-7rv2-5pvq"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-f269-vfmq-vjvj"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-phc3-fgpg-7m6h"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v9p9-hfj2-hcw8"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-vrm6-8vpv-qv8q"
+reason = "Used in build & dev - not included in final production build"
+
