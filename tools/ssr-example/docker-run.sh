@@ -4,7 +4,7 @@ set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-EXAMPLE_DIR="${REPO_ROOT}/external/ag-charts-server-side-example"
+EXAMPLE_DIR="${REPO_ROOT}/examples/server-side-rendering"
 STAGING_DIR="${SCRIPT_DIR}/.staging"
 
 # Parse arguments
