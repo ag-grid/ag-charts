@@ -53,7 +53,7 @@ const options: AgCartesianChartOptions<DataType, unknown> = {
     listeners: {
         activeChange: function (event: AgActiveChangeEvent<DataType, unknown>) {
             events.push(event);
-            const el = document.getElementById('zoom-status');
+            const el = document.getElementById('zoom-status')!;
             if (event.activeItem) {
                 el.textContent = 'Active: itemId=' + event.activeItem.itemId + ' | frozen=' + (event.frozen || false);
             } else {
@@ -77,14 +77,14 @@ export function freezeApril() {
             activeItem: { type: 'series-node', seriesId: 'sales-series', itemId: 3 },
         },
     });
-    document.getElementById('zoom-status').textContent =
-        'FROZEN on April (itemId=3). Use navigator to pan/zoom away from April, then zoom back.';
-    document.getElementById('zoom-status').style.background = '#fffbe6';
+    const zoomStatus = document.getElementById('zoom-status')!;
+    zoomStatus.textContent = 'FROZEN on April (itemId=3). Use navigator to pan/zoom away from April, then zoom back.';
+    zoomStatus.style.background = '#fffbe6';
 }
 
 export function unfreeze() {
     chart.setState({ version, active: { frozen: false } });
-    document.getElementById('zoom-status').style.background = '';
+    document.getElementById('zoom-status')!.style.background = '';
 }
 
 export function resetZoom() {
