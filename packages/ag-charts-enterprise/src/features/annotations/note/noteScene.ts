@@ -63,10 +63,14 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return bbox;
     }
 
-    override updateLabel(datum: NoteProperties, bbox: BoxBounds): void {
+    override updateLabel(datum: NoteProperties, bbox: BoxBounds, context: AnnotationContext): void {
         const labelVisibility = datum.visible === false ? false : this.label.visible;
 
-        super.updateLabel(datum, bbox);
+        super.updateLabel(datum, bbox, context);
+
+        if (context.isRtl) {
+            this.label.x += datum.width - bbox.width;
+        }
 
         this.label.visible = labelVisibility;
         this.label.text = wrapText(datum.text, {

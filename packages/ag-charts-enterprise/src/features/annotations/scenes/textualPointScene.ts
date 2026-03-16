@@ -29,7 +29,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const coords = convertPoint(datum, context);
         const bbox = this.getTextBBox(datum, coords, context);
 
-        this.updateLabel(datum, bbox);
+        this.updateLabel(datum, bbox, context);
         this.updateHandle(datum, coords, bbox);
         this.updateShape(datum, bbox);
 
@@ -68,21 +68,18 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected getTextBBox(datum: Datum, coords: Point, _context: AnnotationContext) {
         const { text } = datum.getText();
-
         return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: BoxBounds) {
+    protected updateLabel(datum: Datum, bbox: BoxBounds, context: AnnotationContext) {
         const { text, isPlaceholder } = datum.getText();
+        const labelCoords = this.getLabelCoords(datum, bbox);
 
-        updateTextNode(
-            this.label,
-            text,
-            isPlaceholder,
-            datum,
-            this.getLabelCoords(datum, bbox),
-            this.getTextBaseline(datum)
-        );
+        if (context.isRtl) {
+            labelCoords.x += bbox.width;
+        }
+
+        updateTextNode(this.label, text, isPlaceholder, datum, labelCoords, this.getTextBaseline(datum));
     }
 
     protected updateShape(_datum: Datum, _bbox: BoxBounds) {
