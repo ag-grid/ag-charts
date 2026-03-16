@@ -592,6 +592,77 @@ describe('Chart highlighting', () => {
         });
     });
 
+    describe('Chart-level highlight disabled', () => {
+        it('ignores highlight on all series when chart highlight.enabled = false', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                highlight: {
+                    enabled: false,
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            await runHighlightSnapshot({
+                name: 'chart-highlight-disabled',
+                options,
+                seriesIndex: 0,
+                datumIndex: 2,
+            });
+        });
+
+        it('series highlight.enabled = true overrides chart highlight.enabled = false', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                highlight: {
+                    enabled: false,
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'apples',
+                        label: { enabled: true },
+                        highlight: { enabled: true },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            await runHighlightSnapshot({
+                name: 'chart-highlight-disabled-series-override',
+                options,
+                seriesIndex: 0,
+                datumIndex: 2,
+            });
+        });
+    });
+
     describe('Delayed unhighlight', () => {
         afterEach(() => {
             jest.useRealTimers();

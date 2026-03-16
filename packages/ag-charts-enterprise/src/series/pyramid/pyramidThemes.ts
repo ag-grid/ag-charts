@@ -55,6 +55,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
             blur: 5,
         },
         highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
                 opacity: 0.4,
             },

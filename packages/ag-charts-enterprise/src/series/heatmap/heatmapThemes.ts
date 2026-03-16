@@ -23,6 +23,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
         },
         itemPadding: 3,
         highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
                 opacity: 0.6,
             },
