@@ -38,11 +38,12 @@ export class Ranges extends AbstractModuleInstance {
     @Property
     public position: AgRangesPosition = 'top-right';
 
+    @Property
+    public spacing: number = 0;
+
     private readonly container: HTMLElement;
     private readonly dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
     private readonly toolbar: _ModuleSupport.BaseToolbar;
-
-    private readonly verticalSpacing = 10;
 
     private isDropdown = false;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
@@ -72,7 +73,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { dropdown, enabled, position, toolbar, verticalSpacing } = this;
+        const { dropdown, enabled, position, spacing, toolbar } = this;
 
         if (!enabled) {
             toolbar.setHidden(true);
@@ -91,10 +92,10 @@ export class Ranges extends AbstractModuleInstance {
         const bounds = { x: layoutBox.x, y: layoutBox.y };
 
         if (position === 'top' || position === 'top-left' || position === 'top-right') {
-            layoutBox.shrink({ top: height + verticalSpacing });
+            layoutBox.shrink({ top: height + spacing });
         } else {
             bounds.y = layoutBox.y + layoutBox.height - height;
-            layoutBox.shrink({ bottom: height + verticalSpacing });
+            layoutBox.shrink({ bottom: height + spacing });
         }
 
         toolbar.setBounds(bounds);

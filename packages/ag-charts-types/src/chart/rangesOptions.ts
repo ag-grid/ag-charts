@@ -1,6 +1,7 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
+import type { PixelSize } from './types';
 
 export interface AgRangesOptions extends Toggleable {
     /**
@@ -21,6 +22,12 @@ export interface AgRangesOptions extends Toggleable {
      * Default: `'top-right'`
      */
     position?: AgRangesPosition;
+    /**
+     * The spacing between the range buttons and the series area or axis when positioned at the top or bottom, respectively.
+     *
+     * Default: `10`
+     */
+    spacing?: PixelSize;
     buttons?: AgRangesButton[];
 }
 
