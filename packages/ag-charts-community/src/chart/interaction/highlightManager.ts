@@ -22,6 +22,15 @@ export class HighlightManager {
 
     constructor(private readonly eventsHub: EventsHub) {}
 
+    private _inViewport = true;
+    public setInViewport(inViewport: boolean): void {
+        this._inViewport = inViewport;
+    }
+
+    public isInViewport(): boolean {
+        return this._inViewport;
+    }
+
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
         const previousHighlight = this.getActiveHighlight();
 
