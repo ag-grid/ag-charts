@@ -34,10 +34,10 @@ const options: AgCartesianChartOptions<DataType, unknown> = {
 
 const chart = AgCharts.create(options);
 
-async function onSeriesNodeClick() {
+function onSeriesNodeClick() {
     const state = chart.getState();
     state.active = { ...(state.active ?? {}), frozen: true };
-    await chart.setState(state);
+    chart.setState(state);
     isFrozen = true;
     updateStatus();
 }

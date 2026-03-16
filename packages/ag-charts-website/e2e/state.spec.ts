@@ -2367,6 +2367,104 @@ test.describe('state', () => {
             });
         });
 
+        test.describe('data-mutation', () => {
+            const MARCHBAR_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BarSeries-1',
+                itemId: 'Mar',
+            });
+
+            const MARCHBAR_ACTIVE_STATE = Object.freeze({
+                activeItem: MARCHBAR_ACTIVE_ITEM,
+                frozen: true,
+            });
+
+            const MARCHBAR_ACTIVE_CHANGE = Object.freeze({
+                ...MARCHBAR_ACTIVE_STATE,
+                datum: { month: 'Mar', value: 130 },
+                dataIdKey: 'month',
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(1, 1);
+            }
+
+            async function clickMarchBar(page: Page): Promise<void> {
+                await page.mouse.move(360, 392);
+                await page.mouse.click(360, 392);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function clickAddStart(page: Page): Promise<void> {
+                await page.getByText('Add Start').click();
+            }
+
+            async function clickRemoveStart(page: Page): Promise<void> {
+                await page.getByText('Remove Start').click();
+            }
+
+            async function clickAddStart2Times(page: Page): Promise<void> {
+                await repeat(2, async () => await clickAddStart(page));
+                await hoverMiss(page);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function clickRemoveStart3Times(page: Page): Promise<void> {
+                await repeat(3, async () => await clickRemoveStart(page));
+                await hoverMiss(page);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'data-mutation', 'vanilla').url;
+                await gotoExample(page, url);
+            });
+
+            test.describe('adding and removing datums at start keeps frozen datum active', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('data-mutation-initial.png');
+
+                    await clickMarchBar(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-clicked.png');
+
+                    await clickAddStart2Times(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-2-addstart.png');
+
+                    await clickRemoveStart3Times(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-3-removestart.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickMarchBar(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+
+                    await clickAddStart2Times(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+
+                    await clickRemoveStart3Times(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickMarchBar(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...MARCHBAR_ACTIVE_CHANGE, frozen: false, source: 'user-interaction' }, // hover
+                        { ...MARCHBAR_ACTIVE_CHANGE, frozen: true, source: 'state-change' }, // click
+                    ]);
+
+                    await clickAddStart2Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickRemoveStart3Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
+
         test.describe('external-legend', () => {
             let canvas: Locator;
 
