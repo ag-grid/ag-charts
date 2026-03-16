@@ -52,16 +52,16 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Documentation and Examples
 
-| Type    | Name                   | Invoke            | What it does                                          |
-| ------- | ---------------------- | ----------------- | ----------------------------------------------------- |
-| Command | 🟠 `/docs-create`      | `/docs-create`    | Scaffold a new documentation page                     |
-| Command | 🟠 `/docs-review`      | `/docs-review`    | Review docs for accuracy and example consistency      |
-| Skill   | 🟠 `spruce-docs`       | `/spruce-docs`    | Create or improve docs following established patterns |
-| Skill   | 🟠 `plunker`           | `/plunker`        | Create and manage Plunker demos for AG Charts         |
-| Skill   | 🔵 `batch-plunkers`    | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents   |
-| Skill   | 🔵 `website-astro`    | `/website-astro`  | Astro page patterns, content collections, and components |
-| Skill   | 🔵 `website-css`      | `/website-css`    | CSS architecture, design tokens, and styling patterns    |
-| Agent   | 🟠 `data-viz-designer` | Auto              | Dataset selection, chart type guidance                |
+| Type    | Name                   | Invoke            | What it does                                             |
+| ------- | ---------------------- | ----------------- | -------------------------------------------------------- |
+| Command | 🟠 `/docs-create`      | `/docs-create`    | Scaffold a new documentation page                        |
+| Command | 🟠 `/docs-review`      | `/docs-review`    | Review docs for accuracy and example consistency         |
+| Skill   | 🟠 `spruce-docs`       | `/spruce-docs`    | Create or improve docs following established patterns    |
+| Skill   | 🟠 `plunker`           | `/plunker`        | Create and manage Plunker demos for AG Charts            |
+| Skill   | 🔵 `batch-plunkers`    | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents      |
+| Skill   | 🔵 `website-astro`     | `/website-astro`  | Astro page patterns, content collections, and components |
+| Skill   | 🔵 `website-css`       | `/website-css`    | CSS architecture, design tokens, and styling patterns    |
+| Agent   | 🟠 `data-viz-designer` | Auto              | Dataset selection, chart type guidance                   |
 
 ## Planning and Analysis
 
@@ -79,7 +79,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                  | Invoke                     | What it does                                     |
 | ----- | --------------------- | -------------------------- | ------------------------------------------------ |
-| Skill | 🔵 `rulesync`          | `/rulesync` (user)         | Configure AI/agentic tooling via `.rulesync/`    |
+| Skill | 🔵 `rulesync`         | `/rulesync` (user)         | Configure AI/agentic tooling via `.rulesync/`    |
 | Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
 | Skill | 🔵 `reflect`           | `/reflect` (user)          | Analyse conversation friction and improve config |
 
@@ -93,13 +93,13 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Git and Branch Management
 
-| Type  | Name                    | Invoke                       | What it does                             |
-| ----- | ----------------------- | ---------------------------- | ---------------------------------------- |
-| Skill | 🔵 `ag-shared-sync-log`  | `/ag-shared-sync-log` (user)  | Generate migration log for ag-shared changes |
-| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos   |
-| Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`   |
-| Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history |
-| Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs          |
+| Type  | Name                    | Invoke                       | What it does                                 |
+| ----- | ----------------------- | ---------------------------- | -------------------------------------------- |
+| Skill | 🔵 `ag-shared-sync-log` | `/ag-shared-sync-log` (user) | Generate migration log for ag-shared changes |
+| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos       |
+| Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`       |
+| Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history     |
+| Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs              |
 
 ## Release Management
 
