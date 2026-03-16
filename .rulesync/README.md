@@ -81,6 +81,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | ----- | --------------------- | -------------------------- | ------------------------------------------------ |
 | Skill | 🔵 `rulesync`          | `/rulesync` (user)         | Configure AI/agentic tooling via `.rulesync/`    |
 | Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
+| Skill | 🔵 `reflect`           | `/reflect` (user)          | Analyse conversation friction and improve config |
 
 ## Memory
 
@@ -202,6 +203,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `pr-review`                  |      | 👤     | Review a PR (Markdown default, JSON with `--json`)          |
 | 🔵 `pr-split`                   |      | 👤     | Split a branch into stacked PRs                             |
 | 🔵 `recall`                     | ✂   | 👤     | Load branch context, browse project memories                |
+| 🔵 `reflect`                    | ✂   | 👤     | Analyse conversation friction and improve agentic config    |
 | 🟢 `releases`                   |      | 🤖     | Release conventions, branch naming, and constraints         |
 | 🔵 `remember`                   | ✂   | 👤     | Save branch context or project learnings as memory          |
 | 🔵 `rulesync`                   | ✂   | 👤     | Configure AI/agentic tooling via `.rulesync/`               |
