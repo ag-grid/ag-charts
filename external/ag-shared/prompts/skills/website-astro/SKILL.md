@@ -94,7 +94,7 @@ external/ag-website-shared/src/
 |------|------------|---------|
 | Astro pages | kebab-case | `license-pricing.astro` |
 | Components | PascalCase | `MyComponent.tsx` |
-| Style modules | kebab-case | `my-page.module.scss` |
+| Style modules | PascalCase | `MyComponent.module.scss` |
 | CSS classes | camelCase | `.pageContainer` |
 
 ## Common Tasks
