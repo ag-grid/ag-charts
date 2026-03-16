@@ -1256,6 +1256,10 @@ export class SeriesAreaManager extends BaseManager {
             this.activeState.highlightInViewport = true;
             return;
         }
+        if (event.highlightSelection.length === 0) {
+            return;
+        }
+
         const highlightInViewport: boolean = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
         this.activeState.highlightInViewport = highlightInViewport;
     }
