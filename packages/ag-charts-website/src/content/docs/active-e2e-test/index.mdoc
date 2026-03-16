@@ -119,6 +119,20 @@ When clicking a candlestick
     type="generated"
 /%}
 
+## Updating Data
+
+Check that `frozen` and `dataIdKey` work properly together:
+
+-   Click a bar: it **MUST** activate & freeze.
+-   Click "Add Start" button: same bar **MUST** be activated.
+-   Click "Remove Start" button: same bar **MUST** be activated.
+
+{% chartExampleRunner
+    title="Updating Data"
+    name="data-mutation"
+    type="generated"
+/%}
+
 # External Legend
 
 -   The external legend should behave just like our internal legend.
