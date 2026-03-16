@@ -105,7 +105,7 @@
 
 .ag-charts-dialog__input-group-label {
     color: var(--ag-charts-panel-subtle-text-color);
-    margin-right: 5px;
+    margin-inline-end: 5px;
 }
 
 .ag-charts-dialog__input-group-label[for] {
@@ -115,7 +115,7 @@
 /* Button */
 .ag-charts-dialog__button {
     border-radius: 0;
-    margin-right: -1px;
+    margin-inline-end: -1px;
 }
 
 .ag-charts-dialog__button.ag-charts-dialog__button--active {
@@ -127,13 +127,13 @@
 
 .ag-charts-dialog__button:first-child,
 .ag-charts-dialog__input-group-label + .ag-charts-dialog__button {
-    border-bottom-left-radius: var(--ag-charts-input-border-radius);
-    border-top-left-radius: var(--ag-charts-input-border-radius);
+    border-start-start-radius: var(--ag-charts-input-border-radius);
+    border-end-start-radius: var(--ag-charts-input-border-radius);
 }
 
 .ag-charts-dialog__button:last-child {
-    border-bottom-right-radius: var(--ag-charts-input-border-radius);
-    border-top-right-radius: var(--ag-charts-input-border-radius);
+    border-start-end-radius: var(--ag-charts-input-border-radius);
+    border-end-end-radius: var(--ag-charts-input-border-radius);
 }
 
 /* Color picker */
