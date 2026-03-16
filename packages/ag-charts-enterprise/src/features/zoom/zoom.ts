@@ -349,7 +349,9 @@ export class Zoom extends AbstractModuleInstance {
                 return;
         }
 
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
+        }
         eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
@@ -775,14 +777,16 @@ export class Zoom extends AbstractModuleInstance {
         const {
             panner,
             seriesRect,
-            ctx: { tooltipManager, zoomManager },
+            ctx: { tooltipManager, zoomManager, interactionManager },
         } = this;
 
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
         this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
+        }
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
