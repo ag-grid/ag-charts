@@ -19,15 +19,15 @@ tsDefaults                 = src + tsconfigs + tsDeclarations + sharedGlobals + 
 
 ### Named input definitions
 
-| Named Input | Purpose | Key detail |
-|---|---|---|
-| `production` | Source files minus tests/snapshots/configs | Built from `default` + `defaultExcludes` + `buildOutputExcludes` |
-| `tsDeclarations` | `.d.ts` from direct dependencies | `transitive: false` — only direct deps |
-| `jsOutputs` | `.js` from direct dependencies | Used by `build:umd` which bundles from `dist/` |
-| `allTransitiveOutputs` | All outputs, transitively | Used by `pack` (needs the full dependency tree) |
-| `tsDefaults` | Standard TS compilation inputs | Available for project-level overrides |
-| `sharedGlobals` | Root esbuild/tsconfig files | Changes to these invalidate all builds |
-| `buildOutputExcludes` | Excludes `dist/` from project files | Prevents output files from being counted as inputs |
+| Named Input            | Purpose                                    | Key detail                                                       |
+| ---------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| `production`           | Source files minus tests/snapshots/configs | Built from `default` + `defaultExcludes` + `buildOutputExcludes` |
+| `tsDeclarations`       | `.d.ts` from direct dependencies           | `transitive: false` — only direct deps                           |
+| `jsOutputs`            | `.js` from direct dependencies             | Used by `build:umd` which bundles from `dist/`                   |
+| `allTransitiveOutputs` | All outputs, transitively                  | Used by `pack` (needs the full dependency tree)                  |
+| `tsDefaults`           | Standard TS compilation inputs             | Available for project-level overrides                            |
+| `sharedGlobals`        | Root esbuild/tsconfig files                | Changes to these invalidate all builds                           |
+| `buildOutputExcludes`  | Excludes `dist/` from project files        | Prevents output files from being counted as inputs               |
 
 ### Dependency output inputs (`dependentTasksOutputFiles`)
 
@@ -61,16 +61,18 @@ These control what output files from upstream packages are included in a target'
 ### AG Charts defaults
 
 **Cached (`cache: true`):**
-- `build` / `build:types` / `build:package` / `build:umd` / `build:test`
-- `lint` / `lint:eslint` / `lint:depcruise` / `lint:circular`
-- `test` / `e2e` / `pack`
-- `generate-example` / `generate-thumbnail` / `typecheck`
-- `nx:noop` / `nx:run-commands` / `nx:run-script` (via targetDefaults)
+
+-   `build` / `build:types` / `build:package` / `build:umd` / `build:test`
+-   `lint` / `lint:eslint` / `lint:depcruise` / `lint:circular`
+-   `test` / `e2e` / `pack`
+-   `generate-example` / `generate-thumbnail` / `typecheck`
+-   `nx:noop` / `nx:run-commands` / `nx:run-script` (via targetDefaults)
 
 **Uncached (`cache: false`):**
-- `benchmark` — fresh runs needed for accurate measurements
-- `website:build` — Astro has its own cache; double-caching wastes GBs
-- `all:generate` — noop orchestrator, no value in caching
+
+-   `benchmark` — fresh runs needed for accurate measurements
+-   `website:build` — Astro has its own cache; double-caching wastes GBs
+-   `all:generate` — noop orchestrator, no value in caching
 
 ### What to audit
 
@@ -98,8 +100,8 @@ Every cached target must declare its `outputs` so Nx knows what to store and res
 
 ### What to audit
 
-- **Are `outputs` declared for every cached target?** Missing outputs means Nx caches "nothing" — the target runs, produces files, but restoring from cache doesn't restore those files.
-- **Do outputs use `{options.outputPath}` or `{projectRoot}/dist/...`?** The former is more DRY when the executor already defines `outputPath`.
+-   **Are `outputs` declared for every cached target?** Missing outputs means Nx caches "nothing" — the target runs, produces files, but restoring from cache doesn't restore those files.
+-   **Do outputs use `{options.outputPath}` or `{projectRoot}/dist/...`?** The former is more DRY when the executor already defines `outputPath`.
 
 ---
 
@@ -119,7 +121,7 @@ AG Charts excludes: diff output directories, generated benchmark files, patch in
 
 ## Nx references
 
-- [Nx input types reference](https://nx.dev/docs/reference/inputs) — named inputs, `dependentTasksOutputFiles`, external dependencies
-- [How caching works](https://nx.dev/docs/concepts/how-caching-works)
-- [Cache task results](https://nx.dev/docs/features/cache-task-results)
-- [Reduce repetitive configuration](https://nx.dev/docs/guides/tasks--caching/reduce-repetitive-configuration)
+-   [Nx input types reference](https://nx.dev/docs/reference/inputs) — named inputs, `dependentTasksOutputFiles`, external dependencies
+-   [How caching works](https://nx.dev/docs/concepts/how-caching-works)
+-   [Cache task results](https://nx.dev/docs/features/cache-task-results)
+-   [Reduce repetitive configuration](https://nx.dev/docs/guides/tasks--caching/reduce-repetitive-configuration)
