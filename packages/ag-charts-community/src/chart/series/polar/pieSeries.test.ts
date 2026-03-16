@@ -726,7 +726,7 @@ describe('PieSeries', () => {
     describe('nodeClick', () => {
         const clicks: string[] = [];
         const doubleClicks: string[] = [];
-        const legendClicks: string[] = [];
+        const legendClicks: (string | number)[] = [];
 
         const nodeClickOptions: AgPolarChartOptions = {
             data: [
