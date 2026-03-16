@@ -13,8 +13,8 @@ const options: AgCartesianChartOptions = {
     keyboard: { enabled: true },
     legend: { enabled: false },
     axes: {
-        x: { position: 'bottom', type: 'category' },
-        y: { position: 'left', type: 'number' },
+        x: { position: 'bottom', type: 'category', crosshair: { enabled: false } },
+        y: { position: 'left', type: 'number', crosshair: { enabled: false } },
     },
     series: [
         {

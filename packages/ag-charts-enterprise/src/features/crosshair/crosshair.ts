@@ -263,6 +263,8 @@ export class Crosshair extends AbstractModuleInstance {
 
             crosshairGroup.visible = true;
         }
+
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private isInRange(value: number) {

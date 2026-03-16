@@ -23,10 +23,6 @@ export class HighlightManager {
     constructor(private readonly eventsHub: EventsHub) {}
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
-        if (highlightedDatum?.series?.isHighlightEnabled() === false) {
-            highlightedDatum = undefined;
-        }
-
         const previousHighlight = this.getActiveHighlight();
 
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {
@@ -65,10 +61,12 @@ export class HighlightManager {
         const currentHighlight = this.getActiveHighlight();
 
         if (!this.isEqual(currentHighlight, previousHighlight)) {
+            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
+                highlightSuppressed,
             });
         }
     }
@@ -91,10 +89,12 @@ export class HighlightManager {
 
         // Only emit if something actually changed
         if (!this.isEqual(currentHighlight, previousHighlight)) {
+            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
+                highlightSuppressed,
             });
         }
     }

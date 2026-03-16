@@ -200,6 +200,7 @@ export interface HighlightChangeEvent {
     readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
+    readonly highlightSuppressed: boolean;
 }
 
 export interface LayoutCompleteEvent {
