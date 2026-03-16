@@ -147,7 +147,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly activeState = {
         lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined | 'legend',
-        highlightInViewport: false,
+        highlightInViewport: true,
     };
 
     /**
@@ -1252,7 +1252,10 @@ export class SeriesAreaManager extends BaseManager {
         // When the chart is frozen, we want the chart to automatically remove the crosshair & tooltip when the frozen
         // active datum leaves the viewport (e.g. if user zoom/pans the view). Checking whether the highlighted node
         // intersects with the viewport is an expensive computation, but we only need to do this on frozen charts.
-        if (!this.isState(InteractionState.Frozen) || !this.seriesRect) return;
+        if (!this.isState(InteractionState.Frozen) || !this.seriesRect) {
+            this.activeState.highlightInViewport = true;
+            return;
+        }
         const highlightInViewport: boolean = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
         this.activeState.highlightInViewport = highlightInViewport;
     }
