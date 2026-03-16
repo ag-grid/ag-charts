@@ -2488,10 +2488,6 @@ test.describe('state', () => {
                 type: 'activeChange',
             });
 
-            async function hoverMiss(page: Page): Promise<void> {
-                await page.mouse.move(1, 1);
-            }
-
             async function clickFreezeOnApril(page: Page): Promise<void> {
                 await page.getByText('Freeze on April (index 3)').click();
                 await waitForChartUpdate(page.locator(SELECTORS.wrapper));
