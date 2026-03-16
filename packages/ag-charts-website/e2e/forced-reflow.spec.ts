@@ -54,6 +54,59 @@ test.describe('forced reflow detection', () => {
         expect(finalTooltipBox?.x).not.toBe(initialTooltipBox?.x);
     });
 
+    test('sparkline creation should not cause forced reflows', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await waitForAllChartUpdates(page);
+
+        const events = await traceAction(page, async () => {
+            await page.getByText('Create Sparklines').click();
+            await page.waitForTimeout(500);
+        });
+        const analysis = analyseForcedReflows(events);
+        const filtered = filterAgChartsReflows(analysis);
+        expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
+    });
+
+    test('sparkline data update should not cause forced reflows', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await waitForAllChartUpdates(page);
+
+        // Create sparklines first, then wait for them to settle.
+        await page.getByText('Create Sparklines').click();
+        await page.waitForTimeout(500);
+        await waitForAllChartUpdates(page);
+
+        const events = await traceAction(page, async () => {
+            await page.getByText('Update Sparklines').click();
+            await page.waitForTimeout(500);
+        });
+        const analysis = analyseForcedReflows(events);
+        const filtered = filterAgChartsReflows(analysis);
+        expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
+    });
+
+    // Simulates grid scroll: destroy visible sparklines (returning them to pool)
+    // then create new ones from pool — the lifecycle that occurs as rows scroll
+    // in and out of the viewport.
+    test('sparkline scroll recycling should not cause forced reflows', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await waitForAllChartUpdates(page);
+
+        // Create initial sparklines, then wait for them to settle.
+        await page.getByText('Create Sparklines').click();
+        await page.waitForTimeout(500);
+        await waitForAllChartUpdates(page);
+
+        const events = await traceAction(page, async () => {
+            // Destroy and recreate from pool (simulates scroll).
+            await page.getByText('Scroll Sparklines').click();
+            await page.waitForTimeout(500);
+        });
+        const analysis = analyseForcedReflows(events);
+        const filtered = filterAgChartsReflows(analysis);
+        expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
+    });
+
     test('crosshair label hover should not cause forced reflows', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('axes-crosshairs', 'crosshair-snap', 'vanilla').url);
         await waitForAllChartUpdates(page);
