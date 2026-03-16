@@ -86,9 +86,10 @@ PROMPTS_DIR="$MAIN_REPO_ROOT/../$PROMPTS_DIR_NAME"
 # Each function returns 0 if tool is detected, 1 otherwise
 
 detect_claudecode() {
-    command -v claude &>/dev/null && return 0
-    [[ -d "$HOME/.claude" ]] && return 0
-    return 1
+    # Always enable — Claude Code is the primary agentic tool across all AG repos.
+    # Generating its config is cheap and avoids issues in environments where the
+    # binary isn't on $PATH (CI, containers, remote dev boxes).
+    return 0
 }
 
 detect_cursor() {
