@@ -373,7 +373,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onResize(): void {
-        if (this.pickManager.wasActivationPrevented() && this.getHoverDevice() !== 'setState') {
+        if (this.getHoverDevice() !== 'setState') {
             // AG-16704 TC2; when the user calls preventDefault() an activeChange with `source: 'user-interaction'`
             // (meaning we have hover-device 'pointer' or 'keyboard'), then we'll need to redraw the highlight rather
             // than clear it. Let's switch to the `setState` internally to do that.
@@ -385,8 +385,6 @@ export class SeriesAreaManager extends BaseManager {
                     seriesId: activeHighlight.series.id,
                 };
             }
-        } else {
-            this.clearAll();
         }
     }
 
