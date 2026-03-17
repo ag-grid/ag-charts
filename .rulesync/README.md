@@ -65,15 +65,15 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Planning and Analysis
 
-| Type    | Name                               | Invoke                               | What it does                                               |
-| ------- | ---------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
-| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness              |
-| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps              |
-| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research              |
-| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets                  |
-| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations                 |
-| Skill   | 🟢 `nx-performance`                | `/nx-performance`                    | Nx caching, build pipeline, and performance best practices |
-| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation           |
+| Type    | Name                               | Invoke                               | What it does                                         |
+| ------- | ---------------------------------- | ------------------------------------ | ---------------------------------------------------- |
+| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness        |
+| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps        |
+| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research        |
+| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets            |
+| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations           |
+| Skill   | 🔵 `nx-performance`                | `/nx-performance`                    | Nx monorepo performance diagnostics and optimization |
+| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation     |
 
 ## Prompt Hygiene
 
@@ -195,6 +195,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `git-split`                  |      | 👤     | Split large files preserving git history                    |
 | 🔵 `git-worktree-clean`         |      | 👤     | Hard-reset worktree to `origin/latest`                      |
 | 🔵 `jira`                       | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
+| 🔵 `nx-performance`             | ✂   | 🤖     | Nx monorepo performance diagnostics and optimization        |
 | 🟠 `optimize-series`            | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
 | 🔵 `plan-implementation-review` | ✂   | 👤     | Review plan execution, identify delivery gaps               |
 | 🔵 `plan-review`                | ✂   | 👤     | Review plans for completeness and correctness               |
