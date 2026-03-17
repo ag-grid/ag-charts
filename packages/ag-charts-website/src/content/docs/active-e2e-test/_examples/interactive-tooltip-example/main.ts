@@ -37,6 +37,7 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     listeners: {
         activeChange: (ev: AgActiveChangeEvent<DataType, unknown>) => {
+            events.push(ev);
             if (ev.source === 'user-interaction' && ev.activeItem === undefined) {
                 ev.preventDefault();
             }
@@ -46,6 +47,13 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
+let events: unknown[] = [];
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
 
 export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
@@ -61,4 +69,4 @@ window.addEventListener('mousemove', (ev: MouseEvent) => {
 });
 
 // For e2e testing:
-(window as any).agE2E = { chart };
+(window as any).agE2E = { chart, popEvents };

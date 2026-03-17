@@ -1591,6 +1591,25 @@ test.describe('state', () => {
                 activeItem: { itemId: 1, seriesId: 'BarSeries-1', type: 'series-node' },
             });
 
+            const activeChange2ndBar = Object.freeze({
+                ...activeState2ndBar,
+                datum: { month: 'Jul', sweaters: 70 },
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const activeChangeDeactivate = Object.freeze({
+                frozen: false,
+                activeItem: undefined,
+                datum: undefined,
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'state-change',
+                type: 'activeChange',
+            });
+
             async function mouseMove2ndBar(page: Page): Promise<void> {
                 await page.mouse.move(400, 300);
             }
@@ -1645,6 +1664,19 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual(activeState2ndBar);
                 });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+
+                    await mouseLeave(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivate]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                });
             });
 
             test.describe('button clears highlight', () => {
@@ -1679,6 +1711,19 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual(activeState2ndBar);
                 });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+
+                    await clickMyButton(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivate]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                });
             });
 
             test.describe('highlight persists on resize', () => {
@@ -1707,6 +1752,16 @@ test.describe('state', () => {
                     await growTextArea(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(activeState2ndBar);
+                });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+
+                    await growTextArea(page);
+                    expect(await popChartEvents(page)).toEqual([]);
                 });
             });
         });
