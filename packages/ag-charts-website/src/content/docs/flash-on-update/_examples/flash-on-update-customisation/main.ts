@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
     },
     flashOnUpdate: {
         enabled: true,
-        color: '#ffd6a5',
+        fill: '#ffd6a5',
         flashDuration: 300,
         fadeOutDuration: 700,
     },
@@ -88,7 +88,7 @@ function toggleUpdates() {
 }
 
 function setColor(value: string) {
-    options.flashOnUpdate!.color = value;
+    options.flashOnUpdate!.fill = value;
 }
 
 function setFlashDuration(value: string) {
