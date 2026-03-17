@@ -378,6 +378,40 @@ describe('LineSeries', () => {
                 ],
                 700,
             ],
+            [
+                'replacing all categories with fewer points',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                ],
+            ],
+            [
+                'replacing all categories with more points',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                    { quarter: 'Thu', iphone: 180 },
+                    { quarter: 'Fri', iphone: 90 },
+                    { quarter: 'Sat', iphone: 110 },
+                    { quarter: 'Sun', iphone: 140 },
+                    { quarter: 'holiday 1', iphone: 160 },
+                    { quarter: 'holiday 2', iphone: 130 },
+                ],
+            ],
+            [
+                'replacing all categories with same count',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                    { quarter: 'Thu', iphone: 180 },
+                    { quarter: 'Fri', iphone: 90 },
+                    { quarter: 'Sat', iphone: 110 },
+                    { quarter: 'Sun', iphone: 140 },
+                ],
+            ],
         ];
 
         for (const [testCase, changedData, duration = 1200] of animationTestCases) {
