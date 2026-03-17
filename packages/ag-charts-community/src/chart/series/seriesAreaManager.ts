@@ -373,11 +373,13 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onResize(): void {
-        if (this.getHoverDevice() !== 'setState') {
+        const activeHighlight = this.chart.ctx.highlightManager.getActiveHighlight();
+        this.clearAll();
+
+        if (this.pickManager.wasActivationPrevented()) {
             // AG-16704 TC2; when the user calls preventDefault() an activeChange with `source: 'user-interaction'`
             // (meaning we have hover-device 'pointer' or 'keyboard'), then we'll need to redraw the highlight rather
             // than clear it. Let's switch to the `setState` internally to do that.
-            const activeHighlight = this.chart.ctx.highlightManager.getActiveHighlight();
             if (activeHighlight !== undefined) {
                 this.setHoverDevice('setState');
                 this.activeState.lastActive = {

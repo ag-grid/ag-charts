@@ -38,7 +38,7 @@ const options: AgCartesianChartOptions<DataType> = {
     listeners: {
         activeChange: (ev: AgActiveChangeEvent<DataType, unknown>) => {
             events.push(ev);
-            if (ev.source === 'user-interaction' && ev.activeItem === undefined) {
+            if (ev.source === 'user-interaction' && ev.activeItem === undefined && shouldPreventDefault) {
                 ev.preventDefault();
             }
         },
@@ -46,6 +46,7 @@ const options: AgCartesianChartOptions<DataType> = {
 };
 
 let events: unknown[] = [];
+let shouldPreventDefault = true;
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
@@ -62,6 +63,10 @@ export function onPopEvents() {
 
 export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
+}
+
+export function onPreventDefaultChange(value: boolean) {
+    shouldPreventDefault = value;
 }
 
 function setHeight() {

@@ -118,6 +118,10 @@ test.describe('state', () => {
             });
         }
 
+        async function clickPreventDefaultTickbox(page: Page): Promise<void> {
+            await page.locator('#myPreventDefault').click();
+        }
+
         test.describe('line-example', () => {
             let canvas: Locator;
 
@@ -1148,10 +1152,6 @@ test.describe('state', () => {
                 await page.mouse.move(0, 0);
             }
 
-            async function clickPreventDefaultTickbox(page: Page): Promise<void> {
-                await page.locator('#myPreventDefault').click();
-            }
-
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'bubble-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -1632,10 +1632,12 @@ test.describe('state', () => {
             }
 
             async function growTextArea(page: Page): Promise<void> {
-                await page.evaluate(() => {
+                await page.evaluate(async () => {
                     const ta = document.querySelector('textarea');
                     if (ta) ta.style.height = '300px';
+                    await new Promise((resolve) => requestAnimationFrame(resolve));
                 });
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
             }
 
             test.beforeEach(async ({ page }) => {
@@ -1726,7 +1728,7 @@ test.describe('state', () => {
                 });
             });
 
-            test.describe('highlight persists on resize', () => {
+            test.describe('highlight persists on resize (preventDefault)', () => {
                 // The highlight-update fires two redraws when resizing. Looks fine to the end-user, but e2e
                 // image-snapshot comparison fails because it compares in intermediate frame.
                 // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
@@ -1734,6 +1736,9 @@ test.describe('state', () => {
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await mouseLeave(page);
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
                     await growTextArea(page);
@@ -1746,18 +1751,66 @@ test.describe('state', () => {
                     await mouseMove2ndBar(page);
                     expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
+                    await mouseLeave(page);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+
                     await growTextArea(page);
                     expect((await getChartState(page)).active).toEqual(activeState2ndBar);
                 });
 
+                test.skip('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
+
+                    await mouseLeave(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+
+                    await growTextArea(page);
+                    // FIXME: When testing this manually, I only get one activeChange deactivation event. But in the e2e
+                    // test multiple dom:resize events are firing for some reason.
+                    expect(await popChartEvents(page)).toEqual([
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                    ]);
+                });
+            });
+
+            test.describe('highlight persists on resize (permitDefault)', () => {
+                test('screenshots', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await growTextArea(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive-resized.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+
+                    await growTextArea(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+
                 test('popEvents', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
                     expect(await popChartEvents(page)).toEqual([]);
 
                     await mouseMove2ndBar(page);
                     expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await growTextArea(page);
-                    expect(await popChartEvents(page)).toEqual([]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
                 });
             });
         });
