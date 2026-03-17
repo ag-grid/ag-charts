@@ -275,11 +275,28 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             }
         }
 
+        // When categories are added or removed with animations enabled, the band scale changes so
+        // all bands visually reposition. Mark unclassified domain keys as 'update' so they flash too.
+        // Skipped when animations are disabled since positions snap instantly.
+        if (!animationsSkipped && this.hasScaleChange(categoryPhases)) {
+            const domain = this.axisCtx?.scale.domain ?? [];
+            for (const key of domain) {
+                if (!categoryPhases.has(key)) categoryPhases.set(key, 'update');
+            }
+        }
+
         const data = this.createBandFlashData(categoryPhases);
         if (!data) return;
 
         this.updateSelection(data, animationsSkipped);
         this.animateBands();
+    }
+
+    private hasScaleChange(categoryPhases: Map<string, FlashAnimationPhase>): boolean {
+        for (const phase of categoryPhases.values()) {
+            if (phase === 'add' || phase === 'remove') return true;
+        }
+        return false;
     }
 
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
