@@ -19,6 +19,7 @@ function setUpMockScene(canvasCtx: any): IScene {
             moveLayer: () => {},
             removeLayer: () => {},
         } as any,
+        isRtl: false,
     };
 }
 

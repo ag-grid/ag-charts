@@ -16,6 +16,7 @@ function createMockScene(): { scene: IScene; layersManager: MockLayersManager } 
     const scene: IScene = {
         imageLoader: null!,
         layersManager: layersManager as any,
+        isRtl: false,
     };
     return { scene, layersManager };
 }
