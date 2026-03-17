@@ -31,11 +31,28 @@ const MERGE_BAND_THRESHOLD_PX = 2;
 const MERGE_BAND_EPSILON = 1e-6;
 const PHASE_ORDER: Record<FlashAnimationPhase, number> = { remove: 0, update: 1, add: 2 };
 
-function classifyDiffCategories(diffs: _ModuleSupport.DataModelDiff[]): Map<string, FlashAnimationPhase> {
+function setPhaseIfAbsent(
+    phases: Map<string, FlashAnimationPhase>,
+    keys: Iterable<string>,
+    phase: FlashAnimationPhase,
+    exclude?: Set<string>
+): void {
+    for (const key of keys) {
+        if (!phases.has(key) && !exclude?.has(key)) phases.set(key, phase);
+    }
+}
+
+function classifyDiffCategories(
+    diffs: _ModuleSupport.DataModelDiff[],
+    animationsSkipped: boolean
+): Map<string, FlashAnimationPhase> {
     const phases = new Map<string, FlashAnimationPhase>();
     for (const seriesDiff of diffs.flatMap((diff) => Object.values(diff))) {
-        for (const key of seriesDiff.updated) if (!phases.has(key)) phases.set(key, 'update');
-        for (const key of seriesDiff.moved) if (!phases.has(key)) phases.set(key, 'update');
+        // Moved categories are only flashed when animations are enabled, where position interpolation
+        // gives visual context for the move. Without animation, the move is instant and invisible.
+        // Since moved keys are a subset of updated, exclude them when animations are skipped.
+        const excludeFromUpdate = animationsSkipped ? seriesDiff.moved : undefined;
+        setPhaseIfAbsent(phases, seriesDiff.updated, 'update', excludeFromUpdate);
         for (const key of seriesDiff.removed) phases.set(key, 'remove');
         for (const key of seriesDiff.added) phases.set(key, 'add');
     }
@@ -197,7 +214,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             Object.values(diff).some((seriesDiff) => seriesDiff.changed)
         );
 
-        const categoryPhases = hasChanged ? classifyDiffCategories(this.pendingDiffs) : undefined;
+        const animationsSkipped = this.ctx.animationManager.isSkipped();
+        const categoryPhases = hasChanged ? classifyDiffCategories(this.pendingDiffs, animationsSkipped) : undefined;
         this.pendingDiffs.length = 0;
 
         if (!hasChanged) return;
@@ -333,11 +351,19 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private animateBands(): void {
+        const allRects = Array.from(this.bandSelection.nodes());
+
+        if (this.ctx.animationManager.isSkipped()) {
+            // When animations are disabled, flash all bands simultaneously to avoid staggered phase delays.
+            this.animate(allRects, 'update');
+            return;
+        }
+
         const removeRects: _ModuleSupport.Rect[] = [];
         const updateRects: _ModuleSupport.Rect[] = [];
         const addRects: _ModuleSupport.Rect[] = [];
 
-        for (const rect of this.bandSelection.nodes()) {
+        for (const rect of allRects) {
             if (rect.datum.phase === 'remove') removeRects.push(rect);
             else if (rect.datum.phase === 'add') addRects.push(rect);
             else updateRects.push(rect);
