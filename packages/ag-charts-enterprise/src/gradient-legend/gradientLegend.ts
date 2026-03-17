@@ -252,7 +252,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         const highlighted = this.highlightManager.getActiveHighlight();
         const { arrow } = this;
 
-        if (highlighted?.colorValue == null) {
+        if (highlighted?.colorValue == null || highlighted.series?.isHighlightEnabled() === false) {
             arrow.visible = false;
             return;
         }

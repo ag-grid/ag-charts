@@ -1,9 +1,11 @@
-import { afterEach, describe, expect } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -125,5 +127,61 @@ describe('GradientLegend', () => {
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    it('AG-16729 should not show arrow when highlight.enabled is false', async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorRange: ['white', 'yellow', 'red', 'blue', 'black'],
+                    highlight: { enabled: false },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const chartInstance = deproxy(chart);
+        const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+        const arrow = gradientLegend?.arrow;
+
+        // Before hover - arrow should be hidden
+        expect(arrow?.visible).toBe(false);
+
+        // Hover over a heatmap cell (center of chart)
+        await hoverAction(300, 200)(chart);
+        await waitForChartStability(chart);
+
+        // After hover - arrow should still be hidden because highlight.enabled is false
+        expect(arrow?.visible).toBe(false);
+    });
+
+    it('AG-16729 should show arrow when highlight.enabled is true (default)', async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const chartInstance = deproxy(chart);
+        const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+        const arrow = gradientLegend?.arrow;
+
+        // Before hover - arrow should be hidden
+        expect(arrow?.visible).toBe(false);
+
+        // Hover over a heatmap cell (center of chart)
+        await hoverAction(300, 200)(chart);
+        await waitForChartStability(chart);
+
+        // After hover - arrow should be visible because highlight is enabled
+        expect(arrow?.visible).toBe(true);
     });
 });
