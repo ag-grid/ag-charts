@@ -38,7 +38,6 @@ import type {
     AgChartOptions,
     AgColorType,
     AgDataTransaction,
-    AgInitialFocus,
     AgInitialStateLegendOptions,
     AgLocaleOptions,
     AgMiniChartSeriesOptions,
