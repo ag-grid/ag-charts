@@ -1736,9 +1736,7 @@ test.describe('state', () => {
             });
 
             test.describe('highlight persists on resize', () => {
-                // The highlight doesn't synchronously on resize.
-                // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
-                test.skip('screenshots', async ({ page }) => {
+                test('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
