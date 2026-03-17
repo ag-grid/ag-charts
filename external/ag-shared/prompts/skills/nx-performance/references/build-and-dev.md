@@ -2,7 +2,7 @@
 
 ## Decomposed build targets
 
-AG Charts splits `build` into four sub-targets that maximise parallelism and minimise cache invalidation:
+The recommended pattern splits `build` into four sub-targets that maximise parallelism and minimise cache invalidation:
 
 ```
 build (nx:noop aggregator)
@@ -28,7 +28,7 @@ build (nx:noop aggregator)
 
 ### Per-package overrides
 
-Individual packages can override `targetDefaults`. Example: `ag-charts-community` overrides `build:umd` to build from source rather than `dist/` output, because its UMD bundle is a self-contained browser bundle needing a dedicated entry point (`main-umd.ts`).
+Individual packages can override `targetDefaults`. For example, a community package (e.g., `ag-charts-community`) may override `build:umd` to build from source rather than `dist/` output, because its UMD bundle is a self-contained browser bundle needing a dedicated entry point (`main-umd.ts`).
 
 ```json
 "build:umd": {
@@ -48,7 +48,7 @@ Individual packages can override `targetDefaults`. Example: `ag-charts-community
 
 ## esbuild over tsc for bundling
 
-AG Charts uses `@nx/esbuild:esbuild` for `build:package` and `build:umd`. esbuild is 10-100x faster than tsc + bundler for producing JS output. `@nx/js:tsc` is only used for `build:types` (declaration emit).
+Use `@nx/esbuild:esbuild` for `build:package` and `build:umd`. esbuild is 10-100x faster than tsc + bundler for producing JS output. `@nx/js:tsc` is only used for `build:types` (declaration emit).
 
 Custom esbuild plugins (`esbuild.config.cjs`) handle: CSS inlining and minification, HTML minification, post-build `.min.js` generation, UMD wrapper adaptation.
 
@@ -88,7 +88,7 @@ nx dev
 │   └── generate (all examples + thumbnails)
 └── Phase 2: Concurrent processes
     ├── watch.js (file watcher + queue-based rebuilder)
-    └── ag-charts-website:dev (Astro on port 4600)
+    └── <product>-website:dev (Astro dev server)
 ```
 
 **Variants:**
@@ -157,7 +157,7 @@ The watch script is a queue-based system:
 
 ## Aggregator project (`all`)
 
-AG Charts uses an aggregator project with `nx:noop` targets and `dependsOn: ["^targetName"]` to fan out work. Running `nx run all:build` triggers every package's `build`.
+AG product monorepos use an aggregator project with `nx:noop` targets and `dependsOn: ["^targetName"]` to fan out work. Running `nx run all:build` triggers every package's `build`.
 
 Convenience targets: `blt` (build-lint-test), `blt:ci` (adds e2e and pack), `clean`, `nuke`.
 
@@ -169,7 +169,7 @@ Convenience targets: `blt` (build-lint-test), `blt:ci` (adds e2e and pack), `cle
 
 ## Dynamic project creation
 
-AG Charts uses a custom Nx plugin (`ag-charts-task-autogen`) that scans `packages/*/src/**/_examples/*/main.ts` and creates ~200 virtual projects at graph-computation time, each with `generate-example`, `generate-thumbnail`, and `typecheck` targets.
+AG product monorepos use custom Nx plugins (e.g., `ag-charts-task-autogen`) that scan example directories (e.g., `packages/*/src/**/_examples/*/main.ts`) and create virtual projects at graph-computation time, each with `generate-example`, `generate-thumbnail`, and `typecheck` targets.
 
 ### What to audit
 

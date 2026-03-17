@@ -12,7 +12,7 @@ description: >-
 
 # Nx Performance & Caching Guide
 
-This skill encodes battle-tested patterns from AG Charts' Nx setup — an Nx 20 monorepo with ~220 projects, decomposed build targets, batch executors, and a sophisticated CI pipeline. Use it both for making changes and for auditing.
+This skill encodes battle-tested patterns from AG product Nx monorepos — large-scale Nx 20 workspaces with 100-220+ projects, decomposed build targets, batch executors, and sophisticated CI pipelines. Use it both for making changes and for auditing.
 
 ## When to consult reference files
 
@@ -21,7 +21,7 @@ This skill encodes battle-tested patterns from AG Charts' Nx setup — an Nx 20 
 | Named inputs, cache config, output declarations           | `references/caching-strategy.md` | Modifying `namedInputs`, `targetDefaults`, `cache`, or `outputs` in nx.json or project.json           |
 | Build decomposition, esbuild, dev server, batch executors | `references/build-and-dev.md`    | Changing build targets, adding new targets, modifying the dev server, or working with batch executors |
 | CI caching, sharding, artifacts, concurrency              | `references/ci-patterns.md`      | Modifying GitHub Actions workflows, CI caching strategy, test sharding, or artifact sharing           |
-| Known bugs and fixes from AG Charts                       | `references/gotchas.md`          | Debugging unexpected cache behaviour, or auditing a repo that may have inherited older patterns       |
+| Known bugs and fixes from AG monorepos                    | `references/gotchas.md`          | Debugging unexpected cache behaviour, or auditing a repo that may have inherited older patterns       |
 
 ---
 
@@ -213,7 +213,7 @@ When auditing a repo for Nx optimisations, work through these checks in order. T
 
 ### Phase 5: Known gotchas
 
-17. See `references/gotchas.md` for 13 specific bugs discovered and fixed in AG Charts. The most common in peer repos (check these first):
+17. See `references/gotchas.md` for 13 specific bugs discovered and fixed in AG product monorepos. The most common issues (check these first):
     -   **Noop aggregator targets with inherited outputs** — can destroy real build artifacts on cache restore. Fix: `inputs: [], outputs: []`.
     -   **`nx:run-commands` with `parallel: true`** — race conditions when commands must run sequentially. Fix: `parallel: false`.
     -   **Lint inputs missing config files** — `.dependency-cruiser.js`, `eslint.*` not in lint inputs means stale lint results after config changes.

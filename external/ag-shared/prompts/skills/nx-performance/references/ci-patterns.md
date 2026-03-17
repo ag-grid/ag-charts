@@ -2,7 +2,7 @@
 
 ## GHA cache strategy
 
-AG Charts manages three layers of caching in CI via a `setup-nx` composite action:
+AG product monorepos manage three layers of caching in CI via a `setup-nx` composite action:
 
 ### Layer 1: node_modules
 
@@ -12,7 +12,7 @@ Fallback: prefix restore (any matching yarn.lock)
 Release branches: release-{branch}-{hash}
 ```
 
-Using only `yarn.lock` misses changes to workspace `package.json` files (new scripts, resolutions). AG Charts includes all `package.json` files in the key.
+Using only `yarn.lock` misses changes to workspace `package.json` files (new scripts, resolutions). Include all `package.json` files in the key.
 
 ### Layer 2: Nx task cache
 
@@ -92,7 +92,7 @@ This ensures volatile examples are always rebuilt fresh while cacheable ones ben
 
 ## Test sharding strategy
 
-AG Charts dynamically calculates test shard counts based on the number of affected projects.
+The CI pipeline dynamically calculates test shard counts based on the number of affected projects.
 
 ### Unit test shards
 
@@ -127,7 +127,7 @@ The `init` job builds all packages and generates all examples, then uploads outp
           dist/
           packages/*/dist/
           external/*/dist/
-          packages/ag-charts-website/e2e/generated/
+          packages/<product>-website/e2e/generated/
 
 # e2e job: restore build outputs
 - uses: actions/download-artifact@v4

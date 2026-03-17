@@ -1,6 +1,6 @@
 # Gotchas: Lessons Learned the Hard Way
 
-These are bugs and misconfigurations discovered in AG Charts and fixed. Peer repos forked before these fixes will still have these problems. Each entry includes the symptom, root cause, and fix.
+These are bugs and misconfigurations discovered in AG product monorepos and fixed. Repos sharing these Nx patterns may have inherited the same issues. Each entry includes the symptom, root cause, and fix.
 
 ---
 
@@ -82,7 +82,7 @@ Included in `production` and `default` named inputs.
 
 **Symptom**: `yarn pack` produces a tarball with stale transitive dependencies. Publishing includes old versions of deep dependencies.
 
-**Root cause**: `pack` inputs only referenced direct build outputs, not transitive ones. A change in `ag-charts-types` (two levels up from `ag-charts-enterprise`) wouldn't trigger a re-pack.
+**Root cause**: `pack` inputs only referenced direct build outputs, not transitive ones. A change in a deep transitive dependency (e.g., a types package two levels up from an enterprise package) wouldn't trigger a re-pack.
 
 **Fix**: Changed pack inputs to `allTransitiveOutputs`:
 
@@ -131,7 +131,7 @@ Included in `production` and `default` named inputs.
 
 **Symptom**: Copying a `project.json` to a new package requires manual path updates. Targets break if packages are reorganised.
 
-**Root cause**: Using `packages/ag-charts-community/...` instead of `{projectRoot}/...`.
+**Root cause**: Using hardcoded paths like `packages/<package-name>/...` instead of `{projectRoot}/...`.
 
 **Fix**: Replaced all hardcoded paths with `{projectRoot}` and `{workspaceRoot}` tokens.
 
@@ -146,7 +146,7 @@ Included in `production` and `default` named inputs.
 **Fix**: Added explicit `implicitDependencies`:
 
 ```json
-"implicitDependencies": ["ag-charts-types", "ag-charts-core"]
+"implicitDependencies": ["<product>-types", "<product>-core"]
 ```
 
 ---
@@ -177,7 +177,7 @@ Additionally, orphaned files in `dist/` from targets that only existed on the pr
 
 **Fix — two strategies:**
 
-1. **Set `cache: false` on orchestrator targets**: This forces the orchestrator to always re-evaluate its dependents, even when hashes match. Individual child targets can remain cached for performance. This is the approach AG Charts uses:
+1. **Set `cache: false` on orchestrator targets**: This forces the orchestrator to always re-evaluate its dependents, even when hashes match. Individual child targets can remain cached for performance. This is the recommended approach:
 
     ```json
     "generate": { "cache": false }
@@ -193,7 +193,7 @@ Additionally, orphaned files in `dist/` from targets that only existed on the pr
 
 When auditing a peer repo:
 
-1. Check the repo's fork/divergence date against AG Charts' evolution timeline
+1. Check the repo's history against when these fixes were applied
 2. For each gotcha listed above, check whether the repo's Nx config has the same vulnerability
 3. The fixes are listed — apply them as appropriate
 
