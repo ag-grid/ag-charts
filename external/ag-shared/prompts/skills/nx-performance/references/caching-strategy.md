@@ -2,7 +2,7 @@
 
 ## Named Inputs — the foundation of correct caching
 
-AG Charts defines reusable `namedInputs` in `nx.json` that every target references. This ensures Nx knows exactly what files affect each target, avoiding both over-invalidation (cache misses) and under-invalidation (stale results).
+AG product monorepos define reusable `namedInputs` in `nx.json` that every target references. This ensures Nx knows exactly what files affect each target, avoiding both over-invalidation (cache misses) and under-invalidation (stale results).
 
 ### Named input hierarchy
 
@@ -45,20 +45,20 @@ These control what output files from upstream packages are included in a target'
 ]
 ```
 
-**`transitive: false`** is critical for most targets — it means only direct dependency outputs are hashed, not the entire transitive tree. Setting `transitive: true` when you only need direct deps causes massive over-invalidation. AG Charts only uses `transitive: true` for the `pack` target (which genuinely needs the full tree to detect changes in deep dependencies).
+**`transitive: false`** is critical for most targets — it means only direct dependency outputs are hashed, not the entire transitive tree. Setting `transitive: true` when you only need direct deps causes massive over-invalidation. In practice, `transitive: true` is typically only needed for the `pack` target (which genuinely needs the full tree to detect changes in deep dependencies).
 
 ### What to audit
 
 1. **Are `namedInputs` defined and used consistently?** The most common mistake is targets that use the default `{projectRoot}/**/*`, which includes test files, snapshots, and dist output.
 2. **Does `production` exclude test files and build outputs?** Check for patterns like `!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)` and `!{projectRoot}/dist/**`.
-3. **Are `externalDependencies` declared?** AG Charts pins `npm:typescript` and `npm:esbuild` as inputs to build targets.
+3. **Are `externalDependencies` declared?** Pin `npm:typescript` and `npm:esbuild` as inputs to build targets.
 4. **Is `transitive: false` used on `dependentTasksOutputFiles`?** Only use `transitive: true` for targets that genuinely need the full dependency tree (e.g., `pack`).
 
 ---
 
 ## Cache-enabled vs cache-disabled targets
 
-### AG Charts defaults
+### Recommended defaults
 
 **Cached (`cache: true`):**
 
@@ -87,7 +87,7 @@ These control what output files from upstream packages are included in a target'
 
 Every cached target must declare its `outputs` so Nx knows what to store and restore.
 
-### AG Charts patterns
+### Output declaration patterns
 
 ```json
 "build:types":   { "outputs": ["{options.outputPath}"] }     // → dist/types
@@ -115,7 +115,7 @@ Ensures the newer, more efficient cache format is used. Peer repos should verify
 
 Controls what Nx includes in its project graph and formatting scope. Without it, Nx may discover spurious projects in vendored directories, treat generated files as inputs, or attempt to format files without Prettier parsers.
 
-AG Charts excludes: diff output directories, generated benchmark files, patch infrastructure, external prompt directories, and shell/patch files.
+Typical exclusions: diff output directories, generated benchmark files, patch infrastructure, external prompt directories, and shell/patch files.
 
 ---
 
