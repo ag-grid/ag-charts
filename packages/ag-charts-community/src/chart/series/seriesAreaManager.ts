@@ -1,6 +1,6 @@
 import type { Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
 import type {
     ActiveLoadMementoEvent,
@@ -36,6 +36,7 @@ import type { ChartType } from '../factory/expectedModules';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
+import type { Keyboard } from '../keyboard';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
@@ -97,6 +98,7 @@ export interface SeriesAreaChartDependencies {
     ctx: ChartContext;
     tooltip: Tooltip;
     highlight: ChartHighlight;
+    keyboard: Keyboard;
     overlays: ChartOverlays;
     mode: ChartMode;
 }
@@ -164,6 +166,7 @@ export class SeriesAreaManager extends BaseManager {
     private readonly pickManager: PickManager;
 
     private readonly focus = {
+        initialized: false,
         sortedSeries: [] as UnknownSeries[],
         series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
@@ -229,6 +232,29 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
+    private initFocus(initialFocus: AgInitialFocus): void {
+        if (this.focus.initialized) return;
+        this.focus.initialized = true;
+
+        switch (initialFocus) {
+            case 'data-end': {
+                // We don't need to know the length of the input data; indices that are too small or too big will get
+                // clamped. So just set datumIndex to the maximum.
+                this.focus.datumIndex = Number.MAX_VALUE;
+                break;
+            }
+            case 'viewport-start':
+            case 'viewport-end': {
+                this.focus.pendingViewportFocus = initialFocus;
+                break;
+            }
+            default:
+                // Nothing to do if initialFocus is 'data-start' (datumIndex is zero-initialised). Just verify at
+                // compile-time that we've not missed an AgInitialFocus case:
+                initialFocus satisfies 'data-start';
+        }
+    }
+
     private isState(allowedStates: InteractionState) {
         return this.chart.ctx.interactionManager.isState(allowedStates);
     }
@@ -277,7 +303,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        if (this.focus.pendingViewportFocus) {
+        if (this.focus.pendingViewportFocus && this.focus.series !== undefined) {
             try {
                 this.pickViewportFocus(this.focus.pendingViewportFocus);
             } finally {
@@ -569,6 +595,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
+        this.initFocus(this.chart.keyboard.initialFocus);
         this.setHoverDevice(this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer');
         this.refreshFocus();
     }

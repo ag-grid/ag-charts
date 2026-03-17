@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select id="myInitialFocus" onchange="onInitialFocusChange(event.target.value)">
+            <option value="">(pick initial focus)</option>
+            <option value="data-start">data-start</option>
+            <option value="data-end">data-end</option>
+            <option value="viewport-start">viewport-start</option>
+            <option value="viewport-end">viewport-end</option>
+        </select>
+        <label for="above-chart">Element before chart:</label>
+        <input type="text" id="above-chart" />
+    </div>
+</div>
+<div id="myChart"></div>

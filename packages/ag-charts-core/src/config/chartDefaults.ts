@@ -14,6 +14,7 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
+    type AgInitialFocus,
     type AgInterpolationType,
     type AgRangesButton,
     type AgSeriesMarkerOptions,
@@ -58,6 +59,7 @@ import {
     positiveNumberNonZero,
     ratio,
     required,
+    strictUnion,
     string,
     typeUnion,
     undocumented,
@@ -478,6 +480,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     keyboard: {
         enabled: boolean,
         tabIndex: number,
+        initialFocus: strictUnion<AgInitialFocus>()('data-start', 'data-end', 'viewport-start', 'viewport-end'),
     },
     touch: {
         dragAction: union('none', 'drag', 'hover'),

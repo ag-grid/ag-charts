@@ -489,7 +489,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, overlays, seriesRoot, mode } = this;
+        const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
@@ -499,6 +499,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             removeThisDatum: unknown,
             purpose: 'aria-label' | 'tooltip'
         ) => this.getTooltipContent(series, datumIndex, removeThisDatum, purpose);
+
         return {
             fireEvent,
             getUpdateType,
@@ -507,6 +508,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx,
             tooltip,
             highlight,
+            keyboard,
             overlays,
             seriesRoot,
             mode,

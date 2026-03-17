@@ -171,6 +171,8 @@ export interface AgChartSyncOptions {
     zoom?: boolean;
 }
 
+export type AgInitialFocus = 'data-start' | 'data-end' | 'viewport-start' | 'viewport-end';
+
 export interface AgKeyboardOptions {
     /** Toggles the keyboard navigation feature.
      *
@@ -182,6 +184,14 @@ export interface AgKeyboardOptions {
      * Default: `0`
      */
     tabIndex?: number;
+    /**
+     * Determines which datum receives focus when keyboard navigation first enters the chart.
+     * `'data-start'` and `'data-end'` reference the full dataset, while `'viewport-start'`
+     * and `'viewport-end'` reference the initial visible zoom viewport.
+     *
+     * Default: `'data-start'`
+     */
+    initialFocus?: AgInitialFocus;
 }
 
 export interface AgTouchOptions {
