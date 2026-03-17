@@ -301,7 +301,9 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
         if (!this.axisCtx || !this.seriesRect) {
-            Logger.warnOnce(`flashOnUpdate item 'category' requires a category axis`);
+            Logger.warnOnce(
+                `flashOnUpdate item 'category' requires a cartesian category based axis such as 'category', 'ordinal-time', 'unit-time'`
+            );
             return;
         }
 
