@@ -316,7 +316,7 @@ runs:
               set +e
               cat "${{ steps.prompt.outputs.prompt_file }}" | codex exec \
                 --output-last-message "${output_file}" \
-                --sandbox read-only \
+                --sandbox workspace-write \
                 2>"${error_file}" \
                 >/dev/null
               exit_code=$?
