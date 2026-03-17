@@ -189,9 +189,14 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         this.ctx.seriesStateManager.updateGroupScale(this, bandwidth, categoryAxis);
 
-        const groupOffset = this.getGroupOffset();
+        let groupOffset = this.getGroupOffset();
         const barWidth = this.getBarWidth();
         const barOffset = this.getBarOffset(barWidth);
+
+        if (this.ctx.domManager.isRtl) {
+            const groupBandWidth = this.ctx.seriesStateManager.getGroupBandWidth(this);
+            groupOffset = bandwidth - groupOffset - groupBandWidth;
+        }
 
         return { groupOffset, barOffset, barWidth };
     }
@@ -291,12 +296,14 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             return 0;
         }
 
-        return this.ctx.seriesStateManager.getDatumOffset(
+        const offset = this.ctx.seriesStateManager.getDatumOffset(
             this,
             this.processedData.invalidData,
             this.processedData.missingData,
             datumIndex
         );
+
+        return this.ctx.domManager.isRtl ? -offset : offset;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {

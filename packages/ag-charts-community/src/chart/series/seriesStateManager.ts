@@ -142,6 +142,26 @@ export class SeriesStateManager {
         return this.groupScales.get(type);
     }
 
+    public getGroupBandWidth(series: SeriesLike): number {
+        const { seriesGrouping } = series;
+        if (!seriesGrouping) return 0;
+
+        const groupScale = this.getGroupScale(series);
+        if (!groupScale) return 0;
+
+        const group = this.groups.get(series.type);
+        if (!group) return groupScale.bandwidth;
+
+        let maxWidth = 0;
+        for (const entry of group.values()) {
+            if (!entry.visible) continue;
+            if (entry.grouping.groupIndex !== seriesGrouping.groupIndex) continue;
+            maxWidth = Math.max(maxWidth, entry.width ?? groupScale.bandwidth);
+        }
+
+        return maxWidth || groupScale.bandwidth;
+    }
+
     public getGroupOffset(series: SeriesLike): number {
         const { seriesGrouping } = series;
         if (!seriesGrouping) return 0;
