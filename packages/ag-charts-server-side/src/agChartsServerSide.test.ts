@@ -156,6 +156,34 @@ describe('AgChartsServerSide', () => {
 
             await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid dimensions');
         });
+
+        it('should throw error for zero pixelRatio', async () => {
+            const renderOptions: AgRenderOptions = {
+                options: {
+                    data: [],
+                    series: [],
+                },
+                width: 400,
+                height: 300,
+                pixelRatio: 0,
+            };
+
+            await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid pixelRatio');
+        });
+
+        it('should throw error for negative pixelRatio', async () => {
+            const renderOptions: AgRenderOptions = {
+                options: {
+                    data: [],
+                    series: [],
+                },
+                width: 400,
+                height: 300,
+                pixelRatio: -1,
+            };
+
+            await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid pixelRatio');
+        });
     });
 
     describe('concurrent rendering', () => {

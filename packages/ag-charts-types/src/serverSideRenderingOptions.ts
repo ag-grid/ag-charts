@@ -26,13 +26,22 @@ export interface AgChartRenderOptions<T> extends AgBaseRenderOptions {
 }
 
 /** Render options for standard charts. */
-export type AgRenderOptions = AgChartRenderOptions<AgChartOptions<DatumDefault, ContextDefault>>;
+export interface AgRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgChartOptions<DatumDefault, ContextDefault>, 'width' | 'height' | 'container'>;
+}
 
 /** Render options for gauge charts. */
-export type AgGaugeRenderOptions = AgChartRenderOptions<AgGaugeOptions<DatumDefault, ContextDefault>>;
+export interface AgGaugeRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgGaugeOptions<DatumDefault, ContextDefault>, 'width' | 'height' | 'container'>;
+}
 
 /** Render options for financial charts. */
-export type AgFinancialChartRenderOptions = AgChartRenderOptions<AgFinancialChartOptions<DatumDefault>>;
+export interface AgFinancialChartRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgFinancialChartOptions<DatumDefault>, 'width' | 'height' | 'container'>;
+}
 
 /** Static API for server-side chart rendering. */
 export interface AgChartsServerSideApi {
@@ -50,10 +59,6 @@ export interface AgChartsServerSideApi {
 export interface AgFontDefinition {
     /** Font family name used in chart options. */
     family: string;
-    /** File path to the font file (`.ttf`, `.otf`, etc.). */
+    /** File path to the font file (`.ttf`, `.otf`, etc.). Font variants (weight, style) are detected automatically from the font file metadata. */
     path: string;
-    /** Font weight (e.g., `'bold'`, `'600'`). */
-    weight?: string;
-    /** Font style (e.g., `'italic'`). */
-    style?: string;
 }
