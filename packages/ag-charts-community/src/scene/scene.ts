@@ -73,6 +73,10 @@ export class Scene extends EventEmitter<EventMap> {
         return this.pendingSize?.[2] ?? this.canvas.pixelRatio;
     }
 
+    get isRtl(): boolean {
+        return this.direction === 'rtl';
+    }
+
     /**
      * @deprecated v10.2.0 Only used by AG Grid Sparklines + Mini Charts
      *

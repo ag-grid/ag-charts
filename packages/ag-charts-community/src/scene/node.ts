@@ -58,6 +58,7 @@ export type ChildNodeCounts = {
 export interface IScene {
     layersManager: LayersManager;
     imageLoader: ImageLoader;
+    isRtl: boolean;
 }
 
 const MAX_ERROR_COUNT = 5;
