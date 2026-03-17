@@ -128,10 +128,10 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     item: AgFlashOnUpdateItem = 'chart';
 
     @Property
-    color: CssColor = '#cfeeff';
+    fill: CssColor = '#cfeeff';
 
     @Property
-    opacity: Opacity = 1;
+    fillOpacity: Opacity = 1;
 
     @Property
     flashDuration?: DurationMs;
@@ -233,7 +233,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private flashChart(): void {
         if (!this.chartFlashRect.width || !this.chartFlashRect.height) return;
 
-        this.chartFlashRect.fill = this.color;
+        this.chartFlashRect.fill = this.fill;
         this.chartFlashRect.fillOpacity = 0;
         this.animate([this.chartFlashRect], 'update');
     }
@@ -360,7 +360,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
         this.bandSelection.each((rect, datum) => {
             const b = useNewBounds ? datum.bounds : datum.prevBounds ?? datum.bounds;
-            rect.fill = this.color;
+            rect.fill = this.fill;
             rect.fillOpacity = 0;
             rect.x = b.x;
             rect.y = b.y;
@@ -400,7 +400,6 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private animate(rects: _ModuleSupport.Rect[], phase: _ModuleSupport.AnimationPhase): void {
         if (rects.length === 0) return;
 
-        const { opacity } = this;
         const { animationManager } = this.ctx;
         const timing = this.getCustomTiming(phase);
         const duration = timing?.duration;
@@ -413,7 +412,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             phase,
             duration,
             ease,
-            from: { fillOpacity: opacity },
+            from: { fillOpacity: this.fillOpacity },
             to: { fillOpacity: 0 },
             onUpdate: ({ fillOpacity }, preInit) => {
                 if (preInit) return;

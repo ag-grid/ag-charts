@@ -128,16 +128,16 @@ function getFlashModule(chartInstance: AgChartInstance) {
 }
 
 /** Assert the chart flash rect was configured: correct fill colour and non-zero area. */
-function assertChartFlashActive(chartInstance: AgChartInstance, opts?: { color?: string }) {
+function assertChartFlashActive(chartInstance: AgChartInstance, opts?: { fill?: string }) {
     const mod = getFlashModule(chartInstance);
     const rect = mod.chartFlashRect;
-    expect(rect.fill).toBe(opts?.color ?? '#cfeeff');
+    expect(rect.fill).toBe(opts?.fill ?? '#cfeeff');
     expect(rect.width).toBeGreaterThan(0);
     expect(rect.height).toBeGreaterThan(0);
 }
 
 /** Assert band flash rects were created with correct fill and non-zero area. */
-function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { color?: string; minBands?: number }) {
+function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { fill?: string; minBands?: number }) {
     const mod = getFlashModule(chartInstance);
     const rects: any[] = mod.bandSelection.nodes();
     expect(rects.length).toBeGreaterThan(0);
@@ -145,7 +145,7 @@ function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { color?: 
         expect(rects.length).toBeGreaterThanOrEqual(opts.minBands);
     }
     for (const rect of rects) {
-        expect(rect.fill).toBe(opts?.color ?? '#cfeeff');
+        expect(rect.fill).toBe(opts?.fill ?? '#cfeeff');
         expect(rect.width * rect.height).toBeGreaterThan(0);
     }
 }
@@ -175,8 +175,8 @@ function withFlash(
     flashOptions: {
         enabled?: boolean;
         item?: 'chart' | 'category';
-        color?: string;
-        opacity?: number;
+        fill?: string;
+        fillOpacity?: number;
         flashDuration?: number;
         fadeOutDuration?: number;
     }
@@ -265,7 +265,7 @@ describe('FlashOnUpdate', () => {
             it(`should apply custom color [ratio ${ratio}]`, async () => {
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'chart', color: '#ff0000' }
+                    { enabled: true, item: 'chart', fill: '#ff0000' }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -276,11 +276,14 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
-                assertChartFlashActive(chart, { color: '#ff0000' });
+                assertChartFlashActive(chart, { fill: '#ff0000' });
             });
 
             it(`should apply custom opacity [ratio ${ratio}]`, async () => {
-                const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart', opacity: 0.5 });
+                const options = withFlash(
+                    { ...VERTICAL_BAR_OPTIONS },
+                    { enabled: true, item: 'chart', fillOpacity: 0.5 }
+                );
                 prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
@@ -545,7 +548,7 @@ describe('FlashOnUpdate', () => {
             it(`should render category bands with custom color [ratio ${ratio}]`, async () => {
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'category', color: '#ff6600' }
+                    { enabled: true, item: 'category', fill: '#ff6600' }
                 );
                 prepareEnterpriseTestOptions(options);
 
@@ -556,13 +559,13 @@ describe('FlashOnUpdate', () => {
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
                 await compareSnapshot();
-                assertBandFlashActive(chart, { color: '#ff6600' });
+                assertBandFlashActive(chart, { fill: '#ff6600' });
             });
 
             it(`should render category bands with custom opacity [ratio ${ratio}]`, async () => {
                 const options = withFlash(
                     { ...VERTICAL_BAR_OPTIONS },
-                    { enabled: true, item: 'category', opacity: 0.3 }
+                    { enabled: true, item: 'category', fillOpacity: 0.3 }
                 );
                 prepareEnterpriseTestOptions(options);
 
