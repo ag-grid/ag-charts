@@ -47,7 +47,7 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { PickManager, type PickedNode, type PickedNodes } from './pickManager';
+import { PickManager, type PickedNode, type PickedNodes, getItemId } from './pickManager';
 import {
     type PickFocusInputs,
     type PickFocusOutputs,
@@ -214,7 +214,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
-            chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
+            chart.ctx.eventsHub.on('dom:resize', () => this.onResize()),
             chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
@@ -368,6 +368,24 @@ export class SeriesAreaManager extends BaseManager {
 
     private onAnimationStart(): void {
         if (this.getHoverDevice() !== 'setState') {
+            this.clearAll();
+        }
+    }
+
+    private onResize(): void {
+        if (this.pickManager.wasActivationPrevented() && this.getHoverDevice() !== 'setState') {
+            // AG-16704 TC2; when the user calls preventDefault() an activeChange with `source: 'user-interaction'`
+            // (meaning we have hover-device 'pointer' or 'keyboard'), then we'll need to redraw the highlight rather
+            // than clear it. Let's switch to the `setState` internally to do that.
+            const activeHighlight = this.chart.ctx.highlightManager.getActiveHighlight();
+            if (activeHighlight !== undefined) {
+                this.setHoverDevice('setState');
+                this.activeState.lastActive = {
+                    itemId: getItemId(activeHighlight),
+                    seriesId: activeHighlight.series.id,
+                };
+            }
+        } else {
             this.clearAll();
         }
     }
