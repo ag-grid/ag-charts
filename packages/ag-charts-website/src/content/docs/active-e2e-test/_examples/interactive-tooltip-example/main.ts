@@ -47,8 +47,13 @@ const options: AgCartesianChartOptions<DataType> = {
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
-function onClear() {
+export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
+}
+
+export function setHeight() {
+    const ta = document.querySelector('textarea');
+    if (ta) ta.style.height = '300px';
 }
 
 window.addEventListener('mousemove', (ev: MouseEvent) => {
