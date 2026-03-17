@@ -298,6 +298,8 @@ runs:
               HEAD_REF: ${{ inputs.head-ref }}
               PR_TITLE: ${{ inputs.pr-title }}
               PR_AUTHOR: ${{ inputs.pr-author }}
+              ARGUMENTS: ${{ inputs.inline-comments == 'true' && format('--json {0}', inputs.pr-number) || inputs.pr-number }}
+              GH_TOKEN: ${{ inputs.github-token }}
           run: |
               # Pre-generate the diff and metadata so Codex doesn't need to exec git commands.
               # This avoids sandbox (bwrap) issues on GitHub Actions runners.
@@ -310,6 +312,14 @@ runs:
               DIFF_BASE="origin/${BASE_REF}...${PR_REF}"
               HEAD_SHA=$(git rev-parse "${PR_REF}")
               PR_URL="https://github.com/${GITHUB_REPOSITORY}/pull/${PR_NUMBER}"
+
+              # Fill in missing metadata (e.g. workflow_dispatch doesn't have PR event context)
+              if [ -z "${PR_TITLE}" ] || [ -z "${PR_AUTHOR}" ] || [ -z "${HEAD_REF}" ]; then
+                PR_META=$(gh pr view "${PR_NUMBER}" --json title,author,headRefName 2>/dev/null || echo '{}')
+                [ -z "${PR_TITLE}" ] && PR_TITLE=$(echo "${PR_META}" | jq -r '.title // empty')
+                [ -z "${PR_AUTHOR}" ] && PR_AUTHOR=$(echo "${PR_META}" | jq -r '.author.login // empty')
+                [ -z "${HEAD_REF}" ] && HEAD_REF=$(echo "${PR_META}" | jq -r '.headRefName // empty')
+              fi
 
               # Collect diff stats
               FILES_CHANGED=$(git diff --name-only "${DIFF_BASE}" | wc -l | tr -d ' ')
@@ -330,6 +340,10 @@ runs:
                 "" \
                 "The PR diff and metadata have been pre-generated and are provided below." \
                 "**Do NOT run any git, gh, or shell commands.** Analyse the diff below directly." \
+                "" \
+                "### Arguments" \
+                "" \
+                "ARGUMENTS: ${ARGUMENTS}" \
                 "" \
                 "### PR Metadata" \
                 "- **PR Number:** ${PR_NUMBER}" \
