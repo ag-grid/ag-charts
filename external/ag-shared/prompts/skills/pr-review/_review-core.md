@@ -53,7 +53,7 @@ Apply any repo-specific rules found (e.g., "Don't log PII", "Verify auth middlew
 ## 4. Workflow
 
 1. Determine the PR number from `$ARGUMENTS` (required in CI, optional locally).
-2. Check if a **"Pre-generated PR Context"** section is appended to this prompt. If it is, use the diff, metadata, and commit messages provided there directly — **do NOT run any git, gh, or shell commands**.
+2. Check if a **"Pre-generated PR Context"** section is appended to this prompt. If it is, use the metadata and commit messages provided there directly, and **read the diff from the file path specified** in the "Full Diff" subsection.
 3. Otherwise, determine if running in CI (PR refs pre-fetched) or locally (use `gh` CLI), and fetch the PR diff and metadata using the appropriate method (see sections below).
 4. Analyse the changes and identify issues.
 5. Output the review in the format specified by the calling prompt.
@@ -61,9 +61,9 @@ Apply any repo-specific rules found (e.g., "Don't log PII", "Verify auth middlew
 ### Pre-supplied Diff (CI Default)
 
 In CI, the workflow pre-generates the diff and metadata and appends them to this prompt under a **"Pre-generated PR Context"** heading. When this section is present:
-- Use the provided diff, metadata, commit messages, and stats directly.
-- **Do NOT execute any commands** — the sandbox does not support it.
-- All required information (PR number, title, author, base/head branches, head SHA, diff stats, full diff) is included.
+- Use the provided metadata, commit messages, and stats directly.
+- **Read the full diff** from the file path given in the "Full Diff" subsection (e.g., `.codex-diff-123.patch`).
+- **Do NOT execute git, gh, or other shell commands** — the sandbox does not support it. Reading the diff file is the only file-system access needed.
 
 ### CI Environment (Sandboxed - No Network Access)
 
