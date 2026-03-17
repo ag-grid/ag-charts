@@ -301,6 +301,7 @@ runs:
               ARGUMENTS: ${{ inputs.inline-comments == 'true' && format('--json {0}', inputs.pr-number) || inputs.pr-number }}
               GH_TOKEN: ${{ inputs.github-token }}
           run: |
+              # TODO: Remove before merge - this comment is intentionally here to test inline review comments
               # Pre-generate the diff and metadata so Codex doesn't need to exec git commands.
               # This avoids sandbox (bwrap) issues on GitHub Actions runners.
               context_file=".codex-diff-context-${PR_NUMBER}.md"
