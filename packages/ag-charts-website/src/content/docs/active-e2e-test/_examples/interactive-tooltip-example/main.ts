@@ -45,9 +45,9 @@ const options: AgCartesianChartOptions<DataType> = {
     },
 };
 
+let events: unknown[] = [];
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
-let events: unknown[] = [];
 
 function popEvents(): unknown[] {
     const result = events;
