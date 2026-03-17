@@ -55,6 +55,11 @@ function popEvents(): unknown[] {
     return result;
 }
 
+export function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
+
 export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
 }
