@@ -6,7 +6,7 @@ import {
     DEFAULT_TOOLBAR_POSITION,
     getSequentialColors,
 } from 'ag-charts-core';
-import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 
@@ -46,9 +46,9 @@ export class FinancialLight extends ChartTheme {
         };
     }
 
-    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
-            ...super.getPublicParameters(),
+            ...super.getThemeParameters(),
             chartPadding: 0,
             gridLineColor: { $foregroundBackgroundMix: 0.06 },
         };

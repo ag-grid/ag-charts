@@ -346,9 +346,10 @@ const fontOperations: Record<FontOperation, OperationFns> = {
 };
 
 function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
+    const [valueVertex, paramVertex] = values;
     const value = graph.getVertexValue(valueVertex);
-    const fontSize = graph.getParamValue('fontSize');
+    const param = paramVertex ? (graph.getVertexValue(paramVertex) as string) : 'fontSize';
+    const fontSize = graph.getParamValue(param);
 
     if (typeof fontSize === 'number' && typeof value === 'number') {
         return Math.round(value * fontSize);

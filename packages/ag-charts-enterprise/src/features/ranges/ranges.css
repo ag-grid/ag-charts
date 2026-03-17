@@ -1,3 +1,61 @@
+.ag-charts-range-buttons {
+    --toolbar-size: var(--ag-charts-ranges-min-size);
+
+    --toolbar-border-radius: var(--ag-charts-ranges__button-corner-radius);
+
+    --toolbar-button-background-color: var(--ag-charts-ranges__button-fill);
+    --toolbar-button-border-color: var(--ag-charts-ranges__button-stroke);
+    --toolbar-button-border-width: var(--ag-charts-ranges__button-stroke-width);
+    --toolbar-button-gap: var(--ag-charts-ranges-gap);
+    --toolbar-button-text-color: var(--ag-charts-ranges__button-text-color);
+
+    --toolbar-button-background-color--active: var(--ag-charts-ranges__button-fill--active);
+    --toolbar-button-border-color--active: var(--ag-charts-ranges__button-stroke--active);
+    --toolbar-button-text-color--active: var(--ag-charts-ranges__button-text-color--active);
+
+    --toolbar-button-background-color--hover: var(--ag-charts-ranges__button-fill--hover);
+    --toolbar-button-border-color--hover: var(--ag-charts-ranges__button-stroke--hover);
+    --toolbar-button-text-color--hover: var(--ag-charts-ranges__button-text-color--hover);
+}
+
+.ag-charts-range-buttons--dropdown {
+    --toolbar-border-radius: var(--ag-charts-ranges__dropdown-corner-radius);
+
+    --toolbar-button-background-color: var(--ag-charts-ranges__dropdown-fill);
+    --toolbar-button-border-color: var(--ag-charts-ranges__dropdown-stroke);
+    --toolbar-button-border-width: var(--ag-charts-ranges__dropdown-stroke-width);
+    --toolbar-button-text-color: var(--ag-charts-ranges__dropdown-text-color);
+
+    --toolbar-button-background-color--active: var(--ag-charts-ranges__dropdown-fill--active);
+    --toolbar-button-border-color--active: var(--ag-charts-ranges__dropdown-stroke--active);
+    --toolbar-button-text-color--active: var(--ag-charts-ranges__dropdown-text-color--active);
+
+    --toolbar-button-background-color--hover: var(--ag-charts-ranges__dropdown-fill--hover);
+    --toolbar-button-border-color--hover: var(--ag-charts-ranges__dropdown-stroke--hover);
+    --toolbar-button-text-color--hover: var(--ag-charts-ranges__dropdown-text-color--hover);
+}
+
 .ag-charts-range-buttons .ag-charts-toolbar__button {
-    padding: var(--toolbar-button-padding) calc(var(--toolbar-button-padding) * 1.5);
+    font-size: var(--ag-charts-ranges__button-font-size);
+    font-family: var(--ag-charts-ranges__button-font-family);
+    font-weight: var(--ag-charts-ranges__button-font-weight);
+    padding-top: var(--ag-charts-ranges__button-padding-top);
+    padding-right: var(--ag-charts-ranges__button-padding-right);
+    padding-bottom: var(--ag-charts-ranges__button-padding-bottom);
+    padding-left: var(--ag-charts-ranges__button-padding-left);
+}
+
+.ag-charts-range-buttons--dropdown .ag-charts-toolbar__button {
+    font-size: var(--ag-charts-ranges__dropdown-font-size);
+    font-family: var(--ag-charts-ranges__dropdown-font-family);
+    font-weight: var(--ag-charts-ranges__dropdown-font-weight);
+    padding-top: var(--ag-charts-ranges__dropdown-padding-top);
+    padding-right: var(--ag-charts-ranges__dropdown-padding-right);
+    padding-bottom: var(--ag-charts-ranges__dropdown-padding-bottom);
+    padding-left: var(--ag-charts-ranges__dropdown-padding-left);
+}
+
+.ag-charts-range-buttons--gapped .ag-charts-toolbar__button {
+    border-radius: var(--toolbar-border-radius);
+    border-width: var(--toolbar-button-border-width);
 }

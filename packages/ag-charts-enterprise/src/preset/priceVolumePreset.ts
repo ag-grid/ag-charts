@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { Logger, SAFE_STROKE_FILL_OPERATION, mergeDefaults } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, Logger, SAFE_STROKE_FILL_OPERATION, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -167,8 +167,6 @@ export function priceVolume(
     const toolbarOpts = {
         ranges: {
             enabled: rangeButtons && zoom,
-            enableOutOfRange: true,
-            position: 'bottom-left',
         } satisfies AgRangesOptions,
     };
 
@@ -218,6 +216,12 @@ export function priceVolume(
                             enabled: toolbar,
                         },
                         annotations: { ...annotationsTheme },
+                        ranges: {
+                            enableOutOfRange: true,
+                            position: 'bottom-left',
+                            fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM, 'chromeFontSize'] },
+                            minSize: 34,
+                        },
                         axes: {
                             number: {
                                 interval: { maxSpacing: 45 },

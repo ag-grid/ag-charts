@@ -147,3 +147,11 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for grouped-category separation lines. */
     separationLinesColor?: CssColor;
 }
+
+export interface AgChartPrivateThemeParams {
+    // TODO: move `separateLinesColor` to this interface.
+
+    focusColor?: CssColor;
+}
+
+export interface AgChartAllThemeParams extends AgChartThemeParams, AgChartPrivateThemeParams {}

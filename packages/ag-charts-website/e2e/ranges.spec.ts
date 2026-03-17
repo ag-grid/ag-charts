@@ -111,4 +111,17 @@ test.describe('range buttons', () => {
         await page.mouse.dblclick(200, 400);
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
     });
+
+    test('styles', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-styles', 'vanilla');
+        await gotoExample(page, url);
+
+        const { canvas } = await locateCanvas(page);
+
+        await page.getByText('Theme Top').click();
+        await expect(canvas).toHaveScreenshot('range-buttons-styles-top.png');
+
+        await page.getByText('Theme Child', { exact: true }).click();
+        await expect(canvas).toHaveScreenshot('range-buttons-styles-child.png');
+    });
 });

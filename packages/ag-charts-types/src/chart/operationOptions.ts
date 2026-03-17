@@ -1,5 +1,5 @@
 import type { AgGradientColor, AgImageFill, AgPatternColor } from '../series/cartesian/commonOptions';
-import type { AgChartThemeParams } from './themeParamsOptions';
+import type { AgChartAllThemeParams } from './themeParamsOptions';
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
 
@@ -40,7 +40,7 @@ type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
           ? T[P] | V
           : ExtendLiteralLeaves<T[P], V, E>;
 
-type ThemeParam = keyof AgChartThemeParams;
+type ThemeParam = keyof AgChartAllThemeParams;
 
 type PaletteParam =
     | 'type'
@@ -86,7 +86,7 @@ type ColorOperation =
     | { $isPattern: AnyLeaf } // Target vertex
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }; // Colour A | Colour B | Ratio of Colour B (0 to 1)
 
-type FontOperation = { $rem: AnyLeaf }; // Ratio of base font size
+type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
 type LocationOperation =
     | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false

@@ -11,6 +11,7 @@
     --ag-charts-border-radius: 4px;
     --ag-charts-chart-background-color: #fff;
     --ag-charts-chart-padding: 20px;
+    --ag-charts-focus-color: #e4f2fe;
     --ag-charts-focus-shadow: 0 0 0 3px #2196f3;
     --ag-charts-foreground-color: #181d1f;
     --ag-charts-font-family: Verdana, sans-serif;
@@ -28,23 +29,23 @@
     --ag-charts-chrome-text-color: #181d1f;
 
     --ag-charts-button-background-color: #fff;
-    --ag-charts-button-border: 1px solid #dddddd;
+    --ag-charts-button-border-width: 1px;
     --ag-charts-button-font-weight: normal;
     --ag-charts-button-text-color: inherit;
 
     --ag-charts-input-background-color: #fff;
-    --ag-charts-input-border: 1px solid #dddddd;
+    --ag-charts-input-border-width: 1px;
     --ag-charts-input-text-color: #181d1f;
 
     --ag-charts-menu-background-color: #fafafa;
-    --ag-charts-menu-border: 1px solid #dddddd;
+    --ag-charts-menu-border-width: 1px;
     --ag-charts-menu-text-color: #181d1f;
 
     --ag-charts-panel-background-color: #fafafa;
     --ag-charts-panel-text-color: #181d1f;
 
     --ag-charts-tooltip-background-color: #fafafa;
-    --ag-charts-tooltip-border: 1px solid #dddddd;
+    --ag-charts-tooltip-border-width: 1px;
     --ag-charts-tooltip-text-color: #181d1f;
     --ag-charts-tooltip-subtle-text-color: #8c8c8c;
 
@@ -57,7 +58,6 @@
      *****************************************************************************************************************/
     --ag-charts-spacing: 4px;
     --ag-charts-icon-size: 16px;
-    --ag-charts-focus-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-accent-color) 12%);
 
     /* Inputs */
     --ag-charts-input-border-radius: var(--ag-charts-border-radius);
@@ -130,7 +130,8 @@
     --ag-charts-chrome-font-size-large: calc(var(--ag-charts-chrome-font-size) * (14 / 12));
 
     /* Borders */
-    --ag-charts-border: 1px solid var(--ag-charts-border-color);
+    --ag-charts-border-width: 1px;
+    --ag-charts-border: var(--ag-charts-border-width) solid var(--ag-charts-border-color);
 
     /* Focus Indicator */
     --ag-charts-focus-border: 1px solid var(--ag-charts-accent-color);
@@ -147,14 +148,6 @@
     --ag-charts-layer-toolbar: 3;
     --ag-charts-layer-crosshair: 2;
     --ag-charts-layer-annotations: 1;
-}
-
-.ag-charts-theme-default-dark {
-    /******************************************************************************************************************
-     * Future Theme Parameters.
-     * Variables to be added to the `theme.params`.
-     *****************************************************************************************************************/
-    --ag-charts-focus-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-accent-color) 22%);
 }
 
 .ag-chart-canvas-wrapper .ag-charts-theme-default {

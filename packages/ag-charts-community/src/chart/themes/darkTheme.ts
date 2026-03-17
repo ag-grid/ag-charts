@@ -14,7 +14,7 @@ import {
     IS_DARK_THEME,
     getSequentialColors,
 } from 'ag-charts-core';
-import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, AgChartThemeOptions, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
@@ -78,13 +78,14 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
-            ...super.getPublicParameters(),
+            ...super.getThemeParameters(),
             axisColor: { $foregroundBackgroundMix: 0.737 },
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: 0.216 },
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.07 },
+            focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.22] },
             foregroundColor: '#fff',
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',

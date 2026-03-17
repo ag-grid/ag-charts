@@ -22,8 +22,10 @@
 /* Button */
 .ag-charts-button {
     background: var(--ag-charts-button-background-color);
-    border: var(--ag-charts-button-border);
+    border-color: var(--ag-charts-border-color);
     border-radius: var(--ag-charts-button-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-button-border-width);
     color: var(--ag-charts-button-text-color);
     cursor: pointer;
     padding: var(--input-padding);
@@ -76,8 +78,10 @@
 /* Select */
 .ag-charts-select {
     background: var(--ag-charts-input-background-color);
-    border: var(--ag-charts-input-border);
+    border-color: var(--ag-charts-border-color);
     border-radius: var(--ag-charts-input-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-input-border-width);
     padding: 3px 2px 4px;
     font-size: inherit;
 }
@@ -87,8 +91,10 @@
     --textarea-line-height: 1.38;
 
     background: var(--ag-charts-input-background-color);
-    border: var(--ag-charts-input-border);
+    border-color: var(--ag-charts-border-color);
     border-radius: var(--ag-charts-input-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-input-border-width);
     line-height: var(--textarea-line-height);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size-large);

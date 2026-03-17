@@ -103,11 +103,16 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         this.setOwnedWidget(owns);
         this.initPopoverElement(owns.getElement(), options);
         owns.addListener('collapse-widget', () => {
+            this.hide();
             controller.setControlled(undefined);
             this.setOwnedWidget(undefined);
         });
         controller.setControlled(owns);
         controller.expandControlled();
+
+        if (options.onHide) {
+            this.hideFns.push(options.onHide);
+        }
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {

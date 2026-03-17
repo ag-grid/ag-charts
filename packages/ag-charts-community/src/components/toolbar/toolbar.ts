@@ -160,7 +160,7 @@ export abstract class BaseToolbar<
 
             buttonWidget.toggleClass('ag-charts-toolbar__button--first', first);
             buttonWidget.toggleClass('ag-charts-toolbar__button--last', last);
-            buttonWidget.toggleClass('ag-charts-toolbar__button--gap', index > 0 && first);
+            buttonWidget.toggleClass('ag-charts-toolbar__button--group-first', index > 0 && first);
 
             section = buttonWidget.section;
         }

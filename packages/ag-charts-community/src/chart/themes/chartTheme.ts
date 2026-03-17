@@ -48,6 +48,8 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
+    AgChartAllThemeParams,
+    AgChartPrivateThemeParams,
     AgChartTheme,
     AgChartThemeOptions,
     AgChartThemeOverrides,
@@ -118,7 +120,7 @@ export class ChartTheme {
     readonly config: any;
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
-    readonly params: AgChartThemeParams;
+    readonly params: AgChartAllThemeParams;
 
     public static getDefaultColors(): DefaultColors {
         return {
@@ -164,7 +166,6 @@ export class ChartTheme {
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
-            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' } as any,
@@ -196,6 +197,15 @@ export class ChartTheme {
 
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
+
+            // TODO: Move this to `getPrivateParameters()`
+            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
+        };
+    }
+
+    private static getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+        return {
+            focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
         };
     }
 
@@ -516,7 +526,7 @@ export class ChartTheme {
         );
         this.paletteType = paletteType(palette);
 
-        this.params = mergeDefaults(params, this.getPublicParameters());
+        this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
         this.config = deepFreeze(deepClone(defaults));
         this.overrides = deepFreeze(overrides);
@@ -625,8 +635,11 @@ export class ChartTheme {
         return ChartTheme.getDefaultColors();
     }
 
-    getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
-        return ChartTheme.getDefaultPublicParameters();
+    getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+        return {
+            ...ChartTheme.getDefaultPublicParameters(),
+            ...ChartTheme.getPrivateParameters(),
+        };
     }
 
     // Private parameters that are not exposed in the themes API.

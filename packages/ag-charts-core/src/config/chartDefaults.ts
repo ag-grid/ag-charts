@@ -483,11 +483,64 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         dragAction: union('none', 'drag', 'hover'),
     },
     ranges: {
-        dropdown: union('auto', 'always', 'never'),
         enabled: boolean,
         enableOutOfRange: boolean,
         position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
         spacing: positiveNumber,
+        button: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            textColor: color,
+            ...fontOptionsDef,
+            cornerRadius: positiveNumber,
+            padding: padding,
+            active: {
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+                textColor: color,
+            },
+            hover: {
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+                textColor: color,
+            },
+        },
+        dropdown: {
+            visible: union('auto', 'always', 'never'),
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            textColor: color,
+            ...fontOptionsDef,
+            cornerRadius: positiveNumber,
+            padding: padding,
+            active: {
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+                textColor: color,
+            },
+            hover: {
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+                textColor: color,
+            },
+        },
+        gap: positiveNumber,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        textColor: color,
+        ...fontOptionsDef,
+        cornerRadius: positiveNumber,
+        padding: padding,
+        active: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            textColor: color,
+        },
+        hover: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            textColor: color,
+        },
         buttons: arrayOfDefs<AgRangesButton>(
             {
                 ...toolbarButtonOptionsDefs,
@@ -540,6 +593,9 @@ commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.statusBar = undocumented(defined);
+
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.ranges.minSize = undocumented(positiveNumber);
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.foreground = undocumented({
