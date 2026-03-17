@@ -554,14 +554,14 @@ describe('SunburstSeries', () => {
                 children: [
                     { name: 'China', gdp: 17.7, change: 0 },
                     { name: 'Japan', gdp: 4.2, change: -1 },
-                    { name: 'India', gdp: 4.0, change: 20 },
+                    { name: 'India', gdp: 4, change: 20 },
                 ],
             },
             {
                 name: 'Europe',
                 children: [
                     { name: 'Germany', gdp: 4.4, change: 9 },
-                    { name: 'France', gdp: 3.0, change: 10 },
+                    { name: 'France', gdp: 3, change: 10 },
                     { name: 'UK', gdp: 3.3, change: 9 },
                 ],
             },
