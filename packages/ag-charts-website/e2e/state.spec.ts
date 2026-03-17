@@ -1591,7 +1591,7 @@ test.describe('state', () => {
                 activeItem: { itemId: 1, seriesId: 'BarSeries-1', type: 'series-node' },
             });
 
-            const activeChange2ndBar = Object.freeze({
+            const activeChange2ndBarMouse = Object.freeze({
                 ...activeState2ndBar,
                 datum: { month: 'Jul', sweaters: 70 },
                 dataIdKey: undefined,
@@ -1600,14 +1600,23 @@ test.describe('state', () => {
                 type: 'activeChange',
             });
 
-            const activeChangeDeactivate = Object.freeze({
+            const activeChangeDeactivateCommon = Object.freeze({
                 frozen: false,
                 activeItem: undefined,
                 datum: undefined,
                 dataIdKey: undefined,
                 preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'state-change',
                 type: 'activeChange',
+            });
+
+            const activeChangeDeactivateMouse = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                source: 'user-interaction',
+            });
+
+            const activeChangeDeactivateSetState = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                source: 'state-change',
             });
 
             async function mouseMove2ndBar(page: Page): Promise<void> {
@@ -1669,13 +1678,13 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([]);
 
                     await mouseMove2ndBar(page);
-                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await mouseLeave(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivate]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
 
                     await mouseMove2ndBar(page);
-                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                    expect(await popChartEvents(page)).toEqual([]);
                 });
             });
 
@@ -1716,13 +1725,13 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([]);
 
                     await mouseMove2ndBar(page);
-                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await clickMyButton(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivate]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateSetState]);
 
                     await mouseMove2ndBar(page);
-                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
                 });
             });
 
@@ -1758,7 +1767,7 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([]);
 
                     await mouseMove2ndBar(page);
-                    expect(await popChartEvents(page)).toEqual([activeChange2ndBar]);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await growTextArea(page);
                     expect(await popChartEvents(page)).toEqual([]);
