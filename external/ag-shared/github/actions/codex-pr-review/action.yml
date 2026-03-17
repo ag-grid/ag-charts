@@ -320,40 +320,43 @@ runs:
               # Write the raw diff to a standalone file (avoids Markdown escaping issues)
               git diff "${DIFF_BASE}" > "${diff_file}"
 
-              # Build the context file (metadata only, no embedded diff)
-              cat > "${context_file}" <<EOF
-
-## Pre-generated PR Context
-
-The PR diff and metadata have been pre-generated and are provided below.
-**Do NOT run any git, gh, or shell commands.** Analyse the diff below directly.
-
-### PR Metadata
-- **PR Number:** ${PR_NUMBER}
-- **PR Title:** ${PR_TITLE}
-- **PR URL:** ${PR_URL}
-- **Author:** ${PR_AUTHOR}
-- **Base Branch:** ${BASE_REF}
-- **Head Branch:** ${HEAD_REF}
-- **Head SHA:** ${HEAD_SHA}
-- **Files Changed:** ${FILES_CHANGED}
-- **Lines Added:** ${LINES_ADDED}
-- **Lines Removed:** ${LINES_REMOVED}
-
-### Diff Stats
-\`\`\`
-${DIFF_STAT}
-\`\`\`
-
-### Commit Messages
-\`\`\`
-$(git log --format="%s" "origin/${BASE_REF}..${PR_REF}")
-\`\`\`
-
-### Full Diff
-
-Read the unified diff from: \`${diff_file}\`
-EOF
+              # Build the context file (metadata only, no embedded diff).
+              # Uses printf instead of a heredoc to keep content indented within the
+              # YAML block scalar — unindented heredoc lines break GitHub Actions' YAML parser.
+              COMMIT_MSGS=$(git log --format="%s" "origin/${BASE_REF}..${PR_REF}")
+              printf '%s\n' \
+                "" \
+                "## Pre-generated PR Context" \
+                "" \
+                "The PR diff and metadata have been pre-generated and are provided below." \
+                "**Do NOT run any git, gh, or shell commands.** Analyse the diff below directly." \
+                "" \
+                "### PR Metadata" \
+                "- **PR Number:** ${PR_NUMBER}" \
+                "- **PR Title:** ${PR_TITLE}" \
+                "- **PR URL:** ${PR_URL}" \
+                "- **Author:** ${PR_AUTHOR}" \
+                "- **Base Branch:** ${BASE_REF}" \
+                "- **Head Branch:** ${HEAD_REF}" \
+                "- **Head SHA:** ${HEAD_SHA}" \
+                "- **Files Changed:** ${FILES_CHANGED}" \
+                "- **Lines Added:** ${LINES_ADDED}" \
+                "- **Lines Removed:** ${LINES_REMOVED}" \
+                "" \
+                "### Diff Stats" \
+                '```' \
+                "${DIFF_STAT}" \
+                '```' \
+                "" \
+                "### Commit Messages" \
+                '```' \
+                "${COMMIT_MSGS}" \
+                '```' \
+                "" \
+                "### Full Diff" \
+                "" \
+                "Read the unified diff from: \`${diff_file}\`" \
+                > "${context_file}"
 
               echo "Generated context ($(wc -c < "${context_file}") bytes) + diff ($(wc -c < "${diff_file}") bytes)"
 
