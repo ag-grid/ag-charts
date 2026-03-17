@@ -126,6 +126,14 @@ Present results as a markdown table:
 
 If any failed, suggest re-running with just the failed assignments by providing the exact `/batch-plunkers` invocation or spec table.
 
+## STEP 4 (Optional): Post Results to JIRA
+
+If the input was a JIRA ticket (Mode A), offer to post the results as a comment on the source ticket.
+
+Use `contentFormat: "adf"` with `mcp__atlassian__addCommentToJiraIssue`. Format as an ADF bullet list where each item has: title — ACs — clickable URL. Wrap each URL in an ADF `link` mark with the full URL as the link text — JIRA's markdown format does not reliably auto-link URLs.
+
+ADF link pattern: `{"type":"text","text":"https://plnkr.co/edit/abc123","marks":[{"type":"link","attrs":{"href":"https://plnkr.co/edit/abc123"}}]}`
+
 ## Notes
 
 - **Sub-agent autonomy**: Each sub-agent handles the full lifecycle — file creation, CSS sourcing, and API upload via `plnkr.sh`. The main thread only orchestrates and collects results.

@@ -118,7 +118,22 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 - [ ] Track field set correctly.
 - [ ] For Bug and Improvement tickets: Affects Version included.
 - [ ] For Bug and Improvement tickets: Bug template used (reproduction steps, actual/expected).
-- [ ] URLs pasted as raw URLs (not markdown links).
+- [ ] URLs are clickable ADF links showing the full URL as link text (not hidden behind display text).
+
+## Issue Link Direction
+
+The "Work item split" link type has: **inward** = "split from", **outward** = "split to".
+
+To express "NEW-TICKET split from PARENT-TICKET":
+- `inwardIssue` = **PARENT-TICKET** (the source — "split from" points here)
+- `outwardIssue` = **NEW-TICKET** (the new ticket — "split to" points here)
+
+Think of it as: the **inward** issue is the one being referenced ("split **from** X"), and the **outward** issue is the one the link is being created on.
+
+## Description Formatting
+
+- **Inline code for option names:** Always wrap API option names, property names, and programmatic values in backticks (e.g., `enableRtl`, `skipNullBars: true`, `bar`). This distinguishes code from prose and improves readability.
+- **Series type references:** When referencing series types, use backtick-wrapped type values (e.g., `bar`) rather than informal names like "bar/column".
 
 ## Critical Rules
 
@@ -128,3 +143,4 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 4. **No comments** — Put all information in the description.
 5. **No rationale in feature requests** — State **what** and acceptance criteria, not **why**.
 6. **Improvement = internally reported bug** — Always use the bug template for Improvement tickets, not the feature/task template.
+7. **Inline code for options** — Always wrap API option/property names in backticks in descriptions.

@@ -18,28 +18,21 @@ interface Props {
 }
 
 export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems }: Props) => {
-    const pageName = getPageNameFromPath(path);
-    const menuItem = getMenuItemFromPageName({ menuItems: menuItems, pageName });
-
     const frameworkOptions = useMemo(() => {
-        const allowedFrameworks = menuItem?.frameworks ?? FRAMEWORKS;
-        return allowedFrameworks.map((framework) => ({
+        return FRAMEWORKS.map((framework) => ({
             label: getFrameworkDisplayText(framework),
             value: framework,
         }));
-    }, [menuItem?.frameworks]);
+    }, [FRAMEWORKS]);
 
     const frameworkOption = useMemo(
         () => frameworkOptions.find((o: { value: string }) => o.value === currentFramework) ?? frameworkOptions[0],
         [frameworkOptions, currentFramework]
     );
 
-    // Hide selector when only one framework is available
-    if (frameworkOptions.length <= 1) {
-        return null;
-    }
-
     const handleFrameworkChange = (selectedFramework: Framework) => {
+        const pageName = getPageNameFromPath(path);
+        const menuItem = getMenuItemFromPageName({ menuItems: menuItems, pageName });
         let newUrl = getNewFrameworkPath({
             path,
             currentFramework,

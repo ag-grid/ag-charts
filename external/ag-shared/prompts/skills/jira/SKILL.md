@@ -99,7 +99,9 @@ Each ticket has exactly **one** track value. Never set multiple track values on 
 - **End numbered items with periods.**
 - Bold: `**text**`.
 - Code: backticks.
-- URLs: Paste raw URLs directly (JIRA auto-links them); avoid `[text](url)` markdown links.
+- **contentFormat**: Use `"adf"` for all JIRA API calls (`addCommentToJiraIssue`, `createJiraIssue`, `editJiraIssue`). ADF is JIRA's native format and the only one that reliably renders clickable links. The `"markdown"` format does not auto-link raw URLs in bullet lists or other structured content.
+- URLs: Wrap in ADF `link` marks with the full URL as link text. Never hide the URL behind display text like `[Plunker](url)`.
+  ADF link pattern: `{"type":"text","text":"https://example.com","marks":[{"type":"link","attrs":{"href":"https://example.com"}}]}`
 - Empty sections: Just `N/A`.
 - No comments — all info in description.
 - When creating tickets from analysis/research documents, distil to decisions and recommendations only. Do not reproduce full analysis in the description — link to the analysis document in the "Design Documents" section instead.

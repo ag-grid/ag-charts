@@ -4,21 +4,16 @@ description: 'Render AG Charts to PNG and JPEG image buffers in Node.js without 
 enterprise: true
 ---
 
-The `ag-charts-server-side` package renders AG Charts to PNG and JPEG image buffers in Node.js, without a browser or DOM. Use it to generate chart images for email reports, PDF documents, social media cards, thumbnails, or API endpoints.
+The `ag-charts-server-side` package renders AG Charts to PNG and JPEG image buffers in Node.js, without the need for a browser. Use it to generate chart images for email reports, PDF documents, or API endpoints.
 
 {% idea %}
-Try server-side rendering with zero setup in {% link href=codespaceUrl() isExternal=true %}GitHub Codespaces{% /link %}. Note that in Codespaces, the server URL will be a forwarded port URL (e.g. `https://<name>-3000.<domain>`) rather than `localhost:3000`.
+Try server-side rendering with zero setup in {% link href=codespaceUrl() isExternal=true %}GitHub Codespaces{% /link %}.  
+Note that in Codespaces, the server URL will be a forwarded port URL (e.g. `https://<name>-3000.<domain>`) rather than `localhost:3000`.
 {% /idea %}
-
-## Prerequisites
-
-{% note %}
-Server-side rendering requires Node.js 20.0.0 or later, and an [AG Charts Enterprise licence](./license-install/).
-{% /note %}
 
 ## Installation
 
-Install `ag-charts-server-side`:
+Install the `ag-charts-server-side` package:
 
 {% tabs omitFromOverview=true snippetTabs=true %}
 {% tabItem id="ssr-npm" label="NPM" %}
@@ -37,9 +32,11 @@ yarn add ag-charts-server-side
 {% /tabItem %}
 {% /tabs %}
 
-## Module registration
+Node.js 20.0.0 or later is required to run `ag-charts-server-side`.
 
-Register modules before rendering any charts. This is typically done once at application startup:
+### Module Registration
+
+Register chart modules before rendering any charts. This is typically done once at application startup.
 
 ```js format="snippet"
 import { AllEnterpriseModule, LicenseManager, ModuleRegistry } from 'ag-charts-enterprise';
@@ -48,17 +45,29 @@ LicenseManager.setLicenseKey('your-licence-key');
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 ```
 
-## Rendering a chart
+See [Module Registry](./module-registry/) for details on selecting specific modules to reduce bundle size.
 
-{% note %}
+### Licensing
+
+Server-side rendering requires an AG Charts Enterprise licence.
+
+See [Upgrading to Enterprise](./licensing/) for licence options, and [Installing Your Licence Key](./license-install/) for setup instructions.
+
+## Rendering
+
+`AgChartsServerSide` is the static entry point for all server-side rendering.
+
+It exposes `render()`, `renderGauge()`, and `renderFinancialChart()` methods, each returning a `Promise<Uint8Array>` containing the image data.
+
+Because there is no DOM container to derive dimensions from, `width` and `height` are required top-level options on every render call.
+
+The `options` property accepts all [AG Charts options](/options/), excluding `container`, `width`, and `height`.
+
 Multiple render calls can safely be issued concurrently. The package serialises rendering internally to prevent global state conflicts.
-{% /note %}
 
-`AgChartsServerSide` exposes static `render()`, `renderGauge()`, and `renderFinancialChart()` methods. Each returns a `Promise<Uint8Array>` containing the image data.
+### Basic Rendering
 
-{% apiReference id="AgChartsServerSideApi" include=["render"] hideHeader=true hideRequired=true /%}
-
-The `options` property accepts the same chart options as `AgCharts.create()`, excluding `container`, `width`, and `height` which are provided as top-level render options instead.
+Use `render()` to render all standard chart types. This method is the equivalent of the browser-based `AgChart.create()`.
 
 ```js
 import * as fs from 'fs';
@@ -85,11 +94,83 @@ const buffer = await AgChartsServerSide.render({
 fs.writeFileSync('chart.png', buffer);
 ```
 
-## JPEG output
+In this configuration:
 
-Set `format: 'jpeg'` to render JPEG images. Use `quality` to control the compression level.
+-   `options` contains the chart configuration — the same structure used in browser rendering.
+-   `width` and `height` set the output image dimensions in pixels.
+-   The default output format is PNG. See [Image Format](#image-format) for JPEG output.
 
-```js
+### Rendering Gauges
+
+Use `renderGauge()` to render [Radial](./radial-gauge/) and [Linear Gauges](./linear-gauge/).
+
+```js format="snippet"
+const buffer = await AgChartsServerSide.renderGauge({
+    options: {
+        type: 'radial-gauge',
+        value: 75,
+        scale: { min: 0, max: 100 },
+    },
+    width: 300,
+    height: 300,
+});
+```
+
+See [Radial Gauge](./radial-gauge/) and [Linear Gauge](./linear-gauge/) for the full range of Gauge options.
+
+### Rendering Financial Charts
+
+Use `renderFinancialChart()` to render [Financial Charts](./financial-charts/).
+
+```js format="snippet"
+const buffer = await AgChartsServerSide.renderFinancialChart({
+    options: {
+        data: financialData,
+    },
+    width: 800,
+    height: 500,
+});
+```
+
+See [Financial Charts](./financial-charts-configuration/#reference-AgFinancialChartOptions) for the full range of Financial Chart options.
+
+### Timeout
+
+By default, each render call times out after 30 seconds. Use the `timeout` option to adjust this limit.
+
+```js format="snippet"
+const buffer = await AgChartsServerSide.render({
+    // ... chart options ...
+    timeout: 60000, // 60 seconds
+});
+```
+
+Increase the timeout for charts with large datasets or complex animations that need more time to settle. Decrease it in request handlers where fast failure is preferable to a long wait.
+
+## Image Format
+
+### High-DPI Output
+
+Set `pixelRatio` to produce higher-resolution images suitable for Retina displays, print-quality PDFs, or any context where sharp text and crisp lines are important.
+
+```js format="snippet"
+const buffer = await AgChartsServerSide.render({
+    // ... chart options ...
+    width: 200,
+    height: 150,
+    pixelRatio: 2,
+});
+```
+
+The actual pixel dimensions of the output are `width * pixelRatio` by `height * pixelRatio`.
+
+### JPEG Output
+
+The default output format is PNG. Set `format: 'jpeg'` to produce JPEG images instead.
+
+Use the `quality` option (0–100) to control JPEG compression. Lower values produce smaller files with more compression artefacts. This option has no effect on PNG output.
+
+```js format="snippet"
 const buffer = await AgChartsServerSide.render({
     // ... chart options ...
     format: 'jpeg',
@@ -97,25 +178,12 @@ const buffer = await AgChartsServerSide.render({
 });
 ```
 
-## High-DPI output
+## Loading Custom Fonts
 
-Set `pixelRatio` to produce higher-resolution images. The actual pixel dimensions of the output are `width * pixelRatio` by `height * pixelRatio`.
+The `ag-charts-server-side` does not fetch Google Fonts or other remote font resources automatically.
+Use the `loadFonts()` method to load custom fonts from local font files.
 
-```js
-const buffer = await AgChartsServerSide.render({
-    // ... chart options ...
-    width: 200,
-    height: 150,
-    pixelRatio: 2,
-});
-// Output image is 400x300 actual pixels
-```
-
-## Custom fonts
-
-{% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
-
-Font variants (weight, style) are detected automatically from the font file metadata. Register each variant under the same family name:
+Font variants are detected automatically from the font file metadata. Register each variant under the same family name:
 
 ```js
 AgChartsServerSide.loadFonts([
@@ -125,11 +193,17 @@ AgChartsServerSide.loadFonts([
 ]);
 ```
 
-## Example use-cases
+Special characters, extended Unicode, and non-Latin scripts may not render correctly unless their fonts are explicitly loaded.
 
-### Express.js endpoint
+## Examples
 
-Serve chart images from an HTTP endpoint:
+There are many use cases for server-side rendering. We recommend you take a look at those in our {% link href=codespaceUrl() isExternal=true %}GitHub Codespaces{% /link %}.
+
+Additionally, here are a few code examples to get you started.
+
+### Express.js Endpoint
+
+Serve chart images dynamically from an HTTP endpoint:
 
 ```js
 import express from 'express';
@@ -161,6 +235,33 @@ app.get('/chart.png', async (req, res) => {
 });
 
 app.listen(3000);
+```
+
+### Saving to File
+
+Generate chart images during build steps or scheduled jobs:
+
+```js
+import * as fs from 'fs';
+
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgChartsServerSide } from 'ag-charts-server-side';
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
+
+const charts = [
+    { name: 'sales', data: salesData, series: [{ type: 'bar', xKey: 'month', yKey: 'revenue' }] },
+    { name: 'users', data: userData, series: [{ type: 'line', xKey: 'month', yKey: 'count' }] },
+];
+
+for (const chart of charts) {
+    const buffer = await AgChartsServerSide.render({
+        options: { data: chart.data, series: chart.series },
+        width: 800,
+        height: 400,
+    });
+    fs.writeFileSync(`output/${chart.name}.png`, buffer);
+}
 ```
 
 ## API Reference

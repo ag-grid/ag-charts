@@ -371,6 +371,22 @@
     },
     {
         "group": {
+            "name": "Server-Side Rendering"
+        },
+        "items": [
+            {
+                "label": {
+                    "name": "Server-Side Rendering",
+                    "link": "https://www.ag-grid.com/charts/r/server-side-rendering/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            }
+        ]
+    },
+    {
+        "group": {
             "name": "Data"
         },
         "items": [
