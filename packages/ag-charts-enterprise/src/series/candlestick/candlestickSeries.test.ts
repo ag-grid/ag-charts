@@ -107,6 +107,15 @@ describe('CandlestickSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
+    it(`should render a candlestick chart with RTL enabled`, async () => {
+        const options: AgChartOptions = {
+            ...CANDLESTICK_OPTIONS,
+            enableRtl: true,
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
     describe('gradient fill', () => {
         it('should render candlestick series with a default gradient fill', async () => {
             const options = {

@@ -141,6 +141,7 @@ interface OhlcSeriesNodeDatumContext {
     // Pre-computed positioning values
     readonly barWidth: number;
     readonly groupOffset: number;
+    readonly barOffset: number;
     readonly applyWidthOffset: boolean;
     readonly crisp: boolean;
 
@@ -414,7 +415,7 @@ export abstract class OhlcSeriesBase<
                 !processedDataIsAnimatable(processedData) ||
                 dataAggregationFilter != null);
 
-        const { groupOffset, barWidth } = this.getBarDimensions();
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         return {
             rawData,
@@ -428,8 +429,9 @@ export abstract class OhlcSeriesBase<
             xAxis,
             yAxis,
             groupOffset,
+            barOffset,
             barWidth,
-            applyWidthOffset, // TODO: replace with barOffset?
+            applyWidthOffset,
             crisp,
             xKey: this.properties.xKey,
             openKey: this.properties.openKey,
@@ -666,7 +668,7 @@ export abstract class OhlcSeriesBase<
         const xPosition = (index: number) => {
             const x = ctx.xScale.convert(ctx.xValues[index]);
             if (!Number.isFinite(x)) return Number.NaN;
-            return x + ctx.groupOffset;
+            return x + ctx.groupOffset + (ctx.applyWidthOffset ? ctx.barOffset : 0);
         };
 
         if (ctx.dataAggregationFilter == null) {

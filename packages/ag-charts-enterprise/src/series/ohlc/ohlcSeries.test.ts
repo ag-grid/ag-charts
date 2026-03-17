@@ -146,6 +146,15 @@ describe('OhlcSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
+    it(`should render an ohlc chart with RTL enabled`, async () => {
+        const options: AgChartOptions = {
+            ...OHLC_OPTIONS,
+            enableRtl: true,
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
     describe('null category key', () => {
         const OHLC_NULL_CATEGORY_KEY_DATA = [
             { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
