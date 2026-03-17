@@ -355,7 +355,7 @@ runs:
                 "" \
                 "### Full Diff" \
                 "" \
-                "The unified diff follows immediately after this line." \
+                "Read the unified diff from: \`${diff_file}\`" \
                 > "${context_file}"
 
               echo "Generated context ($(wc -c < "${context_file}") bytes) + diff ($(wc -c < "${diff_file}") bytes)"
@@ -379,18 +379,17 @@ runs:
               output_file=".codex-review-${{ inputs.pr-number }}.${{ steps.prompt.outputs.output_ext }}"
               error_file=".codex-error-${{ inputs.pr-number }}.log"
               context_file="${{ steps.diff-context.outputs.context_file }}"
-              diff_file="${{ steps.diff-context.outputs.diff_file }}"
 
               echo "output_file=${output_file}" >> $GITHUB_OUTPUT
 
               # Run Codex with ALL output suppressed
-              # - stdin: Review instructions + metadata context + raw diff (three files concatenated)
+              # - stdin: Review instructions + metadata context (diff is read from .patch file)
               # - stdout (>/dev/null): Suppresses reasoning/streaming output
               # - stderr (2>file): Captured to file for debugging, not logged
               set +e
-              cat "${{ steps.prompt.outputs.prompt_file }}" "${context_file}" "${diff_file}" | codex exec \
+              cat "${{ steps.prompt.outputs.prompt_file }}" "${context_file}" | codex exec \
                 --output-last-message "${output_file}" \
-                --sandbox read-only \
+                --sandbox workspace-write \
                 2>"${error_file}" \
                 >/dev/null
               exit_code=$?
