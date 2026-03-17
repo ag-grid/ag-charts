@@ -23,6 +23,7 @@ export class ChartToolbar extends AbstractModuleInstance {
     })
     enabled: boolean = false;
 
+    private readonly menuMargin: number = 6;
     private readonly toolbar: SharedToolbarWithSection;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
     private menuShowing = false;
@@ -47,7 +48,10 @@ export class ChartToolbar extends AbstractModuleInstance {
     }
 
     private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
-        this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
+        const anchorX = this.ctx.domManager.isRtl
+            ? buttonBounds.x - this.menuMargin
+            : buttonBounds.x + buttonBounds.width + this.menuMargin;
+        this.menu.setAnchor({ x: anchorX, y: buttonBounds.y });
         this.menu.show(buttonWidget, {
             items: menuItems,
             menuItemRole: 'menuitemradio',

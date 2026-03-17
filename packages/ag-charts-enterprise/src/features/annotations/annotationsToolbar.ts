@@ -62,6 +62,8 @@ export class AnnotationsToolbar extends BaseProperties {
     @Property
     padding: number = 20;
 
+    private readonly menuMargin: number = 6;
+
     @Property
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
 
@@ -228,7 +230,12 @@ export class AnnotationsToolbar extends BaseProperties {
 
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
-        this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
+
+        const anchorX = this.ctx.domManager.isRtl
+            ? buttonBounds.x - this.menuMargin
+            : buttonBounds.x + buttonBounds.width + this.menuMargin;
+
+        this.annotationMenu.setAnchor({ x: anchorX, y: buttonBounds.y });
         this.annotationMenu.show<AnnotationType>(controller, {
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),

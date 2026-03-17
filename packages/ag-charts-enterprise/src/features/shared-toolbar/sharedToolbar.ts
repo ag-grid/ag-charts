@@ -70,7 +70,7 @@ export class SharedToolbar extends AbstractModuleInstance {
         const sharedToolbar = this.sharedToolbar!;
 
         const withSection = {
-            layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => {
+            layout: (layoutBox: _ModuleSupport.BBox, padding: number = 0) => {
                 // Only perform the layout for the first section to call to prevent multiple shrinkings per update
                 if (
                     this.firstLayoutSection != null &&
@@ -82,13 +82,14 @@ export class SharedToolbar extends AbstractModuleInstance {
                 this.firstLayoutSection = section;
 
                 const width = sharedToolbar.getBounds().width;
+                const { isRtl } = this.ctx.domManager;
                 sharedToolbar.setBounds({
-                    x: layoutBox.x,
+                    x: isRtl ? layoutBox.x + layoutBox.width - width : layoutBox.x,
                     y: layoutBox.y,
                     width: width,
                 });
 
-                layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing + (padding ?? 0) });
+                layoutBox.shrink(width + sharedToolbar.horizontalSpacing + padding, isRtl ? 'right' : 'left');
             },
             addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap>(
                 eventType: K,

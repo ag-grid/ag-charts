@@ -62,12 +62,15 @@ export abstract class AnchoredPopover<
 
         const canvasRect = ctx.domManager.getBoundingClientRect();
         const { offsetWidth: width, offsetHeight: height } = popover;
+        const { isRtl } = this.ctx.domManager;
 
-        let x = clamp(0, anchor.x, canvasRect.width - width);
+        const anchorX = isRtl ? anchor.x - width : anchor.x;
+        let x = clamp(0, anchorX, canvasRect.width - width);
         let y = clamp(0, anchor.y, canvasRect.height - height);
 
-        if (x !== anchor.x && fallbackAnchor?.x != null) {
-            x = clamp(0, fallbackAnchor.x - width, canvasRect.width - width);
+        if (x !== anchorX && fallbackAnchor?.x != null) {
+            const fallbackX = isRtl ? fallbackAnchor.x : fallbackAnchor.x - width;
+            x = clamp(0, fallbackX, canvasRect.width - width);
         }
 
         if (y !== anchor.y && fallbackAnchor?.y != null) {
