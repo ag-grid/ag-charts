@@ -3,6 +3,8 @@ import type { AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from './
 
 export type AgImageFormat = 'png' | 'jpeg';
 
+type AgRenderExcludedKeys = 'width' | 'height' | 'container';
+
 /** Base render options shared by all server-side render methods. */
 export interface AgBaseRenderOptions {
     /** Output image width in pixels. */
@@ -22,17 +24,26 @@ export interface AgBaseRenderOptions {
 /** Render options for server-side chart rendering, parameterised by chart options type. */
 export interface AgChartRenderOptions<T> extends AgBaseRenderOptions {
     /** Chart configuration options (excludes `container`, `width`, and `height`). */
-    options: Omit<T, 'width' | 'height' | 'container'>;
+    options: Omit<T, AgRenderExcludedKeys>;
 }
 
 /** Render options for standard charts. */
-export type AgRenderOptions = AgChartRenderOptions<AgChartOptions<DatumDefault, ContextDefault>>;
+export interface AgRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgChartOptions<DatumDefault, ContextDefault>, AgRenderExcludedKeys>;
+}
 
 /** Render options for gauge charts. */
-export type AgGaugeRenderOptions = AgChartRenderOptions<AgGaugeOptions<DatumDefault, ContextDefault>>;
+export interface AgGaugeRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgGaugeOptions<DatumDefault, ContextDefault>, AgRenderExcludedKeys>;
+}
 
 /** Render options for financial charts. */
-export type AgFinancialChartRenderOptions = AgChartRenderOptions<AgFinancialChartOptions<DatumDefault>>;
+export interface AgFinancialChartRenderOptions extends AgBaseRenderOptions {
+    /** Chart configuration options (excludes `container`, `width`, and `height`). */
+    options: Omit<AgFinancialChartOptions<DatumDefault>, AgRenderExcludedKeys>;
+}
 
 /** Static API for server-side chart rendering. */
 export interface AgChartsServerSideApi {
@@ -50,10 +61,6 @@ export interface AgChartsServerSideApi {
 export interface AgFontDefinition {
     /** Font family name used in chart options. */
     family: string;
-    /** File path to the font file (`.ttf`, `.otf`, etc.). */
+    /** File path to the font file (`.ttf`, `.otf`, etc.). Font variants (weight, style) are detected automatically from the font file metadata. */
     path: string;
-    /** Font weight (e.g., `'bold'`, `'600'`). */
-    weight?: string;
-    /** Font style (e.g., `'italic'`). */
-    style?: string;
 }

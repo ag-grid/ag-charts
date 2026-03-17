@@ -81,6 +81,11 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
 // @ts-expect-error undocumented option
 commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
+// @ts-expect-error undocumented option
+priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+priceVolumeOptionsDef.foreground = undocumented(defined);
+
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',

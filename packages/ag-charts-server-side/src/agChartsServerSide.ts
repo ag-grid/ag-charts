@@ -34,21 +34,21 @@ export class AgChartsServerSide {
     /**
      * Render a standard chart to an image buffer.
      */
-    static async render(renderOptions: AgRenderOptions): Promise<Buffer> {
+    static async render(renderOptions: AgRenderOptions): Promise<Uint8Array> {
         return this.renderInternal(renderOptions, 'create');
     }
 
     /**
      * Render a gauge to an image buffer.
      */
-    static async renderGauge(renderOptions: AgGaugeRenderOptions): Promise<Buffer> {
+    static async renderGauge(renderOptions: AgGaugeRenderOptions): Promise<Uint8Array> {
         return this.renderInternal(renderOptions, 'createGauge');
     }
 
     /**
      * Render a financial chart to an image buffer.
      */
-    static async renderFinancialChart(renderOptions: AgFinancialChartRenderOptions): Promise<Buffer> {
+    static async renderFinancialChart(renderOptions: AgFinancialChartRenderOptions): Promise<Uint8Array> {
         return this.renderInternal(renderOptions, 'createFinancialChart');
     }
 
@@ -64,7 +64,7 @@ export class AgChartsServerSide {
     private static async renderInternal(
         renderOptions: AgRenderOptions | AgGaugeRenderOptions | AgFinancialChartRenderOptions,
         api: 'create' | 'createGauge' | 'createFinancialChart'
-    ): Promise<Buffer> {
+    ): Promise<Uint8Array> {
         const {
             options,
             width,
@@ -77,6 +77,10 @@ export class AgChartsServerSide {
 
         if (width <= 0 || height <= 0) {
             throw new Error(`Invalid dimensions: width=${width}, height=${height}`);
+        }
+
+        if (pixelRatio <= 0) {
+            throw new Error(`Invalid pixelRatio: ${pixelRatio}`);
         }
 
         // Serialize renders to prevent global document/window races

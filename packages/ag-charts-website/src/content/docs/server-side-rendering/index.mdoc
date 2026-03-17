@@ -54,7 +54,7 @@ ModuleRegistry.registerModules([AllEnterpriseModule]);
 Multiple render calls can safely be issued concurrently. The package serialises rendering internally to prevent global state conflicts.
 {% /note %}
 
-`AgChartsServerSide` exposes static `render()`, `renderGauge()`, and `renderFinancialChart()` methods. Each returns a `Promise<Buffer>` containing the image data.
+`AgChartsServerSide` exposes static `render()`, `renderGauge()`, and `renderFinancialChart()` methods. Each returns a `Promise<Uint8Array>` containing the image data.
 
 {% apiReference id="AgChartsServerSideApi" include=["render"] hideHeader=true hideRequired=true /%}
 
@@ -115,11 +115,13 @@ const buffer = await AgChartsServerSide.render({
 
 {% apiReference id="AgChartsServerSideApi" include=["loadFonts"] hideHeader=true hideRequired=true /%}
 
+Font variants (weight, style) are detected automatically from the font file metadata. Register each variant under the same family name:
+
 ```js
 AgChartsServerSide.loadFonts([
     { family: 'CustomFont', path: '/path/to/CustomFont-Regular.ttf' },
-    { family: 'CustomFont', path: '/path/to/CustomFont-Bold.ttf', weight: 'bold' },
-    { family: 'CustomFont', path: '/path/to/CustomFont-Italic.ttf', style: 'italic' },
+    { family: 'CustomFont', path: '/path/to/CustomFont-Bold.ttf' },
+    { family: 'CustomFont', path: '/path/to/CustomFont-Italic.ttf' },
 ]);
 ```
 
