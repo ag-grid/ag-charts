@@ -302,7 +302,9 @@ runs:
               # Pre-generate the diff and metadata so Codex doesn't need to exec git commands.
               # This avoids sandbox (bwrap) issues on GitHub Actions runners.
               context_file=".codex-diff-context-${PR_NUMBER}.md"
+              diff_file=".codex-diff-${PR_NUMBER}.patch"
               echo "context_file=${context_file}" >> $GITHUB_OUTPUT
+              echo "diff_file=${diff_file}" >> $GITHUB_OUTPUT
 
               PR_REF="origin/pr/${PR_NUMBER}"
               DIFF_BASE="origin/${BASE_REF}...${PR_REF}"
@@ -315,9 +317,11 @@ runs:
               LINES_ADDED=$(git diff --numstat "${DIFF_BASE}" | awk '{ s += $1 } END { print s+0 }')
               LINES_REMOVED=$(git diff --numstat "${DIFF_BASE}" | awk '{ s += $2 } END { print s+0 }')
 
-              # Build the context file
-              {
-                cat <<EOF
+              # Write the raw diff to a standalone file (avoids Markdown escaping issues)
+              git diff "${DIFF_BASE}" > "${diff_file}"
+
+              # Build the context file (metadata only, no embedded diff)
+              cat > "${context_file}" <<EOF
 
 ## Pre-generated PR Context
 
@@ -347,13 +351,11 @@ $(git log --format="%s" "origin/${BASE_REF}..${PR_REF}")
 \`\`\`
 
 ### Full Diff
-\`\`\`diff
-EOF
-                git diff "${DIFF_BASE}"
-                echo '```'
-              } > "${context_file}"
 
-              echo "Generated diff context ($(wc -c < "${context_file}") bytes)"
+The unified diff follows immediately after this line.
+EOF
+
+              echo "Generated context ($(wc -c < "${context_file}") bytes) + diff ($(wc -c < "${diff_file}") bytes)"
 
         - name: Run Codex Review
           if: steps.check-auth.outputs.skipped != 'true'
@@ -374,15 +376,16 @@ EOF
               output_file=".codex-review-${{ inputs.pr-number }}.${{ steps.prompt.outputs.output_ext }}"
               error_file=".codex-error-${{ inputs.pr-number }}.log"
               context_file="${{ steps.diff-context.outputs.context_file }}"
+              diff_file="${{ steps.diff-context.outputs.diff_file }}"
 
               echo "output_file=${output_file}" >> $GITHUB_OUTPUT
 
               # Run Codex with ALL output suppressed
-              # - stdin: Review instructions + pre-generated diff context concatenated
+              # - stdin: Review instructions + metadata context + raw diff (three files concatenated)
               # - stdout (>/dev/null): Suppresses reasoning/streaming output
               # - stderr (2>file): Captured to file for debugging, not logged
               set +e
-              cat "${{ steps.prompt.outputs.prompt_file }}" "${context_file}" | codex exec \
+              cat "${{ steps.prompt.outputs.prompt_file }}" "${context_file}" "${diff_file}" | codex exec \
                 --output-last-message "${output_file}" \
                 --sandbox read-only \
                 2>"${error_file}" \
@@ -740,4 +743,4 @@ EOF
           if: always()
           shell: bash
           run: |
-              rm -f ".codex-review-${{ inputs.pr-number }}.md" ".codex-review-${{ inputs.pr-number }}.json" ".codex-error-${{ inputs.pr-number }}.log" ".codex-diff-context-${{ inputs.pr-number }}.md"
+              rm -f ".codex-review-${{ inputs.pr-number }}.md" ".codex-review-${{ inputs.pr-number }}.json" ".codex-error-${{ inputs.pr-number }}.log" ".codex-diff-context-${{ inputs.pr-number }}.md" ".codex-diff-${{ inputs.pr-number }}.patch"
