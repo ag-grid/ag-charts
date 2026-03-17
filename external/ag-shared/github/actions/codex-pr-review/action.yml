@@ -288,6 +288,73 @@ runs:
               echo "prompt_file=${prompt_file}" >> $GITHUB_OUTPUT
               echo "output_ext=${output_ext}" >> $GITHUB_OUTPUT
 
+        - name: Generate PR Diff Context
+          if: steps.check-auth.outputs.skipped != 'true'
+          id: diff-context
+          shell: bash
+          env:
+              PR_NUMBER: ${{ inputs.pr-number }}
+              BASE_REF: ${{ inputs.base-ref }}
+              HEAD_REF: ${{ inputs.head-ref }}
+              PR_TITLE: ${{ inputs.pr-title }}
+              PR_AUTHOR: ${{ inputs.pr-author }}
+          run: |
+              # Pre-generate the diff and metadata so Codex doesn't need to exec git commands.
+              # This avoids sandbox (bwrap) issues on GitHub Actions runners.
+              context_file=".codex-diff-context-${PR_NUMBER}.md"
+              echo "context_file=${context_file}" >> $GITHUB_OUTPUT
+
+              PR_REF="origin/pr/${PR_NUMBER}"
+              DIFF_BASE="origin/${BASE_REF}...${PR_REF}"
+              HEAD_SHA=$(git rev-parse "${PR_REF}")
+              PR_URL="https://github.com/${GITHUB_REPOSITORY}/pull/${PR_NUMBER}"
+
+              # Collect diff stats
+              FILES_CHANGED=$(git diff --name-only "${DIFF_BASE}" | wc -l | tr -d ' ')
+              DIFF_STAT=$(git diff --stat "${DIFF_BASE}")
+              LINES_ADDED=$(git diff --numstat "${DIFF_BASE}" | awk '{ s += $1 } END { print s+0 }')
+              LINES_REMOVED=$(git diff --numstat "${DIFF_BASE}" | awk '{ s += $2 } END { print s+0 }')
+
+              # Build the context file
+              {
+                cat <<EOF
+
+## Pre-generated PR Context
+
+The PR diff and metadata have been pre-generated and are provided below.
+**Do NOT run any git, gh, or shell commands.** Analyse the diff below directly.
+
+### PR Metadata
+- **PR Number:** ${PR_NUMBER}
+- **PR Title:** ${PR_TITLE}
+- **PR URL:** ${PR_URL}
+- **Author:** ${PR_AUTHOR}
+- **Base Branch:** ${BASE_REF}
+- **Head Branch:** ${HEAD_REF}
+- **Head SHA:** ${HEAD_SHA}
+- **Files Changed:** ${FILES_CHANGED}
+- **Lines Added:** ${LINES_ADDED}
+- **Lines Removed:** ${LINES_REMOVED}
+
+### Diff Stats
+\`\`\`
+${DIFF_STAT}
+\`\`\`
+
+### Commit Messages
+\`\`\`
+$(git log --format="%s" "origin/${BASE_REF}..${PR_REF}")
+\`\`\`
+
+### Full Diff
+\`\`\`diff
+EOF
+                git diff "${DIFF_BASE}"
+                echo '```'
+              } > "${context_file}"
+
+              echo "Generated diff context ($(wc -c < "${context_file}") bytes)"
+
         - name: Run Codex Review
           if: steps.check-auth.outputs.skipped != 'true'
           id: codex
@@ -306,17 +373,18 @@ runs:
               # Output file paths (unique per PR to avoid conflicts)
               output_file=".codex-review-${{ inputs.pr-number }}.${{ steps.prompt.outputs.output_ext }}"
               error_file=".codex-error-${{ inputs.pr-number }}.log"
+              context_file="${{ steps.diff-context.outputs.context_file }}"
 
               echo "output_file=${output_file}" >> $GITHUB_OUTPUT
 
               # Run Codex with ALL output suppressed
-              # - stdin: Prompt file content piped in
+              # - stdin: Review instructions + pre-generated diff context concatenated
               # - stdout (>/dev/null): Suppresses reasoning/streaming output
               # - stderr (2>file): Captured to file for debugging, not logged
               set +e
-              cat "${{ steps.prompt.outputs.prompt_file }}" | codex exec \
+              cat "${{ steps.prompt.outputs.prompt_file }}" "${context_file}" | codex exec \
                 --output-last-message "${output_file}" \
-                --sandbox workspace-write \
+                --sandbox read-only \
                 2>"${error_file}" \
                 >/dev/null
               exit_code=$?
@@ -672,4 +740,4 @@ runs:
           if: always()
           shell: bash
           run: |
-              rm -f ".codex-review-${{ inputs.pr-number }}.md" ".codex-review-${{ inputs.pr-number }}.json" ".codex-error-${{ inputs.pr-number }}.log"
+              rm -f ".codex-review-${{ inputs.pr-number }}.md" ".codex-review-${{ inputs.pr-number }}.json" ".codex-error-${{ inputs.pr-number }}.log" ".codex-diff-context-${{ inputs.pr-number }}.md"
