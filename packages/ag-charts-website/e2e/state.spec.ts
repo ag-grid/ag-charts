@@ -1659,22 +1659,16 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await mouseLeave(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
                 });
 
                 test('popEvents', async ({ page }) => {
@@ -1706,22 +1700,16 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await clickMyButton(page);
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
                 });
 
                 test('popEvents', async ({ page }) => {
@@ -1750,18 +1738,13 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await growTextArea(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
                 });
 
                 test('popEvents', async ({ page }) => {
