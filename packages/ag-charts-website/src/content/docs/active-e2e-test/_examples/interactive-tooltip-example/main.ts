@@ -64,13 +64,19 @@ export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
 }
 
-export function setHeight() {
+function setHeight() {
     const ta = document.querySelector('textarea');
     if (ta) ta.style.height = '300px';
 }
 
 window.addEventListener('mousemove', (ev: MouseEvent) => {
     document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
+});
+
+window.addEventListener('keydown', (ev: KeyboardEvent) => {
+    if (ev.code === 'KeyS') {
+        setHeight();
+    }
 });
 
 // For e2e testing:

@@ -1632,7 +1632,10 @@ test.describe('state', () => {
             }
 
             async function growTextArea(page: Page): Promise<void> {
-                await page.locator('#mySetHeight').click();
+                await page.evaluate(() => {
+                    const ta = document.querySelector('textarea');
+                    if (ta) ta.style.height = '300px';
+                });
             }
 
             test.beforeEach(async ({ page }) => {

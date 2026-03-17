@@ -70,6 +70,13 @@ Initialised to "Legend Item: UK"
 
 # Interactive Tooltip
 
+-   All user-interaction (Mouse/Touch/Keyboard) deactivation `activeChange` **MUST** be prevented.
+-   Clicking the "Clear" button (setState) **MUST** clear the activation.
+-   Chart resize:
+    -   Hover over a bar with the Mouse.
+    -   Press the "S" key on the Keyboard.
+    -   The chart resizes ; The highlight **MUST** redraw correct.
+
 {% chartExampleRunner
     title="Interactive Tooltip and preventDefault"
     name="interactive-tooltip-example"
