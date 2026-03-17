@@ -424,7 +424,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // The 'data-animation-time-ms' tracks cumulative animation time for e2e tests
         ctx.domManager.setDataNumber('animationTimeMs', 0);
 
-        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies(options));
+        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
@@ -489,7 +489,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         callWithContext(this, this.fireEventWrapper, event);
     }
 
-    private initSeriesAreaDependencies(options: ChartOptions): SeriesAreaChartDependencies {
+    private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
@@ -500,16 +500,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             removeThisDatum: unknown,
             purpose: 'aria-label' | 'tooltip'
         ) => this.getTooltipContent(series, datumIndex, removeThisDatum, purpose);
-
-        // Chart & SeriesAreaManager initialization happens options processing:
-        const initialFocus: AgInitialFocus | undefined =
-            options.userOptions.keyboard?.initialFocus ??
-            (typeof options.userOptions.theme === 'object'
-                ? options.userOptions.theme.overrides?.common?.keyboard?.initialFocus
-                : undefined);
-        if (initialFocus !== undefined) {
-            keyboard.initialFocus = initialFocus;
-        }
 
         return {
             fireEvent,

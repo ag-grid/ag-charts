@@ -166,6 +166,7 @@ export class SeriesAreaManager extends BaseManager {
     private readonly pickManager: PickManager;
 
     private readonly focus = {
+        initialized: false,
         sortedSeries: [] as UnknownSeries[],
         series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
@@ -181,7 +182,6 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        this.initFocus(chart.keyboard.initialFocus);
         this.hoverScheduler = this.createHoverScheduler();
 
         this.pickManager = new PickManager(chart.ctx.activeManager, chart.tooltip);
@@ -233,6 +233,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private initFocus(initialFocus: AgInitialFocus): void {
+        if (this.focus.initialized) return;
+        this.focus.initialized = true;
+
         switch (initialFocus) {
             case 'data-end': {
                 // We don't need to know the length of the input data; indices that are too small or too big will get
@@ -592,6 +595,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable)) return;
+        this.initFocus(this.chart.keyboard.initialFocus);
         this.setHoverDevice(this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer');
         this.refreshFocus();
     }
