@@ -62,8 +62,6 @@ export class AnnotationsToolbar extends BaseProperties {
     @Property
     padding: number = 20;
 
-    private readonly menuMargin: number = 6;
-
     @Property
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
 
@@ -71,8 +69,8 @@ export class AnnotationsToolbar extends BaseProperties {
 
     private readonly toolbar: SharedToolbarWithSection<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
-
     private readonly cleanup = new CleanupRegistry();
+    private readonly menuMargin: number = 6;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
