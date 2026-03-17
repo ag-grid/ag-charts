@@ -88,7 +88,7 @@ export class Pagination extends BaseProperties {
     readonly label = new PaginationLabel();
 
     private readonly group = new TranslatableGroup({ name: 'pagination' });
-    private readonly labelNode: Text = new Text();
+    private readonly labelNode = new Text();
     private highlightActive?: 'previous' | 'next';
 
     constructor(
@@ -208,13 +208,16 @@ export class Pagination extends BaseProperties {
 
     private updateLabel() {
         const {
-            currentPage,
-            totalPages: pages,
+            isRtl,
             labelNode,
+            currentPage,
+            totalPages,
             label: { color, fontStyle, fontWeight, fontSize, fontFamily },
         } = this;
+        const textLabels = [currentPage + 1, totalPages];
+        if (isRtl) textLabels.reverse();
 
-        labelNode.text = `${currentPage + 1} / ${pages}`;
+        labelNode.text = textLabels.join(' / ');
         labelNode.fill = color;
         labelNode.fontStyle = fontStyle;
         labelNode.fontWeight = fontWeight;
@@ -240,7 +243,6 @@ export class Pagination extends BaseProperties {
             } else if (button === highlightActive) {
                 return highlightStyle;
             }
-
             return activeStyle;
         };
 

@@ -41,7 +41,7 @@ const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
 
 const text = {
     ...font,
-    textAlign: 'left',
+    textAlign: 'start',
 };
 
 const lineText: WithThemeParams<AgLineAnnotationTextStyles> = {

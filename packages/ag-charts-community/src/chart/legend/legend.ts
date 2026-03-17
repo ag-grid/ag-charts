@@ -726,6 +726,7 @@ export class Legend extends BaseProperties {
         let paginationX = 0;
         let paginationY = -paginationBBox.y - this.item.marker.size / 2;
         if (paginationVertical) {
+            if (isRtl) paginationX = width - paginationBBox.width + paginationBBox.x;
             paginationY += legendItemsHeight + paginationComponentPadding;
         } else if (isRtl) {
             paginationX = -paginationBBox.x;

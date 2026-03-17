@@ -28,7 +28,7 @@
 .ag-charts-annotations__stroke-width-button::before {
     background: var(--ag-charts-foreground-color);
     content: '';
-    margin-right: var(--toolbar-button-padding);
+    margin-inline-end: var(--toolbar-button-padding);
     height: min(var(--stroke-width), 20px);
     width: 12px;
 }

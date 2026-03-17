@@ -909,14 +909,12 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
-        const { seriesRect, xAxis, yAxis, snap } = this;
-
-        if (!(seriesRect && xAxis && yAxis)) {
-            return;
-        }
+        const { seriesRect, xAxis, yAxis, snap, ctx } = this;
+        if (!seriesRect || !xAxis || !yAxis) return;
 
         return {
             seriesRect,
+            isRtl: ctx.domManager.isRtl,
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,

@@ -179,13 +179,14 @@ export class Text<D = any> extends Shape<D> {
             lineHeight?: number;
             textAlign?: CanvasTextAlign;
             textBaseline?: CanvasTextBaseline;
+            isRtl?: boolean;
         }
     ): BBox {
-        const { font, lineHeight, textAlign, textBaseline } = opts;
+        const { font, lineHeight, textAlign, textBaseline, isRtl } = opts;
         const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
         const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
         const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
-        const offsetLeft = Text.calcLeftOffset(width, textAlign);
+        const offsetLeft = Text.calcLeftOffset(width, textAlign, isRtl);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
     }
@@ -234,14 +235,14 @@ export class Text<D = any> extends Shape<D> {
         }
     }
 
-    private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign): number {
+    private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign, isRtl?: boolean): number {
         let offset = 0;
         switch (textAlign) {
             case 'center':
                 offset = 0.5;
                 break;
             case 'right':
-            case 'end':
+            case isRtl ? 'start' : 'end':
                 offset = 1;
         }
         return width * offset;
@@ -270,8 +271,9 @@ export class Text<D = any> extends Shape<D> {
             bbox.y = this.y;
             return bbox;
         }
+        const isRtl = this.scene?.isRtl;
         const { x, y, lines, textBaseline, textAlign } = this;
-        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
+        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, isRtl });
         if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
         return measuredTextBounds;
     }
