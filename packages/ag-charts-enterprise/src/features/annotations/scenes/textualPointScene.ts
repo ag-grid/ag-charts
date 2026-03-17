@@ -88,7 +88,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected override updateAnchor(_datum: Datum, bbox: BoxBounds, context: AnnotationContext) {
         return {
-            x: bbox.x + context.seriesRect.x,
+            x: context.isRtl ? bbox.x - bbox.width + context.seriesRect.x : bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,
             position: this.anchor.position,
         };
