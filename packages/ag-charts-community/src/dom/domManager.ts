@@ -153,7 +153,9 @@ export class DOMManager extends BaseManager {
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
-        this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches());
+        this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches(), {
+            skipInitialRead: this.mode === 'minimal',
+        });
 
         let hidden = false;
         this.observer = setupObserver(agDocument, this.element, (intersectionRatio) => {
@@ -398,12 +400,16 @@ export class DOMManager extends BaseManager {
         }
 
         pendingContainer.appendChild(this.element);
-        this.sizeMonitor.observe(pendingContainer, (size) => {
-            this.containerSize = size;
-            this.updateContainerSize();
-            this.invalidateRectCaches();
-            this.eventsHub.emit('dom:resize', null);
-        });
+        this.sizeMonitor.observe(
+            pendingContainer,
+            (size) => {
+                this.containerSize = size;
+                this.updateContainerSize();
+                this.invalidateRectCaches();
+                this.eventsHub.emit('dom:resize', null);
+            },
+            { skipInitialRead: this.mode === 'minimal' }
+        );
 
         this.invalidateAllCaches();
         this.updateRtl();
@@ -679,7 +685,11 @@ export class DOMManager extends BaseManager {
     }
 
     private updateRtl() {
-        const isRtl = this.enableRtl ?? isDirectionRtl(this.container ?? this.pendingContainer);
+        // Skip getComputedStyle for minimal mode (sparklines) to avoid forced style recalculation.
+        // If RTL is needed, it should be set explicitly via enableRtl in the chart options.
+        const isRtl =
+            this.enableRtl ??
+            (this.mode === 'minimal' ? false : isDirectionRtl(this.container ?? this.pendingContainer));
         if (isRtl === this._isRtl) return;
         this._isRtl = isRtl;
         this.element.dir = isRtl ? 'rtl' : 'ltr';
@@ -724,17 +734,24 @@ export class DOMManager extends BaseManager {
 
     addProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
         const element = this.addChild(domElementClass, id);
-        return new DOMElementProxy(element, { sizeMonitor: this.sizeMonitor });
+        const skipInitialRead = this.mode === 'minimal';
+        return new DOMElementProxy(element, { sizeMonitor: this.sizeMonitor, skipInitialRead });
     }
 
     addDeferredProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
         const element = this.addChild(domElementClass, id);
-        const proxy = new DOMElementProxy(element, { deferredMode: this.deferredMode, sizeMonitor: this.sizeMonitor });
+        const skipInitialRead = this.mode === 'minimal';
+        const proxy = new DOMElementProxy(element, {
+            deferredMode: this.deferredMode,
+            sizeMonitor: this.sizeMonitor,
+            skipInitialRead,
+        });
         this.deferredProxies.set(`${domElementClass}:${id}`, proxy);
         return proxy;
     }
 
     public setDeferring(active: boolean): void {
+        if (this.mode === 'minimal') return; // Sparklines: skip deferring to avoid concentrated flush
         this._deferring = active;
         if (!active) {
             this.flushDeferredProxies();

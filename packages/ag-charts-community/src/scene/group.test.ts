@@ -151,6 +151,7 @@ describe('Group', () => {
                 // Create a render context and call preRender to trigger layer creation
                 const renderCtx: RenderContext = {
                     ctx: {} as any,
+                    direction: 'ltr',
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,
@@ -189,6 +190,7 @@ describe('Group', () => {
 
                 const renderCtx: RenderContext = {
                     ctx: {} as any,
+                    direction: 'ltr',
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,
@@ -221,6 +223,7 @@ describe('Group', () => {
 
                 const renderCtx: RenderContext = {
                     ctx: {} as any,
+                    direction: 'ltr',
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,

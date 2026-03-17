@@ -450,7 +450,7 @@ describe('DOMElementProxy', () => {
             const proxy = new DOMElementProxy(el, { sizeMonitor: mockSizeMonitor });
             const unsub = proxy.addResizeListener((_size: Size) => {});
 
-            expect(observeFn).toHaveBeenCalledWith(el, expect.any(Function));
+            expect(observeFn).toHaveBeenCalledWith(el, expect.any(Function), { skipInitialRead: false });
 
             unsub();
             expect(unobserveFn).toHaveBeenCalledWith(el);

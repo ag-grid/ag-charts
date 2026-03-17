@@ -20,7 +20,7 @@ export class SizeMonitor {
     private resizeObserver: ResizeObserver | undefined;
     private pixelRatioObserver: PixelRatioObserver | undefined;
     private documentReady = false;
-    private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
+    private queuedObserveRequests: [HTMLElement, OnSizeChange, { skipInitialRead?: boolean }?][] = [];
     private removeLoadListener: (() => void) | undefined;
 
     constructor(agDocument: AgDocument) {
@@ -60,8 +60,8 @@ export class SizeMonitor {
 
     onLoad: EventListener = () => {
         this.documentReady = true;
-        for (const [el, cb] of this.queuedObserveRequests) {
-            this.observe(el, cb);
+        for (const [el, cb, opts] of this.queuedObserveRequests) {
+            this.observe(el, cb, opts);
         }
         this.queuedObserveRequests = [];
         this.observeWindow();
@@ -102,9 +102,9 @@ export class SizeMonitor {
     }
 
     // Only a single callback is supported.
-    observe(element: HTMLElement, cb: OnSizeChange) {
+    observe(element: HTMLElement, cb: OnSizeChange, opts?: { skipInitialRead?: boolean }) {
         if (!this.documentReady) {
-            this.queuedObserveRequests.push([element, cb]);
+            this.queuedObserveRequests.push([element, cb, opts]);
             return;
         }
 
@@ -116,11 +116,13 @@ export class SizeMonitor {
         const entry: Entry = { cb };
         this.elements.set(element, entry);
 
-        // Synchronous initial size read — cross-window ResizeObserver
-        // may delay its first callback until the target window gains focus.
-        const { width, height } = element.getBoundingClientRect();
-        if (width > 0 || height > 0) {
-            this.checkSize(entry, element, width, height);
+        if (!opts?.skipInitialRead) {
+            // Synchronous initial size read — cross-window ResizeObserver
+            // may delay its first callback until the target window gains focus.
+            const { width, height } = element.getBoundingClientRect();
+            if (width > 0 || height > 0) {
+                this.checkSize(entry, element, width, height);
+            }
         }
     }
 

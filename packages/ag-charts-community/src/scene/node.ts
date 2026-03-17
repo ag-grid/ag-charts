@@ -21,6 +21,7 @@ export enum PointerEvents {
 
 export type RenderContext = {
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    direction: CanvasDirection;
     width: number;
     height: number;
     devicePixelRatio: number;
