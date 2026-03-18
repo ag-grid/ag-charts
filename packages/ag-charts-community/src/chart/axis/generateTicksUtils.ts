@@ -1,5 +1,6 @@
 import {
     type BoxBounds,
+    EllipsisChar,
     type ITextMeasurer,
     type Scale,
     ScaleAlignment,
@@ -236,6 +237,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
                 wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
+                if (wrappedLabel === EllipsisChar) {
+                    wrappedLabel = null;
+                }
             }
 
             const tickLabel = wrappedLabel ?? inputText;
