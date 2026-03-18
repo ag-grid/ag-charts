@@ -372,38 +372,46 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         const sourcing = userInteraction(`zoom-range-button-${index}`);
         const updateWithFn = this.getUpdateWithFn(value);
 
-        if (updateWithFn == null) {
+        if (updateWithFn.valid === false || updateWithFn.fn == null) {
             zoomManager.resetZoom(sourcing);
         } else {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);
     }
 
-    private getUpdateWithFn(value: AgRangesButtonValue): _ModuleSupport.UpdateZoomWithFunction | undefined {
-        if (value == null) return;
+    private getUpdateWithFn(value: AgRangesButtonValue): {
+        fn?: _ModuleSupport.UpdateZoomWithFunction;
+        valid: boolean;
+    } {
+        if (value == null) return { valid: true };
 
         if (typeof value === 'number') {
-            return (_start, end) => [Number(end) - value, undefined];
+            return { fn: (_start, end) => [Number(end) - value, undefined], valid: true };
         }
 
         if (Array.isArray(value)) {
-            return () => value;
+            return { fn: () => value, valid: true };
         }
 
         if (typeof value === 'function') {
-            return value;
+            return { fn: value, valid: true };
         }
 
         if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
             const [, domainMax] =
                 this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)?.scale.getDomainMinMax() ?? [];
+
             if (isValidDate(domainMax)) {
                 const start = intervalAgo(value, domainMax);
-                return (d0, d1) => [start ?? d0, d1];
+                return { fn: (d0, d1) => [start ?? d0, d1], valid: true };
             }
+
+            return { valid: false };
         }
+
+        return { valid: true };
     }
 
     private getButtonEnabled(button: RangesButtonProperties) {
@@ -416,8 +424,10 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
         if (button.enabled == null && enableOutOfRange === false) {
             const updateWithFn = this.getUpdateWithFn(button.value);
+            if (updateWithFn.valid === false) return false;
+
             buttonEnabled =
-                updateWithFn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn);
+                updateWithFn.fn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn);
         }
 
         return buttonEnabled;
