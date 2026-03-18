@@ -95,19 +95,7 @@ export class HighlightManager {
         // Actually clear the highlight for this caller
         this.highlightStates.delete(callerId);
 
-        const currentHighlight = this.getActiveHighlight();
-
-        // Only emit if something actually changed
-        if (!this.isEqual(currentHighlight, previousHighlight)) {
-            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
-            this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
-                callerId,
-                currentHighlight,
-                previousHighlight,
-                highlightSuppressed,
-                highlightInViewport: true,
-            });
-        }
+        this.maybeEmitChange(callerId, previousHighlight, true);
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
