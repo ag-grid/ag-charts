@@ -906,7 +906,7 @@ export class DataSet<T = unknown> {
         }
     }
 
-    private removeFromTrackedInsertionsById(removeValues: T[], state: TransactionCollectionState<T>): void {
+    protected removeFromTrackedInsertionsById(removeValues: T[], state: TransactionCollectionState<T>): void {
         const idsToRemove = new Set<string | number>();
         for (const item of removeValues) {
             const id = this.getIdValue(item);

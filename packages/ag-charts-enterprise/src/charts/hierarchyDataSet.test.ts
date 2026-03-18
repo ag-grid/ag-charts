@@ -243,6 +243,56 @@ describe('HierarchyDataSet', () => {
         });
     });
 
+    describe('manual mutation + transaction remove', () => {
+        test('should silently ignore remove of an item already manually spliced from children', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            // Simulate the QA pattern: user directly removes from children array,
+            // then also calls applyTransaction({ remove }) — item is already gone
+            const removed = data[0].children!.splice(2, 1)[0]; // remove 'eng-infra' in-place
+            expect(data[0].children!.length).toBe(2);
+
+            // This should NOT emit a warning and should leave data consistent
+            ds.addTransaction({ remove: [removed] });
+            ds.commitPendingTransactions();
+
+            expect(ds.data.length).toBe(3);
+            expect(ds.data[0].children!.length).toBe(2);
+            expect(ds.data[0].children!.map((c) => c.id)).toEqual(['eng-fe', 'eng-be']);
+        });
+    });
+
+    describe('mid-index (addIndex) insert then remove', () => {
+        test('should correctly cancel a mid-index add when removed in the same commit', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            // Add at addIndex=1 → goes into trackedInsertions (not prepend/append)
+            const newDept = { id: 'new-mid', name: 'Mid Dept', children: [] };
+            ds.addTransaction({ add: [newDept], addIndex: 1 });
+            // Remove the same item before committing
+            ds.addTransaction({ remove: [newDept] });
+            ds.commitPendingTransactions();
+
+            // Net result: no change — item should not appear in data
+            expect(ds.data.length).toBe(3);
+            expect(ds.data.map((d) => d.id)).toEqual(['eng', 'sales', 'ops']);
+        });
+
+        test('should correctly add at mid-index when not removed', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const newDept = { id: 'new-mid', name: 'Mid Dept', children: [] };
+            ds.addTransaction({ add: [newDept], addIndex: 1 });
+            ds.commitPendingTransactions();
+
+            expect(ds.data.length).toBe(4);
+            expect(ds.data[1].id).toBe('new-mid');
+        });
+    });
+
     describe('without dataIdKey', () => {
         test('should behave like base DataSet when no dataIdKey is set', () => {
             const data = createTestData();

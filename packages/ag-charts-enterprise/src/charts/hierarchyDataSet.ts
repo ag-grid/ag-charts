@@ -136,6 +136,10 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             this.removeFromGroupsByIdForHierarchy(state.insertionsList, idsToRemove);
         }
 
+        if (state.trackedInsertions.length > 0) {
+            this.removeFromTrackedInsertionsById(remove, state);
+        }
+
         if (idsToRemove.size > 0) {
             this.removeFromGroupsByIdForHierarchy(state.appendsList, idsToRemove);
         }
