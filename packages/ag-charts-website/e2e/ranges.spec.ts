@@ -7,7 +7,7 @@ test.describe('range buttons', () => {
     test('default buttons', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons', 'range-buttons', 'vanilla');
         await gotoExample(page, url);
-        await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot(
+        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot(
             'range-buttons-default-range-buttons.png'
         );
     });
@@ -15,7 +15,7 @@ test.describe('range buttons', () => {
     test('custom buttons', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons', 'custom-range-buttons', 'vanilla');
         await gotoExample(page, url);
-        await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot(
+        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot(
             'range-buttons-custom-range-buttons.png'
         );
     });
@@ -33,7 +33,7 @@ test.describe('range buttons', () => {
     test('out of range', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-out-of-range', 'vanilla');
         await gotoExample(page, url);
-        await expect(page.locator('.ag-charts-range-buttons')).toHaveScreenshot('range-buttons-out-of-range.png');
+        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot('range-buttons-out-of-range.png');
     });
 
     test('position', async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-2.png');
 
         // Does the action
-        await page.getByText('Young Adults').click();
+        await page.locator('.ag-charts-menu').getByText('Young Adults').click();
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-3.png');
 
         // Resets on zoom
