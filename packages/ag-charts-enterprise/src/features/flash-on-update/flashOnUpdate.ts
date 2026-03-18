@@ -190,6 +190,18 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.axisCtx = findPrimaryCategoryAxisContext(this.ctx);
     }
 
+    // For grouped-category axes, domain values are arrays (e.g. ['UK', 'North']) but diff keys
+    // are stringified arrays (e.g. 'UK,North'). Scan the domain to find the matching array value
+    // so scale.convert() receives the correct type.
+    private resolveDomainValue(key: string): unknown {
+        const domain = this.axisCtx?.scale.domain;
+        if (!domain?.length || !Array.isArray(domain[0])) return key;
+        for (const d of domain) {
+            if (String(d) === key) return d;
+        }
+        return key;
+    }
+
     private onDataModelDiff({ diff }: _ModuleSupport.DataModelDiffEvent): void {
         if (!this.enabled) return;
 
@@ -253,7 +265,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private measureBandBounds(key: string): BoxBounds | undefined {
         if (!this.axisCtx || !this.seriesRect) return;
 
-        const band = this.axisCtx.measureBand(key)?.band;
+        const band = this.axisCtx.measureBand(this.resolveDomainValue(key) as string)?.band;
         if (!band) return;
 
         const [start, end] = band;
@@ -280,7 +292,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         // Skipped when animations are disabled since positions snap instantly.
         if (!animationsSkipped && this.hasScaleChange(categoryPhases)) {
             const domain = this.axisCtx?.scale.domain ?? [];
-            for (const key of domain) {
+            for (const d of domain) {
+                const key = String(d);
                 if (!categoryPhases.has(key)) categoryPhases.set(key, 'update');
             }
         }
@@ -341,7 +354,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                 continue;
             }
 
-            const position = scale.convert(category);
+            const position = scale.convert(this.resolveDomainValue(category) as string);
             const start = Math.max(position - offset, rMin);
             const end = Math.min(position + bandwidth + offset, rMax);
             const span = Math.max(end - start, MIN_BAND_RENDER_PX);
