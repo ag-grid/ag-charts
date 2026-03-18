@@ -433,6 +433,26 @@ async function main() {
         assertMatchesSnapshot(buffer, 'enterprise-linear-gauge');
     });
 
+    // Test 13: Financial chart (enterprise-only, uses renderFinancialChart)
+    await runTest('Render financial chart', async () => {
+        const buffer = await AgChartsServerSide.renderFinancialChart({
+            options: {
+                data: [
+                    { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
+                    { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
+                    { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
+                    { date: new Date('2024-01-05'), open: 155, high: 162, low: 153, close: 161, volume: 1100 },
+                    { date: new Date('2024-01-08'), open: 161, high: 165, low: 159, close: 163, volume: 1300 },
+                ],
+            },
+            width: 600,
+            height: 400,
+        });
+
+        assertPngDimensions(buffer, 600, 400);
+        assertMatchesSnapshot(buffer, 'enterprise-financial-chart');
+    });
+
     // Summary
     console.log('\n--- Test Summary ---');
     const passed = results.filter((r) => r.success).length;

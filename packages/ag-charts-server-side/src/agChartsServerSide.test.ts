@@ -413,7 +413,7 @@ describe('AgChartsServerSide enterprise licensing', () => {
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
-    it('should render gauge chart', async () => {
+    it('should render radial gauge chart', async () => {
         const renderOptions: AgGaugeRenderOptions = {
             options: {
                 type: 'radial-gauge',
@@ -425,6 +425,88 @@ describe('AgChartsServerSide enterprise licensing', () => {
         };
 
         const buffer = await AgChartsServerSide.renderGauge(renderOptions);
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render linear gauge chart', async () => {
+        const renderOptions: AgGaugeRenderOptions = {
+            options: {
+                type: 'linear-gauge',
+                value: 60,
+                scale: { min: 0, max: 100 },
+            },
+            width: 400,
+            height: 100,
+        };
+
+        const buffer = await AgChartsServerSide.renderGauge(renderOptions);
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render waterfall chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'Start', value: 100 },
+                    { category: 'Add', value: 50 },
+                    { category: 'Subtract', value: -30 },
+                    { category: 'End', value: 120 },
+                ],
+                series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render heatmap chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 'A', y: '1', value: 10 },
+                    { x: 'A', y: '2', value: 20 },
+                    { x: 'B', y: '1', value: 30 },
+                    { x: 'B', y: '2', value: 40 },
+                ],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on financial chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.renderFinancialChart({
+            options: {
+                data: [
+                    { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
+                    { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
+                    { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
+                ],
+            },
+            width: 600,
+            height: 400,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on gauge chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'radial-gauge',
+                value: 50,
+                scale: { min: 0, max: 100 },
+            },
+            width: 400,
+            height: 400,
+        });
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
