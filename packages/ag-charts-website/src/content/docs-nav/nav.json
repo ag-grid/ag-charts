@@ -46,8 +46,7 @@
                             "type": "item",
                             "title": "Server-Side Rendering",
                             "path": "server-side-rendering",
-                            "isEnterprise": true,
-                            "frameworks": ["javascript"]
+                            "isEnterprise": true
                         }
                     ]
                 },
@@ -330,7 +329,7 @@
                         },
                         {
                             "type": "item",
-                            "title": "Right-to-Left (RTL)",
+                            "title": "RTL Text & Layout",
                             "path": "rtl"
                         },
                         {

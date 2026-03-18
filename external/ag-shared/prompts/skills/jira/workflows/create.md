@@ -63,6 +63,7 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
     "issueTypeName": "Bug|Task",
     "summary": "[<Prefix>] Clear, concise title",
     "description": "Formatted description from template",
+    "contentFormat": "adf",
     "additional_fields": {
         "components": [{ "name": "<from product file>" }],
         "priority": { "name": "Medium" },
@@ -107,6 +108,29 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 -   Regression: Introduced in v9.3.0 (works correctly in v9.2.1).
 ```
 
+## Step 4: Post-Creation Steps
+
+After the ticket is created, perform these steps as applicable:
+
+**1. Transition to "To Do" (only if a fixVersion was provided)**
+
+If the user specified a fix version, transition the ticket out of Backlog immediately:
+
+```
+mcp__atlassian__transitionJiraIssue
+  cloudId: "1565837d-d6d1-4228-bcb2-4cb74df700f2"
+  issueIdOrKey: "<new ticket key>"
+  transitionId: "141"
+```
+
+If no fixVersion was set, leave the ticket in Backlog.
+
+**2. Create issue links (if applicable)**
+
+If this ticket was split off from another, or blocks/is blocked by another ticket, create the link using `mcp__atlassian__createIssueLink`. Do not put ticket references only in the description text — use a formal link.
+
+For "split from" links, see the "Issue Link Direction" section below for correct inward/outward usage.
+
 ## Completion Checklist
 
 **Cannot mark complete until ALL checked:**
@@ -119,6 +143,8 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 - [ ] For Bug and Improvement tickets: Affects Version included.
 - [ ] For Bug and Improvement tickets: Bug template used (reproduction steps, actual/expected).
 - [ ] URLs are clickable ADF links showing the full URL as link text (not hidden behind display text).
+- [ ] If fixVersion was provided: ticket transitioned from Backlog to "To Do".
+- [ ] Issue links created (if split-off or related tickets exist).
 
 ## Issue Link Direction
 

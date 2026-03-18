@@ -2,7 +2,7 @@
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ag-grid/ag-charts?devcontainer_path=.devcontainer/ssr-example/devcontainer.json)
 
-Render AG Charts to PNG and JPEG images in Node.js, without a browser. See the [documentation](https://www.ag-grid.com/charts/server-side-rendering/) for full details.
+Render AG Charts to PNG and JPEG images in Node.js, without a browser. See the [documentation](https://www.ag-grid.com/charts/r/server-side-rendering/) for full details.
 
 ## Quick Start
 
