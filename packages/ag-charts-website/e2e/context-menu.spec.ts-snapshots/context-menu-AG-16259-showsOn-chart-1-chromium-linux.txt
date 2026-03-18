@@ -1,1 +1,1 @@
-TitleSubtitleinteractive chartinteractive chartY Axis LabelX Axis LabelFootnotePress Space or Enter to toggle visibilitySeries 1, Legend item 1 of 2Series 2, Legend item 2 of 2
+TitleSubtitleinteractive chartinteractive chartY Axis LabelX Axis LabelFootnotePress Space or Enter to toggle visibilitySeries 1, Legend item 1 of 2Series 2, Legend item 2 of 2Select range

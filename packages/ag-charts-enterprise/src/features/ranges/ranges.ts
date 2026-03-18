@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-community';
 import {
     BaseProperties,
+    type BoxBounds,
     ChartAxisDirection,
     CleanupRegistry,
     type ModuleInstance,
@@ -105,10 +106,10 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     private readonly container: HTMLElement;
     private readonly dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
-    private readonly toolbar: _ModuleSupport.BaseToolbar;
+    private readonly buttonsToolbar: _ModuleSupport.BaseToolbar;
+    private readonly dropdownToolbar: _ModuleSupport.BaseToolbar;
 
     private isDropdown?: boolean;
-    private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -116,12 +117,17 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.container = ctx.domManager.addChild('canvas-overlay', 'range-buttons');
         this.container.role = 'presentation';
 
-        this.toolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
-        this.toolbar.addClass('ag-charts-range-buttons');
-        this.container.append(this.toolbar.getElement());
+        this.buttonsToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
+        this.buttonsToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--buttons');
+        this.container.append(this.buttonsToolbar.getElement());
+
+        this.dropdownToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
+        this.dropdownToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--dropdown');
+        this.container.append(this.dropdownToolbar.getElement());
 
         this.cleanup.register(
-            this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
+            this.buttonsToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
+            this.dropdownToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
@@ -134,21 +140,26 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private teardown() {
-        this.toolbar.getElement().remove();
-        this.toolbar.destroy();
+        this.buttonsToolbar.getElement().remove();
+        this.buttonsToolbar.destroy();
+
+        this.dropdownToolbar.getElement().remove();
+        this.dropdownToolbar.destroy();
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { dropdown, enabled, position, spacing, toolbar } = this;
+        const { dropdown, enabled, position, spacing, buttonsToolbar, dropdownToolbar } = this;
 
         if (!enabled) {
-            toolbar.setHidden(true);
+            buttonsToolbar.setHidden(true);
+            dropdownToolbar.setHidden(true);
             return;
         }
 
-        this.updateCSSVariables();
+        buttonsToolbar.updateButtons(this.buttons);
+        dropdownToolbar.updateButtons([this.getDropdownButtonOptions(DEFAULT_DROPDOWN_LABEL)]);
 
-        toolbar.setHidden(false);
+        this.updateCSSVariables();
 
         if (dropdown.visible === 'always') {
             this.swapDropdownIn();
@@ -156,7 +167,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             this.swapDropdownOut();
         }
 
-        const { height } = toolbar.getBounds();
+        const { height } = this.isDropdown ? dropdownToolbar.getBounds() : buttonsToolbar.getBounds();
         const bounds = { x: layoutBox.x, y: layoutBox.y };
 
         if (position === 'top' || position === 'top-left' || position === 'top-right') {
@@ -166,22 +177,51 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             layoutBox.shrink({ bottom: height + spacing });
         }
 
-        toolbar.setBounds(bounds);
+        buttonsToolbar.setBounds(bounds);
+        dropdownToolbar.setBounds(bounds);
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, dropdown, dropdownMenu, enabled, position, toolbar } = this;
+        const { buttons, dropdown, dropdownMenu, enabled, buttonsToolbar, dropdownToolbar } = this;
 
         if (!enabled) return;
 
-        let bounds = toolbar.getBounds();
+        let bounds: BoxBounds | undefined;
 
-        if (bounds.width > seriesRect.width && dropdown.visible === 'auto') {
-            this.swapDropdownIn();
-            bounds = toolbar.getBounds();
-        } else if (dropdown.visible !== 'always') {
-            this.swapDropdownOut();
+        if (dropdown.visible === 'auto') {
+            bounds = buttonsToolbar.getBounds();
+            if (bounds.width > seriesRect.width) {
+                this.swapDropdownIn();
+            } else {
+                this.swapDropdownOut();
+            }
         }
+
+        if (this.isDropdown) {
+            bounds = this.updateToolbarBounds(dropdownToolbar, seriesRect, layoutBox);
+        } else {
+            bounds = this.updateToolbarBounds(buttonsToolbar, seriesRect, layoutBox, bounds);
+
+            let index = 0;
+            for (const button of buttons) {
+                buttonsToolbar.toggleButtonEnabledByIndex(index, this.getButtonEnabled(button));
+                index++;
+            }
+        }
+
+        const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
+        const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
+        dropdownMenu.setAnchor(anchor, fallbackAnchor);
+    }
+
+    private updateToolbarBounds(
+        toolbar: _ModuleSupport.BaseToolbar,
+        seriesRect: _ModuleSupport.BBox,
+        layoutBox: Readonly<_ModuleSupport.BBox>,
+        cachedBounds?: BoxBounds
+    ) {
+        const { position } = this;
+        const bounds = cachedBounds ?? toolbar.getBounds();
 
         if (position === 'top-right' || position === 'bottom-right') {
             bounds.x = layoutBox.x + layoutBox.width - bounds.width;
@@ -192,24 +232,14 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
         toolbar.setBounds({ x: bounds.x, y: bounds.y });
 
-        const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
-        const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
-        dropdownMenu.setAnchor(anchor, fallbackAnchor);
-
-        if (!this.isDropdown) {
-            let index = 0;
-            for (const button of buttons) {
-                toolbar.toggleButtonEnabledByIndex(index, this.getButtonEnabled(button));
-                index++;
-            }
-        }
+        return bounds;
     }
 
     private updateCSSVariables() {
         if (this.gap > 0) {
-            this.toolbar.getElement().classList.add('ag-charts-range-buttons--gapped');
+            this.buttonsToolbar.addClass('ag-charts-range-buttons--gapped');
         } else {
-            this.toolbar.getElement().classList.remove('ag-charts-range-buttons--gapped');
+            this.buttonsToolbar.removeClass('ag-charts-range-buttons--gapped');
         }
 
         const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
@@ -293,7 +323,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onZoomChanged() {
-        this.toolbar.clearActiveButton();
+        this.buttonsToolbar.clearActiveButton();
 
         if (this.isDropdown) {
             this.resetDropdownButton();
@@ -310,35 +340,35 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     private swapDropdownIn() {
         if (this.isDropdown) return;
-
         this.isDropdown = true;
-        this.toolbar.getElement().classList.add('ag-charts-range-buttons--dropdown');
-        this.toolbar.clearButtons();
-        this.toolbar.updateButtons([
-            { label: this.dropdownLabel, value: Infinity, icon: 'chevron-filled-down', iconPosition: 'after' },
-        ]);
+
+        this.buttonsToolbar.setHidden(true);
+        this.dropdownToolbar.setHidden(false);
     }
 
     private swapDropdownOut() {
         if (this.isDropdown === false) return;
-
         this.isDropdown = false;
-        this.toolbar.getElement().classList.remove('ag-charts-range-buttons--dropdown');
-        this.toolbar.updateButtons(this.buttons);
-        this.toolbar.clearActiveButton();
+
+        this.buttonsToolbar.setHidden(false);
+        this.dropdownToolbar.setHidden(true);
+        this.buttonsToolbar.clearActiveButton();
         this.dropdownMenu.hide();
     }
 
     private resetDropdownButton() {
-        this.dropdownLabel = DEFAULT_DROPDOWN_LABEL;
-        this.toolbar.updateButtonByIndex(0, { label: this.dropdownLabel, value: Infinity });
+        this.dropdownToolbar.updateButtonByIndex(0, this.getDropdownButtonOptions(DEFAULT_DROPDOWN_LABEL));
+    }
+
+    private getDropdownButtonOptions(label: string) {
+        return { label, value: Infinity, icon: 'chevron-filled-down', iconPosition: 'after' } as const;
     }
 
     private showDropdownMenu() {
-        const buttonWidget = this.toolbar.getButtonWidget(0);
+        const buttonWidget = this.dropdownToolbar.getButtonWidget(0);
         if (!buttonWidget) return;
 
-        this.toolbar.toggleActiveButtonByIndex(0);
+        this.dropdownToolbar.toggleActiveButtonByIndex(0);
 
         const menuItems = this.buttons.map((button, index) => {
             return {
@@ -355,10 +385,13 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             onPress: (item) => {
                 const index = Number(item.value);
                 this.updateZoomWithButtonIndex(index);
-                this.dropdownLabel = item.label ?? DEFAULT_DROPDOWN_LABEL;
+                this.dropdownToolbar.updateButtonByIndex(
+                    0,
+                    this.getDropdownButtonOptions(item.label ?? DEFAULT_DROPDOWN_LABEL)
+                );
             },
             onHide: () => {
-                this.toolbar.clearActiveButton();
+                this.dropdownToolbar.clearActiveButton();
             },
         });
     }
@@ -380,7 +413,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
 
-        this.toolbar.toggleActiveButtonByIndex(index);
+        this.buttonsToolbar.toggleActiveButtonByIndex(index);
     }
 
     private getUpdateWithFn(value: AgRangesButtonValue): {

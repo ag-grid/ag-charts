@@ -53,6 +53,14 @@
     padding-right: var(--ag-charts-ranges__dropdown-padding-right);
     padding-bottom: var(--ag-charts-ranges__dropdown-padding-bottom);
     padding-left: var(--ag-charts-ranges__dropdown-padding-left);
+
+    .ag-charts-toolbar__icon {
+        /* Adjust margin of icon to prevent it from changing the height of the button */
+        margin-top: calc(var(--ag-charts-ranges__dropdown-font-size) - 14px);
+        margin-bottom: calc(var(--ag-charts-ranges__dropdown-font-size) - 14px);
+        height: calc(var(--ag-charts-ranges__dropdown-font-size) + 8px);
+        width: calc(var(--ag-charts-ranges__dropdown-font-size) + 8px);
+    }
 }
 
 .ag-charts-range-buttons--gapped .ag-charts-toolbar__button {
