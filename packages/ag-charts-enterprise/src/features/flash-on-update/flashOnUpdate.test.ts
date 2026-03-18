@@ -450,7 +450,7 @@ describe('FlashOnUpdate', () => {
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([
-                [expect.stringContaining("flashOnUpdate item 'category' requires a category axis")],
+                [expect.stringContaining("flashOnUpdate item 'category' requires a cartesian category based axis")],
             ]);
         });
     });
