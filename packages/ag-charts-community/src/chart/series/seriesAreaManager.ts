@@ -10,7 +10,9 @@ import type {
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
+    SeriesKeyNavPanXEvent,
     ZoomChangeCompleteEvent,
+    ZoomEventSourceDetail,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
@@ -408,8 +410,20 @@ export class SeriesAreaManager extends BaseManager {
 
     private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
         this.clearAll();
+
         if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
             this.focus.pendingViewportFocus = 'viewport-start';
+        } else {
+            type Where = NonNullable<typeof this.focus.pendingViewportFocus>;
+            const xorTable: { [K in ZoomEventSourceDetail]?: [Where, Where] } = {
+                'keyboard-page(home)': ['viewport-start', 'viewport-end'],
+                'keyboard-page(end)': ['viewport-end', 'viewport-start'],
+            };
+            const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
+            const where: Where | undefined = xorTable[event.sourceDetail]?.at(Number(reverse));
+            if (where !== undefined) {
+                this.focus.pendingViewportFocus = where;
+            }
         }
     }
 
@@ -673,9 +687,8 @@ export class SeriesAreaManager extends BaseManager {
             case 'arrowright':
                 return this.onArrow(0, 1, widgetEvent);
             case 'home':
-                return this.onHome(widgetEvent);
             case 'end':
-                return this.onEnd(widgetEvent);
+                return this.onPage(action.name, widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
             case 'delete':
@@ -685,7 +698,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onPage(delta: -1 | 1, widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+    private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.onNav(widgetEvent)) return;
         const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
@@ -704,19 +717,6 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.seriesIndex += otherIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
         this.handleFocusFromUserInput({ datumIndexDelta, otherIndexDelta });
-    }
-
-    private onHome(event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.onNav(event)) return;
-        this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
-    }
-
-    private onEnd(event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.onNav(event)) return;
-        const n = this.focus.series?.data?.data.length;
-        if (n !== undefined) {
-            this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
-        }
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
