@@ -119,6 +119,24 @@ function computeHighlightInViewport(
     return false;
 }
 
+function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
+    switch (event.sourceDetail) {
+        case 'keyboard-page(1)':
+        case 'keyboard-page(-1)':
+            return 'viewport-start';
+
+        case 'keyboard-page(home)':
+            return 'data-start';
+
+        case 'keyboard-page(end)':
+            return 'data-end';
+
+        default:
+            return undefined;
+    }
+}
+
+
 export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
@@ -410,21 +428,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
         this.clearAll();
-
-        if (event.sourceDetail === 'keyboard-page(1)' || event.sourceDetail === 'keyboard-page(-1)') {
-            this.focus.pendingViewportFocus = 'viewport-start';
-        } else {
-            type Where = NonNullable<typeof this.focus.pendingViewportFocus>;
-            const xorTable: { [K in ZoomEventSourceDetail]?: [Where, Where] } = {
-                'keyboard-page(home)': ['viewport-start', 'viewport-end'],
-                'keyboard-page(end)': ['viewport-end', 'viewport-start'],
-            };
-            const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
-            const where: Where | undefined = xorTable[event.sourceDetail]?.at(Number(reverse));
-            if (where !== undefined) {
-                this.focus.pendingViewportFocus = where;
-            }
-        }
+        this.focus.pendingViewportFocus = computePendingViewportFocus(event);
     }
 
     private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
