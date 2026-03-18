@@ -2468,6 +2468,282 @@ test.describe('state', () => {
             });
         });
 
+        test.describe('data-mutation', () => {
+            const MARCHBAR_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BarSeries-1',
+                itemId: 'Mar',
+            });
+
+            const MARCHBAR_ACTIVE_STATE = Object.freeze({
+                activeItem: MARCHBAR_ACTIVE_ITEM,
+                frozen: true,
+            });
+
+            const MARCHBAR_ACTIVE_CHANGE = Object.freeze({
+                ...MARCHBAR_ACTIVE_STATE,
+                datum: { month: 'Mar', value: 130 },
+                dataIdKey: 'month',
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            async function hoverMiss(page: Page): Promise<void> {
+                await page.mouse.move(1, 1);
+            }
+
+            async function clickMarchBar(page: Page): Promise<void> {
+                await page.mouse.move(360, 392);
+                await page.mouse.click(360, 392);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function clickAddStart(page: Page): Promise<void> {
+                await page.getByText('Add Start').click();
+            }
+
+            async function clickRemoveStart(page: Page): Promise<void> {
+                await page.getByText('Remove Start').click();
+            }
+
+            async function clickAddStart2Times(page: Page): Promise<void> {
+                await repeat(2, async () => await clickAddStart(page));
+                await hoverMiss(page);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function clickRemoveStart3Times(page: Page): Promise<void> {
+                await repeat(3, async () => await clickRemoveStart(page));
+                await hoverMiss(page);
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'data-mutation', 'vanilla').url;
+                await gotoExample(page, url);
+            });
+
+            test.describe('adding and removing datums at start keeps frozen datum active', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('data-mutation-initial.png');
+
+                    await clickMarchBar(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-clicked.png');
+
+                    await clickAddStart2Times(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-2-addstart.png');
+
+                    await clickRemoveStart3Times(page);
+                    await expect(page).toHaveScreenshot('data-mutation-marchbar-3-removestart.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickMarchBar(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+
+                    await clickAddStart2Times(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+
+                    await clickRemoveStart3Times(page);
+                    expect((await getChartState(page)).active).toEqual(MARCHBAR_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickMarchBar(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        { ...MARCHBAR_ACTIVE_CHANGE, frozen: false, source: 'user-interaction' }, // hover
+                        { ...MARCHBAR_ACTIVE_CHANGE, frozen: true, source: 'state-change' }, // click
+                    ]);
+
+                    await clickAddStart2Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickRemoveStart3Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
+
+        test.describe('frozen-zoompan', () => {
+            let canvas: Locator;
+
+            const APRIL_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'sales-series',
+                itemId: 3,
+            });
+
+            const APRIL_ACTIVE_STATE = Object.freeze({
+                activeItem: APRIL_ACTIVE_ITEM,
+                frozen: true,
+            });
+
+            const APRIL_ACTIVE_CHANGE = Object.freeze({
+                ...APRIL_ACTIVE_STATE,
+                datum: { month: 'Apr', sales: 220 },
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'state-change',
+                type: 'activeChange',
+            });
+
+            async function clickFreezeOnApril(page: Page): Promise<void> {
+                await page.getByText('Freeze on April (index 3)').click();
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            }
+
+            async function slideNavigatorMaxLeft(page: Page): Promise<void> {
+                await page.mouse.move(762, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(413, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            async function slideNavigatorPanRight(page: Page): Promise<void> {
+                await page.mouse.move(269, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(698, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            async function slideNavigatorPanLeft(page: Page): Promise<void> {
+                await page.mouse.move(698, 554);
+                await page.mouse.down({ button: 'left' });
+                await page.mouse.move(269, 554);
+                await page.mouse.up({ button: 'left' });
+            }
+
+            async function tabIntoChart(page: Page): Promise<void> {
+                await page.mouse.click(5, 5);
+                await repeat(4, async () => await page.keyboard.press('Tab'));
+            }
+
+            async function keyPlus4Times(page: Page): Promise<void> {
+                await repeat(4, async () => await page.keyboard.press('+'));
+            }
+
+            async function keyArrowRight(page: Page): Promise<void> {
+                await page.keyboard.press('ArrowRight');
+            }
+
+            async function keyEnd(page: Page): Promise<void> {
+                await page.keyboard.press('End');
+            }
+
+            test.beforeEach(async ({ page }) => {
+                const url = toExamplePageUrl('active-e2e-test', 'frozen-zoompan', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.describe('frozen series-node survives navigator mouse dragging', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+
+                    await clickFreezeOnApril(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+
+                    await slideNavigatorMaxLeft(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+
+                    await slideNavigatorPanRight(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-right.png');
+
+                    await slideNavigatorPanLeft(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickFreezeOnApril(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorMaxLeft(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorPanRight(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await slideNavigatorPanLeft(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickFreezeOnApril(page);
+                    expect(await popChartEvents(page)).toEqual([APRIL_ACTIVE_CHANGE]);
+
+                    await slideNavigatorMaxLeft(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await slideNavigatorPanRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await slideNavigatorPanLeft(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+
+            test.describe('frozen series-node survives keyboard navigation', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+
+                    await clickFreezeOnApril(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+
+                    await tabIntoChart(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-focus.png');
+
+                    await keyPlus4Times(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-plus4times.png');
+
+                    await keyArrowRight(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-datum2-focus.png');
+
+                    await keyEnd(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-end-focus.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickFreezeOnApril(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await tabIntoChart(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyPlus4Times(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyArrowRight(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyEnd(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickFreezeOnApril(page);
+                    expect(await popChartEvents(page)).toEqual([APRIL_ACTIVE_CHANGE]);
+
+                    await tabIntoChart(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyPlus4Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyArrowRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyEnd(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
+
         test.describe('external-legend', () => {
             let canvas: Locator;
 

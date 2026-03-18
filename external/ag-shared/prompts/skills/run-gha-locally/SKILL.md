@@ -92,7 +92,10 @@ These reference a local composite action within the repository. The path starts 
 To inline these:
 
 1.  Read the composite action's `action.yml` (or `action.yaml`) at the referenced path.
-2.  Extract the `runs.steps[].run` commands from the composite action.
+2.  Process each step in `runs.steps[]` using the same classification rules as the parent workflow:
+    -   **`run:` steps** — extract the shell command directly.
+    -   **`uses: ./path` steps** — recursively inline the nested composite action.
+    -   **`uses: third-party` steps** — apply the same SKIP logic as for workflow steps. If the third-party action performs setup required by later `run:` steps (e.g. installs a tool, configures credentials), note this and suggest a local equivalent command rather than silently dropping it.
 3.  Resolve `${{ inputs.X }}` references using the values from the calling step's `with:` block.
 4.  If the composite action has `inputs` with `default` values, use those when the calling step doesn't provide a `with:` value.
 
@@ -168,14 +171,36 @@ Some steps write outputs that later steps consume:
 export GITHUB_OUTPUT=$(mktemp)
 ```
 
-After each step that writes to `$GITHUB_OUTPUT` (look for `echo "key=value" >> $GITHUB_OUTPUT` or similar patterns), parse the key-value pairs:
+After each step that writes to `$GITHUB_OUTPUT` (look for `echo "key=value" >> $GITHUB_OUTPUT` or similar patterns), parse the outputs. GitHub Actions supports two formats:
+
+**Simple format**: `key=value` (value may itself contain `=` characters)
+
+**Multiline format** (heredoc-style):
+```
+key<<EOF
+line1
+line2
+EOF
+```
 
 ```bash
-# After a step that writes outputs:
-while IFS='=' read -r key value; do
-    export "STEP_${STEP_ID}_${key}=${value}"
-done < "$GITHUB_OUTPUT"
-> "$GITHUB_OUTPUT"  # Clear for next step
+# After a step that writes outputs — parse both simple and multiline formats:
+__parse_github_output() {
+    local file="$1" step_id="$2"
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)=(.*)$ ]]; then
+            export "STEP_${step_id}_${BASH_REMATCH[1]}=${BASH_REMATCH[2]}"
+        elif [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)\<\<(.+)$ ]]; then
+            local key="${BASH_REMATCH[1]}" delim="${BASH_REMATCH[2]}" val=""
+            while IFS= read -r line && [[ "$line" != "$delim" ]]; do
+                val+="${val:+$'\n'}${line}"
+            done
+            export "STEP_${step_id}_${key}=${val}"
+        fi
+    done < "$file"
+    > "$file"  # Clear for next step
+}
+__parse_github_output "$GITHUB_OUTPUT" "${STEP_ID}"
 ```
 
 Then substitute `${{ steps.ID.outputs.KEY }}` with the corresponding variable.

@@ -22,7 +22,14 @@ export class HighlightManager {
 
     constructor(private readonly eventsHub: EventsHub) {}
 
-    public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum, delayed: boolean = false): void {
+    private highlightInViewport: boolean = true;
+
+    public updateHighlight(
+        callerId: string,
+        highlightedDatum?: HighlightNodeDatum,
+        delayed: boolean = false,
+        inViewport?: boolean
+    ): void {
         const previousHighlight = this.getActiveHighlight();
 
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {
@@ -54,19 +61,26 @@ export class HighlightManager {
         } else {
             this.highlightStates.delete(callerId);
         }
-        this.maybeEmitChange(callerId, previousHighlight);
+        this.maybeEmitChange(callerId, previousHighlight, inViewport);
     }
 
-    private maybeEmitChange(callerId: string, previousHighlight: HighlightNodeDatum | undefined): void {
+    private maybeEmitChange(
+        callerId: string,
+        previousHighlight: HighlightNodeDatum | undefined,
+        inViewport?: boolean
+    ): void {
+        const highlightInViewport: boolean = inViewport ?? true;
         const currentHighlight = this.getActiveHighlight();
 
-        if (!this.isEqual(currentHighlight, previousHighlight)) {
+        if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
+            this.highlightInViewport = highlightInViewport;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
                 highlightSuppressed,
+                highlightInViewport,
             });
         }
     }
@@ -85,18 +99,7 @@ export class HighlightManager {
         // Actually clear the highlight for this caller
         this.highlightStates.delete(callerId);
 
-        const currentHighlight = this.getActiveHighlight();
-
-        // Only emit if something actually changed
-        if (!this.isEqual(currentHighlight, previousHighlight)) {
-            const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
-            this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
-                callerId,
-                currentHighlight,
-                previousHighlight,
-                highlightSuppressed,
-            });
-        }
+        this.maybeEmitChange(callerId, previousHighlight, true);
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {

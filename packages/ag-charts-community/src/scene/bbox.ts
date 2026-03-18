@@ -90,6 +90,15 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
         return boxContains(this, x, y);
     }
 
+    intersectsWith(other: BBox): boolean {
+        return !(
+            this.x + this.width <= other.x ||
+            other.x + other.width <= this.x ||
+            this.y + this.height <= other.y ||
+            other.y + other.height <= this.y
+        );
+    }
+
     intersection(other: BBox) {
         const x0 = Math.max(this.x, other.x);
         const y0 = Math.max(this.y, other.y);

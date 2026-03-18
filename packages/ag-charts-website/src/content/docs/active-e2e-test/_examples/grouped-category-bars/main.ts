@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgChartOptions, AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { getData } from './data';

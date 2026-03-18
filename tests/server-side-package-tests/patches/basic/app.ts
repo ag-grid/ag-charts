@@ -28,6 +28,32 @@ const updateSnapshots = process.argv.includes('--update');
 const snapshotsDir = path.join(process.cwd(), 'e2e', 'basic-snapshots');
 const outputDir = path.join(process.cwd(), 'output');
 
+// Mock console.warn and console.error to capture and validate per-test.
+// Mirrors the setupMockConsole() pattern from ag-charts-test (unavailable here
+// because the integration test runs from packed tarballs, not the monorepo).
+const mockConsole = (() => {
+    const captured: { level: string; message: string }[] = [];
+    const originals = { warn: console.warn, error: console.error };
+
+    for (const level of ['warn', 'error'] as const) {
+        console[level] = (...args: any[]) => {
+            const msg = String(args[0] ?? '');
+            captured.push({ level, message: msg });
+            originals[level](...args);
+        };
+    }
+
+    return {
+        /** Drain captured messages, returning any unexpected ones (excludes license `*` lines). */
+        flush(): { level: string; message: string }[] {
+            const unexpected = captured.filter(({ message }) => !message.startsWith('*'));
+            captured.length = 0;
+            return unexpected;
+        },
+        originals,
+    };
+})();
+
 // Ensure output directory exists
 if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
@@ -54,11 +80,20 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, testName: string
 }
 
 async function runTest(name: string, fn: () => Promise<void>, timeoutMs = DEFAULT_TEST_TIMEOUT_MS): Promise<void> {
+    mockConsole.flush(); // clear any messages from prior setup
     try {
         await withTimeout(fn(), timeoutMs, name);
+
+        const unexpected = mockConsole.flush();
+        if (unexpected.length > 0) {
+            const msgs = unexpected.map(({ level, message }) => `[${level}] ${message}`).join('; ');
+            throw new Error(`Unexpected console output: ${msgs}`);
+        }
+
         results.push({ name, success: true });
         console.log(`  ✓ ${name}`);
     } catch (error) {
+        mockConsole.flush(); // clear on failure too
         const errorMessage = error instanceof Error ? error.message : String(error);
         results.push({ name, success: false, error: errorMessage });
         console.log(`  ✗ ${name}: ${errorMessage}`);
@@ -391,7 +426,7 @@ async function main() {
                     { x: 'B', y: '1', value: 30 },
                     { x: 'B', y: '2', value: 40 },
                 ],
-                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] }],
             },
             width: 400,
             height: 300,
@@ -407,7 +442,11 @@ async function main() {
             options: {
                 type: 'radial-gauge',
                 value: 75,
-                scale: { min: 0, max: 100 },
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 300,
             height: 300,
@@ -423,7 +462,9 @@ async function main() {
             options: {
                 type: 'linear-gauge',
                 value: 60,
-                scale: { min: 0, max: 100 },
+                thickness: 50,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 100,
@@ -431,6 +472,26 @@ async function main() {
 
         assertPngDimensions(buffer, 400, 100);
         assertMatchesSnapshot(buffer, 'enterprise-linear-gauge');
+    });
+
+    // Test 13: Financial chart (enterprise-only, uses renderFinancialChart)
+    await runTest('Render financial chart', async () => {
+        const buffer = await AgChartsServerSide.renderFinancialChart({
+            options: {
+                data: [
+                    { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
+                    { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
+                    { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
+                    { date: new Date('2024-01-05'), open: 155, high: 162, low: 153, close: 161, volume: 1100 },
+                    { date: new Date('2024-01-08'), open: 161, high: 165, low: 159, close: 163, volume: 1300 },
+                ],
+            },
+            width: 600,
+            height: 400,
+        });
+
+        assertPngDimensions(buffer, 600, 400);
+        assertMatchesSnapshot(buffer, 'enterprise-financial-chart');
     });
 
     // Summary
@@ -454,6 +515,6 @@ async function main() {
 }
 
 main().catch((err) => {
-    console.error('Test runner failed:', err);
+    mockConsole.originals.error('Test runner failed:', err);
     process.exit(1);
 });

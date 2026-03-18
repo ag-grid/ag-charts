@@ -66,6 +66,8 @@ export class Crosshair extends AbstractModuleInstance {
     protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line, false);
 
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
+    private activeHighlightInViewport: boolean = false;
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
@@ -141,6 +143,12 @@ export class Crosshair extends AbstractModuleInstance {
 
         this.updateLines();
         this.updateLabels(crosshairKeys);
+
+        if (this.snap && !this.activeHighlightInViewport) {
+            // Do not redraw the crosshair labels when the highlight is outside the viewport.
+            return;
+        }
+
         this.refreshPositions();
     }
 
@@ -253,15 +261,20 @@ export class Crosshair extends AbstractModuleInstance {
         const hasCrosshair = datum && (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
+        this.activeHighlightInViewport = event.highlightInViewport;
 
         if (!this.activeHighlight) {
             this.hideCrosshairs();
         } else if (this.snap) {
-            const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
+            if (event.highlightInViewport) {
+                const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
-            this.updatePositions(activeHighlightData);
+                this.updatePositions(activeHighlightData);
 
-            crosshairGroup.visible = true;
+                crosshairGroup.visible = true;
+            } else {
+                this.hideCrosshairs();
+            }
         }
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
