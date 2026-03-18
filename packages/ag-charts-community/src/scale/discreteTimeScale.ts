@@ -174,6 +174,13 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         if (isTrailing !== alignmentExclusive) {
             return findMinIndex(0, n - 1, (index) => numericBands[index] >= target);
         }
-        return findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
+
+        const max = findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
+
+        // When aligning exclusive of the missed indices and the max index is the last index, instead discard the found
+        // index so we clamp to the end of the scale rather than the final index.
+        if (alignmentExclusive && max === n - 1) return;
+
+        return max;
     }
 }
