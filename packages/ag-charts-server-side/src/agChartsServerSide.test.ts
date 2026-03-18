@@ -14,12 +14,15 @@ const IMAGE_SNAPSHOT_OPTIONS = {
 
 describe('AgChartsServerSide', () => {
     afterEach(() => {
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();
@@ -335,13 +338,15 @@ describe('AgChartsServerSide', () => {
 describe('AgChartsServerSide enterprise licensing', () => {
     // Define afterEach BEFORE setupMockConsole so it runs first (Jest runs afterEach in registration order)
     afterEach(() => {
-        // Allow expected license messages (start with *), fail on unexpected errors
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();
@@ -413,18 +418,112 @@ describe('AgChartsServerSide enterprise licensing', () => {
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
-    it('should render gauge chart', async () => {
+    it('should render radial gauge chart', async () => {
         const renderOptions: AgGaugeRenderOptions = {
             options: {
                 type: 'radial-gauge',
                 value: 75,
-                scale: { min: 0, max: 100 },
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 400,
         };
 
         const buffer = await AgChartsServerSide.renderGauge(renderOptions);
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render linear gauge chart', async () => {
+        const renderOptions: AgGaugeRenderOptions = {
+            options: {
+                type: 'linear-gauge',
+                value: 60,
+                thickness: 50,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
+            },
+            width: 400,
+            height: 100,
+        };
+
+        const buffer = await AgChartsServerSide.renderGauge(renderOptions);
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render waterfall chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { category: 'Start', value: 100 },
+                    { category: 'Add', value: 50 },
+                    { category: 'Subtract', value: -30 },
+                    { category: 'End', value: 120 },
+                ],
+                series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render heatmap chart', async () => {
+        const buffer = await AgChartsServerSide.render({
+            options: {
+                data: [
+                    { x: 'A', y: '1', value: 10 },
+                    { x: 'A', y: '2', value: 20 },
+                    { x: 'B', y: '1', value: 30 },
+                    { x: 'B', y: '2', value: 40 },
+                ],
+                series: [
+                    { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] },
+                ],
+            },
+            width: 400,
+            height: 300,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on financial chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.renderFinancialChart({
+            options: {
+                data: [
+                    { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
+                    { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
+                    { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
+                ],
+            },
+            width: 600,
+            height: 400,
+        });
+
+        expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
+    });
+
+    it('should render watermark on gauge chart when unlicensed', async () => {
+        const buffer = await AgChartsServerSide.renderGauge({
+            options: {
+                type: 'radial-gauge',
+                value: 50,
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
+            },
+            width: 400,
+            height: 400,
+        });
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
@@ -437,12 +536,15 @@ describe('AgChartsServerSide community-only watermark', () => {
 
     // Define afterEach BEFORE setupMockConsole so it runs first
     afterEach(() => {
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();
