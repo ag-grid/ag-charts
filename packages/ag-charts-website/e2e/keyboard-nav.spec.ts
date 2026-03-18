@@ -66,6 +66,20 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
     });
 
+    test('Home/End keys (with viewport support)', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('large-dataset-interactivity', 'ordered-data', 'vanilla').url);
+
+        await page.mouse.click(400, 300);
+        await page.keyboard.press('ArrowLeft');
+        await repeat(20, async () => await page.keyboard.down('+'));
+
+        await page.keyboard.press('End');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-end-focus.png');
+
+        await page.keyboard.press('Home');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-home-focus.png');
+    });
+
     test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
         await gotoExample(
             page,
