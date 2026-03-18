@@ -20,6 +20,9 @@ It is possible to override the default buttons by providing an array of button o
 Custom buttons can be defined through the `ranges` options object.
 
 ```js format="snippet"
+// Duration of one month in milliseconds
+const MONTH = 30 * 24 * 60 * 60 * 1000;
+
 {
     ranges: {
         enabled: true,
@@ -38,7 +41,7 @@ Custom buttons can be defined through the `ranges` options object.
             },
             {
                 label: 'All Data',
-                value: (start, end) => [start, end],
+                value: (start, end, windowStart, windowEnd) => [start, end],
             },
         ],
     },
@@ -51,7 +54,45 @@ In this configuration:
 -   `value` determines the time range the button applies:
     -   For "6 Months" and "12 Months", it sets the range to the past 6 or 12 months, respectively.
     -   For "February", it sets the range to February 2023, from February 1 to March 1.
-    -   For "All Data", it dynamically sets the range to include all available data from the start to the end date.
+    -   For "All Data", it dynamically sets the range to include all available data from the start to the end date. The function receives four parameters: the full data `start` and `end` dates, and the current `windowStart` and `windowEnd` dates.
+
+## Position
+
+The position of the range buttons on the chart can be configured using the `position` property. Supported values are `'top-left'`, `'top'`, `'top-right'`, `'bottom-left'`, `'bottom'`, and `'bottom-right'`. The default is `'top-right'`.
+
+```js format="snippet"
+{
+    ranges: {
+        position: 'bottom-left',
+    },
+}
+```
+
+## Dropdown
+
+When there are many range buttons, they can be swapped for a dropdown menu. This behaviour is controlled by the `dropdown.visible` property, which accepts `'auto'`, `'always'`, or `'never'`. The default is `'auto'`, which automatically switches to a dropdown when space is limited.
+
+```js format="snippet"
+{
+    ranges: {
+        dropdown: {
+            visible: 'always',
+        },
+    },
+}
+```
+
+## Out of Range Buttons
+
+By default, buttons whose target range falls outside the available data are disabled. Set `enableOutOfRange` to `true` to keep these buttons enabled regardless.
+
+```js format="snippet"
+{
+    ranges: {
+        enableOutOfRange: true,
+    },
+}
+```
 
 ## API Reference
 

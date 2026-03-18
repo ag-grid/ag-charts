@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgTooltipMode } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
