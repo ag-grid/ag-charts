@@ -1,12 +1,5 @@
 import { expect, test } from './fixture';
-import {
-    SELECTORS,
-    gotoExample,
-    locateCanvas,
-    setupIntrinsicAssertions,
-    toExamplePageUrls,
-    waitForAllChartUpdates,
-} from './util';
+import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
 test.describe('fonts', () => {
     setupIntrinsicAssertions(test);
@@ -18,13 +11,6 @@ test.describe('fonts', () => {
             // TODO: flaky — Google Font downloads intermittently timeout in CI.
             test.skip('google fonts', async ({ page }) => {
                 await gotoExample(page, url);
-
-                // Record the current scene-render count so we can detect re-renders
-                // triggered by font loading.
-                const renderCountBefore = await page
-                    .locator(SELECTORS.wrapper)
-                    .first()
-                    .getAttribute('data-scene-renders');
 
                 // Poll individual FontFace.status for each Google Font. Unlike
                 // fonts.check() (which returns true when a matching @font-face exists,
@@ -44,18 +30,10 @@ test.describe('fonts', () => {
 
                 // Wait for the font-triggered re-render chain to complete:
                 // fonts loaded → ResizeObserver fires → chart schedules update → re-render.
-                // Poll until the scene-render count increments, confirming the chart has
-                // processed the font change, then wait for full stability.
-                const wrapper = page.locator(SELECTORS.wrapper).first();
-                await expect
-                    .poll(
-                        async () => {
-                            const current = await wrapper.getAttribute('data-scene-renders');
-                            return current !== renderCountBefore;
-                        },
-                        { timeout: 5_000, message: 'Waiting for font-triggered re-render' }
-                    )
-                    .toBeTruthy();
+                // Two rAFs ensure ResizeObserver callbacks have fired (they run between
+                // layout and paint). If fonts loaded during the initial render, no
+                // re-render is needed and waitForAllChartUpdates passes immediately.
+                await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
                 await waitForAllChartUpdates(page);
 
                 const { canvas } = await locateCanvas(page);
