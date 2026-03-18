@@ -405,7 +405,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
             if (isValidDate(domainMax)) {
                 const start = intervalAgo(value, domainMax);
-                return { fn: (d0, d1) => [start ?? d0, d1], valid: true };
+                return { fn: (d0) => [start ?? d0, undefined], valid: true };
             }
 
             return { valid: false };
