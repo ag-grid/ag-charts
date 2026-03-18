@@ -22,6 +22,8 @@ export class HighlightManager {
 
     constructor(private readonly eventsHub: EventsHub) {}
 
+    private highlightInViewport: boolean = true;
+
     public updateHighlight(
         callerId: string,
         highlightedDatum?: HighlightNodeDatum,
@@ -67,16 +69,18 @@ export class HighlightManager {
         previousHighlight: HighlightNodeDatum | undefined,
         inViewport?: boolean
     ): void {
+        const highlightInViewport: boolean = inViewport ?? true;
         const currentHighlight = this.getActiveHighlight();
 
-        if (!this.isEqual(currentHighlight, previousHighlight)) {
+        if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
+            this.highlightInViewport = highlightInViewport;
             this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,
                 highlightSuppressed,
-                highlightInViewport: inViewport ?? true,
+                highlightInViewport,
             });
         }
     }
