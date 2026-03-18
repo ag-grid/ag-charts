@@ -314,7 +314,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.isDropdown = true;
         this.toolbar.getElement().classList.add('ag-charts-range-buttons--dropdown');
         this.toolbar.clearButtons();
-        this.toolbar.updateButtons([{ label: this.dropdownLabel, value: Infinity }]);
+        this.toolbar.updateButtons([
+            { label: this.dropdownLabel, value: Infinity, icon: 'chevron-filled-down', iconPosition: 'after' },
+        ]);
     }
 
     private swapDropdownOut() {

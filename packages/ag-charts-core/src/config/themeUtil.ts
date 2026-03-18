@@ -376,7 +376,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     },
 };
 
-// @todo(AG-XXXX): A direct { $path: '/highlight/enabled' } causes the /chart/highlight/drawingMode logic to resolve incorrectly
+// @todo(AG-16931): A direct { $path: '/highlight/enabled' } causes the /chart/highlight/drawingMode logic to resolve incorrectly
 // This workaround seems to work. See changes in:-
 // packages/ag-charts-community/src/chart/series/cartesian/__image_snapshots__/scatter-series-test-ts-scatter-series-ag-11673-styler-init-highlight-1-snap.png
 const highlightEnabledDefault: Operation = {

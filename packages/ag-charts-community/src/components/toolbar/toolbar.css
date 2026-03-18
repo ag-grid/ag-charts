@@ -127,7 +127,11 @@
 /* Icon */
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
-    margin-inline-start: var(--toolbar-gap);
+    margin-inline-start: calc(var(--ag-charts-spacing) * 2);
+}
+
+.ag-charts-toolbar__label + .ag-charts-toolbar__icon {
+    margin-inline-start: calc(var(--ag-charts-spacing) * 2);
 }
 
 .ag-charts-toolbar__icon,

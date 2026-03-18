@@ -234,6 +234,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
     ariaLabel: string,
     tooltip: string,
+    iconPosition: union('before', 'after'),
     icon: union(
         'align-center',
         'align-left',
@@ -243,6 +244,8 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'arrow-up-drawing',
         'callout-annotation',
         'candlestick-series',
+        'chevron-filled-down',
+        'chevron-right',
         'close',
         'comment-annotation',
         'date-range-drawing',
