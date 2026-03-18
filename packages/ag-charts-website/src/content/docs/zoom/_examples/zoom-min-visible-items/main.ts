@@ -25,7 +25,6 @@ ModuleRegistry.registerModules([
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
-        enabled: true,
         minVisibleItems: 10,
     },
     tooltip: {
