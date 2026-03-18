@@ -2520,7 +2520,7 @@ test.describe('state', () => {
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
-            test.describe('adding and removing datums at start keeps frozen datum active', () => {
+            test.describe('frozen series-node survives navigator mouse dragging', () => {
                 test('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
 

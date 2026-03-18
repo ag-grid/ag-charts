@@ -563,9 +563,9 @@ export class Zoom extends AbstractModuleInstance {
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
         const { enabled, enableScrolling, scroller } = this;
-        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
-        if (!isDefaultState || !enabled || !enableScrolling) return;
+        if (!isFocusableState || !enabled || !enableScrolling) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
         this.updateZoom(
@@ -576,9 +576,9 @@ export class Zoom extends AbstractModuleInstance {
 
     private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
         const { enabled } = this;
-        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
-        if (!isDefaultState || !enabled) return;
+        if (!isFocusableState || !enabled) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
         const zoom = this.getZoom();
