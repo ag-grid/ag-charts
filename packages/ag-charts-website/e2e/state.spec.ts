@@ -2514,6 +2514,23 @@ test.describe('state', () => {
                 await page.mouse.up({ button: 'left' });
             }
 
+            async function tabIntoChart(page: Page): Promise<void> {
+                await page.mouse.click(5, 5);
+                await repeat(4, async () => await page.keyboard.press('Tab'));
+            }
+
+            async function keyPlus4Times(page: Page): Promise<void> {
+                await repeat(4, async () => await page.keyboard.press('+'));
+            }
+
+            async function keyArrowRight(page: Page): Promise<void> {
+                await page.keyboard.press('ArrowRight');
+            }
+
+            async function keyEnd(page: Page): Promise<void> {
+                await page.keyboard.press('End');
+            }
+
             test.beforeEach(async ({ page }) => {
                 const url = toExamplePageUrl('active-e2e-test', 'frozen-zoompan', 'vanilla').url;
                 await gotoExample(page, url);
@@ -2564,6 +2581,63 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([]);
 
                     await slideNavigatorPanLeft(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+
+            test.describe('frozen series-node survives keyboard navigation', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+
+                    await clickFreezeOnApril(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+
+                    await tabIntoChart(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-focus.png');
+
+                    await keyPlus4Times(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-plus4times.png');
+
+                    await keyArrowRight(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-datum2-focus.png');
+
+                    await keyEnd(page);
+                    await expect(canvas).toHaveScreenshot('frozen-zoompan-end-focus.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickFreezeOnApril(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await tabIntoChart(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyPlus4Times(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyArrowRight(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+
+                    await keyEnd(page);
+                    expect((await getChartState(page)).active).toEqual(APRIL_ACTIVE_STATE);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickFreezeOnApril(page);
+                    expect(await popChartEvents(page)).toEqual([APRIL_ACTIVE_CHANGE]);
+
+                    await tabIntoChart(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyPlus4Times(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyArrowRight(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await keyEnd(page);
                     expect(await popChartEvents(page)).toEqual([]);
                 });
             });

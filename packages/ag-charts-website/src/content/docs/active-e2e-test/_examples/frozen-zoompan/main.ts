@@ -38,6 +38,9 @@ const options: AgCartesianChartOptions<DataType, unknown> = {
         x: { type: 'category' },
         y: { type: 'number', title: { text: 'Sales ($k)' } },
     },
+    animation: {
+        enabled: false,
+    },
     navigator: {
         enabled: true,
     },
