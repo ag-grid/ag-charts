@@ -195,7 +195,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     const ticks: TickDatum[] = [];
 
     withTemporaryDomain(scale, niceDomain, () => {
-        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth ?? Infinity : Infinity;
+        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth || Infinity : Infinity;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const axisFormatter = axisTickFormatter(
             label.enabled,
