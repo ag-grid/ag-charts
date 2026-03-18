@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { HierarchyDataSet } from './hierarchyDataSet';
+
 const { Chart } = _ModuleSupport;
 
 export class StandaloneChart extends Chart {
@@ -8,6 +10,15 @@ export class StandaloneChart extends Chart {
 
     override getChartType() {
         return 'standalone' as const;
+    }
+
+    protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
+        for (const series of this.series) {
+            if ('childrenKey' in series.properties) {
+                return new HierarchyDataSet(data, this.dataIdKey, series.properties.childrenKey);
+            }
+        }
+        return super.createDataSet(data);
     }
 
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
