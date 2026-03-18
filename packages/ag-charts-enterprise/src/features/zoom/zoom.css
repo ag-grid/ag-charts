@@ -43,8 +43,8 @@
             padding-inline-start: 0;
         }
 
-        .ag-charts-toolbar__button--gap {
-            margin-inline-start: var(--toolbar-gap);
+        .ag-charts-toolbar__button--group-first {
+            margin-inline-start: calc(var(--ag-charts-spacing) * 2);
         }
 
         &.ag-charts-zoom-buttons__toolbar--hidden {

@@ -1,12 +1,17 @@
 import {
     type AgRangesButtonValue,
-    type AgRangesDropdown,
     type AgRangesPosition,
+    type CssColor,
+    type FontFamily,
+    type FontWeight,
+    type Padding,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    AbstractModuleInstance,
+    BaseProperties,
     ChartAxisDirection,
+    CleanupRegistry,
+    type ModuleInstance,
     PropertiesArray,
     Property,
     clamp,
@@ -16,13 +21,23 @@ import {
     isValidDate,
 } from 'ag-charts-core';
 
-import { RangesButtonProperties } from './rangesButtonProperties';
+import {
+    RangesButtonProperties,
+    RangesDropdownProperties,
+    RangesStateStylesProperties,
+    RangesStylesProperties,
+} from './rangesProperties';
 
 const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
 const DEFAULT_DROPDOWN_LABEL = 'toolbarRangeSelectRange';
 
-export class Ranges extends AbstractModuleInstance {
+/**
+ * Ranges extends BaseProperties to ensure the `padding` property can be correctly modified by jsonApply() when it
+ * changes between a number and an object. So it manually implements ModuleInstance, instead of extending the
+ * default AbstractModuleInstance class.
+ */
+export class Ranges extends BaseProperties implements ModuleInstance {
     @Property
     public enabled = false;
 
@@ -30,10 +45,52 @@ export class Ranges extends AbstractModuleInstance {
     public buttons = new PropertiesArray(RangesButtonProperties);
 
     @Property
-    public dropdown: AgRangesDropdown = 'auto';
+    public button = new RangesStylesProperties();
+
+    @Property
+    public dropdown = new RangesDropdownProperties();
+
+    @Property
+    public active = new RangesStateStylesProperties();
+
+    @Property
+    public hover = new RangesStateStylesProperties();
 
     @Property
     public enableOutOfRange = false;
+
+    @Property
+    public gap = 0;
+
+    @Property
+    public cornerRadius = 0;
+
+    @Property
+    public fill: CssColor = 'black';
+
+    @Property
+    public fillOpacity = 1;
+
+    @Property
+    public fontSize = 12;
+
+    @Property
+    public fontFamily: FontFamily = 'sans-serif';
+
+    @Property
+    public fontWeight: FontWeight = 'normal';
+
+    @Property
+    public stroke: CssColor = 'black';
+
+    @Property
+    public strokeWidth = 1;
+
+    @Property
+    public textColor: CssColor = 'black';
+
+    @Property
+    public padding: Padding = 0;
 
     @Property
     public position: AgRangesPosition = 'top-right';
@@ -41,11 +98,16 @@ export class Ranges extends AbstractModuleInstance {
     @Property
     public spacing: number = 0;
 
+    @Property
+    public minSize: number = 0;
+
+    protected readonly cleanup = new CleanupRegistry();
+
     private readonly container: HTMLElement;
     private readonly dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
     private readonly toolbar: _ModuleSupport.BaseToolbar;
 
-    private isDropdown = false;
+    private isDropdown?: boolean;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -67,6 +129,10 @@ export class Ranges extends AbstractModuleInstance {
         );
     }
 
+    destroy() {
+        this.cleanup.flush();
+    }
+
     private teardown() {
         this.toolbar.getElement().remove();
         this.toolbar.destroy();
@@ -80,9 +146,11 @@ export class Ranges extends AbstractModuleInstance {
             return;
         }
 
+        this.updateCSSVariables();
+
         toolbar.setHidden(false);
 
-        if (dropdown === 'always') {
+        if (dropdown.visible === 'always') {
             this.swapDropdownIn();
         } else {
             this.swapDropdownOut();
@@ -108,10 +176,10 @@ export class Ranges extends AbstractModuleInstance {
 
         let bounds = toolbar.getBounds();
 
-        if (bounds.width > seriesRect.width && dropdown === 'auto') {
+        if (bounds.width > seriesRect.width && dropdown.visible === 'auto') {
             this.swapDropdownIn();
             bounds = toolbar.getBounds();
-        } else if (dropdown !== 'always') {
+        } else if (dropdown.visible !== 'always') {
             this.swapDropdownOut();
         }
 
@@ -137,6 +205,93 @@ export class Ranges extends AbstractModuleInstance {
         }
     }
 
+    private updateCSSVariables() {
+        if (this.gap > 0) {
+            this.toolbar.getElement().classList.add('ag-charts-range-buttons--gapped');
+        } else {
+            this.toolbar.getElement().classList.remove('ag-charts-range-buttons--gapped');
+        }
+
+        const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            undefined,
+            undefined,
+            { gap: this.gap, minSize: this.minSize },
+            ['gap', 'minSize']
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'button',
+            undefined,
+            this.getComponentVariables(this.button),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'button',
+            'active',
+            this.getComponentStateVariables(this.button, 'active'),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'button',
+            'hover',
+            this.getComponentStateVariables(this.button, 'hover'),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'dropdown',
+            undefined,
+            this.getComponentVariables(this.dropdown),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'dropdown',
+            'active',
+            this.getComponentStateVariables(this.dropdown, 'active'),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'dropdown',
+            'hover',
+            this.getComponentStateVariables(this.dropdown, 'hover'),
+            numericKeys
+        );
+    }
+
+    private getComponentVariables(component: Ranges | RangesStylesProperties) {
+        return {
+            cornerRadius: component.cornerRadius,
+            fill: component.fill,
+            fillOpacity: component.fillOpacity,
+            fontSize: component.fontSize,
+            fontFamily: component.fontFamily,
+            fontWeight: component.fontWeight,
+            stroke: component.stroke,
+            strokeWidth: component.strokeWidth,
+            textColor: component.textColor,
+            paddingTop: typeof component.padding === 'number' ? component.padding : component.padding.top ?? 0,
+            paddingRight: typeof component.padding === 'number' ? component.padding : component.padding.right ?? 0,
+            paddingBottom: typeof component.padding === 'number' ? component.padding : component.padding.bottom ?? 0,
+            paddingLeft: typeof component.padding === 'number' ? component.padding : component.padding.left ?? 0,
+        };
+    }
+
+    private getComponentStateVariables(component: RangesStylesProperties, state: 'active' | 'hover') {
+        return {
+            fill: component[state].fill,
+            fillOpacity: component[state].fillOpacity,
+            stroke: component[state].stroke,
+            strokeWidth: component[state].strokeWidth,
+            textColor: component[state].textColor,
+        };
+    }
+
     private onZoomChanged() {
         this.toolbar.clearActiveButton();
 
@@ -154,14 +309,21 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private swapDropdownIn() {
+        if (this.isDropdown) return;
+
         this.isDropdown = true;
+        this.toolbar.getElement().classList.add('ag-charts-range-buttons--dropdown');
         this.toolbar.clearButtons();
         this.toolbar.updateButtons([{ label: this.dropdownLabel, value: Infinity }]);
     }
 
     private swapDropdownOut() {
+        if (this.isDropdown === false) return;
+
         this.isDropdown = false;
+        this.toolbar.getElement().classList.remove('ag-charts-range-buttons--dropdown');
         this.toolbar.updateButtons(this.buttons);
+        this.toolbar.clearActiveButton();
         this.dropdownMenu.hide();
     }
 
@@ -173,6 +335,8 @@ export class Ranges extends AbstractModuleInstance {
     private showDropdownMenu() {
         const buttonWidget = this.toolbar.getButtonWidget(0);
         if (!buttonWidget) return;
+
+        this.toolbar.toggleActiveButtonByIndex(0);
 
         const menuItems = this.buttons.map((button, index) => {
             return {
@@ -191,6 +355,9 @@ export class Ranges extends AbstractModuleInstance {
                 this.updateZoomWithButtonIndex(index);
                 this.dropdownLabel = item.label ?? DEFAULT_DROPDOWN_LABEL;
             },
+            onHide: () => {
+                this.toolbar.clearActiveButton();
+            },
         });
     }
 
@@ -205,38 +372,46 @@ export class Ranges extends AbstractModuleInstance {
         const sourcing = userInteraction(`zoom-range-button-${index}`);
         const updateWithFn = this.getUpdateWithFn(value);
 
-        if (updateWithFn == null) {
+        if (updateWithFn.valid === false || updateWithFn.fn == null) {
             zoomManager.resetZoom(sourcing);
         } else {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
 
         this.toolbar.toggleActiveButtonByIndex(index);
     }
 
-    private getUpdateWithFn(value: AgRangesButtonValue): _ModuleSupport.UpdateZoomWithFunction | undefined {
-        if (value == null) return;
+    private getUpdateWithFn(value: AgRangesButtonValue): {
+        fn?: _ModuleSupport.UpdateZoomWithFunction;
+        valid: boolean;
+    } {
+        if (value == null) return { valid: true };
 
         if (typeof value === 'number') {
-            return (_start, end) => [Number(end) - value, undefined];
+            return { fn: (_start, end) => [Number(end) - value, undefined], valid: true };
         }
 
         if (Array.isArray(value)) {
-            return () => value;
+            return { fn: () => value, valid: true };
         }
 
         if (typeof value === 'function') {
-            return value;
+            return { fn: value, valid: true };
         }
 
         if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
             const [, domainMax] =
                 this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)?.scale.getDomainMinMax() ?? [];
+
             if (isValidDate(domainMax)) {
                 const start = intervalAgo(value, domainMax);
-                return (d0, d1) => [start ?? d0, d1];
+                return { fn: (d0, d1) => [start ?? d0, d1], valid: true };
             }
+
+            return { valid: false };
         }
+
+        return { valid: true };
     }
 
     private getButtonEnabled(button: RangesButtonProperties) {
@@ -249,8 +424,10 @@ export class Ranges extends AbstractModuleInstance {
 
         if (button.enabled == null && enableOutOfRange === false) {
             const updateWithFn = this.getUpdateWithFn(button.value);
+            if (updateWithFn.valid === false) return false;
+
             buttonEnabled =
-                updateWithFn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn);
+                updateWithFn.fn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn);
         }
 
         return buttonEnabled;

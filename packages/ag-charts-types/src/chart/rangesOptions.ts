@@ -1,21 +1,21 @@
-import type { Toggleable } from '../series/cartesian/commonOptions';
+import type { FillOptions, FontOptions, Padding, StrokeOptions, Toggleable } from '../series/cartesian/commonOptions';
 import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
-import type { PixelSize } from './types';
+import type { CssColor, PixelSize } from './types';
 
-export interface AgRangesOptions extends Toggleable {
-    /**
-     * When to swap out the range buttons for a dropdown.
-     *
-     * Default: `'auto'`
-     */
-    dropdown?: AgRangesDropdown;
+export interface AgRangesOptions extends Toggleable, AgRangesStyles {
     /**
      * Whether out of range buttons should be enabled.
      *
      * Default: `false`
      */
     enableOutOfRange?: boolean;
+    /**
+     * The gap between each button.
+     *
+     * Default: `0`
+     */
+    gap?: PixelSize;
     /**
      * The position of the range buttons on the chart.
      *
@@ -28,10 +28,38 @@ export interface AgRangesOptions extends Toggleable {
      * Default: `10`
      */
     spacing?: PixelSize;
+    button?: AgRangesButtonStyles;
+    dropdown?: AgRangesDropdown;
+    /** The buttons to display. */
     buttons?: AgRangesButton[];
 }
 
-export type AgRangesDropdown = 'auto' | 'always' | 'never';
+export interface AgRangesStyles extends FillOptions, FontOptions, Omit<StrokeOptions, 'strokeOpacity'> {
+    cornerRadius?: number;
+    padding?: Padding;
+    textColor?: CssColor;
+    active?: AgRangesStateStyles;
+    hover?: AgRangesStateStyles;
+}
+
+export interface AgRangesStateStyles extends FillOptions, Omit<StrokeOptions, 'strokeOpacity'> {
+    textColor?: CssColor;
+}
+
+export interface AgRangesButtonStyles extends AgRangesStyles {}
+
+export interface AgRangesDropdownStyles extends AgRangesStyles {}
+
+export interface AgRangesDropdown extends AgRangesDropdownStyles {
+    /**
+     * When to swap out the range buttons for a dropdown.
+     *
+     * Default: `'auto'`
+     */
+    visible?: AgRangesDropdownVisible;
+}
+
+export type AgRangesDropdownVisible = 'auto' | 'always' | 'never';
 
 export type AgRangesPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 

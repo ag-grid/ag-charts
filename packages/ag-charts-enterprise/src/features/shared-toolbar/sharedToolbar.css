@@ -1,5 +1,5 @@
 .ag-charts-shared-toolbar {
-    gap: var(--toolbar-gap);
+    --toolbar-button-gap: calc(var(--ag-charts-spacing) * 2);
 
     .ag-charts-toolbar__button {
         border-radius: var(--ag-charts-border-radius);

@@ -1,10 +1,27 @@
 .ag-charts-toolbar {
-    --toolbar-gap: calc(var(--ag-charts-spacing) * 2);
     --toolbar-size: 34px;
+
+    --toolbar-border-radius: var(--ag-charts-border-radius);
+
+    --toolbar-button-background-color: var(--ag-charts-chrome-background-color);
+    --toolbar-button-border-color: var(--ag-charts-border-color);
+    --toolbar-button-border-width: var(--ag-charts-button-border-width);
+    --toolbar-button-gap: 0;
     --toolbar-button-padding: 6px;
+    --toolbar-button-text-color: var(--ag-charts-button-text-color);
+
+    --toolbar-button-background-color--active: var(--ag-charts-focus-color);
+    --toolbar-button-border-color--active: var(--ag-charts-accent-color);
+    --toolbar-button-text-color--active: var(--ag-charts-accent-color);
+
+    --toolbar-button-background-color--hover: var(--ag-charts-focus-color);
+    --toolbar-button-border-color--hover: var(--toolbar-button-border-color);
+    --toolbar-button-text-color--hover: var(--toolbar-button-text-color);
+
     align-items: center;
     display: flex;
     flex-wrap: nowrap;
+    gap: var(--toolbar-button-gap);
     position: absolute;
 }
 
@@ -12,9 +29,11 @@
 
 .ag-charts-toolbar__button {
     align-items: center;
-    background: var(--ag-charts-chrome-background-color);
-    border: var(--ag-charts-button-border);
-    color: var(--ag-charts-button-text-color);
+    background: var(--toolbar-button-background-color);
+    border-color: var(--toolbar-button-border-color);
+    border-style: solid;
+    border-width: var(--toolbar-button-border-width);
+    color: var(--toolbar-button-text-color);
     cursor: pointer;
     display: flex;
     font-family: var(--ag-charts-chrome-font-family);
@@ -33,7 +52,9 @@
 }
 
 .ag-charts-toolbar__button:hover {
-    background: var(--ag-charts-focus-color);
+    background: var(--toolbar-button-background-color--hover);
+    border-color: var(--toolbar-button-border-color--hover);
+    color: var(--toolbar-button-text-color--hover);
     z-index: 1;
 }
 
@@ -43,14 +64,15 @@
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
-.ag-charts-toolbar__button--active {
-    background: var(--ag-charts-focus-color);
-    border-color: var(--ag-charts-accent-color);
-    color: var(--ag-charts-accent-color);
+.ag-charts-toolbar__button--active,
+.ag-charts-toolbar__button--active:hover {
+    background: var(--toolbar-button-background-color--active);
+    border-color: var(--toolbar-button-border-color--active);
+    color: var(--toolbar-button-text-color--active);
     z-index: 2;
 
     + .ag-charts-toolbar__button {
-        border-inline-start-color: var(--ag-charts-accent-color);
+        border-inline-start-color: var(--toolbar-button-border-color--active);
     }
 }
 
@@ -70,15 +92,15 @@
     }
 
     .ag-charts-toolbar__button--first {
-        border-end-start-radius: var(--ag-charts-border-radius);
-        border-start-start-radius: var(--ag-charts-border-radius);
+        border-end-start-radius: var(--toolbar-border-radius);
+        border-start-start-radius: var(--toolbar-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-end-end-radius: var(--ag-charts-border-radius);
-        border-start-end-radius: var(--ag-charts-border-radius);
-        border-inline-end-width: 1px;
+        border-end-end-radius: var(--toolbar-border-radius);
+        border-start-end-radius: var(--toolbar-border-radius);
+        border-inline-end-width: var(--toolbar-button-border-width);
     }
 }
 
@@ -128,7 +150,9 @@
 .ag-charts-floating-toolbar__drag-handle {
     align-items: center;
     background: var(--ag-charts-chrome-background-color);
-    border: var(--ag-charts-border);
+    border-color: var(--ag-charts-border-color);
+    border-style: solid;
+    border-width: var(--ag-charts-border-width);
     border-end-start-radius: var(--ag-charts-border-radius);
     border-start-start-radius: var(--ag-charts-border-radius);
     border-inline-end-width: 0;

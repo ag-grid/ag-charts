@@ -429,14 +429,38 @@ export class DOMManager extends BaseManager {
     }
 
     setThemeParameters(params: AgChartThemeParams) {
-        for (const [key, value] of entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
+        this.setCSSVariables('--ag-charts', undefined, undefined, params as any);
+    }
+
+    setModuleCSSVariables(
+        module: string,
+        component: string | undefined,
+        modifier: string | undefined,
+        variables: Record<string, string | number>,
+        numericKeys?: string[]
+    ) {
+        this.setCSSVariables(`--ag-charts-${module}`, component, modifier, variables, numericKeys);
+    }
+
+    private setCSSVariables(
+        prefix: string,
+        component: string | undefined,
+        modifier: string | undefined,
+        variables: Record<string, string | number>,
+        numericKeys?: string[]
+    ) {
+        for (const [key, value] of entries(variables)) {
+            let formattedKey = key;
             let formattedValue = `${value}`;
-            if (key.endsWith('Size') || key.endsWith('Radius')) {
+            if (key.endsWith('Size') || key.endsWith('Radius') || numericKeys?.includes(key)) {
                 formattedValue = `${value}px`;
             } else if (key.endsWith('Border') && typeof value === 'boolean') {
-                formattedValue = value ? 'var(--ag-charts-border)' : 'none';
+                formattedKey = `${key}Width`;
+                formattedValue = value ? 'var(--ag-charts-border-width)' : '0';
             }
-            this.element.style.setProperty(`--ag-charts-${kebabCase(key)}`, formattedValue);
+
+            formattedKey = `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(formattedKey)}${modifier ? '--' : ''}${modifier ?? ''}`;
+            this.element.style.setProperty(formattedKey, formattedValue);
         }
     }
 
