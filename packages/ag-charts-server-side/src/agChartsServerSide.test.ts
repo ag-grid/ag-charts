@@ -335,13 +335,15 @@ describe('AgChartsServerSide', () => {
 describe('AgChartsServerSide enterprise licensing', () => {
     // Define afterEach BEFORE setupMockConsole so it runs first (Jest runs afterEach in registration order)
     afterEach(() => {
-        // Allow expected license messages (start with *), fail on unexpected errors
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();
@@ -418,7 +420,11 @@ describe('AgChartsServerSide enterprise licensing', () => {
             options: {
                 type: 'radial-gauge',
                 value: 75,
-                scale: { min: 0, max: 100 },
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 400,
@@ -434,7 +440,9 @@ describe('AgChartsServerSide enterprise licensing', () => {
             options: {
                 type: 'linear-gauge',
                 value: 60,
-                scale: { min: 0, max: 100 },
+                thickness: 50,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 100,
@@ -472,7 +480,9 @@ describe('AgChartsServerSide enterprise licensing', () => {
                     { x: 'B', y: '1', value: 30 },
                     { x: 'B', y: '2', value: 40 },
                 ],
-                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+                series: [
+                    { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] },
+                ],
             },
             width: 400,
             height: 300,
@@ -502,7 +512,11 @@ describe('AgChartsServerSide enterprise licensing', () => {
             options: {
                 type: 'radial-gauge',
                 value: 50,
-                scale: { min: 0, max: 100 },
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 400,

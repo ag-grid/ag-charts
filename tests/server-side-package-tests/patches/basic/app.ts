@@ -24,9 +24,24 @@ interface TestResult {
 }
 
 const results: TestResult[] = [];
+const consoleMessages: { level: string; message: string }[] = [];
 const updateSnapshots = process.argv.includes('--update');
 const snapshotsDir = path.join(process.cwd(), 'e2e', 'basic-snapshots');
 const outputDir = path.join(process.cwd(), 'output');
+
+// Intercept console.warn and console.error to capture validation messages
+const originalWarn = console.warn;
+const originalError = console.error;
+console.warn = (...args: any[]) => {
+    const msg = String(args[0] ?? '');
+    consoleMessages.push({ level: 'warn', message: msg });
+    originalWarn(...args);
+};
+console.error = (...args: any[]) => {
+    const msg = String(args[0] ?? '');
+    consoleMessages.push({ level: 'error', message: msg });
+    originalError(...args);
+};
 
 // Ensure output directory exists
 if (!fs.existsSync(outputDir)) {
@@ -391,7 +406,7 @@ async function main() {
                     { x: 'B', y: '1', value: 30 },
                     { x: 'B', y: '2', value: 40 },
                 ],
-                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' }],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] }],
             },
             width: 400,
             height: 300,
@@ -407,7 +422,11 @@ async function main() {
             options: {
                 type: 'radial-gauge',
                 value: 75,
-                scale: { min: 0, max: 100 },
+                startAngle: 270,
+                endAngle: 450,
+                innerRadiusRatio: 0.8,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 300,
             height: 300,
@@ -423,7 +442,9 @@ async function main() {
             options: {
                 type: 'linear-gauge',
                 value: 60,
-                scale: { min: 0, max: 100 },
+                thickness: 50,
+                scale: { min: 0, max: 100, fill: '#e6e6e6' },
+                bar: { fill: '#00b0f0' },
             },
             width: 400,
             height: 100,
@@ -471,9 +492,20 @@ async function main() {
     if (updateSnapshots) {
         console.log(`\nSnapshots updated in: ${snapshotsDir}`);
     }
+
+    // Check for unexpected console warnings/errors (excluding license messages)
+    const unexpected = consoleMessages.filter(({ message }) => !message.startsWith('*'));
+    if (unexpected.length > 0) {
+        console.log('\n--- Console Warnings/Errors ---');
+        for (const { level, message } of unexpected) {
+            console.log(`  [${level}] ${message}`);
+        }
+        console.log(`\n${unexpected.length} unexpected console message(s) detected`);
+        process.exit(1);
+    }
 }
 
 main().catch((err) => {
-    console.error('Test runner failed:', err);
+    originalError('Test runner failed:', err);
     process.exit(1);
 });
