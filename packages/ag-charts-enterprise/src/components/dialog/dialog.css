@@ -57,13 +57,13 @@
 }
 
 .ag-charts-dialog__drag-handle + .ag-charts-dialog__tab-button {
-    margin-left: calc(var(--ag-charts-spacing) * -2);
+    margin-inline-start: calc(var(--ag-charts-spacing) * -2);
 }
 
 .ag-charts-button.ag-charts-dialog__close-button {
     background: none;
     border: 0;
-    margin-left: auto;
+    margin-inline-start: auto;
     padding: 1px 6px;
 }
 
