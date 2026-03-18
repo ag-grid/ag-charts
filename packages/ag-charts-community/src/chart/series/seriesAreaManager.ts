@@ -12,7 +12,6 @@ import type {
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
     ZoomChangeCompleteEvent,
-    ZoomEventSourceDetail,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
