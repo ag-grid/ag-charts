@@ -1,5 +1,12 @@
-import type { Scaling } from 'ag-charts-core';
-import { ChartAxisDirection, type Point, Property, extent, isFiniteNumber } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type Point,
+    Property,
+    type Scaling,
+    extent,
+    findMinMax,
+    isFiniteNumber,
+} from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -160,13 +167,13 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
         return ContinuousScale.is(xAxis.scale)
             ? xAxis.scale.calcBandwidth(this.smallestDataInterval, minWidth)
-            : xAxis.scale.bandwidth;
+            : xAxis.scale.bandwidth ?? 0;
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
         const xAxis = this.axes[this.getCategoryDirection()]!;
         const xScale = xAxis.scale;
-        const bandWidth = this.getBandwidth(xAxis, 0) ?? 0;
+        const bandWidth = this.getBandwidth(xAxis, 0);
         const barOffset = ContinuousScale.is(xScale) ? bandWidth * -0.5 : 0;
         const x = xScale.convert(xValue) + barOffset;
         return [x, x + bandWidth];
@@ -180,18 +187,23 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             const y0 = yScale.convert(0);
             return [Math.min(ys[0], y0), Math.max(ys[0], y0)];
         }
-        return [Math.min(...ys), Math.max(...ys)];
+        return findMinMax(ys) as [number, number];
     }
 
     protected getBarDimensions() {
         const categoryAxis = this.getCategoryAxis()!;
-        const bandwidth = this.getBandwidth(categoryAxis) ?? 0;
+        const bandwidth = this.getBandwidth(categoryAxis);
 
         this.ctx.seriesStateManager.updateGroupScale(this, bandwidth, categoryAxis);
 
-        const groupOffset = this.getGroupOffset();
         const barWidth = this.getBarWidth();
         const barOffset = this.getBarOffset(barWidth);
+        let groupOffset = this.getGroupOffset();
+
+        if (this.ctx.domManager.isRtl && this.seriesGrouping != null) {
+            const groupBandWidth = this.ctx.seriesStateManager.getGroupBandWidth(this);
+            groupOffset = bandwidth - groupOffset - groupBandWidth;
+        }
 
         return { groupOffset, barOffset, barWidth };
     }
@@ -291,12 +303,14 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             return 0;
         }
 
-        return this.ctx.seriesStateManager.getDatumOffset(
+        const offset = this.ctx.seriesStateManager.getDatumOffset(
             this,
             this.processedData.invalidData,
             this.processedData.missingData,
             datumIndex
         );
+
+        return this.ctx.domManager.isRtl ? -offset : offset;
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {
