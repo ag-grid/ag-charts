@@ -4,6 +4,7 @@ import type {
     AgAnnotationOptionsToolbarSwitchValue,
     AgAnnotationsToolbarButtonValue,
     AgIconName,
+    AgIconPosition,
     AgRangesButtonValue,
     AgTimeIntervalUnit,
     AgZoomButtonValue,
@@ -23,6 +24,7 @@ type ButtonValue =
 
 export interface ToolbarButtonWidgetOptions {
     icon?: AgIconName;
+    iconPosition?: AgIconPosition;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
@@ -101,13 +103,17 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
         let innerHTML = '';
 
-        if (options.icon != null) {
+        if (options.icon != null && options.iconPosition !== 'after') {
             innerHTML = `<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
         }
 
         if (options.label != null) {
             const label = localeManager.t(options.label);
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
+        }
+
+        if (options.icon != null && options.iconPosition === 'after') {
+            innerHTML = `${innerHTML}<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
         }
 
         const haspopup = getAriaHasPopupOfValue(options.value);
