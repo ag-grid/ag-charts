@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
+import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('range buttons', () => {
     setupIntrinsicAssertions(test);
@@ -27,7 +27,6 @@ test.describe('range buttons', () => {
         const { canvas } = await locateCanvas(page);
 
         await page.getByText('Young Adults').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-category-axis.png');
     });
 
@@ -44,27 +43,21 @@ test.describe('range buttons', () => {
         const { canvas } = await locateCanvas(page);
 
         await page.getByText('Top Left').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-top-left.png');
 
         await page.getByText('Top', { exact: true }).click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-top.png');
 
         await page.getByText('Top Right').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-top-right.png');
 
         await page.getByText('Bottom Left').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-left.png');
 
         await page.getByText('Bottom', { exact: true }).click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-bottom.png');
 
         await page.getByText('Bottom Right').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-right.png');
     });
 
@@ -76,19 +69,15 @@ test.describe('range buttons', () => {
         const { canvas } = await locateCanvas(page);
 
         await page.getByText('3 Months (number)').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-number.png');
 
         await page.getByText('3 Months (calendar)').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-calendar.png');
 
         await page.getByText('Value Pair').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-value-pair.png');
 
         await page.getByText('All Domain Function').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-all-domain-function.png');
 
         // Zoom in a few times so the visible window does not end at the end of the domain.
@@ -99,7 +88,6 @@ test.describe('range buttons', () => {
         await page.keyboard.type('+');
 
         await page.getByText('Visible Window Function').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-visible-window-function.png');
     });
 
@@ -115,12 +103,10 @@ test.describe('range buttons', () => {
 
         // Opens the dropdown menu
         await page.getByText('Select range').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-2.png');
 
         // Does the action
         await page.getByText('Young Adults').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-3.png');
 
         // Resets on zoom
@@ -154,11 +140,9 @@ test.describe('range buttons', () => {
         const { canvas } = await locateCanvas(page);
 
         await page.getByText('Theme Top').click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-styles-top.png');
 
         await page.getByText('Theme Child', { exact: true }).click();
-        await waitForAllChartUpdates(page);
         await expect(canvas).toHaveScreenshot('range-buttons-styles-child.png');
     });
 });
