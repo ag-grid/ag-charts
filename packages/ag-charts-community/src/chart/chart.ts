@@ -1248,10 +1248,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this._cachedData = dataController.execute(this._cachedData);
 
-        // Ensure chart DataSet transactions are committed even if no series registered it
-        // (e.g. hierarchy-only charts). No-op if already committed.
-        this.data.commitPendingTransactions();
-
         this.updateSplits('🏭');
         await Promise.all(promises);
 
