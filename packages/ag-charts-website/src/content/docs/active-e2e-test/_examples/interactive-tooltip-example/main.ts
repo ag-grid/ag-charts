@@ -37,23 +37,52 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     listeners: {
         activeChange: (ev: AgActiveChangeEvent<DataType, unknown>) => {
-            if (ev.source === 'user-interaction' && ev.activeItem === undefined) {
+            events.push(ev);
+            if (ev.source === 'user-interaction' && ev.activeItem === undefined && shouldPreventDefault) {
                 ev.preventDefault();
             }
         },
     },
 };
 
+let events: unknown[] = [];
+let shouldPreventDefault = true;
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
-function onClear() {
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
+
+export function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
+
+export function onClear() {
     chart.setState({ version, active: { activeItem: undefined } });
+}
+
+export function onPreventDefaultChange(value: boolean) {
+    shouldPreventDefault = value;
+}
+
+function setHeight() {
+    const ta = document.querySelector('textarea');
+    if (ta) ta.style.height = '300px';
 }
 
 window.addEventListener('mousemove', (ev: MouseEvent) => {
     document.getElementById('myPointerPos')!.textContent = `clientX: ${ev.clientX}; clientY: ${ev.clientY}`;
 });
 
+window.addEventListener('keydown', (ev: KeyboardEvent) => {
+    if (ev.code === 'KeyS') {
+        setHeight();
+    }
+});
+
 // For e2e testing:
-(window as any).agE2E = { chart };
+(window as any).agE2E = { chart, popEvents };

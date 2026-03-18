@@ -1,6 +1,14 @@
 <div class="example-controls">
     <div class="controls-row">
         <span id="myPointerPos">not assigned</span>
+        <button onclick="onPopEvents()"><code>popEvents()</code></button>
+        <input
+            id="myPreventDefault"
+            checked="true"
+            type="checkbox"
+            onchange="onPreventDefaultChange(event.target.checked)"
+        />
+        <code>preventDefault</code>
         <textarea style="width: 200px; resize: both">Resize me</textarea>
     </div>
 </div>

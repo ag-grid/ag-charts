@@ -118,6 +118,10 @@ test.describe('state', () => {
             });
         }
 
+        async function clickPreventDefaultTickbox(page: Page): Promise<void> {
+            await page.locator('#myPreventDefault').click();
+        }
+
         test.describe('line-example', () => {
             let canvas: Locator;
 
@@ -1148,10 +1152,6 @@ test.describe('state', () => {
                 await page.mouse.move(0, 0);
             }
 
-            async function clickPreventDefaultTickbox(page: Page): Promise<void> {
-                await page.locator('#myPreventDefault').click();
-            }
-
             test.beforeEach(async ({ page }) => {
                 await gotoExample(page, toExamplePageUrl('active-e2e-test', 'bubble-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
@@ -1591,6 +1591,34 @@ test.describe('state', () => {
                 activeItem: { itemId: 1, seriesId: 'BarSeries-1', type: 'series-node' },
             });
 
+            const activeChange2ndBarMouse = Object.freeze({
+                ...activeState2ndBar,
+                datum: { month: 'Jul', sweaters: 70 },
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const activeChangeDeactivateCommon = Object.freeze({
+                frozen: false,
+                activeItem: undefined,
+                datum: undefined,
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                type: 'activeChange',
+            });
+
+            const activeChangeDeactivateMouse = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                source: 'user-interaction',
+            });
+
+            const activeChangeDeactivateSetState = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                source: 'state-change',
+            });
+
             async function mouseMove2ndBar(page: Page): Promise<void> {
                 await page.mouse.move(400, 300);
             }
@@ -1604,10 +1632,12 @@ test.describe('state', () => {
             }
 
             async function growTextArea(page: Page): Promise<void> {
-                await page.evaluate(() => {
+                await page.evaluate(async () => {
                     const ta = document.querySelector('textarea');
                     if (ta) ta.style.height = '300px';
+                    await new Promise((resolve) => requestAnimationFrame(resolve));
                 });
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
             }
 
             test.beforeEach(async ({ page }) => {
@@ -1631,22 +1661,29 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await mouseLeave(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+                });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
+
+                    await mouseLeave(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([]);
                 });
             });
 
@@ -1665,27 +1702,35 @@ test.describe('state', () => {
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await clickMyButton(page);
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+                });
+
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
+
+                    await clickMyButton(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateSetState]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
                 });
             });
 
-            test.describe('highlight persists on resize', () => {
-                // The highlight doesn't synchronously on resize.
+            test.describe('highlight persists on resize (preventDefault)', () => {
+                // The highlight-update fires two redraws when resizing. Looks fine to the end-user, but e2e
+                // image-snapshot comparison fails because it compares in intermediate frame.
                 // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
                 test.skip('screenshots', async ({ page }) => {
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
@@ -1693,23 +1738,79 @@ test.describe('state', () => {
                     await mouseMove2ndBar(page);
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
 
+                    await mouseLeave(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
                     await growTextArea(page);
                     await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-resized.png');
                 });
 
                 test('states', async ({ page }) => {
-                    let state: AgChartState;
-
-                    state = await getChartState(page);
-                    expect(state.active?.activeItem).toBeUndefined();
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
 
                     await mouseMove2ndBar(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+
+                    await mouseLeave(page);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
 
                     await growTextArea(page);
-                    state = await getChartState(page);
-                    expect(state.active).toEqual(activeState2ndBar);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+                });
+
+                test.skip('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
+
+                    await mouseLeave(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+
+                    await growTextArea(page);
+                    // FIXME: When testing this manually, I only get one activeChange deactivation event. But in the e2e
+                    // test multiple dom:resize events are firing for some reason.
+                    expect(await popChartEvents(page)).toEqual([
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMouse,
+                    ]);
+                });
+            });
+
+            test.describe('highlight persists on resize (permitDefault)', () => {
+                test('screenshots', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+
+                    await mouseMove2ndBar(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+
+                    await growTextArea(page);
+                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive-resized.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await mouseMove2ndBar(page);
+                    expect((await getChartState(page)).active).toEqual(activeState2ndBar);
+
+                    await growTextArea(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+                });
+
+                test('popEvents', async ({ page }) => {
+                    await clickPreventDefaultTickbox(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await mouseMove2ndBar(page);
+                    expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
+
+                    await growTextArea(page);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
                 });
             });
         });
