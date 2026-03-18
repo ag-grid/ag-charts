@@ -14,12 +14,15 @@ const IMAGE_SNAPSHOT_OPTIONS = {
 
 describe('AgChartsServerSide', () => {
     afterEach(() => {
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();
@@ -533,12 +536,15 @@ describe('AgChartsServerSide community-only watermark', () => {
 
     // Define afterEach BEFORE setupMockConsole so it runs first
     afterEach(() => {
-        const errorMock = console.error as jest.Mock;
-        const unexpectedErrors = errorMock.mock.calls
-            .map((args) => String(args[0] ?? ''))
-            .filter((msg) => !msg.startsWith('*'));
-        errorMock.mockClear();
-        expect(unexpectedErrors).toEqual([]);
+        // Allow expected license messages (start with *), fail on unexpected errors/warnings
+        for (const method of ['error', 'warn'] as const) {
+            const mock = console[method] as jest.Mock;
+            const unexpected = mock.mock.calls
+                .map((args) => String(args[0] ?? ''))
+                .filter((msg) => !msg.startsWith('*'));
+            mock.mockClear();
+            expect(unexpected).toEqual([]);
+        }
     });
 
     setupMockConsole();

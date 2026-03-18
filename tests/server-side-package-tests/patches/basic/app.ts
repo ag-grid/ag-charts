@@ -24,24 +24,35 @@ interface TestResult {
 }
 
 const results: TestResult[] = [];
-const consoleMessages: { level: string; message: string }[] = [];
 const updateSnapshots = process.argv.includes('--update');
 const snapshotsDir = path.join(process.cwd(), 'e2e', 'basic-snapshots');
 const outputDir = path.join(process.cwd(), 'output');
 
-// Intercept console.warn and console.error to capture validation messages
-const originalWarn = console.warn;
-const originalError = console.error;
-console.warn = (...args: any[]) => {
-    const msg = String(args[0] ?? '');
-    consoleMessages.push({ level: 'warn', message: msg });
-    originalWarn(...args);
-};
-console.error = (...args: any[]) => {
-    const msg = String(args[0] ?? '');
-    consoleMessages.push({ level: 'error', message: msg });
-    originalError(...args);
-};
+// Mock console.warn and console.error to capture and validate per-test.
+// Mirrors the setupMockConsole() pattern from ag-charts-test (unavailable here
+// because the integration test runs from packed tarballs, not the monorepo).
+const mockConsole = (() => {
+    const captured: { level: string; message: string }[] = [];
+    const originals = { warn: console.warn, error: console.error };
+
+    for (const level of ['warn', 'error'] as const) {
+        console[level] = (...args: any[]) => {
+            const msg = String(args[0] ?? '');
+            captured.push({ level, message: msg });
+            originals[level](...args);
+        };
+    }
+
+    return {
+        /** Drain captured messages, returning any unexpected ones (excludes license `*` lines). */
+        flush(): { level: string; message: string }[] {
+            const unexpected = captured.filter(({ message }) => !message.startsWith('*'));
+            captured.length = 0;
+            return unexpected;
+        },
+        originals,
+    };
+})();
 
 // Ensure output directory exists
 if (!fs.existsSync(outputDir)) {
@@ -69,11 +80,20 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, testName: string
 }
 
 async function runTest(name: string, fn: () => Promise<void>, timeoutMs = DEFAULT_TEST_TIMEOUT_MS): Promise<void> {
+    mockConsole.flush(); // clear any messages from prior setup
     try {
         await withTimeout(fn(), timeoutMs, name);
+
+        const unexpected = mockConsole.flush();
+        if (unexpected.length > 0) {
+            const msgs = unexpected.map(({ level, message }) => `[${level}] ${message}`).join('; ');
+            throw new Error(`Unexpected console output: ${msgs}`);
+        }
+
         results.push({ name, success: true });
         console.log(`  ✓ ${name}`);
     } catch (error) {
+        mockConsole.flush(); // clear on failure too
         const errorMessage = error instanceof Error ? error.message : String(error);
         results.push({ name, success: false, error: errorMessage });
         console.log(`  ✗ ${name}: ${errorMessage}`);
@@ -492,20 +512,9 @@ async function main() {
     if (updateSnapshots) {
         console.log(`\nSnapshots updated in: ${snapshotsDir}`);
     }
-
-    // Check for unexpected console warnings/errors (excluding license messages)
-    const unexpected = consoleMessages.filter(({ message }) => !message.startsWith('*'));
-    if (unexpected.length > 0) {
-        console.log('\n--- Console Warnings/Errors ---');
-        for (const { level, message } of unexpected) {
-            console.log(`  [${level}] ${message}`);
-        }
-        console.log(`\n${unexpected.length} unexpected console message(s) detected`);
-        process.exit(1);
-    }
 }
 
 main().catch((err) => {
-    originalError('Test runner failed:', err);
+    mockConsole.originals.error('Test runner failed:', err);
     process.exit(1);
 });
