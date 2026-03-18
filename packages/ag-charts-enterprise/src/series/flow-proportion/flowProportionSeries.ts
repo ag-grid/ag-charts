@@ -39,7 +39,7 @@ export interface FlowProportionLinkDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
-    readonly itemId: `link-${number}`;
+    readonly itemId: string;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
@@ -52,7 +52,7 @@ export interface FlowProportionNodeDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
-    readonly itemId: `node-${number}`;
+    readonly itemId: string;
     index: number;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
@@ -314,6 +314,7 @@ export abstract class FlowProportionSeries<
                           nodesDataModel.processedData
                       );
 
+            const nodeDataIdKey = this.data?.dataIdKey;
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
                 for (const [datumIndex, datum] of nodeData.entries()) {
@@ -321,10 +322,11 @@ export abstract class FlowProportionSeries<
                     const label: string | undefined = labelValues?.[datumIndex];
 
                     const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
+                    const nodeIdValue = nodeDataIdKey != null ? (datum as any)[nodeDataIdKey] : undefined;
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: `node-${datumIndex}`,
+                        itemId: nodeIdValue != null ? String(nodeIdValue) : `node-${datumIndex}`,
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -398,6 +400,7 @@ export abstract class FlowProportionSeries<
         }
 
         const baseLinks: TLinkDatum[] = [];
+        const dataIdKey = this.data?.dataIdKey;
         const linkData = linksProcessedData.dataSources.get(this.id)?.data;
         if (linkData) {
             for (const [datumIndex, datum] of linkData.entries()) {
@@ -409,10 +412,11 @@ export abstract class FlowProportionSeries<
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
                 const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
+                const linkIdValue = dataIdKey != null ? (datum as any)[dataIdKey] : undefined;
 
                 const link = createLink({
                     series: this,
-                    itemId: `link-${datumIndex}`,
+                    itemId: linkIdValue != null ? String(linkIdValue) : `link-${datumIndex}`,
                     datum,
                     datumIndex: linkNodeDatumIndex,
                     type: FlowProportionDatumType.Link,

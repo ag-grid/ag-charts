@@ -311,6 +311,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return true;
     }
 
+    protected createDataSet(data: unknown[]): DataSet {
+        return new DataSet(data, this.dataIdKey);
+    }
+
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
@@ -432,7 +436,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = new DataSet(event.data, this.dataIdKey);
+                this.data = this.createDataSet(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1244,6 +1248,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this._cachedData = dataController.execute(this._cachedData);
 
+        // Ensure chart DataSet transactions are committed even if no series registered it
+        // (e.g. hierarchy-only charts). No-op if already committed.
+        this.data.commitPendingTransactions();
+
         this.updateSplits('🏭');
         await Promise.all(promises);
 
@@ -1597,14 +1605,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const userOptionsData = newChartOptions.userOptions.data;
             const needsClone = Array.isArray(suppliedData) && suppliedData !== userOptionsData;
             const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
-            this.data = new DataSet(dataForDataSet, this.dataIdKey);
+            this.data = this.createDataSet(dataForDataSet);
         }
         if (
             'dataIdKey' in deltaOptions &&
             !(deltaOptions.data && userExplicitlyPassedData) &&
             this.data.dataIdKey !== this.dataIdKey
         ) {
-            this.data = new DataSet(this.data.data, this.dataIdKey);
+            this.data = this.createDataSet(this.data.data);
         }
         if (
             'legend' in deltaOptions &&

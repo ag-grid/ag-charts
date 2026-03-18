@@ -41,7 +41,7 @@ interface UpdateIndexTracking {
     updatedInsertionsIndices: number[];
 }
 
-interface TransactionCollectionState<T> {
+export interface TransactionCollectionState<T> {
     prependsList: T[][];
     appendsList: T[][];
     insertionsList: T[][];
@@ -73,7 +73,7 @@ export class DataSet<T = unknown> {
     private cachedChangeDescription: DataChangeDescription | undefined;
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
-    private idToIndexCache: Map<string | number, number> | undefined;
+    protected idToIndexCache: Map<string | number, number> | undefined;
 
     constructor(
         public data: T[],
@@ -622,7 +622,7 @@ export class DataSet<T = unknown> {
         }
     }
 
-    private applyRemovalsById(remove: T[], state: TransactionCollectionState<T>): void {
+    protected applyRemovalsById(remove: T[], state: TransactionCollectionState<T>): void {
         const idsToRemove = new Set<string | number>();
         for (const item of remove) {
             const id = this.getIdValue(item);
@@ -781,7 +781,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Extracts the ID value from a datum; returns `undefined` if missing or not a string/number. */
-    private getIdValue(item: T): string | number | undefined {
+    protected getIdValue(item: T): string | number | undefined {
         if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
         const value = (item as any)[this.dataIdKey];
         if (typeof value === 'string' || (typeof value === 'number' && !Number.isNaN(value))) return value;
@@ -789,7 +789,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Lazy ID→index map for O(1) lookups when `dataIdKey` is set. */
-    private getIdToIndexMap(): Map<string | number, number> {
+    protected getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
             for (let i = 0; i < this.data.length; i++) {
@@ -848,7 +848,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Collects updated original indices by ID, storing replacements (keyed by ID) in state for commit. */
-    private collectUpdatedOriginalIndicesById(
+    protected collectUpdatedOriginalIndicesById(
         toUpdate: Map<string | number, T>,
         state: TransactionCollectionState<T>
     ): void {
