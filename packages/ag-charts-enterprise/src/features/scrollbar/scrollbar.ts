@@ -98,7 +98,8 @@ export class Scrollbar extends AbstractModuleInstance {
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.eventsHub.on('zoom:change-complete', () => this.updateThumbs()),
             ctx.eventsHub.on('zoom-interaction:scrollbar:wheel', (event) => this.onWheel(event)),
-            ctx.eventsHub.on('zoom-interaction:scrollbar:axis-wheel', (event) => this.onAxisWheel(event))
+            ctx.eventsHub.on('zoom-interaction:scrollbar:axis-wheel', (event) => this.onAxisWheel(event)),
+            ctx.eventsHub.on('zoom-interaction:scrollbar:scrollbar-wheel', (event) => this.onScrollbarWheel(event))
         );
     }
 
@@ -413,6 +414,10 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
         if (!this.enableAxisScrolling) return;
+        return this.handleWheel(baseEvent);
+    }
+
+    private onScrollbarWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         return this.handleWheel(baseEvent);
     }
 

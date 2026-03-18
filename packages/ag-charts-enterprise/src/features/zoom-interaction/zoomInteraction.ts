@@ -58,7 +58,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
 
     private onScrollbarWheel({ event, orientation }: _ModuleSupport.ScrollbarWheelEvent) {
         this.wheelSequencer.onWheel(event, () =>
-            this.handleWheelSequencer('wheel', {
+            this.handleWheelSequencer('scrollbar-wheel', {
                 event,
                 direction: orientation === 'horizontal' ? ChartAxisDirection.X : ChartAxisDirection.Y,
             })
@@ -66,7 +66,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
     }
 
     private handleWheelSequencer(
-        subEvent: 'wheel' | 'axis-wheel',
+        subEvent: 'wheel' | 'axis-wheel' | 'scrollbar-wheel',
         payload: { event: _Widget.WheelWidgetEvent; direction?: ChartAxisDirection }
     ) {
         let stopped = false;

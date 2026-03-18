@@ -127,6 +127,8 @@ export interface EventsHubMap {
     'zoom-interaction:request-axis-wheel': ZoomInteractionRequestAxisWheelEvent;
     'zoom-interaction:scrollbar:wheel': ZoomInteractionWheelEvent;
     'zoom-interaction:zoom:wheel': ZoomInteractionWheelEvent;
+    'zoom-interaction:scrollbar:scrollbar-wheel': ZoomInteractionWheelEvent;
+    'zoom-interaction:zoom:scrollbar-wheel': ZoomInteractionWheelEvent;
     'zoom-interaction:scrollbar:axis-drag-start': ZoomInteractionAxisDragEvent<'drag-start'>;
     'zoom-interaction:zoom:axis-drag-start': ZoomInteractionAxisDragEvent<'drag-start'>;
     'zoom-interaction:scrollbar:axis-drag-move': ZoomInteractionAxisDragEvent<'drag-move'>;
