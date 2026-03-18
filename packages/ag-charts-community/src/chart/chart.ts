@@ -495,6 +495,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
+        const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
         const getTooltipContent = <DatumIndex extends DatumIndexType>(
@@ -505,6 +506,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         ) => this.getTooltipContent(series, datumIndex, removeThisDatum, purpose);
 
         return {
+            hasViewportSupport,
             fireEvent,
             getUpdateType,
             getTooltipContent,
@@ -1639,10 +1641,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.chartOptions = newChartOptions;
 
         const navigatorModule: any = this.modulesManager.getModule('navigator');
-        const zoomModule: any = this.modulesManager.getModule('zoom');
-        const scrollbarModule: any = this.modulesManager.getModule('scrollbar');
 
-        if (!navigatorModule?.enabled && !zoomModule?.enabled && !scrollbarModule?.enabled) {
+        if (this.hasViewportSupport()) {
             // reset zoom to initial state
             this.ctx.zoomManager.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
@@ -1715,10 +1715,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
-        if (
-            (options.navigator?.enabled || options.zoom?.enabled || options.scrollbar?.enabled) &&
-            initialState?.zoom != null
-        ) {
+        if (this.needsViewportSupport(options) && initialState?.zoom != null) {
             stateManager.setState(zoomManager, initialState.zoom);
         }
         if (initialState?.active != null) {
@@ -2127,5 +2124,19 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     public onSyncActiveClear(): void {
         this.seriesAreaManager.onActiveClear();
+    }
+
+    private needsViewportSupport(options: {
+        [Module in 'navigator' | 'zoom' | 'scrollbar']?: { enabled?: boolean };
+    }): boolean {
+        return !!(options.navigator?.enabled || options.zoom?.enabled || options.scrollbar?.enabled);
+    }
+
+    public hasViewportSupport(): boolean {
+        return this.needsViewportSupport({
+            navigator: this.modulesManager.getModule('navigator'),
+            zoom: this.modulesManager.getModule('zoom'),
+            scrollbar: this.modulesManager.getModule('scrollbar'),
+        });
     }
 }

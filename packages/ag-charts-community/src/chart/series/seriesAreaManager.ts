@@ -87,6 +87,7 @@ type HandleFocusInputs = FocusIndices | FocusDeltas;
 type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
 export interface SeriesAreaChartDependencies {
+    hasViewportSupport(): boolean;
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex extends DatumIndexType>(
@@ -134,7 +135,6 @@ function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewpo
             return undefined;
     }
 }
-
 
 export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
@@ -690,8 +690,9 @@ export class SeriesAreaManager extends BaseManager {
             case 'arrowright':
                 return this.onArrow(0, 1, widgetEvent);
             case 'home':
+                return this.onHome(widgetEvent);
             case 'end':
-                return this.onPage(action.name, widgetEvent);
+                return this.onEnd(widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
             case 'delete':
@@ -720,6 +721,27 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.seriesIndex += otherIndexDelta;
         this.focus.datumIndex += datumIndexDelta;
         this.handleFocusFromUserInput({ datumIndexDelta, otherIndexDelta });
+    }
+
+    private onHome(event: KeyboardWidgetEvent<'keydown'>): void {
+        if (this.chart.hasViewportSupport()) {
+            return this.onPage('home', event);
+        }
+
+        if (!this.onNav(event)) return;
+        this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: 0 });
+    }
+
+    private onEnd(event: KeyboardWidgetEvent<'keydown'>): void {
+        if (this.chart.hasViewportSupport()) {
+            return this.onPage('end', event);
+        }
+
+        if (!this.onNav(event)) return;
+        const n = this.focus.series?.data?.data.length;
+        if (n !== undefined) {
+            this.handleFocusFromUserInput({ otherIndex: this.focus.seriesIndex, datumIndex: n - 1 });
+        }
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
