@@ -1,5 +1,5 @@
-import { Logger } from 'ag-charts-core';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 
@@ -28,6 +28,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         const result = super.commitPendingTransactions();
         if (result && this.dataIdKey) {
             this.removeNestedDuplicatesFromRoot();
+            // Invalidate after structural changes — splice may shift root indices.
+            this.idToIndexCache = undefined;
         }
         return result;
     }

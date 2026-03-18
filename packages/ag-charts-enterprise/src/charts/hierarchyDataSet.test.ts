@@ -31,9 +31,7 @@ function createTestData(): TreeItem[] {
         {
             id: 'ops',
             name: 'Operations',
-            children: [
-                { id: 'ops-hr', name: 'HR', value: 8 },
-            ],
+            children: [{ id: 'ops-hr', name: 'HR', value: 8 }],
         },
     ];
 }
@@ -189,6 +187,59 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[0].children![0].value).toBe(100);
             expect(ds.data[0].children!.length).toBe(2);
             expect(ds.data[0].children!.map((c) => c.id)).toEqual(['eng-fe', 'eng-be']);
+        });
+    });
+
+    describe('sequential transactions', () => {
+        test('should update nested items correctly across multiple commits', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            // First transaction: update eng-fe
+            ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children![0].value).toBe(50);
+
+            // Second transaction: update eng-be (exercises cache rebuild after first commit)
+            ds.addTransaction({ update: [{ id: 'eng-be', name: 'Backend', value: 99 }] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children![0].value).toBe(50);
+            expect(ds.data[0].children![1].value).toBe(99);
+            expect(ds.data.length).toBe(3);
+        });
+
+        test('should handle remove then update across commits', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            // First: remove a nested item
+            ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children!.length).toBe(2);
+
+            // Second: update a remaining nested item (cache must reflect removal)
+            ds.addTransaction({ update: [{ id: 'eng-be', name: 'Backend', value: 200 }] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children![1].value).toBe(200);
+            expect(ds.data[0].children!.length).toBe(2);
+        });
+
+        test('should handle add-with-dedup then update across commits', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            // First: add nested + deduplicate
+            const newLeaf = { id: 'eng-new', name: 'New Team', value: 10 };
+            data[0].children!.push(newLeaf);
+            ds.addTransaction({ add: [newLeaf] });
+            ds.commitPendingTransactions();
+            expect(ds.data.length).toBe(3);
+
+            // Second: update the newly added nested item (cache must be valid after dedup splice)
+            ds.addTransaction({ update: [{ id: 'eng-new', name: 'New Team', value: 42 }] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children![3].value).toBe(42);
+            expect(ds.data.length).toBe(3);
         });
     });
 
