@@ -1642,7 +1642,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const navigatorModule: any = this.modulesManager.getModule('navigator');
 
-        if (this.hasViewportSupport()) {
+        if (!this.hasViewportSupport()) {
             // reset zoom to initial state
             this.ctx.zoomManager.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
