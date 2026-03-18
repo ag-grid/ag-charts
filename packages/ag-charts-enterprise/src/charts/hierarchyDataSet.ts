@@ -166,11 +166,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             }
         }
 
-        if (idsToRemove.size > 0) {
-            Logger.warnOnce(
-                'applyTransaction() remove includes items not present in current data; ignoring missing items.'
-            );
-        }
+        // No warning for hierarchy datasets: items may have been manually removed from
+        // nested children arrays before the transaction commits (expected usage pattern).
     }
 
     /** Walks the tree to find and replace a nested item by ID. Returns true if found. */

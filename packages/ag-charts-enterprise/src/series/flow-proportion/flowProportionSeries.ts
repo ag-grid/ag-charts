@@ -326,7 +326,7 @@ export abstract class FlowProportionSeries<
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: nodeIdValue != null ? `node-${nodeIdValue}` : `node-${datumIndex}`,
+                        itemId: nodeIdValue != null ? String(nodeIdValue) : `node-${datumIndex}`,
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -416,7 +416,7 @@ export abstract class FlowProportionSeries<
 
                 const link = createLink({
                     series: this,
-                    itemId: linkIdValue != null ? `link-${linkIdValue}` : `link-${datumIndex}`,
+                    itemId: linkIdValue != null ? String(linkIdValue) : `link-${datumIndex}`,
                     datum,
                     datumIndex: linkNodeDatumIndex,
                     type: FlowProportionDatumType.Link,
