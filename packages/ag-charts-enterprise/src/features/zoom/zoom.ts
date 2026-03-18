@@ -349,7 +349,9 @@ export class Zoom extends AbstractModuleInstance {
                 return;
         }
 
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
+        }
         eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
@@ -563,9 +565,9 @@ export class Zoom extends AbstractModuleInstance {
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
         const { enabled, enableScrolling, scroller } = this;
-        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
-        if (!isDefaultState || !enabled || !enableScrolling) return;
+        if (!isFocusableState || !enabled || !enableScrolling) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
         this.updateZoom(
@@ -576,9 +578,9 @@ export class Zoom extends AbstractModuleInstance {
 
     private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
         const { enabled } = this;
-        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
-        if (!isDefaultState || !enabled) return;
+        if (!isFocusableState || !enabled) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
         const zoom = this.getZoom();
@@ -775,14 +777,16 @@ export class Zoom extends AbstractModuleInstance {
         const {
             panner,
             seriesRect,
-            ctx: { tooltipManager, zoomManager },
+            ctx: { tooltipManager, zoomManager, interactionManager },
         } = this;
 
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
         this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
+        }
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {

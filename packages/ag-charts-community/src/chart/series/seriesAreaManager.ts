@@ -6,6 +6,7 @@ import type {
     ActiveLoadMementoEvent,
     HighlightChangeEvent,
     HighlightNodeDatum,
+    HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
@@ -103,6 +104,19 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
+function computeHighlightInViewport(
+    highlightSelection: HighlightSelectionUpdatedEvent['highlightSelection'],
+    viewport: BBox
+): boolean {
+    for (const highlightSelectionEntry of highlightSelection) {
+        const highlightBBox = Transformable.toCanvas(highlightSelectionEntry.node);
+        if (highlightBBox.intersectsWith(viewport)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export class SeriesAreaManager extends BaseManager {
     static readonly className = 'SeriesAreaManager';
     readonly id = createId(this);
@@ -133,6 +147,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly activeState = {
         lastActive: undefined as Required<Pick<AgActiveItemState, 'seriesId' | 'itemId'>> | undefined | 'legend',
+        highlightInViewport: true,
     };
 
     /**
@@ -217,6 +232,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('dom:resize', () => this.onResize()),
             chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
+            chart.ctx.eventsHub.on('highlight:selection-updated', (event) => this.onHighlightSelectionUpdate(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
@@ -1106,8 +1122,13 @@ export class SeriesAreaManager extends BaseManager {
                     this.clearStaleHighlightTooltip();
                 } else if (refPoint) {
                     const { canvasX, canvasY } = refPoint;
-                    this.chart.ctx.highlightManager.updateHighlight(this.id, active);
-                    this.showTooltip(active, canvasX, canvasY, paginationState);
+                    const inViewport = this.activeState.highlightInViewport;
+                    this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, inViewport);
+                    if (inViewport) {
+                        this.showTooltip(active, canvasX, canvasY, paginationState);
+                    } else {
+                        this.clearTooltip();
+                    }
                 }
             }
         });
@@ -1243,6 +1264,22 @@ export class SeriesAreaManager extends BaseManager {
                 clearCallbackCache: true,
             });
         }
+    }
+
+    private onHighlightSelectionUpdate(event: HighlightSelectionUpdatedEvent): void {
+        // When the chart is frozen, we want the chart to automatically remove the crosshair & tooltip when the frozen
+        // active datum leaves the viewport (e.g. if user zoom/pans the view). Checking whether the highlighted node
+        // intersects with the viewport is an expensive computation, but we only need to do this on frozen charts.
+        if (!this.isState(InteractionState.Frozen) || !this.seriesRect) {
+            this.activeState.highlightInViewport = true;
+            return;
+        }
+        if (event.highlightSelection.length === 0) {
+            return;
+        }
+
+        const highlightInViewport: boolean = computeHighlightInViewport(event.highlightSelection, this.seriesRect);
+        this.activeState.highlightInViewport = highlightInViewport;
     }
 
     private pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNodes | undefined {

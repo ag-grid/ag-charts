@@ -31,6 +31,8 @@ import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legen
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { UpdateOpts } from '../chart/updateService';
 import type { BBox } from '../scene/bbox';
+import type { Node } from '../scene/node';
+import type { Selection } from '../scene/selection';
 import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
@@ -92,6 +94,7 @@ export interface EventsHubMap {
     'dom:resize': null;
     'font:load': null;
     'highlight:change': HighlightChangeEvent;
+    'highlight:selection-updated': HighlightSelectionUpdatedEvent;
     'layout:complete': LayoutCompleteEvent;
     'legend:change': LegendChangeEvent;
     'legend:change-partial': LegendChangePartialEvent;
@@ -201,6 +204,11 @@ export interface HighlightChangeEvent {
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
     readonly highlightSuppressed: boolean;
+    readonly highlightInViewport: boolean;
+}
+
+export interface HighlightSelectionUpdatedEvent {
+    readonly highlightSelection: Selection<Node<unknown>, unknown>;
 }
 
 export interface LayoutCompleteEvent {

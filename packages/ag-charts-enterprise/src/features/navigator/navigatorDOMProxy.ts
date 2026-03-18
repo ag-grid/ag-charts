@@ -142,6 +142,7 @@ export class NavigatorDOMProxy {
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
         this.moveToFront(index); // AG-13780
         event.sourceEvent.preventDefault();
+        slider.focus();
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 

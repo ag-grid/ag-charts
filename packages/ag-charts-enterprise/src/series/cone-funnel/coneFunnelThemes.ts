@@ -4,7 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    SAFE_RANGE2_OPERATION,
+    SAFE_FILLS_OPERATION,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -18,7 +18,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                         { $palette: 'secondSequentialColors' },
-                        SAFE_RANGE2_OPERATION,
+                        SAFE_FILLS_OPERATION,
                     ],
                 },
                 {
@@ -39,7 +39,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                         { $palette: 'secondSequentialColors' },
-                        SAFE_RANGE2_OPERATION,
+                        { $palette: 'strokes' },
                     ],
                 },
             ],

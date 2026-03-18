@@ -311,6 +311,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return true;
     }
 
+    protected createDataSet(data: unknown[]): DataSet {
+        return new DataSet(data, this.dataIdKey);
+    }
+
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
@@ -432,7 +436,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
-                this.data = new DataSet(event.data, this.dataIdKey);
+                this.data = this.createDataSet(event.data);
             }),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
@@ -1590,6 +1594,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // AG-16389: Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
         const userExplicitlyPassedData = userDeltaKeys === undefined || userDeltaKeys.has('data');
+        let dataSetRecreated = false;
         if (deltaOptions.data && userExplicitlyPassedData) {
             // Always create a new DataSet for updateDelta to ensure cache invalidation.
             // Only clone when we still hold the caller's array reference (updateDelta fast path).
@@ -1597,14 +1602,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             const userOptionsData = newChartOptions.userOptions.data;
             const needsClone = Array.isArray(suppliedData) && suppliedData !== userOptionsData;
             const dataForDataSet = needsClone ? suppliedData.slice() : suppliedData;
-            this.data = new DataSet(dataForDataSet, this.dataIdKey);
+            this.data = this.createDataSet(dataForDataSet);
+            dataSetRecreated = true;
         }
         if (
             'dataIdKey' in deltaOptions &&
             !(deltaOptions.data && userExplicitlyPassedData) &&
             this.data.dataIdKey !== this.dataIdKey
         ) {
-            this.data = new DataSet(this.data.data, this.dataIdKey);
+            this.data = this.createDataSet(this.data.data);
+            dataSetRecreated = true;
+        }
+        if (seriesStatus === 'replaced' && !dataSetRecreated) {
+            // Series type changed without a data change — recreate DataSet so subclass
+            // overrides (e.g. HierarchyDataSet for treemap) are installed.
+            this.data = this.createDataSet(this.data.data);
         }
         if (
             'legend' in deltaOptions &&

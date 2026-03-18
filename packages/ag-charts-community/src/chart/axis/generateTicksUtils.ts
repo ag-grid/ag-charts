@@ -1,5 +1,6 @@
 import {
     type BoxBounds,
+    EllipsisChar,
     type ITextMeasurer,
     type Scale,
     ScaleAlignment,
@@ -195,7 +196,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     const ticks: TickDatum[] = [];
 
     withTemporaryDomain(scale, niceDomain, () => {
-        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth ?? Infinity : Infinity;
+        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth || Infinity : Infinity;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const axisFormatter = axisTickFormatter(
             label.enabled,
@@ -236,6 +237,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
                 wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
+                if (wrappedLabel === EllipsisChar) {
+                    wrappedLabel = null;
+                }
             }
 
             const tickLabel = wrappedLabel ?? inputText;

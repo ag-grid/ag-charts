@@ -747,6 +747,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         });
 
         this.animationState.transition('highlight', highlightSelection);
+        this.ctx.eventsHub.emit('highlight:selection-updated', { highlightSelection });
 
         const { dataNodeGroup, labelSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};

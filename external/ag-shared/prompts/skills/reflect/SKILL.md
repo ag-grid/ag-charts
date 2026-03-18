@@ -58,9 +58,17 @@ Large rules loaded that were irrelevant to the task. Skills auto-triggered when 
 
 #### Permission and Configuration Issues
 
-Tool calls denied that should have been allowed. MCP servers unavailable when needed. Hooks blocked a legitimate workflow.
+Tool calls denied that should have been allowed. MCP servers unavailable when needed. Hooks blocked a legitimate workflow. Commands that were manually approved repeatedly that could be pre-allowed.
 
 **Likely root cause**: `.claude-settings.json` gaps, MCP config issues, hook logic too strict.
+
+**Permission recommendations**: When recommending new permissions, assess the risk level:
+
+-   **Low risk** (recommend adding): Read-only commands (`gh run view`, `gh workflow list`, `ls`, `cat`), build/test commands already part of the standard workflow (`yarn nx test`, `yarn nx lint`), and commands that were approved multiple times during the conversation.
+-   **Medium risk** (recommend with caveat): Commands that modify local state but are reversible (`git checkout`, `yarn install`), or commands scoped to specific tools/patterns.
+-   **High risk** (flag but don't recommend auto-adding): Commands with broad write access (`rm`, `git push`), wildcard patterns that could match destructive operations, or commands that interact with external services beyond read access.
+
+Only recommend adding permissions that were actually used or denied during the conversation — do not speculatively suggest permissions.
 
 #### Missing Capabilities
 
@@ -146,10 +154,13 @@ Present findings using this structure:
 
 ## Recommended Changes
 
-| #   | File                            | Change                     | Severity |
-| --- | ------------------------------- | -------------------------- | -------- |
-| 1   | `.rulesync/rules/foo.md`        | Add section on X           | High     |
-| 2   | `.rulesync/skills/bar/SKILL.md` | Narrow description trigger | Medium   |
+| #   | File                            | Change                     | Severity | Risk |
+| --- | ------------------------------- | -------------------------- | -------- | ---- |
+| 1   | `.rulesync/rules/foo.md`        | Add section on X           | High     | —    |
+| 2   | `.rulesync/skills/bar/SKILL.md` | Narrow description trigger | Medium   | —    |
+| 3   | `.claude-settings.json`         | Add `Bash(gh run view:*)`  | Low      | Low  |
+
+_For permission changes, the Risk column indicates how dangerous the permission is to grant (Low/Medium/High). See Phase 1 § Permission and Configuration Issues for risk classification criteria._
 
 ## New Capabilities Needed
 
