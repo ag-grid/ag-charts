@@ -104,30 +104,18 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     protected readonly cleanup = new CleanupRegistry();
 
-    private readonly container: HTMLElement;
-    private readonly dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
-    private readonly buttonsToolbar: _ModuleSupport.BaseToolbar;
-    private readonly dropdownToolbar: _ModuleSupport.BaseToolbar;
+    private container?: HTMLElement;
+    private dropdownMenu?: _ModuleSupport.Menu;
+    private buttonsToolbar?: _ModuleSupport.BaseToolbar;
+    private dropdownToolbar?: _ModuleSupport.BaseToolbar;
 
     private isDropdown?: boolean;
+    private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.container = ctx.domManager.addChild('canvas-overlay', 'range-buttons');
-        this.container.role = 'presentation';
-
-        this.buttonsToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
-        this.buttonsToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--buttons');
-        this.container.append(this.buttonsToolbar.getElement());
-
-        this.dropdownToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
-        this.dropdownToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--dropdown');
-        this.container.append(this.dropdownToolbar.getElement());
-
         this.cleanup.register(
-            this.buttonsToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
-            this.dropdownToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
@@ -139,25 +127,52 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.cleanup.flush();
     }
 
-    private teardown() {
-        this.buttonsToolbar.getElement().remove();
-        this.buttonsToolbar.destroy();
+    private setup() {
+        if (this.container != null) return;
 
-        this.dropdownToolbar.getElement().remove();
-        this.dropdownToolbar.destroy();
+        this.container = this.ctx.domManager.addChild('canvas-overlay', 'range-buttons');
+        this.container.role = 'presentation';
+
+        this.buttonsToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
+        this.buttonsToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--buttons');
+        this.container.append(this.buttonsToolbar.getElement());
+
+        this.dropdownToolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
+        this.dropdownToolbar.addClass('ag-charts-range-buttons', 'ag-charts-range-buttons--dropdown');
+        this.container.append(this.dropdownToolbar.getElement());
+
+        this.dropdownMenu = new _ModuleSupport.Menu(this.ctx, 'ranges-dropdown');
+
+        this.cleanup.register(
+            this.buttonsToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
+            this.dropdownToolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this))
+        );
+    }
+
+    private teardown() {
+        this.buttonsToolbar?.getElement().remove();
+        this.buttonsToolbar?.destroy();
+
+        this.dropdownToolbar?.getElement().remove();
+        this.dropdownToolbar?.destroy();
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { dropdown, enabled, position, spacing, buttonsToolbar, dropdownToolbar } = this;
+        const { dropdown, enabled, position, spacing } = this;
 
         if (!enabled) {
-            buttonsToolbar.setHidden(true);
-            dropdownToolbar.setHidden(true);
+            this.buttonsToolbar?.setHidden(true);
+            this.dropdownToolbar?.setHidden(true);
             return;
         }
 
+        this.setup();
+
+        const { buttonsToolbar, dropdownToolbar } = this;
+        if (!buttonsToolbar || !dropdownToolbar) return;
+
         buttonsToolbar.updateButtons(this.buttons);
-        dropdownToolbar.updateButtons([this.getDropdownButtonOptions(DEFAULT_DROPDOWN_LABEL)]);
+        dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
 
         this.updateCSSVariables();
 
@@ -182,9 +197,8 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, dropdown, dropdownMenu, enabled, buttonsToolbar, dropdownToolbar } = this;
-
-        if (!enabled) return;
+        const { buttons, buttonsToolbar, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
+        if (!enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
 
         let bounds: BoxBounds | undefined;
 
@@ -237,9 +251,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     private updateCSSVariables() {
         if (this.gap > 0) {
-            this.buttonsToolbar.addClass('ag-charts-range-buttons--gapped');
+            this.buttonsToolbar?.addClass('ag-charts-range-buttons--gapped');
         } else {
-            this.buttonsToolbar.removeClass('ag-charts-range-buttons--gapped');
+            this.buttonsToolbar?.removeClass('ag-charts-range-buttons--gapped');
         }
 
         const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
@@ -323,7 +337,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onZoomChanged() {
-        this.buttonsToolbar.clearActiveButton();
+        this.buttonsToolbar?.clearActiveButton();
 
         if (this.isDropdown) {
             this.resetDropdownButton();
@@ -342,31 +356,32 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         if (this.isDropdown) return;
         this.isDropdown = true;
 
-        this.buttonsToolbar.setHidden(true);
-        this.dropdownToolbar.setHidden(false);
+        this.buttonsToolbar?.setHidden(true);
+        this.dropdownToolbar?.setHidden(false);
     }
 
     private swapDropdownOut() {
         if (this.isDropdown === false) return;
         this.isDropdown = false;
 
-        this.buttonsToolbar.setHidden(false);
-        this.dropdownToolbar.setHidden(true);
-        this.buttonsToolbar.clearActiveButton();
-        this.dropdownMenu.hide();
+        this.buttonsToolbar?.setHidden(false);
+        this.dropdownToolbar?.setHidden(true);
+        this.buttonsToolbar?.clearActiveButton();
+        this.dropdownMenu?.hide();
     }
 
     private resetDropdownButton() {
-        this.dropdownToolbar.updateButtonByIndex(0, this.getDropdownButtonOptions(DEFAULT_DROPDOWN_LABEL));
+        this.dropdownToolbar?.updateButtonByIndex(0, this.getDropdownButtonOptions(DEFAULT_DROPDOWN_LABEL));
     }
 
     private getDropdownButtonOptions(label: string) {
+        this.dropdownLabel = label;
         return { label, value: Infinity, icon: 'chevron-filled-down', iconPosition: 'after' } as const;
     }
 
     private showDropdownMenu() {
-        const buttonWidget = this.dropdownToolbar.getButtonWidget(0);
-        if (!buttonWidget) return;
+        const buttonWidget = this.dropdownToolbar?.getButtonWidget(0);
+        if (!this.dropdownToolbar || !this.dropdownMenu || !buttonWidget) return;
 
         this.dropdownToolbar.toggleActiveButtonByIndex(0);
 
@@ -385,13 +400,13 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             onPress: (item) => {
                 const index = Number(item.value);
                 this.updateZoomWithButtonIndex(index);
-                this.dropdownToolbar.updateButtonByIndex(
+                this.dropdownToolbar?.updateButtonByIndex(
                     0,
                     this.getDropdownButtonOptions(item.label ?? DEFAULT_DROPDOWN_LABEL)
                 );
             },
             onHide: () => {
-                this.dropdownToolbar.clearActiveButton();
+                this.dropdownToolbar?.clearActiveButton();
             },
         });
     }
@@ -413,7 +428,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
 
-        this.buttonsToolbar.toggleActiveButtonByIndex(index);
+        this.buttonsToolbar?.toggleActiveButtonByIndex(index);
     }
 
     private getUpdateWithFn(value: AgRangesButtonValue): {
