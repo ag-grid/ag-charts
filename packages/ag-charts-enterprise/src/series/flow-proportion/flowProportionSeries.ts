@@ -322,11 +322,11 @@ export abstract class FlowProportionSeries<
                     const label: string | undefined = labelValues?.[datumIndex];
 
                     const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
-                    const nodeIdValue = nodeDataIdKey != null ? (datum as any)[nodeDataIdKey] : undefined;
+                    const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: nodeIdValue != null ? String(nodeIdValue) : `node-${datumIndex}`,
+                        itemId: nodeIdValue == null ? `node-${datumIndex}` : String(nodeIdValue),
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -412,11 +412,11 @@ export abstract class FlowProportionSeries<
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
                 const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
-                const linkIdValue = dataIdKey != null ? (datum as any)[dataIdKey] : undefined;
+                const linkIdValue = dataIdKey == null ? undefined : (datum as any)[dataIdKey];
 
                 const link = createLink({
                     series: this,
-                    itemId: linkIdValue != null ? String(linkIdValue) : `link-${datumIndex}`,
+                    itemId: linkIdValue == null ? `link-${datumIndex}` : String(linkIdValue),
                     datum,
                     datumIndex: linkNodeDatumIndex,
                     type: FlowProportionDatumType.Link,

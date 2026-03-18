@@ -15,7 +15,7 @@ export class StandaloneChart extends Chart {
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
         for (const series of this.series) {
             if ('childrenKey' in series.properties) {
-                return new HierarchyDataSet(data, this.dataIdKey, (series.properties as any).childrenKey);
+                return new HierarchyDataSet(data, this.dataIdKey, series.properties.childrenKey);
             }
         }
         return super.createDataSet(data);

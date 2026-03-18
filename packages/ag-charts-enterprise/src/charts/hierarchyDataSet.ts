@@ -106,11 +106,9 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
                     state.updatedOriginalIndices.add(idx);
                     state.pendingReplacements ??= new Map();
                     state.pendingReplacements.set(id, newDatum);
-                } else {
+                } else if (this.replaceNestedItem(rootItem, id, newDatum)) {
                     // Nested item: walk tree and replace in-place
-                    if (this.replaceNestedItem(rootItem, id, newDatum)) {
-                        state.updatedOriginalIndices.add(idx);
-                    }
+                    state.updatedOriginalIndices.add(idx);
                 }
                 toUpdate.delete(id);
             }
@@ -155,11 +153,9 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
                         // Root-level: mark for removal
                         state.removedOriginalIndices.add(idx);
                         state.virtualLength--;
-                    } else {
+                    } else if (this.removeNestedItem(rootItem, id)) {
                         // Nested: walk tree and splice in-place, mark root as updated
-                        if (this.removeNestedItem(rootItem, id)) {
-                            state.updatedOriginalIndices.add(idx);
-                        }
+                        state.updatedOriginalIndices.add(idx);
                     }
                     idsToRemove.delete(id);
                 }
