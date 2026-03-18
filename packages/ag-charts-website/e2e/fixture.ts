@@ -20,6 +20,23 @@ const LOCATOR_ACTIONS = new Set([
     'dragTo',
 ]);
 
+const LOCATOR_FACTORIES = new Set([
+    'first',
+    'last',
+    'nth',
+    'locator',
+    'getByText',
+    'getByRole',
+    'getByLabel',
+    'getByPlaceholder',
+    'getByTestId',
+    'getByTitle',
+    'getByAltText',
+    'filter',
+    'and',
+    'or',
+]);
+
 async function waitForCharts(page: Page) {
     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
         await waitForChartUpdate(locator);
@@ -58,15 +75,15 @@ function stableLocator(page: Page, locator: any): any {
                 };
             }
 
-            // For non-action methods, call normally but wrap Locator return values
-            // to propagate stability through chaining (e.g. page.locator('.foo').getByText('bar').click()).
-            return function (...args: unknown[]) {
-                const result = target[prop].apply(target, args);
-                if (result != null && typeof result === 'object' && typeof result.click === 'function') {
-                    return stableLocator(page, result);
-                }
-                return result;
-            };
+            if (LOCATOR_FACTORIES.has(prop as string)) {
+                return function (...args: unknown[]) {
+                    return stableLocator(page, target[prop].apply(target, args));
+                };
+            }
+
+            // Pass through all other methods unchanged to preserve Playwright's
+            // internal type checks (e.g. expect(locator).toBeVisible()).
+            return value.bind(target);
         },
     });
 }
