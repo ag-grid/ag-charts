@@ -2129,7 +2129,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private needsViewportSupport(options: {
         [Module in 'navigator' | 'zoom' | 'scrollbar']?: { enabled?: boolean };
     }): boolean {
-        return !!(options.navigator?.enabled || options.zoom?.enabled || options.scrollbar?.enabled);
+        return !!options.navigator?.enabled || !!options.zoom?.enabled || !!options.scrollbar?.enabled;
     }
 
     public hasViewportSupport(): boolean {
