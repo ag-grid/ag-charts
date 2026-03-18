@@ -1044,7 +1044,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const defaultScale = properties.defaultScale;
         const {
             enabled,
-            color,
+            color = defaultScale.label.color,
             fontFamily = defaultScale.label.fontFamily,
             fontSize = defaultScale.label.fontSize,
             fontStyle,
