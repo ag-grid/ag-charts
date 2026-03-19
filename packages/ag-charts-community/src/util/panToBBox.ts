@@ -47,7 +47,7 @@ function needsScaling(scaling: NeedsScaling): boolean {
    1)  worldMin <= viewportMin <= viewportMax <= worldMax
    2)  (viewportMax - viewportMin) >= (targetMax - targetMin)
 */
-function panAxesUnnormalized(
+function panAxisUnnormalized(
     worldMin: number,
     worldMax: number,
     viewportMin: number,
@@ -102,8 +102,8 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
     const viewport = Vec4.from(viewportBBox);
     const world = calcWorldVec4(viewport, ratioX, ratioY);
 
-    const x = panAxesUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2);
-    const y = panAxesUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2);
+    const x = panAxisUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2);
+    const y = panAxisUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2);
 
     const result: XYRatios = {
         x: scaleRequirements.x
@@ -172,8 +172,8 @@ export function calcPanToBBoxRatiosScaleProportionally(
 
     const world = calcWorldVec4(scaledViewport, ratioX, ratioY);
 
-    const x = panAxesUnnormalized(world.x1, world.x2, scaledViewport.x1, scaledViewport.x2, target.x1, target.x2);
-    const y = panAxesUnnormalized(world.y1, world.y2, scaledViewport.y1, scaledViewport.y2, target.y1, target.y2);
+    const x = panAxisUnnormalized(world.x1, world.x2, scaledViewport.x1, scaledViewport.x2, target.x1, target.x2);
+    const y = panAxisUnnormalized(world.y1, world.y2, scaledViewport.y1, scaledViewport.y2, target.y1, target.y2);
 
     const result: XYRatios = {
         x: {
