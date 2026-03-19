@@ -470,7 +470,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     public updateWith(
         { source, sourceDetail }: UpdateZoomSourcing,
         direction: CartesianAxisDirection,
-        fn: UpdateZoomWithFunction
+        fn: UpdateZoomWithFunction,
+        fnSource: AgRangesButtonValueSource = 'user-interaction'
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
@@ -485,13 +486,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(
-            domainStart,
-            domainEnd,
-            windowStart as Date | number,
-            windowEnd as Date | number,
-            'user-interaction'
-        );
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, fnSource);
         if (!this.isValidUpdateWithResult(result)) {
             return;
         }
@@ -503,7 +498,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public isValidUpdateWith(direction: CartesianAxisDirection, fn: UpdateZoomWithFunction) {
+    public isValidUpdateWith(
+        direction: CartesianAxisDirection,
+        fn: UpdateZoomWithFunction,
+        fnSource: AgRangesButtonValueSource = 'range-check'
+    ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return true;
 
@@ -517,13 +516,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(
-            domainStart,
-            domainEnd,
-            windowStart as Date | number,
-            windowEnd as Date | number,
-            'range-check'
-        );
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, fnSource);
         if (!this.isValidUpdateWithResult(result)) {
             return false;
         }

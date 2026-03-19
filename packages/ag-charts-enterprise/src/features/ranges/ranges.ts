@@ -425,7 +425,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         if (updateWithFn.valid === false || updateWithFn.fn == null) {
             zoomManager.resetZoom(sourcing);
         } else {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
+            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn, 'user-interaction');
         }
 
         this.buttonsToolbar?.toggleActiveButtonByIndex(index);
@@ -477,7 +477,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             if (updateWithFn.valid === false) return false;
 
             buttonEnabled =
-                updateWithFn.fn == null ? true : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn);
+                updateWithFn.fn == null
+                    ? true
+                    : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn, 'range-check');
         }
 
         return buttonEnabled;
