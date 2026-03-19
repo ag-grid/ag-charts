@@ -11,6 +11,7 @@ import {
     definedZoomState,
     isFiniteNumber,
     isObject,
+    isValidDate,
     strictObjectKeys,
     validate,
 } from 'ag-charts-core';
@@ -477,7 +478,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const [start, end] = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        if (!this.isValidUpdateWithResult(result)) {
+            return;
+        }
+        const [start, end] = result;
 
         const ratio = this.rangeToRatioAxis(axis, { start, end });
         if (!ratio) return;
@@ -499,7 +504,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const [start, end] = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        if (!this.isValidUpdateWithResult(result)) {
+            return false;
+        }
+
+        const [start, end] = result;
 
         let valid = true;
         if (start != null) {
@@ -861,5 +871,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
         return [d0, d1];
+    }
+
+    private isValidUpdateWithResult(result: unknown): result is [Date | number | undefined, Date | number | undefined] {
+        if (result == null) return false;
+        if (!Array.isArray(result)) return false;
+        if (result.length < 1) return false;
+        return result.every((r) => r == null || typeof r === 'number' || isValidDate(r));
     }
 }
