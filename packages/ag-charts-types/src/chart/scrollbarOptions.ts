@@ -57,9 +57,17 @@ export interface AgScrollbarVerticalOrientationOptions extends AgScrollbarBaseOp
 }
 
 export interface AgScrollbarOptions extends AgScrollbarBaseOptions {
-    /** */
+    /**
+     * Whether scrolling on the axis should scroll the scrollbar.
+     *
+     * Default: `false`
+     */
     enableAxisScrolling?: boolean;
-    /** */
+    /**
+     * Whether scrolling on the series area should scroll the scrollbar.
+     *
+     * Default: `false`
+     */
     enableSeriesAreaScrolling?: boolean;
     /** Options applied to the horizontal scrollbar. */
     horizontal?: AgScrollbarHorizontalOrientationOptions;
