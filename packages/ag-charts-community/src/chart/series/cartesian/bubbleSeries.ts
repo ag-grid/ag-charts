@@ -298,7 +298,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
             sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
-        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
+        const rawSizeValue = sizeValues?.[index];
+        const sizeValue =
+            rawSizeValue == null || !Number.isFinite(rawSizeValue) ? size : sizeScale.convert(rawSizeValue);
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
     }
@@ -309,7 +311,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
             sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
-        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
+        const rawSizeValue = sizeValues?.[index];
+        const sizeValue =
+            rawSizeValue == null || !Number.isFinite(rawSizeValue) ? size : sizeScale.convert(rawSizeValue);
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
     }
@@ -695,8 +699,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             nodeLabel = { text: '', width: 0, height: 0 };
         }
 
-        // Compute marker size
-        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convert(sizeValue);
+        // Compute marker size (use default for null/undefined/NaN size values)
+        const markerSize =
+            sizeValue == null || !Number.isFinite(sizeValue)
+                ? ctx.sizeScale.range[0]
+                : ctx.sizeScale.convert(sizeValue);
 
         // Populate scratch object
         scratch.datum = datum;
@@ -1189,8 +1196,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            // Only add size row if value is not null/undefined
-            if (value != null) {
+            // Only add size row if value is valid (not null/undefined/NaN)
+            if (value != null && Number.isFinite(value)) {
                 const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
                 const content = formatManager.format(this.callWithContext.bind(this), {
                     type: 'number',

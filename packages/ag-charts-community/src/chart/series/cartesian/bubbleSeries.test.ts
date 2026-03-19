@@ -961,6 +961,40 @@ describe('BubbleSeries', () => {
         });
     });
 
+    describe('AG-16915 NaN size values', () => {
+        it('should render without errors when size data contains NaN', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 1, y: 2, size: 10 },
+                    { x: 2, y: 3, size: Number.NaN },
+                    { x: 3, y: 4, size: 20 },
+                    { x: 4, y: 5, size: undefined },
+                    { x: 5, y: 6, size: 15 },
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', maxSize: 40 }],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [number] for [BubbleSeries-1 / sizeValue] ignored:",
+    "[NaN]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [BubbleSeries-1 / sizeValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+    });
+
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
             create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
