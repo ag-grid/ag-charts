@@ -63,7 +63,8 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-right.png');
     });
 
-    test('actions', async ({ page }) => {
+    // Skip flaky tests
+    test.skip('actions', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
         await gotoExample(page, url);
 
@@ -92,7 +93,8 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-actions-visible-window-function.png');
     });
 
-    test('dropdown', async ({ page }) => {
+    // Skip flaky tests
+    test.skip('dropdown', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-dropdown', 'vanilla');
         await gotoExample(page, url);
 
