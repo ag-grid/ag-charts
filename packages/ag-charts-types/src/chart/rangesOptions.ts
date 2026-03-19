@@ -79,9 +79,11 @@ export type AgRangesButtonValue =
     | undefined;
 
 export type AgRangesButtonValuePair = [Date | number, Date | number];
+export type AgRangesButtonValueSource = 'user-interaction' | 'range-check';
 export type AgRangesButtonValueFunction = (
     start: Date | number,
     end: Date | number,
     windowStart: Date | number,
-    windowEnd: Date | number
-) => [Date | number, Date | number];
+    windowEnd: Date | number,
+    source: AgRangesButtonValueSource
+) => [Date | number | undefined, Date | number | undefined];

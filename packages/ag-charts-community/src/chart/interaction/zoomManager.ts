@@ -28,7 +28,7 @@ import type {
     ZoomMinMax,
     ZoomState,
 } from 'ag-charts-core';
-import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgRangesButtonValueSource, AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
     EventsHub,
@@ -104,7 +104,8 @@ export type UpdateZoomWithFunction = (
     start: Date | number,
     end: Date | number,
     windowStart: Date | number,
-    windowEnd: Date | number
+    windowEnd: Date | number,
+    source: AgRangesButtonValueSource
 ) => [Date | number | undefined, Date | number | undefined];
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -478,7 +479,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        const result = fn(
+            domainStart,
+            domainEnd,
+            windowStart as Date | number,
+            windowEnd as Date | number,
+            'user-interaction'
+        );
         if (!this.isValidUpdateWithResult(result)) {
             return;
         }
@@ -504,7 +511,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
+        const result = fn(
+            domainStart,
+            domainEnd,
+            windowStart as Date | number,
+            windowEnd as Date | number,
+            'range-check'
+        );
         if (!this.isValidUpdateWithResult(result)) {
             return false;
         }

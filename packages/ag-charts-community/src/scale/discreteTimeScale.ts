@@ -23,6 +23,7 @@ export function checkUniformityBySampling(
 ): UniformityCheck {
     const n = endIdx - startIdx + 1;
     if (n < 2) return { isUniform: false };
+    if (startIdx < 0 || endIdx >= bands.length) return { isUniform: false };
 
     // Sample SAMPLE_POINTS points evenly spaced within the range
     const indices = Array.from(
