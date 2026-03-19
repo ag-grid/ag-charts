@@ -403,6 +403,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
         this.dropdownMenu.show(buttonWidget, {
             items: menuItems,
+            minWidth: this.dropdownMinWidth,
             onPress: (item) => {
                 const index = Number(item.value);
                 this.updateZoomWithButtonIndex(index);

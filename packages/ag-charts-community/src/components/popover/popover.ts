@@ -15,6 +15,7 @@ export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
     initialFocus?: HTMLElement;
+    minWidth?: number;
     sourceEvent?: Event;
     onHide?: () => void;
 }
@@ -93,6 +94,10 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
 
         if (options.class != null) {
             popover.classList.add(options.class);
+        }
+
+        if (options.minWidth != null) {
+            popover.style.minWidth = `${options.minWidth}px`;
         }
 
         this.element.replaceChildren(popover);
