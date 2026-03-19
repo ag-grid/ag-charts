@@ -1485,7 +1485,9 @@ export class SeriesAreaManager extends BaseManager {
 
         const desiredDatum: PickedNode | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
-            Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
+            if (desiredSeries.visible) {
+                Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
+            }
             return undefined;
         }
 
