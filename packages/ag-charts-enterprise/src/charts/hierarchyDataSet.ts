@@ -69,6 +69,9 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             for (let i = 0; i < this.data.length; i++) {
                 this.indexItemRecursively(this.data[i], i);
             }
+            if (this.idToIndexCache.size === 0 && this.data.length > 0) {
+                Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
+            }
         }
         return this.idToIndexCache;
     }

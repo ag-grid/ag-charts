@@ -2127,6 +2127,40 @@ describe('DataSet', () => {
             });
         });
 
+        test('warns when dataIdKey field is not found on any data item', () => {
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'nonExistent');
+            dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
+            dataSet.commitPendingTransactions();
+            expectWarningMessages([
+                "AG Charts - dataIdKey 'nonExistent' was not found on any data item.",
+                'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
+            ]);
+        });
+
+        test('does not warn when dataIdKey field exists on data items', () => {
+            const newA: Item = { id: 'a', value: 10 };
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            dataSet.addTransaction({ update: [newA] });
+            dataSet.commitPendingTransactions();
+            expect(dataSet.data[0]).toBe(newA);
+            expectWarningMessages([]);
+        });
+
+        test('does not warn when data is empty', () => {
+            const dataSet = new DataSet<Item>([], 'id');
+            dataSet.addTransaction({ append: [{ id: 'a', value: 10 }] });
+            dataSet.commitPendingTransactions();
+            expectWarningMessages([]);
+        });
+
+        test('does not warn when dataIdKey is not set', () => {
+            const items = [{ ...a }, { ...b }, { ...c }];
+            const dataSet = new DataSet<Item>(items);
+            dataSet.addTransaction({ update: [items[0]] });
+            dataSet.commitPendingTransactions();
+            expectWarningMessages([]);
+        });
+
         test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
 
