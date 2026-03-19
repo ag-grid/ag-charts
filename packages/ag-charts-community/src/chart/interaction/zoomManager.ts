@@ -501,7 +501,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     public isValidUpdateWith(
         direction: CartesianAxisDirection,
         fn: UpdateZoomWithFunction,
-        fnSource: AgRangesButtonValueSource = 'range-check'
+        fnSource: AgRangesButtonValueSource
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return true;
