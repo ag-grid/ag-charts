@@ -95,7 +95,7 @@ export function calcPanToBBoxRatios(
     }
 }
 
-export function calcPanToBBoxRatiosWithScaling(
+function calcPanToBBoxRatiosWithScaling(
     assignToViewport: NeedsScaling,
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
@@ -139,7 +139,7 @@ export function calcPanToBBoxRatiosWithScaling(
     return result;
 }
 
-export function calcPanToBBoxRatiosNoScale(
+function calcPanToBBoxRatiosNoScale(
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
@@ -147,7 +147,7 @@ export function calcPanToBBoxRatiosNoScale(
     return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, viewportBBox, ratios, targetBBox);
 }
 
-export function calcPanToBBoxRatiosScaleDisproportionally(
+function calcPanToBBoxRatiosScaleDisproportionally(
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
@@ -156,7 +156,7 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
     return calcPanToBBoxRatiosWithScaling(scaling, viewportBBox, ratios, targetBBox);
 }
 
-export function calcPanToBBoxRatiosScaleProportionally(
+function calcPanToBBoxRatiosScaleProportionally(
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
