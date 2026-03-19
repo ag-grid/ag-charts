@@ -81,6 +81,7 @@ export * from './state/proxy';
 export * from './utils/data/strings';
 export * from './state/stateMachine';
 export * from './rendering/textMeasurer';
+export * from './utils/dom/blobUrl';
 export * from './utils/dom/domElements';
 export * from './utils/dom/domEvents';
 export * from './utils/dom/globalsProxy';

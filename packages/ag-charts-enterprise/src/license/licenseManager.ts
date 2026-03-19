@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { dataUriToObjectURL } from 'ag-charts-core';
+
 import { MD5 } from './md5';
 
 // move to general utils
@@ -210,7 +212,7 @@ export class LicenseManager {
         return {
             text,
             image: {
-                url: WATERMARK_SVG_DATA_URL,
+                url: dataUriToObjectURL(WATERMARK_SVG_DATA_URL),
                 width: 170,
                 height: 25,
                 right: 25,

@@ -8,6 +8,7 @@ import {
     isDirectionRtl,
     isDocumentFragment,
     kebabCase,
+    processCssDataUris,
     setAttribute,
     stopPageScrolling,
 } from 'ag-charts-core';
@@ -679,7 +680,7 @@ export class DOMManager extends BaseManager {
         if (styleElement == null || checkId(styleElement)) return;
 
         styleElement.setAttribute(dataAttribute, id);
-        styleElement.innerHTML = styles;
+        styleElement.innerHTML = processCssDataUris(styles);
     }
 
     removeStyles(id: string) {
