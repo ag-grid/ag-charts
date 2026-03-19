@@ -126,7 +126,7 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
                   min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x),
                   max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x + viewportBBox.width),
               },
-        y: scaleRequirements.x
+        y: scaleRequirements.y
             ? {
                   min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y1),
                   max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y2),
