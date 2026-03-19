@@ -91,7 +91,7 @@ export function calcPanToBBoxRatios(
             return calcPanToBBoxRatiosScaleDisproportionally(viewportBBox, ratios, targetBBox);
 
         default:
-            return scalingMode; // unreachable
+            return scalingMode satisfies never; // unreachable
     }
 }
 
