@@ -188,7 +188,7 @@ export interface AgKeyboardOptions {
      * Determines which datum receives focus when keyboard navigation first enters the chart.
      *
      * - `'data-start'` and `'data-end'` reference the full dataset
-     * -  `'viewport-start'`and `'viewport-end'` reference the initial visible zoom viewport
+     * - `'viewport-start'` and `'viewport-end'` reference the initial visible zoom viewport
      *
      * Default: `'data-start'`
      */
