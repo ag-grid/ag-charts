@@ -62,6 +62,20 @@ function panAxisUnnormalized(
     return clamp(worldMin, viewportMin + diff, worldMax);
 }
 
+/* Call panAxisUnnormalized for both x and y axes */
+function panAxesUnnormalized(
+    viewport: Bounds4,
+    target: Bounds4,
+    ratioX: Ratios,
+    ratioY: Ratios
+): { x: number; y: number } {
+    const world = calcWorldVec4(viewport, ratioX, ratioY);
+    return {
+        x: panAxisUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2),
+        y: panAxisUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2),
+    };
+}
+
 // The calculations of the new desired viewport (i.e. ZoomMinMax) is done in pixel coords (unnormalised).
 // The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
 export function calcPanToBBoxRatios(
@@ -100,10 +114,7 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
 
     const target = Vec4.from(targetBBox);
     const viewport = Vec4.from(viewportBBox);
-    const world = calcWorldVec4(viewport, ratioX, ratioY);
-
-    const x = panAxisUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2);
-    const y = panAxisUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2);
+    const pan = panAxesUnnormalized(viewport, target, ratioX, ratioY);
 
     const result: XYRatios = {
         x: scaleRequirements.x
@@ -112,8 +123,8 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
                   max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, viewport.x2),
               }
             : {
-                  min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, x),
-                  max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, x + viewportBBox.width),
+                  min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x),
+                  max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x + viewportBBox.width),
               },
         y: scaleRequirements.x
             ? {
@@ -121,8 +132,8 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
                   max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y2),
               }
             : {
-                  min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, y),
-                  max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, y + viewportBBox.height),
+                  min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, pan.y),
+                  max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, pan.y + viewportBBox.height),
               },
     };
 
@@ -170,19 +181,16 @@ export function calcPanToBBoxRatiosScaleProportionally(
         y2: Math.ceil(cy + newHeight / 2),
     };
 
-    const world = calcWorldVec4(scaledViewport, ratioX, ratioY);
-
-    const x = panAxisUnnormalized(world.x1, world.x2, scaledViewport.x1, scaledViewport.x2, target.x1, target.x2);
-    const y = panAxisUnnormalized(world.y1, world.y2, scaledViewport.y1, scaledViewport.y2, target.y1, target.y2);
+    const pan = panAxesUnnormalized(scaledViewport, target, ratioX, ratioY);
 
     const result: XYRatios = {
         x: {
-            min: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, x),
-            max: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, x + newWidth),
+            min: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, pan.x),
+            max: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, pan.x + newWidth),
         },
         y: {
-            min: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, y),
-            max: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, y + newHeight),
+            min: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, pan.y),
+            max: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, pan.y + newHeight),
         },
     };
 
