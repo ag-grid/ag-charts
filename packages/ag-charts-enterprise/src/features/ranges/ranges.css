@@ -72,7 +72,16 @@
     }
 }
 
-.ag-charts-range-buttons--gapped .ag-charts-toolbar__button {
-    border-radius: var(--toolbar-border-radius);
-    border-width: var(--toolbar-button-border-width);
+.ag-charts-range-buttons--gapped {
+    .ag-charts-toolbar__button {
+        border-radius: var(--toolbar-border-radius);
+        border-width: var(--toolbar-button-border-width);
+    }
+
+    .ag-charts-toolbar__button--active,
+    .ag-charts-toolbar__button--active:hover {
+        + .ag-charts-toolbar__button {
+            border-inline-start-color: var(--toolbar-button-border-color);
+        }
+    }
 }
