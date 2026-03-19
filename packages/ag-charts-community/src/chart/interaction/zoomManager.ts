@@ -3,8 +3,6 @@ import {
     Debug,
     Logger,
     ScaleAlignment,
-    UNIT_MAX,
-    UNIT_MIN,
     attachDescription,
     clamp,
     deepClone,
@@ -482,12 +480,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number);
         if (!this.isValidUpdateWithResult(result)) {
-            this.updateChanges({
-                source,
-                sourceDetail,
-                changes: { [direction]: { min: UNIT_MIN, max: UNIT_MAX } },
-                isReset: false,
-            });
+            this.resetZoom({ source, sourceDetail });
             return;
         }
         const [start, end] = result;
