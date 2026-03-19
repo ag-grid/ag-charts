@@ -166,8 +166,6 @@ export function calcPanToBBoxRatiosScaleProportionally(
         return calcPanToBBoxRatiosWithScaling(scaleRequirements, viewportBBox, ratios, targetBBox);
     }
 
-    const { x: ratioX = { min: 0, max: 1 }, y: ratioY = { min: 0, max: 1 } } = ratios;
-
     // Compute required uniform scale
     const scaleX = targetBBox.width / viewportBBox.width;
     const scaleY = targetBBox.height / viewportBBox.height;
@@ -178,37 +176,15 @@ export function calcPanToBBoxRatiosScaleProportionally(
     const cx = (target.x1 + target.x2) / 2;
     const cy = (target.y1 + target.y2) / 2;
 
-    // Scale the viewport using conservative rouding (floor/ceil), better to have floating-point approximation errors
-    // that make the scaled viewport one to two pixels too big and one to two pixels too small.
+    // Scale the viewport:
     const newWidth = viewportBBox.width * scale;
     const newHeight = viewportBBox.height * scale;
-    const scaledViewport: Bounds4 = {
-        x1: Math.floor(cx - newWidth / 2),
-        x2: Math.ceil(cx + newWidth / 2),
-        y1: Math.floor(cy - newHeight / 2),
-        y2: Math.ceil(cy + newHeight / 2),
+    const scaledViewportBBox: BoxBounds = {
+        x: cx - newWidth / 2,
+        y: cy - newHeight / 2,
+        width: newWidth,
+        height: newHeight,
     };
 
-    const pan = panAxesUnnormalized(scaledViewport, target, ratioX, ratioY);
-
-    const result: XYRatios = {
-        x: {
-            min: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, pan.x),
-            max: normalize(scaledViewport.x1, ratioX.min, scaledViewport.x2, ratioX.max, pan.x + newWidth),
-        },
-        y: {
-            min: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, pan.y),
-            max: normalize(scaledViewport.y1, ratioY.min, scaledViewport.y2, ratioY.max, pan.y + newHeight),
-        },
-    };
-
-    // [min, max] are in the [0, 1] range while preserving the (max - min) difference.
-    const diffX = result.x.max - result.x.min;
-    const diffY = result.y.max - result.y.min;
-    result.x.min = clamp(0, result.x.min, 1 - diffX);
-    result.x.max = result.x.min + diffX;
-    result.y.min = clamp(0, result.y.min, 1 - diffY);
-    result.y.max = result.y.min + diffY;
-
-    return result;
+    return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, scaledViewportBBox, ratios, targetBBox);
 }
