@@ -3,11 +3,13 @@ title: 'Flash On Update'
 enterprise: true
 ---
 
-Flash on Update draws attention to data changes by briefly highlighting updated, added or removed data with a flash animation. The flash runs alongside the data update animation phases.
+Flash on Update signals that chart data has changed by briefly overlaying a flash animation, drawing the user's attention to the chart whenever data is updated, added or removed.
 
-{% chartExampleRunner title="Flash On Update" name="flash-on-update" type="generated" /%}
+## Enabling Flash On Update
 
 Flash on Update is disabled by default. To enable it, set `flashOnUpdate.enabled` to `true`.
+
+{% chartExampleRunner title="Flash On Update" name="flash-on-update" type="generated" /%}
 
 ```js format="snippet"
 {
@@ -17,20 +19,9 @@ Flash on Update is disabled by default. To enable it, set `flashOnUpdate.enabled
 }
 ```
 
-{% note %}
-Flash on Update works with [Animation](./animation/) but defaults animation to disabled. To use both together, explicitly set `animation: { enabled: true }`.
-{% /note %}
-
-In this example:
-
--   Click **Start Updates** to begin a simulated live price feed that updates the most recent candle every 2 seconds and observe the flash effect covering the entire chart.
--   Click **Stop Updates** to pause the feed.
-
-By default, the flash covers the entire chart area. Use the `item` option to control what is highlighted.
-
 ## Category Flash
 
-Setting `item` to `'category'` highlights individual category bands rather than the whole chart, making it easier to identify which categories have changed.
+Flashing just the category band makes it easier to identify which categories have changed. Set `item` to `'category'` to enable this.
 
 {% chartExampleRunner title="Category Flash" name="flash-on-update-category" type="generated" /%}
 
@@ -45,24 +36,22 @@ Setting `item` to `'category'` highlights individual category bands rather than 
 
 In this example:
 
--   Click **Start Updates** to begin a simulated data feed that updates 1–3 stock tickers' trading volumes every 2 seconds — only the changed tickers flash.
+-   Click 'Start Updates' to begin a simulated data feed that updates 1–3 bars every 2 seconds.
+-   Only the changed bars flash.
 -   Click **Stop Updates** to pause the feed.
+-   Category Flash is only available on [Category](./axes-types/#category), [Grouped Category](./axes-types/#grouped-category), [Unit Time](./axes-time/#unit-time) and [Ordinal Time](./axes-time/#ordinal-time) axes.
 
-{% note %}
-`item: 'category'` requires the chart to have a category axis. If no category axis is present, a warning is logged and no flash occurs.
-{% /note %}
+### Adding and Removing Data
 
-## Live Data Updates
+Category flash is also triggered when a category is added to the chart. Removing a category does not trigger a flash.
 
-Flash on Update is particularly useful for real-time data feeds, such as stock tickers or monitoring dashboards, where it draws the user's attention to the parts of the chart that have changed.
-
-{% chartExampleRunner title="Live Data Updates" name="flash-on-update-live" type="generated" /%}
+{% chartExampleRunner title="Adding and Removing Data" name="flash-on-update-add-remove" type="generated" /%}
 
 In this example:
 
--   Click **Start Updates** to begin a simulated live data feed that updates 1–2 market sectors' trading activity every 2 seconds.
--   Category bands flash to indicate which sectors received new data.
--   Click **Stop Updates** to pause the feed.
+-   Click 'Add Sector' to add a new sector to the chart — the new category flashes on arrival.
+-   Click 'Remove Sector' to remove the last sector — no flash occurs on removal.
+-   Click 'Update' to update values for one or two sectors and observe the category flash.
 
 ## Customisation
 
@@ -70,22 +59,31 @@ The appearance and timing of the flash effect can be customised.
 
 {% chartExampleRunner title="Customisation" name="flash-on-update-customisation" type="generated" /%}
 
--   `fill` — the fill colour of the flash overlay.
--   `fillOpacity` — the peak fill opacity of the flash.
--   `flashDuration` — how long (in milliseconds) the flash holds at full opacity before fading.
--   `fadeOutDuration` — how long (in milliseconds) the fade-out takes.
-
-Setting `flashDuration` and `fadeOutDuration` introduces a two-stage effect: the flash holds at full opacity, then fades to zero.
-
-{% note %}
-When animations are enabled, the `flashDuration` and `fadeOutDuration` values are scaled to fit within the data update animation phase, so the actual timing may differ from the configured values. Their ratio still controls how the duration is split between the hold and fade stages. When animations are disabled, the configured values are respected as exact milliseconds.
-{% /note %}
+```js format="snippet"
+{
+    flashOnUpdate: {
+        enabled: true,
+        fill: '#ffd6a5',
+        flashDuration: 300,
+        fadeOutDuration: 700,
+    },
+}
+```
 
 In this example:
 
--   Use the **Colour**, **Flash** and **Fade** controls to adjust the flash appearance.
--   Click **Start Updates** to begin a simulated live price feed and observe the flash with the current settings.
--   Click **Stop Updates** to pause the feed.
+-   Use the 'Fill', 'Flash' and 'Fade' controls to adjust the flash appearance.
+    -   `fill` — the fill colour of the flash overlay.
+    -   `flashDuration` — how long (in milliseconds) the flash remains at full opacity before fading.
+    -   `fadeOutDuration` — how long (in milliseconds) the fade-out takes.
+-   Click 'Start Updates' to begin a simulated live price feed and observe the flash with the current settings.
+-   Click 'Stop Updates' to pause the feed.
+
+## Animation
+
+Flash on Update disables [Animation](./animation/) by default, as the two are rarely used together. If you do need both, explicitly set `animation: { enabled: true }`.
+
+When both are enabled, the `flashDuration` and `fadeOutDuration` values are scaled to fit within the data update animation phases, so the actual timing may differ from the configured values. Their ratio still controls how the duration is split between the hold and fade stages.
 
 ## API Reference
 

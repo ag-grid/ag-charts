@@ -55,31 +55,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-let updateInterval: ReturnType<typeof setInterval> | null = null;
-
 function update() {
     options.data = applyLiveUpdate(options.data!);
     chart.update(options);
-}
-
-function startUpdates() {
-    if (updateInterval) return;
-    update();
-    updateInterval = setInterval(update, 2000);
-}
-
-function stopUpdates() {
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-}
-
-function toggleUpdates() {
-    if (updateInterval) {
-        stopUpdates();
-    } else {
-        startUpdates();
-    }
-    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
 }

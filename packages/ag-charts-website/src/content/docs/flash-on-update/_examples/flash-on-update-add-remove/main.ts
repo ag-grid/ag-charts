@@ -14,7 +14,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import type { DataType } from './data';
-import { applyRandomUpdate, getInitialData } from './data';
+import { applyUpdate, getInitialData, getNextSector } from './data';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -68,31 +68,20 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-let updateInterval: ReturnType<typeof setInterval> | null = null;
-
-function update() {
-    options.data = applyRandomUpdate(options.data!);
+function addSector() {
+    const next = getNextSector(options.data!);
+    if (!next) return;
+    options.data = [...options.data!, { ...next }];
     chart.update(options);
 }
 
-function startUpdates() {
-    if (updateInterval) return;
-    update();
-    updateInterval = setInterval(update, 2000);
+function removeSector() {
+    if (options.data!.length <= 2) return;
+    options.data = options.data!.slice(0, -1);
+    chart.update(options);
 }
 
-function stopUpdates() {
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-}
-
-function toggleUpdates() {
-    if (updateInterval) {
-        stopUpdates();
-    } else {
-        startUpdates();
-    }
-    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
+function updateSectors() {
+    options.data = applyUpdate(options.data!);
+    chart.update(options);
 }

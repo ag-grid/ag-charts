@@ -26,9 +26,11 @@ ModuleRegistry.registerModules([
     NumberAxisModule,
 ]);
 
+let data: DataType[] = getInitialData();
+
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: getInitialData(),
+    data,
     title: {
         text: 'Stock Trading Volume',
     },
@@ -64,31 +66,48 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-let updateInterval: ReturnType<typeof setInterval> | null = null;
+let isRunning = false;
+let updateInterval: ReturnType<typeof setInterval> | undefined;
 
+/** inScope */
 function update() {
-    options.data = applyRandomUpdate(options.data!);
+    data = applyRandomUpdate(data);
+    options.data = data;
     chart.update(options);
 }
 
+/** inScope */
 function startUpdates() {
-    if (updateInterval) return;
+    if (isRunning) return;
+    isRunning = true;
+    updateButton();
     update();
     updateInterval = setInterval(update, 2000);
 }
 
+/** inScope */
 function stopUpdates() {
+    if (!isRunning) return;
+    isRunning = false;
+    updateButton();
     if (updateInterval) {
         clearInterval(updateInterval);
-        updateInterval = null;
+        updateInterval = undefined;
+    }
+}
+
+/** inScope */
+function updateButton() {
+    const button = document.getElementById('toggleBtn');
+    if (button) {
+        button.textContent = isRunning ? 'Stop Updates' : 'Start Updates';
     }
 }
 
 function toggleUpdates() {
-    if (updateInterval) {
+    if (isRunning) {
         stopUpdates();
     } else {
         startUpdates();
     }
-    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
 }
