@@ -28,13 +28,7 @@ import type {
     ZoomMinMax,
     ZoomState,
 } from 'ag-charts-core';
-import type {
-    AgRangesButtonValueSource,
-    AgZoomEvent,
-    AgZoomEventSource,
-    AgZoomRange,
-    AgZoomRatio,
-} from 'ag-charts-types';
+import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type {
     EventsHub,
@@ -111,7 +105,7 @@ export type UpdateZoomWithFunction = (
     end: Date | number,
     windowStart: Date | number,
     windowEnd: Date | number,
-    source: AgRangesButtonValueSource
+    source: AgZoomEventSource
 ) => [Date | number | undefined, Date | number | undefined];
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -485,8 +479,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const fnSource = source === 'user-interaction' ? 'user-interaction' : 'range-check';
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, fnSource);
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, source);
         if (!this.isValidUpdateWithResult(result)) {
             return;
         }
@@ -498,11 +491,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public isValidUpdateWith(
-        direction: CartesianAxisDirection,
-        fn: UpdateZoomWithFunction,
-        fnSource: AgRangesButtonValueSource
-    ) {
+    public isValidUpdateWith(direction: CartesianAxisDirection, fn: UpdateZoomWithFunction, source: AgZoomEventSource) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return true;
 
@@ -516,7 +505,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, fnSource);
+        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, source);
         if (!this.isValidUpdateWithResult(result)) {
             return false;
         }
