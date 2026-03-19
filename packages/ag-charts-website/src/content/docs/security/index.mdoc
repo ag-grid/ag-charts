@@ -41,23 +41,14 @@ const options = { theme: myTheme /* ...other options */ };
 
 ### img-src
 
-If you allow users to [download charts](./api-download/), or use [Background Images](./background-image/) using `data:` urls, the `img-src` policy will require the `data:` rule.
+The `img-src data:` directive is required because the chart uses data URLs to embed SVG icons in CSS files, as well as for chart image exports/downloads. These icons are used in toolbars, context menus, and other interactive elements.
 
 ### Summary
 
 In summary, the minimal rule to load a chart is:
 
 ```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'" />
-```
-
-However if you are using all the features mentioned above, the rule is:
-
-```html
-<meta
-    http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
-/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
 ```
 
 Alternatively, you can use the `styleNonce` chart option to avoid the `unsafe-inline` requirement.
