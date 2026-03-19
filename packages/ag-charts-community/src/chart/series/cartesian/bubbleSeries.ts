@@ -298,7 +298,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
             sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
-        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
+        const rawSizeValue = sizeValues?.[index];
+        const sizeValue =
+            rawSizeValue == null || !Number.isFinite(rawSizeValue) ? size : sizeScale.convert(rawSizeValue);
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
     }
@@ -309,7 +311,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
             sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
-        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
+        const rawSizeValue = sizeValues?.[index];
+        const sizeValue =
+            rawSizeValue == null || !Number.isFinite(rawSizeValue) ? size : sizeScale.convert(rawSizeValue);
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
     }
@@ -694,6 +698,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         } else {
             nodeLabel = { text: '', width: 0, height: 0 };
         }
+
+        // Skip if sizeKey is configured but the value is invalid (NaN)
+        if (ctx.sizeDataValues != null && !Number.isFinite(sizeValue)) return undefined;
 
         // Compute marker size
         const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convert(sizeValue);
