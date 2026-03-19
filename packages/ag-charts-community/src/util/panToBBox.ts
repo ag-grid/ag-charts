@@ -81,27 +81,22 @@ export function calcPanToBBoxRatios(
     targetBBox: BoxBounds
 ): XYRatios {
     switch (scalingMode) {
-        case PanToBBoxScalingModeEnum.None: {
-            const scaling = { x: false, y: false };
-            return calcPanToBBoxRatiosScaleDisproportionally(scaling, viewportBBox, ratios, targetBBox);
-        }
+        case PanToBBoxScalingModeEnum.None:
+            return calcPanToBBoxRatiosNoScale(viewportBBox, ratios, targetBBox);
 
-        case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally: {
+        case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally:
             return calcPanToBBoxRatiosScaleProportionally(viewportBBox, ratios, targetBBox);
-        }
 
-        case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally: {
-            const scaling = calcNeedsScaling(viewportBBox, targetBBox);
-            return calcPanToBBoxRatiosScaleDisproportionally(scaling, viewportBBox, ratios, targetBBox);
-        }
+        case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally:
+            return calcPanToBBoxRatiosScaleDisproportionally(viewportBBox, ratios, targetBBox);
 
         default:
             return scalingMode; // unreachable
     }
 }
 
-export function calcPanToBBoxRatiosScaleDisproportionally(
-    scaleRequirements: NeedsScaling,
+export function calcPanToBBoxRatiosWithScaling(
+    assignToViewport: NeedsScaling,
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
@@ -113,7 +108,7 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
     const pan = panAxesUnnormalized(viewport, target, ratioX, ratioY);
 
     const result: XYRatios = {
-        x: scaleRequirements.x
+        x: assignToViewport.x
             ? {
                   min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, viewport.x1),
                   max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, viewport.x2),
@@ -122,7 +117,7 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
                   min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x),
                   max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x + viewportBBox.width),
               },
-        y: scaleRequirements.y
+        y: assignToViewport.y
             ? {
                   min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y1),
                   max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y2),
@@ -144,6 +139,23 @@ export function calcPanToBBoxRatiosScaleDisproportionally(
     return result;
 }
 
+export function calcPanToBBoxRatiosNoScale(
+    viewportBBox: BoxBounds,
+    ratios: Partial<XYRatios>,
+    targetBBox: BoxBounds
+): XYRatios {
+    return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, viewportBBox, ratios, targetBBox);
+}
+
+export function calcPanToBBoxRatiosScaleDisproportionally(
+    viewportBBox: BoxBounds,
+    ratios: Partial<XYRatios>,
+    targetBBox: BoxBounds
+): XYRatios {
+    const scaling = calcNeedsScaling(viewportBBox, targetBBox);
+    return calcPanToBBoxRatiosWithScaling(scaling, viewportBBox, ratios, targetBBox);
+}
+
 export function calcPanToBBoxRatiosScaleProportionally(
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
@@ -151,7 +163,7 @@ export function calcPanToBBoxRatiosScaleProportionally(
 ): XYRatios {
     const scaleRequirements = calcNeedsScaling(viewportBBox, targetBBox);
     if (!scaleRequirements.x && !scaleRequirements.y) {
-        return calcPanToBBoxRatiosScaleDisproportionally(scaleRequirements, viewportBBox, ratios, targetBBox);
+        return calcPanToBBoxRatiosWithScaling(scaleRequirements, viewportBBox, ratios, targetBBox);
     }
 
     const { x: ratioX = { min: 0, max: 1 }, y: ratioY = { min: 0, max: 1 } } = ratios;
