@@ -159,6 +159,55 @@ Check that `frozen` survives zoom/panning changes:
     type="generated"
 /%}
 
+## Frozen Survives Legend Toggling
+
+There's 4 test permutations:
+
+```
+1. itemId Valid   ; frozen: false
+2. itemId Invalid ; frozen: false
+3. itemId Valid   ; frozen: true
+4. itemId Invalid ; frozen: true
+```
+
+1. Valid `itemId` / Thawed
+
+    - Click "Private Car" Legend Item (hide series)
+    - Click "Restore (Valid/Thawed)
+    - Click "Private Car" Legend Item (show series)
+        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted)
+
+2. Invalid `itemId` / Thawed
+
+    - Click "Private Car" Legend Item (hide series)
+    - Click "Restore (Invalid/Thawed)
+        - Console **MUST NOT** warn that `itemId` is invalid.
+    - Click "Private Car" Legend Item (show series)
+        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted)
+        - Console **MUST NOT** warn that `itemId` is invalid.
+
+3. Valid `itemId` / Frozen
+
+    - Click "Private Car" Legend Item (hide series)
+    - Click "Restore (Valid/Frozen)
+    - Click "Private Car" Legend Item (show series)
+        - "Private Car 2020" bar **MUST** be active.
+
+4. Invalid `itemId` / Frozen
+
+    - Click "Private Car" Legend Item (hide series)
+    - Click "Restore (Invalid/Frozen)
+        - Console **MUST NOT** warn that `itemId` is invalid.
+    - Click "Private Car" Legend Item (show series)
+        - Console **MUST** warn that `itemId` is invalid.
+        - Highlight **MUST NOT** be rendered.
+
+{% chartExampleRunner
+    title="Frozen Survives Legend Toggling"
+    name="frozen-legendtoggle"
+    type="generated"
+/%}
+
 # External Legend
 
 -   The external legend should behave just like our internal legend.
