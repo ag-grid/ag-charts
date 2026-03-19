@@ -86,6 +86,8 @@ type FocusOldIndices = {
 type HandleFocusInputs = FocusIndices | FocusDeltas;
 type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
+type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
+
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -1439,29 +1441,33 @@ export class SeriesAreaManager extends BaseManager {
             this.clearTooltip(false);
         } else if (this.activeState.lastActive !== 'legend') {
             const { seriesId, itemId } = this.activeState.lastActive;
-            const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
-            if (desiredPickedNodes) {
-                this.pickManager.onPickedNodesAPI(desiredPickedNodes);
-                this.hoverScheduler.schedule();
-            } else {
-                // Active datum was removed (e.g. by a transaction); clear the active state.
-                this.activeState.lastActive = undefined;
-                this.pickManager.onClearUI();
+            const desiredPickedNodes: FindPickedNodesResult = this.findPickedNodes(seriesId, itemId);
+            if (desiredPickedNodes === undefined || desiredPickedNodes === 'series-hidden') {
+                // Active datum was removed (e.g. by a transaction, legend-click, ...); clear the active state.
+                if (!this.isState(InteractionState.Frozen)) {
+                    this.activeState.lastActive = undefined;
+                    this.pickManager.onClearUI();
+                }
                 this.clearHighlight(false);
                 this.clearTooltip(false);
+            } else {
+                this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+                this.hoverScheduler.schedule();
             }
         }
     }
 
     private onActiveDatum(activeItem: AgActiveItemState, event: ActiveLoadMementoEvent) {
         const { seriesId, itemId } = activeItem;
-        const desiredPickedNodes: PickedNodes | undefined = this.findPickedNodes(seriesId, itemId);
+        const desiredPickedNodes: FindPickedNodesResult = this.findPickedNodes(seriesId, itemId);
         if (desiredPickedNodes === undefined) {
             event.reject();
             this.onActiveClear();
         } else {
-            const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
-            event.setDatum(picked);
+            if (desiredPickedNodes !== 'series-hidden') {
+                const picked = this.pickManager.onPickedNodesAPI(desiredPickedNodes);
+                event.setDatum(picked);
+            }
             this.setHoverDevice('setState');
             this.activeState.lastActive = { seriesId, itemId };
             if (event.initialState) {
@@ -1476,18 +1482,20 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): PickedNodes | undefined {
+    private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): FindPickedNodesResult {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
             Logger.warn(`Cannot find seriesId: "${desiredSeriesId}"`);
             return undefined;
         }
 
+        if (!desiredSeries.visible) {
+            return 'series-hidden';
+        }
+
         const desiredDatum: PickedNode | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
-            if (desiredSeries.visible) {
-                Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
-            }
+            Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
             return undefined;
         }
 
