@@ -15,6 +15,7 @@ import type {
     AgSeriesShapeSegmentOptions,
     BorderOptions,
     CssColor,
+    FillCssOptions,
     FillOptions,
     GoogleFontFamily,
     LabelBoxOptions,
@@ -244,6 +245,11 @@ fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
 fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 // @ts-expect-error undocumented option
 fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
+
+export const fillCssOptionsDef: OptionsDefs<FillCssOptions> = {
+    fill: color,
+    fillOpacity: ratio,
+};
 
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),

@@ -19,7 +19,7 @@ const options: AgChartOptions<DataType> = {
         buttons: [
             { label: 'Teenagers', value: [15, 19] },
             { label: 'Young Adults', value: [20, 29] },
-            { label: 'Middle Aged', value: [30, 65] },
+            { label: 'Middle Aged', value: [30, 65], enabled: false },
             { label: 'Retired', value: (_start, end) => [66, end] },
             { label: 'All Ages', value: undefined },
         ],
@@ -55,6 +55,9 @@ function testThemeTop() {
                     gap: 10,
                     fill: 'pink',
                     textColor: 'red',
+                    disabled: {
+                        fill: 'lightblue',
+                    },
                 },
             },
         },
@@ -73,12 +76,19 @@ function testThemeChild() {
             common: {
                 ranges: {
                     fill: 'pink',
+                    fillOpacity: 0.5,
                     textColor: 'red',
                     button: {
                         fill: 'green',
                         stroke: 'aqua',
                         strokeWidth: 4,
                         textColor: 'white',
+                        disabled: {
+                            fill: 'lightgreen',
+                        },
+                        hover: {
+                            fillOpacity: 1,
+                        },
                     },
                 },
             },

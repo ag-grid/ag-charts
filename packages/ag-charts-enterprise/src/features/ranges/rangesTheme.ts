@@ -12,7 +12,7 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
-    padding: { top: 6, right: 9, bottom: 6, left: 9 },
+    padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
     stroke: { $ref: 'borderColor' },
     strokeWidth: { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
     textColor: { $ref: 'chromeTextColor' },
@@ -22,7 +22,6 @@ const stateTheme: WithThemeParams<AgRangesStateStyles> = {
     fill: { $path: '../fill' },
     fillOpacity: { $path: '../fillOpacity' },
     stroke: { $path: '../stroke' },
-    strokeWidth: { $path: '../strokeWidth' },
     textColor: { $path: '../textColor' },
 };
 
@@ -40,7 +39,7 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     textColor: { $path: '../textColor' },
 };
 
-const componentStateTheme = (state: 'active' | 'hover') => ({
+const componentStateTheme = (state: 'active' | 'disabled' | 'hover') => ({
     fill: { $path: `../../${state}/fill` },
     fillOpacity: { $path: `../../${state}/fillOpacity` },
     stroke: { $path: `../../${state}/stroke` },
@@ -63,18 +62,27 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
         stroke: { $ref: 'accentColor' },
         textColor: { $ref: 'accentColor' },
     },
+    disabled: {
+        ...stateTheme,
+        fill: {
+            $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+        },
+        textColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'chromeTextColor' }, 0.5] },
+    },
     hover: {
         ...stateTheme,
         fill: { $ref: 'focusColor' },
     },
     button: {
         active: { ...componentStateTheme('active') },
+        disabled: { ...componentStateTheme('disabled') },
         hover: { ...componentStateTheme('hover') },
         ...componentTheme,
     },
     dropdown: {
         visible: 'auto',
         active: { ...componentStateTheme('active') },
+        disabled: { ...componentStateTheme('disabled') },
         hover: { ...componentStateTheme('hover') },
         ...componentTheme,
     },

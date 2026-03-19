@@ -14,6 +14,10 @@
     --toolbar-button-border-color--active: var(--ag-charts-accent-color);
     --toolbar-button-text-color--active: var(--ag-charts-accent-color);
 
+    --toolbar-button-background-color--disabled: var(--ag-charts-button-disabled-background-color);
+    --toolbar-button-border-color--disabled: var(--toolbar-button-border-color);
+    --toolbar-button-text-color--disabled: var(--ag-charts-button-disabled-text-color);
+
     --toolbar-button-background-color--hover: var(--ag-charts-focus-color);
     --toolbar-button-border-color--hover: var(--toolbar-button-border-color);
     --toolbar-button-text-color--hover: var(--toolbar-button-text-color);
@@ -77,8 +81,8 @@
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
-    background: var(--ag-charts-button-disabled-background-color);
-    color: var(--ag-charts-button-disabled-text-color);
+    background: var(--toolbar-button-background-color--disabled);
+    color: var(--toolbar-button-text-color--disabled);
     cursor: default;
 }
 
