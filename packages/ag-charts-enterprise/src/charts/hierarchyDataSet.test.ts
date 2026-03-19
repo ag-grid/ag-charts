@@ -1,5 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
+import { expectWarningMessages, setupMockConsole } from 'ag-charts-community-test';
+
 import { HierarchyDataSet } from './hierarchyDataSet';
 
 interface TreeItem {
@@ -37,6 +39,27 @@ function createTestData(): TreeItem[] {
 }
 
 describe('HierarchyDataSet', () => {
+    setupMockConsole();
+
+    describe('dataIdKey validation', () => {
+        test('warns when dataIdKey field is not found on any data item', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'nonExistent', 'children');
+            ds.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
+            ds.commitPendingTransactions();
+            expectWarningMessages(["AG Charts - dataIdKey 'nonExistent' was not found on any data item."]);
+        });
+
+        test('does not warn when dataIdKey field exists on data items', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+            ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
+            ds.commitPendingTransactions();
+            expect(ds.data[0].children![0].value).toBe(50);
+            expectWarningMessages([]);
+        });
+    });
+
     describe('update by ID', () => {
         test('should update a root-level item', () => {
             const data = createTestData();
