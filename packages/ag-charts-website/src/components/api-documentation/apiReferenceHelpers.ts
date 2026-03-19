@@ -115,7 +115,8 @@ export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string
     }
 
     if (isTypeReferenceNode(refType)) {
-        return keepGenerics && refType.typeArguments?.length
+        const showArgs = keepGenerics === true || refType.type === 'Omit' || refType.type === 'Pick';
+        return showArgs && refType.typeArguments?.length
             ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
             : refType.type;
     }
@@ -358,12 +359,14 @@ function buildGenericsMap(interfaceRef: InterfaceNode, typeArguments?: string[])
 
 function applyGenericsToMember(member: MemberNode, genericsMap: Map<string, unknown>) {
     let omit: string | undefined;
-    let memberType: string | TypeNode = normalizeType(member.type);
+    let memberType: string | TypeNode;
 
-    if (memberType === 'Omit') {
+    if (isTypeReferenceNode(member.type) && member.type.type === 'Omit') {
         const omitType = extractOmitType(member.type);
-        memberType = omitType?.type ?? memberType;
+        memberType = omitType?.type ?? normalizeType(member.type);
         omit = omitType?.omit;
+    } else {
+        memberType = normalizeType(member.type);
     }
 
     const genericType = typeof memberType === 'string' ? resolveGenericType(memberType, genericsMap) : null;

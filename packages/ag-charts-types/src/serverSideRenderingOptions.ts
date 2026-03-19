@@ -3,8 +3,6 @@ import type { AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from './
 
 export type AgImageFormat = 'png' | 'jpeg';
 
-type AgRenderExcludedKeys = 'width' | 'height' | 'container';
-
 /** Base render options shared by all server-side render methods. */
 export interface AgBaseRenderOptions {
     /** Output image width in pixels. */
@@ -24,25 +22,26 @@ export interface AgBaseRenderOptions {
 /** Render options for server-side chart rendering, parameterised by chart options type. */
 export interface AgChartRenderOptions<T> extends AgBaseRenderOptions {
     /** Chart configuration options (excludes `container`, `width`, and `height`). */
-    options: Omit<T, AgRenderExcludedKeys>;
+    // eslint-disable-next-line sonarjs/use-type-alias
+    options: Omit<T, 'width' | 'height' | 'container'>;
 }
 
 /** Render options for standard charts. */
 export interface AgRenderOptions extends AgBaseRenderOptions {
     /** Chart configuration options (excludes `container`, `width`, and `height`). */
-    options: Omit<AgChartOptions<DatumDefault, ContextDefault>, AgRenderExcludedKeys>;
+    options: Omit<AgChartOptions<DatumDefault, ContextDefault>, 'width' | 'height' | 'container'>;
 }
 
 /** Render options for gauge charts. */
 export interface AgGaugeRenderOptions extends AgBaseRenderOptions {
     /** Chart configuration options (excludes `container`, `width`, and `height`). */
-    options: Omit<AgGaugeOptions<DatumDefault, ContextDefault>, AgRenderExcludedKeys>;
+    options: Omit<AgGaugeOptions<DatumDefault, ContextDefault>, 'width' | 'height' | 'container'>;
 }
 
 /** Render options for financial charts. */
 export interface AgFinancialChartRenderOptions extends AgBaseRenderOptions {
     /** Chart configuration options (excludes `container`, `width`, and `height`). */
-    options: Omit<AgFinancialChartOptions<DatumDefault>, AgRenderExcludedKeys>;
+    options: Omit<AgFinancialChartOptions<DatumDefault>, 'width' | 'height' | 'container'>;
 }
 
 /** Static API for server-side chart rendering. */
