@@ -44,7 +44,7 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
-import { calcPanToBBoxRatios } from '../../util/panToBBox';
+import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';
@@ -168,6 +168,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private navigatorModule = false;
     private zoomModule = false;
     private readonly debug = Debug.create(true, 'zoom');
+
+    public panToBBoxScalingMode = PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally;
 
     // The initial state memento can not be restored until the chart has performed its first layout. Instead save it as
     // pending and restore then delete it on the first layout.
@@ -437,17 +439,19 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const zoom = this.getZoom();
         if (zoom === undefined || (!zoom.x && !zoom.y)) return false;
 
+        const { panToBBoxScalingMode } = this;
         const panIsPossible =
             seriesRect.width > 0 &&
             seriesRect.height > 0 &&
-            Math.abs(target.width) <= Math.abs(seriesRect.width) &&
-            Math.abs(target.height) <= Math.abs(seriesRect.height);
+            (panToBBoxScalingMode !== PanToBBoxScalingModeEnum.None ||
+                (Math.abs(target.width) <= Math.abs(seriesRect.width) &&
+                    Math.abs(target.height) <= Math.abs(seriesRect.height)));
         if (!panIsPossible) {
             Logger.warnOnce(`cannot pan to target BBox - chart too small?`);
             return false;
         }
 
-        const newZoom: ZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
+        const newZoom: ZoomState = calcPanToBBoxRatios(panToBBoxScalingMode, seriesRect, zoom, target);
         const changes = this.toCoreZoomState(newZoom);
         return this.updateChanges({
             source: 'user-interaction',
