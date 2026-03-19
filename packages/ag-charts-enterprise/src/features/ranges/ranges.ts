@@ -234,7 +234,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             x: ctx.domManager.isRtl ? bounds.x + bounds.width : bounds.x,
             y: bounds.y + bounds.height + 1,
         };
-        const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
+        const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y - 1 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
     }
 
