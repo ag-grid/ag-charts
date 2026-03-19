@@ -1443,13 +1443,15 @@ export class SeriesAreaManager extends BaseManager {
             const { seriesId, itemId } = this.activeState.lastActive;
             const desiredPickedNodes: FindPickedNodesResult = this.findPickedNodes(seriesId, itemId);
             if (desiredPickedNodes === undefined || desiredPickedNodes === 'series-hidden') {
-                // Active datum was removed (e.g. by a transaction, legend-click, ...); clear the active state.
-                if (!this.isState(InteractionState.Frozen)) {
+                if (this.isState(InteractionState.Frozen)) {
+                    this.clearStaleHighlightTooltip();
+                } else {
+                    // Active datum was removed (e.g. by a transaction); clear the active state.
                     this.activeState.lastActive = undefined;
                     this.pickManager.onClearUI();
+                    this.clearHighlight(false);
+                    this.clearTooltip(false);
                 }
-                this.clearHighlight(false);
-                this.clearTooltip(false);
             } else {
                 this.pickManager.onPickedNodesAPI(desiredPickedNodes);
                 this.hoverScheduler.schedule();
