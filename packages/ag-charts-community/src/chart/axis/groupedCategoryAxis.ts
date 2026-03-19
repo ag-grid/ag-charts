@@ -797,7 +797,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
         this.dataDomain = { domain: extent(flatDomains) ?? this.filterDuplicateArrays(flatDomains), clipped: false };
         if (this.isReversed()) {
-            this.dataDomain.domain.reverse();
+            this.dataDomain = { ...this.dataDomain, domain: this.dataDomain.domain.toReversed() };
         }
 
         const domain: GroupedCategoryKey[] = this.dataDomain.domain.map(convertIntegratedCategoryValue);

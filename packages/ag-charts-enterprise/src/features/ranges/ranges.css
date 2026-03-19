@@ -13,6 +13,10 @@
     --toolbar-button-border-color--active: var(--ag-charts-ranges__button-stroke--active);
     --toolbar-button-text-color--active: var(--ag-charts-ranges__button-text-color--active);
 
+    --toolbar-button-background-color--disabled: var(--ag-charts-ranges__button-fill--disabled);
+    --toolbar-button-border-color--disabled: var(--ag-charts-ranges__button-stroke--disabled);
+    --toolbar-button-text-color--disabled: var(--ag-charts-ranges__button-text-color--disabled);
+
     --toolbar-button-background-color--hover: var(--ag-charts-ranges__button-fill--hover);
     --toolbar-button-border-color--hover: var(--ag-charts-ranges__button-stroke--hover);
     --toolbar-button-text-color--hover: var(--ag-charts-ranges__button-text-color--hover);
@@ -29,6 +33,10 @@
     --toolbar-button-background-color--active: var(--ag-charts-ranges__dropdown-fill--active);
     --toolbar-button-border-color--active: var(--ag-charts-ranges__dropdown-stroke--active);
     --toolbar-button-text-color--active: var(--ag-charts-ranges__dropdown-text-color--active);
+
+    --toolbar-button-background-color--disabled: var(--ag-charts-ranges__dropdown-fill--disabled);
+    --toolbar-button-border-color--disabled: var(--ag-charts-ranges__dropdown-stroke--disabled);
+    --toolbar-button-text-color--disabled: var(--ag-charts-ranges__dropdown-text-color--disabled);
 
     --toolbar-button-background-color--hover: var(--ag-charts-ranges__dropdown-fill--hover);
     --toolbar-button-border-color--hover: var(--ag-charts-ranges__dropdown-stroke--hover);
@@ -66,7 +74,16 @@
     }
 }
 
-.ag-charts-range-buttons--gapped .ag-charts-toolbar__button {
-    border-radius: var(--toolbar-border-radius);
-    border-width: var(--toolbar-button-border-width);
+.ag-charts-range-buttons--gapped {
+    .ag-charts-toolbar__button {
+        border-radius: var(--toolbar-border-radius);
+        border-width: var(--toolbar-button-border-width);
+    }
+
+    .ag-charts-toolbar__button--active,
+    .ag-charts-toolbar__button--active:hover {
+        + .ag-charts-toolbar__button {
+            border-inline-start-color: var(--toolbar-button-border-color);
+        }
+    }
 }

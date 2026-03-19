@@ -1,6 +1,13 @@
-import type { FillOptions, FontOptions, Padding, StrokeOptions, Toggleable } from '../series/cartesian/commonOptions';
+import type {
+    FillCssOptions,
+    FontOptions,
+    Padding,
+    StrokeOptions,
+    Toggleable,
+} from '../series/cartesian/commonOptions';
 import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
+import type { AgZoomEventSource } from './eventOptions';
 import type { CssColor, PixelSize } from './types';
 
 export interface AgRangesOptions extends Toggleable, AgRangesStyles {
@@ -34,15 +41,16 @@ export interface AgRangesOptions extends Toggleable, AgRangesStyles {
     buttons?: AgRangesButton[];
 }
 
-export interface AgRangesStyles extends FillOptions, FontOptions, Omit<StrokeOptions, 'strokeOpacity'> {
-    cornerRadius?: number;
+export interface AgRangesStyles extends FillCssOptions, FontOptions, Omit<StrokeOptions, 'strokeOpacity'> {
+    cornerRadius?: PixelSize;
     padding?: Padding;
     textColor?: CssColor;
     active?: AgRangesStateStyles;
+    disabled?: AgRangesStateStyles;
     hover?: AgRangesStateStyles;
 }
 
-export interface AgRangesStateStyles extends FillOptions, Omit<StrokeOptions, 'strokeOpacity'> {
+export interface AgRangesStateStyles extends FillCssOptions, Pick<StrokeOptions, 'stroke'> {
     textColor?: CssColor;
 }
 
@@ -79,9 +87,11 @@ export type AgRangesButtonValue =
     | undefined;
 
 export type AgRangesButtonValuePair = [Date | number, Date | number];
+export type AgRangesButtonValueSource = AgZoomEventSource;
 export type AgRangesButtonValueFunction = (
     start: Date | number,
     end: Date | number,
     windowStart: Date | number,
-    windowEnd: Date | number
-) => [Date | number, Date | number];
+    windowEnd: Date | number,
+    source: AgZoomEventSource
+) => [Date | number | undefined, Date | number | undefined];

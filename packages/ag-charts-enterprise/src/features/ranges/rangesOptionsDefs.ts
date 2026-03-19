@@ -16,7 +16,7 @@ import {
     callback,
     color,
     date,
-    fillOptionsDef,
+    fillCssOptionsDef,
     fontOptionsDef,
     number,
     or,
@@ -31,17 +31,20 @@ import {
 } from 'ag-charts-core';
 
 const stateStylesOptions: OptionsDefs<AgRangesStateStyles> = {
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
+    ...fillCssOptionsDef,
+    stroke: strokeOptionsDef.stroke,
     textColor: color,
 };
 
 const stylesOptions: OptionsDefs<AgRangesStyles> = {
-    ...stateStylesOptions,
+    ...fillCssOptionsDef,
+    ...strokeOptionsDef,
     ...fontOptionsDef,
+    textColor: color,
     cornerRadius: positiveNumber,
     padding: padding,
     active: stateStylesOptions,
+    disabled: stateStylesOptions,
     hover: stateStylesOptions,
 };
 
