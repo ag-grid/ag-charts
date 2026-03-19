@@ -46,6 +46,9 @@
 }
 
 .ag-charts-range-buttons--dropdown .ag-charts-toolbar__button {
+    flex: 1;
+    justify-content: space-between;
+
     font-size: var(--ag-charts-ranges__dropdown-font-size);
     font-family: var(--ag-charts-ranges__dropdown-font-family);
     font-weight: var(--ag-charts-ranges__dropdown-font-weight);
@@ -56,8 +59,8 @@
 
     .ag-charts-toolbar__icon {
         /* Adjust margin of icon to prevent it from changing the height of the button */
-        margin-top: calc(var(--ag-charts-ranges__dropdown-font-size) - 14px);
-        margin-bottom: calc(var(--ag-charts-ranges__dropdown-font-size) - 14px);
+        margin-top: calc(var(--ag-charts-ranges__dropdown-font-size) - 15px);
+        margin-bottom: calc(var(--ag-charts-ranges__dropdown-font-size) - 15px);
         height: calc(var(--ag-charts-ranges__dropdown-font-size) + 8px);
         width: calc(var(--ag-charts-ranges__dropdown-font-size) + 8px);
     }

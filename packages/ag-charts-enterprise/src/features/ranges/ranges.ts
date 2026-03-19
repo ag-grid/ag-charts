@@ -111,6 +111,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     private isDropdown?: boolean;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
+    private dropdownMinWidth?: number;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -118,6 +119,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );
@@ -197,7 +199,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, buttonsToolbar, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
+        const { buttons, buttonsToolbar, ctx, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
         if (!enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
 
         let bounds: BoxBounds | undefined;
@@ -212,7 +214,12 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         }
 
         if (this.isDropdown) {
-            bounds = this.updateToolbarBounds(dropdownToolbar, seriesRect, layoutBox);
+            // Ensure the dropdown toolbar has a minimum width of the initial state.
+            bounds = dropdownToolbar.getBounds();
+            this.dropdownMinWidth ??= bounds.width;
+            bounds.width = Math.max(bounds.width, this.dropdownMinWidth);
+
+            bounds = this.updateToolbarBounds(dropdownToolbar, seriesRect, layoutBox, bounds);
         } else {
             bounds = this.updateToolbarBounds(buttonsToolbar, seriesRect, layoutBox, bounds);
 
@@ -223,9 +230,16 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             }
         }
 
-        const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
+        const anchor = {
+            x: ctx.domManager.isRtl ? bounds.x + bounds.width : bounds.x,
+            y: bounds.y + bounds.height + 1,
+        };
         const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
+    }
+
+    private onChartWidgetClick() {
+        this.dropdownMenu?.hide();
     }
 
     private updateToolbarBounds(
@@ -244,7 +258,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         }
 
         bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
-        toolbar.setBounds({ x: bounds.x, y: bounds.y });
+        toolbar.setBounds({ x: bounds.x, y: bounds.y, width: bounds.width });
 
         return bounds;
     }
@@ -397,6 +411,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
         this.dropdownMenu.show(buttonWidget, {
             items: menuItems,
+            minWidth: this.dropdownMinWidth,
             onPress: (item) => {
                 const index = Number(item.value);
                 this.updateZoomWithButtonIndex(index);

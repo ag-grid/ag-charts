@@ -38,18 +38,12 @@ export abstract class AnchoredPopover<
 
     protected override showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
         super.showWidget(controller, owns, options);
-        this.updateAnchor(options);
+        this.updateAfterShow(options);
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
-        this.updateAnchor(options);
-
-        // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
-        // bounding box
-        this.ctx.agDocument.requestAnimationFrame(() => {
-            this.repositionWithinBounds();
-        });
+        this.updateAfterShow(options);
 
         return popover;
     }
@@ -62,7 +56,7 @@ export abstract class AnchoredPopover<
 
         const canvasRect = ctx.domManager.getBoundingClientRect();
         const { offsetWidth: width, offsetHeight: height } = popover;
-        const { isRtl } = this.ctx.domManager;
+        const { isRtl } = ctx.domManager;
         const anchorX = isRtl ? anchor.x - width : anchor.x;
 
         let x = clamp(0, anchorX, canvasRect.width - width);
@@ -78,5 +72,15 @@ export abstract class AnchoredPopover<
         }
 
         this.updatePosition({ x, y });
+    }
+
+    private updateAfterShow(options: Options) {
+        this.updateAnchor(options);
+
+        // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
+        // bounding box
+        this.ctx.agDocument.requestAnimationFrame(() => {
+            this.repositionWithinBounds();
+        });
     }
 }
