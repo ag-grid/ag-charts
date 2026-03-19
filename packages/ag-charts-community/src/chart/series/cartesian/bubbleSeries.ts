@@ -699,11 +699,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             nodeLabel = { text: '', width: 0, height: 0 };
         }
 
-        // Skip if sizeKey is configured but the value is invalid (NaN)
-        if (ctx.sizeDataValues != null && !Number.isFinite(sizeValue)) return undefined;
-
-        // Compute marker size
-        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convert(sizeValue);
+        // Compute marker size (use default for null/undefined/NaN size values)
+        const markerSize =
+            sizeValue == null || !Number.isFinite(sizeValue)
+                ? ctx.sizeScale.range[0]
+                : ctx.sizeScale.convert(sizeValue);
 
         // Populate scratch object
         scratch.datum = datum;
@@ -1196,8 +1196,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            // Only add size row if value is not null/undefined
-            if (value != null) {
+            // Only add size row if value is valid (not null/undefined/NaN)
+            if (value != null && Number.isFinite(value)) {
                 const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
                 const content = formatManager.format(this.callWithContext.bind(this), {
                     type: 'number',
