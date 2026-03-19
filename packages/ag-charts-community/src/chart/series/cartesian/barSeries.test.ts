@@ -2692,4 +2692,34 @@ describe('BarSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-16933 reverse + bandAlignment', () => {
+        it('should maintain reversed domain when processDomains is called multiple times', async () => {
+            const options = prepareTestOptions({
+                data: [
+                    { category: 'A', value: 1 },
+                    { category: 'B', value: 2 },
+                    { category: 'C', value: 3 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom', reverse: true, bandAlignment: 'start' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartObj = deproxy(chart);
+            const categoryAxis = chartObj.axes.find((a: any) => a.type === 'category') as any;
+            expect(categoryAxis.scale.domain).toEqual(['C', 'B', 'A']);
+
+            // Simulate what happens when resize triggers PROCESS_DOMAIN:
+            // processDomains() re-calls axis.processData() → axis.setDomains()
+            (chartObj as any).processDomains();
+
+            // Domain must remain reversed after the second processDomains() call
+            expect(categoryAxis.dataDomain.domain).toEqual(['C', 'B', 'A']);
+        });
+    });
 });

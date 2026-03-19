@@ -589,7 +589,7 @@ export abstract class Axis<
         });
 
         if (this.reverse) {
-            this.dataDomain.domain.reverse();
+            this.dataDomain = { ...this.dataDomain, domain: this.dataDomain.domain.toReversed() };
         }
 
         this.animatable = animatable;

@@ -7,6 +7,7 @@ import type {
 } from '../series/cartesian/commonOptions';
 import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
+import type { AgZoomEventSource } from './eventOptions';
 import type { CssColor, PixelSize } from './types';
 
 export interface AgRangesOptions extends Toggleable, AgRangesStyles {
@@ -86,9 +87,11 @@ export type AgRangesButtonValue =
     | undefined;
 
 export type AgRangesButtonValuePair = [Date | number, Date | number];
+export type AgRangesButtonValueSource = AgZoomEventSource;
 export type AgRangesButtonValueFunction = (
     start: Date | number,
     end: Date | number,
     windowStart: Date | number,
-    windowEnd: Date | number
-) => [Date | number, Date | number];
+    windowEnd: Date | number,
+    source: AgZoomEventSource
+) => [Date | number | undefined, Date | number | undefined];
