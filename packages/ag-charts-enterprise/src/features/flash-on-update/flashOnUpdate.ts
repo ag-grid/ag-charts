@@ -250,13 +250,31 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animate([this.chartFlashRect], 'update');
     }
 
+    private cacheBounds(key: string): void {
+        const bounds = this.measureBandBounds(key);
+        if (bounds) {
+            this.previousBoundsCache ??= new Map();
+            this.previousBoundsCache.set(key, bounds);
+        }
+    }
+
     private cachePreviousBounds(diff: _ModuleSupport.DataModelDiff): void {
+        let hasScaleChange = false;
         for (const seriesDiff of Object.values(diff)) {
+            if (seriesDiff.added.size > 0 || seriesDiff.removed.size > 0) {
+                hasScaleChange = true;
+            }
             for (const key of [...seriesDiff.removed, ...seriesDiff.updated, ...seriesDiff.moved]) {
-                const bounds = this.measureBandBounds(key);
-                if (bounds) {
-                    this.previousBoundsCache ??= new Map();
-                    this.previousBoundsCache.set(key, bounds);
+                this.cacheBounds(key);
+            }
+        }
+
+        // When categories are added or removed, all existing bands reposition due to the scale
+        // change. Cache their current bounds so the flash can animate from old to new positions.
+        if (hasScaleChange) {
+            for (const d of this.axisCtx?.scale.domain ?? []) {
+                if (!this.previousBoundsCache?.has(String(d))) {
+                    this.cacheBounds(String(d));
                 }
             }
         }
