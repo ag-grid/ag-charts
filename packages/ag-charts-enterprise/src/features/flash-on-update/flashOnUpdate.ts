@@ -31,11 +31,28 @@ const MERGE_BAND_THRESHOLD_PX = 2;
 const MERGE_BAND_EPSILON = 1e-6;
 const PHASE_ORDER: Record<FlashAnimationPhase, number> = { remove: 0, update: 1, add: 2 };
 
-function classifyDiffCategories(diffs: _ModuleSupport.DataModelDiff[]): Map<string, FlashAnimationPhase> {
+function setPhaseIfAbsent(
+    phases: Map<string, FlashAnimationPhase>,
+    keys: Iterable<string>,
+    phase: FlashAnimationPhase,
+    exclude?: Set<string>
+): void {
+    for (const key of keys) {
+        if (!phases.has(key) && !exclude?.has(key)) phases.set(key, phase);
+    }
+}
+
+function classifyDiffCategories(
+    diffs: _ModuleSupport.DataModelDiff[],
+    animationsSkipped: boolean
+): Map<string, FlashAnimationPhase> {
     const phases = new Map<string, FlashAnimationPhase>();
     for (const seriesDiff of diffs.flatMap((diff) => Object.values(diff))) {
-        for (const key of seriesDiff.updated) if (!phases.has(key)) phases.set(key, 'update');
-        for (const key of seriesDiff.moved) if (!phases.has(key)) phases.set(key, 'update');
+        // Moved categories are only flashed when animations are enabled, where position interpolation
+        // gives visual context for the move. Without animation, the move is instant and invisible.
+        // Since moved keys are a subset of updated, exclude them when animations are skipped.
+        const excludeFromUpdate = animationsSkipped ? seriesDiff.moved : undefined;
+        setPhaseIfAbsent(phases, seriesDiff.updated, 'update', excludeFromUpdate);
         for (const key of seriesDiff.removed) phases.set(key, 'remove');
         for (const key of seriesDiff.added) phases.set(key, 'add');
     }
@@ -111,10 +128,10 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     item: AgFlashOnUpdateItem = 'chart';
 
     @Property
-    color: CssColor = '#cfeeff';
+    fill: CssColor = '#cfeeff';
 
     @Property
-    opacity: Opacity = 1;
+    fillOpacity: Opacity = 1;
 
     @Property
     flashDuration?: DurationMs;
@@ -173,6 +190,18 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.axisCtx = findPrimaryCategoryAxisContext(this.ctx);
     }
 
+    // For grouped-category axes, domain values are arrays (e.g. ['UK', 'North']) but diff keys
+    // are stringified arrays (e.g. 'UK,North'). Scan the domain to find the matching array value
+    // so scale.convert() receives the correct type.
+    private resolveDomainValue(key: string): unknown {
+        const domain = this.axisCtx?.scale.domain;
+        if (!domain?.length || !Array.isArray(domain[0])) return key;
+        for (const d of domain) {
+            if (String(d) === key) return d;
+        }
+        return key;
+    }
+
     private onDataModelDiff({ diff }: _ModuleSupport.DataModelDiffEvent): void {
         if (!this.enabled) return;
 
@@ -197,7 +226,8 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             Object.values(diff).some((seriesDiff) => seriesDiff.changed)
         );
 
-        const categoryPhases = hasChanged ? classifyDiffCategories(this.pendingDiffs) : undefined;
+        const animationsSkipped = this.ctx.animationManager.isSkipped();
+        const categoryPhases = hasChanged ? classifyDiffCategories(this.pendingDiffs, animationsSkipped) : undefined;
         this.pendingDiffs.length = 0;
 
         if (!hasChanged) return;
@@ -215,7 +245,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private flashChart(): void {
         if (!this.chartFlashRect.width || !this.chartFlashRect.height) return;
 
-        this.chartFlashRect.fill = this.color;
+        this.chartFlashRect.fill = this.fill;
         this.chartFlashRect.fillOpacity = 0;
         this.animate([this.chartFlashRect], 'update');
     }
@@ -235,7 +265,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private measureBandBounds(key: string): BoxBounds | undefined {
         if (!this.axisCtx || !this.seriesRect) return;
 
-        const band = this.axisCtx.measureBand(key)?.band;
+        const band = this.axisCtx.measureBand(this.resolveDomainValue(key) as string)?.band;
         if (!band) return;
 
         const [start, end] = band;
@@ -257,6 +287,17 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             }
         }
 
+        // When categories are added or removed with animations enabled, the band scale changes so
+        // all bands visually reposition. Mark unclassified domain keys as 'update' so they flash too.
+        // Skipped when animations are disabled since positions snap instantly.
+        if (!animationsSkipped && this.hasScaleChange(categoryPhases)) {
+            const domain = this.axisCtx?.scale.domain ?? [];
+            for (const d of domain) {
+                const key = String(d);
+                if (!categoryPhases.has(key)) categoryPhases.set(key, 'update');
+            }
+        }
+
         const data = this.createBandFlashData(categoryPhases);
         if (!data) return;
 
@@ -264,9 +305,18 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.animateBands();
     }
 
+    private hasScaleChange(categoryPhases: Map<string, FlashAnimationPhase>): boolean {
+        for (const phase of categoryPhases.values()) {
+            if (phase === 'add' || phase === 'remove') return true;
+        }
+        return false;
+    }
+
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
         if (!this.axisCtx || !this.seriesRect) {
-            Logger.warnOnce(`flashOnUpdate item 'category' requires a category axis`);
+            Logger.warnOnce(
+                `flashOnUpdate item 'category' requires a cartesian category based axis such as 'category', 'ordinal-time', 'unit-time'`
+            );
             return;
         }
 
@@ -304,7 +354,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                 continue;
             }
 
-            const position = scale.convert(category);
+            const position = scale.convert(this.resolveDomainValue(category) as string);
             const start = Math.max(position - offset, rMin);
             const end = Math.min(position + bandwidth + offset, rMax);
             const span = Math.max(end - start, MIN_BAND_RENDER_PX);
@@ -323,7 +373,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
         this.bandSelection.each((rect, datum) => {
             const b = useNewBounds ? datum.bounds : datum.prevBounds ?? datum.bounds;
-            rect.fill = this.color;
+            rect.fill = this.fill;
             rect.fillOpacity = 0;
             rect.x = b.x;
             rect.y = b.y;
@@ -333,11 +383,19 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private animateBands(): void {
+        const allRects = Array.from(this.bandSelection.nodes());
+
+        if (this.ctx.animationManager.isSkipped()) {
+            // When animations are disabled, flash all bands simultaneously to avoid staggered phase delays.
+            this.animate(allRects, 'update');
+            return;
+        }
+
         const removeRects: _ModuleSupport.Rect[] = [];
         const updateRects: _ModuleSupport.Rect[] = [];
         const addRects: _ModuleSupport.Rect[] = [];
 
-        for (const rect of this.bandSelection.nodes()) {
+        for (const rect of allRects) {
             if (rect.datum.phase === 'remove') removeRects.push(rect);
             else if (rect.datum.phase === 'add') addRects.push(rect);
             else updateRects.push(rect);
@@ -355,7 +413,6 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private animate(rects: _ModuleSupport.Rect[], phase: _ModuleSupport.AnimationPhase): void {
         if (rects.length === 0) return;
 
-        const { opacity } = this;
         const { animationManager } = this.ctx;
         const timing = this.getCustomTiming(phase);
         const duration = timing?.duration;
@@ -368,7 +425,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             phase,
             duration,
             ease,
-            from: { fillOpacity: opacity },
+            from: { fillOpacity: this.fillOpacity },
             to: { fillOpacity: 0 },
             onUpdate: ({ fillOpacity }, preInit) => {
                 if (preInit) return;

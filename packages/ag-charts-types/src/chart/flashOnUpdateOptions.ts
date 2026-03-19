@@ -7,10 +7,10 @@ export interface AgFlashOnUpdateOptions {
     enabled?: boolean;
     /** What part of the chart to flash. */
     item?: AgFlashOnUpdateItem;
-    /** The colour of the flash effect. */
-    color?: CssColor;
-    /** The opacity of the flash effect. */
-    opacity?: Opacity;
+    /** The fill colour of the flash effect. */
+    fill?: CssColor;
+    /** The fill opacity of the flash effect. */
+    fillOpacity?: Opacity;
     /** The flash hold duration in milliseconds before fading begins. Actual timing may vary when animations are enabled. */
     flashDuration?: DurationMs;
     /** The fade-out duration in milliseconds. Actual timing may vary when animations are enabled. */
