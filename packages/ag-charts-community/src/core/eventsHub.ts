@@ -256,7 +256,7 @@ export interface SeriesKeyNavZoomEvent {
 }
 
 export interface SeriesKeyNavPanXEvent {
-    readonly delta: -1 | 1;
+    readonly delta: 'home' | 'end' | -1 | 1;
     readonly reverse: boolean;
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
@@ -303,7 +303,7 @@ export type ZoomEventSourceDetail =
     | `internal-setAxes`
     | `internal-updateSyncZoom`
     | `keyboard(${-1 | 0 | 1})`
-    | `keyboard-page(${-1 | 1})`
+    | `keyboard-page(${'home' | 'end' | -1 | 1})`
     | `navigatorDOM`
     | `navigator`
     | `onDataChange-reset`

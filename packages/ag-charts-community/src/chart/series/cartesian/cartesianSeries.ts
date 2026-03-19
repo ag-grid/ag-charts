@@ -852,6 +852,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         if (this.contextNodeData?.nodeData === undefined) return;
 
         const { otherIndex, where, hoverRect } = opts;
+        if (where === 'data-start') {
+            return this.pickFocus({ datumIndex: 0, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
+        }
+        if (where === 'data-end') {
+            const end = this.contextNodeData.nodeData.length - 1;
+            return this.pickFocus({ datumIndex: end, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
+        }
 
         let result: PickFocusOutputs | undefined = undefined;
 

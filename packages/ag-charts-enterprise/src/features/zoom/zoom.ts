@@ -583,11 +583,23 @@ export class Zoom extends AbstractModuleInstance {
         if (!isFocusableState || !enabled) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
+        const delta: typeof event.delta = event.reverse
+            ? ({ [-1]: 1, [1]: -1, home: 'end', end: 'home' } as const)[event.delta]
+            : event.delta;
         const zoom = this.getZoom();
-        const scrollDelta: number = event.delta * (event.reverse ? -1 : 1) * dx(zoom);
-        zoom.x.min += scrollDelta;
-        zoom.x.max += scrollDelta;
-        zoom.x = constrainAxis(zoom.x);
+        const xdiff = dx(zoom);
+        if (delta === 'home') {
+            zoom.x.min = 0;
+            zoom.x.max = xdiff;
+        } else if (delta === 'end') {
+            zoom.x.min = 1 - xdiff;
+            zoom.x.max = 1;
+        } else {
+            const scrollDelta: number = delta * xdiff;
+            zoom.x.min += scrollDelta;
+            zoom.x.max += scrollDelta;
+            zoom.x = constrainAxis(zoom.x);
+        }
         this.updateZoom(userInteraction(`keyboard-page(${event.delta})`), zoom);
     }
 

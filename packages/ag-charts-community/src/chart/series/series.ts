@@ -115,7 +115,7 @@ export type PickFocusInputs = {
 
 export type PickViewportFocusInputs = {
     readonly otherIndex: number;
-    readonly where: 'viewport-start' | 'viewport-end';
+    readonly where: 'data-start' | 'data-end' | 'viewport-start' | 'viewport-end';
     readonly hoverRect: Readonly<BoxBounds>;
 };
 
