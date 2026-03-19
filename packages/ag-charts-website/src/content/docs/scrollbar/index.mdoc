@@ -126,8 +126,23 @@ The Scrollbar track mirrors native scrollbar behaviour:
 -   Clicking the track pages the thumb by one viewport width towards the click position.
 -   Holding the mouse button down repeats the page increment automatically.
 -   Shift+Click jumps the thumb so the click is centred within the thumb.
+-   Scrolling over the Scrollbar track pans the viewport in the corresponding direction.
 -   On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable target for dragging.
 -   The Scrollbars are fully accessible with keyboard navigation and screen readers automatically supported.
+
+## Scrolling
+
+Scrolling over the Scrollbar track always pans the viewport.
+
+Use `enableSeriesAreaScrolling` and `enableAxisScrolling` to extend this to the series area and axis areas.
+
+{% chartExampleRunner title="Scrollbar Scrolling" name="scrollbar-scrolling" type="generated" /%}
+
+In this example:
+
+-   `enableSeriesAreaScrolling` enables scrolling within the series area to pan the chart.
+-   `enableAxisScrolling` enables scrolling over the axis to pan in that axis direction.
+-   If [Zoom](./zoom) is also enabled, its scroll interactions take precedence.
 
 ## Visibility
 
