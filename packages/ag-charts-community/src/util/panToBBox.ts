@@ -37,10 +37,6 @@ function calcNeedsScaling(viewportBBox: BoxBounds, targetBBox: BoxBounds): Needs
     return { x, y };
 }
 
-function needsScaling(scaling: NeedsScaling): boolean {
-    return scaling.x || scaling.y;
-}
-
 /* Pan viewport min (unnormalised, i.e. pixel coords.) by the smallest amount
    such that the viewport range includes the input target range but clamped at
    the world range. The function assumes:
@@ -154,7 +150,7 @@ export function calcPanToBBoxRatiosScaleProportionally(
     targetBBox: BoxBounds
 ): XYRatios {
     const scaleRequirements = calcNeedsScaling(viewportBBox, targetBBox);
-    if (!needsScaling(scaleRequirements)) {
+    if (!scaleRequirements.x && !scaleRequirements.y) {
         return calcPanToBBoxRatiosScaleDisproportionally(scaleRequirements, viewportBBox, ratios, targetBBox);
     }
 
