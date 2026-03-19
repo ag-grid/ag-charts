@@ -51,12 +51,15 @@ function testThemeTop() {
         overrides: {
             common: {
                 ranges: {
-                    cornerRadius: 20,
+                    cornerRadius: 14,
                     gap: 10,
                     fill: 'pink',
                     textColor: 'red',
                     disabled: {
                         fill: 'lightblue',
+                    },
+                    hover: {
+                        fill: 'lightgreen',
                     },
                 },
             },
@@ -79,6 +82,18 @@ function testThemeChild() {
                     fillOpacity: 0.5,
                     textColor: 'red',
                     button: {
+                        fill: 'green',
+                        stroke: 'aqua',
+                        strokeWidth: 4,
+                        textColor: 'white',
+                        disabled: {
+                            fill: 'lightgreen',
+                        },
+                        hover: {
+                            fillOpacity: 1,
+                        },
+                    },
+                    dropdown: {
                         fill: 'green',
                         stroke: 'aqua',
                         strokeWidth: 4,

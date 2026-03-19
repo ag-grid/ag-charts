@@ -433,6 +433,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         });
 
         this.dropdownMenu.show(buttonWidget, {
+            class: 'ag-charts-range-buttons-menu',
             items: menuItems,
             minWidth: this.dropdownMinWidth,
             onPress: (item) => {
