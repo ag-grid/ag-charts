@@ -49,6 +49,13 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
+export interface FillCssOptions {
+    /** The colour for filling shapes. */
+    fill?: CssColor;
+    /** The opacity of the fill colour. */
+    fillOpacity?: Opacity;
+}
+
 export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 

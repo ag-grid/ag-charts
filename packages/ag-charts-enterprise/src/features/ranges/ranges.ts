@@ -12,6 +12,7 @@ import {
     type BoxBounds,
     ChartAxisDirection,
     CleanupRegistry,
+    Color,
     type ModuleInstance,
     PropertiesArray,
     Property,
@@ -53,6 +54,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     @Property
     public active = new RangesStateStylesProperties();
+
+    @Property
+    public disabled = new RangesStateStylesProperties();
 
     @Property
     public hover = new RangesStateStylesProperties();
@@ -295,6 +299,13 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
+            'disabled',
+            this.getComponentStateVariables(this.button, 'disabled'),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'button',
             'hover',
             this.getComponentStateVariables(this.button, 'hover'),
             numericKeys
@@ -316,6 +327,13 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'dropdown',
+            'disabled',
+            this.getComponentStateVariables(this.dropdown, 'disabled'),
+            numericKeys
+        );
+        this.ctx.domManager.setModuleCSSVariables(
+            'ranges',
+            'dropdown',
             'hover',
             this.getComponentStateVariables(this.dropdown, 'hover'),
             numericKeys
@@ -325,8 +343,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     private getComponentVariables(component: Ranges | RangesStylesProperties) {
         return {
             cornerRadius: component.cornerRadius,
-            fill: component.fill,
-            fillOpacity: component.fillOpacity,
+            fill: this.getComponentFill(component.fill, component.fillOpacity),
             fontSize: component.fontSize,
             fontFamily: component.fontFamily,
             fontWeight: component.fontWeight,
@@ -340,14 +357,20 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         };
     }
 
-    private getComponentStateVariables(component: RangesStylesProperties, state: 'active' | 'hover') {
+    private getComponentStateVariables(component: RangesStylesProperties, state: 'active' | 'disabled' | 'hover') {
         return {
-            fill: component[state].fill,
+            fill: this.getComponentFill(component[state].fill, component[state].fillOpacity),
             fillOpacity: component[state].fillOpacity,
             stroke: component[state].stroke,
-            strokeWidth: component[state].strokeWidth,
             textColor: component[state].textColor,
         };
+    }
+
+    private getComponentFill(fill: string, fillOpacity: number) {
+        if (fillOpacity >= 1) return fill;
+        const fillColor = Color.fromString(fill);
+        const fillOpacityColor = new Color(fillColor.r, fillColor.g, fillColor.b, fillOpacity);
+        return fillOpacityColor.toString();
     }
 
     private onZoomChanged() {

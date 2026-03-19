@@ -29,15 +29,15 @@ export class RangesStateStylesProperties extends BaseProperties {
     public stroke: CssColor = 'black';
 
     @Property
-    public strokeWidth = 1;
-
-    @Property
     public textColor: CssColor = 'black';
 }
 
 export class RangesStylesProperties extends BaseProperties {
     @Property
     public active = new RangesStateStylesProperties();
+
+    @Property
+    public disabled = new RangesStateStylesProperties();
 
     @Property
     public hover = new RangesStateStylesProperties();
