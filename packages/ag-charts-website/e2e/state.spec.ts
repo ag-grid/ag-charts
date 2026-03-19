@@ -711,7 +711,7 @@ test.describe('state', () => {
                 });
             });
 
-            test.describe('frozen series-node hides and shows and legend toggles', () => {
+            test.describe('frozen series-node hides and shows on legend toggles', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'UK', year: '2023' });
