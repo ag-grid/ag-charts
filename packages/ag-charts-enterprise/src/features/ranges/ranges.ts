@@ -111,6 +111,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
     private isDropdown?: boolean;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
+    private dropdownMinWidth?: number;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -212,7 +213,12 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         }
 
         if (this.isDropdown) {
-            bounds = this.updateToolbarBounds(dropdownToolbar, seriesRect, layoutBox);
+            // Ensure the dropdown toolbar has a minimum width of the initial state.
+            bounds = dropdownToolbar.getBounds();
+            this.dropdownMinWidth ??= bounds.width;
+            bounds.width = Math.max(bounds.width, this.dropdownMinWidth);
+
+            bounds = this.updateToolbarBounds(dropdownToolbar, seriesRect, layoutBox, bounds);
         } else {
             bounds = this.updateToolbarBounds(buttonsToolbar, seriesRect, layoutBox, bounds);
 
@@ -244,7 +250,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         }
 
         bounds.x = clamp(seriesRect.x, bounds.x, seriesRect.x + seriesRect.width - bounds.width);
-        toolbar.setBounds({ x: bounds.x, y: bounds.y });
+        toolbar.setBounds({ x: bounds.x, y: bounds.y, width: bounds.width });
 
         return bounds;
     }

@@ -46,6 +46,9 @@
 }
 
 .ag-charts-range-buttons--dropdown .ag-charts-toolbar__button {
+    flex: 1;
+    justify-content: space-between;
+
     font-size: var(--ag-charts-ranges__dropdown-font-size);
     font-family: var(--ag-charts-ranges__dropdown-font-family);
     font-weight: var(--ag-charts-ranges__dropdown-font-weight);
