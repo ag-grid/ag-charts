@@ -16,12 +16,8 @@
                 "path": "./flash-on-update/"
             },
             {
-                "text": "RTL",
+                "text": "RTL Text and Layout",
                 "path": "./rtl/"
-            },
-            {
-                "text": "Improved Accessibility",
-                "path": "./accessibility/"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-13-2"
