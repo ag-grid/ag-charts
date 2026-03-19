@@ -470,8 +470,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     public updateWith(
         { source, sourceDetail }: UpdateZoomSourcing,
         direction: CartesianAxisDirection,
-        fn: UpdateZoomWithFunction,
-        fnSource: AgRangesButtonValueSource = 'user-interaction'
+        fn: UpdateZoomWithFunction
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
@@ -486,6 +485,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
+        const fnSource = source === 'user-interaction' ? 'user-interaction' : 'range-check';
         const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, fnSource);
         if (!this.isValidUpdateWithResult(result)) {
             return;
