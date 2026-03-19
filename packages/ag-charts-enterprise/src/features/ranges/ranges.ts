@@ -198,7 +198,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, buttonsToolbar, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
+        const { buttons, buttonsToolbar, ctx, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
         if (!enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
 
         let bounds: BoxBounds | undefined;
@@ -229,7 +229,10 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             }
         }
 
-        const anchor = { x: bounds.x, y: bounds.y + bounds.height + 1 };
+        const anchor = {
+            x: ctx.domManager.isRtl ? bounds.x + bounds.width : bounds.x,
+            y: bounds.y + bounds.height + 1,
+        };
         const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
     }
