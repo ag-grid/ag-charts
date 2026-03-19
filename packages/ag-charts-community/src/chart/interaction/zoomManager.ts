@@ -28,7 +28,13 @@ import type {
     ZoomMinMax,
     ZoomState,
 } from 'ag-charts-core';
-import type { AgRangesButtonValueSource, AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type {
+    AgRangesButtonValueSource,
+    AgZoomEvent,
+    AgZoomEventSource,
+    AgZoomRange,
+    AgZoomRatio,
+} from 'ag-charts-types';
 
 import type {
     EventsHub,
