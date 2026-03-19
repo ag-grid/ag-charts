@@ -803,6 +803,9 @@ export class DataSet<T = unknown> {
                     this.idToIndexCache.set(id, i);
                 }
             }
+            if (this.idToIndexCache.size === 0 && this.data.length > 0) {
+                Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
+            }
         }
         return this.idToIndexCache;
     }
