@@ -23,9 +23,11 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
 ]);
 
+let data = getInitialData();
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getInitialData(),
+    data,
     title: {
         text: 'MSFT Stock Price',
     },
@@ -58,33 +60,50 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-let updateInterval: ReturnType<typeof setInterval> | null = null;
+let isRunning = false;
+let updateInterval: ReturnType<typeof setInterval> | undefined;
 
+/** inScope */
 function update() {
-    options.data = applyLiveUpdate(options.data!);
+    data = applyLiveUpdate(data);
+    options.data = data;
     chart.update(options);
 }
 
+/** inScope */
 function startUpdates() {
-    if (updateInterval) return;
+    if (isRunning) return;
+    isRunning = true;
+    updateButton();
     update();
     updateInterval = setInterval(update, 2000);
 }
 
+/** inScope */
 function stopUpdates() {
+    if (!isRunning) return;
+    isRunning = false;
+    updateButton();
     if (updateInterval) {
         clearInterval(updateInterval);
-        updateInterval = null;
+        updateInterval = undefined;
+    }
+}
+
+/** inScope */
+function updateButton() {
+    const button = document.getElementById('toggleBtn');
+    if (button) {
+        button.textContent = isRunning ? 'Stop Updates' : 'Start Updates';
     }
 }
 
 function toggleUpdates() {
-    if (updateInterval) {
+    if (isRunning) {
         stopUpdates();
     } else {
         startUpdates();
     }
-    document.getElementById('toggleBtn')!.textContent = updateInterval ? 'Stop Updates' : 'Start Updates';
 }
 
 function setColor(value: string) {
