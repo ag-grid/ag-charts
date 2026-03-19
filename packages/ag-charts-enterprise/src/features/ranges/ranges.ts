@@ -229,7 +229,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             }
         }
 
-        const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
+        const anchor = { x: bounds.x, y: bounds.y + bounds.height + 1 };
         const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
     }
