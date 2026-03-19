@@ -61,31 +61,28 @@ function stabilityProxy(page: Page, instance: any) {
 }
 
 function stableLocator(page: Page, locator: any): any {
-    return new Proxy(locator, {
-        get(target, prop) {
-            const value = target[prop];
-            if (typeof value !== 'function') return value;
+    for (const action of LOCATOR_ACTIONS) {
+        if (typeof locator[action] === 'function') {
+            const original = locator[action].bind(locator);
+            locator[action] = async function (...args: unknown[]) {
+                await waitForCharts(page);
+                const result = await original(...args);
+                await waitForCharts(page);
+                return result;
+            };
+        }
+    }
 
-            if (LOCATOR_ACTIONS.has(prop as string)) {
-                return async function (...args: unknown[]) {
-                    await waitForCharts(page);
-                    const result = await target[prop].apply(target, args);
-                    await waitForCharts(page);
-                    return result;
-                };
-            }
+    for (const factory of LOCATOR_FACTORIES) {
+        if (typeof locator[factory] === 'function') {
+            const original = locator[factory].bind(locator);
+            locator[factory] = function (...args: unknown[]) {
+                return stableLocator(page, original(...args));
+            };
+        }
+    }
 
-            if (LOCATOR_FACTORIES.has(prop as string)) {
-                return function (...args: unknown[]) {
-                    return stableLocator(page, target[prop].apply(target, args));
-                };
-            }
-
-            // Pass through all other methods unchanged to preserve Playwright's
-            // internal type checks (e.g. expect(locator).toBeVisible()).
-            return value.bind(target);
-        },
-    });
+    return locator;
 }
 
 const PAGE_LOCATOR_METHODS = [

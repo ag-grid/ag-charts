@@ -33,7 +33,9 @@ test.describe('range buttons', () => {
     test('out of range', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-out-of-range', 'vanilla');
         await gotoExample(page, url);
-        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot('range-buttons-out-of-range.png');
+        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot(
+            'range-buttons-out-of-range.png'
+        );
     });
 
     test('position', async ({ page }) => {
