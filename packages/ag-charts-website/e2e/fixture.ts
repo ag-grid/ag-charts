@@ -38,6 +38,10 @@ const LOCATOR_FACTORIES = new Set([
 ]);
 
 async function waitForCharts(page: Page) {
+    // Yield to the macrotask queue so that any deferred DOM flushes
+    // (scheduled via setTimeout(0) in DOMElementProxy) have executed
+    // before we inspect data-update-pending / data-animating attributes.
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
         await waitForChartUpdate(locator);
     }
