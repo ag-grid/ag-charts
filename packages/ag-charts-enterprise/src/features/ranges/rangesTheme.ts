@@ -12,7 +12,7 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
-    padding: { top: 6, right: 9, bottom: 6, left: 9 },
+    padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
     stroke: { $ref: 'borderColor' },
     strokeWidth: { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
     textColor: { $ref: 'chromeTextColor' },
