@@ -7,6 +7,7 @@ import { expect, test } from './fixture';
 import {
     SELECTORS,
     createConsoleLogs,
+    createConsoleTracker,
     gotoExample,
     locateCanvas,
     readSwapchainText,
@@ -17,6 +18,7 @@ import {
 } from './util';
 
 type ConsoleLogs = ReturnType<typeof createConsoleLogs>;
+type ConsoleTracker = ReturnType<typeof createConsoleTracker>;
 
 const PREVENT_DEFAULT_STUB = () => {};
 
@@ -2740,6 +2742,282 @@ test.describe('state', () => {
 
                     await keyEnd(page);
                     expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+        });
+
+        test.describe('frozen-legendtoggle', () => {
+            let consoleTracker: ConsoleTracker;
+            let canvas: Locator;
+
+            const ACTIVE_NODE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BarSeries-2',
+                itemId: 0,
+            });
+
+            const ACTIVE_INVALID_NODE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BarSeries-2',
+                itemId: 999,
+            });
+
+            const ACTIVE_LEGEND_ITEM = Object.freeze({
+                type: 'legend',
+                seriesId: 'BarSeries-2',
+                itemId: 'privateCar',
+            });
+
+            const STATE_NODE_THAWED = Object.freeze({ activeItem: ACTIVE_NODE_ITEM, frozen: false });
+            const STATE_NODE_FROZEN = Object.freeze({ activeItem: ACTIVE_NODE_ITEM, frozen: true });
+
+            const STATE_INVALID_NODE_THAWED = Object.freeze({ activeItem: ACTIVE_INVALID_NODE_ITEM, frozen: false });
+            const STATE_INVALID_NODE_FROZEN = Object.freeze({ activeItem: ACTIVE_INVALID_NODE_ITEM, frozen: true });
+
+            const STATE_LEGEND_THAWED = Object.freeze({ activeItem: ACTIVE_LEGEND_ITEM, frozen: false });
+
+            const STATE_INACTIVE_FROZEN = Object.freeze({ activeItem: undefined, frozen: true });
+
+            const CHANGE_INACTIVE = Object.freeze({
+                activeItem: undefined,
+                datum: undefined,
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+            const CHANGE_INACTIVE_THAWED = Object.freeze({ ...CHANGE_INACTIVE, frozen: false });
+            const CHANGE_INACTIVE_FROZEN = Object.freeze({ ...CHANGE_INACTIVE, frozen: true });
+
+            const CHANGE_NODE = Object.freeze({
+                datum: undefined,
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'state-change',
+                type: 'activeChange',
+            });
+            const CHANGE_NODE_THAWED = Object.freeze({ ...STATE_NODE_THAWED, ...CHANGE_NODE });
+            const CHANGE_NODE_FROZEN = Object.freeze({ ...STATE_NODE_FROZEN, ...CHANGE_NODE });
+
+            const CHANGE_INVALID_NODE_THAWED = Object.freeze({ ...STATE_INVALID_NODE_THAWED, ...CHANGE_NODE });
+            const CHANGE_INVALID_NODE_FROZEN = Object.freeze({ ...STATE_INVALID_NODE_FROZEN, ...CHANGE_NODE });
+
+            const CHANGE_LEGEND = Object.freeze({
+                datum: undefined,
+                dataIdKey: undefined,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+            const CHANGE_LEGEND_THAWED = Object.freeze({ ...STATE_LEGEND_THAWED, ...CHANGE_LEGEND });
+
+            const INVALID_MESSAGE = { type: 'warning', text: 'AG Charts - Cannot find itemId: 999' };
+
+            async function clickButtonRestoreValidThawed(page: Page): Promise<void> {
+                await page.getByText('Restore (Valid/Thawed)').click();
+            }
+
+            async function clickButtonRestoreInvalidThawed(page: Page): Promise<void> {
+                await page.getByText('Restore (Invalid/Thawed)').click();
+            }
+
+            async function clickButtonRestoreValidFrozen(page: Page): Promise<void> {
+                await page.getByText('Restore (Valid/Frozen)').click();
+            }
+
+            async function clickButtonRestoreInvalidFrozen(page: Page): Promise<void> {
+                await page.getByText('Restore (Invalid/Frozen)').click();
+            }
+
+            async function clickLegendItemPrivateCar(page: Page): Promise<void> {
+                await page.mouse.move(383, 556);
+                await page.mouse.click(383, 556);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                consoleTracker = createConsoleTracker(page);
+                consoleTracker.init();
+
+                const url = toExamplePageUrl('active-e2e-test', 'frozen-legendtoggle', 'vanilla').url;
+                await gotoExample(page, url);
+                canvas = page.locator(SELECTORS.canvasCenter);
+            });
+
+            test.afterEach(async () => {
+                consoleTracker.teardown();
+            });
+
+            test.describe('1. valid itemId thawed', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickButtonRestoreValidThawed(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-active.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickButtonRestoreValidThawed(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_LEGEND_THAWED);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED, CHANGE_INACTIVE_THAWED]);
+
+                    await clickButtonRestoreValidThawed(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        CHANGE_NODE_THAWED,
+                        CHANGE_INACTIVE_THAWED, // FIXME: AG-16973
+                    ]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED]);
+                });
+            });
+
+            test.describe('2. invalid itemId thawed', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickButtonRestoreInvalidThawed(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-active.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickButtonRestoreInvalidThawed(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_LEGEND_THAWED);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED, CHANGE_INACTIVE_THAWED]);
+
+                    await clickButtonRestoreInvalidThawed(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        CHANGE_INVALID_NODE_THAWED,
+                        CHANGE_INACTIVE_THAWED, // FIXME: AG-16973
+                    ]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED]);
+                });
+            });
+
+            test.describe('3. valid itemId frozen', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickButtonRestoreValidFrozen(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-datum0-active.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickButtonRestoreValidFrozen(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_NODE_FROZEN);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_NODE_FROZEN);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED, CHANGE_INACTIVE_THAWED]);
+
+                    await clickButtonRestoreValidFrozen(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_NODE_FROZEN]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([]);
+                });
+            });
+
+            test.describe('[ignoreConsoleWarnings] 4. invalid itemId frozen', () => {
+                test('screenshots', async ({ page }) => {
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickButtonRestoreInvalidFrozen(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+
+                    await clickLegendItemPrivateCar(page);
+                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                });
+                test('states', async ({ page }) => {
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active?.activeItem).toBeUndefined();
+
+                    await clickButtonRestoreInvalidFrozen(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_INVALID_NODE_FROZEN);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect((await getChartState(page)).active).toEqual(STATE_INACTIVE_FROZEN);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popChartEvents(page)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_LEGEND_THAWED, CHANGE_INACTIVE_THAWED]);
+
+                    await clickButtonRestoreInvalidFrozen(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_INVALID_NODE_FROZEN]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await popChartEvents(page)).toEqual([CHANGE_INACTIVE_FROZEN]);
+                });
+                test('warnings', async ({ page }) => {
+                    expect(await consoleTracker.popMessages(0)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await consoleTracker.popMessages(0)).toEqual([]);
+
+                    await clickButtonRestoreInvalidFrozen(page);
+                    expect(await consoleTracker.popMessages(0)).toEqual([]);
+
+                    await clickLegendItemPrivateCar(page);
+                    expect(await consoleTracker.popMessages(1)).toMatchObject([INVALID_MESSAGE]);
                 });
             });
         });
