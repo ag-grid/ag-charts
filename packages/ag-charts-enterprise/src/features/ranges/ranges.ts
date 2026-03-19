@@ -119,6 +119,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );
@@ -235,6 +236,10 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         };
         const fallbackAnchor = { x: bounds.x + bounds.width, y: bounds.y + 2 };
         dropdownMenu.setAnchor(anchor, fallbackAnchor);
+    }
+
+    private onChartWidgetClick() {
+        this.dropdownMenu?.hide();
     }
 
     private updateToolbarBounds(
