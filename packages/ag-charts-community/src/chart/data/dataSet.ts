@@ -78,7 +78,11 @@ export class DataSet<T = unknown> {
     constructor(
         public data: T[],
         public readonly dataIdKey?: string
-    ) {}
+    ) {
+        if (dataIdKey != null && data.length > 0) {
+            this.getIdToIndexMap();
+        }
+    }
 
     /**
      * Creates an empty DataSet.
