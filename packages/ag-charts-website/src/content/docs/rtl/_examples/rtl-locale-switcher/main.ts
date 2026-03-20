@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgContextMenuItem,
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
@@ -9,6 +8,7 @@ import {
     LocaleModule,
     ModuleRegistry,
     NumberAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 import {
     AG_CHARTS_LOCALE_AR_EG,
@@ -24,6 +24,7 @@ ModuleRegistry.registerModules([
     LegendModule,
     LocaleModule,
     NumberAxisModule,
+    ZoomModule,
 ]);
 
 type Language = 'en' | 'ar' | 'fa' | 'he';
@@ -32,21 +33,13 @@ const LANGUAGES = {
     en: {
         localeText: AG_CHARTS_LOCALE_EN_US,
         enableRtl: false,
-        title: 'Monthly Product Sales',
-        subtitle: 'Sales and Revenue Data for 2024',
-        footnote: 'Source: Sales Department',
-        yAxisTitle: 'Amount ($)',
-        seriesNames: ['Sales', 'Revenue'],
-        contextMenu: {
-            viewSalesReport: 'View Sales Report',
-            exportOptions: 'Export Options',
-            csvFormat: 'CSV Format',
-            chartSettings: 'Chart Settings',
-            lightTheme: 'Light Theme',
-            darkTheme: 'Dark Theme',
-            resolution: 'Resolution 1080p',
-            toggleInReport: 'Toggle in Report',
-        },
+        title: 'Quarterly Product Sales Performance Overview',
+        subtitle: 'Comparison of Sales and Revenue Across Categories for the Year 2024',
+        footnote: 'Source: Regional Sales Department — Internal Report',
+        yAxisTitle: 'Amount in US Dollars ($)',
+        seriesNames: ['Total Sales Volume', 'Gross Revenue'],
+        zoomControls: 'Zoom Controls',
+        legendControls: 'Legend Controls',
         data: [
             { month: 'January', sales: 150, revenue: 200 },
             { month: 'February', sales: 230, revenue: 310 },
@@ -59,21 +52,13 @@ const LANGUAGES = {
     ar: {
         localeText: AG_CHARTS_LOCALE_AR_EG,
         enableRtl: true,
-        title: 'مبيعات المنتجات الشهرية',
-        subtitle: 'بيانات Revenue الشهرية',
-        footnote: 'المصدر: قسم المبيعات | Source: Sales Department',
-        yAxisTitle: 'المبلغ Amount بالدولار',
+        title: 'نظرة عامة على أداء Sales مبيعات المنتجات الفصلية',
+        subtitle: 'مقارنة بيانات Revenue المبيعات والإيرادات عبر الفئات لعام 2024',
+        footnote: 'المصدر: قسم المبيعات الإقليمي — Sales Department تقرير داخلي',
+        yAxisTitle: 'المبلغ Amount بالدولار الأمريكي',
         seriesNames: ['مبيعات Sales', 'إيرادات Revenue'],
-        contextMenu: {
-            viewSalesReport: 'عرض Sales تقرير',
-            exportOptions: 'Export خيارات',
-            csvFormat: 'تنسيق CSV',
-            chartSettings: 'إعدادات الرسم | Chart Settings',
-            lightTheme: 'المظهر الفاتح',
-            darkTheme: 'Dark Theme (المظهر الداكن)',
-            resolution: 'دقة 1080p الشاشة',
-            toggleInReport: 'تبديل في التقرير',
-        },
+        zoomControls: 'عناصر التكبير',
+        legendControls: 'عناصر وسيلة الإيضاح',
         data: [
             { month: 'يناير', sales: 150, revenue: 200 },
             { month: 'فبراير', sales: 230, revenue: 310 },
@@ -86,21 +71,13 @@ const LANGUAGES = {
     fa: {
         localeText: AG_CHARTS_LOCALE_FA_IR,
         enableRtl: true,
-        title: 'فروش محصولات ماهانه',
-        subtitle: 'داده‌های Revenue ماهانه',
-        footnote: 'منبع: بخش فروش | Source: Sales Department',
-        yAxisTitle: 'مبلغ Amount به دلار',
+        title: 'نمای کلی عملکرد Sales فروش محصولات فصلی',
+        subtitle: 'مقایسه داده‌های Revenue فروش و درآمد در دسته‌بندی‌ها برای سال 2024',
+        footnote: 'منبع: بخش فروش منطقه‌ای — Sales Department گزارش داخلی',
+        yAxisTitle: 'مبلغ Amount به دلار آمریکا',
         seriesNames: ['فروش Sales', 'درآمد Revenue'],
-        contextMenu: {
-            viewSalesReport: 'مشاهده Sales گزارش',
-            exportOptions: 'Export گزینه‌ها',
-            csvFormat: 'قالب CSV',
-            chartSettings: 'تنظیمات نمودار | Chart Settings',
-            lightTheme: 'پوسته روشن',
-            darkTheme: 'Dark Theme (پوسته تاریک)',
-            resolution: 'وضوح 1080p صفحه',
-            toggleInReport: 'تغییر در گزارش',
-        },
+        zoomControls: 'کنترل‌های بزرگ‌نمایی',
+        legendControls: 'کنترل‌های راهنما',
         data: [
             { month: 'ژانوِیه', sales: 150, revenue: 200 },
             { month: 'فوریه', sales: 230, revenue: 310 },
@@ -113,21 +90,13 @@ const LANGUAGES = {
     he: {
         localeText: AG_CHARTS_LOCALE_HE_IL,
         enableRtl: true,
-        title: 'מכירות מוצרים חודשיות',
-        subtitle: 'נתוני Revenue חודשיים',
-        footnote: 'מקור: מחלקת מכירות | Source: Sales Department',
-        yAxisTitle: 'הסכום Amount בשקלים',
+        title: 'סקירת ביצועי Sales מכירות מוצרים רבעונית',
+        subtitle: 'השוואת נתוני Revenue מכירות והכנסות בין קטגוריות לשנת 2024',
+        footnote: 'מקור: מחלקת מכירות אזורית — Sales Department דוח פנימי',
+        yAxisTitle: 'הסכום Amount בשקלים חדשים',
         seriesNames: ['מכירות Sales', 'הכנסות Revenue'],
-        contextMenu: {
-            viewSalesReport: 'הצג Sales דוח',
-            exportOptions: 'Export אפשרויות',
-            csvFormat: 'פורמט CSV',
-            chartSettings: 'הגדרות תרשים | Chart Settings',
-            lightTheme: 'ערכת נושא בהירה',
-            darkTheme: 'Dark Theme (ערכת נושא כהה)',
-            resolution: 'רזולוציה 1080p מסך',
-            toggleInReport: 'הצג בדוח',
-        },
+        zoomControls: 'פקדי זום',
+        legendControls: 'פקדי מקרא',
         data: [
             { month: 'ינואר', sales: 150, revenue: 200 },
             { month: 'פברואר', sales: 230, revenue: 310 },
@@ -139,79 +108,43 @@ const LANGUAGES = {
     },
 };
 
-function buildContextMenuItems(labels: (typeof LANGUAGES)['en']['contextMenu']): AgContextMenuItem[] {
-    return [
-        'download',
-        'separator',
-        {
-            type: 'action',
-            label: labels.viewSalesReport,
-            action: () => console.log('View Sales Report clicked'),
-        },
-        {
-            label: labels.exportOptions,
-            items: [
-                {
-                    type: 'action',
-                    label: labels.csvFormat,
-                    action: () => console.log('CSV Format clicked'),
-                },
-                {
-                    label: labels.chartSettings,
-                    items: [
-                        {
-                            type: 'action',
-                            label: labels.lightTheme,
-                            action: () => console.log('Light Theme clicked'),
-                        },
-                        {
-                            type: 'action',
-                            label: labels.darkTheme,
-                            action: () => console.log('Dark Theme clicked'),
-                        },
-                        {
-                            type: 'action',
-                            label: labels.resolution,
-                            action: () => console.log('Resolution 1080p clicked'),
-                        },
-                    ],
-                },
-            ],
-        },
-        'separator',
-        {
-            showOn: 'legend-item',
-            type: 'action',
-            label: labels.toggleInReport,
-            action: () => console.log('Toggle in Report clicked'),
-        },
-    ];
-}
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     enableRtl: false,
     locale: {
         localeText: AG_CHARTS_LOCALE_EN_US,
     },
-    title: { text: 'Monthly Product Sales' },
-    subtitle: { text: 'Sales and Revenue Data for 2024' },
-    footnote: { text: 'Source: Sales Department' },
+    title: { text: LANGUAGES.en.title, wrapping: 'never', maxWidth: 300 },
+    subtitle: { text: LANGUAGES.en.subtitle, wrapping: 'always', maxWidth: 300 },
+    footnote: { text: LANGUAGES.en.footnote },
     data: LANGUAGES.en.data,
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'sales', yName: 'Sales' },
-        { type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+        { type: 'bar', xKey: 'month', yKey: 'sales', yName: LANGUAGES.en.seriesNames[0] },
+        { type: 'bar', xKey: 'month', yKey: 'revenue', yName: LANGUAGES.en.seriesNames[1] },
     ],
     axes: {
-        x: { type: 'category', position: 'bottom' },
+        x: { type: 'category' },
         y: {
             type: 'number',
-            position: 'left',
-            title: { text: 'Amount ($)' },
+            title: { text: LANGUAGES.en.yAxisTitle },
         },
     },
+    zoom: { enabled: true },
     contextMenu: {
-        items: buildContextMenuItems(LANGUAGES.en.contextMenu),
+        items: [
+            'download',
+            'separator',
+            {
+                showOn: 'series-area',
+                label: LANGUAGES.en.zoomControls,
+                items: ['zoom-to-cursor', 'pan-to-cursor', 'reset-zoom'],
+            },
+            {
+                showOn: 'legend-item',
+                label: LANGUAGES.en.legendControls,
+                items: ['toggle-series-visibility', 'toggle-other-series'],
+            },
+        ],
     },
 };
 
@@ -221,8 +154,8 @@ function updateLanguage(lang: string) {
     const config = LANGUAGES[lang as Language];
     options.enableRtl = config.enableRtl;
     options.locale = { localeText: config.localeText };
-    options.title = { text: config.title };
-    options.subtitle = { text: config.subtitle };
+    options.title = { text: config.title, wrapping: 'never', maxWidth: 300 };
+    options.subtitle = { text: config.subtitle, wrapping: 'always', maxWidth: 300 };
     options.footnote = { text: config.footnote };
     options.data = config.data;
     options.series = [
@@ -230,15 +163,27 @@ function updateLanguage(lang: string) {
         { type: 'bar', xKey: 'month', yKey: 'revenue', yName: config.seriesNames[1] },
     ];
     options.axes = {
-        x: { type: 'category', position: 'bottom' },
+        x: { type: 'category' },
         y: {
             type: 'number',
-            position: 'left',
             title: { text: config.yAxisTitle },
         },
     };
     options.contextMenu = {
-        items: buildContextMenuItems(config.contextMenu),
+        items: [
+            'download',
+            'separator',
+            {
+                showOn: 'series-area',
+                label: config.zoomControls,
+                items: ['zoom-to-cursor', 'pan-to-cursor', 'reset-zoom'],
+            },
+            {
+                showOn: 'legend-item',
+                label: config.legendControls,
+                items: ['toggle-series-visibility', 'toggle-other-series'],
+            },
+        ],
     };
     chart.update(options);
 }
