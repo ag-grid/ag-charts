@@ -55,7 +55,7 @@ const EXPECTED_DEV_STAGING_FOLDER_CONTENTS = {
         'ag-charts-react',
         'ag-charts-types',
         'ag-charts-vue3',
-        'ag-charts-server-side'
+        'ag-charts-server-side',
     ],
 };
 
