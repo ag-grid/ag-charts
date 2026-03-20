@@ -8,6 +8,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    ActionOnSet,
     BaseProperties,
     type BoxBounds,
     ChartAxisDirection,
@@ -40,6 +41,15 @@ const DEFAULT_DROPDOWN_LABEL = 'toolbarRangeSelectRange';
  * default AbstractModuleInstance class.
  */
 export class Ranges extends BaseProperties implements ModuleInstance {
+    @ActionOnSet<Ranges, boolean>({
+        newValue(value) {
+            // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are correctly
+            // re-shown if the module is re-enabled.
+            if (!value) {
+                this.isDropdown = undefined;
+            }
+        },
+    })
     @Property
     public enabled = false;
 
