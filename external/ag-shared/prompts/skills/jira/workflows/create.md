@@ -63,7 +63,7 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
     "issueTypeName": "Bug|Task",
     "summary": "[<Prefix>] Clear, concise title",
     "description": "Formatted description from template",
-    "contentFormat": "adf",
+    "contentFormat": "markdown",
     "additional_fields": {
         "components": [{ "name": "<from product file>" }],
         "priority": { "name": "Medium" },
@@ -95,7 +95,7 @@ Bug descriptions should be concise: test cases + notes only. Do not add acceptan
 ```
 **TC1 - Tooltip missing at bar boundary**
 
-1. Open and preview https://plnkr.co/edit/abc123.
+1. Open and preview [https://plnkr.co/edit/abc123](https://plnkr.co/edit/abc123).
 
 2. Hover the mouse over the rightmost edge of any bar in the bar chart.
 
@@ -142,7 +142,7 @@ For "split from" links, see the "Issue Link Direction" section below for correct
 - [ ] Track field set correctly.
 - [ ] For Bug and Improvement tickets: Affects Version included.
 - [ ] For Bug and Improvement tickets: Bug template used (reproduction steps, actual/expected).
-- [ ] URLs are clickable ADF links showing the full URL as link text (not hidden behind display text).
+- [ ] URLs use explicit markdown link syntax `[url](url)` — bare URLs are not clickable in JIRA.
 - [ ] If fixVersion was provided: ticket transitioned from Backlog to "To Do".
 - [ ] Issue links created (if split-off or related tickets exist).
 
@@ -170,3 +170,4 @@ Think of it as: the **inward** issue is the one being referenced ("split **from*
 5. **No rationale in feature requests** — State **what** and acceptance criteria, not **why**.
 6. **Improvement = internally reported bug** — Always use the bug template for Improvement tickets, not the feature/task template.
 7. **Inline code for options** — Always wrap API option/property names in backticks in descriptions.
+8. **URLs must be explicit markdown links** — Bare URLs are NOT clickable in JIRA. Always write `[https://url](https://url)`, never just `https://url`.
