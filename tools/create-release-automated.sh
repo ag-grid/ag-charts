@@ -21,5 +21,5 @@ NEW_VERSION=$(node ./tools/calculate-next-version.js)
 node ./tools/readme/sync-readme.js
 node ./tools/updateVersionsData.js version
 
-git commit -a -m "BRANCH prep for ${NEW_VERSION}"
+git commit -a -m "BRANCH prep for ${NEW_VERSION}" --no-verify
 git push --set-upstream origin $BRANCH
