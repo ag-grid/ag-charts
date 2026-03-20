@@ -174,42 +174,79 @@ Identify tickets where one fix may resolve or affect another:
 
 ## Step 5: Prioritise
 
-Place **every ticket into exactly one priority tier**. No ticket should be
-mentioned only in prose sections (like "Borderline Calls") without also
-appearing in a tier table row. The overview metric counts must sum to the total
-ticket count — verify this before finalising.
+Place **every ticket into exactly one priority category**. No ticket should be
+mentioned only in prose sections without also appearing in a category table row.
+The overview metric counts must sum to the total ticket count — verify this
+before finalising.
 
-### Priority Tiers
+### Priority Categories (Descending Priority)
 
-**P1 — Fix in Release**
-Regressions with narrow scope and low/medium risk. Non-library fixes (example,
-docs, website) that are trivially safe. These should be fixed before release.
+Tickets are ordered by category first, then filtered by feasibility within each
+category. This reflects the release decision hierarchy: _what kind of issue is
+it?_ determines attention priority; _can we fix it safely?_ determines the
+action taken.
 
-**P2 — Fix in Release (with Caution)**
-Regressions with moderate scope or medium/high risk. Pre-existing issues with
-narrow scope AND low risk that are worth including. Need careful testing.
+**Cat A — Library Regressions**
+Bugs introduced since the previous release in library code (`ag-charts-community`,
+`ag-charts-enterprise`, framework wrappers). Highest priority — shipping new
+bugs degrades user trust and these must be addressed before release.
 
-**P3 — Defer to Next Release**
-Pre-existing issues with wide scope or high risk. Any fix where the release
-risk outweighs the benefit.
+**Cat B — Library Core Non-Regressions**
+Pre-existing bugs in core library features (axes, legend, titles/subtitles,
+tooltips, bar/line/area/pie/donut series, gridlines, crosshairs, labels). These
+features appear on most chart configurations, so bugs here affect the majority
+of users.
 
-**P4 — Needs Investigation**
-Regression status unknown, or root cause unclear. Specific next steps should
-be listed.
+**Cat C — Library Non-Core Non-Regressions**
+Pre-existing bugs in common or specialised library features (scatter, bubble,
+histogram, treemap, sunburst, sankey, navigator, zoom, etc.). Fewer users
+affected.
 
-**P5 — Duplicate / Close / Out of Scope**
-Tickets that duplicate other board tickets, existing AG-XXXXX tickets, or are
-enhancement requests rather than bugs. Note the action (close, link, or move
-to backlog).
+**Cat D — Docs & Examples**
+Documentation text errors, broken examples, incorrect API descriptions,
+misleading guidance. These are deployed independently of library NPM publishes
+and do not block the library release — they can ship on their own schedule.
 
-### Within-Tier Ordering
+**Cat E — Website**
+Website infrastructure issues — broken links, styling problems, build failures,
+navigation bugs. Lowest priority; also deployed independently of the library.
 
-Within each tier, order by:
+### Feasibility Filter
 
-1. **Regression** before **Pre-existing**
-2. **Core** prominence before **Common** before **Specialised**
-3. **Lower risk** before **Higher risk** (easier/safer fixes first)
-4. **Narrower scope** before **Wider scope**
+Within each category, assess whether the fix is feasible with acceptable risk
+for the release timeline:
+
+| Recommendation            | Criteria                                                            |
+| ------------------------- | ------------------------------------------------------------------- |
+| **Fix in release**        | Scope and risk are acceptable. Straightforward change, well-tested. |
+| **Fix with caution**      | Feasible but needs careful testing due to scope or risk.            |
+| **Defer to next release** | Risk/scope too high, or fix too complex for this release cycle.     |
+
+The feasibility filter determines the _action_ but does not change the
+_category ordering_. A deferred Library Regression (Cat A) is still listed
+before a fixable Docs issue (Cat D) — the category establishes priority for
+resource allocation and attention.
+
+### Cross-Cutting Dispositions
+
+These apply across all categories and are listed after the main priority
+categories:
+
+**Needs Investigation** — Regression status unknown or root cause unclear.
+List specific next steps to resolve the ambiguity.
+
+**Duplicate / Close / Out of Scope** — Duplicates another board ticket or
+existing AG-XXXXX ticket, or is an enhancement request. Note the action
+(close, link, or move to backlog).
+
+### Within-Category Ordering
+
+Within each category, order tickets by:
+
+1. **Fix** before **Fix with caution** before **Defer** (actionable items first)
+2. **Lower risk** before **Higher risk** (easier/safer fixes first)
+3. **Narrower scope** before **Wider scope**
+4. For Cat A: **Core** prominence before **Common** before **Specialised**
 
 ## Step 6: Produce Board Summary
 
@@ -225,39 +262,57 @@ _Generated: <date>_
 
 ## Overview
 
-| Metric               | Count |
+| Category                           | Count |
+| ---------------------------------- | ----- |
+| Total active tickets               | N     |
+| **Cat A** — Library regressions    | X     |
+| **Cat B** — Library core non-reg   | Y     |
+| **Cat C** — Library non-core       | Z     |
+| **Cat D** — Docs & examples        | D     |
+| **Cat E** — Website                | W     |
+| Needs investigation                | I     |
+| Duplicates                         | U     |
+
+| Action               | Count |
 | -------------------- | ----- |
-| Total active tickets | N     |
-| Fix in release       | X     |
-| Fix with caution     | Y     |
-| Defer                | Z     |
-| Needs investigation  | W     |
-| Duplicates           | D     |
+| → Fix in release     | F     |
+| → Fix with caution   | C     |
+| → Defer              | R     |
 
 ## Priority Order
 
-### P1 — Fix in Release
+### Cat A — Library Regressions
 
-| #   | Ticket   | Title | Category | Regression | Risk | Scope  | Assignee |
-| --- | -------- | ----- | -------- | ---------- | ---- | ------ | -------- |
-| 1   | CRT-XXXX | ...   | Example  | No         | Zero | Narrow | Name     |
+| #   | Ticket   | Title | Prominence  | Risk | Scope  | Recommendation     | Assignee |
+| --- | -------- | ----- | ----------- | ---- | ------ | ------------------ | -------- |
+| 1   | CRT-XXXX | ...   | Core        | Low  | Narrow | Fix in release     | Name     |
 
-### P2 — Fix in Release (with Caution)
+### Cat B — Library Core Non-Regressions
 
-| #   | Ticket | Title | Category | Regression | Risk | Scope | Assignee |
-| --- | ------ | ----- | -------- | ---------- | ---- | ----- | -------- |
+| #   | Ticket | Title | Risk | Scope  | Recommendation     | Assignee |
+| --- | ------ | ----- | ---- | ------ | ------------------ | -------- |
 
-### P3 — Defer to Next Release
+### Cat C — Library Non-Core Non-Regressions
 
-| #   | Ticket | Title | Category | Regression | Risk | Scope | Assignee |
-| --- | ------ | ----- | -------- | ---------- | ---- | ----- | -------- |
+| #   | Ticket | Title | Prominence  | Risk | Scope  | Recommendation     | Assignee |
+| --- | ------ | ----- | ----------- | ---- | ------ | ------------------ | -------- |
 
-### P4 — Needs Investigation
+### Cat D — Docs & Examples
 
-| #   | Ticket | Title | Category | Regression | Risk | Scope | Assignee |
-| --- | ------ | ----- | -------- | ---------- | ---- | ----- | -------- |
+| #   | Ticket | Title | Recommendation     | Assignee |
+| --- | ------ | ----- | ------------------ | -------- |
 
-### P5 — Duplicate / Close
+### Cat E — Website
+
+| #   | Ticket | Title | Recommendation     | Assignee |
+| --- | ------ | ----- | ------------------ | -------- |
+
+### Needs Investigation
+
+| #   | Ticket | Title | Category | Next Steps |
+| --- | ------ | ----- | -------- | ---------- |
+
+### Duplicate / Close
 
 | #   | Ticket | Duplicate Of | Action |
 | --- | ------ | ------------ | ------ |
@@ -268,9 +323,9 @@ _Generated: <date>_
 
 ## Assignee Workload
 
-| Assignee | Tickets      | P1  | P2  | P3+ |
-| -------- | ------------ | --- | --- | --- |
-| Name     | CRT-X, CRT-Y | 1   | 1   | 0   |
+| Assignee | Tickets       | Cat A | Cat B | Cat C | Cat D/E |
+| -------- | ------------- | ----- | ----- | ----- | ------- |
+| Name     | CRT-X, CRT-Y | 1     | 1     | 0     | 0       |
 
 ## Failures
 
@@ -281,17 +336,23 @@ _Generated: <date>_
 
 Before finalising the board summary, verify:
 
-1. **Every ticket** from Step 1 appears in exactly one priority tier table row
-2. The **overview metric counts** sum to the total ticket count
-3. The **Assignee Workload** ticket lists cover all tickets
-4. Any ticket mentioned in **Borderline Calls** also appears in a tier table
+1. **Every ticket** from Step 1 appears in exactly one category table row
+2. The **overview category counts** sum to the total ticket count
+3. The **overview action counts** (Fix + Fix with caution + Defer + Investigation + Duplicate) sum to the total
+4. The **Assignee Workload** ticket lists cover all tickets
+5. Any ticket mentioned in **Borderline Calls** also appears in a category table
 
 ### Summary Principles
 
--   Lead with actionable information — P1 tickets first
+-   Lead with actionable information — Cat A (library regressions) first
+-   The category ordering reflects release priority: library regressions are
+    blockers, non-regression library bugs are important, docs/examples/website
+    are independently releasable and do not block the NPM publish
+-   The feasibility filter (fix/defer) is applied within each category — a
+    deferred regression still appears before a fixable docs issue
 -   The summary is a decision-support tool, not a decision-maker — the user
     makes the final calls
 -   Flag any ticket where the recommendation is borderline or where you had
-    low confidence — but still place it in a tier
+    low confidence — but still place it in a category
 -   If two tickets share a root cause, note that fixing one may resolve the
     other — this affects effective workload
