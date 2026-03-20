@@ -79,7 +79,12 @@ export class DataSet<T = unknown> {
         public data: T[],
         public readonly dataIdKey?: string
     ) {
-        if (dataIdKey != null && data.length > 0) {
+        this.validateDataIdKey();
+    }
+
+    /** Eagerly builds the ID index so duplicate/missing-key warnings fire on initial load. */
+    protected validateDataIdKey(): void {
+        if (this.dataIdKey != null && this.data.length > 0) {
             this.getIdToIndexMap();
         }
     }

@@ -1847,7 +1847,7 @@ describe('DataSet', () => {
         });
 
         test('duplicate ID validation: warning logged on initial load', () => {
-            new DataSet<Item>(
+            const dataSet = new DataSet<Item>(
                 [
                     { id: 'a', value: 1 },
                     { id: 'a', value: 2 },
@@ -1855,6 +1855,7 @@ describe('DataSet', () => {
                 ],
                 'id'
             );
+            expect(dataSet.data).toHaveLength(3);
             expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
         });
 
