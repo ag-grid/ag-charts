@@ -32,9 +32,15 @@
     opacity: 0;
 }
 
+.ag-charts-proxy-elem[data-focus-override='true'],
 .ag-charts-proxy-elem:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
+}
+
+.ag-charts-proxy-elem[data-focus-override='false'] {
+    outline: none;
+    box-shadow: none;
 }
 
 .ag-charts-proxy-elem svg {
