@@ -112,36 +112,104 @@ whole board, delete the corresponding cached report(s) and re-triage them.
 
 ## Step 3: Triage Uncached Tickets
 
-For each uncached ticket, spawn a subagent to perform individual triage. Launch
-subagents in parallel (up to 5 at a time to avoid overwhelming JIRA).
+Launch agents in **waves of up to 5** to triage uncached tickets. Each agent
+must explicitly invoke the `/triage-rt` skill via the `Skill` tool.
 
-Each subagent receives these instructions:
+### Wave Execution
 
-```
-You are triaging a single JIRA ticket for a regression testing board.
+1. Take the next batch of up to 5 uncached tickets.
+2. For each ticket in the batch, use the **Agent tool** to spawn a
+   `general-purpose` subagent with this prompt:
 
-1. Read the triage-rt skill at: .rulesync/skills/triage-rt/SKILL.md
-2. Follow its complete workflow (Steps 0-7) for ticket: <TICKET-ID>
-3. IMPORTANT: The regression baseline is <BASELINE> (the previous release).
-   Use this as the comparison point in Step 3 (regression analysis) and
-   Step 6 (assignee identification). Compare `<BASELINE>..HEAD` not
-   `origin/latest..HEAD`.
-4. After producing the triage report, save it to:
-   reports/triage-rt/<TICKET-ID>.md
+    ```
+    Triage JIRA ticket <TICKET-ID> for the <CRT|RTI> regression testing board.
 
-The saved file MUST include YAML frontmatter with these fields:
-- ticket, title, category, regression, recommendation, risk, scope,
-  prominence, assignee, related_tickets, triaged_at
+    IMPORTANT — use the Skill tool to invoke the /triage-rt skill:
+      Skill(skill: "triage-rt", args: "<TICKET-ID>")
 
-Then include the full triage report body after the frontmatter.
-```
+    This loads the full triage workflow. Follow it completely (Steps 0–7).
+    DO NOT skip or compress any steps. Every step produces information that
+    the final report depends on.
 
-As subagents complete, report progress:
+    Context for the triage:
+    - Regression baseline: <BASELINE> (the previous release).
+      Compare <BASELINE>..HEAD, not origin/latest..HEAD.
+    - Product: <Charts|Grid>
+    - JIRA project: <CRT|RTI>
 
-> Triaged CRT-XXXX (3/M complete)...
+    ### Mandatory Tool Calls
 
-If a subagent fails (e.g., JIRA fetch error), note it and continue with the
-remaining tickets. Report failures at the end.
+    The skill workflow requires these tool calls at minimum. If you find
+    yourself producing a report without having made all of them, you have
+    skipped steps — go back and complete them.
+
+    1. **JIRA fetch** (Step 1): `mcp__atlassian__getJiraIssue` to get the
+       full ticket (title, description, comments, linked issues).
+    2. **Git log** (Step 3): `git log --oneline <BASELINE>..HEAD -- <paths>`
+       on the relevant source files to determine regression status.
+    3. **Codebase search** (Step 4): `Grep` or `Glob` to identify the likely
+       fix location, check class hierarchy, and assess scope/risk.
+    4. **JIRA search** (Step 5): `mcp__atlassian__searchJiraIssuesUsingJql`
+       to find duplicates and related tickets.
+    5. **Git authorship** (Step 6): `git log --format='%an'` or `git blame`
+       on the affected files to identify the suggested assignee.
+
+    ### Report Quality Requirements
+
+    After the skill produces the triage report, save it to:
+      reports/triage-rt/<TICKET-ID>.md
+
+    The saved file MUST include YAML frontmatter with these fields:
+    - ticket, title, category, regression, recommendation, risk, scope,
+      prominence, assignee, related_tickets, triaged_at
+
+    Then include the full triage report body after the frontmatter.
+    The body MUST contain ALL of these sections (from the /triage-rt Step 7
+    template):
+
+    - **Classification** — category, regression status, severity assessment
+    - **Regression Analysis** — which commits/files were checked, what was
+      found or not found, and the conclusion
+    - **Library Impact** (if Library category) — affected area, feature
+      prominence with rationale, scope of change with rationale, risk of
+      change with rationale
+    - **Suggested Assignee** — name(s) with git-based rationale
+    - **Existing Tickets** — duplicates, related tickets, release scope
+    - **Recommendation** — verdict with reasoning
+
+    A report shorter than 200 words (excluding frontmatter) indicates
+    skipped steps. Go back and complete the full workflow before saving.
+    ```
+
+    Launch all agents in the batch with a **single message** containing
+    multiple Agent tool calls (so they run in parallel). Use
+    `run_in_background: true` so you can report progress as each completes.
+
+3. As agents complete, report progress:
+   > Triaged CRT-XXXX (3/M complete)...
+
+4. When the batch is done, launch the next wave. Repeat until all uncached
+   tickets are triaged.
+
+### Validation Gate
+
+After each wave completes, spot-check the cached reports for quality:
+
+1. Read each newly saved report file.
+2. Verify it contains all required sections (Classification, Regression
+   Analysis, Library Impact if applicable, Suggested Assignee, Existing
+   Tickets, Recommendation).
+3. Check the word count — reports under 200 words (excluding frontmatter)
+   are too thin. Flag them for re-triage in the next wave.
+4. If more than half the reports in a wave fail validation, pause and report
+   the issue to the user before continuing — the sub-agents may not be
+   executing the skill correctly.
+
+### Error Handling
+
+If an agent fails (e.g., JIRA fetch error, skill not found), note the ticket
+and failure reason. Continue with remaining tickets. Report all failures at
+the end — do not retry in the same run.
 
 ## Step 4: Cross-Ticket Analysis
 
