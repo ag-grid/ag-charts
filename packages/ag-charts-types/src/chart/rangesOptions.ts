@@ -93,5 +93,5 @@ export type AgRangesButtonValueFunction = (
     end: Date | number,
     windowStart: Date | number,
     windowEnd: Date | number,
-    source: AgZoomEventSource
+    source: AgRangesButtonValueSource
 ) => [Date | number | undefined, Date | number | undefined];
