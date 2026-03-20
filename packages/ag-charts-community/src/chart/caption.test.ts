@@ -65,6 +65,38 @@ describe('Caption', () => {
                 await compare();
             });
         });
+
+        describe('truncate', () => {
+            const longText =
+                'This is an extremely long title that should definitely exceed the width of the chart container and be truncated under normal circumstances';
+
+            test('truncate: false on title', async () => {
+                chart = await createChart({
+                    title: { text: longText, truncate: false } as any,
+                    subtitle: { text: longText },
+                    footnote: { text: longText },
+                });
+                await compare();
+            });
+
+            test('truncate: false on all captions', async () => {
+                chart = await createChart({
+                    title: { text: longText, truncate: false } as any,
+                    subtitle: { text: longText, truncate: false } as any,
+                    footnote: { text: longText, truncate: false } as any,
+                });
+                await compare();
+            });
+
+            test('truncate: false with maxWidth', async () => {
+                chart = await createChart({
+                    title: { text: longText, truncate: false, maxWidth: 200 } as any,
+                    subtitle: { text: longText },
+                    footnote: { text: longText },
+                });
+                await compare();
+            });
+        });
     });
 
     describe('#validation', () => {
