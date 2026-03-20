@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarRange6MonthsAria: '6 ماہ',
     toolbarRangeAll: 'سب',
     toolbarRangeAllAria: 'سب',
+    toolbarRangeSelectRange: 'حد منتخب کریں',
+    toolbarRangeSelectRangeAria: 'حد منتخب کریں',
     toolbarRangeYearToDate: 'سال کی ابتدا سے',
     toolbarRangeYearToDateAria: 'سال تا حال',
     toolbarSeriesTypeCandles: 'موم بتیاں',

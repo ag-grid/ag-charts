@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     toolbarRange6MonthsAria: '۶ ماه',
     toolbarRangeAll: 'همه',
     toolbarRangeAllAria: 'همه',
+    toolbarRangeSelectRange: 'انتخاب محدوده',
+    toolbarRangeSelectRangeAria: 'انتخاب دامنه',
     toolbarRangeYearToDate: 'از ابتدای سال',
     toolbarRangeYearToDateAria: 'از ابتدای سال تا کنون',
     toolbarSeriesTypeCandles: 'شمع‌ها',

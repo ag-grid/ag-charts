@@ -156,6 +156,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarRange6MonthsAria: '6 hónap',
     toolbarRangeAll: 'Összes',
     toolbarRangeAllAria: 'Összes',
+    toolbarRangeSelectRange: 'Tartomány kiválasztása',
+    toolbarRangeSelectRangeAria: 'Tartomány kiválasztása',
     toolbarRangeYearToDate: 'Év elejétől',
     toolbarRangeYearToDateAria: 'Év elejétől',
     toolbarSeriesTypeCandles: 'Gyertyák',

@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_PT_PT: Record<string, string> = {
     toolbarRange6MonthsAria: '6 meses',
     toolbarRangeAll: 'Tudo',
     toolbarRangeAllAria: 'Tudo',
+    toolbarRangeSelectRange: 'Selecionar intervalo',
+    toolbarRangeSelectRangeAria: 'Selecionar intervalo',
     toolbarRangeYearToDate: 'YTD',
     toolbarRangeYearToDateAria: 'Ano até a data',
     toolbarSeriesTypeCandles: 'Velas',

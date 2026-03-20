@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarRange6MonthsAria: '٦ شهور',
     toolbarRangeAll: 'الكل',
     toolbarRangeAllAria: 'الكل',
+    toolbarRangeSelectRange: 'اختر النطاق',
+    toolbarRangeSelectRangeAria: 'اختر النطاق',
     toolbarRangeYearToDate: 'السنة حتى تاريخه',
     toolbarRangeYearToDateAria: 'منذ بداية السنة',
     toolbarSeriesTypeCandles: 'الشموع',

@@ -156,6 +156,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     toolbarRange6MonthsAria: '6 μήνες',
     toolbarRangeAll: 'Όλα',
     toolbarRangeAllAria: 'Όλα',
+    toolbarRangeSelectRange: 'Επιλογή εύρους',
+    toolbarRangeSelectRangeAria: 'Επιλογή εύρους',
     toolbarRangeYearToDate: 'Έτος έως σήμερα',
     toolbarRangeYearToDateAria: 'Έτος μέχρι σήμερα',
     toolbarSeriesTypeCandles: 'Κηροπήγια',

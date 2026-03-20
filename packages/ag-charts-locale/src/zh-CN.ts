@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarRange6MonthsAria: '6个月',
     toolbarRangeAll: '全部',
     toolbarRangeAllAria: '全部',
+    toolbarRangeSelectRange: '选择范围',
+    toolbarRangeSelectRangeAria: '选择范围',
     toolbarRangeYearToDate: '年初至今',
     toolbarRangeYearToDateAria: '年初至今',
     toolbarSeriesTypeCandles: '蜡烛图',

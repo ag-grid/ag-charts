@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     toolbarRange6MonthsAria: '6 місяців',
     toolbarRangeAll: 'Всі',
     toolbarRangeAllAria: 'Всі',
+    toolbarRangeSelectRange: 'Вибір діапазону',
+    toolbarRangeSelectRangeAria: 'Виберіть діапазон',
     toolbarRangeYearToDate: 'З початку року',
     toolbarRangeYearToDateAria: 'З початку року',
     toolbarSeriesTypeCandles: 'Свічки',

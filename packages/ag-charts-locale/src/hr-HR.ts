@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarRange6MonthsAria: '6 mjeseci',
     toolbarRangeAll: 'Sve',
     toolbarRangeAllAria: 'Sve',
+    toolbarRangeSelectRange: 'Odaberite raspon',
+    toolbarRangeSelectRangeAria: 'Odaberite raspon',
     toolbarRangeYearToDate: 'Godina do danas',
     toolbarRangeYearToDateAria: 'Godina do danas',
     toolbarSeriesTypeCandles: 'Svijeće',

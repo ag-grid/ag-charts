@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarRange6MonthsAria: '6 maanden',
     toolbarRangeAll: 'Alles',
     toolbarRangeAllAria: 'Alles',
+    toolbarRangeSelectRange: 'Selecteer bereik',
+    toolbarRangeSelectRangeAria: 'Selecteer bereik',
     toolbarRangeYearToDate: 'JTD',
     toolbarRangeYearToDateAria: 'Jaar tot nu toe',
     toolbarSeriesTypeCandles: 'Kaarsen',

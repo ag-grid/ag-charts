@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     toolbarRange6MonthsAria: '6 Monate',
     toolbarRangeAll: 'Alle',
     toolbarRangeAllAria: 'Alle',
+    toolbarRangeSelectRange: 'Bereich auswählen',
+    toolbarRangeSelectRangeAria: 'Bereich auswählen',
     toolbarRangeYearToDate: 'Seit Jahresbeginn',
     toolbarRangeYearToDateAria: 'Jahr bis Datum',
     toolbarSeriesTypeCandles: 'Kerzen',

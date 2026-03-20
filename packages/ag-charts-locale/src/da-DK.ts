@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarRange6MonthsAria: '6 måneder',
     toolbarRangeAll: 'Alle',
     toolbarRangeAllAria: 'Alle',
+    toolbarRangeSelectRange: 'Vælg område',
+    toolbarRangeSelectRangeAria: 'Vælg område',
     toolbarRangeYearToDate: 'ÅTD',
     toolbarRangeYearToDateAria: 'År til dato',
     toolbarSeriesTypeCandles: 'Stearinlys',

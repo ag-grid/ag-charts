@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarRange6MonthsAria: '6 luni',
     toolbarRangeAll: 'Total',
     toolbarRangeAllAria: 'Toate',
+    toolbarRangeSelectRange: 'Selectează intervalul',
+    toolbarRangeSelectRangeAria: 'Selectați intervalul',
     toolbarRangeYearToDate: 'An până în prezent',
     toolbarRangeYearToDateAria: 'Anul până în prezent',
     toolbarSeriesTypeCandles: 'Lumânări',

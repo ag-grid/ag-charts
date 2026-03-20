@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     toolbarRange6MonthsAria: '6 månader',
     toolbarRangeAll: 'Alla',
     toolbarRangeAllAria: 'Alla',
+    toolbarRangeSelectRange: 'Välj intervall',
+    toolbarRangeSelectRangeAria: 'Välj intervall',
     toolbarRangeYearToDate: 'ÅTD',
     toolbarRangeYearToDateAria: 'År till idag',
     toolbarSeriesTypeCandles: 'Ljus',
