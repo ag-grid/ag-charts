@@ -82,6 +82,7 @@
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
     background: var(--toolbar-button-background-color--disabled);
+    border-color: var(--toolbar-button-border-color--disabled);
     color: var(--toolbar-button-text-color--disabled);
     cursor: default;
 }
