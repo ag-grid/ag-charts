@@ -169,6 +169,12 @@ export class DataSet<T = unknown> {
 
     /** Applies all pending transactions to the data array. */
     commitPendingTransactions(): boolean {
+        // Eagerly build the ID index so duplicate/missing-key warnings fire on the first
+        // render cycle, even when there are no pending transactions yet.
+        if (this.dataIdKey != null && this.data.length > 0) {
+            this.getIdToIndexMap();
+        }
+
         if (!this.hasPendingTransactions()) {
             return false;
         }

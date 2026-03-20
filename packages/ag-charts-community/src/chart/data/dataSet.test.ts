@@ -1846,6 +1846,19 @@ describe('DataSet', () => {
             });
         });
 
+        test('duplicate ID validation: warning logged on first commit cycle', () => {
+            const dataSet = new DataSet<Item>(
+                [
+                    { id: 'a', value: 1 },
+                    { id: 'a', value: 2 },
+                    { id: 'b', value: 3 },
+                ],
+                'id'
+            );
+            dataSet.commitPendingTransactions();
+            expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
+        });
+
         test('duplicate ID validation: warning logged, first occurrence used', () => {
             const dataSet = new DataSet<Item>(
                 [
