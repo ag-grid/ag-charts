@@ -74,20 +74,12 @@ export class DataSet<T = unknown> {
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
     protected idToIndexCache: Map<string | number, number> | undefined;
+    private dataIdKeyValidated = false;
 
     constructor(
         public data: T[],
         public readonly dataIdKey?: string
-    ) {
-        this.validateDataIdKey();
-    }
-
-    /** Eagerly builds the ID index so duplicate/missing-key warnings fire on initial load. */
-    protected validateDataIdKey(): void {
-        if (this.dataIdKey != null && this.data.length > 0) {
-            this.getIdToIndexMap();
-        }
-    }
+    ) {}
 
     /**
      * Creates an empty DataSet.
@@ -176,8 +168,20 @@ export class DataSet<T = unknown> {
         return this.pendingTransactions.length;
     }
 
+    /** Validates dataIdKey on first commit so duplicate/missing-key warnings fire on initial load. */
+    private validateDataIdKey(): void {
+        if (this.dataIdKey != null && this.data.length > 0) {
+            this.getIdToIndexMap();
+        }
+        this.dataIdKeyValidated = true;
+    }
+
     /** Applies all pending transactions to the data array. */
     commitPendingTransactions(): boolean {
+        if (!this.dataIdKeyValidated) {
+            this.validateDataIdKey();
+        }
+
         if (!this.hasPendingTransactions()) {
             return false;
         }

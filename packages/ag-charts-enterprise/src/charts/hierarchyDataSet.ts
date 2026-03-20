@@ -16,14 +16,6 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         private readonly childrenKey: string
     ) {
         super(data, dataIdKey);
-        // Deferred: base constructor calls validateDataIdKey() before childrenKey is set,
-        // so we override it as a no-op and call it here after the subclass is fully initialised.
-        super.validateDataIdKey();
-    }
-
-    /** No-op: deferred to the end of this constructor so childrenKey is available. */
-    protected override validateDataIdKey(): void {
-        // Intentionally empty — called from super() before childrenKey is assigned.
     }
 
     /**
