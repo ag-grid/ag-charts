@@ -1100,6 +1100,16 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
+    private clearUnpreventable(): void {
+        this.activeState.lastActive = undefined;
+        // FIXME: onClearUI() & clearHighlight() dispatch an 'activeChange' event which include a
+        // preventDefault() method. Calling preventDefault() in this case would have no effect. Perhaps the
+        // 'activeChange' event might need an additional property like `readonly preventable: boolean`.
+        this.pickManager.onClearUI();
+        this.clearHighlight(false);
+        this.clearTooltip(false);
+    }
+
     private clearCachedEvents(): void {
         this.tooltip.lastHover = undefined;
         this.highlight.appliedHoverEvent = undefined;
@@ -1442,15 +1452,19 @@ export class SeriesAreaManager extends BaseManager {
         } else if (this.activeState.lastActive !== 'legend') {
             const { seriesId, itemId } = this.activeState.lastActive;
             const desiredPickedNodes: FindPickedNodesResult = this.findPickedNodes(seriesId, itemId);
-            if (desiredPickedNodes === undefined || desiredPickedNodes === 'series-hidden') {
+            if (desiredPickedNodes === undefined) {
+                // Active datum was removed (e.g. by a transaction); clear the active state.
+                this.clearUnpreventable();
+            } else if (desiredPickedNodes === 'series-hidden') {
                 if (this.isState(InteractionState.Frozen)) {
                     this.clearStaleHighlightTooltip();
                 } else {
-                    // Active datum was removed (e.g. by a transaction); clear the active state.
-                    this.activeState.lastActive = undefined;
-                    this.pickManager.onClearUI();
-                    this.clearHighlight(false);
-                    this.clearTooltip(false);
+                    this.pickManager.maybeActivate(undefined, () => {
+                        this.activeState.lastActive = undefined;
+                        this.clearCachedEvents();
+                        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+                        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+                    });
                 }
             } else {
                 this.pickManager.onPickedNodesAPI(desiredPickedNodes);
