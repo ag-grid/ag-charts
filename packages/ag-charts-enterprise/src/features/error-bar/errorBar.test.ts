@@ -893,14 +893,22 @@ describe('ErrorBars', () => {
 
     it('AG-16943 should hide error bars when series visible is set to false via update', async () => {
         const options: AgCartesianChartOptions = {
-            series: [{ ...SERIES_BOYLESLAW }],
+            series: [
+                { ...SERIES_CANADA, type: 'line' },
+                { ...SERIES_AUSTRALIA, type: 'line' },
+            ],
         };
         chart = await createEnterpriseChart(options);
         await compare();
 
-        // Hide series via update
+        // Hide first series via update — second series (with error bars) should remain
         const proxy = AgCharts.getInstance(document.body)!;
-        await proxy.update({ series: [{ ...SERIES_BOYLESLAW, visible: false }] });
+        await proxy.update({
+            series: [
+                { ...SERIES_CANADA, type: 'line', visible: false },
+                { ...SERIES_AUSTRALIA, type: 'line' },
+            ],
+        });
         await waitForChartStability(chart);
         await compare();
     });
