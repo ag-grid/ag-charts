@@ -4,6 +4,7 @@ import {
     type AgBarSeriesItemStylerParams,
     type AgBarSeriesStyle,
     type AgCartesianChartOptions,
+    AgCharts,
     type AgErrorBarItemStylerParams,
     type AgErrorBarThemeableOptions,
     type AgScatterSeriesOptions,
@@ -872,6 +873,44 @@ describe('ErrorBars', () => {
         await hoverAction(x, y - 100)(chart);
         await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(getCursor(chart)).toBe('default');
+    });
+
+    it('AG-16943 should remove error bars when errorBar config is omitted on update', async () => {
+        const options: AgCartesianChartOptions = {
+            series: [{ ...SERIES_BOYLESLAW }],
+        };
+        chart = await createEnterpriseChart(options);
+        await compare();
+
+        // Update without errorBar config
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { errorBar, ...seriesWithoutErrorBar } = SERIES_BOYLESLAW;
+        const proxy = AgCharts.getInstance(document.body)!;
+        await proxy.update({ series: [seriesWithoutErrorBar] });
+        await waitForChartStability(chart);
+        await compare();
+    });
+
+    it('AG-16943 should hide error bars when series visible is set to false via update', async () => {
+        const options: AgCartesianChartOptions = {
+            series: [
+                { ...SERIES_CANADA, type: 'line' },
+                { ...SERIES_AUSTRALIA, type: 'line' },
+            ],
+        };
+        chart = await createEnterpriseChart(options);
+        await compare();
+
+        // Hide first series via update — second series (with error bars) should remain
+        const proxy = AgCharts.getInstance(document.body)!;
+        await proxy.update({
+            series: [
+                { ...SERIES_CANADA, type: 'line', visible: false },
+                { ...SERIES_AUSTRALIA, type: 'line' },
+            ],
+        });
+        await waitForChartStability(chart);
+        await compare();
     });
 
     describe('context', () => {

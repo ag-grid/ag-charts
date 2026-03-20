@@ -238,8 +238,7 @@ export function computeBubbleAggregation(
         const sizeIndices = Array.from({ length: SIZE_QUANTIZATION }, (): number[] => []);
         for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
             const sizeValue = sizeValues[datumIndex];
-            // Treat NaN as minimum size (self-equality check is faster than Number.isFinite in hot loops)
-            const sizeRatio = sizeValue === sizeValue ? (sizeValue - sd0) / (sd1 - sd0) : 0;
+            const sizeRatio = (sizeValue - sd0) / (sd1 - sd0);
             const sizeIndex = Math.trunc(sizeRatio * SIZE_QUANTIZATION);
             if (sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION) {
                 sizeIndices[sizeIndex].push(datumIndex);

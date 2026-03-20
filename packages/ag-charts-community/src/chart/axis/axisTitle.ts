@@ -47,5 +47,8 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     wrapping: TextWrap = 'always';
 
     @Property
+    truncate: boolean = true;
+
+    @Property
     formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }

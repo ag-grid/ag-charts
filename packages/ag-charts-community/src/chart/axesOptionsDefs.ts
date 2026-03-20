@@ -224,6 +224,7 @@ export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+    truncate: boolean,
     formatter: callbackOf(textOrSegments),
     ...fontOptionsDef,
 };

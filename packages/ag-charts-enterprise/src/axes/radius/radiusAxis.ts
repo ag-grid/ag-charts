@@ -305,6 +305,7 @@ export abstract class RadiusAxis<
         title.caption.fontWeight = title.fontWeight;
         title.caption.color = title.color;
         title.caption.wrapping = title.wrapping;
+        title.caption.truncate = title.truncate;
         title.caption.maxWidth = title.maxWidth;
         title.caption.maxHeight = title.maxHeight;
 
