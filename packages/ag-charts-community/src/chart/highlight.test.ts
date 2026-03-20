@@ -601,6 +601,7 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
+                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
@@ -635,6 +636,7 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
+                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
