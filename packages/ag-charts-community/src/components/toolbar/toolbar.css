@@ -74,10 +74,6 @@
     border-color: var(--toolbar-button-border-color--active);
     color: var(--toolbar-button-text-color--active);
     z-index: 2;
-
-    + .ag-charts-toolbar__button {
-        border-inline-start-color: var(--toolbar-button-border-color--active);
-    }
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -106,6 +102,26 @@
         border-end-end-radius: var(--toolbar-border-radius);
         border-start-end-radius: var(--toolbar-border-radius);
         border-inline-end-width: var(--toolbar-button-border-width);
+        margin-inline-end: 0;
+    }
+
+    .ag-charts-toolbar__button:hover,
+    .ag-charts-toolbar__button--active,
+    .ag-charts-toolbar__button--active:hover {
+        border-inline-end-width: var(--toolbar-button-border-width);
+        margin-inline-end: calc(-1 * var(--toolbar-button-border-width));
+
+        &.ag-charts-toolbar__button--last {
+            margin-inline-end: 0;
+        }
+    }
+
+    .ag-charts-toolbar__button:hover + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
+        border-inline-start-color: var(--toolbar-button-border-color--hover);
+    }
+
+    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
+        border-inline-start-color: var(--toolbar-button-border-color--active);
     }
 }
 
@@ -153,6 +169,36 @@
     .ag-charts-toolbar {
         align-items: unset;
         position: unset;
+    }
+
+    /* Fix the floating toolbar since it only has a border width of 1px which does not play well with the fixes range buttons. */
+    .ag-charts-toolbar__button:hover {
+        border-inline-end-width: 0;
+        margin-inline-end: 0;
+
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
+            border-inline-start-width: var(--toolbar-button-border-width);
+            border-inline-start-color: var(--toolbar-button-border-color--hover);
+        }
+
+        &.ag-charts-toolbar__button--last {
+            margin-inline-end: 0;
+        }
+    }
+
+    .ag-charts-toolbar__button--active,
+    .ag-charts-toolbar__button--active:hover {
+        border-inline-end-width: 0;
+        margin-inline-end: 0;
+
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
+            border-inline-start-width: var(--toolbar-button-border-width);
+            border-inline-start-color: var(--toolbar-button-border-color--active);
+        }
+
+        &.ag-charts-toolbar__button--last {
+            margin-inline-end: 0;
+        }
     }
 }
 
