@@ -119,7 +119,7 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
             {
                 label: 'toolbarRangeAll',
                 ariaLabel: 'toolbarRangeAllAria',
-                value: undefined, // Reset zoom
+                value: [undefined, undefined], // Reset zoom
             },
         ],
     },

@@ -1,0 +1,122 @@
+---
+title: 'Range Controls'
+enterprise: true
+---
+
+Range Controls allow the user to easily navigate to specific time periods and ranges along the chart timeline.
+
+## Range Buttons
+
+{% chartExampleRunner title="Range Buttons" name="range-buttons" type="generated" /%}
+
+...
+
+```js format="snippet"
+{
+    ranges: {
+        enabled: true,
+    }
+}
+```
+
+## Custom Buttons
+
+It is possible to override the default buttons by providing an array of button objects.
+
+{% chartExampleRunner title="Custom Range Buttons" name="custom-range-buttons" type="generated" /%}
+
+Custom buttons can be defined through the `ranges` options object.
+
+```js format="snippet"
+{
+    ranges: {
+        buttons: [
+            { label: 'Teenagers', value: [15, 19] },
+            { label: 'Young Adults', value: [20, 29] },
+            { label: 'Middle Aged', value: [30, 65] },
+            { label: 'Retired', value: (_start, end) => [66, end] },
+            { label: 'All Ages', value: undefined },
+        ],
+    },
+}
+```
+
+In this configuration:
+
+-   `label` specifies the text displayed on the button.
+-   `value` determines the time range the button applies:
+    -   ...
+
+## Range Dropdown
+
+...
+
+{% chartExampleRunner title="Range Dropdown" name="range-dropdown" type="generated" /%}
+
+...
+
+```js format="snippet"
+{
+    ranges: {
+        dropdown: {
+            visible: 'always'
+        }
+    },
+}
+```
+
+In this configuration:
+
+-   ...
+
+## Position
+
+...
+
+{% chartExampleRunner title="Range Buttons Position" name="range-buttons-position" type="generated" /%}
+
+...
+
+```js format="snippet"
+{
+    ranges: {
+        position: 'bottom-left'
+    },
+}
+```
+
+In this configuration:
+
+-   ...
+
+## Customisation
+
+...
+
+{% chartExampleRunner title="Range Button Styles" name="range-button-styles" type="generated" /%}
+
+...
+
+```js format="snippet"
+{
+    ranges: {
+        button: {
+            fill:
+        }
+    },
+}
+```
+
+In this configuration:
+
+-   ...
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgRangesOptions" label="Range Control Options" %}
+{% apiReference id="AgRangesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
