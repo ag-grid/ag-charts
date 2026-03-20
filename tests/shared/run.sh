@@ -103,10 +103,15 @@ else
 fi
 
 if ${editor} ; then
-    if command -v cursor &>/dev/null ; then
+    if [ -n "${EDITOR:-}" ] ; then
+        ${EDITOR} . &
+    elif command -v cursor &>/dev/null ; then
         cursor . &
-    else
+    elif command -v code &>/dev/null ; then
         code . &
+    else
+        echo ">>> no editor found, install cursor, code, or set EDITOR environment variable"
+        exit 1
     fi
 fi
 
