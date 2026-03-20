@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     toolbarRange6MonthsAria: '6 ay',
     toolbarRangeAll: 'Tümü',
     toolbarRangeAllAria: 'Tümü',
+    toolbarRangeSelectRange: 'Aralığı seç',
+    toolbarRangeSelectRangeAria: 'Aralığı seç',
     toolbarRangeYearToDate: "YTD'ye Kadar",
     toolbarRangeYearToDateAria: 'Yıl başından bu yana',
     toolbarSeriesTypeCandles: 'Mumlar',

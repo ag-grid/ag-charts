@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarRange6MonthsAria: '6 חודשים',
     toolbarRangeAll: 'הכל',
     toolbarRangeAllAria: 'הכל',
+    toolbarRangeSelectRange: 'בחר טווח',
+    toolbarRangeSelectRangeAria: 'בחר טווח',
     toolbarRangeYearToDate: 'השנה',
     toolbarRangeYearToDateAria: 'השנה',
     toolbarSeriesTypeCandles: 'נרות',

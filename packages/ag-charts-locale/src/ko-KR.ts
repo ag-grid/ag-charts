@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarRange6MonthsAria: '6개월',
     toolbarRangeAll: '전체',
     toolbarRangeAllAria: '모두',
+    toolbarRangeSelectRange: '범위 선택',
+    toolbarRangeSelectRangeAria: '범위 선택',
     toolbarRangeYearToDate: '연초부터 현재까지',
     toolbarRangeYearToDateAria: '올해 초부터 현재까지',
     toolbarSeriesTypeCandles: '캔들',

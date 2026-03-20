@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarRange6MonthsAria: '6か月',
     toolbarRangeAll: 'すべて',
     toolbarRangeAllAria: 'すべて',
+    toolbarRangeSelectRange: '範囲を選択',
+    toolbarRangeSelectRangeAria: '範囲を選択',
     toolbarRangeYearToDate: '年初来',
     toolbarRangeYearToDateAria: '年初来',
     toolbarSeriesTypeCandles: 'キャンドル',

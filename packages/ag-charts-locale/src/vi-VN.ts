@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarRange6MonthsAria: '6 tháng',
     toolbarRangeAll: 'Tất cả',
     toolbarRangeAllAria: 'Tất cả',
+    toolbarRangeSelectRange: 'Chọn phạm vi',
+    toolbarRangeSelectRangeAria: 'Chọn phạm vi',
     toolbarRangeYearToDate: 'Từ đầu năm đến nay',
     toolbarRangeYearToDateAria: 'Từ đầu năm đến nay',
     toolbarSeriesTypeCandles: 'Nến',

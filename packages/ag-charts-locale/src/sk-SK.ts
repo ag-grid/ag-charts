@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarRange6MonthsAria: '6 mesiacov',
     toolbarRangeAll: 'Všetky',
     toolbarRangeAllAria: 'Všetko',
+    toolbarRangeSelectRange: 'Vybrať rozsah',
+    toolbarRangeSelectRangeAria: 'Vyberte rozsah',
     toolbarRangeYearToDate: 'Od začiatku roka',
     toolbarRangeYearToDateAria: 'Rok do dnešného dňa',
     toolbarSeriesTypeCandles: 'Sviečky',

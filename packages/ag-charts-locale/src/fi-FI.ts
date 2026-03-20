@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarRange6MonthsAria: '6 kuukautta',
     toolbarRangeAll: 'Kaikki',
     toolbarRangeAllAria: 'Kaikki',
+    toolbarRangeSelectRange: 'Valitse alue',
+    toolbarRangeSelectRangeAria: 'Valitse alue',
     toolbarRangeYearToDate: 'Vuodesta tähän päivään',
     toolbarRangeYearToDateAria: 'Vuosi tähän päivään',
     toolbarSeriesTypeCandles: 'Kynttilät',

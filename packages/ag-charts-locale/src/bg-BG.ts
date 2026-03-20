@@ -155,6 +155,8 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarRange6MonthsAria: '6 месеца',
     toolbarRangeAll: 'Всички',
     toolbarRangeAllAria: 'Всички',
+    toolbarRangeSelectRange: 'Изберете диапазон',
+    toolbarRangeSelectRangeAria: 'Изберете диапазон',
     toolbarRangeYearToDate: 'От началото на годината',
     toolbarRangeYearToDateAria: 'Годината до днешна дата',
     toolbarSeriesTypeCandles: 'Свещи',
