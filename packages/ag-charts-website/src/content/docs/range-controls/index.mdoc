@@ -21,7 +21,7 @@ Set `ranges.enabled` to `true` to display range control buttons.
 In this example:
 
 -   Clicking a range button updates the visible range to the corresponding time period.
--   Time periods are calculated from the end of the axis domain. For example, '1 Month' shows the last month of data.
+-   Time periods are calculated from the end of the axis domain. For example, '1 M' shows the last month of data.
 -   Range controls are commonly used alongside [Zoom](./zoom/) and [Navigator](./navigator/) for a complete navigation experience.
 -   Financial Charts also include range controls - see [Financial Charts - Range Buttons](./range-buttons/).
 
@@ -67,7 +67,7 @@ The `value` property accepts:
 
 -   [Calendar Interval](#calendar-intervals) - An `AgTimeInterval` or `AgTimeIntervalUnit` for calendar-aware ranges on time axes.
 -   Number - A duration in milliseconds for time axes, or a numeric offset for number axes.
--   Pair - A Number, Date or String array `[start, end]` defining an absolute range.
+-   Pair - A Number, Date or `undefined` array `[start, end]` defining an absolute range.
 -   [Function](#window-relative-functions) - A function that receives the data domain and current visible window, and returns a new range.
 -   `undefined` - Resets the zoom to show all data or the initial zoom range.
 

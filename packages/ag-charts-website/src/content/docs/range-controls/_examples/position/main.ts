@@ -1,5 +1,5 @@
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     AgRangesPosition,
     LineSeriesModule,
@@ -22,7 +22,7 @@ ModuleRegistry.registerModules([
     NavigatorModule,
 ]);
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: { text: 'Daily Readings' },

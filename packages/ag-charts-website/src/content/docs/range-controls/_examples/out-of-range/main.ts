@@ -1,5 +1,5 @@
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     LineSeriesModule,
     ModuleRegistry,
@@ -21,7 +21,7 @@ ModuleRegistry.registerModules([
     NavigatorModule,
 ]);
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
