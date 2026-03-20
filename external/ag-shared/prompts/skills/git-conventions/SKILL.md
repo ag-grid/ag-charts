@@ -29,7 +29,7 @@ description: >-
 
 ## Pull Requests
 
--   **Base branch:** `latest` (the default branch — not `main` or `master`). Use a `bX.Y.Z` release branch as base when the work targets that release. This includes any changes needed during the current release cycle — code fixes, skill/prompt updates for release testing, example fixes, doc corrections. Only target `latest` for work that doesn't need to ship with the current release. When in doubt: if you're on a release branch, the PR base should be that release branch.
+-   **Base branch:** Detect the base branch from git context — do not assume `latest`. If the current branch was created from a `bX.Y.Z` release branch, the PR must target that release branch. This includes any changes needed during the current release cycle — code fixes, skill/prompt updates, example fixes, doc corrections. Only target `latest` for work that doesn't need to ship with the current release. To determine the base: compare merge-base distances from HEAD to recent (last ~3 months) `origin/bX.Y.Z` release branches, iterating newest-to-oldest — when the distance increases, the previous branch is the parent. Fall back to `origin/latest` if no release branch is closer. The user may not mention which base to use, so always detect it from git ancestry.
 -   **Title:** `AG-XXXX <description>` for JIRA-linked; plain description otherwise. Under 70 characters.
 -   **Multiple tickets:** comma-separate keys (e.g. `CRT-1030, CRT-1044 Fix highlight`)
 -   **Body (JIRA-linked):** JIRA ticket link(s). Add context only when the change needs explanation beyond the ticket.

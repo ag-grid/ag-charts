@@ -93,16 +93,36 @@ Scan the `external/` directory for symlinked directories that resolve to separat
 
 ### STEP 3: Identify Base Branch
 
-Determine the correct base branch for the PR:
+Determine the correct base branch for the PR. Users often won't specify the base — detect it from git ancestry.
 
-1.  Check if the current branch was created from a `bX.Y.Z` release branch:
+1.  If `${ARGUMENTS}` contains `--base <branch>`, use that override and skip detection.
+2.  Otherwise, detect the parent branch from git ancestry. Only consider recent release branches (created within the last ~3 months) and iterate from newest to oldest — when the merge-base distance increases from one release branch to the next older one, the previous (newer) branch is the parent:
     ```bash
-    git log --oneline --decorate --all | head -30
-    git merge-base --is-ancestor origin/latest HEAD && echo "descends from latest"
+    git fetch origin --quiet
+    CUTOFF=$(date -v-3m +%Y%m%d 2>/dev/null || date -d '3 months ago' +%Y%m%d)
+    LATEST_DIST=$(git rev-list --count "$(git merge-base origin/latest HEAD)..HEAD")
+    echo "latest $LATEST_DIST"
+    PREV_DIST=""
+    PREV_REF=""
+    # List recent release branches newest-first, filtered by cutoff date
+    for ref in $(git branch -r --list 'origin/b[0-9]*' --sort=-creatordate \
+        --format='%(creatordate:format:%Y%m%d) %(refname:short)' \
+        | awk -v cutoff="$CUTOFF" '$1 >= cutoff {print $2}'); do
+      mb=$(git merge-base "$ref" HEAD 2>/dev/null) || continue
+      count=$(git rev-list --count "$mb..HEAD")
+      echo "$ref $count"
+      if [ -n "$PREV_DIST" ] && [ "$count" -gt "$PREV_DIST" ]; then
+        echo "PARENT: $PREV_REF (distance $PREV_DIST)"
+        break
+      fi
+      PREV_DIST="$count"
+      PREV_REF="$ref"
+    done
     ```
-2.  **Default base:** `latest` (the main branch).
-3.  **Release base:** If the branch clearly descends from a `bX.Y.Z` branch (and not `latest`), use that release branch as the base.
-4.  If ambiguous, ask the user which base branch to target.
+    If a release branch is found with a shorter distance than `origin/latest`, use it. The distance increasing from one release branch to the next older one confirms the branch point.
+3.  **Release base:** If the nearest parent is `origin/bX.Y.Z`, use that release branch as the base (e.g., `b13.2.0`).
+4.  **Default base:** If no release branch is closer than `origin/latest`, use `latest`.
+5.  If ambiguous, ask the user which base branch to target.
 
 Store the result as `BASE_BRANCH`.
 
