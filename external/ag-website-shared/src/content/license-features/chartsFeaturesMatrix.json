@@ -586,6 +586,15 @@
             },
             {
                 "label": {
+                    "name": "Range Buttons",
+                    "link": "https://www.ag-grid.com/charts/r/range-controls/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
                     "name": "Scrollbar",
                     "link": "https://www.ag-grid.com/charts/r/scrollbar/"
                 },
