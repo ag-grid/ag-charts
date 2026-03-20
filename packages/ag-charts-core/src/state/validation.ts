@@ -29,6 +29,7 @@ const similarOptionsMap = [
     ['whisker', 'wick'],
     ['src', 'url'],
     ['width', 'thickness'],
+    ['show', 'visible', 'enabled'],
 ].reduce((map, words) => {
     for (const word of words) {
         map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));

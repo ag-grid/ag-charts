@@ -136,8 +136,10 @@ Operations are processed in order: add, then remove, then update.
 
 ## Identifying Items by Key
 
-Set `dataIdKey` to a property name on your data items to identify them by that field
-instead of by object reference. When `dataIdKey` is set:
+Set the `dataIdKey` chart option to a property name on your data items to identify them by that field
+instead of by object reference.
+
+When `dataIdKey` is set:
 
 -   **Remove** operations only need the ID field on each item.
 -   **Update** operations match by ID and replace the existing datum with the new object.
