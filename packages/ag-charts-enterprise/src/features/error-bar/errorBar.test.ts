@@ -905,6 +905,51 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('AG-16943 should not change Y-axis when toggling visible after remove/add cycle', async () => {
+        const data = [
+            { x: 1, y: 10, yLower: 8, yUpper: 12 },
+            { x: 2, y: 20, yLower: 17, yUpper: 23 },
+            { x: 3, y: 15, yLower: 12, yUpper: 18 },
+            { x: 4, y: 25, yLower: 22, yUpper: 28 },
+            { x: 5, y: 18, yLower: 15, yUpper: 21 },
+        ];
+        const options: AgCartesianChartOptions = {
+            data,
+            series: [
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    errorBar: { visible: true, yLowerKey: 'yLower', yUpperKey: 'yUpper' },
+                },
+            ],
+        };
+        chart = await createEnterpriseChart(options);
+        const proxy = AgCharts.getInstance(document.body)!;
+
+        // Remove error bars, then add back without visible
+        delete (options.series![0] as any).errorBar;
+        await proxy.update(options);
+        await waitForChartStability(chart);
+
+        (options.series![0] as any).errorBar = { yLowerKey: 'yLower', yUpperKey: 'yUpper' };
+        await proxy.update(options);
+        await waitForChartStability(chart);
+        await compare(); // snapshot 1: after add
+
+        // Record Y-axis domain before toggle
+        const yAxis = chart.axes.find((a: any) => a.direction === 'y') as any;
+        const domainBefore = yAxis?.dataDomain?.domain?.slice();
+
+        // Toggle visible (undefined → true) - should not change Y-axis domain
+        (options.series![0] as any).errorBar.visible = !(options.series![0] as any).errorBar.visible;
+        await proxy.update(options);
+        await waitForChartStability(chart);
+
+        const domainAfter = yAxis?.dataDomain?.domain?.slice();
+        expect(domainAfter).toEqual(domainBefore);
+    });
+
     describe('context', () => {
         type TDatum = Readonly<{ quarter: string; sales: number; salesLower: number; salesUpper: number }>;
         type TContext = object;
