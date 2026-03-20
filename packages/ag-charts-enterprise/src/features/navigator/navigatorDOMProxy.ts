@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type BoxBounds, clamp } from 'ag-charts-core';
 
 const { SliderWidget } = _ModuleSupport;
@@ -69,6 +69,8 @@ export class NavigatorDOMProxy {
             slider.keyboardStep = SliderWidget.STEP_ONE;
             slider.orientation = 'horizontal';
             slider.setPreventsDefault(false);
+            slider.addListener('focus', () => this.clearFocusOverride(slider));
+            slider.addListener('keydown', () => this.clearFocusOverride(slider));
             slider.addListener('drag-start', (ev) => this.onDragStart(index, ev, key));
             slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
@@ -135,6 +137,10 @@ export class NavigatorDOMProxy {
         this.toolbar.moveChild(otherSlider, frontSlider.domIndex! - 1);
     }
 
+    private clearFocusOverride(slider: _Widget.Widget) {
+        slider.setFocusOverride(undefined);
+    }
+
     private onDragStart(index: number, event: _ModuleSupport.DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
         const slider: _ModuleSupport.SliderWidget = this.sliders[index];
         const toolbarLeft = this.toolbar.cssLeft();
@@ -143,6 +149,7 @@ export class NavigatorDOMProxy {
         this.moveToFront(index); // AG-13780
         event.sourceEvent.preventDefault();
         slider.focus();
+        slider.setFocusOverride(false);
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
