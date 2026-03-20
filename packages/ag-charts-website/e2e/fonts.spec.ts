@@ -1,6 +1,8 @@
 import { expect, test } from './fixture';
 import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
+const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
+
 test.describe('fonts', () => {
     setupIntrinsicAssertions(test);
 
@@ -8,32 +10,22 @@ test.describe('fonts', () => {
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
-            // TODO: flaky — Google Font downloads intermittently timeout in CI.
-            test.skip('google fonts', async ({ page }) => {
-                await gotoExample(page, url);
-
-                // Poll individual FontFace.status for each Google Font. Unlike
-                // fonts.check() (which returns true when a matching @font-face exists,
-                // before the file downloads) and fonts.ready (which resolves before
-                // @import triggers downloads), FontFace.status tracks the actual
-                // download lifecycle: 'unloaded' → 'loading' → 'loaded'.
-                await page.waitForFunction(
-                    (families: string[]) => {
-                        const fonts = [...document.fonts];
-                        return families.every((family) =>
-                            fonts.some((f) => f.family.replace(/['"]/g, '') === family && f.status === 'loaded')
-                        );
-                    },
-                    ['Pacifico', 'DM Serif Text', 'Orbitron'],
-                    { timeout: 15_000 }
+            test('google fonts', async ({ page }) => {
+                // Pre-warm the browser's font cache before navigating to the example.
+                // This ensures fonts are already loaded when the chart renders, eliminating
+                // the race between font download and initial chart render.
+                const fontParams = GOOGLE_FONT_FAMILIES.map(
+                    (f) => `family=${encodeURIComponent(f)}:wght@100;200;300;400;500;600;700;800;900`
+                ).join('&');
+                const fontUrl = `https://fonts.googleapis.com/css2?${fontParams}&display=swap`;
+                await page.goto('about:blank');
+                await page.addStyleTag({ url: fontUrl });
+                await page.evaluate(
+                    (families) => Promise.all(families.map((f) => document.fonts.load(`16px "${f}"`))),
+                    GOOGLE_FONT_FAMILIES
                 );
 
-                // Wait for the font-triggered re-render chain to complete:
-                // fonts loaded → ResizeObserver fires → chart schedules update → re-render.
-                // Two rAFs ensure ResizeObserver callbacks have fired (they run between
-                // layout and paint). If fonts loaded during the initial render, no
-                // re-render is needed and waitForAllChartUpdates passes immediately.
-                await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+                await gotoExample(page, url);
                 await waitForAllChartUpdates(page);
 
                 const { canvas } = await locateCanvas(page);
