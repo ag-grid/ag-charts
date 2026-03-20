@@ -76,6 +76,9 @@ export class Caption extends BaseProperties implements CaptionLike {
     wrapping: TextWrap = 'always';
 
     @Property
+    truncate: boolean = true;
+
+    @Property
     padding: number = 0;
 
     @Property
@@ -92,9 +95,11 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
-        const { text, padding, wrapping } = this;
-        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
-        const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
+        const { text, padding, wrapping, truncate } = this;
+        const effectiveContainerWidth = truncate ? containerWidth : Infinity;
+        const effectiveContainerHeight = truncate ? containerHeight : Infinity;
+        const maxWidth = Math.min(this.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
+        const maxHeight = this.maxHeight ?? effectiveContainerHeight - padding * 2;
         const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
 
         if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {

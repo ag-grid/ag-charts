@@ -701,6 +701,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.fontStyle = title.fontStyle;
         caption.fontWeight = title.fontWeight;
         caption.wrapping = title.wrapping;
+        caption.truncate = title.truncate;
         caption.maxWidth = title.maxWidth;
         caption.maxHeight = title.maxHeight;
 

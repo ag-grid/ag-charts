@@ -64,6 +64,11 @@ export interface AgAxisCaptionOptions {
      * Default: `'always'`
      */
     wrapping?: TextWrap;
+    /** Whether the title text should be automatically truncated to fit the available axis length.
+     *
+     * Default: `true`
+     */
+    truncate?: boolean;
     /** Formatter to allow dynamic axis title calculation. */
     formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }

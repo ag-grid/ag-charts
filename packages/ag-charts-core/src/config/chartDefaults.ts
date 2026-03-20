@@ -172,6 +172,8 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
 };
 // @ts-expect-error undocumented option
 chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+chartCaptionOptionsDefs.truncate = undocumented(boolean);
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
