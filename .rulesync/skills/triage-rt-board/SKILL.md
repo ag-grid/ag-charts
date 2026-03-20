@@ -332,6 +332,85 @@ _Generated: <date>_
 [Any tickets that could not be triaged, with error details]
 ```
 
+## Step 7: Apply Prioritisation to JIRA Board
+
+After producing the board summary, offer to apply the priority ordering to the
+JIRA board by updating issue rank. This requires the JIRA Agile REST API —
+the Atlassian MCP tools **cannot** change rank (see `/jira` skill → "Ranking
+Issues" for full details).
+
+### 7a. Verify JIRA REST API Credentials
+
+The Agile API requires direct REST API auth via environment variables, separate
+from the Atlassian MCP OAuth connection.
+
+```bash
+source ~/.zshrc
+curl -s -w "\nHTTP: %{http_code}" \
+  "${JIRA_URL}/rest/api/3/myself" \
+  -u "${JIRA_USERNAME}:${JIRA_API_TOKEN}"
+```
+
+If this returns HTTP 200, proceed to 7b.
+
+If it returns 401 or the env vars are missing, inform the user:
+
+> JIRA REST API credentials are not available or have expired.
+>
+> To apply the board ranking, I need `JIRA_URL`, `JIRA_USERNAME`, and
+> `JIRA_API_TOKEN` set in your shell environment.
+>
+> Generate a token at: https://id.atlassian.com/manage-profile/security/api-tokens
+>
+> Then add to `~/.zshrc`:
+> ```
+> export JIRA_URL="https://ag-grid.atlassian.net"
+> export JIRA_USERNAME="your.email@ag-grid.com"
+> export JIRA_API_TOKEN="your-token-here"
+> ```
+
+Do not proceed until auth is confirmed working.
+
+### 7b. Rank All Tickets
+
+Construct a single `PUT /rest/agile/1.0/issue/rank` call with all tickets
+(up to 50) in the priority order from the board summary.
+
+Strategy: place the first N−1 tickets before the last ticket using
+`rankBeforeIssue`. The `issues` array preserves the listed order.
+
+```bash
+source ~/.zshrc
+curl -s -o /dev/null -w "%{http_code}" -X PUT \
+  "${JIRA_URL}/rest/agile/1.0/issue/rank" \
+  -H 'Content-Type: application/json' \
+  -u "${JIRA_USERNAME}:${JIRA_API_TOKEN}" \
+  -d '{
+    "issues": ["CRT-first", "CRT-second", "...", "CRT-penultimate"],
+    "rankBeforeIssue": "CRT-last",
+    "rankCustomFieldId": 10120
+  }'
+```
+
+Expected response: **204** = success.
+
+### 7c. Verify
+
+Confirm the new order with a JQL query:
+
+```bash
+source ~/.zshrc
+curl -s "${JIRA_URL}/rest/api/3/search/jql" -G \
+  --data-urlencode "jql=project = CRT AND key in (...) ORDER BY rank ASC" \
+  --data-urlencode "fields=summary" \
+  --data-urlencode "maxResults=50" \
+  -u "${JIRA_USERNAME}:${JIRA_API_TOKEN}" | jq '[.issues[] | {key, summary: .fields.summary}]'
+```
+
+Report the verified order to the user.
+
+---
+
 ### Verification Checklist
 
 Before finalising the board summary, verify:
