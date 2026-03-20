@@ -283,9 +283,10 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private update() {
+        this.groupNode.visible = this.cartesianSeries.visible;
         const nodeData = this.getNodeData();
+        this.selection.update(nodeData ?? []);
         if (nodeData != null) {
-            this.selection.update(nodeData);
             this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
     }

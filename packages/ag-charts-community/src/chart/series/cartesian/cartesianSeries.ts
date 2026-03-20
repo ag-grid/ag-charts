@@ -731,6 +731,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData != null;
         this.contentGroup.visible = animationEnabled || visible;
+        this.annotationGroup.visible = animationEnabled || visible;
 
         this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
 
