@@ -1662,7 +1662,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
 
-        forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus, userExplicitlyPassedData);
+        forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
         const updateType = majorChange ? ChartUpdateType.FULL : minimumUpdateType;
         this.maybeResetAnimations(seriesStatus);
@@ -1745,15 +1745,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private shouldForceNodeDataRefresh(
-        deltaOptions: AgChartOptions,
-        seriesStatus: SeriesChangeType,
-        userExplicitlyPassedData: boolean
-    ) {
-        const seriesDataUpdate =
-            (!!deltaOptions.data && userExplicitlyPassedData) ||
-            seriesStatus === 'data-change' ||
-            seriesStatus === 'replaced';
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
+        const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const optionsHaveLegend = ['legend', 'gradientLegend'].some(
             (legendKey) => (deltaOptions as any)[legendKey] != null
         );
