@@ -96,30 +96,11 @@ Scan the `external/` directory for symlinked directories that resolve to separat
 Determine the correct base branch for the PR. Users often won't specify the base — detect it from git ancestry.
 
 1.  If `${ARGUMENTS}` contains `--base <branch>`, use that override and skip detection.
-2.  Otherwise, detect the parent branch from git ancestry. Only consider recent release branches (created within the last ~3 months) and iterate from newest to oldest — when the merge-base distance increases from one release branch to the next older one, the previous (newer) branch is the parent:
+2.  Otherwise, run the shared detection script:
     ```bash
-    git fetch origin --quiet
-    CUTOFF=$(date -v-3m +%Y%m%d 2>/dev/null || date -d '3 months ago' +%Y%m%d)
-    LATEST_DIST=$(git rev-list --count "$(git merge-base origin/latest HEAD)..HEAD")
-    echo "latest $LATEST_DIST"
-    PREV_DIST=""
-    PREV_REF=""
-    # List recent release branches newest-first, filtered by cutoff date
-    for ref in $(git branch -r --list 'origin/b[0-9]*' --sort=-creatordate \
-        --format='%(creatordate:format:%Y%m%d) %(refname:short)' \
-        | awk -v cutoff="$CUTOFF" '$1 >= cutoff {print $2}'); do
-      mb=$(git merge-base "$ref" HEAD 2>/dev/null) || continue
-      count=$(git rev-list --count "$mb..HEAD")
-      echo "$ref $count"
-      if [ -n "$PREV_DIST" ] && [ "$count" -gt "$PREV_DIST" ]; then
-        echo "PARENT: $PREV_REF (distance $PREV_DIST)"
-        break
-      fi
-      PREV_DIST="$count"
-      PREV_REF="$ref"
-    done
+    bash .rulesync/skills/git-conventions/detect-base-branch.sh
     ```
-    If a release branch is found with a shorter distance than `origin/latest`, use it. The distance increasing from one release branch to the next older one confirms the branch point.
+    This iterates all `origin/bX.Y.Z` release branches (newest version first), compares merge-base distances, and prints `BASE_BRANCH=<branch>`. If a release branch is closer than `origin/latest`, it is selected. If only one candidate exists and it is closer than `latest`, it is still selected.
 3.  **Release base:** If the nearest parent is `origin/bX.Y.Z`, use that release branch as the base (e.g., `b13.2.0`).
 4.  **Default base:** If no release branch is closer than `origin/latest`, use `latest`.
 5.  If ambiguous, ask the user which base branch to target.

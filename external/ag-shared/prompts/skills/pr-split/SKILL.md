@@ -42,31 +42,13 @@ Verify the working tree is clean, not on main branch, and gh CLI is authenticate
 
 ### Identify Base Branch
 
-Determine the correct base branch — do not assume `latest`. The user's branch may have been created from a release branch. Only consider recent release branches (last ~3 months) and iterate newest-to-oldest — when the distance increases, the previous branch is the parent:
+Determine the correct base branch — do not assume `latest`. The user's branch may have been created from a release branch. Run the shared detection script:
 
 ```bash
-git fetch origin --quiet
-CUTOFF=$(date -v-3m +%Y%m%d 2>/dev/null || date -d '3 months ago' +%Y%m%d)
-LATEST_DIST=$(git rev-list --count "$(git merge-base origin/latest HEAD)..HEAD")
-echo "latest $LATEST_DIST"
-PREV_DIST=""
-PREV_REF=""
-for ref in $(git branch -r --list 'origin/b[0-9]*' --sort=-creatordate \
-    --format='%(creatordate:format:%Y%m%d) %(refname:short)' \
-    | awk -v cutoff="$CUTOFF" '$1 >= cutoff {print $2}'); do
-  mb=$(git merge-base "$ref" HEAD 2>/dev/null) || continue
-  count=$(git rev-list --count "$mb..HEAD")
-  echo "$ref $count"
-  if [ -n "$PREV_DIST" ] && [ "$count" -gt "$PREV_DIST" ]; then
-    echo "PARENT: $PREV_REF (distance $PREV_DIST)"
-    break
-  fi
-  PREV_DIST="$count"
-  PREV_REF="$ref"
-done
+bash .rulesync/skills/git-conventions/detect-base-branch.sh
 ```
 
-If a release branch is found with a shorter distance than `origin/latest`, use it. Otherwise use `latest`. Store as `BASE_BRANCH` and use it everywhere this skill references the base branch.
+This iterates all `origin/bX.Y.Z` release branches (newest version first), compares merge-base distances, and prints `BASE_BRANCH=<branch>`. If a release branch is closer than `origin/latest`, it is selected. Otherwise `latest` is used. Store as `BASE_BRANCH` and use it everywhere this skill references the base branch.
 
 ### Extract JIRA Ticket or Branch Prefix
 
