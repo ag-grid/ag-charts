@@ -18,7 +18,12 @@ set -euo pipefail
 
 git fetch origin --quiet
 
-LATEST_DIST=$(git rev-list --count "$(git merge-base origin/latest HEAD)..HEAD")
+LATEST_MB=$(git merge-base origin/latest HEAD 2>/dev/null) || LATEST_MB=""
+if [ -n "$LATEST_MB" ]; then
+  LATEST_DIST=$(git rev-list --count "$LATEST_MB..HEAD")
+else
+  LATEST_DIST=999999
+fi
 echo "latest $LATEST_DIST"
 
 PREV_DIST=""
