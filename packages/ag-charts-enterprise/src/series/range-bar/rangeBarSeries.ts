@@ -1305,13 +1305,30 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), mode), 'added');
+        const initPos = midpointStartingBarPosition(this.isVertical(), mode);
+        const fns = prepareBarAnimationFunctions(initPos, 'added');
+
+        // CRT-1082: When the series becomes invisible (legend toggle off), collapse bars
+        // to their previous midpoint rather than to the forced-to-zero baseline.
+        const animFns =
+            !this.visible && previousContextData != null
+                ? {
+                      ...fns,
+                      toFn: ((rect: any, datum: any, status: any, ctx: any) => {
+                          if (status !== 'removed' && rect.previousDatum != null) {
+                              return initPos.calculate(rect.previousDatum);
+                          }
+                          return fns.toFn(rect, datum, status, ctx);
+                      }) as typeof fns.toFn,
+                  }
+                : fns;
+
         motion.fromToMotion(
             this.id,
             'datums',
             this.ctx.animationManager,
             [datumSelections],
-            fns,
+            animFns,
             (_, datum) => this.getDatumId(datum),
             dataDiff
         );

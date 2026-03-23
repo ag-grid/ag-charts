@@ -605,6 +605,67 @@ describe('RangeBarSeries', () => {
         }
     });
 
+    // CRT-1082: Range-bar legend toggle should collapse bars to their midpoint,
+    // not to the chart baseline.
+    describe('legend toggle animation (CRT-1082)', () => {
+        const animate = spyOnAnimationManager();
+
+        const RANGE_BAR_SERIES = {
+            type: 'range-bar' as const,
+            xKey: 'date',
+            yLowKey: 'low',
+            yHighKey: 'high',
+        };
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should animate legend toggle off at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgCartesianChartOptions = {
+                    ...RANGE_COLUMN_OPTIONS,
+                    series: [
+                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
+                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![1] as any).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+
+            it(`should animate horizontal legend toggle off at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgCartesianChartOptions = {
+                    ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
+                    series: [
+                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
+                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![1] as any).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+    });
+
     describe('gradient fill', () => {
         it('should render range column series with a default gradient fill', async () => {
             const options = {
