@@ -119,7 +119,13 @@ export class SizeMonitor {
         if (!opts?.skipInitialRead) {
             // Synchronous initial size read — cross-window ResizeObserver
             // may delay its first callback until the target window gains focus.
-            const { width, height } = element.getBoundingClientRect();
+            // Use content-box dimensions to match ResizeObserver's contentRect,
+            // avoiding a spurious second resize from border-box/content-box mismatch.
+            const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+            const width =
+                element.clientWidth - (parseFloat(style?.paddingLeft ?? '0') + parseFloat(style?.paddingRight ?? '0'));
+            const height =
+                element.clientHeight - (parseFloat(style?.paddingTop ?? '0') + parseFloat(style?.paddingBottom ?? '0'));
             if (width > 0 || height > 0) {
                 this.checkSize(entry, element, width, height);
             }
