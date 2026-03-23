@@ -63,6 +63,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
+    gridPadding: number = 0;
     sideFlag: 1 | -1 = -1;
     parallelFlipRotation: number = 0;
     regularFlipRotation: number = 0;

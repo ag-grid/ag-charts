@@ -228,6 +228,41 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
             seriesTypes: repeat('bar', 2),
         }),
     },
+    DUAL_LEFT_AXES_CROSSLINE_LINE: {
+        options: examples.DUAL_LEFT_AXES_CROSSLINE_LINE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
+    },
+    DUAL_LEFT_AXES_CROSSLINE_RANGE: {
+        options: examples.DUAL_LEFT_AXES_CROSSLINE_RANGE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
+    },
+    LEFT_RIGHT_AXES_CROSSLINE: {
+        options: examples.LEFT_RIGHT_AXES_CROSSLINE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
+    },
+    DUAL_RIGHT_AXES_CROSSLINE: {
+        options: examples.DUAL_RIGHT_AXES_CROSSLINE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
+    },
+    DUAL_BOTTOM_AXES_CROSSLINE: {
+        options: examples.DUAL_BOTTOM_AXES_CROSSLINE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number', __AXIS_ID_2: 'unit-time' },
+            seriesTypes: repeat('line', 2),
+        }),
+    },
 };
 
 const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: string[] }> = {
