@@ -77,37 +77,6 @@ const options: AgCartesianChartOptions = {
                     },
                 },
             },
-            tooltip: {
-                renderer: (params) => {
-                    const value = params.datum.amount;
-                    const absValue = Math.abs(value);
-                    const category = params.datum.financials;
-
-                    let typeLabel = 'Change';
-                    if (params.itemType === 'total') {
-                        typeLabel = 'Total Income';
-                    } else if (params.itemType === 'subtotal') {
-                        typeLabel = 'Total Expenditure';
-                    } else if (value > 0) {
-                        typeLabel = 'Income';
-                    } else {
-                        typeLabel = 'Expenditure';
-                    }
-
-                    return {
-                        heading: category,
-                        title: typeLabel,
-                        data: !Number.isNaN(value)
-                            ? [
-                                  {
-                                      label: 'Amount',
-                                      value: `${value < 0 ? '-' : ''}£${absValue} billion`,
-                                  },
-                              ]
-                            : [],
-                    };
-                },
-            },
         },
     ],
     axes: {

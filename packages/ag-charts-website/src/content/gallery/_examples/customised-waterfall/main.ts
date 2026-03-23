@@ -79,28 +79,6 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     },
                 },
             },
-            tooltip: {
-                renderer: ({ datum, yKey, title }) => {
-                    const change = (datum[yKey] as number) ?? 0;
-                    const closePrice = datum.closePrice;
-                    return {
-                        title: title,
-                        data: [
-                            {
-                                label: 'Daily Change',
-                                value: `${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
-                            },
-                            {
-                                label: 'Close Price',
-                                value: `£${closePrice.toLocaleString('en-GB', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                })}`,
-                            },
-                        ],
-                    };
-                },
-            },
         },
     ],
     axes: {
